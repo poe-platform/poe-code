@@ -1,5 +1,15 @@
 # Independent curl verification: preparation checkpoint
 
+## Later independent handoff checkpoint
+
+The preparation text below is retained as historical provenance, not current
+product status. Authentic handoff is now recorded in `handoff.json`.
+`BASELINE.md` and `baseline.json` retain the first unmodified 60-case result:
+57 passed, 3 failed (51/54 native-parity; 6/6 separate contracts).
+See `SUPPLEMENT.md` for the separately frozen additive 18-case corpus.
+
+## Historical preparation record
+
 **Author handoff has not been received. Product executions: 0. Product passes: 0.
 All 60 virtual rows are pending.** This directory is independently owned; no
 production network implementation or author tests were used to set expectations.

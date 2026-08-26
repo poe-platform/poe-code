@@ -1,0 +1,1347 @@
+{
+  "schema": 1,
+  "mode": "supplement-native",
+  "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/network-stress/supplement.ts",
+    "native"
+  ],
+  "environment": {
+    "CURL_VERIFY_AFTER_HANDOFF": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "strictUnhandledRejections": true
+  },
+  "before": {
+    "at": "2026-08-26T22:47:30.166Z",
+    "head": "adba1ea8c95dbaf8e4f4330d306d1d411d085b44",
+    "status": "M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/real/index.ts\n M tests/commands/safejs-stress/README.md\n M tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\n M tests/fs/overlay/conformance.test.ts\n?? docs/upstream-patches/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/network-stress/supplement-lab.ts\n?? tests/commands/network-stress/supplement-rows.ts\n?? tests/commands/network-stress/supplement.ts\n?? tests/commands/safejs-stress/action-abort.child.mjs\n?? tests/commands/safejs-stress/action-abort.probe.ts\n?? tests/commands/safejs-stress/artifact-guards.probe.mjs\n?? tests/commands/safejs-stress/import-proof.mjs\n?? tests/commands/safejs-stress/promise-observation.child.mjs\n?? tests/commands/safejs-stress/reason-contract.probe.mjs\n?? tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/\n?? tests/fs/mount/copy-identity-guards.test.ts\n?? tests/fs/mount/evidence/\n?? tests/fs/mount/mutation-identity.probe.ts\n?? tests/fs/real/copy-identity.test.ts\n?? tests/stress/remote-cancellation/handoff-loader.mjs\n?? tests/stress/remote-cancellation/handoff-register.mjs\n?? tests/stress/remote-cancellation/handoff-supplement.test.ts\n?? tests/stress/remote-cancellation/handoff-tsconfig.json\n?? tests/stress/remote-cancellation/handoff-verify.mjs\n?? tests/stress/remote-cancellation/handoff3731587-confirmed.json\n?? tests/stress/remote-cancellation/handoff3731587-verification.json",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "0a66dec3c3acf5cb53baa6eb187a4af0644a0d791f4b248ffa4bced8070af85d",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "ada473b772438eecf8db3c11f94b066263fcdb2a8385382ba9b1dc7ce75fcd7e",
+      "src/fs/readonly/README.md": "27f1f095cdd39665d87bd0d6302c467710c5334c36489894f85d581a758a06b7",
+      "src/fs/readonly/index.ts": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc",
+      "src/fs/real/index.ts": "e66269d176522093f110a4bb90592dec38b9b80c277d2475fa20075f779d24cf",
+      "src/fs/s3/README.md": "e1ce290a69282e12a1ab293d18e190e405dcc98229dda7f5291d564b01646cb4",
+      "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "7c957ec51b452f6725089cfcf2d3dcab4525a3caffa396a3a9d4ff5658f1786d",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture.mjs": "8a8d5c318a73cef92d6157ed724a604fcdff74f8e8c8a60ab00802c505b8764b",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesHandoff": true
+  },
+  "after": {
+    "at": "2026-08-26T22:47:31.048Z",
+    "head": "adba1ea8c95dbaf8e4f4330d306d1d411d085b44",
+    "status": "M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/real/index.ts\n M tests/commands/safejs-stress/README.md\n M tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\n M tests/fs/overlay/conformance.test.ts\n?? docs/upstream-patches/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/network-stress/supplement-lab.ts\n?? tests/commands/network-stress/supplement-rows.ts\n?? tests/commands/network-stress/supplement.ts\n?? tests/commands/safejs-stress/action-abort.child.mjs\n?? tests/commands/safejs-stress/action-abort.probe.ts\n?? tests/commands/safejs-stress/artifact-guards.probe.mjs\n?? tests/commands/safejs-stress/import-proof.mjs\n?? tests/commands/safejs-stress/promise-observation.child.mjs\n?? tests/commands/safejs-stress/reason-contract.probe.mjs\n?? tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/\n?? tests/fs/mount/copy-identity-guards.test.ts\n?? tests/fs/mount/evidence/\n?? tests/fs/mount/mutation-identity.probe.ts\n?? tests/fs/real/copy-identity.test.ts\n?? tests/stress/remote-cancellation/handoff-loader.mjs\n?? tests/stress/remote-cancellation/handoff-register.mjs\n?? tests/stress/remote-cancellation/handoff-supplement.test.ts\n?? tests/stress/remote-cancellation/handoff-tsconfig.json\n?? tests/stress/remote-cancellation/handoff-verify.mjs\n?? tests/stress/remote-cancellation/handoff3731587-confirmed.json\n?? tests/stress/remote-cancellation/handoff3731587-verification.json",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "0a66dec3c3acf5cb53baa6eb187a4af0644a0d791f4b248ffa4bced8070af85d",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "ada473b772438eecf8db3c11f94b066263fcdb2a8385382ba9b1dc7ce75fcd7e",
+      "src/fs/readonly/README.md": "27f1f095cdd39665d87bd0d6302c467710c5334c36489894f85d581a758a06b7",
+      "src/fs/readonly/index.ts": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc",
+      "src/fs/real/index.ts": "e66269d176522093f110a4bb90592dec38b9b80c277d2475fa20075f779d24cf",
+      "src/fs/s3/README.md": "e1ce290a69282e12a1ab293d18e190e405dcc98229dda7f5291d564b01646cb4",
+      "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "7c957ec51b452f6725089cfcf2d3dcab4525a3caffa396a3a9d4ff5658f1786d",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture.mjs": "8a8d5c318a73cef92d6157ed724a604fcdff74f8e8c8a60ab00802c505b8764b",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesHandoff": true
+  },
+  "changes": [],
+  "networkStable": true,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "stdout": "{\"nativeProfile\":{\"executable\":\"/usr/bin/curl\",\"sha256\":\"5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226\",\"version\":\"curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\\nRelease-Date: 2024-03-27\\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\\n\",\"headSha256\":\"b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1\",\"config\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http\",\"--proto-redir\",\"=http\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\"],\"environment\":{\"PATH\":\"/usr/bin:/bin\",\"HOME\":\"{ROOT}\",\"CURL_HOME\":\"{ROOT}\",\"XDG_CONFIG_HOME\":\"{ROOT}\",\"LC_ALL\":\"C\",\"LANG\":\"C\",\"NO_PROXY\":\"*\",\"no_proxy\":\"*\"}},\"source\":\"Official curl manual https://curl.se/docs/manpage.html; installed oracle controls expected bytes, not live-manual version assumptions\",\"nativeRows\":13,\"productRows\":18,\"strictNativeParity\":8,\"securityContracts\":5,\"lifecycleContracts\":5}\n{\"id\":\"multipart-binary-file\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-F\",\"blob=@binary.bin;type=application/octet-stream;filename=sent.bin\",\"-F\",\"tag=after\",\"{A}/echo\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzZW50LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGFnIg0KDQphZnRlcg0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64373\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"324\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------hVGeQeEFbYqT9OoqV7Vcar\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1oVkdlUWVFRmJZcVQ5T29xVjdWY2FyDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic2VudC5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0taFZHZVFlRUZiWXFUOU9vcVY3VmNhcg0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ0YWciDQoNCmFmdGVyDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLWhWR2VRZUVGYllxVDlPb3FWN1ZjYXItLQ0K\"}],\"elapsedMs\":24,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-binary-field\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-F\",\"blob=<binary.bin;type=application/octet-stream\",\"{A}/echo\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64377\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"200\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------oVCDoWARtmsJf3PJDWoQiC\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1vVkNEb1dBUnRtc0pmM1BKRFdvUWlDDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tb1ZDRG9XQVJ0bXNKZjNQSkRXb1FpQy0tDQo=\"}],\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-binary-stdin\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-F\",\"blob=@-;filename=stdin.bin;type=application/octet-stream\",\"{A}/echo\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzdGRpbi5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tRlJPWkVOX0JPVU5EQVJZLS0NCg==\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64381\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"222\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------USTgiPAX20ZRbG5v8pbDFC\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1VU1RnaVBBWDIwWlJiRzV2OHBiREZDDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic3RkaW4uYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVVTVGdpUEFYMjBaUmJHNXY4cGJERkMtLQ0K\"}],\"elapsedMs\":17,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-form-string-literal\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"--form-string\",\"text=@$(touch PWN);type=text/evil\\r\\nX-Injected: yes\",\"{A}/echo\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGV4dCINCg0KQCQodG91Y2ggUFdOKTt0eXBlPXRleHQvZXZpbA0KWC1JbmplY3RlZDogeWVzDQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64385\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"196\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------3bbRdaJVFEAJgxIZw0ZR34\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0zYmJSZGFKVkZFQUpneEladzBaUjM0DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9InRleHQiDQoNCkAkKHRvdWNoIFBXTik7dHlwZT10ZXh0L2V2aWwNClgtSW5qZWN0ZWQ6IHllcw0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0zYmJSZGFKVkZFQUpneEladzBaUjM0LS0NCg==\"}],\"elapsedMs\":16,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-307-replay\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-L\",\"-F\",\"blob=@binary.bin;type=application/octet-stream\",\"{A}/redirect307\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect307\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect307\",\"headers\":[[\"Host\",\"127.0.0.1:64389\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"223\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------k9hW57PgZZMOHgjrDn1d1a\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhLS0NCg==\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64389\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"223\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------k9hW57PgZZMOHgjrDn1d1a\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhLS0NCg==\"}],\"elapsedMs\":15,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"literal-output-path\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-o\",\"$(touch PWN);out.bin\",\"{A}/bytes\"],\"code\":0,\"signal\":null,\"stdout\":\"\",\"stderr\":\"\",\"files\":{\"$(touch PWN);out.bin\":\"AP/+DQoiO0GA\",\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"Host\",\"127.0.0.1:64394\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"}],\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"url-control-rejection\",\"kind\":\"security\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"{A}/bad\\r\\nX-Injected:yes\"],\"code\":3,\"signal\":null,\"stdout\":\"\",\"stderr\":\"curl: (3) URL rejected: Malformed input to a URL function\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-filename-control\",\"kind\":\"security\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-F\",\"blob=@binary.bin;filename=bad\\r\\nX-Injected:yes\",\"{A}/echo\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiYWQlMEQlMEFYLUluamVjdGVkOnllcyINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64401\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"Content-Length\",\"236\"],[\"Content-Type\",\"multipart/form-data; boundary=------------------------t07b9QaDkoh5JH7LJLH8Sa\"]],\"body\":\"LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS10MDdiOVFhRGtvaDVKSDdMSkxIOFNhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmFkJTBEJTBBWC1JbmplY3RlZDp5ZXMiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tdDA3YjlRYURrb2g1Skg3TEpMSDhTYS0tDQo=\"}],\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"redirect-authorization-denial\",\"kind\":\"security\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-L\",\"{A}/cross\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross\",\"headers\":[[\"Host\",\"127.0.0.1:64405\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64406\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"}],\"elapsedMs\":13,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"origin-header-permanent-strip\",\"kind\":\"security\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"-L\",\"-H\",\"X-Private: fixture-secret\",\"{A}/cross-return\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-return\",\"headers\":[[\"accept\",\"*/*\"],[\"x-private\",\"fixture-secret\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/return\",\"headers\":[[\"accept\",\"*/*\"],[\"x-private\",\"fixture-secret\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"x-private\",\"fixture-secret\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-return\",\"headers\":[[\"Host\",\"127.0.0.1:64410\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"X-Private\",\"fixture-secret\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/return\",\"headers\":[[\"Host\",\"127.0.0.1:64411\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"X-Private\",\"fixture-secret\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64410\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"],[\"X-Private\",\"fixture-secret\"]],\"body\":\"\"}],\"elapsedMs\":11,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"https-downgrade-rejection\",\"kind\":\"security\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"--cacert\",\"/Users/kjopek/Workspace/safe-bash/tests/commands/network/tls/cert.pem\",\"-L\",\"{T}/downgrade\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"T\",\"method\":\"GET\",\"path\":\"/downgrade\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"T\",\"method\":\"GET\",\"path\":\"/downgrade\",\"headers\":[[\"Host\",\"127.0.0.1:64418\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"Host\",\"127.0.0.1:64416\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"}],\"elapsedMs\":13,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-tls-untrusted\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"{T}/bytes\"],\"code\":60,\"signal\":null,\"stdout\":\"\",\"stderr\":\"curl: (60) SSL certificate problem: self signed certificate\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"elapsedMs\":270,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-missing-upload\",\"kind\":\"native-parity\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http,https\",\"--proto-redir\",\"=http,https\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"--data-binary\",\"@absent.bin\",\"{A}/echo\"],\"code\":26,\"signal\":null,\"stdout\":\"\",\"stderr\":\"curl: option --data-binary: error encountered when reading a file\\ncurl: try 'curl --help' or 'curl --manual' for more information\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"elapsedMs\":22,\"errors\":[],\"status\":\"passed\"}\n{\"mode\":\"native\",\"total\":13,\"passed\":13,\"failed\":0,\"pending\":18,\"productExecutions\":0}\n",
+  "stderr": "",
+  "records": [
+    {
+      "nativeProfile": {
+        "executable": "/usr/bin/curl",
+        "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+        "version": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+        "headSha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+        "config": [
+          "-q",
+          "--silent",
+          "--show-error",
+          "--globoff",
+          "--http1.1",
+          "--noproxy",
+          "*",
+          "--proxy",
+          "",
+          "--proto",
+          "=http",
+          "--proto-redir",
+          "=http",
+          "--connect-timeout",
+          "1",
+          "--max-time",
+          "3",
+          "--max-redirs",
+          "5"
+        ],
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "{ROOT}",
+          "CURL_HOME": "{ROOT}",
+          "XDG_CONFIG_HOME": "{ROOT}",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "NO_PROXY": "*",
+          "no_proxy": "*"
+        }
+      },
+      "source": "Official curl manual https://curl.se/docs/manpage.html; installed oracle controls expected bytes, not live-manual version assumptions",
+      "nativeRows": 13,
+      "productRows": 18,
+      "strictNativeParity": 8,
+      "securityContracts": 5,
+      "lifecycleContracts": 5
+    },
+    {
+      "id": "multipart-binary-file",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-F",
+        "blob=@binary.bin;type=application/octet-stream;filename=sent.bin",
+        "-F",
+        "tag=after",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzZW50LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGFnIg0KDQphZnRlcg0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64373"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "324"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------hVGeQeEFbYqT9OoqV7Vcar"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1oVkdlUWVFRmJZcVQ5T29xVjdWY2FyDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic2VudC5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0taFZHZVFlRUZiWXFUOU9vcVY3VmNhcg0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ0YWciDQoNCmFmdGVyDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLWhWR2VRZUVGYllxVDlPb3FWN1ZjYXItLQ0K"
+        }
+      ],
+      "elapsedMs": 24,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-binary-field",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-F",
+        "blob=<binary.bin;type=application/octet-stream",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64377"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "200"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------oVCDoWARtmsJf3PJDWoQiC"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1vVkNEb1dBUnRtc0pmM1BKRFdvUWlDDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tb1ZDRG9XQVJ0bXNKZjNQSkRXb1FpQy0tDQo="
+        }
+      ],
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-binary-stdin",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-F",
+        "blob=@-;filename=stdin.bin;type=application/octet-stream",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzdGRpbi5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tRlJPWkVOX0JPVU5EQVJZLS0NCg=="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64381"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "222"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------USTgiPAX20ZRbG5v8pbDFC"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1VU1RnaVBBWDIwWlJiRzV2OHBiREZDDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic3RkaW4uYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVVTVGdpUEFYMjBaUmJHNXY4cGJERkMtLQ0K"
+        }
+      ],
+      "elapsedMs": 17,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-form-string-literal",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--form-string",
+        "text=@$(touch PWN);type=text/evil\r\nX-Injected: yes",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGV4dCINCg0KQCQodG91Y2ggUFdOKTt0eXBlPXRleHQvZXZpbA0KWC1JbmplY3RlZDogeWVzDQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64385"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "196"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------3bbRdaJVFEAJgxIZw0ZR34"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0zYmJSZGFKVkZFQUpneEladzBaUjM0DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9InRleHQiDQoNCkAkKHRvdWNoIFBXTik7dHlwZT10ZXh0L2V2aWwNClgtSW5qZWN0ZWQ6IHllcw0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0zYmJSZGFKVkZFQUpneEladzBaUjM0LS0NCg=="
+        }
+      ],
+      "elapsedMs": 16,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-307-replay",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-L",
+        "-F",
+        "blob=@binary.bin;type=application/octet-stream",
+        "{A}/redirect307"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect307",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect307",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64389"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "223"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------k9hW57PgZZMOHgjrDn1d1a"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhLS0NCg=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64389"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "223"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------k9hW57PgZZMOHgjrDn1d1a"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1rOWhXNTdQZ1paTU9IZ2pyRG4xZDFhLS0NCg=="
+        }
+      ],
+      "elapsedMs": 15,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "literal-output-path",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-o",
+        "$(touch PWN);out.bin",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "$(touch PWN);out.bin": "AP/+DQoiO0GA",
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64394"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "url-control-rejection",
+      "kind": "security",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "{A}/bad\r\nX-Injected:yes"
+      ],
+      "code": 3,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (3) URL rejected: Malformed input to a URL function\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-filename-control",
+      "kind": "security",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-F",
+        "blob=@binary.bin;filename=bad\r\nX-Injected:yes",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiYWQlMEQlMEFYLUluamVjdGVkOnllcyINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64401"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "236"
+            ],
+            [
+              "Content-Type",
+              "multipart/form-data; boundary=------------------------t07b9QaDkoh5JH7LJLH8Sa"
+            ]
+          ],
+          "body": "LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS10MDdiOVFhRGtvaDVKSDdMSkxIOFNhDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmFkJTBEJTBBWC1JbmplY3RlZDp5ZXMiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tdDA3YjlRYURrb2g1Skg3TEpMSDhTYS0tDQo="
+        }
+      ],
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "redirect-authorization-denial",
+      "kind": "security",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-L",
+        "{A}/cross"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64405"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64406"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "elapsedMs": 13,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "origin-header-permanent-strip",
+      "kind": "security",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "-L",
+        "-H",
+        "X-Private: fixture-secret",
+        "{A}/cross-return"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-return",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64410"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/return",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64411"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64410"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "elapsedMs": 11,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "https-downgrade-rejection",
+      "kind": "security",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--cacert",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network/tls/cert.pem",
+        "-L",
+        "{T}/downgrade"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "T",
+          "method": "GET",
+          "path": "/downgrade",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "T",
+          "method": "GET",
+          "path": "/downgrade",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64418"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "127.0.0.1:64416"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "elapsedMs": 13,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-tls-untrusted",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "{T}/bytes"
+      ],
+      "code": 60,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (60) SSL certificate problem: self signed certificate\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimacy of the server and therefore could not\nestablish a secure connection to it. To learn more about this situation and\nhow to fix it, please visit the web page mentioned above.\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "elapsedMs": 270,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-missing-upload",
+      "kind": "native-parity",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http,https",
+        "--proto-redir",
+        "=http,https",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--data-binary",
+        "@absent.bin",
+        "{A}/echo"
+      ],
+      "code": 26,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: option --data-binary: error encountered when reading a file\ncurl: try 'curl --help' or 'curl --manual' for more information\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "elapsedMs": 22,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "mode": "native",
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "pending": 18,
+      "productExecutions": 0
+    }
+  ]
+}

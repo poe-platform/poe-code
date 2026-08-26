@@ -24,7 +24,7 @@ async function snapshot() {
     }
   }
   for (const directory of ["src/commands/network", "src/shell", "src/fs", "src/contracts", owned]) await walk(directory);
-  paths.push("src/index.ts", "package.json");
+  paths.push("src/index.ts", "package.json", "tests/commands/network/tls/cert.pem", "tests/commands/network/tls/key.pem");
   const hashes = {};
   for (const path of paths.sort()) {
     if (path.startsWith(owned) && !/\.(ts|mjs)$/.test(path) && !path.endsWith("oracle.json") && !path.endsWith("handoff.json")) continue;
@@ -40,6 +40,10 @@ async function snapshot() {
 }
 const before = await snapshot();
 assert(before.networkMatchesHandoff, "Network source differs from author handoff");
+if (mode === "supplement-product") {
+  const pins = JSON.parse(await readFile(`${owned}/supplement-pins.json`, "utf8"));
+  for (const [path, hash] of Object.entries(pins.hashes)) assert.equal(createHash("sha256").update(await readFile(path)).digest("hex"), hash, `Supplementary evidence changed: ${path}`);
+}
 const args = mode === "baseline" ? [`${owned}/watchdog.mjs`, "product"]
   : mode === "types" ? [`${owned}/watchdog.mjs`, "typecheck"]
   : ["--unhandled-rejections=strict", "--import", "tsx", `${owned}/supplement.ts`, mode === "supplement-native" ? "native" : "product"];

@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { wrapAnsi } from "fast-wrap-ansi";
+import { stripAnsi } from "../../internal/strip-ansi.js";
+import { GLYPHS } from "./glyphs.js";
 import { multiselectPrompt } from "./multiselect.js";
 import { createPromptHarness, tick } from "./test-helpers.js";
 
@@ -93,5 +96,68 @@ describe("multiselectPrompt", () => {
       output,
       options: [{ value: "a", label: "Alpha", disabled: true }]
     })).toThrow("Multiselect prompt requires at least one enabled option.");
+  });
+
+  it("keeps Echo visible when toggling in a seven-row terminal", async () => {
+    const { input, output } = createPromptHarness({ rows: 7, columns: 80 });
+    const choices = ["Alpha", "Bravo", "Charlie", "Delta", "Echo"].map((label) => ({ value: label, label }));
+    const result = multiselectPrompt({ message: "Pick", options: choices, input, output });
+
+    await tick();
+    input.write("\x1b[B".repeat(4));
+    const focused = stripAnsi(output.frames.at(-1) ?? "");
+    input.write(" ");
+    const toggled = stripAnsi(output.frames.at(-1) ?? "");
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["Echo"]);
+    expect(focused).toContain(`${GLYPHS.checkboxActive} Echo`);
+    expect(toggled).toContain(`${GLYPHS.checkboxSelected} Echo`);
+    expect(toggled).toContain("...");
+    expect(toggled).not.toContain("Alpha");
+  });
+
+  it("visibly toggles the wrapped active Charlie label", async () => {
+    const { input, output } = createPromptHarness({ rows: 10, columns: 12 });
+    const choices = ["Alpha long label", "Bravo long label", "Charlie long label"].map((label) => ({ value: label, label }));
+    const result = multiselectPrompt({ message: "Pick", options: choices, input, output });
+
+    await tick();
+    input.write("\x1b[B\x1b[B");
+    const focused = stripAnsi(output.frames.at(-1) ?? "");
+    input.write(" ");
+    const toggled = stripAnsi(output.frames.at(-1) ?? "");
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["Charlie long label"]);
+    expect(focused).toContain(wrapAnsi(`${GLYPHS.checkboxActive} Charlie long label`, 9, { hard: true, trim: false }));
+    expect(toggled).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Charlie long label`, 9, { hard: true, trim: false }));
+  });
+
+  it.each([{ rows: 7, columns: 80 }, { rows: 10, columns: 12 }])("preserves focus and selection through resize to $rows rows/$columns columns and back", async (size) => {
+    const { input, output } = createPromptHarness({ rows: 20, columns: 80 });
+    const choices = ["Alpha", "Bravo", "Charlie", "Delta", "Echo"].map((label) => ({ value: label, label: `${label} long label` }));
+    const result = multiselectPrompt({ message: "Pick", options: choices, input, output });
+
+    await tick();
+    input.write("\x1b[B".repeat(4));
+    output.rows = size.rows;
+    output.columns = size.columns;
+    output.emit("resize");
+    input.write(" ");
+    const shrunk = stripAnsi(output.frames.at(-1) ?? "");
+    output.rows = 20;
+    output.columns = 80;
+    output.emit("resize");
+    const grown = stripAnsi(output.frames.at(-1) ?? "");
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["Echo"]);
+    expect(shrunk).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Echo long label`, size.columns - 3, { hard: true, trim: false }));
+    expect(grown).toContain(`${GLYPHS.checkboxSelected} Echo long label`);
+    for (const choice of choices) {
+      expect(grown).toContain(choice.label);
+    }
+    expect(grown).not.toContain("...");
   });
 });

@@ -17,23 +17,6 @@ function countLines(values: string[]): number {
   return values.reduce((sum, value) => sum + value.split("\n").length, 0);
 }
 
-function trimToRows(values: string[], cursorOffset: number, rows: number, hasTop: boolean, hasBottom: boolean): string[] {
-  const output = [...values];
-  while (countLines(output) > rows && output.length > 1) {
-    const removeFromTop = hasTop && cursorOffset > 0;
-    const removeFromBottom = hasBottom && cursorOffset < output.length - 1;
-    if (removeFromTop) {
-      output.shift();
-      cursorOffset -= 1;
-    } else if (removeFromBottom) {
-      output.pop();
-    } else {
-      output.pop();
-    }
-  }
-  return output;
-}
-
 export function limitOptions<Option>(opts: PaginationOptions<Option>): string[] {
   const {
     cursor,
@@ -59,25 +42,31 @@ export function limitOptions<Option>(opts: PaginationOptions<Option>): string[] 
     start = Math.max(Math.min(cursor - cappedVisibleCount + 3, options.length - cappedVisibleCount), 0);
   }
 
-  const hasTopMarker = cappedVisibleCount < options.length && start > 0;
-  const hasBottomMarker = cappedVisibleCount < options.length && start + cappedVisibleCount < options.length;
+  let end = start + cappedVisibleCount;
   const visible = options
-    .slice(start, start + cappedVisibleCount)
+    .slice(start, end)
     .map((option, index) => wrapAnsi(style(option, start + index === cursor), columns, { hard: true, trim: false }));
-  const trimmed = trimToRows(
-    visible,
-    Math.max(cursor - start, 0),
-    Math.max(rowBudget - Number(hasTopMarker) - Number(hasBottomMarker), 1),
-    hasTopMarker,
-    hasBottomMarker
-  );
+  const marker = wrapAnsi(color.dim(GLYPHS.ellipsis), columns, { hard: true, trim: false });
+  const markerRows = marker.split("\n").length;
 
-  if (hasTopMarker) {
-    trimmed.unshift(color.dim(GLYPHS.ellipsis));
-  }
-  if (hasBottomMarker) {
-    trimmed.push(color.dim(GLYPHS.ellipsis));
+  while (visible.length > 1 && countLines(visible) + markerRows * (Number(start > 0) + Number(end < options.length)) > rowBudget) {
+    if (start < cursor) {
+      visible.shift();
+      start += 1;
+    } else {
+      visible.pop();
+      end -= 1;
+    }
   }
 
-  return trimmed;
+  let remainingRows = rowBudget - countLines(visible);
+  if (start > 0 && remainingRows >= markerRows) {
+    visible.unshift(marker);
+    remainingRows -= markerRows;
+  }
+  if (end < options.length && remainingRows >= markerRows) {
+    visible.push(marker);
+  }
+
+  return visible;
 }

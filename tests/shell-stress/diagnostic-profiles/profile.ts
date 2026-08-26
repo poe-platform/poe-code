@@ -50,6 +50,7 @@ interface Evidence {
 
 export const root = fileURLToPath(new URL("../../../", import.meta.url));
 export const artifactRoot = join(root, "benchmarks/shell-stress/diagnostic-profiles");
+export const nativeChildPids: number[] = [];
 export const evidence = JSON.parse(readFileSync(join(artifactRoot, "native-baseline.json"), "utf8")) as Evidence;
 export const fixtures = [
   ...differentialCases.map(fixture => ({ cohort: "original-differential", fixture })),
@@ -125,6 +126,7 @@ export async function runNative(fixture: StressCase, reference: Profile = profil
     const result = await isolatedSpawn(reference.executable, ["--noprofile", "--norc", "-c", fixture.script, argv0], {
       cwd: directory, env: { ...environment(directory), ...fixture.env }, input: fixture.stdin ?? "", timeout: 2000, maxBuffer: 262144,
     });
+    if (result.pid !== undefined) nativeChildPids.push(result.pid);
     assert.equal(result.error, undefined, `${fixture.name}: ${result.error?.message}`);
     assert.equal(result.signal, null, fixture.name);
     assert.notEqual(result.status, null, fixture.name);
@@ -142,6 +144,7 @@ export async function validateNativeIdentityAndLifecycle(): Promise<void> {
     const version = await isolatedSpawn(profile.executable, ["--noprofile", "--norc", "--version"], {
       cwd: directory, env: environment(directory), timeout: 2000, maxBuffer: 65536,
     });
+    if (version.pid !== undefined) nativeChildPids.push(version.pid);
     assert.equal(version.error, undefined);
     assert.equal(version.status, 0);
     assert.equal(version.stdout.toString(), profile.version);
@@ -149,6 +152,7 @@ export async function validateNativeIdentityAndLifecycle(): Promise<void> {
     const result = await isolatedSpawn(profile.executable, frozen.lifecycle.args, {
       cwd: directory, env: environment(directory), timeout: 200, maxBuffer: 1024,
     });
+    if (result.pid !== undefined) nativeChildPids.push(result.pid);
     assert.equal(result.error?.message, frozen.lifecycle.error);
     assert.equal(result.status, frozen.lifecycle.status);
     assert.equal(result.signal, frozen.lifecycle.signal);

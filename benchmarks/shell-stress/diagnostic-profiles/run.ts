@@ -5,14 +5,13 @@ import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
 import { runVirtualScript, sourceEvidence } from "../../../tests/shell-stress/helpers.js";
 import { isolatedSpawn } from "../../../tests/shell-stress/process.js";
-import { evidence, fixtures, root, runNative, sha256 } from "../../../tests/shell-stress/diagnostic-profiles/profile.js";
+import { evidence, fixtures, root, runNative, sha256, validateFrozenProfile } from "../../../tests/shell-stress/diagnostic-profiles/profile.js";
 
 const output = process.argv[2];
 assert.ok(output?.startsWith("/tmp/"), "Pass a fresh absolute /tmp/report.json output path");
 assert.equal(existsSync(output), false, "Preserve existing raw reports; choose a fresh output path");
 const before = sourceEvidence();
-const actual = [];
-for (const { fixture } of fixtures) actual.push(await runVirtualScript(fixture));
+validateFrozenProfile();
 const profiles = [];
 for (const profile of evidence.profiles) {
   assert.equal(sha256(profile.executable), profile.sha256);
@@ -20,8 +19,9 @@ for (const profile of evidence.profiles) {
   const rows = [];
   for (const [index, { cohort, fixture }] of fixtures.entries()) {
     const native = await runNative(fixture, profile);
+    const actual = await runVirtualScript(fixture);
     const expected = frozen.rows[index]!.observation;
-    rows.push({ cohort, fixture, expected, native, actual: actual[index], nativeStable: isDeepStrictEqual(native, expected), pass: isDeepStrictEqual(actual[index], expected) });
+    rows.push({ cohort, fixture, expected, native, actual, nativeStable: isDeepStrictEqual(native, expected), pass: isDeepStrictEqual(actual, expected) });
   }
   const resourceArgs = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=1", fileURLToPath(new URL("../../../tests/shell-stress/diagnostic-profiles/resources.test.ts", import.meta.url))];
   const resource = await isolatedSpawn(process.execPath, resourceArgs, {

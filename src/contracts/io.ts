@@ -26,6 +26,7 @@ export interface CollectOptions {
 
 export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const highWaterMark = options.highWaterMark ?? 64 * 1024;
+  const signal = options.signal;
   if (!Number.isSafeInteger(highWaterMark) || highWaterMark < 1) {
     throw new RangeError("highWaterMark must be a positive safe integer");
   }
@@ -41,21 +42,22 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   let failure: unknown;
   let closePromise: Promise<void> | undefined;
   let abortPromise: Promise<void> | undefined;
+  let finished = false;
   const abort = (reason: unknown = new FsError("EPIPE", { syscall: "pipe" })): Promise<void> => {
     if (abortPromise) return abortPromise;
+    if (finished) return Promise.resolve();
     failed = true;
     failure = reason;
     ended = true;
     abortPromise = Promise.allSettled([reader.cancel(reason), writer.abort(reason)]).then(() => {});
     return abortPromise;
   };
-  const onAbort = (): void => { void abort(options.signal?.reason); };
-  const cleanup = (): void => options.signal?.removeEventListener("abort", onAbort);
-  void writer.closed.then(cleanup, cleanup);
-  void reader.closed.catch(() => {});
-  if (options.signal?.aborted) onAbort();
-  else options.signal?.addEventListener("abort", onAbort, { once: true });
-  let finished = false;
+  const onAbort = (): void => { void abort(signal?.reason); };
+  const cleanup = (): void => signal?.removeEventListener("abort", onAbort);
+  void writer.closed.catch(() => {});
+  void reader.closed.then(cleanup, cleanup);
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener("abort", onAbort, { once: true });
   const iterator = (async function* (): AsyncGenerator<Uint8Array> {
     try {
       while (true) {
@@ -114,6 +116,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
 }
 
 export function toByteSource(input: string | Uint8Array): ByteSource {
+  if (typeof input !== "string" && !(input instanceof Uint8Array)) {
+    throw new TypeError("Byte source input must be a string or Uint8Array");
+  }
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
   return (async function* () {
     if (bytes.byteLength > 0) yield bytes;
@@ -126,9 +131,8 @@ export async function writeText(sink: ByteSink, text: string): Promise<void> {
 
 export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
-  for await (const chunk of source) {
-    signal?.throwIfAborted();
-    await sink.write(chunk);
+  for await (const chunk of readBytes(source, signal)) {
+    await abortable(() => sink.write(chunk), signal);
   }
   signal?.throwIfAborted();
 }
@@ -140,9 +144,7 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
   const chunks: Uint8Array[] = [];
   let size = 0;
   options.signal?.throwIfAborted();
-  for await (const chunk of source) {
-    options.signal?.throwIfAborted();
-    if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+  for await (const chunk of readBytes(source, options.signal)) {
     if (chunk.byteLength > options.maxBytes - size) {
       throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
     }
@@ -161,4 +163,61 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
 
 export async function collectText(source: ByteSource, options: CollectOptions): Promise<string> {
   return new TextDecoder().decode(await collectBytes(source, options));
+}
+
+async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
+  signal?.throwIfAborted();
+  if (!signal) return operation();
+  return new Promise<Result>((resolve, reject) => {
+    const onAbort = (): void => {
+      signal.removeEventListener("abort", onAbort);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    try {
+      Promise.resolve(operation()).then(
+        (result) => {
+          signal.removeEventListener("abort", onAbort);
+          resolve(result);
+        },
+        (error: unknown) => {
+          signal.removeEventListener("abort", onAbort);
+          reject(error);
+        },
+      );
+    } catch (error) {
+      signal.removeEventListener("abort", onAbort);
+      reject(error);
+    }
+  });
+}
+
+async function* readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
+  signal?.throwIfAborted();
+  const iterator = source[Symbol.asyncIterator]();
+  let finished = false;
+  let failed = false;
+  try {
+    while (true) {
+      const result = await abortable(() => iterator.next(), signal);
+      if (result.done) {
+        finished = true;
+        return;
+      }
+      if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+      yield result.value;
+    }
+  } catch (error) {
+    failed = true;
+    throw error;
+  } finally {
+    if (!finished && iterator.return) {
+      const cleanup = Promise.resolve().then(() => iterator.return!());
+      if (signal?.aborted) void cleanup.catch(() => {});
+      else {
+        try { await abortable(() => cleanup, signal); }
+        catch (error) { if (!failed) throw error; }
+      }
+    }
+  }
 }

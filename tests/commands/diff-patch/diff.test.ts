@@ -80,13 +80,22 @@ test("literal option-like filenames and labels with spaces", async () => {
   assert.match(result.stdout, /^--- old name\n\+\+\+ new name\n/u);
 });
 
-for (const args of [["-x", "a", "b"], ["--color", "a", "b"], ["-U-1", "a", "b"], ["-U"], ["a"], ["--label=a\nb", "a", "b"], ["-U9007199254740992", "a", "b"]]) {
+for (const args of [["-x", "a", "b"], ["--color", "a", "b"], ["-U-1", "a", "b"], ["-U"], ["a"], ["--label=a\nb", "a", "b"]]) {
   test(`diff rejects invalid arguments ${JSON.stringify(args)}`, async () => {
     const result = await run("diff", args, { files: { a: "a", b: "b" } });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
   });
 }
+
+test("GNU unified accepts context above the safe integer range with exact incomplete-line output", async () => {
+  const files = { a: "a", b: "b" };
+  const args = ["-U9007199254740992", "-L", "a", "-L", "b", "a", "b"];
+  const expected = { exitCode: 1, stdout: "--- a\n+++ b\n@@ -1 +1 @@\n-a\n\\ No newline at end of file\n+b\n\\ No newline at end of file\n", stderr: "" };
+  for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
+  }
+});
 
 test("missing paths require -N; both missing remains an error", async () => {
   assert.equal((await run("diff", ["missing", "present"], { files: { present: "x" } })).exitCode, 2);

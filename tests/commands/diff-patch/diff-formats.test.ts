@@ -1,33 +1,7 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { isAbsolute, join } from "node:path";
 import test from "node:test";
-import { native, run } from "./helpers.js";
-
-async function whitespaceNative(tool: "diff", args: readonly string[], files: Readonly<Record<string, string>>) {
-  const binary = process.env.DIFF_WHITESPACE_ORACLE;
-  if (binary === undefined) return native(tool, args, files);
-  assert(isAbsolute(binary), "DIFF_WHITESPACE_ORACLE must be an explicit absolute path");
-  const root = await mkdtemp(join(tmpdir(), "virtual-diff-whitespace-"));
-  try {
-    for (const [name, text] of Object.entries(files)) {
-      assert(name === "old" || name === "new");
-      assert(Buffer.byteLength(text) <= 256 * 1024);
-      await writeFile(join(root, name), text, { flag: "wx" });
-    }
-    const result = spawnSync(binary, [...args], {
-      cwd: root, shell: false, input: "", encoding: "utf8", timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
-      env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root },
-    });
-    if (result.error) throw result.error;
-    assert.equal(result.signal, null);
-    assert.notEqual(result.status, null);
-    return { exitCode: result.status, stdout: result.stdout, stderr: result.stderr };
-  } finally { await rm(root, { recursive: true, force: true }); }
-}
+import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
+import { native, native as whitespaceNative, run } from "./helpers.js";
 
 const marker = "\n\\ No newline at end of file\n";
 const normalCases = [
@@ -158,14 +132,13 @@ for (const gap of [0, 1, 2, 3, 5, 6, 7]) for (const context of [0, 1, 3]) {
 }
 
 for (const flags of [["-C0", "-c"], ["-C0", "--context"], ["--context=1", "-rc"], ["-C", "0", "-crc", "--context"], ["-c", "-C0"], ["--context", "--context=1"], ["-C0", "-c", "-C1", "--context"]]) {
-  test(`context explicit count survives default selector: ${JSON.stringify(flags)}`, async () => {
+  test(`GNU context selectors retain maximum requested width: ${JSON.stringify(flags)}`, async () => {
     const files = { old: "a\nb\nc\nd\ne\nf\ng\n", new: "A\nb\nc\nd\ne\nf\nG\n" };
     const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
-    const expected = await native("diff", args, files);
-    const actual = await run("diff", args, { files });
-    assert.equal(expected.exitCode, 1);
-    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
-      { exitCode: 1, stdout: expected.stdout, stderr: "" });
+    const expected = { exitCode: 1, stdout: "*** OLD\n--- NEW\n***************\n*** 1,7 ****\n! a\n  b\n  c\n  d\n  e\n  f\n! g\n--- 1,7 ----\n! A\n  b\n  c\n  d\n  e\n  f\n! G\n", stderr: "" };
+    for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
+    }
   });
 }
 
@@ -181,11 +154,22 @@ for (const flags of [["-c", "-u"], ["-u", "-c"], ["--normal", "-c"], ["-C0", "--
   });
 }
 
-for (const args of [["-C"], ["-C-1", "old", "new"], ["--context=", "old", "new"], ["--context=1.5", "old", "new"], ["-C9007199254740992", "old", "new"]]) {
+for (const args of [["-C"], ["-C-1", "old", "new"], ["--context=1.5", "old", "new"]]) {
   test(`context validates counts: ${JSON.stringify(args)}`, async () => {
     const actual = await run("diff", args, { files: { old: "old", new: "new" } });
     assert.equal(actual.exitCode, 2);
     assert.equal(actual.stdout, "");
+  });
+}
+
+for (const flag of ["--context=", "-C9007199254740992"]) {
+  test(`GNU context accepts count ${JSON.stringify(flag)} with exact incomplete-line output`, async () => {
+    const files = { old: "old", new: "new" };
+    const args = [flag, "-L", "old", "-L", "new", "old", "new"];
+    const expected = { exitCode: 1, stdout: `*** old\n--- new\n***************\n*** 1 ****\n! old${marker}--- 1 ----\n! new${marker}`, stderr: "" };
+    for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
+    }
   });
 }
 
@@ -243,11 +227,12 @@ const whitespaceCases = [
   { name: "original non-ASCII bytes", old: "café  雪\n", next: "café\t雪\n", change: true, all: true },
 ];
 
-test("whitespace oracle identity and exact comparison policy", async context => {
-  const binary = process.env.DIFF_WHITESPACE_ORACLE ?? "/usr/bin/diff";
+test("pinned GNU whitespace oracle identity and exact comparison policy", async context => {
+  const pin = oracleIdentity("diff", "gnu");
   const identity = await whitespaceNative("diff", ["--version"], {});
   assert.equal(identity.exitCode, 0);
-  context.diagnostic(JSON.stringify({ binary, version: identity.stdout.split("\n")[0], sha256: createHash("sha256").update(await readFile(binary)).digest("hex"),
+  assert.equal(identity.stdout.trim(), pin.version);
+  context.diagnostic(JSON.stringify({ ...pin,
     semantics: "C-locale space/tab/VT/FF/CR; newline delimits lines; incomplete/full final lines may match; -w dominates -b; unified context uses original old lines; context format uses each original side" }));
   for (const fixture of whitespaceCases) for (const mode of ["change", "all"] as const) {
     const result = await run("diff", [mode === "all" ? "-w" : "-b", "old", "new"], { files: { old: fixture.old, new: fixture.next } });

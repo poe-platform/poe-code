@@ -143,7 +143,7 @@ for (const backend of writableAdapters) {
       assert.match(Buffer.from(await fs.readFile("/work/error.log")).toString(), /ENOENT.*missing\.txt/);
       const redirect = await exec("cat < missing.txt");
       assert.notEqual(redirect.exitCode, 0);
-      assert.match(redirect.stderr, /ENOENT.*missing\.txt/);
+      assert.equal(redirect.stderr, "shell: line 1: missing.txt: No such file or directory\n");
       const unknown = await exec("adapter_tools_nonexistent_command");
       assert.equal(unknown.exitCode, 127);
       assert.match(unknown.stderr, /not found/);
@@ -279,7 +279,11 @@ for (const source of [
       assert.deepEqual(await fs.readFile("/work/payload.bin"), payload);
       success(await exec("test ! -e denied && test ! -e denied.txt && test ! -e payload.bin.gz"), "");
       assert.deepEqual(await snapshotTree(fs), before, "readonly preserves the entire namespace and bytes");
-      assert.match(result.stderr, /EROFS/, "actual readonly filesystem error, not an unrelated command failure");
+      if (source === "printf 'changed' > target.txt" || source === "printf 'changed' >> target.txt") {
+        assert.equal(result.stderr, "shell: line 1: target.txt: Read-only file system\n");
+      } else {
+        assert.match(result.stderr, /EROFS/, "actual readonly filesystem error, not an unrelated command failure");
+      }
     });
   });
 }

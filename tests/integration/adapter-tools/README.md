@@ -158,3 +158,79 @@ mount/overlay compositions, links, concurrency, host-operation cancellation,
 large-file stress, and the remaining command/option surface. This checkpoint is
 not full shell support, not a 72-hour work claim, not a complete product gate, and
 not evidence of superiority over `just-bash`.
+
+## August 26 follow-up: exact shell diagnostic oracle correction
+
+The **58/79** results and failure analysis above remain the historical delivery
+snapshot, not current failures. A subsequent unchanged read-only verification
+observed **70/79**: six missing-input redirection assertions and two readonly
+output-redirection assertions rejected the shell's new human-readable format;
+the ninth failure was the independently retained jq `split` case.
+
+Before correcting those eight assertions, the verifier inspected the committed
+history, documentation, capture provenance, and exact diagnostic tests:
+
+- Commit `19149d3d9c5dc6f309b61f215a140df18adaf6e4` deliberately changes runtime
+  diagnostics to `shell: line <number>: ...` and maps redirection `ENOENT` to
+  `No such file or directory` and `EROFS` to `Read-only file system` in
+  `src/shell/runtime.ts`. This is a committed formatting contract, not an
+  inference from the currently failing matrix's output.
+- `tests/shell/GAP_EVIDENCE.md`, section “Fatal status and diagnostics,” documents
+  the stable `shell` basename, source line numbers, direct GNU capture, and
+  correction of earlier diagnostic expectations without dropping effects checks.
+- `tests/shell/fatal-reference.json` has SHA-256
+  `db7caed2e7d0c484a658bec4d3c4ccf4f920a267419d70484a1114b3b13938a6`, matching
+  the file at `19149d3`. Its provenance identifies GNU Bash
+  `5.3.0(1)-release (aarch64-apple-darwin25.4.0)`, argv0 `shell`, `LC_ALL=C`,
+  and executable SHA-256
+  `8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c`.
+  The captured `value=$(<missing); ...` record contains exactly
+  `shell: line 1: missing: No such file or directory\n`. The committed
+  `file-shortcut.test.ts` correction corroborates the intentional replacement
+  of the old errno-token oracle. No native executable was invoked for this work.
+- The existing `tests/shell/fatal-diagnostics.test.ts` gate passed **21/21**,
+  with zero failures, skips, or TODOs, using the frozen records. These records
+  independently verify the prefix and missing-file wording. They do **not**
+  contain a separate GNU readonly-filesystem capture: the readonly wording is
+  explicitly established by the same committed redirection error table, under
+  that documented and golden-tested rendering contract.
+
+Only the six `cat < missing.txt` assertions now require the complete string
+`shell: line 1: missing.txt: No such file or directory\n`. Only the two readonly
+`printf` redirection assertions now require the complete string
+`shell: line 1: target.txt: Read-only file system\n`. Both use strict equality,
+including the relative path, line number, punctuation, and final newline; there
+are no alternative-format regexes or ignored errors. Command-generated `EROFS`
+expectations for mkdir/cp/mv/rm/sed/patch/gzip remain unchanged, as does the
+command-generated `cat missing.txt` errno check in its redirected stderr file.
+Every existing exit-status, stdout, routing, byte, namespace, and no-mutation
+assertion is preserved. This is **oracle-format correction, not a backend
+behavior waiver**. The jq test and its expected successful result are unchanged.
+
+After correction, the exact matrix command at the top of this document ran
+**79 tests: 78 pass, 1 fail, 0 cancelled, 0 skipped, 0 TODO**, exit **1**, in
+1.023 seconds on Node v22.22.2. Each required backend is **11/11**, totaling
+**44/44**; mount and overlay are each **11/11**, both composition cases pass,
+and all **10/10** readonly cases pass. Actual six-family root `agentCommands()`
+flows and named-file probes pass throughout; no registry or fixture changed.
+The sole failing case remains
+`structured capability gap: raw slurped text can be split into lines`:
+`jq: unsupported function split/1 at offset 12`, exit 3 instead of 0, owned by
+Archimedes/structured. No workaround or source fix is included.
+
+The strict owned-scope `tsc` command above passed with exit **0**. The diagnostic
+gate command was:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/shell/fatal-diagnostics.test.ts
+```
+
+Verification began at `7367ce4bf29dc40875e27a13d724469f59ad26b1` and ended at
+`4979cf503bcddf08824b2f397dbd495f79356b97`, with concurrent uncommitted S3,
+WebDAV, and wrapper source/tests, including streaming follow-ups. These are
+working-tree results, not a clean final backend release gate. No broad filesystem
+suite, whole-repo typecheck, or build was repeated for this narrowly scoped
+correction; backend race/upload hardening and the next stable full gate remain
+with their owners/root. Owned temporary directories were cleaned; foreign
+files, staging, native-oracle directories, and dependency manifests were not
+modified. Remote-provider interoperability remains outside this local matrix.

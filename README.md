@@ -99,16 +99,19 @@ processes. Native utilities appear only as trusted test/benchmark oracles.
 The user's explicit requirement **"i also need curl"** is implemented as an
 opt-in HTTP(S) command, not ambient networking in `agentCommands()`:
 
+After `npm run build`, run this GET example from the repository using
+`node --input-type=module`. It grants only the example.com HTTPS origin:
+
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem, networkCommands } from "virtual-bash";
 
 const shell = new Shell({ fs: createMemoryFileSystem() })
   .use(agentCommands())
   .use(networkCommands({
-    authorize: ({ url }) => new URL(url).origin === "https://api.example.com",
+    authorize: ({ url }) => new URL(url).origin === "https://example.com",
   }));
 try {
-  const result = await shell.exec("curl --json '{\"enabled\":true}' https://api.example.com/tasks");
+  const result = await shell.exec("curl -fS https://example.com/");
   console.log(result.exitCode, result.stdout);
 } finally {
   await shell.dispose();

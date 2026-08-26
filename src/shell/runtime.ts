@@ -419,10 +419,13 @@ export class Runtime {
       if (redirect.operator.endsWith("&")) {
         if (target === "-") descriptors.delete(redirect.descriptor);
         else {
-          if (!/^\d+$/u.test(target)) throw new Error(`${target}: Bad file descriptor`);
-          const descriptor = descriptors.get(Number(target));
-          if (!descriptor || (redirect.operator === "<&" ? !descriptor.input : !descriptor.output)) throw new Error(`${target}: Bad file descriptor`);
+          if (!/^\d+-?$/u.test(target)) throw new Error(`${target}: Bad file descriptor`);
+          const move = target.endsWith("-");
+          const sourceDescriptor = Number(move ? target.slice(0, -1) : target);
+          const descriptor = descriptors.get(sourceDescriptor);
+          if (!descriptor || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new Error(`${target}: Bad file descriptor`);
           descriptors.set(redirect.descriptor, descriptor);
+          if (move) descriptors.delete(sourceDescriptor);
         }
       } else {
         const path = resolvePath(state.cwd, target);

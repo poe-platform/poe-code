@@ -6,6 +6,7 @@ import {
   makeSafeJsShellModule, standardCommands,
   S3FileSystem, S3RenameError, MockS3Client, createS3Transport, encodeCopySource,
   S3ServiceError, WebDavFileSystem,
+  createTextProgramCommands, textProgramCommands,
 } from "../../src/index.js";
 
 test("root exports expose committed shell, filesystem, command, and SafeJS APIs", async () => {
@@ -17,6 +18,6 @@ test("root exports expose committed shell, filesystem, command, and SafeJS APIs"
     for (const exported of [RealFileSystem, createRealFileSystem, standardCommands,
       createNodeFsBridge, makeSafeJsFsModule, makeSafeJsShellModule, S3FileSystem,
       S3RenameError, MockS3Client, createS3Transport, encodeCopySource, S3ServiceError,
-      WebDavFileSystem]) assert.equal(typeof exported, "function");
+      WebDavFileSystem, createTextProgramCommands, textProgramCommands]) assert.equal(typeof exported, "function");
   } finally { await shell.dispose(); }
 });

@@ -1,7 +1,7 @@
 # Pinned shell comparison
 
 This optional, isolated development package compares the actual virtual shell
-and available standard commands against **just-bash 3.4.2**. The library's root
+and available standard/text-program commands against **just-bash 3.4.2**. The library's root
 manifest has no runtime dependencies and does not depend on just-bash. The
 comparator and its transitive dependencies are pinned by this directory's lockfile
 and are not part of the shipped `dist/` package.
@@ -21,6 +21,10 @@ unsupported result, a background worker error, or source changes during the run.
 The JSON report is still written. Missing runtime components and an uninstalled
 comparator are explicitly pending; they never become successful skips. Missing
 commands in an otherwise available runtime are real failures, not pending cases.
+Delivered text-program definitions are registered when their module exists;
+their actual command names are recorded with every fixture result. A broken
+module is an error, not silently omitted. Undelivered tools remain failures in
+fixtures requiring them.
 
 ## Scope and assertions
 
@@ -66,11 +70,12 @@ pinned package declarations (`dist/Bash.d.ts`, `dist/types.d.ts`,
 locators, version, and package integrity. Main-branch documentation is background
 context; the installed 3.4.2 API is the comparator used for execution.
 
-## Invocation hook proposal
+## Invocation contract
 
-For future shell/tool agreement, an optional
-`CommandContext.invoke(command, args, options?) -> Promise<CommandResult>` would
-invoke an argv array without shell reparsing. Proposed overrides are stdin,
-stdout, stderr, cwd, env, and signal; inherit the parent budget and cancellation,
-isolate child cwd/env, and let xargs explicitly provide empty child stdin. This
-is a proposal only; no shared-contract hook is introduced by this benchmark.
+`CommandContext.invoke?: CommandInvoker` is now established. Its signature is
+`(command: string, args: readonly string[], options?: CommandInvokeOptions) =>
+Promise<CommandResult>`. Options are stdin, stdout, stderr, cwd, and env; there is
+no per-invocation signal override. The shell invokes literal argv, inherits its
+filesystem, cancellation and budgets, and isolates child state. Standard tools
+prefer this hook; xargs explicitly provides empty child stdin. The structural
+contract is tested against the actual shell hook without shell-specific casts.

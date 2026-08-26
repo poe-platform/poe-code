@@ -98,7 +98,20 @@ export async function createHarness(
       await fs.mkdir(posix.dirname(`${fixtureRoot}/${path}`), { recursive: true, mode: 0o755 });
       await fs.writeFile(`${fixtureRoot}/${path}`, Buffer.from(contents, "base64"), { mode: 0o644 });
     }
-    const commands = createStandardCommands();
+    const commands = [...createStandardCommands()];
+    const textPrograms = new URL("../src/commands/text-programs/index.ts", import.meta.url);
+    let textProgramsAvailable = true;
+    try { await access(textPrograms); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      textProgramsAvailable = false;
+    }
+    if (textProgramsAvailable) {
+      const { createTextProgramCommands } = await import(textPrograms.href) as {
+        createTextProgramCommands: () => readonly CommandDefinition[];
+      };
+      commands.push(...createTextProgramCommands());
+    }
     const shell = new Shell({ fs, commands: new CommandRegistry(commands), cwd: fixtureRoot,
       env: { ...environment, ...env }, limits: { maxOutputBytes, maxCommands: 10000, maxLoopIterations: 10000, pipeHighWaterMark: 4096 } });
     if (hooks.wait) shell.register({ name: "bench_wait", async execute(context) {

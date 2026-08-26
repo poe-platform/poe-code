@@ -16,6 +16,7 @@ export interface AuthorizedPatch {
   readonly newName: string | undefined;
   readonly indexName: string | undefined;
   readonly candidates: readonly string[];
+  readonly selected?: string;
 }
 
 export function regular(stat: FileStat | undefined, path: string): void {
@@ -57,21 +58,14 @@ export async function authorizePaths(patches: readonly FilePatch[], options: Pat
     const newName = headerName(patch.newPath, options);
     const indexHeader = patch.indexPath === undefined ? undefined : headerName(patch.indexPath, options);
     const indexName = patch.format === "normal" || (oldName === undefined && newName === undefined) ? indexHeader : undefined;
-    if (options.explicit === undefined) for (const raw of [patch.oldPath, patch.newPath, patch.indexPath]) {
-      if (raw !== undefined && raw !== "/dev/null") await inspect(budget, raw);
-    }
     const candidates = options.explicit === undefined ? [...new Set([oldName, newName, indexName].filter((name): name is string => name !== undefined))] : [options.explicit];
     if (!candidates.length) throw new ToolError("strip count removes every patch filename");
-    for (const name of candidates) {
-      const path = resolvePath(budget.context.cwd, name);
-      if (path === options.input) throw new ToolError(`patch target aliases patch input: ${path}`);
-      regular(await inspect(budget, path), path);
-      for (const parent of pruneParents(name, budget.context.cwd)) {
-        budget.step();
-        await inspect(budget, parent);
-      }
-    }
-    result.push({ patch, oldName, newName, indexName, candidates });
+    const authorized = { patch, oldName, newName, indexName, candidates };
+    const selected = await selectTarget(authorized, async path => await candidateStat(path, budget) !== undefined, budget);
+    const path = resolvePath(budget.context.cwd, selected);
+    if (path === options.input) throw new ToolError(`patch target aliases patch input: ${path}`);
+    regular(await inspect(budget, path), path);
+    result.push({ ...authorized, selected });
   }
   return result;
 }
@@ -111,6 +105,13 @@ function rank(name: string): readonly number[] {
   return [name.split("/").length, Buffer.byteLength(name.split("/").at(-1)!), Buffer.byteLength(name)];
 }
 
+export async function candidateStat(path: string, budget: Budget): Promise<FileStat | undefined> {
+  budget.step();
+  await budget.checkpoint();
+  try { return await host(budget.context, () => budget.context.fs.stat(path, { signal: budget.context.signal })); }
+  catch (error) { if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR")) return undefined; throw error; }
+}
+
 export async function selectTarget(authorized: AuthorizedPatch, exists: (path: string) => Promise<boolean>, budget: Budget): Promise<string> {
   const present: string[] = [];
   for (const candidate of authorized.candidates) {
@@ -122,7 +123,7 @@ export async function selectTarget(authorized: AuthorizedPatch, exists: (path: s
   if (!present.length) for (const candidate of candidates) {
     let missing = 0;
     for (let parent = dirname(resolvePath(budget.context.cwd, candidate)); parent !== "/"; parent = dirname(parent)) {
-      if (await inspect(budget, parent)) break;
+      if (await candidateStat(parent, budget)) break;
       missing++;
     }
     missingParents.set(candidate, missing);

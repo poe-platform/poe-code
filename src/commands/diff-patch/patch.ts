@@ -4,7 +4,7 @@ import { applyHunks, reversePatch, type HunkOutcome } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-formats.js";
-import { authorizeOutputs, authorizePaths, backupName, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type PathOptions } from "./patch-gnu-paths.js";
+import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
 
 interface PatchFlags { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; force: boolean; backup: boolean; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
@@ -138,7 +138,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   const paths: PathOptions = { strip: options.strip, explicit, reject,
     input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
   const authorized = await authorizePaths(parsed, paths, budget);
-  const targets = new Set(authorized.flatMap(item => item.candidates.map(name => resolvePath(context.cwd, name))));
+  const targets = new Set(authorized.flatMap(item => item.selected === undefined ? [] : [resolvePath(context.cwd, item.selected)]));
   const staged = new Map<string, Prepared>();
   const touched = new Set<string>();
   const rejects = new Set<string>();
@@ -164,8 +164,10 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     let reversed = options.reverse;
     let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
     const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
-      ? !staged.get(path)!.remove : await inspect(budget, path) !== undefined, budget);
+      ? !staged.get(path)!.remove : await candidateStat(path, budget) !== undefined, budget);
     const path = resolvePath(context.cwd, name);
+    if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
+    targets.add(path);
     const prior = options.atomic ? staged.get(path) : undefined;
     const stat = await inspect(budget, path);
     regular(stat, path);
@@ -214,10 +216,10 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
     if (conflict) exitCode = 1;
     const mismatch = reverseMismatch || outcomes.some(outcome => outcome.failed || outcome.offset !== 0 || outcome.fuzz !== 0);
-    const backup = options.backup && mismatch && !touched.has(path) ? original ?? "" : undefined;
+    const backup = !options.dryRun && options.backup && mismatch && !touched.has(path) ? original ?? "" : undefined;
     const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget);
     const rejectDestination = rejectName(name, paths);
-    const rejectPath = failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
+    const rejectPath = !options.dryRun && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
     const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget);
     await authorizeOutputs([backupPath, rejectPath], targets, paths.input, budget);
     if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {

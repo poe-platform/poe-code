@@ -1,0 +1,107 @@
+TAP version 13
+# Subtest: s3: default conditional-copy rename creates with exact guards and bytes
+ok 1 - s3: default conditional-copy rename creates with exact guards and bytes
+  ---
+  duration_ms: 3.350209
+  type: 'test'
+  ...
+# Subtest: s3: default conditional-copy rename replaces with exact guards and bytes
+ok 2 - s3: default conditional-copy rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.240584
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename creates with exact guards and bytes
+ok 3 - s3: default buffered-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 1.193375
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename replaces with exact guards and bytes
+ok 4 - s3: default buffered-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.0635
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename creates with exact guards and bytes
+ok 5 - s3: default streamed-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 1.418875
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename replaces with exact guards and bytes
+ok 6 - s3: default streamed-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 0.772708
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {} has no host effects
+ok 7 - s3: default rename missing guards {} has no host effects
+  ---
+  duration_ms: 0.345209
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalDelete":true} has no host effects
+ok 8 - s3: default rename missing guards {"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.207792
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+ok 9 - s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.3215
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalPut":true} has no host effects
+ok 10 - s3: default rename missing guards {"conditionalPut":true} has no host effects
+  ---
+  duration_ms: 0.3465
+  type: 'test'
+  ...
+# Subtest: s3: default rename copy race preserves winning bytes and exact acknowledged effects
+ok 11 - s3: default rename copy race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 0.652708
+  type: 'test'
+  ...
+# Subtest: s3: default rename delete race preserves winning bytes and exact acknowledged effects
+ok 12 - s3: default rename delete race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 0.415292
+  type: 'test'
+  ...
+# Subtest: s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+ok 13 - s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+  ---
+  duration_ms: 124.80175
+  type: 'test'
+  ...
+# Subtest: s3: explicit non-atomic rename opt-out rejects before host effects
+ok 14 - s3: explicit non-atomic rename opt-out rejects before host effects
+  ---
+  duration_ms: 0.625333
+  type: 'test'
+  ...
+# PROFILE: explicit opt-out rejects; default guarded rename remains non-atomic copy/delete
+# Subtest: s3: non-atomic rename reports exact copy-phase partial state
+ok 15 - s3: non-atomic rename reports exact copy-phase partial state
+  ---
+  duration_ms: 0.597625
+  type: 'test'
+  ...
+# Subtest: s3: non-atomic rename reports exact delete-phase partial state
+ok 16 - s3: non-atomic rename reports exact delete-phase partial state
+  ---
+  duration_ms: 0.558167
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 295.764625

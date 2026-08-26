@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=rename",
+    "tests/stress/adapters/s3.test.ts",
+    "tests/stress/adapters/s3-rename-profile.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/02-rename/archive",
+  "start": "2026-08-26T23:37:05.601Z",
+  "end": "2026-08-26T23:37:05.926Z",
+  "status": 0,
+  "signal": null
+}

@@ -98,9 +98,9 @@ for (const operation of ["getObject", "putObject", "listObjectsV2"] satisfies Mo
   });
 }
 
-test("s3: default rename explicitly fails closed without opt-in", async (context) => {
+test("s3: explicit non-atomic rename opt-out rejects before host effects", async (context) => {
   const mock = new MockS3Client({ buckets: [bucket] });
-  const fs = new S3FileSystem({ transport: mock, bucket });
+  const fs = new S3FileSystem({ transport: mock, bucket, allowNonAtomicRename: false });
   await fs.writeFile("/source", binary);
   const count = mock.requests.length;
   await assert.rejects(fs.rename("/source", "/dest"), errno("ENOTSUP"));
@@ -108,7 +108,7 @@ test("s3: default rename explicitly fails closed without opt-in", async (context
   assert.deepEqual(await fs.readFile("/source"), binary);
   await assert.rejects(fs.stat("/dest"), errno("ENOENT"));
   assert.equal(fs.capabilities.atomicRename, false);
-  context.diagnostic("CAPABILITY GAP: required rename defaults to ENOTSUP; opt-in is non-atomic copy/delete");
+  context.diagnostic("PROFILE: explicit opt-out rejects; default guarded rename remains non-atomic copy/delete");
 });
 
 for (const failurePhase of ["copy", "delete"] as const) {
@@ -130,14 +130,21 @@ for (const failurePhase of ["copy", "delete"] as const) {
       assert.ok(error instanceof S3RenameError);
       assert.equal(error.phase, failurePhase);
       assert.equal(error.code, "EACCES");
+      assert.equal(error.path, "/source");
+      assert.equal(error.dest, "/dest");
       failure = error;
       return true;
     });
     enabled = false;
-    assert.equal(failure.copiedKeys.length, failurePhase === "copy" ? 1 : 3);
-    assert.equal(failure.deletedKeys.length, failurePhase === "copy" ? 0 : 1);
-    for (const key of failure.copiedKeys) await mock.headObject({ Bucket: bucket, Key: key });
-    for (const key of failure.deletedKeys) await assert.rejects(mock.headObject({ Bucket: bucket, Key: key }), { code: "NoSuchKey" });
+    assert.deepEqual(failure.copiedKeys, failurePhase === "copy" ? ["dest/"] : ["dest/", "dest/one", "dest/two"]);
+    assert.deepEqual(failure.deletedKeys, failurePhase === "copy" ? [] : ["source/"]);
+    const keys = (await mock.listObjectsV2({ Bucket: bucket })).Contents!.map(entry => entry.Key!);
+    assert.deepEqual(keys, failurePhase === "copy"
+      ? ["dest/", "source/", "source/one", "source/two"]
+      : ["dest/", "dest/one", "dest/two", "source/one", "source/two"]);
+    for (const key of keys) {
+      assert.deepEqual((await mock.getObject({ Bucket: bucket, Key: key })).Body, key.endsWith("/") ? new Uint8Array() : binary);
+    }
     assert.deepEqual(await fs.readFile("/source/one"), binary);
     assert.deepEqual(await fs.readFile("/source/two"), binary);
   });

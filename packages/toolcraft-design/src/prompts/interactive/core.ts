@@ -151,8 +151,16 @@ export class Prompt<Value> extends EventEmitter {
   }
 
   protected readNonTtyLine(): Promise<string | typeof CANCEL> {
+    if (this.input.readableEnded) {
+      return Promise.resolve("");
+    }
+    if (this.input.destroyed) {
+      this.state = "cancel";
+      return Promise.resolve(CANCEL);
+    }
+
     return new Promise((resolve) => {
-      const rl = readline.createInterface({ input: this.input, terminal: false });
+      let rl: readline.Interface | null = null;
       let settled = false;
 
       const settle = (value: string | typeof CANCEL) => {
@@ -160,21 +168,32 @@ export class Prompt<Value> extends EventEmitter {
           return;
         }
         settled = true;
-        this.signal?.removeEventListener("abort", onAbort);
-        rl.close();
+        this.input.removeListener("close", onCancel);
+        this.signal?.removeEventListener("abort", onCancel);
+        rl?.close();
         resolve(value);
       };
 
-      const onAbort = () => {
+      const onCancel = () => {
         this.state = "cancel";
         settle(CANCEL);
       };
 
+      this.input.once("close", onCancel);
+      rl = readline.createInterface({ input: this.input, terminal: false });
+      if (settled) {
+        rl.close();
+        return;
+      }
       rl.once("line", settle);
-      rl.once("close", () => settle(rl.line));
-      this.signal?.addEventListener("abort", onAbort, { once: true });
+      rl.once("close", () => settle(rl?.line ?? ""));
+      this.signal?.addEventListener("abort", onCancel, { once: true });
       if (this.signal?.aborted) {
-        onAbort();
+        onCancel();
+      } else if (this.input.readableEnded) {
+        settle(rl.line);
+      } else if (this.input.destroyed) {
+        onCancel();
       }
     });
   }

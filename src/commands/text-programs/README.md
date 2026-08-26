@@ -66,7 +66,7 @@ in-place editing reset line/range/hold state per file.
 | `p`, `P`, `=` | Print pattern space, its first line, or the input line number. |
 | `l` | Unambiguous C-byte listing with control/backslash escapes, three-digit octal for other nonprintable bytes, `$` record markers, and 60-column continuation wrapping. Literal backslashes are doubled rather than reproducing BSD's ambiguous single-backslash listing. |
 | `d`, `D` | Delete the cycle, or remove the first pattern-space line and restart the program without reading input. |
-| `q [status]` | Quit after the current cycle's normal output; optional numeric status 0–255. |
+| `q [status]` | Quit the entire invocation after the current cycle's normal output, including status zero under `-s`/`-i`; optional numeric status 0–255. Later in-place files and backups remain untouched instead of copying BSD's truncation of later files. |
 | `a`, `i`, `c` | Queue appended text, immediately insert text, or replace a selected line/range. POSIX backslash-newline text and one-line inline text are accepted. |
 | `{ ... }` | Addressed nested command groups. |
 | `:label`, `b`, `t`, `T` | Labels, unconditional branches, and substitution-success/failure branches; omitted target ends the current cycle. |

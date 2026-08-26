@@ -181,7 +181,7 @@ function parse(source: string, extended: boolean): Instruction[] {
   return result;
 }
 
-async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget): Promise<number> {
+async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget): Promise<{ status: number; quit: boolean }> {
   const source = lineRecords(context, files, budget);
   let current = await source.next();
   let following: IteratorResult<RecordLine, void> | undefined;
@@ -327,7 +327,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "n": case "N": {
             if (instruction.kind === "n") await flush();
             const next = await readNext();
-            if (next.done) { if (instruction.kind === "N") await flush(); return 0; }
+            if (next.done) { if (instruction.kind === "N") await flush(); return { status: 0, quit: false }; }
             record = await prepareRecord(next.value); number++;
             pattern = instruction.kind === "N" ? budget.check(pattern + "\n" + record.text) : record.text;
             substituted = false;
@@ -337,10 +337,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         pc++;
       }
       await flush();
-      if (quit) return status;
+      if (quit) return { status, quit: true };
       current = await readNext();
     }
-    return 0;
+    return { status: 0, quit: false };
   } finally { await source.return(undefined); }
 }
 
@@ -397,19 +397,19 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       for (const file of files) {
         let rewritten = "";
         const child = { ...context, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
-        const status = await execute(program, child, [file], quiet, budget);
+        const result = await execute(program, child, [file], quiet, budget);
         const path = virtualPath(context, file);
         if (inPlace) await context.fs.copyFile(path, path + inPlace, { signal: context.signal });
         await context.fs.writeFile(path, bytes(rewritten), { signal: context.signal });
-        if (status) return status;
+        if (result.quit || result.status) return result.status;
       }
       return 0;
     }
     await prepareOutputs();
     if (separate) {
-      for (const file of files.length ? files : ["-"]) { const status = await execute(program, context, [file], quiet, budget); if (status) return status; }
+      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget); if (result.quit || result.status) return result.status; }
       return 0;
     }
-    return execute(program, context, files, quiet, budget);
+    return (await execute(program, context, files, quiet, budget)).status;
   });
 }

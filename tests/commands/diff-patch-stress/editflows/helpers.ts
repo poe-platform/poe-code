@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { toByteSource, type FileSystem } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { oraclePath } from "../gnu-target/oracle.js";
 
 export type Files = Readonly<Record<string, string>>;
 export const cwd = "/work";
@@ -46,7 +47,7 @@ export function expectedBytes(files: Files) {
 }
 
 export function native(root: string, tool: "diff" | "patch" | "git", args: readonly string[], input = "") {
-  const result = spawnSync(`/usr/bin/${tool}`, [...args], {
+  const result = spawnSync(tool === "git" ? "/usr/bin/git" : oraclePath(tool), [...args], {
     cwd: root, input, timeout: 3000, maxBuffer: 1024 * 1024, shell: false,
     env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", HOME: root, TMPDIR: root,
       XDG_CONFIG_HOME: root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null",

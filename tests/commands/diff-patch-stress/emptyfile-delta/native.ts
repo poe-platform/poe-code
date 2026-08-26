@@ -6,8 +6,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { contents, execute, setup, target } from "./helpers.js";
 import { decoys, vectors } from "./vectors.js";
+import { oraclePath } from "../gnu-target/oracle.js";
 
-const binary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
+const binary = oraclePath("patch");
 const expectedSha256 = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
 const binarySha256 = createHash("sha256").update(await readFile(binary)).digest("hex");
 assert.equal(binarySha256, expectedSha256, "pinned oracle executable changed");

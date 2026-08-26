@@ -5,8 +5,9 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { oraclePath } from "../gnu-target/oracle.js";
 
-const executable = process.env.SAFE_BASH_GNU_PATCH;
+const executable = oraclePath("patch");
 const directory = dirname(fileURLToPath(import.meta.url));
 
 async function invoke(path: string, args: string[], cwd: string, input = "") {
@@ -24,7 +25,7 @@ async function invoke(path: string, args: string[], cwd: string, input = "") {
 }
 
 for (const absoluteTarget of [false, true]) {
-  test(`GNU 2.8 literal argv: ${absoluteTarget ? "absolute target outside cwd" : "relative target overrides absolute headers and -p999"}`, { skip: !executable, timeout: 10000 }, async context => {
+  test(`GNU 2.8 literal argv: ${absoluteTarget ? "absolute target outside cwd" : "relative target overrides absolute headers and -p999"}`, { timeout: 10000 }, async context => {
     const root = await mkdtemp(join(directory, ".native-"));
     try {
       const cwd = join(root, "cwd");

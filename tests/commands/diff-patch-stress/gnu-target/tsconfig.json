@@ -1,0 +1,5 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "include": ["../compatibility/**/*.ts", "../fuzz/**/*.ts", "../safety/**/*.ts", "../formats/**/*.ts", "../parser-regressions/**/*.ts", "../path-regressions/**/*.ts", "../editflows/**/*.ts", "../absolute-target/**/*.ts", "../emptyfile-delta/**/*.ts", "./**/*.ts", "../../diff-patch/helpers.ts"],
+  "exclude": []
+}

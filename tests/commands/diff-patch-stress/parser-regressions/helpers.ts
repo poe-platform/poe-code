@@ -8,10 +8,11 @@ import { toByteSource, type ByteSource, type FileSystem } from "../../../../src/
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import type { ParserCase } from "./fixtures.js";
+import { oraclePath } from "../gnu-target/oracle.js";
 
 export const owned = fileURLToPath(new URL("./", import.meta.url));
-export const patchBinary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
-export const diffBinary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff";
+export const patchBinary = oraclePath("patch");
+export const diffBinary = oraclePath("diff");
 export const sha256 = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
 
 export async function product(fixture: ParserCase) {

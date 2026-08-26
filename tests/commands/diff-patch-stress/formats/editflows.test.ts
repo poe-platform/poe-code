@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test, { before } from "node:test";
+import { assertNativeCapture, calibration } from "../gnu-target/calibration.js";
+import { verifyIndependentEdit } from "../gnu-target/edit-correctness.js";
 import { contextCounts, editflows } from "./fixtures.js";
 import { contents, labels, native, patchArgs, run, verifyOracles } from "./helpers.js";
 
@@ -19,13 +21,24 @@ for (const [index, flow] of editflows.entries()) {
     const expectedStatus = flow.old === flow.next ? 0 : 1;
     const name = `${format}/${flow.name}/C${context}`;
 
-    test(`native-native control ${name}`, async () => {
+    const captured = format === "context" && context === 0 ? calibration.formats.find(item => item.name === flow.name) : undefined;
+
+    test(`${captured ? "GNU C0 calibration only" : "native-native control"} ${name}`, async () => {
       const diff = await native("diff", args, { old: flow.old, new: flow.next });
       assert.equal(diff.exitCode, expectedStatus, diff.stderr);
       for (const reverse of [false, true]) {
         const applied = await native("patch", [...(reverse ? ["-R"] : []), ...patchArgs], { target: reverse ? flow.next : flow.old }, diff.stdout);
-        assert.equal(applied.exitCode, 0, `ORACLE FAILURE reverse=${reverse}: ${applied.stderr}${applied.stdout}`);
-        assert.equal(applied.target, reverse ? flow.old : flow.next, `ORACLE BYTE FAILURE reverse=${reverse}`);
+        if (captured) {
+          assert.deepEqual(flow, captured.flow);
+          assert.equal(diff.stdout, captured.gnuDiff.stdout);
+          const direction = captured.directions.find(item => item.reverse === reverse)!;
+          assert.equal(direction.gnu.input, diff.stdout);
+          assert.equal(direction.gnu.before.target, reverse ? flow.next : flow.old);
+          assertNativeCapture(applied, direction.gnu);
+        } else {
+          assert.equal(applied.exitCode, 0, `ORACLE FAILURE reverse=${reverse}: ${applied.stderr}${applied.stdout}`);
+          assert.equal(applied.target, reverse ? flow.old : flow.next, `ORACLE BYTE FAILURE reverse=${reverse}`);
+        }
       }
     });
 
@@ -37,29 +50,17 @@ for (const [index, flow] of editflows.entries()) {
         assert.equal(oracle.exitCode, expectedStatus, oracle.stderr);
         assert.equal(virtual.stdout, oracle.stdout, "exact unique-line GNU expectation");
       }
-      let forward = await native("patch", patchArgs, { target: flow.old }, virtual.stdout);
-      let reverse = await native("patch", ["-R", ...patchArgs], { target: flow.next }, virtual.stdout);
-      if (forward.exitCode !== 0 || reverse.exitCode !== 0) {
-        const oracle = await native("diff", args, { old: flow.old, new: flow.next });
-        const control = await native("patch", patchArgs, { target: flow.old }, oracle.stdout);
-        const reversedControl = await native("patch", ["-R", ...patchArgs], { target: flow.next }, oracle.stdout);
-        if (control.exitCode !== 0 || reversedControl.exitCode !== 0) {
-          console.log("DIALECT_CONTROL", JSON.stringify({ name, gnuForward: control.exitCode, gnuReverse: reversedControl.exitCode, fallback: "Apple forward/reverse only after both native-native controls pass" }));
-          const appleArgs = ["-f", "-F0", "target"];
-          const appleControl = await native("patch", appleArgs, { target: flow.old }, oracle.stdout, true);
-          const appleReverseControl = await native("patch", ["-R", ...appleArgs], { target: flow.next }, oracle.stdout, true);
-          assert.equal(appleControl.exitCode, 0, "ORACLE BLOCKED: Apple forward control failed too");
-          assert.equal(appleReverseControl.exitCode, 0, "ORACLE BLOCKED: Apple reverse control failed too");
-          assert.equal(appleControl.target, flow.next, "ORACLE BLOCKED: Apple forward bytes");
-          assert.equal(appleReverseControl.target, flow.old, "ORACLE BLOCKED: Apple reverse bytes");
-          forward = await native("patch", appleArgs, { target: flow.old }, virtual.stdout, true);
-          reverse = await native("patch", ["-R", ...appleArgs], { target: flow.next }, virtual.stdout, true);
+      verifyIndependentEdit(flow.old, flow.next, virtual.stdout, format);
+      for (const reverse of [false, true]) {
+        const applied = await native("patch", [...(reverse ? ["-R"] : []), ...patchArgs], { target: reverse ? flow.next : flow.old }, virtual.stdout);
+        if (captured && virtual.stdout === captured.gnuDiff.stdout) {
+          assert.deepEqual(flow, captured.flow);
+          assertNativeCapture(applied, captured.directions.find(item => item.reverse === reverse)!.gnu);
+        } else {
+          assert.equal(applied.exitCode, 0, "independent GNU patch: " + applied.stderr + applied.stdout);
+          assert.equal(applied.target, reverse ? flow.old : flow.next, "independent native patch of virtual output");
         }
       }
-      assert.equal(forward.exitCode, 0, `${forward.stderr}${forward.stdout}`);
-      assert.equal(forward.target, flow.next, "independent native patch of virtual output");
-      assert.equal(reverse.exitCode, 0, `${reverse.stderr}${reverse.stdout}`);
-      assert.equal(reverse.target, flow.old, "independent native reverse of virtual output");
     });
 
     test(`independent parser ${name}`, async () => {

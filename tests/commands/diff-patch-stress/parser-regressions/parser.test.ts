@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { after, test } from "node:test";
+import { calibration } from "../gnu-target/calibration.js";
 import { cases } from "./fixtures.js";
 import { diffBinary, executeNative, nativeDiff, nativePatch, owned, patchBinary, product, productIssues, sha256 } from "./helpers.js";
 
@@ -20,7 +21,13 @@ for (const fixture of cases) {
     let nativeGenerated: Awaited<ReturnType<typeof nativeDiff>> | undefined;
     let nativeError: string | undefined;
     const nativeIssues: string[] = [];
-    if (fixture.native !== false) {
+    const captured = calibration.parser.find(item => item.id === fixture.id);
+    if (captured) {
+      assert.equal(fixture.patch, captured.gnu.input);
+      assert.equal(fixture.before, captured.gnu.before.target);
+      assert.equal(captured.gnu.before.other, "old\n");
+      assert(captured.gnu.exitCode === 2 || captured.gnu.bounded === "timeout-3000ms");
+    } else if (fixture.native !== false) {
       try {
         if (fixture.id === "normal-tab-prefix") {
           nativeGenerated = await nativeDiff(fixture.before, fixture.after!, ["--normal", "--initial-tab"]);
@@ -50,10 +57,18 @@ const controls = [
 for (const control of controls) {
   test(control.id, { timeout: 5000 }, async () => {
     const diff = await nativeDiff(control.before, control.after, control.args);
+    const captured = calibration.parser.find(item => item.id === control.id);
+    const accepted = await product({ id: control.id, before: control.before, after: control.after, patch: diff.stdout, category: "GNU generated acceptance" });
+    assert.deepEqual(productIssues({ id: control.id, before: control.before, after: control.after, patch: diff.stdout, category: "GNU generated acceptance" }, accepted), []);
     const patch = await nativePatch(control.before, diff.stdout);
     const issues: string[] = [];
     if (diff.exitCode !== 1) issues.push(`GNU diff 3.12 exit ${diff.exitCode}, expected 1`);
-    if (patch.exitCode !== 0 || patch.target !== control.after) issues.push(`GNU patch 2.8 exit ${patch.exitCode}, expected ${JSON.stringify(control.after)}, got ${JSON.stringify(patch.target)}`);
+    if (captured) {
+      assert.equal(diff.stdout, captured.gnu.input);
+      assert.equal(control.before, captured.gnu.before.target);
+      assert.equal(patch.exitCode, captured.gnu.exitCode);
+      assert.equal(patch.target, captured.gnu.after.target);
+    } else if (patch.exitCode !== 0 || patch.target !== control.after) issues.push(`GNU patch 2.8 exit ${patch.exitCode}, expected ${JSON.stringify(control.after)}, got ${JSON.stringify(patch.target)}`);
     records.push({ control, diff, patch, nativeIssues: issues });
     assert.deepEqual(issues, [], `version-specific native-native control ${control.id}`);
   });

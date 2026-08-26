@@ -1,17 +1,16 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
-import { access, mkdtemp, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
-import { constants } from "node:fs";
+import { mkdtemp, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { toByteSource, type ByteSink, type ByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { oracleIdentity, oraclePath } from "../gnu-target/oracle.js";
 
 export const oraclePaths = {
-  diff: "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
-  patch: "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+  get diff() { return oraclePath("diff"); },
+  get patch() { return oraclePath("patch"); },
 };
 
 export interface Result { exitCode: number; stdout: string; stderr: string }
@@ -59,7 +58,7 @@ export async function native(tool: "diff" | "patch", args: readonly string[], fi
       assert(Buffer.byteLength(text) <= 256 * 1024, "native file cap");
       await writeFile(join(root, name), text, { flag: "wx" });
     }
-    const result = await processResult(apple ? `/usr/bin/${tool}` : oraclePaths[tool], args, root, input);
+    const result = await processResult(oraclePath(tool, apple ? "apple-calibration" : "gnu"), args, root, input);
     let target: string | undefined;
     try {
       assert((await stat(join(root, "target"))).size <= 256 * 1024, "native target read cap");
@@ -71,21 +70,7 @@ export async function native(tool: "diff" | "patch", args: readonly string[], fi
 }
 
 export async function verifyOracles() {
-  const identities = [];
-  for (const tool of ["diff", "patch"] as const) {
-    await access(oraclePaths[tool], constants.X_OK);
-    const result = await native(tool, ["--version"]);
-    assert.equal(result.exitCode, 0);
-    assert.match(result.stdout, tool === "diff" ? /^diff \(GNU diffutils\) 3\.12\n/u : /^GNU patch 2\.8\n/u);
-    identities.push({ tool, path: oraclePaths[tool], version: result.stdout.split("\n")[0], sha256: createHash("sha256").update(await readFile(oraclePaths[tool])).digest("hex") });
-  }
-  for (const tool of ["diff", "patch"] as const) {
-    const result = await native(tool, ["--version"], {}, "", true);
-    assert.equal(result.exitCode, 0);
-    assert.match(result.stdout, tool === "diff" ? /^Apple diff \(based on FreeBSD diff\)/u : /^patch 2\.0-12u11-Apple/u);
-    identities.push({ tool, path: `/usr/bin/${tool}`, version: result.stdout.split("\n")[0], sha256: createHash("sha256").update(await readFile(`/usr/bin/${tool}`)).digest("hex") });
-  }
-  return identities;
+  return (["diff", "patch"] as const).map(tool => ({ tool, ...oracleIdentity(tool) }));
 }
 
 export async function filesystem(files: Files = {}) {

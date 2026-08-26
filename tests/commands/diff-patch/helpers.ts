@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { toByteSource, type ByteSink, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../../../src/commands/diff-patch/index.js";
+import { oraclePath } from "../diff-patch-stress/gnu-target/oracle.js";
 
 export type Files = Readonly<Record<string, string | Uint8Array>>;
 
@@ -60,7 +61,7 @@ export async function native(tool: "diff" | "patch", args: readonly string[], fi
       await writeFile(join(root, path), text);
     }
     const result = await new Promise<{ exitCode: number; stdout: string; stderr: string }>((resolve, reject) => {
-      const child = spawn(`/usr/bin/${tool}`, [...args], {
+      const child = spawn(oraclePath(tool), [...args], {
         cwd: root, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", HOME: root, TMPDIR: root },
         stdio: ["pipe", "pipe", "pipe"],
       });

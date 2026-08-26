@@ -116,7 +116,9 @@ export function filesystemCommands(): CommandDefinition[] {
         let existing = await maybeStat(context, path);
         if (!existing) {
           if (parsed.flags.has("c")) return;
+          if (reference !== undefined) needCapability(context, "utimes");
           await context.fs.writeFile(path, new Uint8Array(), { flag: "wx", signal: context.signal });
+          if (reference === undefined) return;
           existing = await context.fs.stat(path, { signal: context.signal });
         }
         needCapability(context, "utimes");

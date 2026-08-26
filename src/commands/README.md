@@ -56,7 +56,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `pwd` | Logical cwd by default/`-L`; filesystem-resolved cwd with `-P`. A shell builtin may take precedence. |
 | `ls` | Sorted one-per-line names; `-1`, `-a`, `-A`, `-d`, `-F`, `-p`, `-r`, `-R`, `-L`, `-l`. Long records use numeric metadata and UTC dates. |
 | `mkdir` | Multiple directories, recursive parents `-p`, octal mode `-m`, verbose `-v`. |
-| `touch` | Create without truncation; `-c`, `-a`, `-m`, reference times `-r`; provider timestamp support required. |
+| `touch` | Create without truncation; `-c`, `-a`, `-m`, reference times `-r`. New files without `-r` retain filesystem-assigned creation timestamps; existing files and reference times require provider timestamp support. |
 | `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`, `-P`, `-L`; nested symlink preservation by default; same-file, descendant-copy and cycle checks. |
 | `mv` | Virtual rename, multiple sources into directories; `-n`, `-f`, `-v`. |
 | `rm` | Files and links; `-r`/`-R`, `-f`, empty directories `-d`, `-v`; root and dot-entry protection. |

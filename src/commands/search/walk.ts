@@ -8,7 +8,7 @@ export interface FileTarget { readonly path: string; readonly label: string; rea
 export class Walker {
   private readonly globs: { glob: Glob; include: boolean }[];
   private readonly hasPositive: boolean;
-  private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean }>();
+  private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
   constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>) {
     if (args.globs.length > 1024) throw new SearchError("glob count limit exceeded");
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
@@ -20,9 +20,12 @@ export class Walker {
   }
   private async load(directory: string, inherited: readonly IgnoreRule[], repository: boolean): Promise<{ rules: IgnoreRule[]; repository: boolean }> {
     const base = resolvePath("/", directory);
-    const cached = this.cache.get(`${base}:${repository}`);
-    if (cached) return { repository: cached.repository, rules: [...inherited, ...cached.rules] };
-    repository ||= await this.exists(`${directory}/.git`);
+    const key = `${base}:${repository}`;
+    const cached = this.cache.get(key);
+    if (cached) return { repository: cached.repository, rules: [...(cached.root ? inherited.filter(rule => rule.priority !== 1) : inherited), ...cached.rules] };
+    const root = await this.exists(`${directory}/.git`);
+    repository ||= root;
+    if (root) inherited = inherited.filter(rule => rule.priority !== 1);
     const local: IgnoreRule[] = [];
     if (this.args.ignore) {
       const names: [string, number][] = [];
@@ -37,30 +40,33 @@ export class Walker {
         }
       }
     }
-    this.cache.set(`${base}:${repository}`, { repository, rules: local });
+    this.cache.set(key, { repository, rules: local, root });
     if (inherited.length + local.length > 10000) throw new SearchError("ignore rule count limit exceeded");
     return { repository, rules: [...inherited, ...local] };
   }
   private accepted(path: string, name: string, directory: boolean, rules: readonly IgnoreRule[]): boolean {
     let override: boolean | undefined;
     const relative = relativePath(this.context.cwd, path);
-    for (const rule of this.globs) if (rule.glob.matches(relative, directory)) override = rule.include;
+    for (const rule of this.globs) if (rule.glob.matches(relative, directory, false)) override = rule.include;
     if (override !== undefined) return override;
     if (this.hasPositive && !directory) return false;
     let include: boolean | undefined;
     let priority = -1;
     for (const rule of rules) {
       if (rule.priority < priority || !isPathWithin(rule.base, path)) continue;
-      if (rule.glob.matches(relativePath(rule.base, path), directory)) { priority = rule.priority; include = rule.include; }
+      const candidate = relativePath(rule.base, path);
+      if (rule.glob.matches(candidate, directory, false)) {
+        priority = rule.priority; include = rule.include;
+      }
     }
     if (include !== undefined) return include;
     return this.args.hidden || !name.startsWith(".");
   }
-  private async* directory(path: string, label: string, depth: number, ancestors: ReadonlySet<string>, rules: readonly IgnoreRule[], repository: boolean): AsyncGenerator<FileTarget> {
+  private async* directory(path: string, label: string, depth: number, ancestors: ReadonlyMap<string, string>, rules: readonly IgnoreRule[], repository: boolean): AsyncGenerator<FileTarget> {
     if (depth >= this.args.maxDepth) return;
     const canonical = await this.context.fs.realpath(path, { signal: this.context.signal });
-    if (ancestors.has(canonical)) throw new SearchError(`symbolic link loop at '${label}'`);
-    const parents = new Set(ancestors); parents.add(canonical);
+    if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
+    const parents = new Map(ancestors); parents.set(canonical, label || ".");
     const local = await this.load(path, rules, repository);
     const entries = (await this.context.fs.readdir(path, { signal: this.context.signal })).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));
     for (const entry of entries) {
@@ -71,6 +77,13 @@ export class Walker {
       try {
         if (entry.type === "symlink" && !this.args.follow) continue;
         const type = entry.type === "symlink" ? (await this.context.fs.stat(child, { signal: this.context.signal })).type : entry.type;
+        if (entry.type === "symlink" && type === "directory") {
+          const destination = await this.context.fs.realpath(child, { signal: this.context.signal });
+          if (parents.has(destination)) {
+            await this.report(new SearchError(`File system loop found: ${display} points to an ancestor ${parents.get(destination)}`));
+            continue;
+          }
+        }
         if (!this.accepted(child, entry.name, type === "directory", local.rules)) continue;
         if (type === "directory") yield* this.directory(child, display, depth + 1, parents, local.rules, local.repository);
         else if (type === "file") yield { path: child, label: display, explicit: false, recursive: true };
@@ -99,7 +112,7 @@ export class Walker {
             parent = dirname(parent);
           }
         }
-        yield* this.directory(path, implicit ? "" : operand, 0, new Set(), inherited.rules, inherited.repository);
+        yield* this.directory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository);
       } catch (error) { if (error instanceof SearchError) throw error; await this.report(error); }
     }
   }

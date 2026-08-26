@@ -3,9 +3,10 @@ import { SearchError, type Arguments } from "./options.js";
 
 export interface Match { readonly start: number; readonly end: number }
 
-function decode(bytes: Uint8Array): { text: string; offsets: number[] } {
+function decode(bytes: Uint8Array): { text: string; offsets: number[]; invalid: number[] } {
   let text = "";
   const offsets: number[] = [];
+  const invalid: number[] = [];
   for (let offset = 0; offset < bytes.length;) {
     const first = bytes[offset]!;
     let length = first < 128 ? 1 : first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 0;
@@ -18,20 +19,24 @@ function decode(bytes: Uint8Array): { text: string; offsets: number[] } {
       if (consumed < length) length = 0;
     }
     const character = length ? Buffer.from(bytes.subarray(offset, offset + length)).toString("utf8") : "\ufffd";
+    if (!length) invalid.push(text.length);
     offsets.push(offset);
     if (character.length === 2) offsets.push(offset);
     text += character;
-    offset += length || consumed;
+    offset += length || 1;
   }
   offsets.push(bytes.length);
-  return { text, offsets };
+  return { text, offsets, invalid };
 }
 
 const escaped = (source: string) => source.replace(/[\\^$.*+?()[\]{}|]/gu, "\\$&");
 
 export class Matcher {
   private readonly regex: RegExp | undefined;
+  private readonly byteEmpty: boolean;
+  private readonly fragments = new Map<number, RegExp>();
   constructor(patterns: readonly string[], args: Arguments) {
+    this.byteEmpty = patterns.length === 1 && patterns[0] === "" && !args.word && !args.whole;
     if (patterns.length > 1024) throw new SearchError("pattern count limit exceeded");
     if (!patterns.length) return;
     const insensitive = args.case === "insensitive" || args.case === "smart" && !patterns.some(pattern => /\p{Lu}/u.test(pattern));
@@ -48,25 +53,56 @@ export class Matcher {
     try { this.regex = new RegExp(source, `gu${insensitive ? "i" : ""}`); }
     catch (error) { throw new SearchError(`invalid or unsupported regular expression: ${error instanceof Error ? error.message : String(error)}`); }
   }
-  matches(bytes: Uint8Array, all = true): Match[] {
+  private fragmentRegex(atStart: boolean, atEnd: boolean): RegExp {
+    if (atStart && atEnd) return this.regex!;
+    const key = Number(atStart) + Number(atEnd) * 2;
+    const cached = this.fragments.get(key);
+    if (cached) return cached;
+    let source = "";
+    let characterClass = false;
+    for (let index = 0; index < this.regex!.source.length; index++) {
+      const character = this.regex!.source[index]!;
+      if (character === "\\") { source += character + this.regex!.source[++index]!; continue; }
+      if (character === "[") characterClass = true;
+      else if (character === "]") characterClass = false;
+      source += !characterClass && (character === "^" && !atStart || character === "$" && !atEnd) ? "(?!)" : character;
+    }
+    const regex = new RegExp(source, this.regex!.flags);
+    this.fragments.set(key, regex);
+    return regex;
+  }
+  matches(bytes: Uint8Array, all = true, terminated = true): Match[] {
     if (!this.regex) return [];
-    const { text, offsets } = isAscii(bytes) ? { text: Buffer.from(bytes).toString("ascii"), offsets: undefined } : decode(bytes);
+    if (this.byteEmpty) {
+      const length = all ? bytes.length + Number(terminated) : 1;
+      if (length > 100000) throw new SearchError("matches per line limit exceeded");
+      return Array.from({ length }, (_value, offset) => ({ start: offset, end: offset }));
+    }
+    const { text, offsets, invalid } = isAscii(bytes) ? { text: Buffer.from(bytes).toString("ascii"), offsets: undefined, invalid: [] } : decode(bytes);
     const matches: Match[] = [];
-    this.regex.lastIndex = 0;
     let previousEnd = -1;
-    while (true) {
-      const match = this.regex.exec(text);
-      if (!match) break;
-      const start = offsets?.[match.index] ?? match.index;
-      const end = offsets?.[match.index + match[0].length] ?? match.index + match[0].length;
-      if (start !== end || start !== previousEnd) matches.push({ start, end });
-      if (!all && matches.length) break;
-      previousEnd = end;
-      if (match[0].length === 0) {
-        if (this.regex.lastIndex === text.length) break;
-        this.regex.lastIndex += text.codePointAt(this.regex.lastIndex)! > 0xffff ? 2 : 1;
+    let fragmentStart = 0;
+    for (const fragmentEnd of [...invalid, text.length]) {
+      const fragment = text.slice(fragmentStart, fragmentEnd);
+      const regex = this.fragmentRegex(fragmentStart === 0, fragmentEnd === text.length);
+      regex.lastIndex = 0;
+      while (true) {
+        const match = regex.exec(fragment);
+        if (!match) break;
+        const first = fragmentStart + match.index;
+        const last = first + match[0].length;
+        const start = offsets?.[first] ?? first;
+        const end = offsets?.[last] ?? last;
+        if (start !== end || start !== previousEnd) matches.push({ start, end });
+        if (matches.length > 100000) throw new SearchError("matches per line limit exceeded");
+        if (!all && matches.length) return matches;
+        previousEnd = end;
+        if (match[0].length === 0) {
+          if (regex.lastIndex === fragment.length) break;
+          regex.lastIndex += fragment.codePointAt(regex.lastIndex)! > 0xffff ? 2 : 1;
+        }
       }
-      if (matches.length > 100000) throw new SearchError("matches per line limit exceeded");
+      fragmentStart = fragmentEnd + 1;
     }
     return matches;
   }

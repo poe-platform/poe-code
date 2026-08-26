@@ -2,7 +2,7 @@ import { SearchError } from "./options.js";
 
 const quote = (character: string) => character.replace(/[\\^$.*+?()[\]{}|]/gu, "\\$&");
 
-function compile(source: string): string {
+function compile(source: string, literalUnclosedClass: boolean): string {
   let output = "";
   let braces = 0;
   for (let offset = 0; offset < source.length; offset++) {
@@ -19,6 +19,7 @@ function compile(source: string): string {
       } else output += "[^/]*";
     } else if (character === "?") output += "[^/]";
     else if (character === "[") {
+      const opening = offset;
       let contents = "";
       if (source[offset + 1] === "!" || source[offset + 1] === "^") { contents = "^"; offset++; }
       let closed = false;
@@ -26,7 +27,10 @@ function compile(source: string): string {
         if (source[offset] === "]" && contents !== "" && contents !== "^") { closed = true; break; }
         contents += source[offset] === "\\" ? "\\\\" : source[offset] === "]" ? "\\]" : source[offset];
       }
-      if (!closed) throw new SearchError("unclosed glob character class");
+      if (!closed) {
+        if (!literalUnclosedClass) throw new SearchError("unclosed glob character class");
+        output += "\\["; offset = opening; continue;
+      }
       output += `[${contents}]`;
     } else if (character === "{") {
       if (++braces > 8) throw new SearchError("glob nesting limit exceeded");
@@ -44,17 +48,18 @@ function compile(source: string): string {
 export class Glob {
   private readonly regex: RegExp;
   private readonly directory: boolean;
-  constructor(source: string, insensitive = false) {
+  constructor(source: string, insensitive = false, literalUnclosedClass = false) {
     if (!source || source.length > 8192) throw new SearchError("empty or excessive glob");
     this.directory = source.endsWith("/");
     if (this.directory) source = source.slice(0, -1);
     const anchored = source.startsWith("/") || source.includes("/");
     if (source.startsWith("/")) source = source.slice(1);
-    try { this.regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${compile(source)}$`, insensitive ? "ui" : "u"); }
+    try { this.regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${compile(source, literalUnclosedClass)}$`, insensitive ? "ui" : "u"); }
     catch (error) { throw new SearchError(`invalid glob: ${error instanceof Error ? error.message : String(error)}`); }
   }
-  matches(path: string, directory: boolean): boolean {
+  matches(path: string, directory: boolean, ancestors = true): boolean {
     if ((!this.directory || directory) && this.regex.test(path)) return true;
+    if (!ancestors) return false;
     let slash = path.lastIndexOf("/");
     while (slash >= 0) { if (this.regex.test(path.slice(0, slash))) return true; slash = path.lastIndexOf("/", slash - 1); }
     return false;
@@ -76,7 +81,7 @@ export function ignoreRules(contents: string, base: string, priority: number): I
     if (!source) continue;
     const include = source.startsWith("!");
     if (include) source = source.slice(1);
-    if (source) rules.push({ base, priority, include, glob: new Glob(source) });
+    if (source) rules.push({ base, priority, include, glob: new Glob(source, false, true) });
     if (rules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
   }
   return rules;

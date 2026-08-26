@@ -34,7 +34,9 @@ operations, not total process memory, adapter allocations, or regex CPU time.
 
 `CommandContext` has no TTY/piped-input metadata. With no path operands, `auto`
 peeks at stdin: a nonempty chunk selects stdin; an exhausted stream selects the
-current directory. This differs from native rg for an *empty pipe*. Specify `-`
+current directory. This differs from native rg for an *empty pipe* and is an
+unresolved shell/contract metadata defect, not the desired final behavior.
+An empty pipe or redirected input must never trigger a directory scan. Specify `-`
 or `defaultInput: "stdin"` for unambiguous empty-stdin searches. Use
 `defaultInput: "cwd"` to avoid reading stdin when paths are omitted. File listing
 and programs taking patterns from `-f -` default to the current directory.
@@ -99,6 +101,15 @@ ordinary unmatched directories. Explicit file operands bypass ignore, hidden,
 and glob filters. This matches the native evidence behind the pipeline tests:
 `-g '*.ts'` can intentionally include an otherwise ignored TypeScript file. Use
 negative exclusions or filter a plain `--files` result to preserve file ignores.
+Positive directory-only globs do not implicitly select their descendants; use
+`src/**`, not `src/`, to select files below `src`. Reopening an ignored directory
+does not by itself whitelist hidden children. Followed directory loops report an
+error and traversal continues with other siblings.
+Ignore-file negations apply to the matched entry, not every descendant of a
+reopened directory. Unclosed brackets are literal in ignore files (but still
+invalid command-line globs). Nested `.git` markers reset inherited VCS rules,
+without resetting `.ignore` or `.rgignore`. Followed cycles are detected before
+ignore filtering, and diagnostics retain the ancestor's displayed path.
 
 This is a scoped gitignore-style implementation, not a git/wildmatch library.
 It does not read `.git/info/exclude`, global git excludes, `.git` worktree
@@ -109,10 +120,13 @@ environment config path, or network location is consulted.
 ## Bytes, binary files, and JSON
 
 Input is read as cancellable byte chunks; output preserves original bytes.
-Matching decodes UTF-8 and retains a mapping back to byte offsets. Invalid UTF-8
-is represented by replacement characters for matching only, not rewritten in
-output. Columns, byte offsets, and JSON submatch ranges are byte-based. `--crlf`
-removes a trailing CR for matching while retaining it in ordinary line output.
+Matching decodes UTF-8 and retains a mapping back to byte offsets. Malformed
+bytes separate valid UTF-8 matching fragments: consuming matches cannot include
+them, literal replacement characters do not match them, and anchors still refer
+to the whole record rather than fragment boundaries. Output retains the original
+bytes. Columns, byte offsets, and JSON submatch ranges are byte-based. `--crlf`
+removes a trailing CR for matching while retaining it in ordinary line output;
+only-matching output uses CRLF terminators in this mode.
 
 By default, discovered recursive files stop when an input chunk contains NUL.
 Explicit files/stdin and `--binary` search binary records, treating NUL as a
@@ -120,8 +134,13 @@ record boundary and reporting a binary-match message instead of plain content.
 `-a` treats NUL as ordinary data. `--null-data` makes NUL the record delimiter
 and disables NUL binary detection. Files listed by `--files` are not read or
 binary-filtered. Binary detection is chunk-based; later NUL discovery cannot
-retract earlier streamed output. Large-file/chunk-boundary behavior is not
-claimed identical to native rg's reader/mmap heuristics.
+retract earlier streamed output. Binary-aware explicit line searches stage
+initial output until EOF, binary detection, or a 64 KiB input/output threshold;
+this preserves the tested warning-only result for fragmented small inputs.
+After that threshold, a late binary warning preserves already-flushed output.
+This adds bounded initial output latency, and a single large record can exceed
+the staging threshold before it is flushed. Large-file/chunk-boundary behavior
+is not claimed identical to native rg's reader/mmap heuristics.
 
 JSON Lines uses `begin`, `match`, `context`, `end`, and final `summary` events.
 Files without emitted matches/context have no begin/end pair. Paths and record
@@ -131,6 +150,11 @@ binary offsets, and search/match/byte statistics. All elapsed-time fields are
 deterministically zero; they are **not performance measurements**. Native test
 comparison normalizes only elapsed fields, retaining byte counts, match counts,
 and the rest of the JSON structure.
+Quiet JSON searches emit only the summary and gather statistics across inputs.
+Matches inside the fixed after-context window following `--max-count` retain
+match events and statistics without extending that window. The tests preserve
+native 15.2.0's limited/inverted unterminated-tail event classification, including
+its counterintuitive classification of matching tail content as a match event.
 
 ## Regex and resource limitations
 
@@ -141,7 +165,7 @@ letters/numbers/marks/connector punctuation/join controls for word boundaries.
 Rust inline mode groups, Rust-specific Unicode property spellings, character
 class set operations, POSIX classes, PCRE2, backreferences, and user lookaround
 are unsupported. JavaScript `\w`, `\d`, `\b`, case folding, dot/anchor behavior
-around CR and Unicode line separators, and replacement-character matching can
+around CR and Unicode line separators can
 differ from native Rust regex. UTF-16/other input encodings, BOM transcoding,
 multiline mode, replacement output, compressed search, file-type databases, and
 native mmap/threading controls are not implemented.
@@ -153,6 +177,11 @@ untrusted regexes safe; callers requiring a hard deadline must isolate execution
 outside this command. Generated glob regexes use JavaScript matching as well.
 Cancellation-aware byte helpers stop blocked stream waits, and traversal/record
 loops yield periodically, but these guarantees do not extend into RegExp.
+Legacy auto-selection now also yields while receiving empty chunks, so timer
+cancellation is not starved; this does not fix the missing stdin provenance.
+Closed stdout (`EPIPE`) terminates successfully without scanning later files or
+emitting diagnostics. A private cancellation signal releases input cleanup waits
+on that path; an already-aborted caller signal still takes precedence.
 
 Additional bounds: 1,024 search patterns/globs, 8,192 bytes per search pattern,
 8,192 UTF-16 units per glob, 1 MiB per pattern/ignore file, 10,000 active ignore

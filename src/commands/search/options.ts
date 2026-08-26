@@ -64,6 +64,7 @@ export function parse(args: readonly string[]): Arguments {
   };
   const operands: string[] = [];
   let unrestricted = 0;
+  let explicitLineNumber = false;
   let ended = false;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -89,8 +90,8 @@ export function parse(args: readonly string[]): Arguments {
         case "f": case "file": result.explicitPatterns = true; result.patternFiles.push(value()); break;
         case "g": case "glob": result.globs.push({ source: value(), insensitive: false }); break;
         case "iglob": result.globs.push({ source: value(), insensitive: true }); break;
-        case "n": case "line-number": result.lineNumber = true; break;
-        case "N": case "no-line-number": result.lineNumber = false; break;
+        case "n": case "line-number": result.lineNumber = true; explicitLineNumber = true; break;
+        case "N": case "no-line-number": result.lineNumber = false; explicitLineNumber = true; break;
         case "H": case "with-filename": result.filename = true; break;
         case "I": case "no-filename": result.filename = false; break;
         case "i": case "ignore-case": result.case = "insensitive"; break;
@@ -140,7 +141,7 @@ export function parse(args: readonly string[]): Arguments {
         case "messages": result.messages = true; break;
         case "heading": result.heading = true; break;
         case "no-heading": result.heading = false; break;
-        case "column": result.column = true; result.lineNumber = true; break;
+        case "column": result.column = true; break;
         case "no-column": result.column = false; break;
         case "b": case "byte-offset": result.byteOffset = true; break;
         case "A": case "after-context": result.after = count(value(), flag); break;
@@ -163,6 +164,7 @@ export function parse(args: readonly string[]): Arguments {
     if (pattern === undefined) throw new SearchError("a search pattern is required");
     result.patterns.push(pattern);
   }
+  if (!explicitLineNumber) result.lineNumber = result.column;
   result.paths = operands;
   return result;
 }

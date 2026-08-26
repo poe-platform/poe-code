@@ -13,7 +13,11 @@ export class Printer {
   private lastLine = 0;
   private headings = new Set<string>();
   constructor(readonly args: Arguments, readonly limits: Limits) {}
-  async event(type: string, value: unknown): Promise<void> { await this.limits.output(`${JSON.stringify({ type, data: value })}\n`); }
+  async event(type: string, value: unknown): Promise<void> {
+    const ordered = (input: unknown): unknown => input && typeof input === "object" && !Array.isArray(input)
+      ? Object.fromEntries(Object.entries(input).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([key, item]) => [key, ordered(item)])) : input;
+    await this.limits.output(`${JSON.stringify(type === "summary" ? ordered({ type, data: value }) : { type, data: value })}\n`);
+  }
   async filename(label: string): Promise<void> { await this.limits.output(label + (this.args.nullPath ? "\0" : "\n")); }
   async count(label: string, amount: number, filename: boolean): Promise<void> {
     await this.limits.output(`${filename ? label + (this.args.nullPath ? "\0" : ":") : ""}${amount}\n`);
@@ -36,15 +40,16 @@ export class Printer {
     } else if ((this.args.before || this.args.after) && this.lastFile !== undefined && (this.lastFile !== label || line.number > this.lastLine + 1) && this.args.separator !== undefined) {
       await this.limits.output(this.args.separator + "\n");
     }
-    const pieces = this.args.onlyMatching && selected && !this.args.invert ? matches.filter(match => match.end > match.start) : [undefined];
+    const pieces = this.args.onlyMatching && selected && !this.args.invert ? matches : [undefined];
     for (const match of pieces) {
       const separator = selected ? ":" : "-";
       let prefix = filename && !this.args.heading ? label + (this.args.nullPath ? "\0" : separator) : "";
       if (this.args.lineNumber) prefix += line.number + separator;
-      if (this.args.column) prefix += ((match ?? matches[0])?.start ?? 0) + 1 + separator;
+      if (this.args.column && matches.length) prefix += (match ?? matches[0])!.start + 1 + separator;
       if (this.args.byteOffset) prefix += (line.offset + (match?.start ?? 0)) + separator;
       const content = match ? line.content.subarray(match.start, match.end) : line.content;
-      await this.limits.output(Buffer.concat([Buffer.from(prefix), content, Buffer.from([this.args.nullData ? 0 : 10])]));
+      const terminator = this.args.nullData ? "\0" : match && this.args.crlf ? "\r\n" : "\n";
+      await this.limits.output(Buffer.concat([Buffer.from(prefix), content, Buffer.from(terminator)]));
     }
     this.lastFile = label; this.lastLine = line.number;
   }

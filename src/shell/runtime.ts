@@ -730,7 +730,7 @@ export class Runtime {
     }
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)
-      : part.name === "@" || part.name === "*" ? state.positional.join(state.variables.IFS?.[0] ?? " ")
+      : part.name === "@" || part.name === "*" ? state.positional.join(Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : part.name === "0" ? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : state.variables[part.name];

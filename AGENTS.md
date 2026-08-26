@@ -26,6 +26,10 @@
   do not redefine it as passing a tiny selected subset. Record comparison
   criteria, versions, workloads, results, losses, and remaining gaps.
 - Build tools sequentially, then run independent stress-test/fix cycles.
+- Preserve the explicit user requirement: **"i also need curl"**. Curl is an
+  explicitly enabled network plugin, not ambient networking in `agentCommands()`.
+  Use injected authorization/transport, VFS-only file access, zero runtime
+  dependencies and no native curl or subprocess in product code.
 - Preserve the user's exact preference: **"one more note - zero dependency if posisble"**.
   Keep the shipped library at zero runtime dependencies where possible and use
   Node builtins. Minimal development tooling is permitted; isolate comparator

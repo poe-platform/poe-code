@@ -94,6 +94,42 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
 
+## Optional Curl Network Command
+
+The user's explicit requirement **"i also need curl"** is implemented as an
+opt-in HTTP(S) command, not ambient networking in `agentCommands()`:
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem, networkCommands } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() })
+  .use(agentCommands())
+  .use(networkCommands({
+    authorize: ({ url }) => new URL(url).origin === "https://api.example.com",
+  }));
+try {
+  const result = await shell.exec("curl --json '{\"enabled\":true}' https://api.example.com/tasks");
+  console.log(result.exitCode, result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Root and `virtual-bash/commands/network` exports include `networkCommands`
+(`curlCommands` alias), `createNetworkCommands`/`createCurlCommands`,
+`createCurlCommand`, `createNodeHttpTransport`, contracts and limits.
+The authorizer runs before every request/redirect/retry; cross-origin redirects
+drop credentials and all custom headers. URL allowlisting is not DNS pinning.
+Hosts can inject a transport or CA without changing global TLS/environment state.
+Downloads/uploads use byte streams and VFS paths, never implicit host files or
+native curl. Unknown options and unsupported protocols are rejected.
+
+The first author source commit `6854a6b` passes 80 scoped HTTP(S), native-curl,
+VFS, shell, cancellation and safety checks with zero skips/TODOs. A different
+verifier owns `tests/commands/network-stress/**`; this is not independent
+certification or complete curl parity. See `src/commands/network/README.md` for
+exact flags, replay/output bounds, retry limitations and unsupported features.
+
 ## Optional SafeJS Command
 
 The root exports `safeJsCommands(options?)`, `createSafeJsCommands(options?)`,

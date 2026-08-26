@@ -15,8 +15,8 @@ const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({
 const result = await shell.exec("curl --json '{\"enabled\":true}' https://api.example.com/tasks");
 ```
 
-At the first source commit, the API is exported by this subtree's `index.ts`;
-root/package wiring is a subsequent integration commit. `networkCommands` and
+The API is exported by this subtree's `index.ts`, the package root, and
+`virtual-bash/commands/network`. `networkCommands` and
 `curlCommands` are aliases. `createNetworkCommands`/`createCurlCommands` return
 one `CommandDefinition`, and `createCurlCommand` returns that definition directly.
 Registration rejects a duplicate `curl` unless `replace: true` is explicit.

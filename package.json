@@ -22,6 +22,10 @@
       "types": "./dist/contracts/*.d.ts",
       "import": "./dist/contracts/*.js"
     },
+    "./commands/network": {
+      "types": "./dist/commands/network/index.d.ts",
+      "import": "./dist/commands/network/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

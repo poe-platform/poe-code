@@ -1,5 +1,45 @@
 # Requirements and Progress Ledger
 
+## Curl author assignment — August 26, 2026
+
+The user explicitly requires **"i also need curl"**. This supersedes the just
+assigned chmod/stat/mktemp author batch; only read-only metadata investigation
+occurred, with no metadata source or tests created. Curie owns
+`src/commands/network/**`, `tests/commands/network/**`, root exports and root
+documentation for an explicitly enabled HTTP(S) curl plugin. The aggregate must
+not silently acquire network access. Require manual per-hop authorization,
+cross-origin credential stripping, bounded streaming bytes, VFS-only file IO,
+honest unsupported options and zero runtime dependencies. Local native-curl and
+HTTP(S) oracle tests are test tooling only. A different worker must independently
+stress the author result; neither a scaffold nor author tests establish broad
+parity, superiority or completion of the full/72-hour objective.
+
+Curl author source commit **6854a6b** delivers the network plugin. Its author
+checkpoint is **80/80**, zero failure/skip/TODO, plus strict scoped TypeScript
+on Node 22.22.2. It uses local HTTP(S) and native curl 8.7.1, memory/real VFS,
+actual shell pipelines, multipart structural comparisons, policy/redirect checks,
+timeouts, late-rejection handling, output backpressure, downstream EPIPE and
+caller abort. These are author checks, not the separately assigned Archimedes
+review. No whole-repo or current moving-worktree clean claim is inferred.
+
+Root/subpath exports expose `networkCommands`/`curlCommands`, definition factories,
+`createNodeHttpTransport` and typed host contracts. `agentCommands()` is unchanged;
+explicit policy and plugin registration are required. File uploads can change
+between replay reads; stdin replay is bounded and fails explicitly when unavailable.
+Retries cover selected HTTP response statuses before body publication, not all
+network errors. Custom transports must honor signal/dispose; URL policy alone
+does not pin DNS. Proxy/connect-only timeouts, TLS bypass and unimplemented flags
+are rejected. S3 ABA limits, unpatched SafeJS findings and all broader goals remain
+separate and unresolved by this increment.
+
+The root/subpath integration adds one export/registration test: **81/81 scoped
+network checks**, zero failures/skips/TODOs. Global `npm run typecheck` and
+`npm run build` pass at this moving-worktree checkpoint, as does a built ESM
+root/subpath smoke with exact binary output and an unchanged aggregate registry.
+A manual moving-worktree `curl STREAM | head -c 5` check returns five bytes/status
+zero in about 51 ms and closes the server stream. This is not frozen-revision
+proof of the independently owned shell fix or a clean whole-repository test run.
+
 ## Source and status discipline
 
 This ledger preserves the complete goal supplied to this documentation worker,

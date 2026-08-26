@@ -91,8 +91,57 @@ export class ShellInput implements ByteSource {
     return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
   }
 
-  line(raw: boolean): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
-    return this.#cursor.consume(this.signal, () => this.readLine(raw));
+  line(raw: boolean, options?: { count?: number; delimiter?: number }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+    return this.#cursor.consume(this.signal, () => options ? this.readBounded(raw, options) : this.readLine(raw));
+  }
+
+  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+    const characters: string[] = [];
+    const escaped = new Set<number>();
+    const decoder = new TextDecoder();
+    const delimiter = options.delimiter ?? 10;
+    let chunk: Uint8Array = new Uint8Array();
+    let offset = 0;
+    let length = 0;
+    let escaping = false;
+    let terminated = options.count === 0;
+    try {
+      while (!terminated) {
+        if (offset === chunk.length) {
+          const result = await this.#cursor.take(this.signal);
+          if (result.done) {
+            const tail = decoder.decode();
+            if (tail) characters.push(tail);
+            break;
+          }
+          chunk = result.value;
+          offset = 0;
+          if (!chunk.length) continue;
+        }
+        const byte = chunk[offset++]!;
+        if (!escaping && byte === delimiter) { terminated = true; break; }
+        if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+        if (length % 1024 === 0) {
+          await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+          this.signal.throwIfAborted();
+        }
+        if (byte === 0) continue;
+        const decoded = decoder.decode(Uint8Array.of(byte), { stream: true });
+        for (const character of decoded) {
+          if (!raw && !escaping && character === "\\") { escaping = true; continue; }
+          if (escaping) {
+            escaping = false;
+            if (character === "\n") continue;
+            escaped.add(characters.length);
+          }
+          characters.push(character);
+          if (characters.length === options.count) terminated = true;
+        }
+      }
+      return { value: characters.join(""), escaped, terminated };
+    } finally {
+      if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+    }
   }
 
   private async readLine(raw: boolean): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {

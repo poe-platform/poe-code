@@ -29,3 +29,27 @@ either form. These are recorded gaps, not excluded independent stress outcomes.
 
 Primary reference: GNU Bash manual, Redirections / Moving File Descriptors,
 https://www.gnu.org/software/bash/manual/html_node/Redirections.html .
+
+## Read count and delimiter
+
+`read-options.test.ts` compares count/delimiter consumption, escaping, raw mode,
+IFS splitting, default REPLY, EOF and combined flags to the bounded reference.
+UTF-8 character counting is additionally captured with `en_US.UTF-8`: installed
+Bash 3.2 counts bytes, so `read -rn2` on `é😀z` assigns only `é`, leaves `😀z`,
+status 0, empty stderr. The virtual text model counts Unicode characters
+independently of host locale, assigns `é😀` and leaves `z`. This is an explicit
+native difference, not an exact-Unicode-parity claim.
+Delimiter matching uses the first encoded byte; an empty argument selects NUL.
+Skipped NUL bytes follow the modern manual for these option forms, not a claim
+of Bash 3.2 binary-text compatibility. Non-option reads retain prior behavior.
+Unsupported flags, malformed counts and counts outside safe integer range are
+rejected before input consumption with status 2. No timeout or descriptor-read
+flag is silently accepted.
+
+There is a version-specific zero-count difference: Bash 3.2
+`IFS= read -n 0 value` with `abcdef\n` consumes the entire line, assigns
+`abcdef`, status 0. The virtual shell follows the GNU manual's explicit
+zero-character behavior: succeeds without consuming input, assigns empty text.
+The zero-count test asserts that the underlying iterator is not pulled.
+Primary reference: GNU Bash manual, Bash Builtins / read,
+https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html .

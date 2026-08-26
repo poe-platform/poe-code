@@ -742,15 +742,34 @@ export class Runtime {
     }
     if (command === "read") {
       const names = [...args];
-      const raw = names[0] === "-r";
-      if (raw) names.shift();
+      let raw = false;
+      let count: number | undefined;
+      let delimiter: number | undefined;
+      let invalid = false;
+      while (names[0]?.startsWith("-") && names[0] !== "--" && names[0] !== "-") {
+        const option = names.shift()!;
+        for (let index = 1; index < option.length; index++) {
+          const flag = option[index];
+          if (flag === "r") { raw = true; continue; }
+          if (flag !== "n" && flag !== "d") { invalid = true; break; }
+          const value = option.slice(index + 1) || names.shift();
+          if (value === undefined) invalid = true;
+          else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
+          else if (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value))) invalid = true;
+          else count = Number(value);
+          break;
+        }
+        if (invalid) break;
+      }
       if (names[0] === "--") names.shift();
-      if (names.some((name) => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name))) {
+      if (invalid || names.some((name) => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name))) {
         await writeText(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
-      const line = await input.line(raw);
+      const line = await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
+        ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }),
+      });
       if (!names.length) state.variables.REPLY = line.value;
       else {
         const separators = state.variables.IFS ?? " \t\n";

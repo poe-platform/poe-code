@@ -181,9 +181,15 @@ Default response limits, configurable through constructor options:
 
 `readFile.maxBytes` may lower the file-read limit, including to zero. Actual
 stream bytes are counted even without Content-Length, and excess/aborted bodies
-are cancelled. XML also has fixed ceilings of 64 nested elements, 100,000 nodes,
-10,000 total attributes, 128 attributes per element, and 256 namespace
-declarations. A conforming transport must honor abort for request timeouts;
+are cancelled. Adapter XML node and total-attribute budgets scale with
+`maxXmlBytes` (at most one node/attribute per permitted byte); they cannot
+silently undercut a listing that fits the byte budget. Fixed structural
+ceilings remain: 64 nested elements, 128 attributes per element and 256
+simultaneously in-scope namespace bindings, including the predefined `xml`
+binding. Repeated local declarations on sibling responses do not consume a
+document-wide namespace budget. The standalone scanner retains its optional
+node/attribute limits; the adapter explicitly supplies byte-derived budgets.
+A conforming transport must honor abort for request timeouts;
 the adapter separately cancels pending body reads when aborted.
 
 RFC 4918 depth-one PROPFIND has no standard pagination cursor. This adapter

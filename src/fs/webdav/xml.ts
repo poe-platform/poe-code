@@ -93,7 +93,6 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
   let offset = 0;
   let nodes = 0;
   let attributeCount = 0;
-  let namespaceCount = 0;
   const whitespace = (): void => {
     while (offset < source.length && " \t\n\r".includes(source[offset]!)) offset++;
   };
@@ -175,12 +174,12 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
         attributes.set(attribute, value);
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {
-          if (++namespaceCount > 256) invalid("XML namespace limit exceeded");
           const prefix = attribute === "xmlns" ? "" : attribute.slice(6);
           if (prefix === "xmlns" || value === xmlnsNamespace
             || (prefix === "xml") !== (value === xmlNamespace)
             || (prefix !== "" && value === "")) invalid("invalid namespace binding");
           namespaces.set(prefix, value);
+          if (namespaces.size > 256) invalid("XML namespace scope limit exceeded");
         }
       }
       const expanded = new Set<string>();

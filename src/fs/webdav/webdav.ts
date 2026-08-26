@@ -240,15 +240,21 @@ export class WebDavFileSystem implements FileSystem {
     }
   }
 
+  private async xml(response: Response, signal: AbortSignal): Promise<XmlElement> {
+    const data = await this.bytes(response, this.maxXmlBytes, signal);
+    const encoding = (data[0] === 0xff && data[1] === 0xfe) || (data[0] === 0x3c && data[1] === 0)
+      ? "utf-16le" : (data[0] === 0xfe && data[1] === 0xff) || (data[0] === 0 && data[1] === 0x3c) ? "utf-16be" : "utf-8";
+    return parseXml(new TextDecoder(encoding, { fatal: true }).decode(data), {
+      maxNodes: this.maxXmlBytes, maxAttributes: this.maxXmlBytes,
+    });
+  }
+
   private async multistatus(response: Response, signal: AbortSignal): Promise<XmlElement[]> {
     const link = response.headers.get("link");
     if (link && /\brel\s*=\s*(?:"[^"]*\bnext\b[^"]*"|'[^']*\bnext\b[^']*'|next\b)/i.test(link)) {
       fail("ENOTSUP", "PROPFIND", "", "paginated WebDAV responses are unsupported");
     }
-    const data = await this.bytes(response, this.maxXmlBytes, signal);
-    const encoding = (data[0] === 0xff && data[1] === 0xfe) || (data[0] === 0x3c && data[1] === 0)
-      ? "utf-16le" : (data[0] === 0xfe && data[1] === 0xff) || (data[0] === 0 && data[1] === 0x3c) ? "utf-16be" : "utf-8";
-    const root = parseXml(new TextDecoder(encoding, { fatal: true }).decode(data));
+    const root = await this.xml(response, signal);
     if (root.namespace !== "DAV:" || root.localName !== "multistatus") throw new Error("expected DAV:multistatus");
     const responses = davChildren(root, "response");
     if (responses.length > this.maxEntries) fail("EFBIG", "PROPFIND", "", "response exceeds entry limit");
@@ -534,7 +540,7 @@ export class WebDavFileSystem implements FileSystem {
         const header = response.headers.get("Lock-Token");
         if (!header || !/^<[a-z][a-z0-9+.-]*:[^<>\s\x00-\x20\x7f]+>$/i.test(header)) throw new Error("invalid LOCK token");
         token = header;
-        const root = parseXml(new TextDecoder("utf-8", { fatal: true }).decode(await this.bytes(response, this.maxXmlBytes, signal)));
+        const root = await this.xml(response, signal);
         const discovery = davChild(root, "lockdiscovery");
         const active = discovery && davChild(discovery, "activelock");
         const scope = active && davChild(active, "lockscope");

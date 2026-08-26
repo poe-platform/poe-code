@@ -198,3 +198,58 @@ original matrix/fixture, shell, FS, jq, AGENTS, root docs/config or other worker
 file was edited. S3 is mock and WebDAV loopback, not production-provider proof.
 This is not full-shell validation, broad compatibility, a 72-hour claim, or
 evidence of superiority over just-bash. Stop at this checkpoint; no source fix.
+
+## Quick closure — SPECIFIC GAP CLOSED (August 26, 2026)
+
+Independent three-row verification recorded at **2026-08-26T22:09:21.706Z**
+reviews Poincare's **`33ddb70c75865e3e695cf471b942ab0add98a891`**. The earlier
+NOT PASS verdict and owner handoff above remain the historical audit of
+`df5bc453de004a8eb483696cf4ae1986a012cca1`, not the corrected assertion.
+
+| Pinned matrix / control | Pass | Fail | Exit |
+| --- | ---: | ---: | ---: |
+| df5bc45 + unchanged append-untyped mutant | 1 | 0 | 0 |
+| 33ddb70 unmutated baseline | 1 | 0 | 0 |
+| 33ddb70 + identical append-untyped mutant | 0 | 1 | 1 |
+
+Each invocation executes exactly one append-redirection row, with zero skipped,
+cancelled or TODO cases. The corrected mutant fails specifically with
+`filesystem boundary must reject with an actual FsError` (`ERR_ASSERTION`,
+expected true, actual false). This expected negative-control failure closes the
+demonstrated identity gap; it is not an unmutated product failure.
+
+All three rows use identical committed production source
+**`19149d3d9c5dc6f309b61f215a140df18adaf6e4`**, source tree
+`68f8d800dcc23da445c9586c863af8c7d56e4d3a`, and identical fixture bytes. The
+helper verifies that removing exactly the seven added assertion lines makes the
+corrected matrix byte-identical to the old matrix. The actual shell append-open
+uses `writeFile(path, new Uint8Array(), { ...options, flag: "a" })`. The new
+direct empty append-open assertion retains the existing `appendFile(changed)`
+assertion. Both require `instanceof FsError`, exact `EROFS`, and exact
+`/work/target.txt`; full `/work` namespace/byte snapshots, target/old/payload
+bytes, status, stdout and exact human stderr checks remain intact.
+
+`append-closure.json` freezes full commit/blob/SHA-256 identities for source,
+both matrices and fixtures, the exact assertion diff, tooling, argv/environment,
+complete TAP, outcome mismatches (none), and before/after protected-file hashes
+(no drift). The loader's sole change admits the corrected matrix revision; its
+mutation block is byte-for-byte identical to audit
+`d5ac96afd5288234de3b617bc15af3b2a3c42bf5`: only readonly `writeFile` with flag
+`a` throws a plain `Error` with correct `EROFS`/path. No source or original
+matrix/fixture files were changed. All prior repro artifacts, including
+`coverage.json`, remain byte-identical; the old coverage gate still defaults to
+the old revisions and its original expected failure behavior.
+
+Reproduce only these three rows, with a new evidence filename:
+
+```sh
+node tests/integration/adapter-tools-diagnostics/check-append-closure.mjs append-closure-rerun.json
+```
+
+Existing dependencies only; each child is bounded to 30 seconds and 1 MiB per
+output stream, with SIGKILL on deadline. Temporary/cache paths are isolated
+inside this owned folder and removed in `finally`. No native oracle, install,
+full eight/79-case run, fuzzing or remote/cancellation validation occurs. Both
+helper and loader syntax checks passed. The original **71/79** and revised
+**79/79** remain distinct **HISTORICAL** cohorts: no retroactive original
+acceptance, fresh 79/79 claim, or universal cancellation/full-matrix acceptance.

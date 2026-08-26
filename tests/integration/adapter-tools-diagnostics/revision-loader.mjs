@@ -13,7 +13,8 @@ const fixture = 'tests/integration/adapter-tools/fixtures.ts';
 const matrix = 'tests/integration/adapter-tools/matrix.test.ts';
 const mock = 'tests/fs/webdav/mock.ts';
 const matrixRevision = process.env.DIAGNOSTIC_MATRIX_REVISION;
-assert.ok(matrixRevision === undefined || matrixRevision === 'df5bc453de004a8eb483696cf4ae1986a012cca1');
+assert.ok(matrixRevision === undefined || ['df5bc453de004a8eb483696cf4ae1986a012cca1',
+  '33ddb70c75865e3e695cf471b942ab0add98a891'].includes(matrixRevision));
 const mutation = process.env.DIAGNOSTIC_MUTATION;
 assert.ok(mutation === undefined || mutation === 'append-untyped');
 const selected = path => path.startsWith('src/') || path === fixture || path === mock || path === matrix;

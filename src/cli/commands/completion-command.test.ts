@@ -107,14 +107,14 @@ describe("completion command", () => {
 
     expect(script).toContain("complete -F _poe_code_complete poe-code");
     expect(script).toContain("complete -F _poe_code_complete poe");
-    expect(script).toContain('"0:0:") completions="agent completion configure plan plans p --yes"');
+    expect(script).toContain('"0:0:") completions="agent completion configure plan plans p --yes --help"');
   });
 
   it("emits bash completions for nested commands, aliases, and their options", async () => {
     const script = await emitCompletion("bash");
 
-    expect(script).toContain('"0:0:configure") completions="--agent --yes"');
-    expect(script).toContain('"0:0:agent") completions="add new list --yes"');
+    expect(script).toContain('"0:0:configure") completions="--agent --yes --help"');
+    expect(script).toContain('"0:0:agent") completions="add new list --yes --help"');
   });
 
   it.each(["bash", "zsh", "fish"])(
@@ -138,8 +138,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"0:0:${parent}") completions="open view show --directory --yes";;`
-        : `"0:0:${parent}") completions=(open view show --directory --yes);;`
+        ? `"0:0:${parent}") completions="open view show --directory --yes --help";;`
+        : `"0:0:${parent}") completions=(open view show --directory --yes --help);;`
     );
   });
 
@@ -154,8 +154,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"0:0:${path}") completions="--editor --directory --yes";;`
-        : `"0:0:${path}") completions=(--editor --directory --yes);;`
+        ? `"0:0:${path}") completions="--editor --directory --yes --help";;`
+        : `"0:0:${path}") completions=(--editor --directory --yes --help);;`
     );
   });
 
@@ -191,7 +191,7 @@ describe("completion command", () => {
 
     expect(script).toContain("#compdef poe-code poe");
     expect(script).toContain("compdef _poe_code poe-code poe");
-    expect(script).toContain('"0:0:agent") completions=(add new list --yes)');
+    expect(script).toContain('"0:0:agent") completions=(add new list --yes --help)');
   });
 
   it("emits fish completions carrying command descriptions", async () => {
@@ -236,7 +236,7 @@ describe("completion command", () => {
       async (path) => {
         const script = await emitCompletion(shell);
 
-        expect(readCompletionWords(script, path)).toEqual(["--yes"]);
+        expect(readCompletionWords(script, path)).toEqual(["--yes", "--help"]);
       }
     );
   });
@@ -338,7 +338,7 @@ describe("completion command", () => {
       { input: "plan -- --kind v", path: "plan --kind", prefix: "v", ended: true, expected: [] },
       { input: "-- models <empty>", path: "models", prefix: "", ended: true, expected: [] },
       { input: "models --verb", path: "models", prefix: "--verb", ended: false, expected: ["--verbose"] },
-      { input: "--", path: "", prefix: "--", ended: false, expected: ["--yes", "--dry-run", "--verbose", "--version"] },
+      { input: "--", path: "", prefix: "--", ended: false, expected: ["--yes", "--dry-run", "--verbose", "--version", "--help"] },
       { input: "harness run --dir -- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
       { input: "harness run --dir -- -- --re", path: "harness run", prefix: "--re", ended: true, expected: [] },
       { input: "harness run --dir=-- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
@@ -465,14 +465,14 @@ describe("completion command", () => {
       expect(retentionCases).not.toContain("*");
     });
 
-    it("keeps positional-only leaves in metadata even without candidate options", async () => {
+    it("keeps positional-only leaves in metadata even without regular options", async () => {
       const program = new Command().name("poe-code");
       program.command("leaf").argument("[value]");
       registerCompletionCommand(program);
       const script = await emitCompletion(shell, program);
 
       expect(script).toContain('      "leaf") continue;;');
-      expect(readCompletionWords(script, "leaf")).toEqual([]);
+      expect(readCompletionWords(script, "leaf")).toEqual(["--help"]);
     });
 
     it("does not treat unknown paths, no-positional leaves, or parents as positional leaves", async () => {
@@ -580,8 +580,8 @@ describe("completion command", () => {
         expect(script).toContain(childCase);
         expect(script).toContain(operandCase);
         expect(script.indexOf(childCase)).toBeLessThan(script.indexOf(operandCase));
-        expect(readCompletionWords(script, parent)).toEqual(["open", "view", "show", "--directory", "--yes"]);
-        expect(readCompletionWords(script, parent, false, true)).toEqual(["--directory", "--yes"]);
+        expect(readCompletionWords(script, parent)).toEqual(["open", "view", "show", "--directory", "--yes", "--help"]);
+        expect(readCompletionWords(script, parent, false, true)).toEqual(["--directory", "--yes", "--help"]);
         expect(readCompletionWords(script, parent, true)).toEqual(["open", "view", "show"]);
         expect(readCompletionWords(script, parent, true, true)).toEqual([]);
         for (const child of ["internal", "private"]) {
@@ -591,7 +591,7 @@ describe("completion command", () => {
       }
     });
 
-    it("keeps metadata for positional parents with only hidden children and no options", async () => {
+    it("keeps metadata for positional parents with only hidden children and no regular options", async () => {
       const program = new Command().name("poe-code");
       program.command("parent").argument("[value]")
         .command("internal", { hidden: true }).alias("private");
@@ -601,7 +601,7 @@ describe("completion command", () => {
       expect(script).toContain('      "parent:internal"|"parent:private") ;;');
       expect(script).toContain('      "parent:"*) parent_operands=1; continue;;');
       expect(script).not.toContain('      "parent") continue;;');
-      expect(readCompletionWords(script, "parent", false, true)).toEqual([]);
+      expect(readCompletionWords(script, "parent", false, true)).toEqual(["--help"]);
     });
 
     it("keeps pending values and terminators ahead of parent retention and later child-looking operands", async () => {
@@ -643,6 +643,178 @@ describe("completion command", () => {
     program.commands.find((command) => command.name() === "plan")!.argument("[paths...]");
 
     expect(await emitCompletion("fish", program)).toBe(before);
+  });
+
+  describe.each(["bash", "zsh", "fish"])("%s implicit help options", (shell) => {
+    it.each(["", "models", "plan view", "harness run", "maestro", "plans view"])(
+      "includes current-command help and description at real path '%s'",
+      async (path) => {
+        const program = createProgram({
+          fs: createMemFs(),
+          prompts: async () => ({}),
+          env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+          logger: () => {},
+          exitOverride: true
+        });
+        const script = await emitCompletion(shell, program);
+
+        if (shell === "fish") {
+          const condition = path === "" ? "__fish_use_subcommand" : `__fish_seen_subcommand_from ${path.split(" ").at(-1)}`;
+          expect(script).toContain(
+            `complete -c poe-code -n "${condition}" -l help -d 'Display help for command'`
+          );
+        } else {
+          expect(readCompletionWords(script, path).filter((word) => word.startsWith("--he")))
+            .toEqual(["--help"]);
+          expect(readCompletionWords(script, path, true)).not.toContain("--help");
+          expect(script).not.toContain(`"${path}:--help"`);
+          expect(script).not.toContain(`"${path}:-h"`);
+        }
+      }
+    );
+
+    it.each(["eval", "gh", "code-review", "superintendent"])(
+      "does not inherit implicit help into disabled real wrapper %s",
+      async (path) => {
+        const program = createProgram({
+          fs: createMemFs(),
+          prompts: async () => ({}),
+          env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+          logger: () => {},
+          exitOverride: true
+        });
+        const script = await emitCompletion(shell, program);
+
+        if (shell === "fish") {
+          expect(script).not.toContain(`complete -c poe-code -n "__fish_seen_subcommand_from ${path}" -l help `);
+        } else {
+          expect(readCompletionWords(script, path)).not.toContain("--help");
+        }
+      }
+    );
+
+    it("keeps help-only leaves and their aliases in the generated tree", async () => {
+      const program = new Command().name("poe-code");
+      program.command("bare").alias("empty");
+      registerCompletionCommand(program);
+      const script = await emitCompletion(shell, program);
+
+      for (const path of ["bare", "empty"]) {
+        if (shell === "fish") {
+          expect(script).toContain(
+            `complete -c poe-code -n "__fish_seen_subcommand_from ${path}" -l help -d 'display help for command'`
+          );
+        } else {
+          expect(readCompletionWords(script, path)).toEqual(["--help"]);
+          expect(readCompletionWords(script, path, true)).toEqual([]);
+        }
+      }
+    });
+
+    it.each([
+      {
+        name: "custom help and description",
+        setup: (command: Command) => command.helpOption("-h, --assist", "Custom assistance."),
+        expected: ["--assist"],
+        description: "Custom assistance."
+      },
+      {
+        name: "disabled help",
+        setup: (command: Command) => command.helpOption(false),
+        expected: [],
+        description: ""
+      },
+      {
+        name: "hidden addHelpOption",
+        setup: (command: Command) => command.addHelpOption(new Option("--assist <value>", "Hidden assistance.").hideHelp()),
+        expected: [],
+        description: ""
+      },
+      {
+        name: "short-only help without inventing a long spelling",
+        setup: (command: Command) => command.helpOption("-?", "Short assistance."),
+        expected: [],
+        description: ""
+      }
+    ])("respects $name across aliases", async ({ setup, expected, description }) => {
+      const program = createFixtureProgram();
+      const target = program.commands.find((command) => command.name() === "configure")!;
+      target.aliases(["setup", "cfg"]);
+      setup(target);
+      const script = await emitCompletion(shell, program);
+
+      for (const path of ["configure", "setup", "cfg"]) {
+        if (shell === "fish") {
+          const prefix = `complete -c poe-code -n "__fish_seen_subcommand_from ${path}" -l `;
+          const lines = script.split("\n").filter((line) =>
+            line.startsWith(`${prefix}help `) || line.startsWith(`${prefix}assist `)
+          );
+          expect(lines).toEqual(expected.map((flag) => `${prefix}${flag.slice(2)} -d '${description}'`));
+        } else {
+          expect(readCompletionWords(script, path).filter((word) => word === "--help" || word === "--assist"))
+            .toEqual(expected);
+          for (const flag of ["--help", "-h", "--assist", "-?"]) {
+            expect(script).not.toContain(`"${path}:${flag}"`);
+          }
+        }
+      }
+    });
+
+    it.each([
+      {
+        name: "local regular --help leaves implicit short -h only",
+        setup: (_program: Command, command: Command) => command.option("--help <value>", "Regular help value."),
+        expected: ["--help"], description: "Regular help value.", required: ["--help"], excluded: ["-h"]
+      },
+      {
+        name: "local regular -h leaves implicit --help",
+        setup: (_program: Command, command: Command) => command.option("-h <value>", "Regular short value."),
+        expected: ["--help"], description: "display help for command", required: ["-h"], excluded: ["--help"]
+      },
+      {
+        name: "inherited regular required value wins over child help",
+        setup: (program: Command, command: Command) => {
+          program.option("--assist <value>", "Inherited assistance value.");
+          command.helpOption("--assist", "Implicit assistance.");
+        },
+        expected: ["--assist"], description: "Inherited assistance value.", required: ["--assist"], excluded: ["--help"]
+      },
+      {
+        name: "hidden nearest regular spelling still masks an ancestor",
+        setup: (program: Command, command: Command) => {
+          program.option("--help", "Ancestor help.");
+          command.addOption(new Option("--help <value>", "Hidden regular value.").hideHelp());
+        },
+        expected: [], description: "", required: ["--help"], excluded: ["-h"]
+      },
+      {
+        name: "hidden inherited regular spelling is not revived through implicit -h",
+        setup: (program: Command, _command: Command) => program.addOption(new Option("--help <value>", "Hidden inherited value.").hideHelp()),
+        expected: [], description: "", required: ["--help"], excluded: ["-h"]
+      }
+    ])("preserves $name", async ({ setup, expected, description, required, excluded }) => {
+      const program = createFixtureProgram();
+      const target = program.commands.find((command) => command.name() === "configure")!;
+      setup(program, target);
+      const script = await emitCompletion(shell, program);
+
+      if (shell === "fish") {
+        const prefix = 'complete -c poe-code -n "__fish_seen_subcommand_from configure" -l ';
+        const lines = script.split("\n").filter((line) =>
+          line.startsWith(`${prefix}help `) || line.startsWith(`${prefix}assist `)
+        );
+        expect(lines).toEqual(expected.map((flag) => `${prefix}${flag.slice(2)} -d '${description}'`));
+      } else {
+        expect(readCompletionWords(script, "configure").filter((word) => word === "--help" || word === "--assist"))
+          .toEqual(expected);
+        for (const flag of required) {
+          expect(script).toContain(`"configure:${flag}"`);
+        }
+        for (const flag of excluded) {
+          expect(script).not.toContain(`"configure:${flag}"`);
+        }
+      }
+    });
   });
 
   describe.each(["bash", "zsh"])("%s required single-value options", (shell) => {
@@ -791,8 +963,8 @@ describe("completion command", () => {
 
       expect(script).toContain(
         shell === "bash"
-          ? '"0:0:plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
-          : '"0:0:plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
+          ? '"0:0:plan") completions="browse open view show --kind --optional --many --profile --boolean --help";;'
+          : '"0:0:plan") completions=(browse open view show --kind --optional --many --profile --boolean --help);;'
       );
     });
   });

@@ -50,6 +50,13 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
       }
     }
   }
+  for (const option of command.createHelp().visibleOptions(command)) {
+    for (const flag of [option.long, option.short]) {
+      if (flag !== undefined && !optionsByFlag.has(flag)) {
+        optionsByFlag.set(flag, option);
+      }
+    }
+  }
   const options = [...optionsByFlag]
     .filter(([flag, option]) => flag === option.long && !option.hidden)
     .map(([flag, option]) => ({ flag, description: option.description }));

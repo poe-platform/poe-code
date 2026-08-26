@@ -113,3 +113,10 @@ in the ledger and text-program stress reports, not treated as universal parity.
 See [the project ledger](docs/PROJECT_LEDGER.md) for the complete recorded
 requirements, validation gates, ownership, and pending work. Contributors must
 follow [the project rules](AGENTS.md).
+
+Backend unit tests alone do not establish tool interoperability. The unchanged
+cross-adapter matrix passes 76/79 at archived `1c846a1`; later archived `b8df9e1`
+passes 68/79, including eight diagnostic-assertion disagreements and three
+remaining functional gaps. Exact cases, revisions, policy changes and reproduction
+are in [adapter matrix triage](benchmarks/reports/ADAPTER_MATRIX_TRIAGE.md).
+These local S3/mock and WebDAV/HTTP checks do not prove deployed-provider parity.

@@ -523,6 +523,71 @@ that any implementation, command, fixture, or test currently exists.
   `tests/integration/adapter-tools/**`. The requested superiority and full-shell
   goal remain unmet; the small passing comparator is not a substitute.
 
+### Cross-adapter failure triage and core touch fix
+
+- The user's priority is actual remote interoperability before more tools,
+  without reducing the full product goal. Earlier 778/778 adapter/conformance
+  and 335 wrapper test checkpoints were insufficient evidence of cross-tool
+  pluggability. `benchmarks/reports/ADAPTER_MATRIX_TRIAGE.md` records the new
+  cohort separately from the original 51 and later 59 whole-suite failures;
+  these overlapping observations must not be added as distinct product bugs.
+- Five fresh committed archives run unchanged matrix expectations, with exact
+  revisions, dependency-manifest/archive hashes and per-test TAP retained:
+  6a259ff **58 pass / 21 fail**, b01ceda **61 / 18**, a5d68b9 **66 / 13**,
+  1c846a1 **76 / 3**, b8df9e1 **68 / 11**, each of **79**, with zero skips,
+  TODOs or cancellations. Reports are `adapter-matrix-*.json`; reproduce with
+  `node benchmarks/verify-adapter-matrix.mjs --revision REVISION --output FILE`.
+  These are archived-source integration runs, not a moving-worktree or new
+  whole-suite/build/typecheck pass.
+- Curie's b01ceda fixes ordinary new-file `touch`: creation supplies valid
+  filesystem timestamps without requiring optional `utimes`. Existing-file and
+  reference-time operations still require timestamp support; missing support
+  for `-r` is rejected before creating a partial target. Independent regressions
+  failed 3/7 before the fix and pass 7/7 afterward; all 17 focused core tests,
+  six original backend touch cases and scoped strict types pass. Two matrix
+  improvements belong to this fix; b01ceda's third improvement is Plato's
+  earlier 247756d readonly gzip error-precedence fix, not Curie's work.
+- Poincare's a5d68b9 restores five WebDAV cases via authorized reads and actual
+  pull-based binary streams. Isolated 1c846a1 restores nine S3 cases and the
+  mount named-file case: memory, real, S3 and WebDAV each **11/11**, required
+  backend subtotal **44/44**, entire matrix still **76/79**. S3 streaming is
+  negotiated with the transport, not a claim that every provider supports it.
+  That commit changes default rename to conditional copy/delete, explicitly
+  non-atomic; `allowNonAtomicRename: false` retains fail-before-I/O policy.
+  This is a policy change requiring explicit review, not atomic rename parity.
+- Archived b8df9e10df55f84b6736586344f92237b0a51263 additionally contains
+  Sagan's 19149d3 Bash-style redirection diagnostics. Its eight extra failures
+  are six literal `ENOENT` assertions and two literal `EROFS` assertions, not
+  eight demonstrated new backend defects. Readonly tests establish unchanged
+  complete namespace/bytes before their diagnostic assertion; missing-input
+  redirections still fail, but later checks in those six tests are not reached.
+  Poincare/Sagan must reconcile independently specified diagnostics without
+  weakening error/status/state assertions. No expectations were edited here.
+- Three substantive matrix failures persist at both 1c846a1 and b8df9e1:
+  overlay named gzip requires supported streaming reads; cross-mount `cp`
+  fails `EXDEV` in both directions (Poincare); raw/slurped jq `split/1` is
+  unsupported (Archimedes). Previously blocked cross-mount gzip piping now
+  passes; copy support is not implied by that pass. Core/contracts need no
+  additional change established by these repros. Poincare now owns all FS
+  source and backend/wrapper tests; Curie retains core/contracts ownership.
+- S3 uses the supplied mock and WebDAV uses loopback HTTP, not cloud credentials
+  or a deployed remote server. Large transfers, provider signing, protocol
+  differences, permissions, wrapper compositions and host-operation cancellation
+  still need broader evidence. Runtime dependencies remain zero. Neither these
+  matrix improvements nor the earlier 118/118 comparator demonstrates the
+  requested superiority, full-shell support, or completion of the 72-hour work.
+- Faraday's inspected `tests/commands/diff-patch-stress/checkpoint/REPORT.md`
+  separately records frozen b92841a: **2,909 pass / 30 fail / 0 skipped** of
+  2,939, zero TODO/cancelled. The failures comprise 14 formats, five parser
+  native controls, nine compatibility and two standalone fuzz cases. Its
+  7,168 passing seeded GNU properties are nested checks, not additional suite
+  cases and not a waiver of the 30. Built package 14/14 and comparator 118/118
+  versus baseline 108 passes do not imply the broader diff suite passes.
+  This is inspected owner evidence, not a new Curie rerun. The user's later
+  6e1240e report of 89 independent / 151 safety / 829 GNU author passes and
+  825/829 default Apple cases is another scoped checkpoint; Faraday retains
+  classification/fixes for context, ranges, fuzz, parent pruning and rejects.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

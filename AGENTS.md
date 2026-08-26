@@ -103,6 +103,11 @@
   working. Update the README and ledger when concrete evidence is available.
 - Document verified code conventions and commands here when established;
   keep planned acceptance gates distinct from recorded test results.
+- Prioritize actual remote-adapter/tool interoperability over adding tools.
+  Backend unit/conformance success alone does not establish pluggability. Keep
+  the unchanged aggregate adapter matrix, its failures, and remote-provider
+  limitations visible; do not waive required behavior with capability skips.
+  This priority does not narrow the full product goal.
 
 ## Utility dialect policy
 
@@ -125,7 +130,8 @@
 - The initial documentation worker has finished. The user temporarily assigned
   the foundation worker `AGENTS.md` and `docs/PROJECT_LEDGER.md` to record the
   exact superiority requirement and established foundation evidence. This
-  reassignment does not include `README.md` or other documentation.
+  initial reassignment did not include `README.md`; the later aggregate-plugin
+  assignment explicitly includes root README usage and validation updates.
 - The oracle worker also owns `tests/fixtures/shell-cases.json`; do not edit it.
   Their assignment is at least 40 verified Bash fixtures tagged by feature as
   `core` or `advanced`. Track delivery and verification separately from intent.
@@ -138,9 +144,11 @@
   `tests/commands/text-programs-stress/**` for stress-driven fixes.
 - Exclude all adapters, `tests/stress/adapters/**`, `tests/fs/conformance/**`,
   `src/commands/bytes/**` and its tests (Plato); `src/commands/structured/**`
-  and its tests (assigned structured workers); `src/commands/search/**` and its tests (Poincare); shell
-  source/tests and `benchmarks/shell-stress/**` (shell verifier). Other filesystem
-  wrappers retain their assigned owners. Coordinate later transfers explicitly.
+  and its tests (Archimedes); `src/commands/search/**` and its tests (Poincare);
+  shell source/tests and `benchmarks/shell-stress/**` (Sagan).
+- Poincare now owns all filesystem source, backend/wrapper tests, adapter
+  conformance/stress, and `tests/integration/adapter-tools/**`. Core commands
+  and shared contracts remain Curie's; route cross-layer changes explicitly.
 - Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
   (Faraday, independent verifier after author handoff); no source ownership
   transfer to the foundation worker has been granted.

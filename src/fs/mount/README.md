@@ -126,11 +126,14 @@ suite passes 202/202. The unmodified complete filesystem test glob passes
 No shared conformance or integration expectations were edited.
 
 The unchanged 79-case adapter-tools matrix initially reproduced 58 passes and
-21 failures, reached a 77-pass checkpoint during concurrent remote fixes, and
-most recently reports 70 passes and nine failures: six shell missing-path
+21 failures, reached a 77-pass checkpoint during concurrent remote fixes, then
+reported 70 passes and nine failures: six shell missing-path
 diagnostics no longer contain `ENOENT`, two readonly redirection diagnostics no
-longer contain `EROFS`, and jq still rejects `split/1`. Mount cross-backend copies,
-mount/overlay named-file probes, and readonly named gzip pass. These are observed
+longer contained `EROFS`, and jq rejected `split/1`. After wrapper commits
+`402bda8`, `b05b734`, and `78f5cd6`, with concurrent owner fixes present, the
+unchanged matrix passed **79/79**, with zero failures, cancellations, skips, or
+TODOs. Mount cross-backend copies, mount/overlay named-file probes, and readonly
+named gzip pass. These are observed
 working-tree results including other owners' concurrent changes, not isolated
 wrapper attribution, a complete product gate, or comparative superiority evidence.
 

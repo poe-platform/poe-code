@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TaskListFs } from "../types.js";
 import { createFs } from "./test-helpers.js";
 import {
@@ -47,6 +47,11 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("backend utilities", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   describe("created order", () => {
     it.each([
       ["offsets", "2026-01-01T12:00:00Z", "2026-01-01T10:00:00-05:00", -1],
@@ -192,61 +197,57 @@ describe("backend utilities", () => {
     await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toBe("old state\n");
   });
 
-  it("removes a partial lock file when lock creation fails", async () => {
+  it.each(["EACCES", "ENOSPC", undefined])("preserves a foreign lock when acquisition fails with %s", async (code) => {
     const { rawFs } = createFs({});
     const lockPath = "/repo/tasks.yaml.lock";
+    const failure = Object.assign(new Error("lock creation failed"), { code });
+    const operation = vi.fn();
     const fs = {
       ...rawFs,
+      async mkdir(filePath: string, options?: { recursive?: boolean }) {
+        if (filePath === lockPath) {
+          await rawFs.mkdir(lockPath);
+          await rawFs.writeFile(`${lockPath}/foreign`, "owner");
+          throw failure;
+        }
+        return rawFs.mkdir(filePath, options);
+      },
       async writeFile(
         filePath: Parameters<typeof rawFs.writeFile>[0],
         data: Parameters<typeof rawFs.writeFile>[1],
         options?: Parameters<typeof rawFs.writeFile>[2]
       ) {
         if (String(filePath) === lockPath) {
-          await rawFs.writeFile(filePath, "partial-lock", options);
-          throw new Error("lock disk full");
+          await rawFs.writeFile(filePath, "foreign owner", options);
+          throw failure;
         }
 
         return rawFs.writeFile(filePath, data, options);
       }
     } as TaskListFs;
 
-    await expect(withFileLock(fs, lockPath, async () => undefined)).rejects.toThrow(
-      "lock disk full"
-    );
-    await expect(rawFs.readFile(lockPath, "utf8")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
+    await expect(withFileLock(fs, lockPath, operation)).rejects.toBe(failure);
+    expect(operation).not.toHaveBeenCalled();
+    expect((await rawFs.stat(lockPath)).isDirectory()).toBe(true);
+    await expect(rawFs.readFile(`${lockPath}/foreign`, "utf8")).resolves.toBe("owner");
   });
 
-  it("removes an invalid lock file and acquires the lock", async () => {
-    const { rawFs } = createFs({
-      "/repo/tasks.yaml.lock": "not-a-pid"
+  it.each(["", "not-a-pid", "2147483647", String(process.pid)])("fails closed on legacy lock content %j with actionable recovery", async (content) => {
+    vi.useFakeTimers();
+    const kill = vi.spyOn(process, "kill").mockImplementation(() => {
+      throw Object.assign(new Error("not running"), { code: "ESRCH" });
     });
     const lockPath = "/repo/tasks.yaml.lock";
-    let lockWriteAttempts = 0;
-    const fs = {
-      ...rawFs,
-      async writeFile(
-        filePath: Parameters<typeof rawFs.writeFile>[0],
-        data: Parameters<typeof rawFs.writeFile>[1],
-        options?: Parameters<typeof rawFs.writeFile>[2]
-      ) {
-        if (String(filePath) === lockPath) {
-          lockWriteAttempts += 1;
-          if (lockWriteAttempts > 2) {
-            throw new Error("lock acquisition retried invalid content");
-          }
-        }
-
-        return rawFs.writeFile(filePath, data, options);
-      }
-    } as TaskListFs;
-
-    await expect(withFileLock(fs, lockPath, async () => "acquired")).resolves.toBe("acquired");
-    expect(lockWriteAttempts).toBe(2);
-    await expect(rawFs.readFile(lockPath, "utf8")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
+    const { fs, rawFs } = createFs({ [lockPath]: content });
+    const operation = vi.fn();
+    const result = withFileLock(fs, lockPath, operation).catch((error: unknown) => error);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(await result).toEqual(expect.objectContaining({
+      message: expect.stringContaining(`Timed out waiting for task-list lock: ${lockPath}`)
+    }));
+    expect((await result as Error).message).toContain("only be removed after confirming all task-list operations have stopped");
+    expect(operation).not.toHaveBeenCalled();
+    expect(kill).not.toHaveBeenCalled();
+    await expect(rawFs.readFile(lockPath, "utf8")).resolves.toBe(content);
   });
 });

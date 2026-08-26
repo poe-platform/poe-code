@@ -78,6 +78,7 @@ export interface TaskListFs {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   readdir(path: string): Promise<string[]>;
   rename(fromPath: string, toPath: string): Promise<void>;
+  rmdir(path: string): Promise<void>;
   stat(path: string): Promise<{
     isDirectory(): boolean;
     isFile(): boolean;

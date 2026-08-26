@@ -6,7 +6,7 @@ import {
   createFs,
   waitForCondition
 } from "./backends/test-helpers.js";
-import { InvalidTransitionError, type OpenTaskListOptions, type TaskState } from "./types.js";
+import { InvalidTransitionError, type OpenTaskListOptions, type TaskListFs, type TaskState } from "./types.js";
 
 const BACKENDS = [
   {
@@ -60,7 +60,7 @@ function createApprovalMachine(
 
 async function openTasks(
   backend: (typeof BACKENDS)[number],
-  stateMachine: StateMachineDef<TaskState, WorkflowEvent>
+  stateMachine: StateMachineDef
 ) {
   const { fs } = createFs();
   const taskList = await openTaskList({
@@ -94,6 +94,7 @@ async function createTaskAndFire(
 
 describe("Tasks.fire", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -156,32 +157,113 @@ describe("Tasks.fire", () => {
         expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
       });
 
-      if (backend.type === "yaml-file") {
-        it("recovers a transition lock left by a stopped process", async () => {
-          const { fs, rawFs } = createFs();
-          const taskList = await openTaskList({
-            type: "yaml-file",
-            path: backend.path,
-            create: true,
-            fs,
-            stateMachine: createApprovalMachine()
-          });
-          const tasks = taskList.list("planning");
-
-          await tasks.create({
-            id: "approval",
-            name: "Approval"
-          });
-          await rawFs.writeFile(`${backend.path}.lock`, "2147483647", "utf8");
-
-          await expect(tasks.fire("approval", "approve")).resolves.toMatchObject({
-            state: "approved-done"
-          });
-          await expect(rawFs.stat(`${backend.path}.lock`)).rejects.toMatchObject({
-            code: "ENOENT"
-          });
+      it("fails closed on a transition lock left by a stopped process", async () => {
+        vi.useFakeTimers();
+        const kill = vi.spyOn(process, "kill").mockImplementation(() => {
+          throw Object.assign(new Error("not running"), { code: "ESRCH" });
         });
-      }
+        const { fs, rawFs } = createFs();
+        const taskList = await openTaskList({
+          type: backend.type,
+          path: backend.path,
+          create: true,
+          fs,
+          stateMachine: createApprovalMachine()
+        });
+        const tasks = taskList.list("planning");
+        const lockPath = backend.type === "yaml-file"
+          ? `${backend.path}.lock`
+          : `${backend.path}/planning/.transition.lock`;
+        await tasks.create({ id: "approval", name: "Approval" });
+        await rawFs.writeFile(lockPath, "2147483647", { encoding: "utf8" });
+
+        const result = tasks.fire("approval", "approve").catch((error: unknown) => error);
+        await vi.advanceTimersByTimeAsync(30_000);
+        expect(await result).toEqual(expect.objectContaining({
+          message: expect.stringContaining(`Timed out waiting for task-list lock: ${lockPath}`)
+        }));
+        expect(kill).not.toHaveBeenCalled();
+        await expect(tasks.get("approval")).resolves.toMatchObject({ state: "pending" });
+        await expect(rawFs.readFile(lockPath, "utf8")).resolves.toBe("2147483647");
+      });
+
+      it("serializes two public transitions across distinct wrappers during empty lock initialization", async () => {
+        vi.useFakeTimers();
+        vi.spyOn(process, "kill").mockImplementation(() => {
+          throw Object.assign(new Error("not running"), { code: "ESRCH" });
+        });
+        const { fs, rawFs } = createFs();
+        const initialized = createDeferred();
+        const initialize = createDeferred();
+        const exit = createDeferred();
+        const states: string[] = [];
+        const metadata: Record<string, unknown>[] = [];
+        const lockPath = backend.type === "yaml-file"
+          ? `${backend.path}.lock`
+          : `${backend.path}/planning/.transition.lock`;
+        let pauseInitialization = false;
+        const firstFs: TaskListFs = {
+          ...fs,
+          async mkdir(target, options) {
+            await fs.mkdir(target, options);
+            if (pauseInitialization && target === lockPath) {
+              initialized.resolve();
+              await initialize.promise;
+            }
+          },
+          async writeFile(target, data, options) {
+            if (pauseInitialization && target === lockPath) {
+              await fs.writeFile(target, "", options);
+              initialized.resolve();
+              await initialize.promise;
+              return fs.writeFile(target, data);
+            }
+            return fs.writeFile(target, data, options);
+          }
+        };
+        const onExit = async (task: { state: string; metadata: Record<string, unknown> }) => {
+          states.push(task.state);
+          metadata.push({ ...task.metadata });
+          await exit.promise;
+        };
+        const stateMachine = createWorkflowMachine({
+          events: {
+            plan: { from: ["draft"], to: "planned", onExit },
+            complete: { from: "*", to: "done", onExit },
+            archive: { from: "*", to: "archived" }
+          }
+        });
+        const options = { type: backend.type, path: backend.path, create: true, stateMachine };
+        const firstTasks = (await openTaskList({ ...options, fs: firstFs })).list("planning");
+        await firstTasks.create({ id: "ship", name: "Ship", metadata: { original: true } });
+        const secondTasks = (await openTaskList({ ...options, fs: { ...fs } })).list("planning");
+        pauseInitialization = true;
+        const first = firstTasks.fire("ship", "plan", { metadataPatch: { first: true } });
+        await initialized.promise;
+        const second = secondTasks.fire("ship", "complete", { metadataPatch: { second: true } });
+        const results = Promise.allSettled([first, second]);
+        await vi.advanceTimersByTimeAsync(10);
+        const exitsDuringInitialization = states.length;
+        initialize.resolve();
+        await vi.advanceTimersByTimeAsync(10);
+        const exitsBeforeCommit = states.length;
+        exit.resolve();
+        await vi.advanceTimersByTimeAsync(20);
+
+        expect(await results).toEqual([
+          { status: "fulfilled", value: expect.objectContaining({ metadata: { original: true, first: true } }) },
+          { status: "fulfilled", value: expect.objectContaining({ metadata: { original: true, first: true, second: true } }) }
+        ]);
+        expect(exitsDuringInitialization).toBe(0);
+        expect(exitsBeforeCommit).toBe(1);
+        expect(states).toEqual(["draft", "planned"]);
+        expect(metadata).toEqual([{ original: true }, { original: true, first: true }]);
+        await expect(firstTasks.get("ship")).resolves.toMatchObject({
+          state: "done",
+          metadata: { original: true, first: true, second: true }
+        });
+        await expect(rawFs.lstat(lockPath)).rejects.toMatchObject({ code: "ENOENT" });
+      });
 
       it("turns guard decline reasons into InvalidTransitionError", async () => {
         const tasks = await openTasks(

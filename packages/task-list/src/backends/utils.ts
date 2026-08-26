@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { ListFilter, Task, TaskListFs } from "../types.js";
 
+const LOCK_WAIT_MS = 30_000;
+const LOCK_RETRY_MS = 10;
+
 export interface OrderedEntry {
   task: Task;
   raw: Record<string, unknown>;
@@ -173,69 +176,53 @@ export async function withFileLock<T>(
   lockPath: string,
   operation: () => Promise<T>
 ): Promise<T> {
+  await rejectSymbolicLinkComponents(fs, lockPath);
   await fs.mkdir(path.dirname(lockPath), { recursive: true });
+  const ownerPath = path.join(lockPath, `${process.pid}-${randomUUID()}`);
+  const deadline = Date.now() + LOCK_WAIT_MS;
 
   for (;;) {
+    await rejectSymbolicLinkComponents(fs, lockPath);
     try {
-      await fs.writeFile(lockPath, String(process.pid), { encoding: "utf8", flag: "wx" });
+      await fs.mkdir(lockPath);
       break;
     } catch (error) {
       if (!hasErrorCode(error, "EEXIST")) {
-        await fs.unlink(lockPath).catch(() => undefined);
         throw error;
       }
 
-      if (await removeAbandonedLock(fs, lockPath)) {
-        continue;
+      if (Date.now() >= deadline) {
+        throw new Error(
+          `Timed out waiting for task-list lock: ${lockPath}. ` +
+          "An abandoned or legacy lock must only be removed after confirming all task-list operations have stopped."
+        );
       }
 
-      await Promise.resolve();
+      await new Promise((done) => setTimeout(done, LOCK_RETRY_MS));
     }
   }
 
-  try {
-    return await operation();
-  } finally {
-    await fs.unlink(lockPath);
-  }
-}
+  await rejectSymbolicLinkComponents(fs, ownerPath);
+  await fs.mkdir(ownerPath);
 
-async function removeAbandonedLock(fs: TaskListFs, lockPath: string): Promise<boolean> {
-  let content: string;
-
+  let outcome: { result: T } | { error: unknown };
   try {
-    content = await fs.readFile(lockPath, "utf8");
+    outcome = { result: await operation() };
   } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
-      return true;
-    }
+    outcome = { error };
+  }
 
+  try {
+    await rejectSymbolicLinkComponents(fs, ownerPath);
+    await fs.rmdir(ownerPath);
+    await fs.rmdir(lockPath);
+  } catch (error) {
+    if ("error" in outcome) {
+      throw new AggregateError([outcome.error, error], "Task-list operation and lock release failed");
+    }
     throw error;
   }
 
-  const owner = Number(content);
-
-  if (Number.isInteger(owner) && owner > 0 && isProcessRunning(owner)) {
-    return false;
-  }
-
-  try {
-    await fs.unlink(lockPath);
-    return true;
-  } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
-      return true;
-    }
-
-    throw error;
-  }
-}
-
-function isProcessRunning(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return !hasErrorCode(error, "ESRCH");
-  }
+  if ("error" in outcome) throw outcome.error;
+  return outcome.result;
 }

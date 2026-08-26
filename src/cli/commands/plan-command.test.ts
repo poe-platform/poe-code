@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { stripVTControlCharacters } from "node:util";
 import { UserError } from "toolcraft";
 import { createCliContainer } from "../container.js";
+import { createProgram } from "../program.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { isUserFacingError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
@@ -91,6 +92,118 @@ describe("plan command", () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     process.env.OUTPUT_FORMAT = "";
+  });
+
+  describe("archived plan read commands", () => {
+    let program: Command;
+    let outputChunks: string[];
+
+    beforeEach(() => {
+      outputChunks = [];
+      vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+        outputChunks.push(String(chunk));
+        return true;
+      });
+      program = createProgram({
+        fs: createMemFs({
+          "/repo/docs/plans/active.md": "# Active plan\n",
+          "/repo/docs/plans/archive/archived.md": "# Archived plan\n"
+        }),
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir, variables: {} },
+        logger: () => {}
+      });
+    });
+
+    describe.each([
+      {
+        placement: "parent --archived",
+        parentArgs: ["--archived"],
+        localArgs: [],
+        selectedPath: "docs/plans/archive/archived.md",
+        excludedPath: "docs/plans/active.md"
+      },
+      {
+        placement: "post-subcommand --archived",
+        parentArgs: [],
+        localArgs: ["--archived"],
+        selectedPath: "docs/plans/archive/archived.md",
+        excludedPath: "docs/plans/active.md"
+      },
+      {
+        placement: "active default",
+        parentArgs: [],
+        localArgs: [],
+        selectedPath: "docs/plans/active.md",
+        excludedPath: "docs/plans/archive/archived.md"
+      }
+    ])("$placement", ({ parentArgs, localArgs, selectedPath, excludedPath }) => {
+      it("lists only plans from the selected scope", async () => {
+        await program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          ...parentArgs,
+          "list",
+          ...localArgs,
+          "--output",
+          "json"
+        ]);
+
+        expect(JSON.parse(outputChunks.join(""))).toEqual([
+          expect.objectContaining({ path: selectedPath })
+        ]);
+        expect(introMock).not.toHaveBeenCalled();
+      });
+
+      it("views a plan from the selected scope", async () => {
+        await program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          ...parentArgs,
+          "view",
+          selectedPath,
+          ...localArgs,
+          "--output",
+          "json"
+        ]);
+
+        expect(JSON.parse(outputChunks.join(""))).toEqual(
+          expect.objectContaining({ path: selectedPath })
+        );
+        expect(introMock).not.toHaveBeenCalled();
+      });
+
+      it("rejects a plan outside the selected scope", async () => {
+        await expect(
+          program.parseAsync([
+            "node",
+            "cli",
+            "plan",
+            ...parentArgs,
+            "view",
+            excludedPath,
+            ...localArgs,
+            "--output",
+            "json"
+          ])
+        ).rejects.toThrow(`Plan not found: ${excludedPath}`);
+
+        expect(outputChunks).toEqual([]);
+      });
+    });
+
+    it.each(["list", "view"])("advertises --archived in plan %s help", async (command) => {
+      await expect(
+        program.parseAsync(["node", "cli", "plan", command, "--help"])
+      ).rejects.toMatchObject({ code: "commander.helpDisplayed", exitCode: 0 });
+
+      const help = stripVTControlCharacters(outputChunks.join(""));
+      expect(help).toContain("Global Options");
+      expect(help).toContain("--archived");
+      expect(help).toContain("Browse archived plans instead of active plans");
+    });
   });
 
   it("lists plans as json", async () => {

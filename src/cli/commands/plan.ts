@@ -395,7 +395,7 @@ function writeOutput(format: OutputOption, value: string): void {
 async function renderPlanList(container: CliContainer, options: PlanCommandOptions): Promise<void> {
   const format = resolveOutputOption(options.output);
   const kind = resolveKind(options.kind);
-  const plans = await discoverPlans(container, kind);
+  const plans = await discoverPlans(container, kind, options.archived);
 
   if (format === "json") {
     writeOutput(
@@ -690,7 +690,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       if (format === "terminal") {
         intro("plan view");
       }
-      const plans = await discoverPlans(container, resolveKind(options.kind));
+      const plans = await discoverPlans(container, resolveKind(options.kind), options.archived);
       const plan = await resolveSelectedPlan({
         container,
         plans,

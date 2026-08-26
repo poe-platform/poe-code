@@ -33,9 +33,12 @@ bracket/range/negated classes, ASCII POSIX classes, grouping, alternatives,
 `*`, `+`, `?`, and `{m}`, `{m,}`, `{m,n}` intervals. Basic expressions use escaped
 grouping/interval/alternative operators; unescaped ERE operators are literal.
 
-Pattern backreferences, collating/equivalence classes, lookaround, and other
-non-POSIX special groups are rejected. Full POSIX subexpression tie-breaking
-for ambiguous nested captures is not claimed. Non-ASCII locale folding and
+Pattern backreferences to previously closed capture groups are supported with
+byte comparisons charged to the execution budget. Distinct capture states are
+retained under a state-buffer ceiling; equal whole matches prefer longer
+subexpressions in capture order, including ambiguous repeated nested captures.
+Collating/equivalence classes, lookaround, and other non-POSIX special groups
+are rejected. Exhaustive POSIX subexpression parity is not claimed. Non-ASCII locale folding and
 multibyte-character semantics are outside this C-byte-oriented increment.
 Regex source is limited to 8,192 bytes, nesting to 64 levels, repetition bounds
 to 1,000, and compiled instructions to 16,384. Every matching instruction spends

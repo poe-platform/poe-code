@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^(s3: optional metadata capabilities are exercised or fail closed|s3: optional truncate preserves exact bytes or rejects without mutation|webdav: optional metadata capabilities are exercised or fail closed|s3: default rename explicitly fails closed without opt-in)$",
+    "tests/stress/adapters/core.test.ts",
+    "tests/stress/adapters/s3.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-four-reds-3731587-gG2w3D/archive",
+  "start": "2026-08-26T22:43:05.615Z",
+  "end": "2026-08-26T22:43:06.304Z",
+  "status": 1,
+  "signal": null
+}

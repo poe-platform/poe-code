@@ -1,0 +1,16 @@
+{
+  "pin": "3731587fa287333ca59c7a81569b367cec66f61d",
+  "original": "/tmp/safe-bash-fs-3731587-refresh-kMXBVH",
+  "archive": "/private/tmp/safe-bash-four-reds-3731587-gG2w3D/archive",
+  "node": "v22.22.2",
+  "started": "2026-08-26T22:43:05.578Z",
+  "liveHead": "b98e239374ccdb53860c88f41b06a4bc977ecc1d",
+  "paths": 31,
+  "archiveSha256": "77b5fca312b6fb0ebd72a3177533f21f8414f089d264278ca3d5458cd7119ec1",
+  "tooling": {
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2",
+    "@types/node": "22.20.1"
+  }
+}

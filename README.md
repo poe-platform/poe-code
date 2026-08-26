@@ -29,6 +29,13 @@ The failures include 30 diff/patch cases, 10 shell differential gaps, and 11
 stdin-origin integrations whose rg consumer changes were not yet committed in
 that snapshot. All 19 aggregate tests pass. Earlier evidence remains recorded.
 
+A later **comparison-only** archive at
+`e432c52147a4f355fbae9083cfe1d94a3f78f86d` includes the committed rg provenance
+and absolute patch-target fixes: virtual passes 118/118, while just-bash retains
+108 passes, 9 failures, and 1 unsupported case. See
+`benchmarks/reports/post-integration-comparison.json`. This does not replace the
+earlier full-suite result, prove all its failures fixed, or establish superiority.
+
 ## Use the command bundle
 
 After `npm ci` and `npm run build`, package-root imports expose the aggregate:

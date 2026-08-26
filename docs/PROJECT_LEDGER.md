@@ -463,6 +463,23 @@ that any implementation, command, fixture, or test currently exists.
   paths. Their changes are preserved and neither staged nor committed by this
   worker. A clean moving-worktree validation is not claimed.
 
+### Post-fix comparison-only checkpoint
+
+- After `55263f6` (rg provenance) and `e685231` (explicit absolute virtual patch
+  targets), a fresh archive of `e432c52147a4f355fbae9083cfe1d94a3f78f86d` ran the
+  unchanged 118-case comparator. Virtual: **118 pass, zero fail/error/pending/
+  timeout/unsupported**. Pinned just-bash 3.4.2: **108 pass, 9 fail, 1 unsupported**.
+  Source and harness fingerprints are stable; no background errors occur.
+- `benchmarks/reports/post-integration-comparison.json` records the exact commit,
+  archive SHA256, manifest hashes, raw byte/status/file-state assertions and
+  both engines' nonpasses. The driver returns nonzero because the comparison
+  still contains baseline failures; those are not hidden.
+- This is comparison only, not another full test/build/typecheck run. The most
+  recent complete archived-suite evidence remains f4eb0b3 with 51 failures,
+  5 skips and 4 TODOs. The two comparator fixes must not be credited with fixing
+  all broader-suite failures. Full-shell parity, broad performance and protocol
+  coverage, and the user's superiority requirement remain unproven.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

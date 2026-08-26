@@ -50,6 +50,11 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
   until EOF, the selected end, cancellation, deadline, or iterator return.
 - `writeFile`: binary `PUT`, including empty files; `wx` uses
   `If-None-Match: *` rather than an existence-check race.
+- `writeStream`: pull-driven PUT with copied producer chunks and native Fetch
+  `duplex: "half"`. There is no whole-upload buffer or dependency on host files.
+  The same preflight, exclusive-create, and conditional-append rules apply.
+  Append buffers only the bounded existing representation before uploading it
+  ahead of the new stream. Total uploaded bytes are capped by `maxResponseBytes`.
 - `appendFile`/`a`: bounded read-modify-write using the identity GET's strong
   ETag in `If-Match` on PUT; missing targets use `If-None-Match: *`.
   Changed existing targets fail with `EAGAIN`; creation races fail with
@@ -69,6 +74,8 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
   can be replaced under the concurrency policy below; exclusive copies still
   return `EEXIST` for existing targets.
 - `realpath`: existence-checked lexical virtual path, not server alias discovery.
+- `utimes`: conditional PROPPATCH of a persistent timestamp dead property;
+  see the provider requirements and timestamp semantics below.
 - `access`: existence (`F_OK`), or actual read authorization (`R_OK`) via GET
   response headers for files and depth-one PROPFIND for directories. The GET
   body is cancelled, not collected. This is a point-in-time probe, not a
@@ -165,12 +172,50 @@ Normal PUT writes and source type checks still have the server's WebDAV
 semantics, not POSIX guarantees against every concurrent source replacement.
 `atomicRename` is false because collection MOVE can fail partially.
 
-Truncate, symlinks, hardlinks, chmod, utimes,
+Truncate, symlinks, hardlinks, chmod,
 explicit creation modes, write/execute permission checks, and nonrecursive directory removal
 return `ENOTSUP`. In particular, nonrecursive directory removal is not emulated
-by an empty check followed by recursive DELETE. Streaming writes are absent;
-streamingRead is true and streamingWrite is false. These are explicit backend
+by an empty check followed by recursive DELETE. Both streaming capabilities
+are true. These remaining gaps are explicit backend
 limitations, not claims of full POSIX or full WebDAV compliance.
+
+## Persistent virtual timestamps
+
+`utimes` sets the single dead property `{urn:virtual-bash:metadata}timestamps`
+using PROPPATCH and `If-Match` with a strong `DAV:getetag`. Its version-1 JSON
+value records `atimeMs`, `mtimeMs`, the resource type, and the ETag. Millisecond
+values are finite and within the JavaScript Date range. `stat` and `lstat`
+request this property explicitly and expose the stored values only when its
+ETag and type still match. Missing properties fall back to ordinary DAV
+metadata. Malformed successful properties fail with `EIO`, not guessed values.
+Another adapter instance can read the same persisted values. No instance-local
+timestamp map substitutes for a server mutation.
+
+This is a virtual metadata extension, **not** an attempt to change the server's
+protected `DAV:getlastmodified`, HTTP Last-Modified, or native filesystem atime.
+Reads do not automatically advance atime. Providers must support arbitrary
+dead properties, strong resource ETags, conditional PROPPATCH, and round-trip
+the property in PROPFIND. `timestamps: true` advertises this implemented
+extension, not successful negotiation with every provider. Unsupported methods,
+permission denials, locks, storage exhaustion and stale versions retain their
+real `ENOTSUP`, `EACCES`, `EBUSY`, `ENOSPC` and `EAGAIN` errors. There is no no-op
+fallback, PUT rewrite, missing-file creation, or automatic retry in `utimes`.
+
+The response must identify exactly the requested resource/property and report
+property status 200; HTTP 207 alone is not success. A failed or lost response
+cannot establish rollback of remote side effects. Dead-property persistence
+through COPY/MOVE remains the server's responsibility. Content changes with a
+different ETag invalidate old virtual timestamps; identical-byte rewrites,
+delete/recreate with reused tags, and collection membership changes with stable
+ETags are not distinguishable by this binding. A provider that changes ETags
+when applying the property can make it immediately stale. These are explicit
+limits, not POSIX timestamp or collection-version guarantees.
+
+Protocol basis: RFC 4918 sections 4, 9.1, 9.2, 9.2.1, and 15.7; RFC 9110
+section 13.1.1. RFC 4918 recommends support for arbitrary dead properties and
+protecting `DAV:getlastmodified`; it does not mandate a portable native utimes
+operation. The owned `property-fixture.ts` adds this protocol to a composed
+local fixture without changing the shared MockDav or integration matrix.
 
 ## Metadata, XML, errors, and bounds
 
@@ -181,9 +226,9 @@ from failed property statuses by expanded XML namespace names, not prefixes.
 
 The mandatory `FileStat` fields unavailable in portable DAV are explicit
 placeholders: mode is `0o100666` for files or `0o40777` for collections,
-`atimeMs` and `ctimeMs` are zero, and an unavailable `mtimeMs` is zero. These
-modes do not authorize access; `permissions` and `timestamps` capabilities are
-false. Available last-modified and creation dates populate `mtimeMs` and
+`ctimeMs` is zero, unset virtual atime is zero, and an unavailable `mtimeMs` is
+zero. These modes do not authorize access; `permissions` remains false.
+Absent matching virtual timestamps, available last-modified and creation dates populate `mtimeMs` and
 `birthtimeMs`; directory size is zero. Unknown extended resource types fail
 with `ENOTSUP`.
 
@@ -199,12 +244,12 @@ Default response limits, configurable through constructor options:
 
 | Option | Default |
 | --- | --- |
-| `maxResponseBytes` | 64 MiB per file GET |
+| `maxResponseBytes` | 64 MiB per file GET or streamed upload |
 | `maxXmlBytes` | 2 MiB per multistatus |
 | `maxEntries` | 10,000 responses, including the requested resource |
 | `timeoutMs` | 30,000 per HTTP request, including body consumption |
 
-`readFile.maxBytes` may lower the file-read limit, including to zero. Actual
+`readFile.maxBytes` may lower the file-read limit, including to zero.
 `readStream` transfer bytes (including discarded range prefixes) also count
 toward `maxResponseBytes`; streaming avoids whole-file buffering, not this bound.
 The request deadline includes consumer backpressure pauses. Actual
@@ -223,6 +268,17 @@ missing trailer while delivering the complete decoded payload; the adapter
 cannot verify encoded trailers hidden by Fetch. Corrupt gzip headers that
 Fetch rejects surface as `EIO`. Identity length checks do not claim to remedy
 this encoded-transport limitation.
+
+Uploads propagate cancellation and deadlines into producer waits, observe late
+rejections, and request iterator cleanup without waiting forever on an
+uncooperative producer. A transport success before upload EOF is rejected.
+The injected transport must support streaming RequestInit bodies and honor
+abort signals; arbitrary trusted transport code cannot be forcibly stopped.
+Native Fetch and remote servers may have their own bounded read-ahead buffers.
+Neither PUT streaming nor cancellation promises atomicity: a provider can have
+received or committed partial bytes before an error. No retry or rollback is
+invented. Caller-requested ranges and early reader return deliberately stop
+before EOF and cannot verify the unconsumed tail's declared length.
 
 Adapter XML node and total-attribute budgets scale with
 `maxXmlBytes` (at most one node/attribute per permitted byte); they cannot

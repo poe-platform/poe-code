@@ -1,5 +1,7 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
+import { readBytes } from "../../contracts/io.js";
+import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
@@ -20,9 +22,10 @@ export interface WebDavFileSystemOptions {
   readonly overwritePolicy?: "lock" | "etag";
 }
 
+const timestampNamespace = "urn:virtual-bash:metadata";
 const propfindBody = '<?xml version="1.0" encoding="utf-8"?>'
   + '<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/>'
-  + '<d:getlastmodified/><d:creationdate/><d:getetag/></d:prop></d:propfind>';
+  + `<d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v="${timestampNamespace}"/></d:prop></d:propfind>`;
 
 const lockBody = '<d:lockinfo xmlns:d="DAV:"><d:lockscope><d:exclusive/></d:lockscope>'
   + '<d:locktype><d:write/></d:locktype></d:lockinfo>';
@@ -93,8 +96,8 @@ function statusCode(element: XmlElement): number {
 
 export class WebDavFileSystem implements FileSystem {
   readonly capabilities = Object.freeze({
-    symlinks: false, hardlinks: false, permissions: false, timestamps: false,
-    atomicRename: false, streamingRead: true, streamingWrite: false,
+    symlinks: false, hardlinks: false, permissions: false, timestamps: true,
+    atomicRename: false, streamingRead: true, streamingWrite: true,
   });
   private readonly base: URL;
   private readonly baseSegments: string[];
@@ -327,12 +330,19 @@ export class WebDavFileSystem implements FileSystem {
     }
     const properties = new Map<string, XmlElement>();
     const failures = new Map<string, number>();
+    let timestampProperty: XmlElement | undefined;
+    let timestampSeen = false;
     for (const propstat of davChildren(element, "propstat")) {
       const status = davChild(propstat, "status");
       const prop = davChild(propstat, "prop");
       if (!status || !prop) throw new Error("incomplete DAV:propstat");
       const code = statusCode(status);
       for (const property of prop.children) {
+        if (property.namespace === timestampNamespace && property.localName === "timestamps") {
+          if (timestampSeen) throw new Error("duplicate timestamp property");
+          timestampSeen = true;
+          if (code === 200) timestampProperty = property;
+        }
         if (property.namespace !== "DAV:") continue;
         if (properties.has(property.localName) || failures.has(property.localName)) throw new Error("duplicate DAV property");
         if (code >= 200 && code < 300) properties.set(property.localName, property);
@@ -361,13 +371,31 @@ export class WebDavFileSystem implements FileSystem {
       return value;
     };
     const birthtimeMs = date("creationdate");
+    const etag = properties.get("getetag");
+    const validator = etag && scalar(etag);
+    let mtimeMs = date("getlastmodified") ?? 0;
+    let atimeMs = 0;
+    if (timestampProperty) {
+      const timestamps: unknown = JSON.parse(scalar(timestampProperty));
+      if (typeof timestamps !== "object" || timestamps === null
+        || !("version" in timestamps) || timestamps.version !== 1
+        || !("etag" in timestamps) || typeof timestamps.etag !== "string" || !/^"[\x21\x23-\x7e\x80-\xff]*"$/.test(timestamps.etag)
+        || !("type" in timestamps) || (timestamps.type !== "file" && timestamps.type !== "directory")
+        || !("atimeMs" in timestamps) || typeof timestamps.atimeMs !== "number" || !Number.isFinite(timestamps.atimeMs)
+        || Math.abs(timestamps.atimeMs) > 8.64e15
+        || !("mtimeMs" in timestamps) || typeof timestamps.mtimeMs !== "number" || !Number.isFinite(timestamps.mtimeMs)
+        || Math.abs(timestamps.mtimeMs) > 8.64e15) throw new Error("invalid timestamp property");
+      if (timestamps.etag === validator && timestamps.type === (directory ? "directory" : "file")) {
+        mtimeMs = timestamps.mtimeMs;
+        atimeMs = timestamps.atimeMs;
+      }
+    }
     const stat: FileStat = {
       type: directory ? "directory" : "file", size: Number(sizeText), mode: directory ? 0o40777 : 0o100666,
-      mtimeMs: date("getlastmodified") ?? 0, atimeMs: 0, ctimeMs: 0,
+      mtimeMs, atimeMs, ctimeMs: 0,
       ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     };
-    const etag = properties.get("getetag");
-    if (etag) this.etags.set(stat, scalar(etag));
+    if (validator) this.etags.set(stat, validator);
     return stat;
   }
 
@@ -492,11 +520,13 @@ export class WebDavFileSystem implements FileSystem {
     });
   }
 
-  async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
+  private async prepareWrite(path: string, options: WriteFileOptions): Promise<{
+    normalized: string; headers: Record<string, string>; prefix: Uint8Array;
+  }> {
     const normalized = normalize(path);
     if (options.mode !== undefined) this.unsupported("writeFile mode", path);
     if (options.flag !== undefined && !["w", "wx", "a", "ax"].includes(options.flag)) fail("EINVAL", "writeFile", path);
-    if (!(data instanceof Uint8Array)) fail("EINVAL", "writeFile", path, "data must be Uint8Array");
+    if (options.signal?.aborted) fail("ECANCELED", "writeFile", path);
     if (normalized === "/") fail("EISDIR", "writeFile", path);
     if (requiresCollection(path)) {
       await this.stat(path, options);
@@ -510,7 +540,7 @@ export class WebDavFileSystem implements FileSystem {
     const exclusive = options.flag === "wx" || options.flag === "ax";
     const existing = exclusive ? undefined : await this.maybeStat(normalized, options);
     if (existing?.type === "directory") fail("EISDIR", "writeFile", path);
-    let body = new Uint8Array(data);
+    let prefix: Uint8Array = new Uint8Array();
     const headers: Record<string, string> = { "Content-Type": "application/octet-stream" };
     if (exclusive || (options.flag === "a" && !existing)) headers["If-None-Match"] = "*";
     if (options.flag === "a" && existing) {
@@ -522,17 +552,66 @@ export class WebDavFileSystem implements FileSystem {
         }
         return { etag, data: await this.bytes(response, this.maxResponseBytes, signal) };
       });
-      if (snapshot.data.byteLength + body.byteLength > this.maxResponseBytes) fail("EFBIG", "appendFile", path);
-      const combined = new Uint8Array(snapshot.data.byteLength + body.byteLength);
-      combined.set(snapshot.data);
-      combined.set(body, snapshot.data.byteLength);
-      body = combined;
+      prefix = snapshot.data;
       headers["If-Match"] = snapshot.etag;
     }
-    if (options.flag === "a" && body.byteLength > this.maxResponseBytes) fail("EFBIG", "appendFile", path);
+    return { normalized, headers, prefix };
+  }
+
+  async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
+    if (!(data instanceof Uint8Array)) fail("EINVAL", "writeFile", path, "data must be Uint8Array");
+    const { normalized, headers, prefix } = await this.prepareWrite(path, options);
+    if (options.flag === "a" && prefix.byteLength + data.byteLength > this.maxResponseBytes) fail("EFBIG", "appendFile", path);
+    const body = new Uint8Array(prefix.byteLength + data.byteLength);
+    body.set(prefix);
+    body.set(data, prefix.byteLength);
     await this.mutation("PUT", normalized, options, {
       headers, body,
     });
+  }
+
+  async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
+    const { normalized, headers, prefix } = await this.prepareWrite(path, options);
+    const timeout = AbortSignal.timeout(this.timeoutMs);
+    const controller = new AbortController();
+    const signal = AbortSignal.any([timeout, controller.signal, ...(options.signal ? [options.signal] : [])]);
+    const limit = this.maxResponseBytes;
+    const chunks = (async function* () {
+      let size = prefix.byteLength;
+      if (prefix.byteLength) yield prefix;
+      for await (const chunk of readBytes(source, signal)) {
+        size += chunk.byteLength;
+        if (size > limit) fail("EFBIG", "writeStream", path, "upload exceeds byte limit");
+        yield new Uint8Array(chunk);
+      }
+    })();
+    let finished = false;
+    let uploadError: unknown;
+    const body = new ReadableStream<Uint8Array>({
+      async pull(destination) {
+        try {
+          const result = await chunks.next();
+          if (result.done) { finished = true; destination.close(); }
+          else destination.enqueue(result.value);
+        } catch (cause) { uploadError = cause; destination.error(cause); }
+      },
+      cancel(reason) { controller.abort(reason); void chunks.return(undefined).catch(() => {}); },
+    }, { highWaterMark: 0 });
+    try {
+      await this.mutation("PUT", normalized, options, { headers, body, duplex: "half" });
+      if (uploadError !== undefined) throw uploadError;
+      if (!finished) fail("EIO", "writeStream", path, "server responded before consuming the upload");
+    } catch (cause) {
+      if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "writeStream", path, cause });
+      if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "writeStream", path, cause });
+      if (isFsError(uploadError)) throw uploadError;
+      if (isFsError(cause)) throw cause;
+      throw new FsError("EIO", { syscall: "writeStream", path, cause });
+    } finally {
+      controller.abort();
+      if (!body.locked) void body.cancel().catch(() => {});
+      void chunks.return(undefined).catch(() => {});
+    }
   }
 
   async appendFile(path: string, data: Uint8Array, options: AppendFileOptions = {}): Promise<void> {
@@ -692,6 +771,36 @@ export class WebDavFileSystem implements FileSystem {
   async symlink(_target: string, path: string, _options: FsOptions = {}): Promise<void> { this.unsupported("symlink", path); }
   async link(_source: string, path: string, _options: FsOptions = {}): Promise<void> { this.unsupported("link", path); }
   async chmod(path: string, _mode: number, _options: FsOptions = {}): Promise<void> { this.unsupported("chmod", path); }
-  async utimes(path: string, _atimeMs: number, _mtimeMs: number, _options: FsOptions = {}): Promise<void> { this.unsupported("utimes", path); }
+  async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
+    const normalized = normalize(path);
+    if (![atimeMs, mtimeMs].every(value => Number.isFinite(value) && Math.abs(value) <= 8.64e15)) fail("EINVAL", "utimes", path);
+    const stat = await this.stat(path, options);
+    const etag = strongEtag(this.etags.get(stat), path);
+    const metadata = JSON.stringify({ version: 1, etag, type: stat.type, atimeMs, mtimeMs })
+      .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    await this.request("PROPPATCH", normalized, options, {
+      headers: { "Content-Type": "application/xml; charset=utf-8", "If-Match": etag },
+      body: `<d:propertyupdate xmlns:d="DAV:" xmlns:v="${timestampNamespace}"><d:set><d:prop>`
+        + `<v:timestamps>${metadata}</v:timestamps></d:prop></d:set></d:propertyupdate>`,
+    }, async (response, signal) => {
+      if (response.status !== 207) this.httpError(response.status, "PROPPATCH", path);
+      const entries = await this.multistatus(response, signal);
+      if (entries.length !== 1) throw new Error("PROPPATCH must report the requested resource");
+      const entry = entries[0]!;
+      const href = davChild(entry, "href");
+      if (!href || this.hrefPath(scalar(href)) !== normalized) fail("EACCES", "PROPPATCH", path, "unexpected response resource");
+      const status = davChild(entry, "status");
+      if (status) this.httpError(statusCode(status), "PROPPATCH", path);
+      const propstats = davChildren(entry, "propstat");
+      if (propstats.length !== 1) throw new Error("PROPPATCH must report the requested property");
+      const prop = davChild(propstats[0]!, "prop");
+      const result = davChild(propstats[0]!, "status");
+      const property = prop?.children[0];
+      if (!result || prop?.children.length !== 1 || property?.namespace !== timestampNamespace
+        || property.localName !== "timestamps") throw new Error("invalid PROPPATCH property result");
+      const code = statusCode(result);
+      if (code !== 200) this.httpError(code, "PROPPATCH", path);
+    }, stat.type === "directory");
+  }
   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
 }

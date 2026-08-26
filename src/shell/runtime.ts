@@ -156,6 +156,8 @@ class ExecutionFailure extends Error {
 
 class ExpansionFailure extends Error {}
 
+class ParameterExpansionFailure extends ExpansionFailure {}
+
 class PipelineClosed extends Error {
   readonly code = "EPIPE";
   constructor() { super("Pipeline consumer exited"); }
@@ -287,7 +289,7 @@ export class Runtime {
         return 0;
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs);
-      io = await this.redirect(command.redirects, state, io, inputs, outputs);
+      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell");
       if (command.kind === "arithmetic") return Number(evaluateArithmetic(command.expression, state.variables) === 0n);
       if (command.kind === "subshell") {
         const child = cloneState(state);
@@ -369,7 +371,7 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false): Promise<IO> {
     const descriptors = new Map<number, Descriptor>([
       ...io.descriptors ?? [],
       [0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }],
@@ -389,6 +391,7 @@ export class Runtime {
         let value: string;
         try { value = (await this.word(redirect.document?.body ?? redirect.target, state, currentIO(), false, false, hereString)).join(""); }
         catch (error) {
+          if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
           if (error instanceof ExpansionFailure) throw new Error(error.message);
           throw error;
         }
@@ -500,7 +503,8 @@ export class Runtime {
     const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[0]?.plain ?? ""));
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
-    if (inlineInput && words.length && !shellBuiltinNames.has(words[0]!) && !functionCommand) state = cloneState(state);
+    const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
+    if (isolatedInlineInput) state = cloneState(state);
     let io = originalIO;
     const previous = new Map<string, { value: string | undefined; exported: boolean }>();
     const assign = async () => {
@@ -529,7 +533,7 @@ export class Runtime {
           }
           for (const [name, saved] of previous) saved.value = variables[name];
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput);
       if (!inlineInput) await assign();
       return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
     } catch (error) {
@@ -831,7 +835,7 @@ export class Runtime {
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
-        if (operator === "?") throw new ExpansionFailure(`${part.name}: ${alternate || "parameter null or not set"}`);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || "parameter null or not set"}`);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
           state.variables[part.name] = alternate;

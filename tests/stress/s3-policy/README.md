@@ -1,5 +1,38 @@
 # Independent default S3 rename review
 
+## Verified guarded-rename fix
+
+Source fix **d52634b04aa2c91f52e5bf8c331bc6e9a7b35a95**, tested in fresh frozen
+HEAD **075bda4ca170a59617478bd610169898f83f865f**, closes the three original
+capability-preflight regressions: **42/42 pass**, five separate processes, zero
+failures/skips/TODOs/cancellations. The test hash matches the 39/42 baseline
+exactly; no expectations were relaxed.
+
+The expanded bounded suite improves from **33/44 at a59dbe5** to **44/44**,
+also in five separate processes with zero nonpasses and an unchanged test hash.
+Together these are **86 distinct tests**, not 430 distinct cases.
+`d52634b-policy-closure.json` and `d52634b-bounded-closure.json` record the exact
+frozen HEAD, source hashes, raw TAP and limitations. Scoped strict TypeScript
+passes inside the frozen archive. Earlier 34/42, 39/42, 22/28 and 33/44 evidence
+remains intact and is not retroactively green.
+
+The fix preflights conditional deletion plus either destination-conditional
+copy or conditional PUT. Capable clients still support default new-target and
+replacement rename. The classic profile rejects destination conditions on
+CopyObject and succeeds using conditional PUT; its buffered fallback is bounded
+before effects. Separately negotiated streaming PUT works beyond that buffer
+limit. Concurrent destination create/replace, different-ETag source changes,
+cancellation, publication failures and lost acknowledgements retain the tested
+state/error behavior. `atomicRename` remains false. No source edits belong to
+this verifier.
+
+Eighteen fixed metadata/recreation/ABA observations across the three profiles
+still lose same-ETag source identity; these are not acceptance passes. Late-child
+tests preserve 1, 2 and 4 new source children per profile, without asserting
+source-tree disappearance. Global transaction, incarnation identity and deployed
+provider guarantees remain unproven. This closes the documented preflight defect
+at the stated revision, not every possible concurrent rename risk.
+
 ## Scope and evidence
 
 Curie owns only this independent test directory and root documentation.
@@ -36,7 +69,7 @@ independently establishes that result. Repetitions are not new distinct cases.
 Scoped strict TypeScript and verifier syntax checks pass; no global suite or
 new build is claimed.
 
-## Concrete defect for Poincare
+## Historical defect and remediation
 
 **Missing minimum destination-mutation capability preflight.** At acef111 and
 the newly verified 677e03c,
@@ -64,7 +97,7 @@ Exact failing test names:
 - `minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}`
 - `no destination guard capability must not clobber concurrent create`
 
-Requested source remedy: preflight sufficient destination and deletion guards
+Verified source remedy at d52634b: preflight sufficient destination and deletion guards
 before effects. For these clients, neither conditional copy nor another
 negotiated guarded publication method exists, so reject with typed `ENOTSUP`
 before mutations rather than silently downgrading. A separately designed,
@@ -165,5 +198,5 @@ node tests/stress/s3-policy/verify.mjs --revision 677e03c --output /tmp/s3-polic
 The archive runner checks cached package/lock consistency, overlays only its
 explicit hashed test and observation files, and retains its temporary archive.
 It exits nonzero on failures, unavailable/incomplete runs, skips or TODOs. The
-current red tests remain ordinary failing tests; no blanket skips or assertion
-relaxations hide the defect while Poincare implements the source remedy.
+baseline red tests remain in their frozen evidence; no blanket skips or assertion
+relaxations hide those failures. Current fixed-source results are recorded above.

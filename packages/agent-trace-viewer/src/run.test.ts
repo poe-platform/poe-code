@@ -89,6 +89,54 @@ describe("runTraceViewer", () => {
     expect(output.value).toBe("No traces found\n");
   });
 
+  it.each([false, true])("prints an empty JSON array with fullTitles=%s", async (fullTitles) => {
+    const reader = createReader({ id: "codex" });
+    mocks.traceReaders.push(reader);
+    const fs = createFsFromVolume(new Volume()).promises as AgentTraceFileSystem;
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs,
+      json: true,
+      fullTitles,
+      output
+    });
+
+    expect(output.value).toBe("[]\n");
+    expect(JSON.parse(output.value)).toEqual([]);
+    expect(reader.discover).toHaveBeenCalledTimes(1);
+    expect(mocks.runExplorer).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])("preserves the requested empty-list format after source filtering with json=%s", async (json) => {
+    const excluded = createReader({
+      id: "codex",
+      discover: vi.fn(async (): Promise<TraceReference[]> => [{ source: "codex", id: "trace-1", title: "Existing trace" }])
+    });
+    const included = createReader({ id: "claude" });
+    mocks.traceReaders.push(excluded, included);
+    const fs = createFsFromVolume(new Volume()).promises as AgentTraceFileSystem;
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs,
+      sources: ["claude"],
+      assumeYes: true,
+      json,
+      output
+    });
+
+    expect(output.value).toBe(json ? "[]\n" : "No traces found\n");
+    if (json) expect(JSON.parse(output.value)).toEqual([]);
+    expect(excluded.discover).not.toHaveBeenCalled();
+    expect(included.discover).toHaveBeenCalledTimes(1);
+    expect(mocks.runExplorer).not.toHaveBeenCalled();
+  });
+
   it("prints a table in non-interactive mode", async () => {
     mocks.traceReaders.push(
       createReader({

@@ -99,13 +99,13 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
 
   if (options.json || options.assumeYes || process.stdin.isTTY !== true) {
     const references = await discover();
-    if (references.length === 0) {
-      writeLine(output, "No traces found");
-      return;
-    }
     if (options.json) {
       const listed = options.fullTitles === true ? references : references.map(withTruncatedTitle);
       writeLine(output, JSON.stringify(listed, null, 2));
+      return;
+    }
+    if (references.length === 0) {
+      writeLine(output, "No traces found");
       return;
     }
 

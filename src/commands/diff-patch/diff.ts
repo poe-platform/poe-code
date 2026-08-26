@@ -1,9 +1,9 @@
 import { basename, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
-import { normal, type Edit } from "./diff-format.js";
+import { contextual, normal, type Edit } from "./diff-format.js";
 
 interface DiffFlags {
-  format: "normal" | "unified";
+  format: "normal" | "unified" | "context";
   context: number;
   brief: boolean;
   recursive: boolean;
@@ -35,18 +35,22 @@ function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--normal") selectFormat("normal");
     else if (arg === "--unified") selectFormat("unified");
     else if (arg.startsWith("--unified=")) { selectFormat("unified"); result.context = integer(arg.slice(10), "context"); }
+    else if (arg === "--context") selectFormat("context");
+    else if (arg.startsWith("--context=")) { selectFormat("context"); result.context = integer(arg.slice(10), "context"); }
     else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
     else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
     else {
       for (let offset = 1; offset < arg.length; offset++) {
         const flag = arg[offset]!;
         if (flag === "u") selectFormat("unified");
+        else if (flag === "c") selectFormat("context");
         else if (flag === "q") result.brief = true;
         else if (flag === "r") result.recursive = true;
         else if (flag === "N") result.newFile = true;
-        else if (flag === "U" || flag === "L") {
+        else if (flag === "U" || flag === "C" || flag === "L") {
           const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
           if (flag === "U") { selectFormat("unified"); result.context = integer(parameter, "context"); }
+          else if (flag === "C") { selectFormat("context"); result.context = integer(parameter, "context"); }
           else result.labels.push(parameter);
           break;
         } else throw new ToolError(`unsupported option: -${flag}`);
@@ -103,53 +107,6 @@ async function edits(oldLines: string[], newLines: string[], budget: Budget): Pr
   }
   for (const line of oldLines.slice(oldLines.length - suffix)) result.push({ kind: " ", line });
   return result;
-}
-
-function range(start: number, count: number): string {
-  return count === 0 ? `${start},0` : count === 1 ? `${start + 1}` : `${start + 1},${count}`;
-}
-
-async function unified(changes: readonly Edit[], oldLabel: string, newLabel: string, context: number, budget: Budget, append: (text: string) => void): Promise<void> {
-  append(`--- ${oldLabel}\n+++ ${newLabel}\n`);
-  let scan = 0;
-  let oldPosition = 0;
-  let newPosition = 0;
-  while (scan < changes.length) {
-    let changed = scan;
-    while (changed < changes.length && changes[changed]!.kind === " ") changed++;
-    if (changed === changes.length) break;
-    const start = Math.max(scan, changed - context);
-    let lastChange = changed;
-    let end = changed + 1;
-    while (end < changes.length) {
-      if (changes[end]!.kind !== " ") {
-        if (end - lastChange - 1 > 2 * context) break;
-        lastChange = end;
-      }
-      end++;
-    }
-    end = Math.min(changes.length, lastChange + context + 1);
-    while (scan < start) {
-      if (changes[scan]!.kind !== "+") oldPosition++;
-      if (changes[scan++]!.kind !== "-") newPosition++;
-    }
-    let oldCount = 0;
-    let newCount = 0;
-    for (let index = start; index < end; index++) {
-      if (changes[index]!.kind !== "+") oldCount++;
-      if (changes[index]!.kind !== "-") newCount++;
-    }
-    budget.hunk();
-    append(`@@ -${range(oldPosition, oldCount)} +${range(newPosition, newCount)} @@\n`);
-    while (scan < end) {
-      const edit = changes[scan++]!;
-      append(`${edit.kind}${edit.line}${edit.line.endsWith("\n") ? "" : "\n\\ No newline at end of file\n"}`);
-      budget.step();
-      await budget.checkpoint();
-    }
-    oldPosition += oldCount;
-    newPosition += newCount;
-  }
 }
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
@@ -214,7 +171,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     else {
       const changes = await edits(budget.split(oldText), budget.split(newText), budget);
       if (options.format === "normal") await normal(changes, budget, append);
-      else await unified(changes, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
+      else await contextual(changes, options.format, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
     }
   }
   await writeBytes(context.stdout, Buffer.from(pieces.join("")), context.signal);

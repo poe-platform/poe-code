@@ -1,17 +1,10 @@
-import { FsError, type ByteSink, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
+import { FsError, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
-
-interface InvokingContext extends CommandContext {
-  readonly invoke?: (command: string, args: readonly string[], options?: {
-    readonly stdin?: ByteSource; readonly cwd?: string; readonly env?: Readonly<Record<string, string>>;
-    readonly stdout?: ByteSink; readonly stderr?: ByteSink;
-  }) => Promise<CommandResult>;
-}
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
   return async context => {
     context.signal.throwIfAborted();
-    const invoke = (context as InvokingContext).invoke;
+    const invoke = context.invoke;
     if (invoke) return invoke(context.command, context.args, {
       stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,
     });

@@ -1,6 +1,20 @@
 import type { FileSystem } from "./filesystem.js";
 import type { ByteSink, ByteSource } from "./io.js";
 
+export interface CommandInvokeOptions {
+  readonly stdin?: ByteSource;
+  readonly stdout?: ByteSink;
+  readonly stderr?: ByteSink;
+  readonly cwd?: string;
+  readonly env?: Readonly<Record<string, string>>;
+}
+
+export type CommandInvoker = (
+  command: string,
+  args: readonly string[],
+  options?: CommandInvokeOptions,
+) => Promise<CommandResult>;
+
 export interface CommandContext {
   readonly command: string;
   readonly args: readonly string[];
@@ -11,6 +25,7 @@ export interface CommandContext {
   env: Record<string, string>;
   readonly fs: FileSystem;
   readonly signal: AbortSignal;
+  readonly invoke?: CommandInvoker;
 }
 
 export interface CommandResult {

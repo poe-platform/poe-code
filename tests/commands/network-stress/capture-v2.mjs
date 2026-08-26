@@ -8,7 +8,7 @@ const handoffRevision = "deab14d9f4b3b6f0d73f96587c74a9de23091300";
 const revision = process.env.CURL_VERIFY_SOURCE_REVISION ?? handoffRevision;
 assert.match(revision, /^[a-f0-9]{40}$/);
 const mode = process.argv[2];
-assert(["cleanup-v2", "postfix60", "postfix18", "retry-native", "retry-product", "types-postfix", "author-postfix"].includes(mode));
+assert(["cleanup-v2", "postfix60", "postfix18", "retry-native", "retry-freeze", "retry-product", "types-postfix", "author-postfix"].includes(mode));
 assert.equal(spawnSync("git", ["merge-base", "--is-ancestor", handoffRevision, revision]).status, 0);
 const target = `${owned}/${mode}.json`;
 try { await readFile(target); throw new Error(`Refusing to overwrite ${target}`); }
@@ -49,7 +49,7 @@ if (mode === "postfix18") {
 }
 const args = mode.startsWith("types") ? ["node_modules/typescript/bin/tsc", "--noEmit", "-p", owned + "/tsconfig.json"]
   : mode === "author-postfix" ? ["--unhandled-rejections=strict", "--import", "tsx", "--test", "tests/commands/network/*.test.ts"]
-  : ["--unhandled-rejections=strict", "--import", "tsx", owned + "/" + ({ "cleanup-v2": "cleanup-selfcheck.ts", postfix60: "product-v2.ts", postfix18: "supplement-v2.ts", "retry-native": "retry-native.ts", "retry-product": "retry-product.ts" })[mode], ...(mode === "postfix18" ? ["product"] : [])];
+  : ["--unhandled-rejections=strict", "--import", "tsx", owned + "/" + ({ "cleanup-v2": "cleanup-selfcheck.ts", postfix60: "product-v2.ts", postfix18: "supplement-v2.ts", "retry-native": "retry-native.ts", "retry-freeze": "retry-native.ts", "retry-product": "retry-product.ts" })[mode], ...(mode === "postfix18" ? ["product"] : [])];
 const previousRoots = new Set(await readdir(owned));
 const child = spawn(process.execPath, args, { shell: false, detached: true, env: { ...process.env, CURL_VERIFY_AFTER_HANDOFF: handoffRevision, CURL_VERIFY_SOURCE_REVISION: revision }, stdio: ["ignore", "pipe", "pipe"] });
 const terminate = (signal) => {

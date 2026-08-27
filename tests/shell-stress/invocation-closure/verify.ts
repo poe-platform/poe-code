@@ -4,13 +4,20 @@ import { boundedProcess, head, owned, save, sha256, sourceHashes } from "./suppo
 
 const name = process.argv[2] ?? "verification.json";
 const stage = process.argv[3] ?? "new";
-const ready = stage === "prepare" ? "PREPARATION ONLY, no source acceptance" : await readFile("/tmp/safe-bash-shell-invocation-closure-ready.txt", "utf8");
-const bomReady = stage === "prepare" ? "PREPARATION ONLY" : await readFile("/tmp/safe-bash-shell-bom-fix-ready.txt", "utf8");
+const preparation = stage.startsWith("prepare");
+const ready = preparation ? "PREPARATION ONLY, no source acceptance" : await readFile("/tmp/safe-bash-shell-invocation-closure-ready.txt", "utf8");
+const bomReady = preparation ? "PREPARATION ONLY" : await readFile("/tmp/safe-bash-shell-bom-fix-ready.txt", "utf8");
+const discoveryReady = !preparation && process.env.CLOSURE_V2 === "1" ? await readFile("/tmp/safe-bash-shell-discovery-fixes-ready.txt", "utf8") : undefined;
 const temporary = await mkdtemp(resolve(owned, ".verify-"));
 const hook = ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell-stress/invocation-modes/trace.mjs"];
 const strict = ["node_modules/typescript/bin/tsc", "--noEmit", "--target", "ES2023", "--lib", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--skipLibCheck"];
 const commands: Record<string, { args: string[]; types?: boolean; label: string }[]> = {
   prepare: [{ label: "owned preparation types", types: true, args: [...strict, ...["support", "cases", "native", "probe", "holdout.test", "verify", "compare", "precedence-native"].map(path => `${owned}/${path}.ts`)] }],
+  "prepare-v2": [{ label: "v2 preparation types only", types: true, args: [...strict, ...["v2-cases", "v2-native", "v2-probe", "v2-holdout.test", "v2-registry.test", "v2-verify", "verify"].map(path => `${owned}/${path}.ts`)] }],
+  v2: [
+    { label: "corrected v2 34", args: [...hook, "--test", `${owned}/v2-holdout.test.ts`] },
+    { label: "v2 truthful registry supplemental 1", args: [...hook, "--test", `${owned}/v2-registry.test.ts`] },
+  ],
   new: [{ label: "new 34 holdouts", args: [...hook, "--test", `${owned}/holdout.test.ts`] }],
   legacy: [
     { label: "unchanged 72", args: [...hook, "--test", "tests/shell-stress/invocation-modes/holdout.test.ts"] },
@@ -36,9 +43,16 @@ try {
     const observationPath = `${temporary}/observations-${index}.jsonl`;
     const beforeHead = head();
     const sourceBefore = await sourceHashes();
-    if (stage !== "prepare") {
+    if (!preparation) {
       const expected = Object.fromEntries([...ready.matchAll(/(src\/shell\/\S+\.ts) ([a-f0-9]{64})/gu)].map(match => [match[1]!, match[2]!]));
       expected["src/shell/shell.ts"] = /New Shell SHA256: ([a-f0-9]{64})/u.exec(bomReady)![1]!;
+      if (discoveryReady !== undefined) {
+        if (!discoveryReady.includes("READY")) throw new Error("Discovery handoff is not READY");
+        const runtime = /runtime[^\n]*?([a-f0-9]{64})/iu.exec(discoveryReady)?.[1];
+        if (!runtime) throw new Error("Discovery READY lacks an exact runtime hash");
+        expected["src/shell/runtime.ts"] = runtime;
+        for (const match of discoveryReady.matchAll(/(src\/shell\/\S+\.ts)(?:\s|:|=)+([a-f0-9]{64})/gu)) expected[match[1]!] = match[2]!;
+      }
       for (const [path, hash] of Object.entries(expected)) if (sourceBefore[path] !== hash) throw new Error(`READY shell guard mismatch: ${path}`);
     }
     const env = { PATH: "/usr/bin:/bin", HOME: "/nonexistent", LANG: "C", LC_ALL: "C", TZ: "UTC", INVOCATION_TRACE: trace, CLOSURE_OBSERVATIONS: observationPath };
@@ -66,6 +80,6 @@ try {
       importedSource, imports, configBefore, configAfter, executionBefore, executionAfter, changedRelevant, allSourceChanges, stable, observations, run });
     console.log(`${command.label}: exit=${run.code}; stable=${stable}; imports=${imports.length}; changed=${JSON.stringify(changedRelevant)}`);
   }
-  await save(name, { timestamp: new Date().toISOString(), ready, bomReady, stage, records });
+  await save(name, { timestamp: new Date().toISOString(), ready, bomReady, discoveryReady, stage, records });
   if (records.some(record => record.run.code !== 0 || !record.stable || record.run.timedOut || record.run.overflow)) process.exitCode = 1;
 } finally { await rm(temporary, { recursive: true, force: true }); }

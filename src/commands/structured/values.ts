@@ -24,7 +24,7 @@ export function compare(left: Json, right: Json, budget: Budget): number {
   const difference = rank(left) - rank(right);
   if (difference) return Math.sign(difference);
   if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
-  if (left === right) return 0;
+  if (left === right && !Array.isArray(left) && !isObject(left)) return 0;
   if (typeof left === "string" && typeof right === "string") return stringCompare(left, right);
   if (Array.isArray(left) && Array.isArray(right)) {
     for (let index = 0; index < Math.min(left.length, right.length); index++) {

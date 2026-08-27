@@ -84,14 +84,29 @@ Empty raw stdin emits no records; each blank line emits an empty string, and a
 trailing LF does not create an extra record. Raw slurp emits one empty string
 even for empty input. Data files and stdin are concatenated in operand order,
 so a partial record carries into the next file. Repeated `-` operands consume
-stdin only once in raw mode. Each file must independently contain valid UTF-8;
+stdin only once in raw mode. Raw UTF-8 decoding has per-file boundaries;
 byte chunks within a file may split codepoints. `-n` bypasses all raw data
 sources, even with `-s`, but still compiles the filter first.
 
 Usage/file errors return 2, compile errors 3, and data/runtime/limit errors 5.
-The first data/runtime error stops this command. A single bounded diagnostic is
-written to stderr. Cancellation and downstream pipe closure are propagated, not
-converted into jq status/diagnostics. Shell handling of pipe closure is separate.
+Ordinary filter errors retain completed output, emit a located diagnostic, and
+continue with later top-level inputs. Parse errors, resource limits, cancellation
+and host failures do not use that recovery path. Diagnostic messages are bounded
+and their accumulated charge uses `maxOutputBytes`, separately from stdout's
+counter. Compiler, input-parser and evaluation diagnostics match the frozen
+profile only where verified; not every unsupported filter or I/O diagnostic is
+native-byte compatible. `-e` aggregation also depends on later results/errors.
+
+Host stdout/stderr write failures retain their original exception identity,
+including host-thrown `JqError` and `FsError("EIO")`; exception origin, not class,
+prevents conversion to a jq filter status or fallback diagnostic. No further
+output or input acquisition is attempted after such failure; iterator cleanup
+still runs. This root-approved command policy retains the grammar handoff's
+behavior and is an **observable typed-sink behavior change** from older source,
+not native parity or a stale-native assertion. The old canonical sink assertion
+remains read-only pending a separate independently reviewed test-only change.
+Shared byte I/O and shell contracts are unchanged. Cancellation and downstream
+pipe closure propagate; shell handling is separate.
 
 ## Supported grammar and behavior
 
@@ -156,6 +171,7 @@ cross-version parity beyond its recorded tests.
 | --- | --- |
 | `empty`, `select(f)`, `map(f)`, `map_values(f)` | Generator filtering/mapping; `map_values` keeps only the first result per entry and drops empty updates. |
 | `length`, `keys`, `keys_unsorted`, `type` | Array/object/string/numeric lengths and type information; sorted keys use codepoint ordering. |
+| `nan`, `infinite`, `isnan`, `isinfinite`, `isfinite` | Zero arguments only. `isfinite` means numeric and not infinite: NaN is true, both infinities and all nonnumbers are false. |
 | `values`, `strings`, `numbers`, `booleans`, `arrays`, `objects`, `nulls`, `scalars`, `iterables` | Type/value filters; `values` removes null only. |
 | `has(key)`, `contains(value)` | Own-key/index existence and recursive containment; array `has` truncates fractional indexes but does not wrap negative indexes. |
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
@@ -183,6 +199,20 @@ JSON object storage and serializers preserve insertion order and own keys
 Duplicate JSON keys keep the last value at their original insertion position.
 Sorting uses null, false, true, numbers, strings, arrays, objects in that order;
 objects compare sorted key sets before recursively comparing values.
+Ordering descends through arrays/objects even when both operands alias the same
+container. A nested NaN can therefore make `. < .` true while same-reference
+`. == .` remains true. Equality's identity shortcut is deliberately separate
+from ordering. Finite values, Unicode key ordering and work/cancellation checks
+retain their existing paths; recursive alias comparisons now charge that work.
+
+The pinned numeric profile is `jq-1.7.1-apple`, informed by the jq 1.7 manual
+and tagged `jq-1.7.1` `builtin.jq`, `jv.c` and `jv_aux.c`. In particular,
+`isfinite` is not JavaScript `Number.isFinite`. Decimal literals keep their
+representation on copies; predicates/arithmetic read the binary64 value without
+mutating it. A finite decimal overflow such as `1e400` can thus fail `isfinite`
+while retaining its literal rendering/comparison representation. Parsed NaN and
+arithmetic NaN are numbers and truthy even though both print as null; allocated
+literal identity and arithmetic scalar equality need not agree.
 
 ## Streaming, limits, and cancellation
 
@@ -190,17 +220,15 @@ Non-slurp input is incrementally decoded/scanned and holds only the current
 JSON value, bounded decoder blocks, and the upstream chunk, rather than joining
 all stdin. Complete containers/strings and delimited scalar values are evaluated
 before EOF. Slurp and collector filters intentionally materialize bounded arrays.
-The UTF-8 validator preserves completed JSON prefix output even when a malformed
-byte follows it in the same chunk; valid and malformed UTF-8 split regressions
-exercise this behavior. UTF-8 overlong encodings, encoded surrogates, truncated
-sequences, BOM in JSON input, and lone JSON/string-literal surrogates are rejected.
-
-Raw input uses the same strict UTF-8 safety policy, except that BOM is ordinary
-string data. Native `jq-1.7.1-apple` replaces invalid UTF-8; this implementation
-rejects it, including a truncated codepoint at a file boundary, and preserves
-already-emitted complete records. It also retains the documented stop-on-first
-runtime-error policy rather than continuing with later records like that native
-build. These are explicit policy differences, not parity claims.
+The byte parser distinguishes quoted strings, escapes, numeric tokens and BOM
+state across chunks and JSON file boundaries. The initial JSON BOM is accepted;
+later/malformed BOM handling follows the bounded frozen profile. Invalid UTF-8
+inside data strings is replaced using native-profile grouping. Lone escaped low
+surrogates become replacement characters; unpaired high surrogates error. Raw
+input repairs malformed UTF-8 with per-file decoder boundaries and retains BOM
+as text. Program files still require valid UTF-8. Original input bytes and
+repaired/escaped value bytes are charged separately. These are the delivered
+grammar handoff's behaviors, not new decoder or recovery changes in this batch.
 
 Raw record mode emits each LF-completed record before EOF and awaits stdout
 before advancing the decoder or reading more input. Raw slurp intentionally
@@ -260,14 +288,25 @@ should supply a deadline signal when they require a wall-clock deadline.
 - Numeric literals retain decimal precision and scale, with normalized decimal
   exponent spelling. Arithmetic, numeric `length`, and unary minus convert to
   binary64; mixed literal/computed comparisons also use binary64. See the
-  version-pinned numeric checkpoint below. Non-JSON `NaN`/`Infinity` tokens
-  remain rejected. This is not universal numeric parity across jq builds.
-- Invalid JSON stops the command; native versions/builds differ in error codes
-  and whether they continue after an individual input's evaluation failure.
+  version-pinned numeric checkpoints below. Input numeric tokens include the
+  frozen nonstandard NaN/infinity spellings, leading zeroes, leading plus and
+  trailing decimal points; quoted lookalikes remain strings. Filter numeric
+  grammar is narrower, accepting leading zeroes/trailing decimal points and
+  `nan`/`infinite` builtins, not every data-token spelling. This is not universal
+  numeric parity across jq builds, arbitrary exponent workloads or all math.
+- Invalid input syntax stops the command, unlike recoverable filter errors.
+  Diagnostic and exit-state parity is limited to the pinned, recorded profile.
 - No streaming path-event mode, colors, sorted-output flag,
   file-variable flags, jq environment builtins, or host process/file access.
 
 ## Source-author verification evidence
+
+The following sections retain historical checkpoints, not current aggregate
+acceptance. Later grammar work supersedes their strict-decoder, stop-first and
+nonfinite-rejection statements. The two review fixes and unchanged-cohort
+evidence are recorded in
+`tests/commands/structured-stress/jq-grammar-review-fixes/REPORT.md`; source stays
+frozen for a different independent reviewer. No self-acceptance or full-jq claim.
 
 Verified August 26, 2026 against the local native oracle `jq-1.7.1-apple` and
 the primary [jq 1.8 manual](https://jqlang.org/manual/v1.8/). The manual is a
@@ -455,7 +494,11 @@ README. Public command/plugin signatures and limit option names are unchanged;
 numeric output bytes, comparisons, accepted large literals and work charging
 intentionally change. Consumers must not expect the old rounded numeric text.
 
-### Unicode and recovery proposal, not an implemented policy change
+### Historical Unicode and recovery proposal
+
+This preserved proposal predates the delivered grammar handoff. Current decoder,
+recovery and diagnostic behavior is described above; this is not a pending
+strict-mode policy or evidence that the two-fix batch changed those mechanisms.
 
 Strict UTF-8 and stop-first-error remain the implementation's existing deliberate
 deviations, **not user-requested features or compatibility passes**. Standard jq

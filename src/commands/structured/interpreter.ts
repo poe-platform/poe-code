@@ -200,9 +200,10 @@ export class Interpreter {
     }
     if (name === "type") { yield type(input); return; }
     if (name === "nan" || name === "infinite") { yield name === "nan" ? NaN : Infinity; return; }
-    if (name === "isnan" || name === "isinfinite") {
+    if (name === "isnan" || name === "isinfinite" || name === "isfinite") {
       const value = isNumber(input) ? numberValue(input) : undefined;
-      yield name === "isnan" ? value !== undefined && Number.isNaN(value) : value === Infinity || value === -Infinity;
+      const infinite = value === Infinity || value === -Infinity;
+      yield name === "isnan" ? value !== undefined && Number.isNaN(value) : name === "isinfinite" ? infinite : value !== undefined && !infinite;
       return;
     }
     if (name === "not") { yield !truth(input); return; }

@@ -28,7 +28,7 @@ export const functions: Readonly<Record<string, readonly number[]>> = Object.fre
   tostring: [0], tonumber: [0], tojson: [0], fromjson: [0], to_entries: [0], from_entries: [0], with_entries: [1],
   min: [0], max: [0], min_by: [1], max_by: [1], any: [0, 1, 2], all: [0, 1, 2],
   strings: [0], numbers: [0], booleans: [0], arrays: [0], objects: [0], nulls: [0], scalars: [0], iterables: [0],
-  nan: [0], infinite: [0], isnan: [0], isinfinite: [0],
+  nan: [0], infinite: [0], isnan: [0], isinfinite: [0], isfinite: [0],
 });
 function tokenize(source: string): Token[] {
   const tokens: Token[] = [];

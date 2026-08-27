@@ -1,0 +1,50 @@
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 70bb169..e1f2d07 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -78,6 +78,29 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
+   }
+ }
+ 
++async function collectSortRecords(source: ByteSource, delimiter: number, accept: (bytes: Uint8Array) => void): Promise<void> {
++  let pending: Uint8Array[] = [];
++  let size = 0;
++  for await (const chunk of source) {
++    let start = 0;
++    for (let offset = 0; offset < chunk.length; offset++) {
++      if (chunk[offset] !== delimiter) continue;
++      const part = chunk.subarray(start, offset);
++      size += part.length;
++      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
++      if (pending.length) { pending.push(part); accept(concatenate(pending, size)); }
++      else accept(new Uint8Array(part));
++      pending = []; size = 0; start = offset + 1;
++    }
++    if (start < chunk.length) {
++      pending.push(new Uint8Array(chunk.subarray(start)));
++      size += chunk.length - start;
++      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
++    }
++  }
++  if (size) accept(concatenate(pending, size));
++}
++
+ export function textCommands(): CommandDefinition[] {
+   return [
+     define("sort", async context => {
+@@ -112,6 +135,15 @@ export function textCommands(): CommandDefinition[] {
+       const delimiter = parsed.flags.has("z") ? 0 : 10;
+       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
+         try {
++          if (!parsed.flags.has("c")) {
++            await collectSortRecords(input(context, name), delimiter, bytes => {
++              context.signal.throwIfAborted();
++              size += bytes.length + 1;
++              if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
++              records.push(bytes);
++            });
++            continue;
++          }
+           for await (const line of lines(input(context, name), delimiter)) {
+             context.signal.throwIfAborted();
+             size += line.bytes.length + 1;

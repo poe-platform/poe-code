@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/probe.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/source",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/quota47-results.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/source",
+  "started": "2026-08-27T20:57:44.672Z",
+  "finished": "2026-08-27T20:57:45.050Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,1742 @@
+[
+  {
+    "id": "root-counterexample",
+    "before": {
+      "id": "root-counterexample",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "root-counterexample",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "modulo-trailing",
+    "before": {
+      "id": "modulo-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "modulo-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "noninteger-trailing",
+    "before": {
+      "id": "noninteger-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "noninteger-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "bad",
+        "1"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "left-error-before-next-operator-missing",
+    "before": {
+      "id": "left-error-before-next-operator-missing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "+"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "left-error-before-next-operator-missing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "left-error-before-next-same-precedence",
+    "before": {
+      "id": "left-error-before-next-same-precedence",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '*'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "*"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "left-error-before-next-same-precedence",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "left-error-before-skipped-syntax",
+    "before": {
+      "id": "left-error-before-skipped-syntax",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "left-error-before-skipped-syntax",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "group-runtime-before-missing-close",
+    "before": {
+      "id": "group-runtime-before-missing-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '0'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "group-runtime-before-missing-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "group-runtime-before-wrong-close",
+    "before": {
+      "id": "group-runtime-before-wrong-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "group-runtime-before-wrong-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "nested-runtime-before-close",
+    "before": {
+      "id": "nested-runtime-before-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "nested-runtime-before-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "prefix-first-argument-before-missing-second",
+    "before": {
+      "id": "prefix-first-argument-before-missing-second",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ')'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        ")"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "prefix-first-argument-before-missing-second",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "prefix-second-before-missing-third",
+    "before": {
+      "id": "prefix-second-before-missing-third",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ')'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        ")"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "prefix-second-before-missing-third",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "abc",
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-error-before-trailing",
+    "before": {
+      "id": "regex-error-before-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr",
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-error-before-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [
+        {
+          "pattern": "[",
+          "subject": "a",
+          "allowance": 7999983
+        }
+      ],
+      "encodes": [
+        "a",
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-error-before-close",
+    "before": {
+      "id": "regex-error-before-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr",
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-error-before-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [
+        {
+          "pattern": "[",
+          "subject": "a",
+          "allowance": 7999983
+        }
+      ],
+      "encodes": [
+        "a",
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-error-before-later-missing",
+    "before": {
+      "id": "regex-error-before-later-missing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "+"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr",
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-error-before-later-missing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [
+        {
+          "pattern": "[",
+          "subject": "a",
+          "allowance": 7999983
+        }
+      ],
+      "encodes": [
+        "a",
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-prefix-error-before-outer-arity",
+    "before": {
+      "id": "regex-prefix-error-before-outer-arity",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '['\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr",
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-prefix-error-before-outer-arity",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": [
+        {
+          "pattern": "[",
+          "subject": "a",
+          "allowance": 7999975
+        }
+      ],
+      "encodes": [
+        "a",
+        "["
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-success-before-trailing",
+    "before": {
+      "id": "regex-success-before-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-success-before-trailing",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": [
+        {
+          "pattern": "a",
+          "subject": "a",
+          "allowance": 7999983,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-success-before-missing-close",
+    "before": {
+      "id": "regex-success-before-missing-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "a"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-success-before-missing-close",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "jobs": [
+        {
+          "pattern": "a",
+          "subject": "a",
+          "allowance": 7999983,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "regex-success-before-runtime",
+    "before": {
+      "id": "regex-success-before-runtime",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr",
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "regex-success-before-runtime",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [
+        {
+          "pattern": "a",
+          "subject": "a",
+          "allowance": 7999979,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "0"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  },
+  {
+    "id": "first-regex-before-second-syntax",
+    "before": {
+      "id": "first-regex-before-second-syntax",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "("
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "submission count"
+      ],
+      "passed": false
+    },
+    "after": {
+      "id": "first-regex-before-second-syntax",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "jobs": [
+        {
+          "pattern": "a",
+          "subject": "a",
+          "allowance": 7999973,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "("
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start"
+        },
+        {
+          "kind": "worker-post",
+          "operation": "expr-match"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  }
+]

@@ -1,0 +1,40 @@
+Encounter-order author v2 CANDIDATE READY — 2026-08-27
+
+Source commit: c3e40f8bd721da5e496f3b3abfd51aee45db5a84
+Evidence commit: 2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2
+Required quota ancestor: c25e682a7baa2f2abf70cebf8c01d11d0ad5daee
+Independent preimplementation freeze: 30dda5b930c6e5ea29a54348926fc02b81f9d8e6
+
+SOURCE OWNERSHIP RELEASED: syntax.ts, evaluate.ts, index.ts and the new encounter-order.test.ts are no longer being edited by this leaf. No further source edits without root coordination. A different final reviewer follows. No redelegation occurred.
+Index integration waited for the quota author's source/index release. Quota fix is preserved exactly outside import/entry-call replacement; ORDERING-DELTA.json verifies this by exact transformed-text equality. internal.ts, bre-worker.ts and shared regex client/protocol are unchanged. No prototype repeat-worker promotion; existing nullable-backreference refusal remains.
+
+Committed SHA-256 (also matched live owned paths at handoff):
+src/commands/expr/syntax.ts 68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4
+src/commands/expr/evaluate.ts c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d
+src/commands/expr/index.ts e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e
+tests/commands/expr/encounter-order.test.ts 717833e284ba7de577a063b52b53a85ae5b0f19af38f5dce7a93fb761da9cb66
+Exact original 61 array SHA-256: d4bb6baf0109a8f5ba2e6752a1bb5d56c492cbdde43495883f68a4a2ea124a47
+Original cases-file SHA-256: d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314
+
+Pinned quota-only baseline -> exact committed candidate:
+Unchanged original 61: 42/61 -> 61/61; all 19 repaired (11 arithmetic/noninteger order + 8 regex order/submission; three of the eight already had identical final diagnostics but lacked a required job).
+Frozen semantic subset: 25/44 -> 44/44; project subset 17/17 -> 17/17. GNU9.7 Darwin historical expectations only, no fresh native execution or Linux claim.
+Actual Shell overlapping replay: 3/5 -> 5/5.
+Independent nearby controls: 11/16 -> 15/16. Remaining stdout-failure-no-regex-replay expects old status-3 recasting; both quota baseline and candidate reject the exact sink reason after one awaited job and cleanup.
+New focused tests frozen before production changes: 9/28 -> 28/28.
+Unchanged selected canonical tests: 558/559 -> 558/559. Remaining tests/commands/expr/contracts.test.ts:138 expects old stdout-sink recasting for argv ["1"]; quota and candidate reject original Error("sink failure"), return no status, no stderr, zero matcher jobs. Later assertions in that same test are not reached.
+Combined selected expr: 567/587 -> 586/587, NOT all green. Two native-oracle test files not executed; maintained TS inputs still strictly checked.
+Shared grep/rg/expr protocol: 61/61 -> 61/61 (five protocol tests overlap expr; not additive unique coverage).
+Historical separate old-cap: 0/1 -> 0/1; argv ["1","x"], maxOutputBytes:1 still gives 3/emergency, not historical expected 2/full syntax.
+Strict source/declaration builds and strict selected source/test checks (--skipLibCheck false): pass on both exact archives. Not a full public-consumer gate.
+
+No newly failing parse-all-before-jobs assumption was observed within the 559 unchanged selected non-native canonical tests; no global claim. All 19 original old/new argv/status/bytes/events are recorded individually. Versioned migration proposal for remaining quota conflicts is in REPORT.md; no old tests or frozen controls changed and no old green counts inflated.
+
+Evidence: tests/commands/expr-stress/encounter-author-v2-20260827/
+REPORT.md: ownership, counts, all 19 IDs/categories, conflicts, proposed versioned migration, limits.
+ORDERING-DELTA.json: exact source hashes, quota preservation proof, all 19 old/new inputs/status/bytes/jobs/events, remaining failures.
+candidate-01/ and quota-baseline-01/: exact Git-selected archives, source/test and compiled inventories, strict checks, unchanged drivers, TAP and lifecycle observations.
+SEAL.json / verify.mjs --verify: 52 authenticated evidence files, append-aware evidence inventory; verified after evidence commit.
+Full extracted source/tests and compiled inventories detect added entries before/after. Frozen selected paths rehashed, not an append-proof entire independent evidence-tree claim. All owned scratch/temporary parents removed; original/nearby drivers zero active workers; canonical lifecycle safety hooks zero workers before safety cleanup. No SIGSTOP, no dependencies or runtime host tools added.
+Source diff check clean. Raw immutable TAP includes test-name/traces trailing spaces, so evidence diff --check reports those; captured bytes intentionally preserved, not reformatted.
+Scope: author candidate only; no general GNU/POSIX parity, Linux, superiority, performance, full public completion or 72-hour claim.

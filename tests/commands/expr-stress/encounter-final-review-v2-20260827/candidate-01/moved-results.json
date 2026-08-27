@@ -1,0 +1,181 @@
+{
+  "passed": 19,
+  "total": 19,
+  "rows": [
+    {
+      "id": "encounter-runtime-before-trailing",
+      "events": [
+        "cleanup-registered"
+      ],
+      "passed": true
+    },
+    {
+      "id": "worker-before-trailing",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true
+    },
+    {
+      "id": "worker-capture",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true
+    },
+    {
+      "id": "inactive-worker-not-acquired",
+      "events": [
+        "cleanup-registered"
+      ],
+      "passed": true
+    },
+    {
+      "id": "inactive-syntax-validated",
+      "events": [
+        "cleanup-registered"
+      ],
+      "passed": true
+    },
+    {
+      "id": "three-ordered-workers",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true
+    },
+    {
+      "id": "output-quota",
+      "events": [
+        "cleanup-registered"
+      ],
+      "passed": true
+    },
+    {
+      "id": "sink-identity-null",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-null",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "sink-identity-false",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-false",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "sink-identity-zero",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-zero",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "sink-identity-empty",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-empty",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "sink-identity-undefined",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-undefined",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "sink-identity-errno",
+      "events": [
+        "cleanup-registered",
+        "worker-start",
+        "worker-exit"
+      ],
+      "passed": true,
+      "exactIdentity": true
+    },
+    {
+      "id": "caller-identity-errno",
+      "events": [],
+      "passed": true,
+      "exactIdentity": true
+    }
+  ],
+  "imports": [
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/commands/expr/evaluate.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/commands/expr/internal.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/commands/expr/syntax.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/command.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/errors.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/filesystem.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/index.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/io.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/output.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/path.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/relocated/node_modules/virtual-bash/dist/contracts/plugin.js",
+    "node:path",
+    "node:stream/web",
+    "node:util",
+    "node:worker_threads"
+  ],
+  "activeWorkers": 0,
+  "unhandledRejections": [],
+  "physicalDistOnly": true,
+  "publicExprExportClaim": false,
+  "runtimeDependencies": 0
+}

@@ -1,0 +1,111 @@
+import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
+import threads from 'node:worker_threads';
+import { syncBuiltinESMExports } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { realpathSync } from 'node:fs';
+
+const encode = text => new TextEncoder().encode(text);
+const span = (start, end) => ({ start, end });
+function mutate(id, reply, allowance) {
+  switch (id) {
+    case 'M01': return null;
+    case 'M02': return 'envelope';
+    case 'M03': delete reply.operation; break;
+    case 'M04': reply.id++; break;
+    case 'M05': reply.id = String(reply.id); break;
+    case 'M06': reply.id = NaN; break;
+    case 'M07': return { id: reply.id, results: [new Float64Array([0, 7])] };
+    case 'M08': break;
+    case 'M09': reply.result = null; break;
+    case 'M10': reply.results = [reply.result]; delete reply.result; break;
+    case 'M11': reply.result.offsetUnit = 'utf16'; break;
+    case 'M12': reply.result.hasCapture = 1; break;
+    case 'M13': reply.result.overall = '[0,7]'; break;
+    case 'M14': delete reply.result.overall.end; break;
+    case 'M15': reply.result.steps = allowance + 1; break;
+    case 'M16': return { id: reply.id, operation: 'expr-match', category: 'syntax', error: 0 };
+    case 'M17': reply.result.overall.start = -1; break;
+    case 'M18': reply.result.overall.end = 9; break;
+    case 'M19': reply.result.overall.start = NaN; break;
+    case 'M20': reply.result.overall.end = Infinity; break;
+    case 'M21': reply.result.capture.start = 0.5; break;
+    case 'M22': reply.result.overall.end = Number.MAX_SAFE_INTEGER + 1; break;
+    case 'M23': reply.result.capture = span(7, 3); break;
+    case 'M24': reply.result.overall.start = 1; break;
+    case 'M25': reply.result.capture = span(7, 8); break;
+    case 'M26': reply.result.capture.start = 2; break;
+    case 'M27': reply.result.matched = false; break;
+    case 'M28': reply.result.overall = null; break;
+    case 'M29': reply.result.hasCapture = false; break;
+    case 'M30': reply.result.matched = false; reply.result.overall = null; break;
+    case 'M31': reply.result.overall = span(0, 1); reply.result.capture = null; break;
+    case 'M32': reply.result.overall = span(0, 1); reply.result.capture = span(0, 0); break;
+    case 'extra-property': reply.extra = true; break;
+    case 'negative-work': reply.result.steps = -1; break;
+    case 'fractional-work': reply.result.steps = 0.5; break;
+    case 'nan-work': reply.result.steps = NaN; break;
+    default: throw new Error(`unbound mutation ${id}`);
+  }
+  return reply;
+}
+export async function run(payload) {
+  const base = pathToFileURL(`${realpathSync(payload.installed)}/`).href;
+  const protocol = await import(`${base}dist/commands/regex-execution/protocol.js`);
+  const events = [];
+  const descriptor = { kind: 'expr-match', pattern: encode('A.\\(.\\)'), profile: payload.byte ? 'byte' : 'utf8-scalar', limits: { ...protocol.exprMatchCeilings, maxSteps: 1000000 } };
+  let subject = encode('Aé😀Z');
+  if (payload.mutation === 'M31' || payload.mutation === 'M32') {
+    subject = encode('z'); descriptor.pattern = encode(payload.mutation === 'M31' ? '\\(a\\)\\?z' : '\\(a*\\)z');
+  }
+  const valid = id => ({ id, operation: 'expr-match', result: { offsetUnit: 'byte', matched: true, hasCapture: true, overall: span(0, subject.length === 1 ? 1 : 7), capture: subject.length === 1 ? payload.mutation === 'M31' ? null : span(0, 0) : span(3, 7), steps: 100 } });
+  const legacy = payload.legacyKind === 'rg' ? { kind: 'rg', patterns: ['a'], fixed: false, case: 'sensitive', whole: false, word: false, nullData: false }
+    : payload.legacyKind === 'glob' ? { kind: 'glob', patterns: ['a'], globOptions: [{ insensitive: false, literalUnclosedClass: false }] }
+    : { kind: 'grep', patterns: ['a'], fixed: false, extended: false, insensitive: false, whole: false, word: false };
+  const rows = [{ bytes: subject, all: false, terminated: false }];
+  const mutatedReply = id => {
+    if (!payload.override) return mutate(payload.mutation, valid(id), descriptor.limits.maxSteps);
+    const reply = valid(id), { path, action, value: given, special } = payload.override;
+    const value = special === 'NaN' ? NaN : special === 'Infinity' ? Infinity : special === 'unsafe' ? Number.MAX_SAFE_INTEGER + 1 : given;
+    if (path === '') return value;
+    const parts = path.split('.'); let target = reply;
+    for (const part of parts.slice(0, -1)) target = target[part];
+    if (action === 'delete') delete target[parts.at(-1)]; else target[parts.at(-1)] = value;
+    return reply;
+  };
+  const testValidator = value => {
+    try { return { state: 'fulfilled', value: payload.mutation === 'M08' ? protocol.validateReply(value, 7, rows, new AbortController().signal) : protocol.validateExprReply(value, 7, descriptor, subject, new AbortController().signal) }; }
+    catch (error) { return { state: 'rejected', code: error.code, category: error.category, message: error.message }; }
+  };
+  const original = threads.Worker;
+  let currentReply = request => valid(request.id);
+  threads.Worker = class extends EventEmitter {
+    constructor(url, options) { super(); assert(url.href.startsWith(base)); events.push({ type: 'start', url: url.href, options }); queueMicrotask(() => this.emit('message', { ready: true })); }
+    postMessage(request) { events.push({ type: 'post', id: request.id, kind: request.descriptor.kind }); queueMicrotask(() => this.emit('message', currentReply(request))); }
+    ref() { return this; }
+    unref() { return this; }
+    async terminate() { events.push({ type: 'terminate' }); this.emit('exit', 0); return 0; }
+  };
+  syncBuiltinESMExports();
+  const { RegexExecutor } = await import(`${base}dist/commands/regex-execution/client.js`);
+  async function throughClient(mutated) {
+    const executor = new RegexExecutor({ maxWorkers: 1, startupTimeoutMs: 80, requestTimeoutMs: 80 });
+    const session = executor.open(new AbortController().signal);
+    currentReply = request => mutated ? mutatedReply(request.id) : payload.mutation === 'M08' ? { id: request.id, results: [new Float64Array([0, 1])] } : valid(request.id);
+    try {
+      const value = payload.mutation === 'M08' ? await session.run(legacy, rows) : await session.matchExpr(descriptor, subject);
+      return { state: 'fulfilled', value };
+    } catch (error) { return { state: 'rejected', code: error.code, category: error.category, message: error.message }; }
+    finally { await session.close(); await executor.dispose(); }
+  }
+  try {
+    const positiveValidator = testValidator(payload.mutation === 'M08' ? { id: 7, results: [new Float64Array([0, 1])] } : valid(7));
+    const positiveClient = await throughClient(false);
+    const validator = testValidator(mutatedReply(7));
+    const client = await throughClient(true);
+    const expected = payload.mutation === 'M31' || payload.mutation === 'M32' || payload.mutation === 'M26' && payload.byte ? 'fulfilled' : 'rejected';
+    return { mutation: payload.mutation, expected, positiveValidator, positiveClient, validator, client, events,
+      passed: positiveValidator.state === 'fulfilled' && positiveClient.state === 'fulfilled' && validator.state === expected && client.state === expected && (expected === 'fulfilled' || validator.code === 'PROTOCOL' && client.code === 'PROTOCOL'),
+      seam: 'Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation.' };
+  } finally { threads.Worker = original; syncBuiltinESMExports(); }
+}

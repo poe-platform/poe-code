@@ -1,0 +1,77 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01",
+  "absent": true,
+  "processes": [
+    {
+      "name": null,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "extract",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "build",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "original61",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "nearby16",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "quota47",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "quota21",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "scoped-types",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "legacy-no-native",
+      "status": 1,
+      "signal": null
+    },
+    {
+      "name": "additional-canonical",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "shared11",
+      "status": 1,
+      "signal": null
+    },
+    {
+      "name": "pack",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "install",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "moved-physical-smoke",
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "finished": "2026-08-27T20:58:03.685Z"
+}

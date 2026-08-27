@@ -1,0 +1,16 @@
+{
+  "executable": "tar",
+  "args": [
+    "-xf",
+    "-",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/core-01/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "started": "2026-08-27T21:00:55.161Z",
+  "finished": "2026-08-27T21:00:55.271Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,287 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "encounter": {
+    "original": {
+      "passed": 61,
+      "total": 61,
+      "failures": []
+    },
+    "nativeDarwin": {
+      "passed": 44,
+      "total": 44,
+      "failures": []
+    },
+    "project": {
+      "passed": 17,
+      "total": 17,
+      "failures": []
+    },
+    "nearby": {
+      "passed": 15,
+      "total": 16,
+      "failures": [
+        {
+          "id": "stdout-failure-no-regex-replay",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "expected": {
+            "exitCode": 3,
+            "stdout": "",
+            "stderr": "expr: execution or output failure\n"
+          },
+          "observed": {
+            "rejected": "sink",
+            "message": "independent sink failure",
+            "stdout": "",
+            "stderr": ""
+          },
+          "failures": [
+            "exitCode",
+            "stderr"
+          ]
+        }
+      ]
+    },
+    "shellOverlapping": {
+      "passed": 5,
+      "total": 5,
+      "failures": []
+    },
+    "oldCapSeparate": {
+      "id": "old-syntax-output-one-separate",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stderr"
+      ],
+      "passed": false
+    },
+    "closure": {
+      "total": 19,
+      "closed": 19
+    }
+  },
+  "quota": [
+    {
+      "cohort": "quota47",
+      "total": 47,
+      "passed": 46,
+      "failures": [
+        {
+          "input": {
+            "id": "stdout-rejection-normal-quota",
+            "argv": [
+              "1"
+            ],
+            "cap": 2,
+            "expected": {
+              "status": 3,
+              "stdout": "",
+              "stderr": "expr: output bytes limit exceeded\n",
+              "jobs": 0
+            },
+            "mode": "reject-stdout"
+          },
+          "checks": [
+            {
+              "name": "exact result and rejection identity",
+              "passed": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cohort": "quota21",
+      "total": 21,
+      "passed": 21,
+      "failures": []
+    }
+  ],
+  "regressions": {
+    "types": {
+      "status": 0
+    },
+    "legacyNoNative": {
+      "status": 1,
+      "tests": 237,
+      "pass": 236,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "additionalCanonical": {
+      "status": 0,
+      "tests": 338,
+      "pass": 338,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "shared11": {
+      "status": 1,
+      "tests": 276,
+      "pass": 275,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "omittedLegacy": [
+      "tests/commands/expr/native.test.ts",
+      "tests/commands/expr/regex-native.test.ts"
+    ],
+    "nativeExprPolicy": "No native expr recapture. Existing frozen 44 Darwin tuples replayed separately; native canonical files not run.",
+    "lifecyclePaths": [
+      "tests/commands/expr/contracts.test.ts",
+      "tests/commands/expr/abort-reason-regression.test.ts",
+      "tests/commands/expr/regex-lifecycle.test.ts",
+      "tests/commands/expr/regex-limits.test.ts",
+      "tests/commands/expr/regex-protocol.test.ts",
+      "tests/commands/expr/grammar.test.ts"
+    ],
+    "currentPaths": [
+      "tests/commands/expr/diagnostics-regression.test.ts",
+      "tests/commands/expr/inactive-prefix.test.ts",
+      "tests/commands/expr/named-profile.test.ts",
+      "tests/commands/expr/encounter-order.test.ts",
+      "tests/commands/expr/output-quota.test.ts"
+    ]
+  },
+  "legacyPerFile": [
+    {
+      "filename": "tests/commands/expr/abort-reason-regression.test.ts",
+      "firstTitle": "structural signal implements EventTarget and AbortSignal; native undefined is a DOMException",
+      "index": 0,
+      "total": 111,
+      "passed": 111,
+      "failures": []
+    },
+    {
+      "filename": "tests/commands/expr/contracts.test.ts",
+      "firstTitle": "factories register exactly expr with explicit replacement",
+      "index": 111,
+      "total": 27,
+      "passed": 26,
+      "failures": [
+        "✖ sink failure is status 3 and diagnostic failure is not swallowed (0.3365ms)"
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/grammar.test.ts",
+      "firstTitle": "expr grammar [\"2\",\"+\",\"3\",\"*\",\"4\"]",
+      "index": 138,
+      "total": 73,
+      "passed": 73,
+      "failures": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-lifecycle.test.ts",
+      "firstTitle": "expr skipped regex branches submit/compile zero jobs and never access stdin",
+      "index": 211,
+      "total": 11,
+      "passed": 11,
+      "failures": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-limits.test.ts",
+      "firstTitle": "expr regex cap: input bytes",
+      "index": 222,
+      "total": 10,
+      "passed": 10,
+      "failures": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-protocol.test.ts",
+      "firstTitle": "expr replies validate exact shape, original byte bounds and scalar boundaries",
+      "index": 232,
+      "total": 5,
+      "passed": 5,
+      "failures": []
+    }
+  ],
+  "perFileCountingMethod": "Actual spec-reporter rows before the duplicated failure footer, partitioned at source-verified first test names in the recorded alphabetic file order; no estimated declaration counts.",
+  "oldCore": {
+    "passed": 145,
+    "total": 146,
+    "groups": [
+      {
+        "group": "protocol",
+        "total": 37,
+        "passed": 37,
+        "failures": []
+      },
+      {
+        "group": "lifecycle",
+        "total": 19,
+        "passed": 19,
+        "failures": []
+      },
+      {
+        "group": "runtime",
+        "total": 90,
+        "passed": 89,
+        "failures": [
+          "sink-rejection"
+        ]
+      }
+    ]
+  },
+  "physicalMovedSmoke": {
+    "passed": 19,
+    "total": 19
+  },
+  "overlaps": [
+    "44 Darwin semantic and 17 project controls partition the same 61, not additional 61 tests.",
+    "19 closure rows are a subset of 61; five actual-Shell checks replay five of those inputs.",
+    "16 nearby controls are separately frozen inputs, not 16 new native claims; related properties overlap the original 61.",
+    "47 historical quota and 21 corrected quota controls are separate cohorts; they overlap parser/output and lifecycle behaviors in the other suites.",
+    "111 reason + 27 contracts + 73 grammar + 11 lifecycle + 10 regex-limits + 5 protocol partition the 237 legacy non-native tests.",
+    "338 additional canonical tests are five other files, including encounter-order/output-quota authored tests; they are not 338 newly independent controls.",
+    "Old core 146 includes 37 protocol, 19 lifecycle and 90 runtime subcases; behavioral coverage overlaps source tests, frozen controls and moved smoke.",
+    "The 19 physical moved smoke cases are a separate packaging execution, not novel semantic coverage."
+  ],
+  "blockers": [
+    "Shared same-path 11-file candidate run is 275/276: native rg detects an ancestor checkout for a no-.git fixture despite GIT_CEILING_DIRECTORIES. Original inputs, assertions and native argv remain unchanged. No workspace-external temp correction executed.",
+    "Original nearby is 15/16, quota is 46/47, old core is 145/146, and legacy non-native is 236/237 due to preserved original sink-recasting expectations, not successful original green gates.",
+    "Four native-dependent old tests in two files remain unexecuted, not skipped/passed; no new native expr oracle capture.",
+    "No public expr/root/subpath or repeat promotion; no Linux/full-parity/superiority/project completion claim."
+  ]
+}

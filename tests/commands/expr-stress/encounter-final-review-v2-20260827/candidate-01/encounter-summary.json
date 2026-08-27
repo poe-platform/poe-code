@@ -1,0 +1,96 @@
+{
+  "original": {
+    "passed": 61,
+    "total": 61,
+    "failures": []
+  },
+  "nativeDarwin": {
+    "passed": 44,
+    "total": 44,
+    "failures": []
+  },
+  "project": {
+    "passed": 17,
+    "total": 17,
+    "failures": []
+  },
+  "nearby": {
+    "passed": 15,
+    "total": 16,
+    "failures": [
+      {
+        "id": "stdout-failure-no-regex-replay",
+        "args": [
+          "a",
+          ":",
+          "a"
+        ],
+        "expected": {
+          "exitCode": 3,
+          "stdout": "",
+          "stderr": "expr: execution or output failure\n"
+        },
+        "observed": {
+          "rejected": "sink",
+          "message": "independent sink failure",
+          "stdout": "",
+          "stderr": ""
+        },
+        "failures": [
+          "exitCode",
+          "stderr"
+        ]
+      }
+    ]
+  },
+  "shellOverlapping": {
+    "passed": 5,
+    "total": 5,
+    "failures": []
+  },
+  "oldCapSeparate": {
+    "id": "old-syntax-output-one-separate",
+    "mode": "direct",
+    "observed": {
+      "exitCode": 3,
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    "expected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    "jobs": [],
+    "encodes": [
+      "1",
+      "x"
+    ],
+    "budgetCount": 1,
+    "budgetIncreases": 0,
+    "events": [
+      {
+        "kind": "cleanup-registered"
+      },
+      {
+        "kind": "session-close-start"
+      },
+      {
+        "kind": "session-close-end"
+      },
+      {
+        "kind": "execute-settled",
+        "activeWorkers": 0
+      }
+    ],
+    "failures": [
+      "exitCode",
+      "stderr"
+    ],
+    "passed": false
+  },
+  "closure": {
+    "total": 19,
+    "closed": 19
+  }
+}

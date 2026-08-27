@@ -1,0 +1,2085 @@
+{
+  "rows": [
+    {
+      "input": {
+        "id": "v2-stdout-rejection-zero",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "zero",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "number",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-stdout-rejection-false",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "false",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-stdout-rejection-null",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "null",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "object",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-stdout-rejection-undefined",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "undefined",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "undefined",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-stdout-rejection-empty",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "empty",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "string",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-stdout-rejection-quota-error",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "quota-error",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "object",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-old-stdout-rejection-explicit-identity",
+        "supersedesOnlyByProposal": "stdout-rejection-normal-quota",
+        "args": [
+          "1"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "error",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "object",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-normal-stderr-rejection-false",
+        "args": [
+          "1",
+          "x"
+        ],
+        "cap": 44,
+        "mode": "reject-stderr",
+        "reason": "false",
+        "rejection": "sink",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 44,
+          "text": "expr: syntax error: unexpected argument 'x'\n",
+          "hex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-emergency-stderr-rejection-undefined",
+        "args": [
+          "1",
+          "x"
+        ],
+        "cap": 43,
+        "mode": "reject-stderr",
+        "reason": "undefined",
+        "rejection": "sink",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "undefined",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-output-admission-before-throwing-sink",
+        "args": [
+          "1"
+        ],
+        "cap": 1,
+        "mode": "reject-stdout",
+        "reason": "error",
+        "status": 3,
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": false,
+        "status": 3,
+        "rejectionIdentity": null,
+        "rejectionType": null,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-long-normal-diagnostic-allocation-admission",
+        "args": [
+          "1",
+          "UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_UNTRUSTED_"
+        ],
+        "cap": 43,
+        "mode": "allocation",
+        "status": 3,
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": false,
+        "status": 3,
+        "rejectionIdentity": null,
+        "rejectionType": null,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [
+        {
+          "bytes": 1,
+          "diagnostic": false,
+          "emergency": false
+        },
+        {
+          "bytes": 5120,
+          "diagnostic": false,
+          "emergency": false
+        },
+        {
+          "bytes": 34,
+          "diagnostic": true,
+          "emergency": true
+        }
+      ],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-nul-normal-diagnostic-admitted",
+        "args": [
+          "bad\u0000token"
+        ],
+        "cap": 128,
+        "status": 2,
+        "stderr": "expr: NUL is not supported in argv\n",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": false,
+        "status": 2,
+        "rejectionIdentity": null,
+        "rejectionType": null,
+        "stdout": "",
+        "stderr": "expr: NUL is not supported in argv\n"
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 35,
+          "text": "expr: NUL is not supported in argv\n",
+          "hex": "657870723a204e554c206973206e6f7420737570706f7274656420696e20617267760a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-stdout-rejection-false",
+        "args": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "false",
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "session-close",
+        "worker-terminate",
+        "worker-exit"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-invalid-emergency-rejection-zero",
+        "args": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "mode": "reject-stderr",
+        "reason": "zero",
+        "rejection": "sink",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "number",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "worker-terminate",
+        "worker-exit",
+        "session-close"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-caller-abort-false",
+        "args": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "mode": "abort-post",
+        "reason": "false",
+        "rejection": "caller",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 0,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "caller",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "worker-terminate",
+        "worker-exit",
+        "session-close"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-caller-abort-null",
+        "args": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "mode": "abort-post",
+        "reason": "null",
+        "rejection": "caller",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 0,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "caller",
+        "rejectionType": "object",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "worker-terminate",
+        "worker-exit",
+        "session-close"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-emergency-abort-false-late-rejection",
+        "args": [
+          "1",
+          "x"
+        ],
+        "cap": 43,
+        "mode": "abort-stderr",
+        "reason": "false",
+        "rejection": "caller",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "caller",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "session-close"
+      ],
+      "jobs": [],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "invocation remains pending at controlled gate",
+          "passed": true
+        },
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-held-cleanup",
+        "args": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 1,
+        "mode": "held-close",
+        "status": 3,
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": false,
+        "status": 3,
+        "rejectionIdentity": null,
+        "rejectionType": null,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "session-close",
+        "worker-terminate",
+        "worker-exit"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "invocation remains pending at controlled gate",
+          "passed": true
+        },
+        {
+          "name": "overlapping cleanup shares completion",
+          "passed": true
+        },
+        {
+          "name": "registered cleanup awaits delayed session close",
+          "passed": true
+        },
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-sink-undefined-precedes-close-error",
+        "args": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 2,
+        "mode": "reject-stdout",
+        "reason": "undefined",
+        "closeReject": true,
+        "rejection": "sink",
+        "stdoutAttempts": 1,
+        "stderrAttempts": 0,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "sink",
+        "rejectionType": "undefined",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "text": "1\n",
+          "hex": "310a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "session-close",
+        "worker-terminate",
+        "worker-exit"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-caller-false-precedes-close-error",
+        "args": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "mode": "abort-post",
+        "reason": "false",
+        "closeReject": true,
+        "rejection": "caller",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 0,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "caller",
+        "rejectionType": "boolean",
+        "stdout": "",
+        "stderr": ""
+      },
+      "attempts": [],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "worker-terminate",
+        "worker-exit",
+        "session-close"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "v2-worker-diagnostic-close-error-preserved",
+        "args": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "closeReject": true,
+        "rejection": "close",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutAttempts": 0,
+        "stderrAttempts": 1,
+        "jobs": 1
+      },
+      "actual": {
+        "rejected": true,
+        "status": null,
+        "rejectionIdentity": "close",
+        "rejectionType": "object",
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "text": "expr: output bytes limit exceeded\n",
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a"
+        }
+      ],
+      "encodings": [],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "worker-start",
+        "worker-terminate",
+        "worker-exit",
+        "session-close"
+      ],
+      "jobs": [
+        "expr-match"
+      ],
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "checks": [
+        {
+          "name": "cleanup remains idempotent",
+          "passed": true
+        },
+        {
+          "name": "cleanup result retains exact close identity",
+          "passed": true
+        },
+        {
+          "name": "exact result and falsy rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact accepted stdout and stderr",
+          "passed": true
+        },
+        {
+          "name": "exact sink admission counts",
+          "passed": true
+        },
+        {
+          "name": "one fixed emergency maximum",
+          "passed": true
+        },
+        {
+          "name": "normal output admission budget",
+          "passed": true
+        },
+        {
+          "name": "no overbudget diagnostic encoding",
+          "passed": true
+        },
+        {
+          "name": "real worker job count",
+          "passed": true
+        },
+        {
+          "name": "registration precedes acquisition",
+          "passed": true
+        },
+        {
+          "name": "one registration and one session close",
+          "passed": true
+        },
+        {
+          "name": "workers awaited and not duplicated",
+          "passed": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": 21,
+  "total": 21,
+  "imports": [
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/evaluate.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/syntax.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/command.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/filesystem.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/output.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/path.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/plugin.js"
+    },
+    {
+      "parent": "dist/commands/regex-execution/client.js",
+      "resolved": "node:worker_threads"
+    },
+    {
+      "parent": "dist/commands/regex-execution/client.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/evaluate.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/internal.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/syntax.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/syntax.js",
+      "resolved": "dist/commands/expr/evaluate.js"
+    },
+    {
+      "parent": "dist/contracts/errors.js",
+      "resolved": "node:util"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "resolved": "node:stream/web"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/contracts/output.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "resolved": "dist/contracts/errors.js"
+    }
+  ],
+  "mainThreadMatcherViolations": [],
+  "unhandledRejections": [],
+  "uncaughtExceptions": [],
+  "safetyTerminations": 0,
+  "activeAfterSafety": 0
+}

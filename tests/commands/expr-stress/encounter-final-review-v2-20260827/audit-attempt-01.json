@@ -1,0 +1,12 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/encounter-final-review-v2-20260827/audit.mjs"
+  ],
+  "started": "2026-08-27T21:04:21.368Z",
+  "status": 1,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f'\n- '3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/audit.mjs:38:10\n    at Array.map (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/audit.mjs:35:29\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: '65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f',\n  expected: '3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "originalDriverSha256": "19dec1cebe9134e35b46f80c597d2552956a846d7bbebc7c844768721658c991",
+  "qualification": "Preserved original overstrict audit assertion. Candidate canonical glob test has a committed TypeScript-only overload annotation change; product replay did not fail here."
+}

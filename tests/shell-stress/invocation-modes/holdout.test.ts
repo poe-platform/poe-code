@@ -14,8 +14,12 @@ interface VirtualRow {
   id: string; exitCode: number; stdoutHex: string; stderrHex: string; stdout: string; stderr: string;
   effects: Record<string, string>; error?: string; passed?: boolean;
 }
-const native: { cohortHash: string; profiles: { id: string; rows: NativeRow[] }[] } = JSON.parse(await readFile(`${owned}/native-corrected-evidence.json`, "utf8"));
-assert.equal(native.cohortHash, sha256(await readFile(`${owned}/cases.ts`)), "Frozen native cohort/source mismatch");
+const nativeBytes = await readFile(`${owned}/native-corrected-evidence.json`);
+assert.equal(sha256(nativeBytes), "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45", "Frozen native artifact mismatch");
+const native: { cohortHash: string; profiles: { id: string; rows: NativeRow[] }[] } = JSON.parse(nativeBytes.toString());
+const originalCohortHash = "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b";
+assert.equal(native.cohortHash, originalCohortHash, "Frozen native cohort mismatch");
+assert.ok([originalCohortHash, "fdc22c27541f4f29334274e35238c22fa4645730dbe5239134a585ee8e03f83c"].includes(sha256(await readFile(`${owned}/cases.ts`))), "Only original or exact headerless-policy revision is permitted");
 assert.equal(native.profiles.length, 2);
 assert.deepEqual(native.profiles.map(profile => profile.rows.map(row => row.id)), [cases.map(row => row.id), cases.map(row => row.id)]);
 

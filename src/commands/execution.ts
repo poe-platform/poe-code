@@ -1,5 +1,6 @@
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
+import { EnvSplitError, parseEnvOptions } from "./env-split.js";
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
   return async context => {
@@ -47,8 +48,14 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
 export function executionCommands(execute: CommandHandler): CommandDefinition[] {
   return [
     define("env", async context => {
-      const args = context.args[0] === "-" ? ["-i", ...context.args.slice(1)] : context.args;
-      const parsed = options(args, "iu:0C:", { "ignore-environment": "i", unset: "u", null: "0", chdir: "C" }, true);
+      let parsed: ReturnType<typeof options>;
+      try { parsed = await parseEnvOptions(context.args, context.env, context.signal); }
+      catch (error) {
+        context.signal.throwIfAborted();
+        if (!(error instanceof EnvSplitError)) throw error;
+        await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error.message}\n`), context.signal);
+        return { exitCode: 125 };
+      }
       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);
       for (const name of parsed.values.get("u") ?? []) delete env[name];
       const inheritedNames = Object.keys(env);
@@ -65,6 +72,7 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         env[name] = content;
       }
       const names = [...addedNames.reverse(), ...inheritedNames];
+      if (offset < parsed.operands.length && parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
       let cwd = context.cwd;
       const directory = value(parsed, "C");
       if (directory !== undefined) {
@@ -73,7 +81,6 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         cwd = await context.fs.realpath(cwd, { signal: context.signal });
       }
       if (offset < parsed.operands.length) {
-        if (parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
         if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {
           env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,

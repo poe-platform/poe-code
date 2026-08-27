@@ -1,0 +1,28 @@
+{
+  "id": "shell-primary-read-error",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+    "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:123:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "fulfilled"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

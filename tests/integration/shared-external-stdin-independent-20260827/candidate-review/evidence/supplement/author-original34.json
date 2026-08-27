@@ -1,0 +1,466 @@
+{
+  "candidate": "/private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/node_modules/virtual-bash",
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "version": "v22.22.2",
+  "cases": [
+    {
+      "name": "normal EOF: direct helper and Shell do not call return",
+      "classification": "existing-behavior",
+      "reads": 3,
+      "returns": 0,
+      "result": {
+        "stdout": "α\nβ\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 206,
+          "1": 177,
+          "2": 10,
+          "3": 206,
+          "4": 178,
+          "5": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "early stop: direct helper and owning Shell return exactly once",
+      "classification": "existing-behavior",
+      "result": {
+        "stdout": "keep:01\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 107,
+          "1": 101,
+          "2": 101,
+          "3": 112,
+          "4": 58,
+          "5": 48,
+          "6": 49,
+          "7": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      },
+      "directReturns": 1,
+      "shellReturns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "direct grep: sync external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "grep: sync-grep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell grep: sync external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "direct egrep: sync external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "egrep: sync-egrep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell egrep: sync external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "direct fgrep: sync external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "fgrep: sync-fgrep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell fgrep: sync external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "direct grep: async external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "grep: async-grep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell grep: async external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "direct egrep: async external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "egrep: async-egrep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell egrep: async external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "direct fgrep: async external return rejection",
+      "classification": "failure-preserved-control",
+      "desiredFailureVisible": true,
+      "failureVisible": true,
+      "behaviorAccepted": true,
+      "sameSentinel": false,
+      "returns": 1,
+      "outcome": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "fgrep: async-fgrep-return-sentinel\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "Shell fgrep: async external return rejection",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:92:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:84:49"
+    },
+    {
+      "name": "unread external return rejection undefined",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:102:161\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:100:69"
+    },
+    {
+      "name": "unread external return rejection null",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:102:161\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:100:69"
+    },
+    {
+      "name": "unread external return rejection Error: return-error",
+      "classification": "existing-error-propagation-defect",
+      "observationVerified": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ true\n- undefined\n\n    at file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:102:161\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:29:30)\n    at async file:///private/tmp/shared-stdin-independent-candidate-supplement-LfuAkx/consumer/fixtures/author-original34.mjs:100:69"
+    },
+    {
+      "name": "direct readBytes preserves return rejection undefined",
+      "classification": "failure-preserved-control",
+      "sameReason": true,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "direct readBytes preserves return rejection null",
+      "classification": "failure-preserved-control",
+      "sameReason": true,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "direct readBytes preserves return rejection Error: return-error",
+      "classification": "failure-preserved-control",
+      "sameReason": true,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "direct and Shell primary read failure precedes secondary return failure",
+      "classification": "existing-precedence-control",
+      "directPrimaryIdentity": true,
+      "result": {
+        "stdout": "",
+        "stderr": "shell: line 1: primary-read\n",
+        "stdoutBytes": {},
+        "stderrBytes": {
+          "0": 115,
+          "1": 104,
+          "2": 101,
+          "3": 108,
+          "4": 108,
+          "5": 58,
+          "6": 32,
+          "7": 108,
+          "8": 105,
+          "9": 110,
+          "10": 101,
+          "11": 32,
+          "12": 49,
+          "13": 58,
+          "14": 32,
+          "15": 112,
+          "16": 114,
+          "17": 105,
+          "18": 109,
+          "19": 97,
+          "20": 114,
+          "21": 121,
+          "22": 45,
+          "23": 114,
+          "24": 101,
+          "25": 97,
+          "26": 100,
+          "27": 10
+        },
+        "exitCode": 1
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "selected output-budget rejection survives external return rejection",
+      "classification": "existing-precedence-control",
+      "outcome": {
+        "rejected": true,
+        "error": "ShellLimitError: Shell limit exceeded: maxOutputBytes"
+      },
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "explicit registered failure is not hidden by successful/nonzero result",
+      "classification": "registered-owned-guarantee",
+      "results": [
+        {
+          "commandStatus": 0,
+          "sameFailure": true
+        },
+        {
+          "commandStatus": 7,
+          "sameFailure": true
+        }
+      ],
+      "observationVerified": true
+    },
+    {
+      "name": "external column deferred return: normal-release",
+      "classification": "existing-nonabort-wait",
+      "beforeInterruption": {
+        "execSettled": false,
+        "returns": 1,
+        "returned": false
+      },
+      "beforeGateRelease": {
+        "execSettled": false,
+        "disposeSettled": false,
+        "returned": false
+      },
+      "outcome": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "column: EFBIG: column input limit exceeded\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "external column deferred return: dispose",
+      "classification": "stronger-external-barrier-not-promised",
+      "beforeInterruption": {
+        "execSettled": false,
+        "returns": 1,
+        "returned": false
+      },
+      "beforeGateRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returned": false
+      },
+      "outcome": {
+        "rejected": true,
+        "error": "Error: Shell is disposed"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "external column deferred return: caller-abort",
+      "classification": "stronger-external-barrier-not-promised",
+      "beforeInterruption": {
+        "execSettled": false,
+        "returns": 1,
+        "returned": false
+      },
+      "beforeGateRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returned": false
+      },
+      "callerIdentity": true,
+      "outcome": {
+        "rejected": true,
+        "error": "[object Object]"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "column owned VFS return keeps exec and concurrent dispose pending",
+      "classification": "registered-owned-guarantee",
+      "beforeGateRelease": {
+        "execSettled": false,
+        "disposeSettled": false,
+        "returns": 1
+      },
+      "returned": true,
+      "outcome": {
+        "rejected": true,
+        "error": "Error: Shell is disposed"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "direct column deferred return waits without an optional registration hook",
+      "classification": "direct-finally-not-public-abort-barrier",
+      "waited": true,
+      "outcome": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "column: EFBIG: column input limit exceeded\n"
+      },
+      "observationVerified": true
+    },
+    {
+      "name": "caller abort drains registered work but not structural pending next/return",
+      "classification": "registered-owned-versus-opaque-input",
+      "registeredBarrier": true,
+      "callerReasonIdentity": true,
+      "settledBeforeRawInputs": true,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "opaque async generator return queues behind pending next",
+      "classification": "stronger-external-barrier-not-promised",
+      "atPublicSettlement": {
+        "returns": 1,
+        "finalized": false
+      },
+      "finalizedAfterHarnessRelease": true,
+      "callerIdentity": true,
+      "observationVerified": true
+    },
+    {
+      "name": "caller abort during external deferred rejection preserves exact primitive",
+      "classification": "existing-precedence-control",
+      "callerIdentity": true,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "sequential commands borrow one cursor without intermediate return",
+      "classification": "shared-stdin-lease-control",
+      "result": {
+        "stdout": "ABC",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 65,
+          "1": 66,
+          "2": 67
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      },
+      "between": [
+        0,
+        0
+      ],
+      "reads": 4,
+      "returns": 0,
+      "observationVerified": true
+    },
+    {
+      "name": "read builtins retain multibyte same-chunk remainder until owning close",
+      "classification": "shared-stdin-lease-control",
+      "result": {
+        "stdout": "α|β",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 206,
+          "1": 177,
+          "2": 124,
+          "3": 206,
+          "4": 178
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      },
+      "between": [
+        0,
+        0
+      ],
+      "reads": 1,
+      "returns": 1,
+      "observationVerified": true
+    },
+    {
+      "name": "borrowed ShellInput close does not own return; queued cancellation preserves serialization",
+      "classification": "shared-stdin-lease-control",
+      "borrowedIteratorHasReturn": false,
+      "returns": 1,
+      "maximumConcurrentNext": 1,
+      "cancelledReason": "queued",
+      "observationVerified": true
+    }
+  ],
+  "unhandled": [],
+  "counts": {
+    "observations": 34,
+    "verified": 25,
+    "unexpected": 9,
+    "retainedDefectRows": 0
+  }
+}

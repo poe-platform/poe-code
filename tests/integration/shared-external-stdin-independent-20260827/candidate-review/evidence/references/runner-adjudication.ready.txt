@@ -1,0 +1,9 @@
+commit: 4fa5929a18f952697f7def2bf6a3b7e4940aae23
+addendum: tests/integration/shared-external-stdin-independent-20260827/fixture-adjudication/RUNNER_ADDENDUM.md
+summary: STATIC-only followup complete. Exact runner 7b983a73 closes the stale 92f runner binding criticism: pins fixture 92f76262 and derives scope count, preserving byte/load authentication.
+fixture verification: SHA256 and byte lengths of committed 92f cases.mjs, probe.mjs, loader.mjs match attempt-3 authentication consumerBefore execution-fixture entries; reviewed runner checks loaded-module hashes against that inventory. Individual load receipts were outside permitted reads.
+cases.mjs: 5bcaeaea781111d067df0041f7948a48d578c955c2c5d32f2859f4ce9ccc2bea (4898 bytes)
+probe.mjs: 1bc6421bf27e5dc6a32a162e7f02ab6d4c324c0a666bd31fca6ace95ef9123a9 (17835 bytes)
+loader.mjs: 8008029a4d0771c217f96c617dd7f781acbbc52e3f0f74bed1e60b8e9873ca9e (1074 bytes)
+results: Original 18/32 plus 2 separate controls preserved. Attempt-3 rows independently recounted as provisional 25/35, 10 failures; summary reports 2 separate controls, all children closed, zero watchdog expiries. Semantic corrections await root approval. NO candidate routing, inspection, or acceptance.
+scope: Only new addendum committed using exact-path staging and git commit --only. No builds/tests/replay/product input.ts inspection/background processes. Index clean after commit; concurrent untracked files and unrelated scripts/verify-current-consumers.mjs modification preserved untouched.

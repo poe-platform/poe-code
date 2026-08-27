@@ -1,0 +1,29 @@
+{
+  "id": "shell-sequential-nested-binary",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "exact owning return count\n\n0 !== 1\n",
+    "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:203:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "next:1",
+    "next:2",
+    "next:3",
+    "return-entered:release"
+  ],
+  "input": {
+    "reads": 4,
+    "returns": 0,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

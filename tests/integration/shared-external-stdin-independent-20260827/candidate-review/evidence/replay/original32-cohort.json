@@ -1,0 +1,1189 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "fixtureCommit": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+  "name": "original32",
+  "rows": [
+    {
+      "cohort": "original32",
+      "id": "direct-head-sync",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "direct-head-sync",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "command-status:1"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [
+          "head: independent-return-failure\n"
+        ],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "direct-head-reject",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "direct-head-reject",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "command-status:1"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [
+          "head: independent-return-failure\n"
+        ],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "direct-head-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "direct-head-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "command-status:1"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [
+          "head: 0\n"
+        ],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "direct-helper-eof-no-close",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "direct-helper-eof-no-close",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:1",
+          "next:2",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 3,
+          "returns": 0,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "",
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "direct-helper-deferred-return",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "direct-helper-deferred-return",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "direct-return:reject",
+          "rejected:Error: independent-return-failure"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-eof-sync",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-eof-sync",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "exact owning return count\n\n0 !== 1\n",
+          "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:117:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:1",
+          "next:2",
+          "fulfilled",
+          "observed-result:{\"stdout\":\"\\u0000��\",\"stderr\":\"\",\"stdoutBytes\":{\"0\":0,\"1\":255,\"2\":128},\"stderrBytes\":{},\"exitCode\":0}",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 3,
+          "returns": 0,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff",
+          "80"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-eof-reject",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-eof-reject",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "exact owning return count\n\n0 !== 1\n",
+          "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:117:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:1",
+          "next:2",
+          "fulfilled",
+          "observed-result:{\"stdout\":\"\\u0000��\",\"stderr\":\"\",\"stdoutBytes\":{\"0\":0,\"1\":255,\"2\":128},\"stderrBytes\":{},\"exitCode\":0}",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 3,
+          "returns": 0,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff",
+          "80"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-eof-zero",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-eof-zero",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "exact owning return count\n\n0 !== 1\n",
+          "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:117:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:1",
+          "next:2",
+          "fulfilled",
+          "observed-result:{\"stdout\":\"\\u0000��\",\"stderr\":\"\",\"stdoutBytes\":{\"0\":0,\"1\":255,\"2\":128},\"stderrBytes\":{},\"exitCode\":0}",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 3,
+          "returns": 0,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff",
+          "80"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-early-sync",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-early-sync",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure",
+          "observed-result:null"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-early-reject",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-early-reject",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure",
+          "observed-result:null"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-early-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-early-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:0",
+          "observed-result:null"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-status17-unread-sync",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-status17-unread-sync",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure",
+          "observed-result:null",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-status17-unread-reject",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-status17-unread-reject",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure",
+          "observed-result:null",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-status17-unread-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-status17-unread-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "return",
+          "return-entered:release",
+          "rejected:0",
+          "observed-result:null",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-deferred-eof-return",
+      "mutant": "none",
+      "status": 13,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": null
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-primary-read-zero",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-primary-read-zero",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:123:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "fulfilled"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-primary-read-error",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-primary-read-error",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:123:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "fulfilled"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-primary-sink-error",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-primary-sink-error",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "exact rejection identity\n+ actual - expected\n\n+ Error: independent-return-failure\n+     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:16:20\n- Error: independent-primary-failure\n-     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:17:22\n      at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+          "stack": "AssertionError [ERR_ASSERTION]: exact rejection identity\n+ actual - expected\n\n+ Error: independent-return-failure\n+     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:16:20\n- Error: independent-primary-failure\n-     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:17:22\n      at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:75:122)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:127:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-abort-pending-next-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-abort-pending-next-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:0",
+          "opaque-next:reject",
+          "opaque-return:reject"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-abort-pending-next-error",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-abort-pending-next-error",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-primary-failure",
+          "opaque-next:reject",
+          "opaque-return:reject"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-abort-pending-return-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-abort-pending-return-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:0",
+          "public-settled-before-return-release",
+          "unregistered-return:reject"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-dispose-pending-return",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-dispose-pending-return",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:Error: Shell is disposed",
+          "public-settled-before-return-release",
+          "unregistered-return:reject"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-opaque-generator-abort",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-opaque-generator-abort",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "generator-started:release",
+          "generator-return-request",
+          "rejected:0",
+          "public-settled-before-generator-retired",
+          "generator-next:release",
+          "generator-finalizing:release",
+          "generator-finish:release",
+          "generator-retired:release"
+        ],
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-opaque-generator-dispose",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-opaque-generator-dispose",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "generator-started:release",
+          "generator-return-request",
+          "rejected:Error: Shell is disposed",
+          "public-settled-before-generator-retired",
+          "generator-next:release",
+          "generator-finalizing:release",
+          "generator-finish:release",
+          "generator-retired:release"
+        ],
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-sequential-nested-binary",
+      "mutant": "none",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": false,
+      "result": {
+        "id": "shell-sequential-nested-binary",
+        "mutant": "none",
+        "pass": false,
+        "failure": {
+          "name": "AssertionError",
+          "message": "exact owning return count\n\n0 !== 1\n",
+          "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:203:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+        },
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:1",
+          "next:2",
+          "next:3",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 4,
+          "returns": 0,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "shell-concurrent-sibling-abort-isolation",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "shell-concurrent-sibling-abort-isolation",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "next:0",
+          "next-entered:release",
+          "next:0",
+          "next-entered:release",
+          "return",
+          "return-entered:release",
+          "rejected:0",
+          "healthy-sibling-next:release",
+          "return",
+          "return-entered:release",
+          "fulfilled",
+          "cancelled-sibling-next:reject",
+          "cancelled-sibling-return:reject"
+        ],
+        "input": {
+          "reads": 1,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 1
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-host-normal",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-host-normal",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "registered-entered:release",
+          "registered-release:release",
+          "return",
+          "return-entered:release",
+          "fulfilled",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release",
+          "next-entered:release",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-host-dispose",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-host-dispose",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "registered-entered:release",
+          "return",
+          "return-entered:release",
+          "registered-release:release",
+          "rejected:Error: Shell is disposed",
+          "fulfilled",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release",
+          "next-entered:release",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-vfs-normal",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-vfs-normal",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "next:0",
+          "next-entered:release",
+          "registered-entered:release",
+          "return",
+          "return-entered:release",
+          "registered-release:release",
+          "return",
+          "return-entered:release",
+          "fulfilled",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-vfs-dispose",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-vfs-dispose",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "next:0",
+          "next-entered:release",
+          "registered-entered:release",
+          "return",
+          "return-entered:release",
+          "return",
+          "return-entered:release",
+          "registered-release:release",
+          "rejected:Error: Shell is disposed",
+          "fulfilled",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-host-abort-zero",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-host-abort-zero",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "registered-entered:release",
+          "return",
+          "return-entered:release",
+          "registered-release:release",
+          "rejected:0",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release",
+          "next-entered:release",
+          "return-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    },
+    {
+      "cohort": "original32",
+      "id": "registered-vfs-status17-cleanup-error",
+      "mutant": "none",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "closed": true,
+      "pass": true,
+      "result": {
+        "id": "registered-vfs-status17-cleanup-error",
+        "mutant": "none",
+        "pass": true,
+        "events": [
+          "registered-acquired:release",
+          "next:0",
+          "next-entered:release",
+          "registered-entered:release",
+          "return",
+          "return-entered:release",
+          "registered-release:reject",
+          "return",
+          "return-entered:release",
+          "rejected:Error: independent-return-failure",
+          "registered-retirement:1;close-calls:2",
+          "next-entered:release"
+        ],
+        "input": {
+          "reads": 0,
+          "returns": 1,
+          "acquired": 1,
+          "concurrent": 0,
+          "maxConcurrent": 0
+        },
+        "output": [
+          "00ff"
+        ],
+        "stderr": [],
+        "strictUnhandled": true,
+        "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+      }
+    }
+  ],
+  "count": 32,
+  "passes": 24,
+  "failures": [
+    "shell-eof-sync",
+    "shell-eof-reject",
+    "shell-eof-zero",
+    "shell-deferred-eof-return",
+    "shell-primary-read-zero",
+    "shell-primary-read-error",
+    "shell-primary-sink-error",
+    "shell-sequential-nested-binary"
+  ]
+}

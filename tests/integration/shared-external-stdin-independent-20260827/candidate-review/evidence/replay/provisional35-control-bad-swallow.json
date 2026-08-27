@@ -1,0 +1,31 @@
+{
+  "id": "direct-helper-deferred-return",
+  "mutant": "bad-swallow",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+    "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/provisional35/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/provisional35/probe.mjs:101:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/provisional35/probe.mjs:301:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "direct-return:reject",
+    "fulfilled:{\"exitCode\":0}"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "00ff"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

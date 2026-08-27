@@ -1458,6 +1458,31 @@ that any implementation, command, fixture, or test currently exists.
   runtime2/10 and six-row4/6 remain; exact six-row replay follows committed
   runtime integration. No other production scope or benchmark breadth added.
 
+### August27,2026 routed patch/stat replay under both committed profiles
+
+- Root reports Faraday patch-s quiet96564fe41/41 plus270 author; stat386196b
+  nine-digit human fractions40/40 plus9 epoch, independently reviewed in d506d040.
+  Table-text104/104 plus311 with current helper remains separate; shared-stdin
+  comm is a real gap Faraday is fixing. The authorized legacy three-digit stat
+  assertion update is test-only and not performed by Curie here.
+- Curie's separate replay freezes production
+  b43c994e1bf94bccef78d1f1ff05228993f19e01 and reuses unchanged committed
+  0294afb original andd1b10a3 scratch-aligned harness/gold profiles. Same five
+  recipes: original virtual4/5, aligned virtual5/5; installed just-bash3.4.2
+  remains0/5 under both, zero skips/capture errors/timeouts. No benchmark or
+  expected JSON was edited. Both engines' ten paired product observations are
+  identical across profiles; only the native dry-run empty tmp directory effect
+  differs. All five virtual streams/status already match native in both profiles.
+- Evidence: benchmarks/reports/expanded-20260827/routed-five-profile/b43c994.json
+  and README.md, including scripts, bytes/status/FS fields, source/profile hashes
+  and reproduction. Historical18 failures/206-of224 and baseline155-of224 are
+  preserved; no current full224 score or superiority claim. No dependencies,
+  production change, unowned edits or new comparison breadth.
+- Env contract/core forwarding84fc742 and ordering6b81bb3 are already handed
+  off. Sagan runtime/types remain in-progress in the current worktree, excluded
+  from this snapshot. Exact six-row replay still follows committed runtime
+  integration, not this unrelated five-row result or stub invoker tests.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

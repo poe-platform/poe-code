@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "79316dfe792d9342eda2cedff503f98f431778c4",
+  "files": [
+    {
+      "path": "tests/plugins/filesystem-inspection-public/evidence/first-report.json",
+      "sha256": "274b25a39e4c29c78b4eedcebed0af72f62f06bb9475ebd2f65d376993709174"
+    },
+    {
+      "path": "tests/plugins/filesystem-inspection-public/evidence/final-report.json",
+      "sha256": "8875c75992d945426ba1537fb3550400dd800fa8f4203109557de04368aeb70a"
+    },
+    {
+      "path": "tests/plugins/filesystem-inspection-public/consumer.ts.fixture",
+      "sha256": "efd65894f1ff4c55458b371d05dc914f282b97580a1ffe5bfb86e780889cea80"
+    },
+    {
+      "path": "tests/plugins/filesystem-inspection-public/negative.ts.fixture",
+      "sha256": "68b8a09c1a323ad5aae0e212651ccf11d9a5820f55d1fd6159fbdb4d5011cf90"
+    },
+    {
+      "path": "tests/plugins/filesystem-inspection-public/verify.mjs",
+      "sha256": "da90d1fa5ba23a36349271240efeac703fc7456a9a3c695178cdf406cac62db1"
+    }
+  ]
+}

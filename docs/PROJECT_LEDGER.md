@@ -1903,3 +1903,59 @@ that any implementation, command, fixture, or test currently exists.
   different verifier. Evidence:tests/integration/qualified-current-release-inventory.
 - Sagan's freshSafeJS13/13 surface and18/19 hook audit remains separate from
   packed-public acceptance and this qualified profile; private engine untouched.
+
+### 2026-08-27: independent release-inventory review
+
+- Evidence862fdc54 independently authenticates all20 classifications at847dfd7:
+  six current, two exact-diagnostic negatives, twelve sealed historical. Census177
+  has no actual omitted row; historical evidence/source identities were checked.
+  Unchanged qualified847dfd7 exits0 with the selected results recorded above,
+  including actual20 timestamp controls/3mutants. This is not a whole gate.
+- Two concrete execution findings remain open: the atomic-extension-independent
+  WebDAV consumer is self-contained with injected fetch/binding but its current
+  route compiles without running it; an independent moved emitted replay passes.
+  Also, removing the canonical timestamp runtime list still returns success with
+  zero tests despite nodeTests23. A throwing sentinel is detected when its runtime
+  route exists. No config or author-fixture edits were made by this review.
+- Independent guard mutations23/27 reject; four survive: coupled reclassification
+  plus routing removal, unsupported claimed freeze identity with unchanged
+  evidence, an unknown path under the census exclusion prefix, and runtime-list
+  omission. This qualifies the earlier broad statement that every new path fails
+  closed; no current20 provenance was found false. Configuration authorship is
+  trusted, but selected green results do not prove universal routing coverage.
+- Full reports, corrected scratch-harness attempts and exact remediation requests:
+  tests/integration/qualified-current-release-inventory-independent/README.md.
+  Owned scratch removed; no source/config/private checkout or external service
+  changes. Whole-product candidate selection remains root coordination.
+
+### 2026-08-27: tree/file public integration author checkpoint
+
+- Root-authorized source wiring1ad428ed adds root/subpath factories, plugins and
+  types for tree/file; aggregate options omit nested replace and defaults grow
+  from68 to70. Curl/SafeJS remain optional; runtime dependencies remain empty.
+  Tree source equals436bda3e and file source equalscd37ce07 byte-for-byte. Their
+  separate source acceptance does not independently approve this new wiring.
+- Intentional maintained count migration2ae131a9 preserves original75/87 and
+  final89/89. An intermediate accidental split hex-byte expectation edit caused
+  88/89 and was restored before commit, not accepted as a changed oracle. Old
+  sealed68/65 consumer cohorts remain unchanged. See the public migration report.
+- Frozen79316dfe (10:36:34.896Z–10:36:44.076Z): production build/no-emit and strict
+  moved public types pass;199/199 selected source tests;13/13 new packed tests
+  twice; two adjacent current consumers execute; six exact-code invalid type
+  uses, four missing-runtime imports and one source-read denial detected.
+  Every executed test cohort has zero skips/TODOs. No whole test/type/service
+  gate is inferred. Packed source access is denied, not universal host sandboxing.
+- Source-tree hashf8b951b9f6802ea6a178ac22dd10b157ec511f7b77ad2a0a038de34a1c51d294;
+  706-file packc61274d0fcf14fe4a8dfd3a7b8e1039d51ea914d4eb39617d7a191a5a60202b9.
+  Earlier9bd8bd07 passing pack6f985dda remains separate; final README count and
+  execution-count guards changed, not product source. Exact evidence/reproduction:
+  tests/plugins/filesystem-inspection-public/README.md. All owned scratch cleaned.
+- Candidate contains sealed byte7a517cec/7d7dce7c and rmdir3bf672f7 inputs, but
+  their full independent holdouts were not rerun by this integration. Canonical
+  source/packed81 profiles, stock78/79/configured79/79 historical results and the
+  earlier byte corruptions/allocation failures remain distinct. The combined
+  whole-gate cohort and different public integration reviewer are requested.
+- AGENTS167c32d3 records the durable tested retained-ByteSource copy rule only:
+  copy before producer advance/finalization; slice/subarray are views; completed
+  awaited transient writes do not require blanket copies. No arbitrary mutation
+  safety, new lease API, full native parity, superiority or72-hour completion.

@@ -1,4 +1,17 @@
-# Distinct-leaf core consumer review: pending
+# Distinct-leaf core consumer review: bounded gate closed
+
+Update August 27, 2026: Plato completed the distinct review in
+`tests/commands/filesystem-authority-stress/README.md`. Source fix `0bee8e7`
+protects cp-P source symlink entries through unscoped aliases and reports GNU9.7
+EXDEV alias moves as status1. Frozen independent85/92 becomes92/92;11/11 mutants
+are rejected. Separate test-only `fe97802` corrects exactly two stale status
+assertions, retaining all source-preservation checks and historical68/70 author
+evidence. The resulting author/contracts70/70 and independent92/92 pass, with
+global types/build reported by the reviewer. Poincare's remote positive38 gate
+is still separate and is not declared closed. The original pending handoff below
+is preserved as history, not the current review status.
+
+## Historical author request
 
 Author handoff updated August 27, 2026. Curie authored the consumer changes and
 cannot label its own verification independent. No completed distinct-leaf review

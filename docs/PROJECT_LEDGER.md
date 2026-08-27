@@ -1192,6 +1192,44 @@ that any implementation, command, fixture, or test currently exists.
   retrospective production-consumer acceptance. Poincare still owns backend
   positive38/guard retesting. The broad product/72-hour goals remain active.
 
+### August 27, 2026: distinct review and expanded-comparison assignment
+
+- Plato closed the distinct core-consumer review: source0bee8e7 protects cp-P
+  source symlink entries through unscoped aliases before destructive unlink and
+  returns GNU9.7 status1 for EXDEV alias moves. Frozen independent85/92 becomes
+  92/92, with11/11 mutants rejected. Separate test-onlyfe97802 adjusts exactly
+  two stale author status assertions while retaining byte/namespace/no-delete
+  checks. Original68/70 remains historical; reviewer final author/contracts70/70
+  plus independent92/92 and global typecheck/build pass. These are inspected
+  reviewer checkpoints, not a new Curie full-suite run. Poincare still owns remote
+  authority implementation and positive38/guard reruns; no38/38 claim is made.
+- Faraday owns table-text production/tests after the author handoff. Its bounded
+  independent ae1d44d checkpoint reports104/104, unchanged author311/311 and
+  scoped types; the71 native cases retain70 matches and the documented comm
+  disagreement. This does not prove broad native parity or all remote workflows.
+- Metadata timestamp fixes2cacd04/0c4709f address the30 semantic differences with
+  exact measured native inputs. Original135/141 remains historical with six
+  GNU/Node Real chmod differences assigned to Poincare, not waived as passes.
+  Dirac continues archive review, Archimedes jq42 fixes, and Sagan invocation-gap
+  fixes. Curie does not edit any of those owners' production/tests.
+- New tool authoring is paused. Curie's benchmark assignment is bounded to
+  150–250 additional oracle/profile-backed recipes, actual default-command and
+  kernel coverage, stdin/binary/script/metadata/archive/table workflows and a
+  small matched-result performance/memory cohort. Historical118 recipes and
+  old19-unshadowed-plugin coverage remain immutable cohorts. Retain unsupported,
+  both-engine failures, exact versions, output/effects and coverage gaps; do not
+  alter production to win scores or equate backend capability with native parity.
+- Primary npm registry queried2026-08-27T01:21:05Z reports latest just-bash3.4.2,
+  published2026-08-22T03:28:27Z, matching the official package manifest and the
+  installed isolated baseline. No new dependency or duplicate baseline install
+  is needed. Pin and preserve release-check metadata with new benchmark evidence;
+  main-branch docs are not substituted for installed-release behavior.
+- Performance must alternate engine order, repeat matched-output/effect workloads,
+  record hashes/runtime/cohost load and avoid claims of hard RSS isolation or
+  statistical superiority. A different reviewer will assess benchmark fairness.
+  The exact user “much better” requirement and72-hour/full-product goals remain
+  unproven; a selected green subset cannot redefine them.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

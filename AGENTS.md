@@ -231,6 +231,23 @@
   guards still take priority over further tool breadth. Preserve the three
   Buffer-reuse failures fixed by `32513a4`, and do not count the documented GNU
   shared-stdin disagreement as a native parity match.
+- Faraday now owns table-text production/author and independent tests. Curie
+  retains root exports/docs/contracts and comparative benchmarks; do not edit
+  table-text source or its tests. Its bounded independent checkpoint is not full
+  GNU parity or a substitute for broader remote/workflow verification.
+- Plato's distinct core-consumer review is closed at `0bee8e7`: protect cp-P
+  source symlinks before unlink and preserve GNU9.7 EXDEV alias-move status1.
+  Independent92/92 and11/11 mutants are separate from author70/70 after the two
+  assertion-only corrections in `fe97802`. Preserve original85/92 and68/70.
+  This does not close Poincare's required remote positive38/authority gate.
+- New tool authoring is paused while current features are independently verified.
+  Curie's bounded comparative expansion must retain historical118 recipes and
+  just-bash3.4.2, use actual registries/kernel dispatch and explicit native
+  profiles, retain failures/unsupported cases, and never change production to
+  improve scores. Network fixtures are local and explicitly authorized. Backend
+  capability evidence and native semantic parity are separate. Performance is
+  measured only after output/effect equality with repeats/order/load caveats;
+  no aggregate superiority claim follows from selected passing workloads.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

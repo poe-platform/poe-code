@@ -1,0 +1,40 @@
+{
+  "revision": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "required": [
+    {
+      "commit": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+      "ancestor": true
+    },
+    {
+      "commit": "1ad428edb7bce7d30f081c0e9bd4332eb280c677",
+      "ancestor": true
+    },
+    {
+      "commit": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+      "ancestor": true
+    },
+    {
+      "commit": "3bf672f722da2bdf1591ed112290b702987bf63a",
+      "ancestor": true
+    },
+    {
+      "commit": "b282159921ce530e932b02f90c64eca987de2704",
+      "ancestor": true
+    },
+    {
+      "commit": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "ancestor": true
+    },
+    {
+      "commit": "1602a5d21aad5d19d15b2ec45dc9432265f5a35f",
+      "ancestor": true
+    }
+  ],
+  "envSSource": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "selection": "genuine immediate parent, no cherry-picking",
+  "sourceDiffSinceReleaseRepair": [
+    "src/commands/network/body.ts",
+    "src/commands/structured/jq.ts"
+  ],
+  "canonicalFileCount": 550
+}

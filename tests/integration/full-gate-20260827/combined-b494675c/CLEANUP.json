@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-08-27T11:34:42.540Z",
+  "candidate": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "explicitConsumerDirectory": "tests/plugins/qualified-current-release/.runs/qualified-ORAhX9",
+  "resultSha256": "15881e439442c4a341e6ffe6774ea4219e71cc7c197fe2ebd18f2a5b1d1a1ddb",
+  "removedAfterAuthenticatedCapture": true,
+  "mainSnapshotRemoved": true,
+  "focusedV1Removed": true,
+  "focusedV2Removed": true,
+  "packedWorkspaceRemoved": true,
+  "noWholeRerun": true
+}

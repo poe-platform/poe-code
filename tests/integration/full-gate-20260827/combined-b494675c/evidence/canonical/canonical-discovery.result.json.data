@@ -1,0 +1,34 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--input-type=module",
+    "-e",
+    "import{globSync}from'node:fs';const files=globSync('tests/**/*.test.ts',{exclude:path=>path==='tests/commands/regex-execution/continuation/artifacts/native'});console.log(JSON.stringify(files.sort()));"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-BtyW8C/source",
+  "pid": 89335,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 277,
+  "timeoutMs": 180000,
+  "outputBytes": 27643,
+  "observed": [
+    {
+      "pid": 89335,
+      "parent": 88888,
+      "group": 89335,
+      "born": "Thu Aug 27 06:14:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --input-type=module -e import{globSync}from'node:fs';const files=globSync('tests/**/*.test.ts',{exclude:path=>path==='tests/commands/regex-execution/continuation/artifacts/native'});console.log(JSON.stringify(files.sort()));"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "canonical-discovery",
+  "sourceChanges": []
+}

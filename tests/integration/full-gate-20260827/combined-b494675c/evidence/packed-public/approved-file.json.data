@@ -1,0 +1,13 @@
+{
+  "name": "approved-file",
+  "command": [
+    "git",
+    "rev-parse",
+    "cd37ce07^{commit}"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "cd37ce07c1f41f3797e19e0f701b662823338843\n",
+  "stderr": ""
+}

@@ -1,0 +1,17 @@
+{
+  "name": "source-permission-negative",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/moved/consumer",
+    "--input-type=module",
+    "-e",
+    "import { readFileSync } from 'node:fs'; readFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/withdrawn-source/src/index.ts\");"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/moved/consumer",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/moved/consumer/[eval1]:1:41\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/withdrawn-source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+}

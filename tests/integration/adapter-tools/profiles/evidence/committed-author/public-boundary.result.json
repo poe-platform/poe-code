@@ -1,0 +1,13 @@
+{
+  "name": "public-boundary",
+  "args": [
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { Shell, MemoryFileSystem, agentCommands } from 'virtual-bash'; import { requiredWorkflowCommands } from './out/tests/integration/adapter-tools/preflight-review/preflight.js'; const name = JSON.parse(readFileSync('package.json')).name; assert.notEqual(name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles/.isolated-l3UsRD/consumer/node_modules/virtual-bash/dist/index.js\"); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); assert.equal((await shell.exec(':')).exitCode,0); const required = [...new Set(Object.values(requiredWorkflowCommands).flat())]; for (const command of required) assert.equal(typeof shell.commands.get(command)?.execute,'function',command); console.log(JSON.stringify({name,resolved,required,actualAggregate:true})); await shell.dispose();"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T10:04:05.311Z",
+  "durationMs": 107.4172499999986,
+  "status": 0,
+  "signal": null
+}

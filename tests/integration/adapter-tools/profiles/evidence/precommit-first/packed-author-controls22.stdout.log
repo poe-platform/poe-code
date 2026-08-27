@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: stock negative control: empty ENOTSUP, nonempty ENOTEMPTY, no child loss or DELETE
+ok 1 - stock negative control: empty ENOTSUP, nonempty ENOTEMPTY, no child loss or DELETE
+  ---
+  duration_ms: 14.403792
+  type: 'test'
+  ...
+# Subtest: configured operation removes only its real backing entry and preserves siblings
+ok 2 - configured operation removes only its real backing entry and preserves siblings
+  ---
+  duration_ms: 0.898083
+  type: 'test'
+  ...
+# Subtest: helper namespace, operation and path guards reject before mutation
+ok 3 - helper namespace, operation and path guards reject before mutation
+  ---
+  duration_ms: 0.353791
+  type: 'test'
+  ...
+# Subtest: adapter rejects mismatched binding namespace before host callback
+ok 4 - adapter rejects mismatched binding namespace before host callback
+  ---
+  duration_ms: 0.086292
+  type: 'test'
+  ...
+# Subtest: adapter receipt guard: wrong operation, EIO and no fallback DELETE
+ok 5 - adapter receipt guard: wrong operation, EIO and no fallback DELETE
+  ---
+  duration_ms: 0.624667
+  type: 'test'
+  ...
+# Subtest: adapter receipt guard: wrong namespaceUrl, EIO and no fallback DELETE
+ok 6 - adapter receipt guard: wrong namespaceUrl, EIO and no fallback DELETE
+  ---
+  duration_ms: 0.6775
+  type: 'test'
+  ...
+# Subtest: adapter receipt guard: wrong path, EIO and no fallback DELETE
+ok 7 - adapter receipt guard: wrong path, EIO and no fallback DELETE
+  ---
+  duration_ms: 0.537542
+  type: 'test'
+  ...
+# Subtest: adapter receipt guard: wrong outcome, EIO and no fallback DELETE
+ok 8 - adapter receipt guard: wrong outcome, EIO and no fallback DELETE
+  ---
+  duration_ms: 0.4825
+  type: 'test'
+  ...
+# Subtest: configured existing child survives rmdir /empty without recursive DELETE
+ok 9 - configured existing child survives rmdir /empty without recursive DELETE
+  ---
+  duration_ms: 1.410542
+  type: 'test'
+  ...
+# Subtest: configured existing child survives rm -d /empty without recursive DELETE
+ok 10 - configured existing child survives rm -d /empty without recursive DELETE
+  ---
+  duration_ms: 1.578875
+  type: 'test'
+  ...
+# Subtest: configured late child survives rmdir /empty without recursive DELETE
+ok 11 - configured late child survives rmdir /empty without recursive DELETE
+  ---
+  duration_ms: 1.318208
+  type: 'test'
+  ...
+# Subtest: configured late child survives rm -d /empty without recursive DELETE
+ok 12 - configured late child survives rm -d /empty without recursive DELETE
+  ---
+  duration_ms: 1.332584
+  type: 'test'
+  ...
+# Subtest: helper respects active mock locks and pre-aborted cancellation
+ok 13 - helper respects active mock locks and pre-aborted cancellation
+  ---
+  duration_ms: 0.3485
+  type: 'test'
+  ...
+# Subtest: readonly: actual stock capability propagation through agentCommands
+ok 14 - readonly: actual stock capability propagation through agentCommands
+  ---
+  duration_ms: 0.83525
+  type: 'test'
+  ...
+# Subtest: mount: actual stock capability propagation through agentCommands
+ok 15 - mount: actual stock capability propagation through agentCommands
+  ---
+  duration_ms: 2.890791
+  type: 'test'
+  ...
+# Subtest: overlay: actual stock capability propagation through agentCommands
+ok 16 - overlay: actual stock capability propagation through agentCommands
+  ---
+  duration_ms: 3.085416
+  type: 'test'
+  ...
+# Subtest: readonly: actual configured capability propagation through agentCommands
+ok 17 - readonly: actual configured capability propagation through agentCommands
+  ---
+  duration_ms: 0.529791
+  type: 'test'
+  ...
+# Subtest: mount: actual configured capability propagation through agentCommands
+ok 18 - mount: actual configured capability propagation through agentCommands
+  ---
+  duration_ms: 1.086
+  type: 'test'
+  ...
+# Subtest: overlay: actual configured capability propagation through agentCommands
+ok 19 - overlay: actual configured capability propagation through agentCommands
+  ---
+  duration_ms: 0.602375
+  type: 'test'
+  ...
+# Subtest: mount forwards configured removal and preserves a child created after adapter preflight
+ok 20 - mount forwards configured removal and preserves a child created after adapter preflight
+  ---
+  duration_ms: 1.429291
+  type: 'test'
+  ...
+# Subtest: overlay with stock WebDAV lower whiteouts only its view without host removal
+ok 21 - overlay with stock WebDAV lower whiteouts only its view without host removal
+  ---
+  duration_ms: 2.201459
+  type: 'test'
+  ...
+# Subtest: overlay with configured WebDAV lower whiteouts only its view without host removal
+ok 22 - overlay with configured WebDAV lower whiteouts only its view without host removal
+  ---
+  duration_ms: 1.753417
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 171.012958

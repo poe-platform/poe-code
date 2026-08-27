@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: hidden: direct helper mutates actual backing synchronously, exactly one entry
+ok 1 - hidden: direct helper mutates actual backing synchronously, exactly one entry
+  ---
+  duration_ms: 5.545125
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /target
+ok 2 - hidden: configured public shell removes only exact encoded target /target
+  ---
+  duration_ms: 9.23825
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /space name
+ok 3 - hidden: configured public shell removes only exact encoded target /space name
+  ---
+  duration_ms: 2.579292
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /snow-雪
+ok 4 - hidden: configured public shell removes only exact encoded target /snow-雪
+  ---
+  duration_ms: 2.45425
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /percent%2Fname
+ok 5 - hidden: configured public shell removes only exact encoded target /percent%2Fname
+  ---
+  duration_ms: 1.189958
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /hash\#name
+ok 6 - hidden: configured public shell removes only exact encoded target /hash\#name
+  ---
+  duration_ms: 1.216333
+  type: 'test'
+  ...
+# Subtest: hidden: rmdir existing deep child preserves exact namespace
+ok 7 - hidden: rmdir existing deep child preserves exact namespace
+  ---
+  duration_ms: 2.010458
+  type: 'test'
+  ...
+# Subtest: hidden: rm -d existing deep child preserves exact namespace
+ok 8 - hidden: rm -d existing deep child preserves exact namespace
+  ---
+  duration_ms: 2.189875
+  type: 'test'
+  ...
+# Subtest: hidden: rmdir late deep child preserves exact namespace
+ok 9 - hidden: rmdir late deep child preserves exact namespace
+  ---
+  duration_ms: 1.276875
+  type: 'test'
+  ...
+# Subtest: hidden: rm -d late deep child preserves exact namespace
+ok 10 - hidden: rm -d late deep child preserves exact namespace
+  ---
+  duration_ms: 1.948
+  type: 'test'
+  ...
+# Subtest: hidden: direct namespace, operation, spelling and absent/file/root guards preserve bytes
+ok 11 - hidden: direct namespace, operation, spelling and absent/file/root guards preserve bytes
+  ---
+  duration_ms: 0.405208
+  type: 'test'
+  ...
+# Subtest: hidden: stock refuses empty and nonempty without destructive fallback
+ok 12 - hidden: stock refuses empty and nonempty without destructive fallback
+  ---
+  duration_ms: 0.991541
+  type: 'test'
+  ...
+# Subtest: hidden: raw helper refusals never turn into HTTP DELETE
+ok 13 - hidden: raw helper refusals never turn into HTTP DELETE
+  ---
+  duration_ms: 0.905042
+  type: 'test'
+  ...
+# Subtest: hidden: corrupt operation receipt errors after effect without rollback or fallback
+ok 14 - hidden: corrupt operation receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.567375
+  type: 'test'
+  ...
+# Subtest: hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback
+ok 15 - hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.3915
+  type: 'test'
+  ...
+# Subtest: hidden: corrupt path receipt errors after effect without rollback or fallback
+ok 16 - hidden: corrupt path receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.379375
+  type: 'test'
+  ...
+# Subtest: hidden: corrupt outcome receipt errors after effect without rollback or fallback
+ok 17 - hidden: corrupt outcome receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.892459
+  type: 'test'
+  ...
+# Subtest: hidden: canonical binding mismatch fails before callback and preserves storage
+ok 18 - hidden: canonical binding mismatch fails before callback and preserves storage
+  ---
+  duration_ms: 0.156083
+  type: 'test'
+  ...
+# Subtest: hidden: lock ancestors and descendants block; expired and prefix siblings do not
+ok 19 - hidden: lock ancestors and descendants block; expired and prefix siblings do not
+  ---
+  duration_ms: 0.191417
+  type: 'test'
+  ...
+# Subtest: hidden: errno-shaped preabort preserves exact reason and backing
+ok 20 - hidden: errno-shaped preabort preserves exact reason and backing
+  ---
+  duration_ms: 0.076709
+  type: 'test'
+  ...
+# Subtest: hidden: actual mount contract, not fabricated capabilities
+ok 21 - hidden: actual mount contract, not fabricated capabilities
+  ---
+  duration_ms: 2.766375
+  type: 'test'
+  ...
+# Subtest: hidden: actual readonly contract, not fabricated capabilities
+ok 22 - hidden: actual readonly contract, not fabricated capabilities
+  ---
+  duration_ms: 0.577458
+  type: 'test'
+  ...
+# Subtest: hidden: actual readonly-mount contract, not fabricated capabilities
+ok 23 - hidden: actual readonly-mount contract, not fabricated capabilities
+  ---
+  duration_ms: 0.881541
+  type: 'test'
+  ...
+# Subtest: hidden: actual webdav-upper contract, not fabricated capabilities
+ok 24 - hidden: actual webdav-upper contract, not fabricated capabilities
+  ---
+  duration_ms: 0.524375
+  type: 'test'
+  ...
+# Subtest: hidden: mount forwards late-child refusal and preserves sibling mount prefix
+ok 25 - hidden: mount forwards late-child refusal and preserves sibling mount prefix
+  ---
+  duration_ms: 1.807625
+  type: 'test'
+  ...
+# Subtest: hidden: overlay lower nonempty refusal cannot hide existing descendants
+ok 26 - hidden: overlay lower nonempty refusal cannot hide existing descendants
+  ---
+  duration_ms: 2.258166
+  type: 'test'
+  ...
+# Subtest: hidden: independent clients of same backing never fabricate disjoint identities
+ok 27 - hidden: independent clients of same backing never fabricate disjoint identities
+  ---
+  duration_ms: 6.704959
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.1635

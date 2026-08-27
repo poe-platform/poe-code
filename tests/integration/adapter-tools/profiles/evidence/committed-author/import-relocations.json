@@ -1,0 +1,51 @@
+{
+  "rootImports": [
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/stock-webdav-capability.test.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    }
+  ],
+  "mockOnly": [
+    {
+      "from": "../../../src/fs/webdav/index.js",
+      "to": "virtual-bash/fs/webdav",
+      "kind": "type import"
+    },
+    {
+      "from": "../../../src/fs/webdav/resource-id.js",
+      "to": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles/.isolated-l3UsRD/source/dist/fs/webdav/resource-id.js",
+      "kind": "unchanged original mock bookkeeping; not new private identity logic"
+    }
+  ]
+}

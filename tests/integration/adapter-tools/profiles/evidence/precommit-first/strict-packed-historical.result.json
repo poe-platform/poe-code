@@ -1,0 +1,14 @@
+{
+  "name": "strict-packed-historical",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.json",
+    "--listFiles"
+  ],
+  "cwd": "consumer/historical-configured",
+  "startedAt": "2026-08-27T10:02:53.767Z",
+  "durationMs": 377.20920899999874,
+  "status": 0,
+  "signal": null
+}

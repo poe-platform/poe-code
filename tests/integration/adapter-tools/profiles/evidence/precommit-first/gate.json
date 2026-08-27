@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "revision": "02704bd1291b83763d7360b97bc5c6d50403ad10",
+  "worktreeTests": true,
+  "classification": "precommit test overlay, not committed candidate evidence",
+  "independentVerifierRequired": true
+}

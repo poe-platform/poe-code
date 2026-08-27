@@ -1,0 +1,6 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles/.isolated-l3UsRD",
+  "removed": true,
+  "completedAt": "2026-08-27T10:04:05.838Z",
+  "policy": "only runner-created scratch; other workers and native artifacts untouched"
+}

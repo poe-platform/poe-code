@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: historical report and unconditional fixture remain authenticated captured data
+ok 1 - historical report and unconditional fixture remain authenticated captured data
+  ---
+  duration_ms: 0.53475
+  type: 'test'
+  ...
+# Subtest: original frozen raw rejection failure remains authenticated and failing
+ok 2 - original frozen raw rejection failure remains authenticated and failing
+  ---
+  duration_ms: 15.947584
+  type: 'test'
+  ...
+# Subtest: migration preserves original workflow inputs, unrelated cases and exact WebDAV refusal guards
+ok 3 - migration preserves original workflow inputs, unrelated cases and exact WebDAV refusal guards
+  ---
+  duration_ms: 0.408625
+  type: 'test'
+  ...
+# Subtest: fixture guard accepts only the disclosed exact-marker observation
+ok 4 - fixture guard accepts only the disclosed exact-marker observation
+  ---
+  duration_ms: 0.730959
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects omitted snapshot profile
+ok 5 - fixture guard rejects omitted snapshot profile
+  ---
+  duration_ms: 0.935583
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects false snapshot profile
+ok 6 - fixture guard rejects false snapshot profile
+  ---
+  duration_ms: 0.114583
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects missing DELETE
+ok 7 - fixture guard rejects missing DELETE
+  ---
+  duration_ms: 0.374875
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects wrong marker key
+ok 8 - fixture guard rejects wrong marker key
+  ---
+  duration_ms: 0.390375
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects wrong bucket
+ok 9 - fixture guard rejects wrong bucket
+  ---
+  duration_ms: 0.194833
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects child DELETE even with restored bytes
+ok 10 - fixture guard rejects child DELETE even with restored bytes
+  ---
+  duration_ms: 0.120708
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects compensating marker PUT
+ok 11 - fixture guard rejects compensating marker PUT
+  ---
+  duration_ms: 0.12975
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects marker still present
+ok 12 - fixture guard rejects marker still present
+  ---
+  duration_ms: 0.224125
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects parent removed
+ok 13 - fixture guard rejects parent removed
+  ---
+  duration_ms: 0.375916
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects remaining bytes changed
+ok 14 - fixture guard rejects remaining bytes changed
+  ---
+  duration_ms: 0.120542
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects remaining metadata changed
+ok 15 - fixture guard rejects remaining metadata changed
+  ---
+  duration_ms: 0.184125
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects remaining ETag changed
+ok 16 - fixture guard rejects remaining ETag changed
+  ---
+  duration_ms: 0.0915
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects unobserved marker
+ok 17 - fixture guard rejects unobserved marker
+  ---
+  duration_ms: 0.567916
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects nonempty marker body
+ok 18 - fixture guard rejects nonempty marker body
+  ---
+  duration_ms: 0.162875
+  type: 'test'
+  ...
+# Subtest: fixture guard rejects observed descendant even when preserved
+ok 19 - fixture guard rejects observed descendant even when preserved
+  ---
+  duration_ms: 0.09525
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 244.967417

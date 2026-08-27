@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-08-27T11:07:56.060Z",
+  "fixtureCommit": "93a068bcb52ede65323689868b231bc2f56f641b",
+  "frozenFilesUnchanged": [
+    "public.mjs",
+    "fixtures.mjs",
+    "vectors.mjs",
+    "archives.json",
+    "probe.mjs",
+    "REPORT.md",
+    "allowed-public.diff",
+    "freeze.json"
+  ],
+  "sealedHistoricalFilesUnchanged": 83,
+  "probeEvidenceSha256": "aec976a296503b19e28c20c39d6eb12d3173af9b87270fa13b26045ba97d5561",
+  "syntaxChecks": [
+    "node --check public.mjs: exit 0",
+    "node --check probe.mjs: exit 0"
+  ],
+  "whitespaceCheck": {
+    "status": 2,
+    "scope": "git diff --cached --check on initial fixture commit",
+    "finding": "allowed-public.diff:31 contains the required single-space unified-diff prefix for an empty context line; preserved as exact diff evidence, not fixture-code trailing whitespace"
+  },
+  "publicRevisionRunsByAuthor": 0,
+  "reviewerSignoff": "pending independent owner",
+  "revised24": "not claimed; reviewer must run",
+  "resources": {
+    "probeExit": 0,
+    "terminationSignal": null,
+    "stderr": "",
+    "observedActiveResources": [
+      "PipeWrap"
+    ],
+    "ownedLiveProcesses": 0,
+    "ownedTimers": 0,
+    "servers": 0,
+    "sockets": 0,
+    "externalNetwork": false,
+    "note": "Only PipeWrap (captured stdio) reported before natural probe process exit; synchronous child reaped; no persistent author process/session started."
+  },
+  "scope": "No product/root/config changes; no sealed-history edits; no review hidden controls inspected; no broad suite run."
+}

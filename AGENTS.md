@@ -73,6 +73,12 @@
   acquisition admission and cover admitted work. Public exec/dispose settlement
   awaits registered cooperative cleanup/tracked resource work, not opaque host work.
   Direct/custom hosts may omit the hook; finally remains necessary.
+- ByteSink.ownedOutput is optional, destination-specific enrollment. Apply the
+  cleanup-before-acquisition rule to createOutputOperation; close blocks new work
+  and drains admitted cooperative resources and explicit child scopes. Wrapping
+  a sink does not establish child ownership. Closing stdout must not cancel
+  sibling file/header/stderr work or the whole command context merely to close
+  that destination. Unenrolled opaque work gains no arbitrary preemption.
 - CommandContext.invoke dispatches literal argv with existing middleware, FS,
   signal and shared budgets. replaceEnv true uses exactly the supplied exported
   map (omitted means empty), without inherited exports/PWD injection or local

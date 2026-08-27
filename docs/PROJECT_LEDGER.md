@@ -2236,3 +2236,77 @@ that any implementation, command, fixture, or test currently exists.
   No fullgate, service, actual private engine, dependency change or product edit
   in this corrective infrastructure task. Original8670 raw17454/12/0 remains
   unqualified and its package cohort separate; no rescoring/superiority claim.
+
+### 2026-08-27 20:35 UTC — root accepts owned-output component, not whole release
+
+- Root accepts additive production component
+  eba049535d154f4e028f57ffd8efd7622b2239ca following independent
+  35909b63e39496965d56913669da1f3f0ba04a1e. This promotes the reviewed mechanism
+  from the TEMP work into an accepted component; it is not whole-release/global
+  green, full first-read compliance, arbitrary host preemption, or superiority.
+  Source tree62d75ef09e89d4d3b6afc032c518d2846dcd03b7; scoped nine-path diff SHA256
+  83b339002970df881efb56cc50fa0e0e74f1f832edb6c8706287827a3dc5e4ad.
+- Independent evidence: unchanged frozen36/36, unchanged legacy505/505,
+  current actual SafeJS25/25 qualified profiles (two surface rejection profiles
+  are not successful guest-capability proofs); strict public positive plus8
+  negative types and factory identity,11 binding controls,7 detected behavioral
+  mutants. Exact moved tarball SHA256
+  280b76a2a3577176716534e13d2e10475eb8a13e423190a24d25555a050f72e1;
+  260 archived inputs,826 installed files and184 loaded package modules bound.
+  Node22 product/build controls and Node24 guarded current-engine profile remain
+  separate. Actual engine regular-file copies/private guards pass; no private
+  modification or upstream proposal acceptance. Owned children retired naturally.
+- Candidate commit changes exactly nine production paths. Against older baseline
+  a03b9288a6f4b652387be9fefa8faf17ef58b9e7, four intervening expr paths are also
+  present: src/commands/expr/{README.md,evaluate.ts,index.ts,internal.ts}. They
+  were included honestly in the frozen package, not approved by this review.
+  streams.ts changes only import/cat; shell/input.ts and network/shared.ts match
+  baseline. No fixture expectations were changed for the36-case review.
+- Root explicitly releases Sagan's exclusive nine-path source reservation:
+  src/contracts/{io.ts,output.ts,index.ts}, src/shell/{runtime.ts,shell.ts},
+  src/commands/network/{types.ts,transport.ts,curl.ts}, and
+  src/commands/streams.ts (the reviewed change was cat/import only). Future source
+  owners require separate root assignment; release does not authorize new edits.
+  Getopts stage2 still awaits Poincare mapping/root approval. HTML source remains
+  Dirac-owned for the bounded normalization repair; no HTML/public acceptance.
+- The unchanged original first-read cohort is **2/6 pass,4 fail**, not waived.
+  All six exact test names begin `hard-deadline pipeline close: ` and are
+  registered by tests/shell/remote-close.test.ts:15; child behavior/assertions
+  are tests/shell/first-read-probe.ts. The original five requirements are local,
+  S3, WebDAV, curl-body and curl-headers; head-zero is the additional sixth control.
+
+  | Exact name suffix | Frozen eba behavior and failure boundary |
+  | --- | --- |
+  | first-read-head-zero | Pass: reads0, return1, active0; existing zero-read control. |
+  | first-read-local | Fail: unchanged1200ms deadline. Unenrolled custom pending-stream remains in first next; reads1, return0, active1 before failure teardown. Genuine unfulfilled custom settlement/cleanup requirement, not evidence of a post-teardown leaked process. |
+  | first-read-s3 | Pass: operation/transport abort, source finally, reads1, return1, active0 before teardown; caller remains live. |
+  | first-read-webdav | Fail at first-read-probe.ts:103: whole command-context signal is not aborted. Raw trace does show DAV operation-signal abort and cat141/true0 settlement; later source-close assertions are unreached. |
+  | first-read-curl-body | Same line103 failure: command-context signal remains live after curl141/true0 settlement; later source-close assertions unreached. |
+  | first-read-curl-headers | Same line103 failure and scope as curl-body; GET has not supplied headers, later source-close assertions unreached. |
+
+- The three HTTP assertions observe middleware context.signal, whereas the
+  accepted contract closes destination-owned operations without requiring whole
+  context cancellation. That assertion targets the wrong scope for this new
+  contract, but remains a raw test failure until a separately approved migration.
+  At the failed assertion their server-side witness is active1/return0. Because
+  the await of closed.promise at line105 is never reached, these observations
+  prove neither successful server cleanup nor an owned-client leak; server close
+  notification is a distinct witness. Separate N07 independently proves owned
+  curl client close before public settlement and task-owned server cleanup before
+  test completion. No extrapolation of N07 to every first-read scenario.
+- Both independent original-cohort runs preserve the same2/6 result. All six
+  children report no supervisor timeout/residual process group; local's1200ms
+  assertion deadline is distinct from the3000ms supervisor. Existing teardown is
+  failure containment, never acceptance rescue. Current fixture files remain
+  byte-identical to the frozen candidate at this docs checkpoint; no new live
+  product execution or fixture migration in this update.
+- Root-reported maintained typecheck remains nonpass with13 foreign-test
+  diagnostics (3 regex continuation,10 du local captured-package bindings), no
+  src diagnostics;22 maintained consumer groups are a separate scoped pass.
+  Author FOREIGN-TYPECHECK evidence is in
+  tests/integration/owned-output-production-rebase/author-public/results-v1/
+  FOREIGN-TYPECHECK.txt. No config/fixture exclusion or rerun here.
+- Complete independent receipt, retained driver failures and exact paths:
+  tests/integration/owned-output-production-independent-20260827/candidate-v1/REPORT.md,
+  CHECKPOINT.json and MANIFEST.json. Source/fixture/evidence history is unchanged;
+  only this acceptance ledger and missing durable owned-output rule are added.

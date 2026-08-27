@@ -34,6 +34,13 @@ export function parseJson(input: string, budget: Budget, byteEncoded = false): J
   if (text.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
   let offset = 0;
   const fail = (detail = offset >= text.length ? "Unfinished JSON term at EOF" : "Invalid numeric literal"): never => { throw new JqParseError(detail, offset); };
+  const rejectClose = (detail?: string): void => {
+    const character = text[offset];
+    if (character === "]" || character === "}") {
+      offset++;
+      fail(detail ?? `Unmatched '${character}'`);
+    }
+  };
   const space = (): void => { while (offset < text.length && /[\x20\t\r\n]/u.test(text[offset]!)) offset++; };
   const string = (): string => {
     const start = offset++;
@@ -73,26 +80,31 @@ export function parseJson(input: string, budget: Budget, byteEncoded = false): J
       const close = character === "[" ? "]" : "}";
       if (text[offset] === close) { offset++; return result; }
       while (true) {
+        rejectClose(text[offset] === close ? Array.isArray(result) ? "Expected another array element" : "Expected another key-value pair" : undefined);
         if (Array.isArray(result)) { budget.collection(result.length + 1); result.push(parseValue(depth + 1)); }
         else {
           if (text[offset] !== '"') return fail();
           const key = string(); space();
+          rejectClose(text[offset] === "}" ? "Objects must consist of key:value pairs" : undefined);
           if (text[offset++] !== ":") return fail();
           if (!Object.hasOwn(result, key)) budget.collection(objectSize(result) + 1);
           put(result, key, parseValue(depth + 1));
         }
         space();
         if (text[offset] === close) { offset++; return result; }
+        rejectClose();
         if (text[offset++] !== ",") return fail();
         space();
       }
     }
+    rejectClose();
     const literal = /^(?:null|true|false|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/u.exec(text.slice(offset));
     if (!literal) return fail();
     offset += literal[0].length;
     return /^[-0-9]/u.test(literal[0]) ? decimalNumber(literal[0], budget) : JSON.parse(literal[0]) as Json;
   };
   const value = parseValue(0); space();
+  rejectClose();
   if (offset !== text.length) fail(value === null || typeof value === "boolean" ? "Invalid literal" : "Invalid numeric literal");
   budget.value(value);
   return value;

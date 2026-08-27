@@ -118,13 +118,20 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
   context.signal.throwIfAborted();
   const diagnostics: { location: InputLocation; message: string }[] = [];
   let diagnosticBytes = 0;
+  let diagnosticWriteFailed = false;
   const flush = async (force = false): Promise<void> => {
     let written = 0;
-    while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
-      const { location, message } = diagnostics[written++]!;
-      await writeBytes(context.stderr, Buffer.from(`jq: error (at ${location.name}:${location.line}): ${message}\n`), context.signal);
+    try {
+      while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
+        const { location, message } = diagnostics[written++]!;
+        await writeBytes(context.stderr, Buffer.from(`jq: error (at ${location.name}:${location.line}): ${message}\n`), context.signal);
+      }
+    } catch (error) {
+      diagnosticWriteFailed = true;
+      throw error;
+    } finally {
+      diagnostics.splice(0, written);
     }
-    diagnostics.splice(0, written);
   };
   try {
     const options = argumentsFor(context.args, budget);
@@ -185,6 +192,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
     await flush(true);
     return { exitCode: options.exitStatus && last === undefined && status === 0 ? 4 : status };
   } catch (error) {
+    if (diagnosticWriteFailed) throw error;
     context.signal.throwIfAborted();
     if (!(error instanceof JqError) && !(error instanceof FsError)) throw error;
     if (error instanceof FsError && error.code === "EPIPE") throw error;

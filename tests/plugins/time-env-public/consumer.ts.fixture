@@ -134,6 +134,8 @@ for (const name of ["date", "sleep", "printenv"]) test(`${name} collision is ato
   const original = { name, execute: () => ({ exitCode: 31 }) };
   const custom = { name: "custom", execute: () => ({ exitCode: 32 }) };
   const registry = new CommandRegistry([original, custom]);
+  const originalRegistered = registry.get(name);
+  const customRegistered = registry.get("custom");
   const shell = new Shell({ fs: createMemoryFileSystem(), commands: registry });
   try {
     const forbidden = agentCommands({ timeEnv: { replace: true } } as unknown as AgentCommandsOptions);
@@ -147,8 +149,8 @@ for (const name of ["date", "sleep", "printenv"]) test(`${name} collision is ato
     shell.use(agentCommands({ replace: true, timeEnv: { clock: () => 0 } }));
     await shell.exec("");
     assert.equal(registry.list().length, 69);
-    assert.equal(registry.get("custom"), custom);
-    assert.notEqual(registry.get(name), original);
+    assert.equal(registry.get("custom"), customRegistered);
+    assert.notEqual(registry.get(name), originalRegistered);
     assert.equal((await shell.exec("date -u +%s")).stdout, "0\n");
   } finally { await shell.dispose(); }
 });

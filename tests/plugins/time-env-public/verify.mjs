@@ -45,7 +45,7 @@ try {
   const sourceCommit = run("revision", "git", ["--no-replace-objects", "rev-parse", "--verify", `${revision}^{commit}`]).stdout.trim();
   report.sourceCommit = sourceCommit;
   const source = join(work, "source"); mkdirSync(source);
-  const paths = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", owner,
+  const paths = ["src", "README.md", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", owner,
     "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration",
     "tests/commands/time-env"];
   const archive = join(work, "source.tar");
@@ -53,7 +53,7 @@ try {
   run("extract", "/usr/bin/tar", ["-xf", archive, "-C", source]);
   report.archiveSha256 = hash(readFileSync(archive));
   report.sources = manifest(source, "src");
-  report.rootFiles = ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"]
+  report.rootFiles = ["README.md", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"]
     .map(path => ({ path, sha256: hash(readFileSync(join(source, path))) }));
   report.sourceTreeSha256 = hash(JSON.stringify(report.sources));
   report.harness = manifest(source, owner).filter(entry => !entry.path.includes("/migration/") && !entry.path.includes("/evidence/"));

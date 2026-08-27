@@ -1,0 +1,40 @@
+{
+  "time": "2026-08-27T09:10:54.762Z",
+  "resultPath": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/corrected-compiled-r1-result.json",
+  "resultSha256": "7009c39ab51a2cff3dce60b7dde3167accee306dd644de0204dd8b0fe027d479",
+  "fixtureSha256": "f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22",
+  "commits": [
+    {
+      "commit": "5a93969794e749db31b636dc90ecf9a352c42242",
+      "paths": [
+        "tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs"
+      ]
+    },
+    {
+      "commit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+      "paths": [
+        "tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs"
+      ]
+    }
+  ],
+  "unchangedOriginalGroups": 7,
+  "correctedOriginalGroups": 1,
+  "addedOrdinaryGroupVariants": 3,
+  "counts": {
+    "controls": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "preservedArtifacts": 69,
+  "adjudicationFilesMatchCommit": true,
+  "minimalDeltaExactlyReversible": true,
+  "childPid": 85178,
+  "exactChildAbsent": true,
+  "strictUnhandled": true,
+  "publicBoundaries": 51,
+  "finalWorkers": 2,
+  "concurrentVerifierOriginalCommitRestored": "a3d3f773bac699bd11ac37f53694004cc4842797",
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "packedCorrectedCohort": "different verifier; not executed here"
+}

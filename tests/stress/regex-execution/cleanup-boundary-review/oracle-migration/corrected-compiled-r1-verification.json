@@ -1,0 +1,80 @@
+{
+  "time": "2026-08-27T09:08:21.251Z",
+  "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "fixtureCommit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+  "fixtureCorrectionCommit": "5a93969794e749db31b636dc90ecf9a352c42242",
+  "fixtureSha256": "f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22",
+  "originalSha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007",
+  "originalFreezeSha256": "36f10aeed4ed05dca5896420fbdd19ded51a2af1feac8e61e288b2152c913cdd",
+  "preservedArtifacts": 69,
+  "priorEvidenceCommit": "c3a364761091a79af9bbd74af7fa5d09356966c3",
+  "sourceManifestSha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e",
+  "buildManifestSha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9",
+  "sourceFiles": 216,
+  "emittedFiles": 704,
+  "snapshot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified",
+  "composition": [
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/grep.ts",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/search/rg.ts",
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/README.md",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "10273352f8d65d929cbf5a23e69119414dacee60",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "identicalAtRuntime": true
+    }
+  ],
+  "prepared": [
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/guard.mjs",
+      "sha256": "50220dc53076102ea4ad9f30ac36cab65d9d1d3576ade0151ea0186f7fef8d77"
+    },
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observer.mjs",
+      "sha256": "fb7ef063c08f24fe3945a8a7f1f92461ac005deaceb752b9a9e34152a332418a"
+    }
+  ],
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "fixtureGroups": 9,
+  "riskConsumed": 0,
+  "oldTwelve": "historical; not rerun",
+  "additionalSix": "UNUSED",
+  "oldFive": "accepted historical compiled 5/5 and packed 5/5; not rerun",
+  "rebuild": false,
+  "method": "reuse c3a3647 verified snapshot/build; immutable Git and all source/emitted hashes checked before execution; no live product source/dist"
+}

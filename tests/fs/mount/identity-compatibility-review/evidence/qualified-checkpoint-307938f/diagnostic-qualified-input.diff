@@ -1,0 +1,15 @@
+@@ line 14 @@
+-import { MockS3Client, S3FileSystem } from "../../../../src/fs/s3/index.js";
++import { createS3Transport, MockS3Client, S3FileSystem } from "../../../../src/fs/s3/index.js";
+@@ line 37 @@
+-    const firstClient = opaque(service);
++    const firstClient = createS3Transport(service, service.capabilities);
+@@ line 38 @@
+-    const secondClient = opaque(service);
++    const secondClient = createS3Transport(service, service.capabilities);
+@@ line 52 @@
+-  const firstClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };
++  const firstClient = { fetch: service.createFetch() };
+@@ line 53 @@
+-  const secondClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };
++  const secondClient = { fetch: service.createFetch() };

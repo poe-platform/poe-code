@@ -1,0 +1,29 @@
+{
+  "name": "original43",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:39:57.211Z",
+  "finishedAt": "2026-08-27T01:39:57.634Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 43,
+    "pass": 36,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "b3b1fcc55e41f5f4e21d70a4b4f90e1e6baff3d992e988afd1a7c0d14fdbca0b",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,32 @@
+{
+  "name": "diagnostics8",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+  ],
+  "environment": {
+    "DIAGNOSTIC_REVISION": "307938f17db2714db9debc451f935e3134e2660e",
+    "DIAGNOSTIC_MATRIX_REVISION": "307938f17db2714db9debc451f935e3134e2660e"
+  },
+  "startedAt": "2026-08-27T01:40:03.891Z",
+  "finishedAt": "2026-08-27T01:40:04.443Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "43320da7d1cd98720e391bf964d88ffecde37f58f6c9134502248e459ad17cd1",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

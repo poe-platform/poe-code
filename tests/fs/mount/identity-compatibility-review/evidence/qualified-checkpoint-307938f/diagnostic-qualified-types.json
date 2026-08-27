@@ -1,0 +1,27 @@
+{
+  "name": "diagnostic-qualified-types",
+  "command": [
+    "node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "diagnostic-types.json"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:09.049Z",
+  "finishedAt": "2026-08-27T01:40:09.917Z",
+  "code": 2,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": -1,
+    "pass": -1,
+    "fail": -1,
+    "cancelled": -1,
+    "skipped": -1,
+    "todo": -1
+  },
+  "stdoutSha256": "9ff9dafd3580ab88d001684e3228fc7e546b8440a9e6d5b6d550bc00af23edcc",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

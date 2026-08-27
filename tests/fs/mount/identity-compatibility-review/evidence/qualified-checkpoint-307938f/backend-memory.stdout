@@ -1,0 +1,775 @@
+TAP version 13
+# Subtest: qualified s3 existing-target copyFile to-remote
+ok 1 - qualified s3 existing-target copyFile to-remote
+  ---
+  duration_ms: 7.523042
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp to-remote
+ok 2 - qualified s3 existing-target cp to-remote
+  ---
+  duration_ms: 8.694166
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv to-remote
+ok 3 - qualified s3 existing-target mv to-remote
+  ---
+  duration_ms: 4.616458
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target copyFile from-remote
+ok 4 - qualified s3 existing-target copyFile from-remote
+  ---
+  duration_ms: 2.036041
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp from-remote
+ok 5 - qualified s3 existing-target cp from-remote
+  ---
+  duration_ms: 2.423042
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv from-remote
+ok 6 - qualified s3 existing-target mv from-remote
+  ---
+  duration_ms: 3.575125
+  type: 'test'
+  ...
+# Subtest: qualified s3 resolves nested readonly source and overlay destination views
+ok 7 - qualified s3 resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 2.625625
+  type: 'test'
+  ...
+# Subtest: qualified s3 cannot bless altered or copied Memory observations
+ok 8 - qualified s3 cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 0.775458
+  type: 'test'
+  ...
+# Subtest: unchanged inherited Memory operation mapping remains qualified with s3
+ok 9 - unchanged inherited Memory operation mapping remains qualified with s3
+  ---
+  duration_ms: 1.011
+  type: 'test'
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+ok 10 - genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 3.291833
+  type: 'test'
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+ok 11 - genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 1.726666
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target copyFile to-remote
+ok 12 - qualified webdav existing-target copyFile to-remote
+  ---
+  duration_ms: 19.835875
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp to-remote
+ok 13 - qualified webdav existing-target cp to-remote
+  ---
+  duration_ms: 9.6835
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv to-remote
+ok 14 - qualified webdav existing-target mv to-remote
+  ---
+  duration_ms: 6.078583
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target copyFile from-remote
+ok 15 - qualified webdav existing-target copyFile from-remote
+  ---
+  duration_ms: 3.454375
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp from-remote
+ok 16 - qualified webdav existing-target cp from-remote
+  ---
+  duration_ms: 7.214209
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv from-remote
+ok 17 - qualified webdav existing-target mv from-remote
+  ---
+  duration_ms: 6.517917
+  type: 'test'
+  ...
+# Subtest: qualified webdav resolves nested readonly source and overlay destination views
+ok 18 - qualified webdav resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 2.3725
+  type: 'test'
+  ...
+# Subtest: qualified webdav cannot bless altered or copied Memory observations
+ok 19 - qualified webdav cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 1.536375
+  type: 'test'
+  ...
+# Subtest: unchanged inherited Memory operation mapping remains qualified with webdav
+ok 20 - unchanged inherited Memory operation mapping remains qualified with webdav
+  ---
+  duration_ms: 2.278333
+  type: 'test'
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+ok 21 - genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 2.777292
+  type: 'test'
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+ok 22 - genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 2.256041
+  type: 'test'
+  ...
+# Subtest: qualified comparison retains known Memory hardlink and symlink identity
+ok 23 - qualified comparison retains known Memory hardlink and symlink identity
+  ---
+  duration_ms: 0.397625
+  type: 'test'
+  ...
+# Subtest: qualified S3 metadata failure preserves both stores
+ok 24 - qualified S3 metadata failure preserves both stores
+  ---
+  duration_ms: 0.48075
+  type: 'test'
+  ...
+# Subtest: qualified S3 cancel failure preserves both stores
+ok 25 - qualified S3 cancel failure preserves both stores
+  ---
+  duration_ms: 0.504541
+  type: 'test'
+  ...
+# Subtest: qualified S3 write failure preserves both stores
+ok 26 - qualified S3 write failure preserves both stores
+  ---
+  duration_ms: 0.658917
+  type: 'test'
+  ...
+# Subtest: qualified S3 missing destination race keeps exclusive creation and source bytes
+ok 27 - qualified S3 missing destination race keeps exclusive creation and source bytes
+  ---
+  duration_ms: 0.55475
+  type: 'test'
+  ...
+# Subtest: Memory authority preserves exact cancellation during peer observation
+ok 28 - Memory authority preserves exact cancellation during peer observation
+  ---
+  duration_ms: 0.309833
+  type: 'test'
+  ...
+# Subtest: explicit Memory comparison authority is not shadowed by constructor registration
+ok 29 - explicit Memory comparison authority is not shadowed by constructor registration
+  ---
+  duration_ms: 2.691625
+  type: 'test'
+  ...
+# Subtest: Memory subclass data overrides cannot certify an alias to memory
+ok 30 - Memory subclass data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.825583
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"subclass","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to memory
+ok 31 - Memory instance data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.438792
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"instance","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to memory
+ok 32 - Memory prototype-before-construction data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.403708
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"prototype-before-construction","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to s3
+ok 33 - Memory subclass data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 1.017625
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"subclass","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to s3
+ok 34 - Memory instance data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 1.156541
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"instance","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to s3
+ok 35 - Memory prototype-before-construction data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 1.265625
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"prototype-before-construction","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to webdav
+ok 36 - Memory subclass data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 3.85075
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"subclass","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to webdav
+ok 37 - Memory instance data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 2.32375
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"instance","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to webdav
+ok 38 - Memory prototype-before-construction data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 2.045875
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"prototype-before-construction","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: contract: instances start with isolated, writable directory roots
+ok 39 - contract: instances start with isolated, writable directory roots
+  ---
+  duration_ms: 1.283
+  type: 'test'
+  ...
+# Subtest: contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+ok 40 - contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+  ---
+  duration_ms: 0.279167
+  type: 'test'
+  ...
+# Subtest: contract: write flags distinguish creation, replacement, and appending
+ok 41 - contract: write flags distinguish creation, replacement, and appending
+  ---
+  duration_ms: 0.305666
+  type: 'test'
+  ...
+# Subtest: contract: directories support recursive creation and typed, immediate children
+ok 42 - contract: directories support recursive creation and typed, immediate children
+  ---
+  duration_ms: 0.879917
+  type: 'test'
+  ...
+# Subtest: contract: rename moves directory trees and preserves file identity
+ok 43 - contract: rename moves directory trees and preserves file identity
+  ---
+  duration_ms: 0.498625
+  type: 'test'
+  ...
+# Subtest: contract: copy is independent, overwrites, and respects exclusivity
+ok 44 - contract: copy is independent, overwrites, and respects exclusivity
+  ---
+  duration_ms: 0.46775
+  type: 'test'
+  ...
+# Subtest: contract: removal requires recursion for directories and force only ignores missing paths
+ok 45 - contract: removal requires recursion for directories and force only ignores missing paths
+  ---
+  duration_ms: 0.286791
+  type: 'test'
+  ...
+# Subtest: contract: symlinks distinguish stat, lstat, readlink, and realpath
+ok 46 - contract: symlinks distinguish stat, lstat, readlink, and realpath
+  ---
+  duration_ms: 0.444042
+  type: 'test'
+  ...
+# Subtest: contract: permissions and timestamps have usable optional methods
+ok 47 - contract: permissions and timestamps have usable optional methods
+  ---
+  duration_ms: 0.397875
+  type: 'test'
+  ...
+# Subtest: contract: truncation shrinks or zero-fills and defaults to zero
+ok 48 - contract: truncation shrinks or zero-fills and defaults to zero
+  ---
+  duration_ms: 0.37875
+  type: 'test'
+  ...
+# Subtest: contract: hardlinks preserve shared contents, inode, and link count
+ok 49 - contract: hardlinks preserve shared contents, inode, and link count
+  ---
+  duration_ms: 0.307417
+  type: 'test'
+  ...
+# Subtest: contract: streaming round trips bytes and applies half-open read ranges
+ok 50 - contract: streaming round trips bytes and applies half-open read ranges
+  ---
+  duration_ms: 0.394291
+  type: 'test'
+  ...
+# Subtest: contract: bounded reads reject overflow and permit exact or empty reads
+ok 51 - contract: bounded reads reject overflow and permit exact or empty reads
+  ---
+  duration_ms: 0.091708
+  type: 'test'
+  ...
+# Subtest: relative paths, duplicate separators, dot components, and root-clamped parents
+ok 52 - relative paths, duplicate separators, dot components, and root-clamped parents
+  ---
+  duration_ms: 1.148917
+  type: 'test'
+  ...
+# Subtest: non-directory and missing components are not lexically erased by dot-dot
+ok 53 - non-directory and missing components are not lexically erased by dot-dot
+  ---
+  duration_ms: 1.256834
+  type: 'test'
+  ...
+# Subtest: symlink expansion happens before parent traversal
+ok 54 - symlink expansion happens before parent traversal
+  ---
+  duration_ms: 0.237584
+  type: 'test'
+  ...
+# Subtest: relative links resolve from their containing directory, including moved directories
+ok 55 - relative links resolve from their containing directory, including moved directories
+  ---
+  duration_ms: 0.172875
+  type: 'test'
+  ...
+# Subtest: dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+ok 56 - dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+  ---
+  duration_ms: 0.653625
+  type: 'test'
+  ...
+# Subtest: self loops, mutual loops, and intermediate loops report ELOOP
+ok 57 - self loops, mutual loops, and intermediate loops report ELOOP
+  ---
+  duration_ms: 0.544167
+  type: 'test'
+  ...
+# Subtest: exactly 40 symlink traversals succeed while 41 fail
+ok 58 - exactly 40 symlink traversals succeed while 41 fail
+  ---
+  duration_ms: 0.409708
+  type: 'test'
+  ...
+# Subtest: directory symlinks retain entry types but support traversals and trailing slash stats
+ok 59 - directory symlinks retain entry types but support traversals and trailing slash stats
+  ---
+  duration_ms: 0.236833
+  type: 'test'
+  ...
+# Subtest: copy follows links but exclusive copy never replaces a dangling link
+ok 60 - copy follows links but exclusive copy never replaces a dangling link
+  ---
+  duration_ms: 0.315292
+  type: 'test'
+  ...
+# Subtest: renaming symlinks moves the link and replacing one does not touch its target
+ok 61 - renaming symlinks moves the link and replacing one does not touch its target
+  ---
+  duration_ms: 0.278625
+  type: 'test'
+  ...
+# Subtest: rename rejects descendant destinations even through aliases and leaves state unchanged
+ok 62 - rename rejects descendant destinations even through aliases and leaves state unchanged
+  ---
+  duration_ms: 0.146292
+  type: 'test'
+  ...
+# Subtest: rename type mismatches and nonempty destinations preserve both operands
+ok 63 - rename type mismatches and nonempty destinations preserve both operands
+  ---
+  duration_ms: 0.254541
+  type: 'test'
+  ...
+# Subtest: root aliases cannot be removed or renamed
+ok 64 - root aliases cannot be removed or renamed
+  ---
+  duration_ms: 0.970083
+  type: 'test'
+  ...
+# Subtest: POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+ok 65 - POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+  ---
+  duration_ms: 0.166208
+  type: 'test'
+  ...
+# Subtest: invalid paths and overlong UTF-8 names fail without side effects
+ok 66 - invalid paths and overlong UTF-8 names fail without side effects
+  ---
+  duration_ms: 0.201958
+  type: 'test'
+  ...
+# Subtest: readFile returns byte snapshots and readdir/stat return detached metadata
+ok 67 - readFile returns byte snapshots and readdir/stat return detached metadata
+  ---
+  duration_ms: 0.120959
+  type: 'test'
+  ...
+# Subtest: file modes enforce owner access without host identity or umask
+ok 68 - file modes enforce owner access without host identity or umask
+  ---
+  duration_ms: 0.288375
+  type: 'test'
+  ...
+# Subtest: directory permissions distinguish traversal, listing, and parent mutations
+ok 69 - directory permissions distinguish traversal, listing, and parent mutations
+  ---
+  duration_ms: 0.164792
+  type: 'test'
+  ...
+# Subtest: failed recursive removal is atomic and does not follow symlinks
+ok 70 - failed recursive removal is atomic and does not follow symlinks
+  ---
+  duration_ms: 0.114792
+  type: 'test'
+  ...
+# Subtest: hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+ok 71 - hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+  ---
+  duration_ms: 0.328041
+  type: 'test'
+  ...
+# Subtest: hardlinking a symlink preserves link identity and relative target context
+ok 72 - hardlinking a symlink preserves link identity and relative target context
+  ---
+  duration_ms: 0.114042
+  type: 'test'
+  ...
+# Subtest: rename replacement decrements displaced hardlink counts
+ok 73 - rename replacement decrements displaced hardlink counts
+  ---
+  duration_ms: 0.062792
+  type: 'test'
+  ...
+# Subtest: timestamps preserve birthtime and explicit values until the relevant operation
+ok 74 - timestamps preserve birthtime and explicit values until the relevant operation
+  ---
+  duration_ms: 0.124041
+  type: 'test'
+  ...
+# Subtest: directory link counts reflect child directory moves
+ok 75 - directory link counts reflect child directory moves
+  ---
+  duration_ms: 0.077917
+  type: 'test'
+  ...
+# Subtest: invalid numeric options fail with EINVAL and preserve content
+ok 76 - invalid numeric options fail with EINVAL and preserve content
+  ---
+  duration_ms: 0.2795
+  type: 'test'
+  ...
+# Subtest: errno errors include Node-like codes, negative errno, syscall, source and destination
+ok 77 - errno errors include Node-like codes, negative errno, syscall, source and destination
+  ---
+  duration_ms: 0.095
+  type: 'test'
+  ...
+# Subtest: parallel appends and exclusive creators are linearizable
+ok 78 - parallel appends and exclusive creators are linearizable
+  ---
+  duration_ms: 1.247041
+  type: 'test'
+  ...
+# Subtest: seeded mutation sequences match an independent byte-array model
+ok 79 - seeded mutation sequences match an independent byte-array model
+  ---
+  duration_ms: 6.217417
+  type: 'test'
+  ...
+# Subtest: pre-aborted operations never mutate or consume sources
+ok 80 - pre-aborted operations never mutate or consume sources
+  ---
+  duration_ms: 0.478125
+  type: 'test'
+  ...
+# Subtest: read streams use stable snapshots and chunks do not alias storage
+ok 81 - read streams use stable snapshots and chunks do not alias storage
+  ---
+  duration_ms: 0.077334
+  type: 'test'
+  ...
+# Subtest: read stream bounds handle empty ranges, EOF, and invalid options
+ok 82 - read stream bounds handle empty ranges, EOF, and invalid options
+  ---
+  duration_ms: 0.46825
+  type: 'test'
+  ...
+# Subtest: write streams preserve partial writes on source errors and close producers
+ok 83 - write streams preserve partial writes on source errors and close producers
+  ---
+  duration_ms: 0.125584
+  type: 'test'
+  ...
+# Subtest: stream cancellation closes generators and preserves only accepted chunks
+ok 84 - stream cancellation closes generators and preserves only accepted chunks
+  ---
+  duration_ms: 0.106584
+  type: 'test'
+  ...
+# Subtest: write streams target opened inodes rather than resolving paths after every chunk
+ok 85 - write streams target opened inodes rather than resolving paths after every chunk
+  ---
+  duration_ms: 0.062125
+  type: 'test'
+  ...
+# Subtest: invalid byte values are rejected before overwrite and while streaming
+ok 86 - invalid byte values are rejected before overwrite and while streaming
+  ---
+  duration_ms: 0.05425
+  type: 'test'
+  ...
+# Subtest: destructive operations on slash-suffixed symlinks never mutate their targets
+ok 87 - destructive operations on slash-suffixed symlinks never mutate their targets
+  ---
+  duration_ms: 0.112541
+  type: 'test'
+  ...
+# Subtest: terminal dot components do not remove or move their containing directory
+ok 88 - terminal dot components do not remove or move their containing directory
+  ---
+  duration_ms: 0.082916
+  type: 'test'
+  ...
+# Subtest: deep recursive removal uses bounded call-stack space
+ok 89 - deep recursive removal uses bounded call-stack space
+  ---
+  duration_ms: 18.615959
+  type: 'test'
+  ...
+# Subtest: directory rename accepts a new slash-suffixed destination
+ok 90 - directory rename accepts a new slash-suffixed destination
+  ---
+  duration_ms: 0.114417
+  type: 'test'
+  ...
+# Subtest: many-chunk streaming writes preserve byte order and logical size
+ok 91 - many-chunk streaming writes preserve byte order and logical size
+  ---
+  duration_ms: 27.497417
+  type: 'test'
+  ...
+# Subtest: append capacity does not expose unwritten bytes or alter in-flight read snapshots
+ok 92 - append capacity does not expose unwritten bytes or alter in-flight read snapshots
+  ---
+  duration_ms: 0.166417
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 93 - review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 1.776917
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 94 - review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.441
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+ok 95 - review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.152333
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 96 - review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.277458
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 97 - review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.217125
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+ok 98 - review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.129458
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 99 - review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.77375
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 100 - review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.134833
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+ok 101 - review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.358167
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 102 - review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.4515
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 103 - review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.171375
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+ok 104 - review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.083333
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 105 - review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.118458
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 106 - review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.108083
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+ok 107 - review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.075417
+  type: 'test'
+  ...
+# Subtest: review: exact directory rename to missing trailing-slash destination succeeds
+ok 108 - review: exact directory rename to missing trailing-slash destination succeeds
+  ---
+  duration_ms: 0.100166
+  type: 'test'
+  ...
+# Subtest: review: regular file cannot be renamed to a missing trailing-slash destination
+ok 109 - review: regular file cannot be renamed to a missing trailing-slash destination
+  ---
+  duration_ms: 0.088083
+  type: 'test'
+  ...
+# Subtest: review: existing regular-file destination with trailing slash rejects without replacement
+ok 110 - review: existing regular-file destination with trailing slash rejects without replacement
+  ---
+  duration_ms: 0.085458
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink and parent traversal precedes trailing-directory rename validation
+ok 111 - review: mixed symlink and parent traversal precedes trailing-directory rename validation
+  ---
+  duration_ms: 0.117625
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+ok 112 - review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+  ---
+  duration_ms: 0.256708
+  type: 'test'
+  ...
+# Subtest: review: terminal-dot validation does not erase missing or non-directory traversal errors
+ok 113 - review: terminal-dot validation does not erase missing or non-directory traversal errors
+  ---
+  duration_ms: 0.237042
+  type: 'test'
+  ...
+# Subtest: review: operation paths and absolute or relative symlink targets preserve mixed components
+ok 114 - review: operation paths and absolute or relative symlink targets preserve mixed components
+  ---
+  duration_ms: 0.115
+  type: 'test'
+  ...
+# Subtest: review: ordinary mixed-component mutations resolve their physical parent
+ok 115 - review: ordinary mixed-component mutations resolve their physical parent
+  ---
+  duration_ms: 0.083417
+  type: 'test'
+  ...
+# Subtest: memory rmdir removes only empty directories without consulting rm or readdir
+ok 116 - memory rmdir removes only empty directories without consulting rm or readdir
+  ---
+  duration_ms: 1.3635
+  type: 'test'
+  ...
+# Subtest: memory rmdir /missing reports ENOENT with its exact operand
+ok 117 - memory rmdir /missing reports ENOENT with its exact operand
+  ---
+  duration_ms: 0.919667
+  type: 'test'
+  ...
+# Subtest: memory rmdir /file reports ENOTDIR with its exact operand
+ok 118 - memory rmdir /file reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.230917
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link reports ENOTDIR with its exact operand
+ok 119 - memory rmdir /link reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.677917
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link/ reports ENOTDIR with its exact operand
+ok 120 - memory rmdir /link/ reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.201875
+  type: 'test'
+  ...
+# Subtest: memory rmdir /tree reports ENOTEMPTY with its exact operand
+ok 121 - memory rmdir /tree reports ENOTEMPTY with its exact operand
+  ---
+  duration_ms: 0.211292
+  type: 'test'
+  ...
+# Subtest: memory rmdir / reports EBUSY with its exact operand
+ok 122 - memory rmdir / reports EBUSY with its exact operand
+  ---
+  duration_ms: 0.191833
+  type: 'test'
+  ...
+# Subtest: memory rmdir /empty/. reports EINVAL with its exact operand
+ok 123 - memory rmdir /empty/. reports EINVAL with its exact operand
+  ---
+  duration_ms: 0.200458
+  type: 'test'
+  ...
+# Subtest: memory rmdir and child creation cannot interleave emptiness check and deletion
+ok 124 - memory rmdir and child creation cannot interleave emptiness check and deletion
+  ---
+  duration_ms: 0.676292
+  type: 'test'
+  ...
+# Subtest: memory rmdir preserves directories on cancellation and parent permission denial
+ok 125 - memory rmdir preserves directories on cancellation and parent permission denial
+  ---
+  duration_ms: 0.431084
+  type: 'test'
+  ...
+# Subtest: memory rm semantics remain unchanged for an empty directory
+ok 126 - memory rm semantics remain unchanged for an empty directory
+  ---
+  duration_ms: 0.216667
+  type: 'test'
+  ...
+1..126
+# tests 126
+# suites 0
+# pass 126
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 291.452416

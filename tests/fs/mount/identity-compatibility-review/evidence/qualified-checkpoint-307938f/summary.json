@@ -1,0 +1,586 @@
+{
+  "revision": "307938f17db2714db9debc451f935e3134e2660e",
+  "sourceSetSha256": "3acf6a8cfa85852f60f81aa1c78b6c9e5e323a45f5ca333cc1977708581b878a",
+  "archiveSha256": "9fa8ad561bfbab7c0b799c088799c835c8edf9d0b793c3a999c029dfdbef48c2",
+  "results": [
+    {
+      "name": "original43",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:57.211Z",
+      "finishedAt": "2026-08-27T01:39:57.634Z",
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 43,
+        "pass": 36,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "b3b1fcc55e41f5f4e21d70a4b4f90e1e6baff3d992e988afd1a7c0d14fdbca0b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original4",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:57.635Z",
+      "finishedAt": "2026-08-27T01:39:57.827Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "3fae0c352b10bcde0c02fdc2f49821da846c13a48e316cc5882e804774791880",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required49",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:57.827Z",
+      "finishedAt": "2026-08-27T01:39:58.133Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 49,
+        "pass": 49,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "f9476a4af72dba06fc38316f6c20984aa2543d626c3d9b7b426167ad8f75372c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-memory",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/memory/comparison.test.ts",
+        "tests/fs/memory/conformance.test.ts",
+        "tests/fs/memory/memory.test.ts",
+        "tests/fs/memory/review-regressions.test.ts",
+        "tests/fs/memory/rmdir.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:58.133Z",
+      "finishedAt": "2026-08-27T01:39:58.461Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 126,
+        "pass": 126,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "0eb2de3120c038ef679fc6765a95d5257f7dba3177dd12113e055677603fa258",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-real",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/real/adversarial.test.ts",
+        "tests/fs/real/cancellation-regression.test.ts",
+        "tests/fs/real/conformance.test.ts",
+        "tests/fs/real/copy-identity.test.ts",
+        "tests/fs/real/metadata-review/classification.test.ts",
+        "tests/fs/real/rmdir.test.ts",
+        "tests/fs/real/stress.test.ts",
+        "tests/fs/real/timestamps.test.ts",
+        "tests/fs/real/traversal-regression.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:58.462Z",
+      "finishedAt": "2026-08-27T01:39:59.737Z",
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 95,
+        "pass": 93,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "564947e2343e472196fb64043bf4500e63e04e5f6f444a7a2febc291731562ae",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-mount",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/comparison.test.ts",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/mount/copy-identity.test.ts",
+        "tests/fs/mount/identity-scope.test.ts",
+        "tests/fs/mount/mount.test.ts",
+        "tests/fs/mount/review-regressions.test.ts",
+        "tests/fs/mount/rmdir.test.ts",
+        "tests/fs/mount/streaming.test.ts",
+        "tests/fs/mount/webdav-traversal.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:39:59.738Z",
+      "finishedAt": "2026-08-27T01:40:00.248Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 209,
+        "pass": 209,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "a751c0b1ce1242a328c64901905a1cfa5e637222d1d30ede83d80d0deee8eb37",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-readonly",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/readonly/conformance.test.ts",
+        "tests/fs/readonly/metadata.test.ts",
+        "tests/fs/readonly/readonly.test.ts",
+        "tests/fs/readonly/rmdir.test.ts",
+        "tests/fs/readonly/streaming.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:00.248Z",
+      "finishedAt": "2026-08-27T01:40:00.461Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 103,
+        "pass": 103,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "fbc5c706b9ffd6602b32eb6e1f32de75e87fe88567bca6617c98f9a2a63b91a5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-overlay",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/conformance.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/overlay/rmdir-static-lower.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/streaming.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:00.461Z",
+      "finishedAt": "2026-08-27T01:40:00.925Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 184,
+        "pass": 184,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "06ef92532b645063febff6b73b44814f9316b5a56ee704ec34fa391c5b2280b4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-s3",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/s3/adapter-overrides.test.ts",
+        "tests/fs/s3/comparison.test.ts",
+        "tests/fs/s3/copy-races.test.ts",
+        "tests/fs/s3/filesystem.test.ts",
+        "tests/fs/s3/mock.test.ts",
+        "tests/fs/s3/mutation-regressions.test.ts",
+        "tests/fs/s3/production-flows.test.ts",
+        "tests/fs/s3/rename-guards.test.ts",
+        "tests/fs/s3/rmdir.test.ts",
+        "tests/fs/s3/streaming.test.ts",
+        "tests/fs/s3/stress.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:00.925Z",
+      "finishedAt": "2026-08-27T01:40:01.388Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 221,
+        "pass": 221,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "0fef373f4ea1234a6153487d3d030ad4a48b6a3f58b0e41f03a39e11d88653e1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-webdav",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/webdav/append.test.ts",
+        "tests/fs/webdav/body-integrity.test.ts",
+        "tests/fs/webdav/fetch-cancellation.test.ts",
+        "tests/fs/webdav/listing-budget.test.ts",
+        "tests/fs/webdav/lock-cancellation.test.ts",
+        "tests/fs/webdav/lock-multistatus.test.ts",
+        "tests/fs/webdav/operation-authority.test.ts",
+        "tests/fs/webdav/replacement.test.ts",
+        "tests/fs/webdav/resource-id.test.ts",
+        "tests/fs/webdav/review-regressions.test.ts",
+        "tests/fs/webdav/rmdir.test.ts",
+        "tests/fs/webdav/stream-http.test.ts",
+        "tests/fs/webdav/streams.test.ts",
+        "tests/fs/webdav/timestamps.test.ts",
+        "tests/fs/webdav/uploads.test.ts",
+        "tests/fs/webdav/webdav.test.ts",
+        "tests/fs/webdav/xml.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:01.388Z",
+      "finishedAt": "2026-08-27T01:40:02.479Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 526,
+        "pass": 526,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "996674f8a41fe7e12289f1a66e53639188c5919c601a67c6f772776dcf59d98c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "shared-conformance",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/conformance/shared.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:02.481Z",
+      "finishedAt": "2026-08-27T01:40:03.344Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 202,
+        "pass": 202,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "7c7823bfd6921e7040879fc72e7e9707acfddbcc3708c73080c68fb36353d8d5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s3-policy86",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/stress/s3-policy/rename.test.ts",
+        "tests/stress/s3-policy/bounded-races.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:03.344Z",
+      "finishedAt": "2026-08-27T01:40:03.544Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 86,
+        "pass": 86,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "e207b023d25cdae84bec9a0b6ea07d812b58e9c9f3aa0a738e962138576909d0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "remote-cancellation24",
+      "command": [
+        "node",
+        "tests/stress/remote-cancellation/run.mjs"
+      ],
+      "environment": {
+        "AUDIT_REPEATS": "1",
+        "AUDIT_VERBOSE": "1"
+      },
+      "startedAt": "2026-08-27T01:40:03.544Z",
+      "finishedAt": "2026-08-27T01:40:03.891Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 24,
+        "pass": 24,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "840eb56167a6c114c2acd1b7bfbddeacb75d12237122a04d0cb3fc926ab0e1b8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostics8",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ],
+      "environment": {
+        "DIAGNOSTIC_REVISION": "307938f17db2714db9debc451f935e3134e2660e",
+        "DIAGNOSTIC_MATRIX_REVISION": "307938f17db2714db9debc451f935e3134e2660e"
+      },
+      "startedAt": "2026-08-27T01:40:03.891Z",
+      "finishedAt": "2026-08-27T01:40:04.443Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "43320da7d1cd98720e391bf964d88ffecde37f58f6c9134502248e459ad17cd1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required-preflight-matrix79",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:04.443Z",
+      "finishedAt": "2026-08-27T01:40:06.112Z",
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 79,
+        "pass": 77,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "efd4d3d297ccd5e1a3bf89f9437b75d48d3d6437754f3cea33a13627ad58753d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped-fs-types",
+      "command": [
+        "node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "checkpoint-types.json"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:06.113Z",
+      "finishedAt": "2026-08-27T01:40:08.607Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostic-qualified43",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:08.684Z",
+      "finishedAt": "2026-08-27T01:40:09.049Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "5cc5c380301c477b726600cdc8a207d0b47aeebdeb071e14c3bfd68cd25d14b3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostic-qualified-types",
+      "command": [
+        "node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "diagnostic-types.json"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:40:09.049Z",
+      "finishedAt": "2026-08-27T01:40:09.917Z",
+      "code": 2,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "stdoutSha256": "9ff9dafd3580ab88d001684e3228fc7e546b8440a9e6d5b6d550bc00af23edcc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "countsMustNotBeSummedAcrossOverlappingCohorts": true
+}

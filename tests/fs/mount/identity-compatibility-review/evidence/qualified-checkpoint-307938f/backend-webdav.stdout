@@ -1,0 +1,3166 @@
+TAP version 13
+# Subtest: appendFile and a create and append binary slices; ax exclusively creates
+ok 1 - appendFile and a create and append binary slices; ax exclusively creates
+  ---
+  duration_ms: 25.200459
+  type: 'test'
+  ...
+# Subtest: append protects against create between read and PUT
+ok 2 - append protects against create between read and PUT
+  ---
+  duration_ms: 0.69075
+  type: 'test'
+  ...
+# Subtest: append protects against update between read and PUT
+ok 3 - append protects against update between read and PUT
+  ---
+  duration_ms: 0.717542
+  type: 'test'
+  ...
+# Subtest: append protects against delete between read and PUT
+ok 4 - append protects against delete between read and PUT
+  ---
+  duration_ms: 0.910292
+  type: 'test'
+  ...
+# Subtest: append protects against directory between read and PUT
+ok 5 - append protects against directory between read and PUT
+  ---
+  duration_ms: 0.838292
+  type: 'test'
+  ...
+# Subtest: append refuses unavailable or non-strong validator null
+ok 6 - append refuses unavailable or non-strong validator null
+  ---
+  duration_ms: 0.69775
+  type: 'test'
+  ...
+# Subtest: append refuses unavailable or non-strong validator W/"weak"
+ok 7 - append refuses unavailable or non-strong validator W/"weak"
+  ---
+  duration_ms: 24.828333
+  type: 'test'
+  ...
+# Subtest: append refuses unavailable or non-strong validator "bad tag"
+ok 8 - append refuses unavailable or non-strong validator "bad tag"
+  ---
+  duration_ms: 0.587625
+  type: 'test'
+  ...
+# Subtest: append refuses unavailable or non-strong validator "one", "two"
+ok 9 - append refuses unavailable or non-strong validator "one", "two"
+  ---
+  duration_ms: 2.691667
+  type: 'test'
+  ...
+# Subtest: append bounds combined bytes and honors cancellation
+ok 10 - append bounds combined bytes and honors cancellation
+  ---
+  duration_ms: 1.032167
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 5, encoding undefined
+ok 11 - identity GET rejects mismatched or malformed length 5, encoding undefined
+  ---
+  duration_ms: 16.552958
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 1, encoding undefined
+ok 12 - identity GET rejects mismatched or malformed length 1, encoding undefined
+  ---
+  duration_ms: 1.243791
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 0, encoding undefined
+ok 13 - identity GET rejects mismatched or malformed length 0, encoding undefined
+  ---
+  duration_ms: 0.715459
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length invalid, encoding undefined
+ok 14 - identity GET rejects mismatched or malformed length invalid, encoding undefined
+  ---
+  duration_ms: 1.05125
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length -1, encoding undefined
+ok 15 - identity GET rejects mismatched or malformed length -1, encoding undefined
+  ---
+  duration_ms: 1.225292
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 5, encoding identity
+ok 16 - identity GET rejects mismatched or malformed length 5, encoding identity
+  ---
+  duration_ms: 0.886834
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 1, encoding identity
+ok 17 - identity GET rejects mismatched or malformed length 1, encoding identity
+  ---
+  duration_ms: 0.530334
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length 0, encoding identity
+ok 18 - identity GET rejects mismatched or malformed length 0, encoding identity
+  ---
+  duration_ms: 0.397375
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length invalid, encoding identity
+ok 19 - identity GET rejects mismatched or malformed length invalid, encoding identity
+  ---
+  duration_ms: 1.044667
+  type: 'test'
+  ...
+# Subtest: identity GET rejects mismatched or malformed length -1, encoding identity
+ok 20 - identity GET rejects mismatched or malformed length -1, encoding identity
+  ---
+  duration_ms: 0.843167
+  type: 'test'
+  ...
+# Subtest: null response bodies must agree with a declared identity length
+ok 21 - null response bodies must agree with a declared identity length
+  ---
+  duration_ms: 0.514833
+  type: 'test'
+  ...
+# Subtest: append never writes a truncated identity representation
+ok 22 - append never writes a truncated identity representation
+  ---
+  duration_ms: 0.896417
+  type: 'test'
+  ...
+# Subtest: matching identity length and omitted length preserve binary bytes
+ok 23 - matching identity length and omitted length preserve binary bytes
+  ---
+  duration_ms: 4.946917
+  type: 'test'
+  ...
+# Subtest: native gzip reads compare decoded bounds, never encoded Content-Length
+ok 24 - native gzip reads compare decoded bounds, never encoded Content-Length
+  ---
+  duration_ms: 100.859375
+  type: 'test'
+  ...
+# Subtest: PROPFIND ignoring caller settles before late fetch resolve
+ok 25 - PROPFIND ignoring caller settles before late fetch resolve
+  ---
+  duration_ms: 18.947583
+  type: 'test'
+  ...
+# Subtest: PROPFIND ignoring caller settles before late fetch reject
+ok 26 - PROPFIND ignoring caller settles before late fetch reject
+  ---
+  duration_ms: 1.551791
+  type: 'test'
+  ...
+# Subtest: PROPFIND ignoring timeout settles before late fetch resolve
+ok 27 - PROPFIND ignoring timeout settles before late fetch resolve
+  ---
+  duration_ms: 27.823708
+  type: 'test'
+  ...
+# Subtest: PROPFIND ignoring timeout settles before late fetch reject
+ok 28 - PROPFIND ignoring timeout settles before late fetch reject
+  ---
+  duration_ms: 27.3405
+  type: 'test'
+  ...
+# Subtest: GET ignoring caller settles before late fetch resolve
+ok 29 - GET ignoring caller settles before late fetch resolve
+  ---
+  duration_ms: 5.664542
+  type: 'test'
+  ...
+# Subtest: GET ignoring caller settles before late fetch reject
+ok 30 - GET ignoring caller settles before late fetch reject
+  ---
+  duration_ms: 1.22875
+  type: 'test'
+  ...
+# Subtest: GET ignoring timeout settles before late fetch resolve
+ok 31 - GET ignoring timeout settles before late fetch resolve
+  ---
+  duration_ms: 27.891958
+  type: 'test'
+  ...
+# Subtest: GET ignoring timeout settles before late fetch reject
+ok 32 - GET ignoring timeout settles before late fetch reject
+  ---
+  duration_ms: 26.623958
+  type: 'test'
+  ...
+# Subtest: late response cancel may remain pending then resolve without blocking outward settlement
+ok 33 - late response cancel may remain pending then resolve without blocking outward settlement
+  ---
+  duration_ms: 3.994166
+  type: 'test'
+  ...
+# Subtest: late response cancel may remain pending then reject without blocking outward settlement
+ok 34 - late response cancel may remain pending then reject without blocking outward settlement
+  ---
+  duration_ms: 2.201458
+  type: 'test'
+  ...
+# Subtest: normal success and HTTP failure release fetch listeners and bodies
+ok 35 - normal success and HTTP failure release fetch listeners and bodies
+  ---
+  duration_ms: 3.903583
+  type: 'test'
+  ...
+# Subtest: throw preserves error translation, cause and listener cleanup
+ok 36 - throw preserves error translation, cause and listener cleanup
+  ---
+  duration_ms: 2.305708
+  type: 'test'
+  ...
+# Subtest: reject preserves error translation, cause and listener cleanup
+ok 37 - reject preserves error translation, cause and listener cleanup
+  ---
+  duration_ms: 0.874041
+  type: 'test'
+  ...
+# Subtest: cooperative-abort preserves error translation, cause and listener cleanup
+ok 38 - cooperative-abort preserves error translation, cause and listener cleanup
+  ---
+  duration_ms: 0.227167
+  type: 'test'
+  ...
+# Subtest: pre-abort preserves existing ECANCELED shape and starts no transport
+ok 39 - pre-abort preserves existing ECANCELED shape and starts no transport
+  ---
+  duration_ms: 0.138875
+  type: 'test'
+  ...
+# Subtest: accepted MOVE effect is not rolled back when an ignored fetch resolves after cancellation
+ok 40 - accepted MOVE effect is not rolled back when an ignored fetch resolves after cancellation
+  ---
+  duration_ms: 3.634958
+  type: 'test'
+  ...
+# Subtest: late LOCK response starts only best-effort UNLOCK with success
+ok 41 - late LOCK response starts only best-effort UNLOCK with success
+  ---
+  duration_ms: 3.818709
+  type: 'test'
+  ...
+# Subtest: late LOCK response starts only best-effort UNLOCK with ignores-signal
+ok 42 - late LOCK response starts only best-effort UNLOCK with ignores-signal
+  ---
+  duration_ms: 31.176541
+  type: 'test'
+  ...
+# Subtest: root plus 256 locally namespaced DAV children fit the advertised listing budget
+ok 43 - root plus 256 locally namespaced DAV children fit the advertised listing budget
+  ---
+  duration_ms: 48.142667
+  type: 'test'
+  ...
+# Subtest: configured large listings are bounded by bytes and entries, not hidden document counters
+ok 44 - configured large listings are bounded by bytes and entries, not hidden document counters
+  ---
+  duration_ms: 435.484541
+  type: 'test'
+  ...
+# Subtest: copyFile cleans up an available LOCK response after acquisition-time caller cancellation
+ok 45 - copyFile cleans up an available LOCK response after acquisition-time caller cancellation
+  ---
+  duration_ms: 42.233167
+  type: 'test'
+  ...
+# Subtest: copyFile cleans up an available LOCK response after acquisition-time timeout cancellation
+ok 46 - copyFile cleans up an available LOCK response after acquisition-time timeout cancellation
+  ---
+  duration_ms: 64.76
+  type: 'test'
+  ...
+# Subtest: rename cleans up an available LOCK response after acquisition-time caller cancellation
+ok 47 - rename cleans up an available LOCK response after acquisition-time caller cancellation
+  ---
+  duration_ms: 6.105541
+  type: 'test'
+  ...
+# Subtest: rename cleans up an available LOCK response after acquisition-time timeout cancellation
+ok 48 - rename cleans up an available LOCK response after acquisition-time timeout cancellation
+  ---
+  duration_ms: 63.313666
+  type: 'test'
+  ...
+# Subtest: LOCK body acquisition caller cancellation releases its reader and lock
+ok 49 - LOCK body acquisition caller cancellation releases its reader and lock
+  ---
+  duration_ms: 7.965584
+  type: 'test'
+  ...
+# Subtest: LOCK body acquisition timeout cancellation releases its reader and lock
+ok 50 - LOCK body acquisition timeout cancellation releases its reader and lock
+  ---
+  duration_ms: 63.649125
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a missing-token LOCK response
+ok 51 - acquisition cancellation does not trust a missing-token LOCK response
+  ---
+  duration_ms: 1.012292
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a invalid-token LOCK response
+ok 52 - acquisition cancellation does not trust a invalid-token LOCK response
+  ---
+  duration_ms: 0.678583
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a foreign-url LOCK response
+ok 53 - acquisition cancellation does not trust a foreign-url LOCK response
+  ---
+  duration_ms: 1.467625
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a wrong-path LOCK response
+ok 54 - acquisition cancellation does not trust a wrong-path LOCK response
+  ---
+  duration_ms: 1.616167
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a redirected LOCK response
+ok 55 - acquisition cancellation does not trust a redirected LOCK response
+  ---
+  duration_ms: 1.223209
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation does not trust a opaque-redirect LOCK response
+ok 56 - acquisition cancellation does not trust a opaque-redirect LOCK response
+  ---
+  duration_ms: 0.534
+  type: 'test'
+  ...
+# Subtest: acquisition cancellation bounds best-effort UNLOCK with a fresh deadline
+ok 57 - acquisition cancellation bounds best-effort UNLOCK with a fresh deadline
+  ---
+  duration_ms: 62.10425
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains child 423 instead of following root 424
+ok 58 - LOCK 207 retains child 423 instead of following root 424
+  ---
+  duration_ms: 28.704958
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains child 423 instead of preceding root 424
+ok 59 - LOCK 207 retains child 423 instead of preceding root 424
+  ---
+  duration_ms: 1.711625
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains child 403 instead of following root 424
+ok 60 - LOCK 207 retains child 403 instead of following root 424
+  ---
+  duration_ms: 2.028917
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains child 403 instead of preceding root 424
+ok 61 - LOCK 207 retains child 403 instead of preceding root 424
+  ---
+  duration_ms: 1.165125
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains a root-only 403 failure and cause
+ok 62 - LOCK 207 retains a root-only 403 failure and cause
+  ---
+  duration_ms: 1.293375
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains a root-only 423 failure and cause
+ok 63 - LOCK 207 retains a root-only 423 failure and cause
+  ---
+  duration_ms: 12.215875
+  type: 'test'
+  ...
+# Subtest: LOCK 207 retains a root-only 424 failure and cause
+ok 64 - LOCK 207 retains a root-only 424 failure and cause
+  ---
+  duration_ms: 3.348833
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: https://foreign.test/dav/target/child
+ok 65 - LOCK 207 validates every href before reporting a failure: https://foreign.test/dav/target/child
+  ---
+  duration_ms: 1.268916
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /outside/child
+ok 66 - LOCK 207 validates every href before reporting a failure: /outside/child
+  ---
+  duration_ms: 1.142958
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /dav/other/child
+ok 67 - LOCK 207 validates every href before reporting a failure: /dav/other/child
+  ---
+  duration_ms: 1.115375
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /dav/target-sibling/child
+ok 68 - LOCK 207 validates every href before reporting a failure: /dav/target-sibling/child
+  ---
+  duration_ms: 0.984709
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /dav/target/%2e%2e/child
+ok 69 - LOCK 207 validates every href before reporting a failure: /dav/target/%2e%2e/child
+  ---
+  duration_ms: 0.669709
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /dav/target/child%2fescape
+ok 70 - LOCK 207 validates every href before reporting a failure: /dav/target/child%2fescape
+  ---
+  duration_ms: 0.627416
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: /dav/
+ok 71 - LOCK 207 validates every href before reporting a failure: /dav/
+  ---
+  duration_ms: 1.635625
+  type: 'test'
+  ...
+# Subtest: LOCK 207 validates every href before reporting a failure: //foreign.test/dav/target/child
+ok 72 - LOCK 207 validates every href before reporting a failure: //foreign.test/dav/target/child
+  ---
+  duration_ms: 0.732042
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects malformed XML with LOCK context and a cause
+ok 73 - LOCK 207 rejects malformed XML with LOCK context and a cause
+  ---
+  duration_ms: 0.711583
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects wrong namespace with LOCK context and a cause
+ok 74 - LOCK 207 rejects wrong namespace with LOCK context and a cause
+  ---
+  duration_ms: 0.513166
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects missing status with LOCK context and a cause
+ok 75 - LOCK 207 rejects missing status with LOCK context and a cause
+  ---
+  duration_ms: 0.5505
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects invalid status with LOCK context and a cause
+ok 76 - LOCK 207 rejects invalid status with LOCK context and a cause
+  ---
+  duration_ms: 0.547125
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects duplicate member with LOCK context and a cause
+ok 77 - LOCK 207 rejects duplicate member with LOCK context and a cause
+  ---
+  duration_ms: 0.688708
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects empty multistatus with LOCK context and a cause
+ok 78 - LOCK 207 rejects empty multistatus with LOCK context and a cause
+  ---
+  duration_ms: 0.706083
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects success-only multistatus with LOCK context and a cause
+ok 79 - LOCK 207 rejects success-only multistatus with LOCK context and a cause
+  ---
+  duration_ms: 0.724125
+  type: 'test'
+  ...
+# Subtest: LOCK 207 rejects late malformed member with LOCK context and a cause
+ok 80 - LOCK 207 rejects late malformed member with LOCK context and a cause
+  ---
+  duration_ms: 0.86825
+  type: 'test'
+  ...
+# Subtest: LOCK 207 enforces bytes budget and cancels the body
+ok 81 - LOCK 207 enforces bytes budget and cancels the body
+  ---
+  duration_ms: 1.894917
+  type: 'test'
+  ...
+# Subtest: LOCK 207 enforces entries budget and cancels the body
+ok 82 - LOCK 207 enforces entries budget and cancels the body
+  ---
+  duration_ms: 0.679333
+  type: 'test'
+  ...
+# Subtest: LOCK multistatus handling does not relax root replacement policy
+ok 83 - LOCK multistatus handling does not relax root replacement policy
+  ---
+  duration_ms: 0.181666
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of resourceId
+ok 84 - resource authority declines subclass-before override of resourceId
+  ---
+  duration_ms: 44.72175
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of url
+ok 85 - resource authority declines subclass-before override of url
+  ---
+  duration_ms: 11.829916
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of hrefPath
+ok 86 - resource authority declines subclass-before override of hrefPath
+  ---
+  duration_ms: 42.442959
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of httpError
+ok 87 - resource authority declines subclass-before override of httpError
+  ---
+  duration_ms: 7.212666
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of request
+ok 88 - resource authority declines subclass-before override of request
+  ---
+  duration_ms: 5.40775
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of requestStream
+ok 89 - resource authority declines subclass-before override of requestStream
+  ---
+  duration_ms: 10.284833
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of bytes
+ok 90 - resource authority declines subclass-before override of bytes
+  ---
+  duration_ms: 14.707417
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of bodyChunks
+ok 91 - resource authority declines subclass-before override of bodyChunks
+  ---
+  duration_ms: 5.00525
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of xml
+ok 92 - resource authority declines subclass-before override of xml
+  ---
+  duration_ms: 13.661084
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of multistatus
+ok 93 - resource authority declines subclass-before override of multistatus
+  ---
+  duration_ms: 10.72625
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of lockFailure
+ok 94 - resource authority declines subclass-before override of lockFailure
+  ---
+  duration_ms: 9.06875
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of entryStat
+ok 95 - resource authority declines subclass-before override of entryStat
+  ---
+  duration_ms: 4.291208
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of entries
+ok 96 - resource authority declines subclass-before override of entries
+  ---
+  duration_ms: 8.253708
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of mutation
+ok 97 - resource authority declines subclass-before override of mutation
+  ---
+  duration_ms: 5.287
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of unsupported
+ok 98 - resource authority declines subclass-before override of unsupported
+  ---
+  duration_ms: 6.236791
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of maybeStat
+ok 99 - resource authority declines subclass-before override of maybeStat
+  ---
+  duration_ms: 5.648833
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of stat
+ok 100 - resource authority declines subclass-before override of stat
+  ---
+  duration_ms: 4.713125
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of lstat
+ok 101 - resource authority declines subclass-before override of lstat
+  ---
+  duration_ms: 7.424042
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of readdir
+ok 102 - resource authority declines subclass-before override of readdir
+  ---
+  duration_ms: 4.117167
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of readFile
+ok 103 - resource authority declines subclass-before override of readFile
+  ---
+  duration_ms: 5.37525
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of readStream
+ok 104 - resource authority declines subclass-before override of readStream
+  ---
+  duration_ms: 2.883083
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of prepareWrite
+ok 105 - resource authority declines subclass-before override of prepareWrite
+  ---
+  duration_ms: 7.586917
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of writeFile
+ok 106 - resource authority declines subclass-before override of writeFile
+  ---
+  duration_ms: 4.154459
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of writeStream
+ok 107 - resource authority declines subclass-before override of writeStream
+  ---
+  duration_ms: 4.018208
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of appendFile
+ok 108 - resource authority declines subclass-before override of appendFile
+  ---
+  duration_ms: 5.68475
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of mkdir
+ok 109 - resource authority declines subclass-before override of mkdir
+  ---
+  duration_ms: 3.916042
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of rmdir
+ok 110 - resource authority declines subclass-before override of rmdir
+  ---
+  duration_ms: 6.69025
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of rm
+ok 111 - resource authority declines subclass-before override of rm
+  ---
+  duration_ms: 5.7705
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of transfer
+ok 112 - resource authority declines subclass-before override of transfer
+  ---
+  duration_ms: 4.524584
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of withDestinationLock
+ok 113 - resource authority declines subclass-before override of withDestinationLock
+  ---
+  duration_ms: 3.295292
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of rename
+ok 114 - resource authority declines subclass-before override of rename
+  ---
+  duration_ms: 3.376209
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of copyFile
+ok 115 - resource authority declines subclass-before override of copyFile
+  ---
+  duration_ms: 4.9785
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of realpath
+ok 116 - resource authority declines subclass-before override of realpath
+  ---
+  duration_ms: 3.877167
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of access
+ok 117 - resource authority declines subclass-before override of access
+  ---
+  duration_ms: 5.856709
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of readlink
+ok 118 - resource authority declines subclass-before override of readlink
+  ---
+  duration_ms: 4.150708
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of symlink
+ok 119 - resource authority declines subclass-before override of symlink
+  ---
+  duration_ms: 6.797416
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of link
+ok 120 - resource authority declines subclass-before override of link
+  ---
+  duration_ms: 4.5475
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of chmod
+ok 121 - resource authority declines subclass-before override of chmod
+  ---
+  duration_ms: 4.640042
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of utimes
+ok 122 - resource authority declines subclass-before override of utimes
+  ---
+  duration_ms: 4.947625
+  type: 'test'
+  ...
+# Subtest: resource authority declines subclass-before override of truncate
+ok 123 - resource authority declines subclass-before override of truncate
+  ---
+  duration_ms: 4.060042
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of resourceId
+ok 124 - resource authority declines base-before override of resourceId
+  ---
+  duration_ms: 5.121833
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of url
+ok 125 - resource authority declines base-before override of url
+  ---
+  duration_ms: 3.377208
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of hrefPath
+ok 126 - resource authority declines base-before override of hrefPath
+  ---
+  duration_ms: 4.261458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of httpError
+ok 127 - resource authority declines base-before override of httpError
+  ---
+  duration_ms: 4.892916
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of request
+ok 128 - resource authority declines base-before override of request
+  ---
+  duration_ms: 3.915042
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of requestStream
+ok 129 - resource authority declines base-before override of requestStream
+  ---
+  duration_ms: 5.536625
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of bytes
+ok 130 - resource authority declines base-before override of bytes
+  ---
+  duration_ms: 2.956042
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of bodyChunks
+ok 131 - resource authority declines base-before override of bodyChunks
+  ---
+  duration_ms: 3.816125
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of xml
+ok 132 - resource authority declines base-before override of xml
+  ---
+  duration_ms: 6.194875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of multistatus
+ok 133 - resource authority declines base-before override of multistatus
+  ---
+  duration_ms: 4.073834
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of lockFailure
+ok 134 - resource authority declines base-before override of lockFailure
+  ---
+  duration_ms: 3.894583
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of entryStat
+ok 135 - resource authority declines base-before override of entryStat
+  ---
+  duration_ms: 3.331458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of entries
+ok 136 - resource authority declines base-before override of entries
+  ---
+  duration_ms: 3.071958
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of mutation
+ok 137 - resource authority declines base-before override of mutation
+  ---
+  duration_ms: 4.769083
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of unsupported
+ok 138 - resource authority declines base-before override of unsupported
+  ---
+  duration_ms: 3.678541
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of maybeStat
+ok 139 - resource authority declines base-before override of maybeStat
+  ---
+  duration_ms: 2.842792
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of stat
+ok 140 - resource authority declines base-before override of stat
+  ---
+  duration_ms: 3.873875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of lstat
+ok 141 - resource authority declines base-before override of lstat
+  ---
+  duration_ms: 3.682541
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of readdir
+ok 142 - resource authority declines base-before override of readdir
+  ---
+  duration_ms: 3.696583
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of readFile
+ok 143 - resource authority declines base-before override of readFile
+  ---
+  duration_ms: 5.999833
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of readStream
+ok 144 - resource authority declines base-before override of readStream
+  ---
+  duration_ms: 2.058083
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of prepareWrite
+ok 145 - resource authority declines base-before override of prepareWrite
+  ---
+  duration_ms: 3.269875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of writeFile
+ok 146 - resource authority declines base-before override of writeFile
+  ---
+  duration_ms: 3.370584
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of writeStream
+ok 147 - resource authority declines base-before override of writeStream
+  ---
+  duration_ms: 3.503458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of appendFile
+ok 148 - resource authority declines base-before override of appendFile
+  ---
+  duration_ms: 5.623458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of mkdir
+ok 149 - resource authority declines base-before override of mkdir
+  ---
+  duration_ms: 2.994292
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of rmdir
+ok 150 - resource authority declines base-before override of rmdir
+  ---
+  duration_ms: 2.053292
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of rm
+ok 151 - resource authority declines base-before override of rm
+  ---
+  duration_ms: 2.314166
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of transfer
+ok 152 - resource authority declines base-before override of transfer
+  ---
+  duration_ms: 3.131792
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of withDestinationLock
+ok 153 - resource authority declines base-before override of withDestinationLock
+  ---
+  duration_ms: 2.368584
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of rename
+ok 154 - resource authority declines base-before override of rename
+  ---
+  duration_ms: 6.380958
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of copyFile
+ok 155 - resource authority declines base-before override of copyFile
+  ---
+  duration_ms: 2.448041
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of realpath
+ok 156 - resource authority declines base-before override of realpath
+  ---
+  duration_ms: 1.953625
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of access
+ok 157 - resource authority declines base-before override of access
+  ---
+  duration_ms: 2.436
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of readlink
+ok 158 - resource authority declines base-before override of readlink
+  ---
+  duration_ms: 2.56625
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of symlink
+ok 159 - resource authority declines base-before override of symlink
+  ---
+  duration_ms: 5.413875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of link
+ok 160 - resource authority declines base-before override of link
+  ---
+  duration_ms: 2.81075
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of chmod
+ok 161 - resource authority declines base-before override of chmod
+  ---
+  duration_ms: 4.423
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of utimes
+ok 162 - resource authority declines base-before override of utimes
+  ---
+  duration_ms: 3.071041
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-before override of truncate
+ok 163 - resource authority declines base-before override of truncate
+  ---
+  duration_ms: 4.138833
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of resourceId
+ok 164 - resource authority declines instance-after override of resourceId
+  ---
+  duration_ms: 7.462625
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of url
+ok 165 - resource authority declines instance-after override of url
+  ---
+  duration_ms: 3.61725
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of hrefPath
+ok 166 - resource authority declines instance-after override of hrefPath
+  ---
+  duration_ms: 3.020166
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of httpError
+ok 167 - resource authority declines instance-after override of httpError
+  ---
+  duration_ms: 3.579417
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of request
+ok 168 - resource authority declines instance-after override of request
+  ---
+  duration_ms: 3.106917
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of requestStream
+ok 169 - resource authority declines instance-after override of requestStream
+  ---
+  duration_ms: 4.335792
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of bytes
+ok 170 - resource authority declines instance-after override of bytes
+  ---
+  duration_ms: 3.260833
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of bodyChunks
+ok 171 - resource authority declines instance-after override of bodyChunks
+  ---
+  duration_ms: 3.684708
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of xml
+ok 172 - resource authority declines instance-after override of xml
+  ---
+  duration_ms: 3.038791
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of multistatus
+ok 173 - resource authority declines instance-after override of multistatus
+  ---
+  duration_ms: 6.271583
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of lockFailure
+ok 174 - resource authority declines instance-after override of lockFailure
+  ---
+  duration_ms: 3.388375
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of entryStat
+ok 175 - resource authority declines instance-after override of entryStat
+  ---
+  duration_ms: 3.021584
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of entries
+ok 176 - resource authority declines instance-after override of entries
+  ---
+  duration_ms: 5.572083
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of mutation
+ok 177 - resource authority declines instance-after override of mutation
+  ---
+  duration_ms: 3.342458
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of unsupported
+ok 178 - resource authority declines instance-after override of unsupported
+  ---
+  duration_ms: 5.827042
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of maybeStat
+ok 179 - resource authority declines instance-after override of maybeStat
+  ---
+  duration_ms: 3.139458
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of stat
+ok 180 - resource authority declines instance-after override of stat
+  ---
+  duration_ms: 3.653542
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of lstat
+ok 181 - resource authority declines instance-after override of lstat
+  ---
+  duration_ms: 3.341333
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of readdir
+ok 182 - resource authority declines instance-after override of readdir
+  ---
+  duration_ms: 5.056042
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of readFile
+ok 183 - resource authority declines instance-after override of readFile
+  ---
+  duration_ms: 2.403875
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of readStream
+ok 184 - resource authority declines instance-after override of readStream
+  ---
+  duration_ms: 2.401708
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of prepareWrite
+ok 185 - resource authority declines instance-after override of prepareWrite
+  ---
+  duration_ms: 2.398208
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of writeFile
+ok 186 - resource authority declines instance-after override of writeFile
+  ---
+  duration_ms: 2.68575
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of writeStream
+ok 187 - resource authority declines instance-after override of writeStream
+  ---
+  duration_ms: 5.270333
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of appendFile
+ok 188 - resource authority declines instance-after override of appendFile
+  ---
+  duration_ms: 2.121583
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of mkdir
+ok 189 - resource authority declines instance-after override of mkdir
+  ---
+  duration_ms: 2.030292
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of rmdir
+ok 190 - resource authority declines instance-after override of rmdir
+  ---
+  duration_ms: 3.801541
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of rm
+ok 191 - resource authority declines instance-after override of rm
+  ---
+  duration_ms: 2.386708
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of transfer
+ok 192 - resource authority declines instance-after override of transfer
+  ---
+  duration_ms: 4.548917
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of withDestinationLock
+ok 193 - resource authority declines instance-after override of withDestinationLock
+  ---
+  duration_ms: 2.425458
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of rename
+ok 194 - resource authority declines instance-after override of rename
+  ---
+  duration_ms: 2.735375
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of copyFile
+ok 195 - resource authority declines instance-after override of copyFile
+  ---
+  duration_ms: 3.497
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of realpath
+ok 196 - resource authority declines instance-after override of realpath
+  ---
+  duration_ms: 4.893959
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of access
+ok 197 - resource authority declines instance-after override of access
+  ---
+  duration_ms: 1.942666
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of readlink
+ok 198 - resource authority declines instance-after override of readlink
+  ---
+  duration_ms: 3.084666
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of symlink
+ok 199 - resource authority declines instance-after override of symlink
+  ---
+  duration_ms: 3.679875
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of link
+ok 200 - resource authority declines instance-after override of link
+  ---
+  duration_ms: 2.637416
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of chmod
+ok 201 - resource authority declines instance-after override of chmod
+  ---
+  duration_ms: 5.373709
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of utimes
+ok 202 - resource authority declines instance-after override of utimes
+  ---
+  duration_ms: 3.140875
+  type: 'test'
+  ...
+# Subtest: resource authority declines instance-after override of truncate
+ok 203 - resource authority declines instance-after override of truncate
+  ---
+  duration_ms: 2.029042
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of resourceId
+ok 204 - resource authority declines base-after override of resourceId
+  ---
+  duration_ms: 1.863458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of url
+ok 205 - resource authority declines base-after override of url
+  ---
+  duration_ms: 3.434
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of hrefPath
+ok 206 - resource authority declines base-after override of hrefPath
+  ---
+  duration_ms: 2.701542
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of httpError
+ok 207 - resource authority declines base-after override of httpError
+  ---
+  duration_ms: 1.9805
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of request
+ok 208 - resource authority declines base-after override of request
+  ---
+  duration_ms: 1.624292
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of requestStream
+ok 209 - resource authority declines base-after override of requestStream
+  ---
+  duration_ms: 1.724417
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of bytes
+ok 210 - resource authority declines base-after override of bytes
+  ---
+  duration_ms: 1.9645
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of bodyChunks
+ok 211 - resource authority declines base-after override of bodyChunks
+  ---
+  duration_ms: 4.7565
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of xml
+ok 212 - resource authority declines base-after override of xml
+  ---
+  duration_ms: 1.804375
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of multistatus
+ok 213 - resource authority declines base-after override of multistatus
+  ---
+  duration_ms: 2.447667
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of lockFailure
+ok 214 - resource authority declines base-after override of lockFailure
+  ---
+  duration_ms: 2.767625
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of entryStat
+ok 215 - resource authority declines base-after override of entryStat
+  ---
+  duration_ms: 2.514875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of entries
+ok 216 - resource authority declines base-after override of entries
+  ---
+  duration_ms: 3.521125
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of mutation
+ok 217 - resource authority declines base-after override of mutation
+  ---
+  duration_ms: 2.333542
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of unsupported
+ok 218 - resource authority declines base-after override of unsupported
+  ---
+  duration_ms: 1.782041
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of maybeStat
+ok 219 - resource authority declines base-after override of maybeStat
+  ---
+  duration_ms: 1.683959
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of stat
+ok 220 - resource authority declines base-after override of stat
+  ---
+  duration_ms: 2.134541
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of lstat
+ok 221 - resource authority declines base-after override of lstat
+  ---
+  duration_ms: 4.99825
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of readdir
+ok 222 - resource authority declines base-after override of readdir
+  ---
+  duration_ms: 2.181542
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of readFile
+ok 223 - resource authority declines base-after override of readFile
+  ---
+  duration_ms: 2.423583
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of readStream
+ok 224 - resource authority declines base-after override of readStream
+  ---
+  duration_ms: 2.133458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of prepareWrite
+ok 225 - resource authority declines base-after override of prepareWrite
+  ---
+  duration_ms: 2.280958
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of writeFile
+ok 226 - resource authority declines base-after override of writeFile
+  ---
+  duration_ms: 3.078958
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of writeStream
+ok 227 - resource authority declines base-after override of writeStream
+  ---
+  duration_ms: 1.658916
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of appendFile
+ok 228 - resource authority declines base-after override of appendFile
+  ---
+  duration_ms: 1.550709
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of mkdir
+ok 229 - resource authority declines base-after override of mkdir
+  ---
+  duration_ms: 1.51275
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of rmdir
+ok 230 - resource authority declines base-after override of rmdir
+  ---
+  duration_ms: 1.796458
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of rm
+ok 231 - resource authority declines base-after override of rm
+  ---
+  duration_ms: 4.347959
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of transfer
+ok 232 - resource authority declines base-after override of transfer
+  ---
+  duration_ms: 1.632667
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of withDestinationLock
+ok 233 - resource authority declines base-after override of withDestinationLock
+  ---
+  duration_ms: 1.603083
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of rename
+ok 234 - resource authority declines base-after override of rename
+  ---
+  duration_ms: 2.308125
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of copyFile
+ok 235 - resource authority declines base-after override of copyFile
+  ---
+  duration_ms: 1.940875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of realpath
+ok 236 - resource authority declines base-after override of realpath
+  ---
+  duration_ms: 3.668125
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of access
+ok 237 - resource authority declines base-after override of access
+  ---
+  duration_ms: 1.8315
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of readlink
+ok 238 - resource authority declines base-after override of readlink
+  ---
+  duration_ms: 1.850417
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of symlink
+ok 239 - resource authority declines base-after override of symlink
+  ---
+  duration_ms: 2.310709
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of link
+ok 240 - resource authority declines base-after override of link
+  ---
+  duration_ms: 1.846875
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of chmod
+ok 241 - resource authority declines base-after override of chmod
+  ---
+  duration_ms: 1.799209
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of utimes
+ok 242 - resource authority declines base-after override of utimes
+  ---
+  duration_ms: 4.095917
+  type: 'test'
+  ...
+# Subtest: resource authority declines base-after override of truncate
+ok 243 - resource authority declines base-after override of truncate
+  ---
+  duration_ms: 1.613291
+  type: 'test'
+  ...
+# Subtest: subclass with unchanged original behavior retains protocol and private provider authority
+ok 244 - subclass with unchanged original behavior retains protocol and private provider authority
+  ---
+  duration_ms: 0.822541
+  type: 'test'
+  ...
+# Subtest: replacing the enrolled transport invalidates private and protocol authority
+ok 245 - replacing the enrolled transport invalidates private and protocol authority
+  ---
+  duration_ms: 0.332875
+  type: 'test'
+  ...
+# Subtest: method replacement during peer metadata invalidates earlier protocol authority
+ok 246 - method replacement during peer metadata invalidates earlier protocol authority
+  ---
+  duration_ms: 0.374042
+  type: 'test'
+  ...
+# Subtest: declining inherited authority does not suppress an explicit external peer authority
+ok 247 - declining inherited authority does not suppress an explicit external peer authority
+  ---
+  duration_ms: 0.318292
+  type: 'test'
+  ...
+# Subtest: explicit WebDAV comparison override remains authoritative subclass-before
+ok 248 - explicit WebDAV comparison override remains authoritative subclass-before
+  ---
+  duration_ms: 0.38975
+  type: 'test'
+  ...
+# Subtest: explicit WebDAV comparison override remains authoritative instance-after
+ok 249 - explicit WebDAV comparison override remains authoritative instance-after
+  ---
+  duration_ms: 0.314791
+  type: 'test'
+  ...
+# Subtest: explicit WebDAV overrides are queried once each and conflicts fail before effects
+ok 250 - explicit WebDAV overrides are queried once each and conflicts fail before effects
+  ---
+  duration_ms: 0.282584
+  type: 'test'
+  ...
+# Subtest: explicit WebDAV authority invalid answers and cancellation preserve typed errors
+ok 251 - explicit WebDAV authority invalid answers and cancellation preserve typed errors
+  ---
+  duration_ms: 0.782583
+  type: 'test'
+  ...
+# Subtest: explicit forwarding to the base method stays unknown without recursive metadata negotiation
+ok 252 - explicit forwarding to the base method stays unknown without recursive metadata negotiation
+  ---
+  duration_ms: 0.279459
+  type: 'test'
+  ...
+# Subtest: MOVE replaces files under lock protection
+ok 253 - MOVE replaces files under lock protection
+  ---
+  duration_ms: 12.627625
+  type: 'test'
+  ...
+# Subtest: MOVE replaces files under etag protection
+ok 254 - MOVE replaces files under etag protection
+  ---
+  duration_ms: 1.736291
+  type: 'test'
+  ...
+# Subtest: MOVE tagged ETag rejects destination file race
+ok 255 - MOVE tagged ETag rejects destination file race
+  ---
+  duration_ms: 1.606167
+  type: 'test'
+  ...
+# Subtest: MOVE tagged ETag rejects destination directory race
+ok 256 - MOVE tagged ETag rejects destination directory race
+  ---
+  duration_ms: 1.721834
+  type: 'test'
+  ...
+# Subtest: MOVE tagged ETag rejects destination missing race
+ok 257 - MOVE tagged ETag rejects destination missing race
+  ---
+  duration_ms: 0.9195
+  type: 'test'
+  ...
+# Subtest: MOVE default lock prevents a competing overwrite
+ok 258 - MOVE default lock prevents a competing overwrite
+  ---
+  duration_ms: 6.602709
+  type: 'test'
+  ...
+# Subtest: COPY replaces files under lock protection
+ok 259 - COPY replaces files under lock protection
+  ---
+  duration_ms: 1.216291
+  type: 'test'
+  ...
+# Subtest: COPY replaces files under etag protection
+ok 260 - COPY replaces files under etag protection
+  ---
+  duration_ms: 0.592334
+  type: 'test'
+  ...
+# Subtest: COPY tagged ETag rejects destination file race
+ok 261 - COPY tagged ETag rejects destination file race
+  ---
+  duration_ms: 0.901875
+  type: 'test'
+  ...
+# Subtest: COPY tagged ETag rejects destination directory race
+ok 262 - COPY tagged ETag rejects destination directory race
+  ---
+  duration_ms: 2.872375
+  type: 'test'
+  ...
+# Subtest: COPY tagged ETag rejects destination missing race
+ok 263 - COPY tagged ETag rejects destination missing race
+  ---
+  duration_ms: 3.359584
+  type: 'test'
+  ...
+# Subtest: COPY default lock prevents a competing overwrite
+ok 264 - COPY default lock prevents a competing overwrite
+  ---
+  duration_ms: 1.0745
+  type: 'test'
+  ...
+# Subtest: directory replacement locks membership before emptiness check
+ok 265 - directory replacement locks membership before emptiness check
+  ---
+  duration_ms: 2.31775
+  type: 'test'
+  ...
+# Subtest: directory membership race before-lock preserves the competing child
+ok 266 - directory membership race before-lock preserves the competing child
+  ---
+  duration_ms: 1.501167
+  type: 'test'
+  ...
+# Subtest: directory membership race after-list-expired preserves the competing child
+ok 267 - directory membership race after-list-expired preserves the competing child
+  ---
+  duration_ms: 1.025583
+  type: 'test'
+  ...
+# Subtest: locks are released on cancellation and partial MOVE failure
+ok 268 - locks are released on cancellation and partial MOVE failure
+  ---
+  duration_ms: 2.201209
+  type: 'test'
+  ...
+# Subtest: lockless servers require explicit ETag file policy, never unsafe directory overwrite
+ok 269 - lockless servers require explicit ETag file policy, never unsafe directory overwrite
+  ---
+  duration_ms: 2.776916
+  type: 'test'
+  ...
+# Subtest: native loopback HTTP supports append, exclusive append and all replacement targets
+ok 270 - native loopback HTTP supports append, exclusive append and all replacement targets
+  ---
+  duration_ms: 125.138625
+  type: 'test'
+  ...
+# Subtest: resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority
+ok 271 - resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority
+  ---
+  duration_ms: 15.445625
+  type: 'test'
+  ...
+# Subtest: resource IDs survive overwrite and MOVE, change on COPY and delete/recreate
+ok 272 - resource IDs survive overwrite and MOVE, change on COPY and delete/recreate
+  ---
+  duration_ms: 10.824625
+  type: 'test'
+  ...
+# Subtest: actual HTTP negotiates resource identity without receiving private-store provenance
+ok 273 - actual HTTP negotiates resource identity without receiving private-store provenance
+  ---
+  duration_ms: 63.807291
+  type: 'test'
+  ...
+# Subtest: provider-owned factories retain the actual store; manual fetch wrappers do not
+ok 274 - provider-owned factories retain the actual store; manual fetch wrappers do not
+  ---
+  duration_ms: 1.256375
+  type: 'test'
+  ...
+# Subtest: mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown to-remote
+ok 275 - mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown to-remote
+  ---
+  duration_ms: 3.646542
+  type: 'test'
+  ...
+# Subtest: mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown from-remote
+ok 276 - mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown from-remote
+  ---
+  duration_ms: 1.430125
+  type: 'test'
+  ...
+# Subtest: resource-id absent property never authorizes data effects
+ok 277 - resource-id absent property never authorizes data effects
+  ---
+  duration_ms: 1.016167
+  type: 'test'
+  ...
+# Subtest: resource-id property404 never authorizes data effects
+ok 278 - resource-id property404 never authorizes data effects
+  ---
+  duration_ms: 1.767125
+  type: 'test'
+  ...
+# Subtest: resource-id wrong property namespace never authorizes data effects
+ok 279 - resource-id wrong property namespace never authorizes data effects
+  ---
+  duration_ms: 1.606125
+  type: 'test'
+  ...
+# Subtest: resource-id duplicate property never authorizes data effects
+ok 280 - resource-id duplicate property never authorizes data effects
+  ---
+  duration_ms: 1.415042
+  type: 'test'
+  ...
+# Subtest: resource-id conflicting statuses never authorizes data effects
+ok 281 - resource-id conflicting statuses never authorizes data effects
+  ---
+  duration_ms: 0.952292
+  type: 'test'
+  ...
+# Subtest: resource-id missing property href never authorizes data effects
+ok 282 - resource-id missing property href never authorizes data effects
+  ---
+  duration_ms: 1.059666
+  type: 'test'
+  ...
+# Subtest: resource-id duplicate property href never authorizes data effects
+ok 283 - resource-id duplicate property href never authorizes data effects
+  ---
+  duration_ms: 1.074583
+  type: 'test'
+  ...
+# Subtest: resource-id nested property href never authorizes data effects
+ok 284 - resource-id nested property href never authorizes data effects
+  ---
+  duration_ms: 1.175125
+  type: 'test'
+  ...
+# Subtest: resource-id mixed property text never authorizes data effects
+ok 285 - resource-id mixed property text never authorizes data effects
+  ---
+  duration_ms: 1.879083
+  type: 'test'
+  ...
+# Subtest: resource-id relative identifier never authorizes data effects
+ok 286 - resource-id relative identifier never authorizes data effects
+  ---
+  duration_ms: 0.656875
+  type: 'test'
+  ...
+# Subtest: resource-id bad percent escape never authorizes data effects
+ok 287 - resource-id bad percent escape never authorizes data effects
+  ---
+  duration_ms: 0.574334
+  type: 'test'
+  ...
+# Subtest: resource-id invalid UUID never authorizes data effects
+ok 288 - resource-id invalid UUID never authorizes data effects
+  ---
+  duration_ms: 0.506041
+  type: 'test'
+  ...
+# Subtest: resource-id wrong requested href never authorizes data effects
+ok 289 - resource-id wrong requested href never authorizes data effects
+  ---
+  duration_ms: 0.664375
+  type: 'test'
+  ...
+# Subtest: resource-id escaped root never authorizes data effects
+ok 290 - resource-id escaped root never authorizes data effects
+  ---
+  duration_ms: 0.501
+  type: 'test'
+  ...
+# Subtest: resource-id case-changed requested href never authorizes data effects
+ok 291 - resource-id case-changed requested href never authorizes data effects
+  ---
+  duration_ms: 0.507166
+  type: 'test'
+  ...
+# Subtest: resource-id extra response never authorizes data effects
+ok 292 - resource-id extra response never authorizes data effects
+  ---
+  duration_ms: 0.534167
+  type: 'test'
+  ...
+# Subtest: resource-id whole resource404 never authorizes data effects
+ok 293 - resource-id whole resource404 never authorizes data effects
+  ---
+  duration_ms: 0.550959
+  type: 'test'
+  ...
+# Subtest: resource-id denied property never authorizes data effects
+ok 294 - resource-id denied property never authorizes data effects
+  ---
+  duration_ms: 2.311875
+  type: 'test'
+  ...
+# Subtest: resource-id locked property never authorizes data effects
+ok 295 - resource-id locked property never authorizes data effects
+  ---
+  duration_ms: 1.113959
+  type: 'test'
+  ...
+# Subtest: resource-id invalid success status never authorizes data effects
+ok 296 - resource-id invalid success status never authorizes data effects
+  ---
+  duration_ms: 0.682792
+  type: 'test'
+  ...
+# Subtest: full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded
+ok 297 - full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded
+  ---
+  duration_ms: 2.108458
+  type: 'test'
+  ...
+# Subtest: property-missing HTTP provider stays unknown and mounted existing target stays untouched
+ok 298 - property-missing HTTP provider stays unknown and mounted existing target stays untouched
+  ---
+  duration_ms: 30.097458
+  type: 'test'
+  ...
+# Subtest: mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate
+ok 299 - mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate
+  ---
+  duration_ms: 5.702334
+  type: 'test'
+  ...
+# Subtest: comparison checks cancellation between ID queries and does not issue the peer request
+ok 300 - comparison checks cancellation between ID queries and does not issue the peer request
+  ---
+  duration_ms: 1.158375
+  type: 'test'
+  ...
+# Subtest: resource-id XML budget and missing-path errors remain typed
+ok 301 - resource-id XML budget and missing-path errors remain typed
+  ---
+  duration_ms: 0.890833
+  type: 'test'
+  ...
+# Subtest: case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs
+ok 302 - case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs
+  ---
+  duration_ms: 9.654458
+  type: 'test'
+  ...
+# Subtest: comparison never weakens missing-target exclusive COPY against a concurrent winner
+ok 303 - comparison never weakens missing-target exclusive COPY against a concurrent winner
+  ---
+  duration_ms: 1.705958
+  type: 'test'
+  ...
+# Subtest: missing remote descendants distinguish non-directory from missing ancestors
+ok 304 - missing remote descendants distinguish non-directory from missing ancestors
+  ---
+  duration_ms: 10.172
+  type: 'test'
+  ...
+# Subtest: write w rejects a file ancestor before PUT: child
+ok 305 - write w rejects a file ancestor before PUT: child
+  ---
+  duration_ms: 2.585041
+  type: 'test'
+  ...
+# Subtest: write w rejects a file ancestor before PUT: missing/child
+ok 306 - write w rejects a file ancestor before PUT: missing/child
+  ---
+  duration_ms: 1.110833
+  type: 'test'
+  ...
+# Subtest: write wx rejects a file ancestor before PUT: child
+ok 307 - write wx rejects a file ancestor before PUT: child
+  ---
+  duration_ms: 0.595791
+  type: 'test'
+  ...
+# Subtest: write wx rejects a file ancestor before PUT: missing/child
+ok 308 - write wx rejects a file ancestor before PUT: missing/child
+  ---
+  duration_ms: 0.549625
+  type: 'test'
+  ...
+# Subtest: MOVE reports EISDIR for a file-to-collection mismatch without mutation
+ok 309 - MOVE reports EISDIR for a file-to-collection mismatch without mutation
+  ---
+  duration_ms: 1.558792
+  type: 'test'
+  ...
+# Subtest: COPY reports EISDIR for a file-to-collection mismatch without mutation
+ok 310 - COPY reports EISDIR for a file-to-collection mismatch without mutation
+  ---
+  duration_ms: 1.148083
+  type: 'test'
+  ...
+# Subtest: write preserves a regular file with directory suffix /
+ok 311 - write preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.600667
+  type: 'test'
+  ...
+# Subtest: exclusive-write preserves a regular file with directory suffix /
+ok 312 - exclusive-write preserves a regular file with directory suffix /
+  ---
+  duration_ms: 2.325834
+  type: 'test'
+  ...
+# Subtest: remove preserves a regular file with directory suffix /
+ok 313 - remove preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.94325
+  type: 'test'
+  ...
+# Subtest: force-remove preserves a regular file with directory suffix /
+ok 314 - force-remove preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.442958
+  type: 'test'
+  ...
+# Subtest: move-source preserves a regular file with directory suffix /
+ok 315 - move-source preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.40225
+  type: 'test'
+  ...
+# Subtest: move-destination preserves a regular file with directory suffix /
+ok 316 - move-destination preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.358625
+  type: 'test'
+  ...
+# Subtest: copy-source preserves a regular file with directory suffix /
+ok 317 - copy-source preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.2775
+  type: 'test'
+  ...
+# Subtest: copy-destination preserves a regular file with directory suffix /
+ok 318 - copy-destination preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.29625
+  type: 'test'
+  ...
+# Subtest: same-move preserves a regular file with directory suffix /
+ok 319 - same-move preserves a regular file with directory suffix /
+  ---
+  duration_ms: 0.404042
+  type: 'test'
+  ...
+# Subtest: write preserves a regular file with directory suffix //
+ok 320 - write preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.313958
+  type: 'test'
+  ...
+# Subtest: exclusive-write preserves a regular file with directory suffix //
+ok 321 - exclusive-write preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.290042
+  type: 'test'
+  ...
+# Subtest: remove preserves a regular file with directory suffix //
+ok 322 - remove preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.292791
+  type: 'test'
+  ...
+# Subtest: force-remove preserves a regular file with directory suffix //
+ok 323 - force-remove preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.275292
+  type: 'test'
+  ...
+# Subtest: move-source preserves a regular file with directory suffix //
+ok 324 - move-source preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.254875
+  type: 'test'
+  ...
+# Subtest: move-destination preserves a regular file with directory suffix //
+ok 325 - move-destination preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.349833
+  type: 'test'
+  ...
+# Subtest: copy-source preserves a regular file with directory suffix //
+ok 326 - copy-source preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.393875
+  type: 'test'
+  ...
+# Subtest: copy-destination preserves a regular file with directory suffix //
+ok 327 - copy-destination preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.263417
+  type: 'test'
+  ...
+# Subtest: same-move preserves a regular file with directory suffix //
+ok 328 - same-move preserves a regular file with directory suffix //
+  ---
+  duration_ms: 0.275792
+  type: 'test'
+  ...
+# Subtest: write preserves a regular file with directory suffix /.
+ok 329 - write preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 1.328042
+  type: 'test'
+  ...
+# Subtest: exclusive-write preserves a regular file with directory suffix /.
+ok 330 - exclusive-write preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.395375
+  type: 'test'
+  ...
+# Subtest: remove preserves a regular file with directory suffix /.
+ok 331 - remove preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.269542
+  type: 'test'
+  ...
+# Subtest: force-remove preserves a regular file with directory suffix /.
+ok 332 - force-remove preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.261166
+  type: 'test'
+  ...
+# Subtest: move-source preserves a regular file with directory suffix /.
+ok 333 - move-source preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.2265
+  type: 'test'
+  ...
+# Subtest: move-destination preserves a regular file with directory suffix /.
+ok 334 - move-destination preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.223542
+  type: 'test'
+  ...
+# Subtest: copy-source preserves a regular file with directory suffix /.
+ok 335 - copy-source preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.22725
+  type: 'test'
+  ...
+# Subtest: copy-destination preserves a regular file with directory suffix /.
+ok 336 - copy-destination preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.2655
+  type: 'test'
+  ...
+# Subtest: same-move preserves a regular file with directory suffix /.
+ok 337 - same-move preserves a regular file with directory suffix /.
+  ---
+  duration_ms: 0.2255
+  type: 'test'
+  ...
+# Subtest: write preserves a regular file with directory suffix /..
+ok 338 - write preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.514083
+  type: 'test'
+  ...
+# Subtest: exclusive-write preserves a regular file with directory suffix /..
+ok 339 - exclusive-write preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.573833
+  type: 'test'
+  ...
+# Subtest: remove preserves a regular file with directory suffix /..
+ok 340 - remove preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.371459
+  type: 'test'
+  ...
+# Subtest: force-remove preserves a regular file with directory suffix /..
+ok 341 - force-remove preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.354958
+  type: 'test'
+  ...
+# Subtest: move-source preserves a regular file with directory suffix /..
+ok 342 - move-source preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.307708
+  type: 'test'
+  ...
+# Subtest: move-destination preserves a regular file with directory suffix /..
+ok 343 - move-destination preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.267125
+  type: 'test'
+  ...
+# Subtest: copy-source preserves a regular file with directory suffix /..
+ok 344 - copy-source preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.246125
+  type: 'test'
+  ...
+# Subtest: copy-destination preserves a regular file with directory suffix /..
+ok 345 - copy-destination preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.300417
+  type: 'test'
+  ...
+# Subtest: same-move preserves a regular file with directory suffix /..
+ok 346 - same-move preserves a regular file with directory suffix /..
+  ---
+  duration_ms: 0.244958
+  type: 'test'
+  ...
+# Subtest: directory suffix applies to stat, lstat, readFile, realpath and access
+ok 347 - directory suffix applies to stat, lstat, readFile, realpath and access
+  ---
+  duration_ms: 1.139416
+  type: 'test'
+  ...
+# Subtest: directory suffix cannot create a regular file at an absent path
+ok 348 - directory suffix cannot create a regular file at an absent path
+  ---
+  duration_ms: 0.2485
+  type: 'test'
+  ...
+# Subtest: explicit collection paths retain mkdir, move, listing, and recursive removal
+ok 349 - explicit collection paths retain mkdir, move, listing, and recursive removal
+  ---
+  duration_ms: 4.720375
+  type: 'test'
+  ...
+# Subtest: MOVE rejects a stale file destination without deleting its replacement collection
+ok 350 - MOVE rejects a stale file destination without deleting its replacement collection
+  ---
+  duration_ms: 0.887875
+  type: 'test'
+  ...
+# Subtest: MOVE conditionally protects an absent destination from concurrent collection creation
+ok 351 - MOVE conditionally protects an absent destination from concurrent collection creation
+  ---
+  duration_ms: 0.53225
+  type: 'test'
+  ...
+# Subtest: COPY rejects a stale file destination without deleting its replacement collection
+ok 352 - COPY rejects a stale file destination without deleting its replacement collection
+  ---
+  duration_ms: 0.595541
+  type: 'test'
+  ...
+# Subtest: COPY conditionally protects an absent destination from concurrent collection creation
+ok 353 - COPY conditionally protects an absent destination from concurrent collection creation
+  ---
+  duration_ms: 0.471208
+  type: 'test'
+  ...
+# Subtest: explicit collection slash works directly on a real slash-canonicalizing server
+ok 354 - explicit collection slash works directly on a real slash-canonicalizing server
+  ---
+  duration_ms: 87.170625
+  type: 'test'
+  ...
+# Subtest: PROPFIND permits one exact collection-slash canonicalization for 301
+ok 355 - PROPFIND permits one exact collection-slash canonicalization for 301
+  ---
+  duration_ms: 0.552917
+  type: 'test'
+  ...
+# Subtest: PROPFIND permits one exact collection-slash canonicalization for 302
+ok 356 - PROPFIND permits one exact collection-slash canonicalization for 302
+  ---
+  duration_ms: 0.271833
+  type: 'test'
+  ...
+# Subtest: PROPFIND permits one exact collection-slash canonicalization for 307
+ok 357 - PROPFIND permits one exact collection-slash canonicalization for 307
+  ---
+  duration_ms: 0.23075
+  type: 'test'
+  ...
+# Subtest: PROPFIND permits one exact collection-slash canonicalization for 308
+ok 358 - PROPFIND permits one exact collection-slash canonicalization for 308
+  ---
+  duration_ms: 0.217542
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location https://evil.test/dav/collection/
+ok 359 - canonicalization never follows unsafe or non-exact Location https://evil.test/dav/collection/
+  ---
+  duration_ms: 0.174417
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /outside/collection/
+ok 360 - canonicalization never follows unsafe or non-exact Location /outside/collection/
+  ---
+  duration_ms: 0.084292
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /dav/collection/child/
+ok 361 - canonicalization never follows unsafe or non-exact Location /dav/collection/child/
+  ---
+  duration_ms: 0.099209
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /dav/collection/?
+ok 362 - canonicalization never follows unsafe or non-exact Location /dav/collection/?
+  ---
+  duration_ms: 0.0755
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /dav/collection/\#
+ok 363 - canonicalization never follows unsafe or non-exact Location /dav/collection/\#
+  ---
+  duration_ms: 0.119708
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /dav/collection/%2e%2e/
+ok 364 - canonicalization never follows unsafe or non-exact Location /dav/collection/%2e%2e/
+  ---
+  duration_ms: 0.073958
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location //example.test/dav/collection/
+ok 365 - canonicalization never follows unsafe or non-exact Location //example.test/dav/collection/
+  ---
+  duration_ms: 0.065542
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location http://example.test/dav/collection/
+ok 366 - canonicalization never follows unsafe or non-exact Location http://example.test/dav/collection/
+  ---
+  duration_ms: 0.067459
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location https://user:pass@example.test/dav/collection/
+ok 367 - canonicalization never follows unsafe or non-exact Location https://user:pass@example.test/dav/collection/
+  ---
+  duration_ms: 0.0695
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location /dav/%63ollection/
+ok 368 - canonicalization never follows unsafe or non-exact Location /dav/%63ollection/
+  ---
+  duration_ms: 0.09
+  type: 'test'
+  ...
+# Subtest: canonicalization never follows unsafe or non-exact Location collection/
+ok 369 - canonicalization never follows unsafe or non-exact Location collection/
+  ---
+  duration_ms: 0.070875
+  type: 'test'
+  ...
+# Subtest: canonicalization never loops or redirects a mutation
+ok 370 - canonicalization never loops or redirects a mutation
+  ---
+  duration_ms: 0.34925
+  type: 'test'
+  ...
+# Subtest: canonicalization cancels the old response body before the second request
+ok 371 - canonicalization cancels the old response body before the second request
+  ---
+  duration_ms: 0.499417
+  type: 'test'
+  ...
+# Subtest: 303 is not a collection canonicalization
+ok 372 - 303 is not a collection canonicalization
+  ---
+  duration_ms: 0.138125
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file without effects
+ok 373 - rmdir rejects file path /file without effects
+  ---
+  duration_ms: 26.321792
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/ without effects
+ok 374 - rmdir rejects file path /file/ without effects
+  ---
+  duration_ms: 0.996042
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/child without effects
+ok 375 - rmdir rejects file path /file/child without effects
+  ---
+  duration_ms: 0.866875
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing
+ok 376 - rmdir preserves requested missing path /missing
+  ---
+  duration_ms: 0.290041
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing/child
+ok 377 - rmdir preserves requested missing path /missing/child
+  ---
+  duration_ms: 0.5655
+  type: 'test'
+  ...
+# Subtest: rmdir rejects a collection containing a file
+ok 378 - rmdir rejects a collection containing a file
+  ---
+  duration_ms: 1.489583
+  type: 'test'
+  ...
+# Subtest: rmdir rejects a collection containing a collection
+ok 379 - rmdir rejects a collection containing a collection
+  ---
+  duration_ms: 1.108333
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported with lock policy and never locks or deletes
+ok 380 - empty rmdir is unsupported with lock policy and never locks or deletes
+  ---
+  duration_ms: 1.214958
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported with etag policy and never locks or deletes
+ok 381 - empty rmdir is unsupported with etag policy and never locks or deletes
+  ---
+  duration_ms: 1.278
+  type: 'test'
+  ...
+# Subtest: a child created after the empty PROPFIND survives without DELETE
+ok 382 - a child created after the empty PROPFIND survives without DELETE
+  ---
+  duration_ms: 1.269041
+  type: 'test'
+  ...
+# Subtest: pre-abort and root protection make no requests
+ok 383 - pre-abort and root protection make no requests
+  ---
+  duration_ms: 0.22775
+  type: 'test'
+  ...
+# Subtest: rmdir cancels uncooperative depth-0 PROPFIND and observes late rejection
+ok 384 - rmdir cancels uncooperative depth-0 PROPFIND and observes late rejection
+  ---
+  duration_ms: 19.930792
+  type: 'test'
+  ...
+# Subtest: rmdir cancels uncooperative depth-1 PROPFIND and observes late rejection
+ok 385 - rmdir cancels uncooperative depth-1 PROPFIND and observes late rejection
+  ---
+  duration_ms: 1.272625
+  type: 'test'
+  ...
+# Subtest: rmdir propagates listing HTTP 403 rather than treating failure as empty
+ok 386 - rmdir propagates listing HTTP 403 rather than treating failure as empty
+  ---
+  duration_ms: 6.3435
+  type: 'test'
+  ...
+# Subtest: rmdir propagates listing HTTP 500 rather than treating failure as empty
+ok 387 - rmdir propagates listing HTTP 500 rather than treating failure as empty
+  ---
+  duration_ms: 3.276459
+  type: 'test'
+  ...
+# Subtest: legacy nonrecursive rm still removes files and rejects collections
+ok 388 - legacy nonrecursive rm still removes files and rejects collections
+  ---
+  duration_ms: 2.923792
+  type: 'test'
+  ...
+# Subtest: real HTTP streaming abort closes a stalled GET without buffering or draining it
+ok 389 - real HTTP streaming abort closes a stalled GET without buffering or draining it
+  ---
+  duration_ms: 32.415416
+  type: 'test'
+  ...
+# Subtest: read access checks GET authorization, not synthesized POSIX mode bits
+ok 390 - read access checks GET authorization, not synthesized POSIX mode bits
+  ---
+  duration_ms: 40.671458
+  type: 'test'
+  ...
+# Subtest: read streams are lazy, binary exact, ranged and chunk bounded
+ok 391 - read streams are lazy, binary exact, ranged and chunk bounded
+  ---
+  duration_ms: 26.095709
+  type: 'test'
+  ...
+# Subtest: invalid stream options and pre-aborted requests do not dispatch
+ok 392 - invalid stream options and pre-aborted requests do not dispatch
+  ---
+  duration_ms: 0.457375
+  type: 'test'
+  ...
+# Subtest: stream backpressure and early return cancel without draining the response
+ok 393 - stream backpressure and early return cancel without draining the response
+  ---
+  duration_ms: 3.344584
+  type: 'test'
+  ...
+# Subtest: blocked response reads and consumer pauses observe cancellation and deadlines
+ok 394 - blocked response reads and consumer pauses observe cancellation and deadlines
+  ---
+  duration_ms: 33.064958
+  type: 'test'
+  ...
+# Subtest: stream bodies enforce byte limits, declared lengths and actual HTTP failures
+ok 395 - stream bodies enforce byte limits, declared lengths and actual HTTP failures
+  ---
+  duration_ms: 4.103375
+  type: 'test'
+  ...
+# Subtest: utimes persists millisecond timestamps across adapter instances without changing bytes
+ok 396 - utimes persists millisecond timestamps across adapter instances without changing bytes
+  ---
+  duration_ms: 17.504792
+  type: 'test'
+  ...
+# Subtest: timestamp validation and missing targets cause no creation or mutation
+ok 397 - timestamp validation and missing targets cause no creation or mutation
+  ---
+  duration_ms: 1.158333
+  type: 'test'
+  ...
+# Subtest: unsupported, denied, locked and stale timestamp updates preserve remote state
+ok 398 - unsupported, denied, locked and stale timestamp updates preserve remote state
+  ---
+  duration_ms: 6.001791
+  type: 'test'
+  ...
+# Subtest: PROPPATCH requires exactly the requested resource and successful property result
+ok 399 - PROPPATCH requires exactly the requested resource and successful property result
+  ---
+  duration_ms: 3.567375
+  type: 'test'
+  ...
+# Subtest: invalid persisted timestamps fail closed while stale representation metadata is ignored
+ok 400 - invalid persisted timestamps fail closed while stale representation metadata is ignored
+  ---
+  duration_ms: 4.195292
+  type: 'test'
+  ...
+# Subtest: loopback agentCommands touch and named gzip reads work with streamed uploads
+ok 401 - loopback agentCommands touch and named gzip reads work with streamed uploads
+  ---
+  duration_ms: 83.261458
+  type: 'test'
+  ...
+# Subtest: streamed PUT preserves bytes, append snapshots and exclusive creation
+ok 402 - streamed PUT preserves bytes, append snapshots and exclusive creation
+  ---
+  duration_ms: 42.434709
+  type: 'test'
+  ...
+# Subtest: streamed append rejects version races without clobbering concurrent writes
+ok 403 - streamed append rejects version races without clobbering concurrent writes
+  ---
+  duration_ms: 8.152
+  type: 'test'
+  ...
+# Subtest: uploads are pull driven and copy mutable producer buffers
+ok 404 - uploads are pull driven and copy mutable producer buffers
+  ---
+  duration_ms: 3.203
+  type: 'test'
+  ...
+# Subtest: upload cancellation releases blocked producer and observes its late rejection
+ok 405 - upload cancellation releases blocked producer and observes its late rejection
+  ---
+  duration_ms: 1.215917
+  type: 'test'
+  ...
+# Subtest: upload deadline interrupts an uncooperative source without waiting for iterator cleanup
+ok 406 - upload deadline interrupts an uncooperative source without waiting for iterator cleanup
+  ---
+  duration_ms: 32.309958
+  type: 'test'
+  ...
+# Subtest: upload limits, invalid paths and permission failures are not silent successes
+ok 407 - upload limits, invalid paths and permission failures are not silent successes
+  ---
+  duration_ms: 2.199666
+  type: 'test'
+  ...
+# Subtest: real loopback Fetch accepts chunked uploads and preserves empty binary append
+ok 408 - real loopback Fetch accepts chunked uploads and preserves empty binary append
+  ---
+  duration_ms: 44.596208
+  type: 'test'
+  ...
+# Subtest: implements foundation FileSystem contract and constructor performs no request
+ok 409 - implements foundation FileSystem contract and constructor performs no request
+  ---
+  duration_ms: 1.926958
+  type: 'test'
+  ...
+# Subtest: GET and PUT preserve empty and binary files, slices, and encoded names
+ok 410 - GET and PUT preserve empty and binary files, slices, and encoded names
+  ---
+  duration_ms: 12.348167
+  type: 'test'
+  ...
+# Subtest: stat, lstat, realpath and existence access map metadata explicitly
+ok 411 - stat, lstat, realpath and existence access map metadata explicitly
+  ---
+  duration_ms: 3.333541
+  type: 'test'
+  ...
+# Subtest: recursive MKCOL, MOVE directory, COPY file, and recursive DELETE use DAV methods
+ok 412 - recursive MKCOL, MOVE directory, COPY file, and recursive DELETE use DAV methods
+  ---
+  duration_ms: 5.407542
+  type: 'test'
+  ...
+# Subtest: safe writes, guarded destination overwrites, exclusive copies, directory mismatches, root protection
+ok 413 - safe writes, guarded destination overwrites, exclusive copies, directory mismatches, root protection
+  ---
+  duration_ms: 8.558083
+  type: 'test'
+  ...
+# Subtest: unsupported semantics fail without network or lossy read-modify-write
+ok 414 - unsupported semantics fail without network or lossy read-modify-write
+  ---
+  duration_ms: 0.734583
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL file:///dav
+ok 415 - rejects unsafe base URL file:///dav
+  ---
+  duration_ms: 0.098167
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://user:password@example.test/dav
+ok 416 - rejects unsafe base URL https://user:password@example.test/dav
+  ---
+  duration_ms: 0.046708
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav?query
+ok 417 - rejects unsafe base URL https://example.test/dav?query
+  ---
+  duration_ms: 0.168334
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav\#fragment
+ok 418 - rejects unsafe base URL https://example.test/dav\#fragment
+  ---
+  duration_ms: 0.232166
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav?
+ok 419 - rejects unsafe base URL https://example.test/dav?
+  ---
+  duration_ms: 0.048
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav\#
+ok 420 - rejects unsafe base URL https://example.test/dav\#
+  ---
+  duration_ms: 0.032875
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/a/../dav
+ok 421 - rejects unsafe base URL https://example.test/a/../dav
+  ---
+  duration_ms: 0.036291
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/a/%2e%2e/dav
+ok 422 - rejects unsafe base URL https://example.test/a/%2e%2e/dav
+  ---
+  duration_ms: 0.033875
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav/%2fescape
+ok 423 - rejects unsafe base URL https://example.test/dav/%2fescape
+  ---
+  duration_ms: 0.036625
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav/%5cescape
+ok 424 - rejects unsafe base URL https://example.test/dav/%5cescape
+  ---
+  duration_ms: 0.032625
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav//nested
+ok 425 - rejects unsafe base URL https://example.test/dav//nested
+  ---
+  duration_ms: 0.039916
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav/%zz
+ok 426 - rejects unsafe base URL https://example.test/dav/%zz
+  ---
+  duration_ms: 0.032042
+  type: 'test'
+  ...
+# Subtest: rejects unsafe base URL https://example.test/dav\\nested
+ok 427 - rejects unsafe base URL https://example.test/dav\\nested
+  ---
+  duration_ms: 0.026291
+  type: 'test'
+  ...
+# Subtest: explicit HTTPS credentials only; every request disables implicit credentials and redirects
+ok 428 - explicit HTTPS credentials only; every request disables implicit credentials and redirects
+  ---
+  duration_ms: 0.863417
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "../outside" before transport
+ok 429 - rejects traversal or invalid caller path "../outside" before transport
+  ---
+  duration_ms: 0.149042
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "/../../outside" before transport
+ok 430 - rejects traversal or invalid caller path "/../../outside" before transport
+  ---
+  duration_ms: 0.124791
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "/a/../../outside" before transport
+ok 431 - rejects traversal or invalid caller path "/a/../../outside" before transport
+  ---
+  duration_ms: 0.613042
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "/bad\\u0000name" before transport
+ok 432 - rejects traversal or invalid caller path "/bad\\u0000name" before transport
+  ---
+  duration_ms: 0.063875
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "/bad\\\\name" before transport
+ok 433 - rejects traversal or invalid caller path "/bad\\\\name" before transport
+  ---
+  duration_ms: 0.037541
+  type: 'test'
+  ...
+# Subtest: rejects traversal or invalid caller path "/\\ud800" before transport
+ok 434 - rejects traversal or invalid caller path "/\\ud800" before transport
+  ---
+  duration_ms: 0.042667
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href https://evil.test/dav/file
+ok 435 - rejects unconfined or ambiguous response href https://evil.test/dav/file
+  ---
+  duration_ms: 0.294167
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href https://example.test/other/file
+ok 436 - rejects unconfined or ambiguous response href https://example.test/other/file
+  ---
+  duration_ms: 0.168708
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav-evil/file
+ok 437 - rejects unconfined or ambiguous response href /dav-evil/file
+  ---
+  duration_ms: 0.148209
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/../file
+ok 438 - rejects unconfined or ambiguous response href /dav/../file
+  ---
+  duration_ms: 0.14
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/%2e%2e/file
+ok 439 - rejects unconfined or ambiguous response href /dav/%2e%2e/file
+  ---
+  duration_ms: 0.131709
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/%2Foutside
+ok 440 - rejects unconfined or ambiguous response href /dav/%2Foutside
+  ---
+  duration_ms: 0.141708
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/%5coutside
+ok 441 - rejects unconfined or ambiguous response href /dav/%5coutside
+  ---
+  duration_ms: 0.1315
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/%00name
+ok 442 - rejects unconfined or ambiguous response href /dav/%00name
+  ---
+  duration_ms: 0.149625
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/%zz
+ok 443 - rejects unconfined or ambiguous response href /dav/%zz
+  ---
+  duration_ms: 0.127959
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/file?query
+ok 444 - rejects unconfined or ambiguous response href /dav/file?query
+  ---
+  duration_ms: 0.18975
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/file\#fragment
+ok 445 - rejects unconfined or ambiguous response href /dav/file\#fragment
+  ---
+  duration_ms: 0.141
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/file?
+ok 446 - rejects unconfined or ambiguous response href /dav/file?
+  ---
+  duration_ms: 0.127792
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/file\#
+ok 447 - rejects unconfined or ambiguous response href /dav/file\#
+  ---
+  duration_ms: 0.133209
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href //example.test/dav/file
+ok 448 - rejects unconfined or ambiguous response href //example.test/dav/file
+  ---
+  duration_ms: 0.312083
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href file
+ok 449 - rejects unconfined or ambiguous response href file
+  ---
+  duration_ms: 0.324625
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav/sub/deep
+ok 450 - rejects unconfined or ambiguous response href /dav/sub/deep
+  ---
+  duration_ms: 0.28025
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href https://user:pass@example.test/dav/file
+ok 451 - rejects unconfined or ambiguous response href https://user:pass@example.test/dav/file
+  ---
+  duration_ms: 0.327667
+  type: 'test'
+  ...
+# Subtest: rejects unconfined or ambiguous response href /dav//file
+ok 452 - rejects unconfined or ambiguous response href /dav//file
+  ---
+  duration_ms: 0.402375
+  type: 'test'
+  ...
+# Subtest: response namespaces, default namespace, entities and split successful/failed propstats
+ok 453 - response namespaces, default namespace, entities and split successful/failed propstats
+  ---
+  duration_ms: 0.829
+  type: 'test'
+  ...
+# Subtest: UTF-16 XML is decoded with BOM
+ok 454 - UTF-16 XML is decoded with BOM
+  ---
+  duration_ms: 0.964
+  type: 'test'
+  ...
+# Subtest: missing required metadata is unsupported, denied property fails, malformed status is rejected
+ok 455 - missing required metadata is unsupported, denied property fails, malformed status is rejected
+  ---
+  duration_ms: 2.433667
+  type: 'test'
+  ...
+# Subtest: HTTP 401 maps to EACCES, without retries or redirects
+ok 456 - HTTP 401 maps to EACCES, without retries or redirects
+  ---
+  duration_ms: 0.1945
+  type: 'test'
+  ...
+# Subtest: HTTP 403 maps to EACCES, without retries or redirects
+ok 457 - HTTP 403 maps to EACCES, without retries or redirects
+  ---
+  duration_ms: 0.093292
+  type: 'test'
+  ...
+# Subtest: HTTP 404 maps to ENOENT, without retries or redirects
+ok 458 - HTTP 404 maps to ENOENT, without retries or redirects
+  ---
+  duration_ms: 0.092667
+  type: 'test'
+  ...
+# Subtest: HTTP 423 maps to EBUSY, without retries or redirects
+ok 459 - HTTP 423 maps to EBUSY, without retries or redirects
+  ---
+  duration_ms: 0.074584
+  type: 'test'
+  ...
+# Subtest: HTTP 429 maps to EAGAIN, without retries or redirects
+ok 460 - HTTP 429 maps to EAGAIN, without retries or redirects
+  ---
+  duration_ms: 0.072667
+  type: 'test'
+  ...
+# Subtest: HTTP 500 maps to EIO, without retries or redirects
+ok 461 - HTTP 500 maps to EIO, without retries or redirects
+  ---
+  duration_ms: 0.071875
+  type: 'test'
+  ...
+# Subtest: HTTP 501 maps to ENOTSUP, without retries or redirects
+ok 462 - HTTP 501 maps to ENOTSUP, without retries or redirects
+  ---
+  duration_ms: 0.0685
+  type: 'test'
+  ...
+# Subtest: HTTP 507 maps to ENOSPC, without retries or redirects
+ok 463 - HTTP 507 maps to ENOSPC, without retries or redirects
+  ---
+  duration_ms: 0.066208
+  type: 'test'
+  ...
+# Subtest: HTTP 301 maps to ENOTSUP, without retries or redirects
+ok 464 - HTTP 301 maps to ENOTSUP, without retries or redirects
+  ---
+  duration_ms: 0.067125
+  type: 'test'
+  ...
+# Subtest: HTTP 302 maps to ENOTSUP, without retries or redirects
+ok 465 - HTTP 302 maps to ENOTSUP, without retries or redirects
+  ---
+  duration_ms: 0.074375
+  type: 'test'
+  ...
+# Subtest: HTTP 307 maps to ENOTSUP, without retries or redirects
+ok 466 - HTTP 307 maps to ENOTSUP, without retries or redirects
+  ---
+  duration_ms: 0.06875
+  type: 'test'
+  ...
+# Subtest: HTTP 308 maps to ENOTSUP, without retries or redirects
+ok 467 - HTTP 308 maps to ENOTSUP, without retries or redirects
+  ---
+  duration_ms: 0.067084
+  type: 'test'
+  ...
+# Subtest: HTTP 206 maps to EIO, without retries or redirects
+ok 468 - HTTP 206 maps to EIO, without retries or redirects
+  ---
+  duration_ms: 0.065042
+  type: 'test'
+  ...
+# Subtest: transport-followed redirects and mismatched final URL are rejected
+ok 469 - transport-followed redirects and mismatched final URL are rejected
+  ---
+  duration_ms: 0.4565
+  type: 'test'
+  ...
+# Subtest: partial DELETE failure is never swallowed by force
+ok 470 - partial DELETE failure is never swallowed by force
+  ---
+  duration_ms: 0.461541
+  type: 'test'
+  ...
+# Subtest: standard depth-one listings are bounded, and pagination is never silently truncated
+ok 471 - standard depth-one listings are bounded, and pagination is never silently truncated
+  ---
+  duration_ms: 7.557125
+  type: 'test'
+  ...
+# Subtest: GET response bounds count actual streamed bytes and cancel on excess
+ok 472 - GET response bounds count actual streamed bytes and cancel on excess
+  ---
+  duration_ms: 0.555625
+  type: 'test'
+  ...
+# Subtest: abort signals, body cancellation, timeouts and transport failures normalize errors
+ok 473 - abort signals, body cancellation, timeouts and transport failures normalize errors
+  ---
+  duration_ms: 34.485875
+  type: 'test'
+  ...
+# Subtest: real HTTP fetch exercises loopback PROPFIND/GET/PUT/MKCOL/MOVE/COPY/DELETE
+ok 474 - real HTTP fetch exercises loopback PROPFIND/GET/PUT/MKCOL/MOVE/COPY/DELETE
+  ---
+  duration_ms: 37.682584
+  type: 'test'
+  ...
+# Subtest: real fetch never contacts a redirect target
+ok 475 - real fetch never contacts a redirect target
+  ---
+  duration_ms: 3.759292
+  type: 'test'
+  ...
+# Subtest: bounded stress cycle preserves hundreds of binary and escaped resources
+ok 476 - bounded stress cycle preserves hundreds of binary and escaped resources
+  ---
+  duration_ms: 263.399042
+  type: 'test'
+  ...
+# Subtest: exclusive COPY handles a destination created after preflight
+ok 477 - exclusive COPY handles a destination created after preflight
+  ---
+  duration_ms: 0.437833
+  type: 'test'
+  ...
+# Subtest: recursive mkdir tolerates a concurrently created collection
+ok 478 - recursive mkdir tolerates a concurrently created collection
+  ---
+  duration_ms: 0.40725
+  type: 'test'
+  ...
+# Subtest: malformed XML and DTD responses become filesystem EIO
+ok 479 - malformed XML and DTD responses become filesystem EIO
+  ---
+  duration_ms: 0.358458
+  type: 'test'
+  ...
+# Subtest: namespace scopes, prefix rebinding and default namespace undeclaration
+ok 480 - namespace scopes, prefix rebinding and default namespace undeclaration
+  ---
+  duration_ms: 1.451042
+  type: 'test'
+  ...
+# Subtest: escaped text, numeric references, CDATA, comments and processing instructions
+ok 481 - escaped text, numeric references, CDATA, comments and processing instructions
+  ---
+  duration_ms: 0.455667
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML ""
+ok 482 - rejects malformed or unsafe XML ""
+  ---
+  duration_ms: 0.178791
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>"
+ok 483 - rejects malformed or unsafe XML "<root>"
+  ---
+  duration_ms: 0.05425
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root></other>"
+ok 484 - rejects malformed or unsafe XML "<root></other>"
+  ---
+  duration_ms: 0.045958
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<a/><b/>"
+ok 485 - rejects malformed or unsafe XML "<a/><b/>"
+  ---
+  duration_ms: 0.049334
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "text<root/>"
+ok 486 - rejects malformed or unsafe XML "text<root/>"
+  ---
+  duration_ms: 0.046208
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root/>text"
+ok 487 - rejects malformed or unsafe XML "<root/>text"
+  ---
+  duration_ms: 0.102333
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<p:root/>"
+ok 488 - rejects malformed or unsafe XML "<p:root/>"
+  ---
+  duration_ms: 0.176167
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root p:a=\\"value\\"/>"
+ok 489 - rejects malformed or unsafe XML "<root p:a=\\"value\\"/>"
+  ---
+  duration_ms: 0.259167
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root a=\\"1\\" a=\\"2\\"/>"
+ok 490 - rejects malformed or unsafe XML "<root a=\\"1\\" a=\\"2\\"/>"
+  ---
+  duration_ms: 0.058791
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns:a=\\"urn:x\\" xmlns:b=\\"urn:x\\" a:key=\\"1\\" b:key=\\"2\\"/>"
+ok 491 - rejects malformed or unsafe XML "<root xmlns:a=\\"urn:x\\" xmlns:b=\\"urn:x\\" a:key=\\"1\\" b:key=\\"2\\"/>"
+  ---
+  duration_ms: 0.057208
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns:xml=\\"urn:wrong\\"/>"
+ok 492 - rejects malformed or unsafe XML "<root xmlns:xml=\\"urn:wrong\\"/>"
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns:p=\\"http://www.w3.org/XML/1998/namespace\\"/>"
+ok 493 - rejects malformed or unsafe XML "<root xmlns:p=\\"http://www.w3.org/XML/1998/namespace\\"/>"
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns:xmlns=\\"urn:x\\"/>"
+ok 494 - rejects malformed or unsafe XML "<root xmlns:xmlns=\\"urn:x\\"/>"
+  ---
+  duration_ms: 0.033125
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns:p=\\"\\"/>"
+ok 495 - rejects malformed or unsafe XML "<root xmlns:p=\\"\\"/>"
+  ---
+  duration_ms: 0.033666
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root xmlns=\\"http://www.w3.org/2000/xmlns/\\"/>"
+ok 496 - rejects malformed or unsafe XML "<root xmlns=\\"http://www.w3.org/2000/xmlns/\\"/>"
+  ---
+  duration_ms: 0.106292
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<xmlns:root/>"
+ok 497 - rejects malformed or unsafe XML "<xmlns:root/>"
+  ---
+  duration_ms: 0.039041
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&unknown;</root>"
+ok 498 - rejects malformed or unsafe XML "<root>&unknown;</root>"
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&amp</root>"
+ok 499 - rejects malformed or unsafe XML "<root>&amp</root>"
+  ---
+  duration_ms: 0.030917
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&\#0;</root>"
+ok 500 - rejects malformed or unsafe XML "<root>&\#0;</root>"
+  ---
+  duration_ms: 0.055834
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&\#xD800;</root>"
+ok 501 - rejects malformed or unsafe XML "<root>&\#xD800;</root>"
+  ---
+  duration_ms: 0.696125
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&\#x110000;</root>"
+ok 502 - rejects malformed or unsafe XML "<root>&\#x110000;</root>"
+  ---
+  duration_ms: 0.086
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&\#-1;</root>"
+ok 503 - rejects malformed or unsafe XML "<root>&\#-1;</root>"
+  ---
+  duration_ms: 0.039167
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>&\#NaN;</root>"
+ok 504 - rejects malformed or unsafe XML "<root>&\#NaN;</root>"
+  ---
+  duration_ms: 0.029583
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>\\u0000</root>"
+ok 505 - rejects malformed or unsafe XML "<root>\\u0000</root>"
+  ---
+  duration_ms: 0.025416
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>\\ud800</root>"
+ok 506 - rejects malformed or unsafe XML "<root>\\ud800</root>"
+  ---
+  duration_ms: 0.020541
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<!DOCTYPE root SYSTEM \\"file:///etc/passwd\\"><root/>"
+ok 507 - rejects malformed or unsafe XML "<!DOCTYPE root SYSTEM \\"file:///etc/passwd\\"><root/>"
+  ---
+  duration_ms: 0.022833
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<!DOCTYPE root [<!ENTITY x \\"boom\\">]><root>&x;</root>"
+ok 508 - rejects malformed or unsafe XML "<!DOCTYPE root [<!ENTITY x \\"boom\\">]><root>&x;</root>"
+  ---
+  duration_ms: 0.022375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root a=\\"bad<value\\"/>"
+ok 509 - rejects malformed or unsafe XML "<root a=\\"bad<value\\"/>"
+  ---
+  duration_ms: 0.025375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root a=unquoted/>"
+ok 510 - rejects malformed or unsafe XML "<root a=unquoted/>"
+  ---
+  duration_ms: 0.044792
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root a=\\"unterminated>"
+ok 511 - rejects malformed or unsafe XML "<root a=\\"unterminated>"
+  ---
+  duration_ms: 0.025375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root a=\\"1\\"b=\\"2\\"/>"
+ok 512 - rejects malformed or unsafe XML "<root a=\\"1\\"b=\\"2\\"/>"
+  ---
+  duration_ms: 0.025333
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root>]]></root>"
+ok 513 - rejects malformed or unsafe XML "<root>]]></root>"
+  ---
+  duration_ms: 0.022625
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><!-- bad -- comment --></root>"
+ok 514 - rejects malformed or unsafe XML "<root><!-- bad -- comment --></root>"
+  ---
+  duration_ms: 0.024333
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><!--bad---></root>"
+ok 515 - rejects malformed or unsafe XML "<root><!--bad---></root>"
+  ---
+  duration_ms: 0.022291
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><![CDATA[bad</root>"
+ok 516 - rejects malformed or unsafe XML "<root><![CDATA[bad</root>"
+  ---
+  duration_ms: 0.022375
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<![CDATA[outside]]><root/>"
+ok 517 - rejects malformed or unsafe XML "<![CDATA[outside]]><root/>"
+  ---
+  duration_ms: 0.020667
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><?xml version=\\"1.0\\"?></root>"
+ok 518 - rejects malformed or unsafe XML "<root><?xml version=\\"1.0\\"?></root>"
+  ---
+  duration_ms: 0.023917
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<?xml version=\\"1.1\\"?><root/>"
+ok 519 - rejects malformed or unsafe XML "<?xml version=\\"1.1\\"?><root/>"
+  ---
+  duration_ms: 0.103958
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?><root/>"
+ok 520 - rejects malformed or unsafe XML "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?><root/>"
+  ---
+  duration_ms: 0.024084
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><a:b:c/></root>"
+ok 521 - rejects malformed or unsafe XML "<root><a:b:c/></root>"
+  ---
+  duration_ms: 0.024125
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root><1bad/></root>"
+ok 522 - rejects malformed or unsafe XML "<root><1bad/></root>"
+  ---
+  duration_ms: 0.024791
+  type: 'test'
+  ...
+# Subtest: rejects malformed or unsafe XML "<root/> "
+ok 523 - rejects malformed or unsafe XML "<root/> "
+  ---
+  duration_ms: 0.028708
+  type: 'test'
+  ...
+# Subtest: bounded nesting and node counts
+ok 524 - bounded nesting and node counts
+  ---
+  duration_ms: 1.674333
+  type: 'test'
+  ...
+# Subtest: namespace budget is scoped, not consumed by independent sibling declarations
+ok 525 - namespace budget is scoped, not consumed by independent sibling declarations
+  ---
+  duration_ms: 8.845417
+  type: 'test'
+  ...
+# Subtest: duplicate DAV children and mixed scalar content reject ambiguity
+ok 526 - duplicate DAV children and mixed scalar content reject ambiguity
+  ---
+  duration_ms: 0.120667
+  type: 'test'
+  ...
+1..526
+# tests 526
+# suites 0
+# pass 526
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1050.239709

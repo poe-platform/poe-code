@@ -1,0 +1,30 @@
+{
+  "name": "s3-policy86",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/stress/s3-policy/rename.test.ts",
+    "tests/stress/s3-policy/bounded-races.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:03.344Z",
+  "finishedAt": "2026-08-27T01:40:03.544Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 86,
+    "pass": 86,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "e207b023d25cdae84bec9a0b6ea07d812b58e9c9f3aa0a738e962138576909d0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

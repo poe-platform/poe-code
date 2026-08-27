@@ -1,0 +1,5 @@
+{
+  "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+  "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+  "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e"
+}

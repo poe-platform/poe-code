@@ -1,0 +1,29 @@
+{
+  "name": "original4",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/copy-identity.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:39:57.635Z",
+  "finishedAt": "2026-08-27T01:39:57.827Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "3fae0c352b10bcde0c02fdc2f49821da846c13a48e316cc5882e804774791880",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

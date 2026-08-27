@@ -1,0 +1,119 @@
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:8: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:18: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:22: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:81: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:84: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:89: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:153: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver-binding.patch-data:153: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data:6: new blank line at EOF.
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:1: trailing whitespace.
++HTTP/1.1 200 OK
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:2: trailing whitespace.
++Content-Length: 14
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:3: trailing whitespace.
++Date: Thu, 01 Jan 1970 00:00:00 GMT
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:4: trailing whitespace.
++X-Qualified: required-header
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:5: trailing whitespace.
++Connection: close
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:6: trailing whitespace.
++
+tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data:6: new blank line at EOF.

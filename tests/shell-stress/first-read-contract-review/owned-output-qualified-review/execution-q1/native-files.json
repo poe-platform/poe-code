@@ -1,0 +1,147 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/body.data",
+    "bytes": 14,
+    "sha256": "9417eff9a043065e41e1d7dc6c089ba77559b39ce922353b7dc707a6ff18b5a2"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C01/statuses.data",
+    "bytes": 6,
+    "sha256": "9b31a73a64273da34cb4ceacf5d72e67891357aed2d39bdccf422c524a8b9945"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/body.data",
+    "bytes": 14,
+    "sha256": "9417eff9a043065e41e1d7dc6c089ba77559b39ce922353b7dc707a6ff18b5a2"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C02/statuses.data",
+    "bytes": 6,
+    "sha256": "9b31a73a64273da34cb4ceacf5d72e67891357aed2d39bdccf422c524a8b9945"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/body.data",
+    "bytes": 14,
+    "sha256": "9417eff9a043065e41e1d7dc6c089ba77559b39ce922353b7dc707a6ff18b5a2"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C03/statuses.data",
+    "bytes": 6,
+    "sha256": "9b31a73a64273da34cb4ceacf5d72e67891357aed2d39bdccf422c524a8b9945"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C04/statuses.data",
+    "bytes": 7,
+    "sha256": "9d8c54aae04bb83937ce6614204494109a38f42eab1baf37c98ac49464e80415"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C05/statuses.data",
+    "bytes": 8,
+    "sha256": "630cd0ce1cba36eadea6342b8e5015e62e34d3a1acfcd1be77826133798bec0b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/body.data",
+    "bytes": 14,
+    "sha256": "9417eff9a043065e41e1d7dc6c089ba77559b39ce922353b7dc707a6ff18b5a2"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C06/statuses.data",
+    "bytes": 6,
+    "sha256": "9b31a73a64273da34cb4ceacf5d72e67891357aed2d39bdccf422c524a8b9945"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/body.data",
+    "bytes": 14,
+    "sha256": "9417eff9a043065e41e1d7dc6c089ba77559b39ce922353b7dc707a6ff18b5a2"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C07/statuses.data",
+    "bytes": 6,
+    "sha256": "9b31a73a64273da34cb4ceacf5d72e67891357aed2d39bdccf422c524a8b9945"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/headers.data",
+    "bytes": 125,
+    "sha256": "8e8fa5cf1a7c8487288da77102a7d072c1c44460c4e812b72a7cb5f1cefba144"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/independent.data",
+    "bytes": 17,
+    "sha256": "5e477c36177603ad00bf56117e70b15dfc5d5e2d67b810ca41b10fa9ae9baf2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/native-capture/C08/statuses.data",
+    "bytes": 8,
+    "sha256": "630cd0ce1cba36eadea6342b8e5015e62e34d3a1acfcd1be77826133798bec0b"
+  }
+]

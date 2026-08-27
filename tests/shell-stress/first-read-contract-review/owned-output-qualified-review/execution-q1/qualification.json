@@ -1,0 +1,656 @@
+{
+  "at": "2026-08-27T12:55:25.275Z",
+  "preRunCommit": "4bb4ad85",
+  "rawCounts": {
+    "PASS": 31,
+    "BLOCKED": 1
+  },
+  "qualifiedCounts": {
+    "PASS": 29,
+    "BLOCKED": 3
+  },
+  "logical": {
+    "PASS": 11,
+    "BLOCKED": 1
+  },
+  "parameters": [
+    {
+      "id": "S01",
+      "parameter": "original-local-pending-source",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S02",
+      "parameter": "original-mock-s3-pending-source",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S03",
+      "parameter": "original-loopback-body-withheld",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S04",
+      "parameter": "original-loopback-body-withheld",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S05",
+      "parameter": "original-loopback-headers-withheld",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S06",
+      "parameter": "upload-before-eof",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S06",
+      "parameter": "retained-reused-buffer",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S06",
+      "parameter": "awaited-write-backpressure",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-request",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-streaming-upload",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S08",
+      "parameter": "required-body-file-and-stdout-writeout",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S08",
+      "parameter": "stdout-body-and-required-header-file",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S08",
+      "parameter": "required-files-writeout-and-independent-stderr",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S09",
+      "parameter": "three-level-overlapping-cleanup-and-late-admission",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S10",
+      "parameter": "close-child-then-parent-with-live-sibling-effects",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-reason-zero",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "io-error-before-caller-abort",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-abort-before-late-io-rejection",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-resolve",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-reject",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-error-cleanup-error",
+      "raw": "PASS",
+      "qualified": "BLOCKED",
+      "reason": "Local error retained and caller/cleanup priority passed, but selectedExecution.reached=false; selected execution before caller ordering remains unproven"
+    },
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-zero-cleanup-error",
+      "raw": "PASS",
+      "qualified": "BLOCKED",
+      "reason": "Local error retained and caller/cleanup priority passed, but selectedExecution.reached=false; selected execution before caller ordering remains unproven"
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-first-error-late-execution-zero",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-then-caller-zero",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-then-caller-default-undefined",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "execution-undefined-cleanup-error",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "cleanup-undefined-no-primary",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "execution-error-cleanup-zero",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-synthetic-caller-undefined",
+      "raw": "BLOCKED",
+      "qualified": "BLOCKED",
+      "reason": "Synthetic literal-undefined public signal binding unavailable"
+    },
+    {
+      "id": "S11",
+      "parameter": "cleanup-zero-no-primary",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S09",
+      "parameter": "parent-abort-waits-admitted-child-cleanup",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    },
+    {
+      "id": "S10",
+      "parameter": "closed-child-parent-error-sibling-effects",
+      "raw": "PASS",
+      "qualified": "PASS",
+      "reason": null
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "C01",
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "candidateStatus": 0,
+      "candidateNested": 0,
+      "baselineNested": {
+        "available": true,
+        "value": 0
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "0 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": false,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C02",
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "candidateStatus": 0,
+      "candidateNested": 141,
+      "baselineNested": {
+        "available": false,
+        "reason": "pipeline abort wins; no fabricated value"
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "0 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": true,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C03",
+      "originalStatus": 141,
+      "currentStatus": 141,
+      "candidateStatus": 141,
+      "candidateNested": 141,
+      "baselineNested": {
+        "available": false,
+        "reason": "pipeline abort wins; no fabricated value"
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "0 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": true,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C04",
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "candidateStatus": 0,
+      "candidateNested": 141,
+      "baselineNested": {
+        "available": false,
+        "reason": "pipeline abort wins; no fabricated value"
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "23 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": true,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C05",
+      "originalStatus": 141,
+      "currentStatus": 141,
+      "candidateStatus": 141,
+      "candidateNested": 141,
+      "baselineNested": {
+        "available": false,
+        "reason": "pipeline abort wins; no fabricated value"
+      },
+      "nativeShellStatus": 23,
+      "nativePipelineVector": "23 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": true,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C06",
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "candidateStatus": 0,
+      "candidateNested": 0,
+      "baselineNested": {
+        "available": true,
+        "value": 0
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "0 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": false,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C07",
+      "originalStatus": 23,
+      "currentStatus": 23,
+      "candidateStatus": 23,
+      "candidateNested": 23,
+      "baselineNested": {
+        "available": true,
+        "value": 23
+      },
+      "nativeShellStatus": 0,
+      "nativePipelineVector": "0 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": false,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    },
+    {
+      "id": "C08",
+      "originalStatus": 23,
+      "currentStatus": 23,
+      "candidateStatus": 23,
+      "candidateNested": 23,
+      "baselineNested": {
+        "available": true,
+        "value": 23
+      },
+      "nativeShellStatus": 23,
+      "nativePipelineVector": "23 0",
+      "publicStatusAndStdoutEqualOriginal": true,
+      "bodyAndHeaderEffectsEqualOriginal": true,
+      "independentEffectDifference": false,
+      "candidateIndependentEffectsComplete": true,
+      "completeNestedOrVectorParity": false
+    }
+  ],
+  "comparisonDenominators": {
+    "profiles": 8,
+    "productRecords": 24,
+    "nativeRecords": 8,
+    "total": 32,
+    "notAcceptanceParameters": true
+  },
+  "sourceFixes": 0,
+  "fixtureRerunRounds": 0,
+  "historicalReplays": 0,
+  "sourceIds": {
+    "source": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+    "tests": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+    "compiled": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+    "currentSourceConfig": "cbdddeb2d6b319c688c38573e89b334dd5fab66f11403f8469e543dfd92f54b9"
+  },
+  "beforeAfter": {
+    "inputPaths": 7676,
+    "identical": true,
+    "executionPaths": 232,
+    "identicalExecutionBytes": true
+  },
+  "closure": {
+    "ownedFixtureGroups": [
+      {
+        "pid": 80246,
+        "label": "S01/original-local-pending-source",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80248,
+        "label": "S02/original-mock-s3-pending-source",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80250,
+        "label": "S03/original-loopback-body-withheld",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80252,
+        "label": "S04/original-loopback-body-withheld",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80254,
+        "label": "S05/original-loopback-headers-withheld",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80266,
+        "label": "S06/upload-before-eof",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80268,
+        "label": "S06/retained-reused-buffer",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80269,
+        "label": "S06/awaited-write-backpressure",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80270,
+        "label": "S07/stdout-only-request",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80271,
+        "label": "S07/stdout-only-streaming-upload",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80272,
+        "label": "S08/required-body-file-and-stdout-writeout",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80273,
+        "label": "S08/stdout-body-and-required-header-file",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80274,
+        "label": "S08/required-files-writeout-and-independent-stderr",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80282,
+        "label": "S09/three-level-overlapping-cleanup-and-late-admission",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80286,
+        "label": "S10/close-child-then-parent-with-live-sibling-effects",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80287,
+        "label": "S11/caller-reason-zero",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80288,
+        "label": "S11/io-error-before-caller-abort",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80289,
+        "label": "S11/caller-abort-before-late-io-rejection",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80290,
+        "label": "S12/opaque-read-late-resolve",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80291,
+        "label": "S12/opaque-read-late-reject",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80292,
+        "label": "S11/error-first-caller-error-cleanup-error",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80293,
+        "label": "S11/error-first-caller-zero-cleanup-error",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80307,
+        "label": "S11/caller-first-error-late-execution-zero",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80310,
+        "label": "S11/normal-close-then-caller-zero",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80311,
+        "label": "S11/normal-close-then-caller-default-undefined",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80314,
+        "label": "S11/execution-undefined-cleanup-error",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80317,
+        "label": "S11/cleanup-undefined-no-primary",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80322,
+        "label": "S11/execution-error-cleanup-zero",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80324,
+        "label": "S11/normal-close-synthetic-caller-undefined",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80331,
+        "label": "S11/cleanup-zero-no-primary",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80332,
+        "label": "S09/parent-abort-waits-admitted-child-cleanup",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80333,
+        "label": "S10/closed-child-parent-error-sibling-effects",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80597,
+        "label": "native/C01",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80600,
+        "label": "native/C02",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80603,
+        "label": "native/C03",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80606,
+        "label": "native/C04",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80609,
+        "label": "native/C05",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80612,
+        "label": "native/C06",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80615,
+        "label": "native/C07",
+        "directAbsent": true,
+        "groupAbsent": true
+      },
+      {
+        "pid": 80619,
+        "label": "native/C08",
+        "directAbsent": true,
+        "groupAbsent": true
+      }
+    ],
+    "allFixtureTimersSocketsTasksZero": true
+  },
+  "safejsAudit": "NOT AUDITED; REQUIRED BEFORE PROMOTION"
+}

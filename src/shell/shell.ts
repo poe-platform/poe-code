@@ -129,7 +129,8 @@ export class Shell implements PluginHost {
     const stdoutBytes = stdout.bytes();
     const stderrBytes = stderr.bytes();
     return {
-      stdout: new TextDecoder().decode(stdoutBytes), stderr: new TextDecoder().decode(stderrBytes),
+      stdout: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stdoutBytes),
+      stderr: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stderrBytes),
       stdoutBytes, stderrBytes, exitCode,
     };
   }

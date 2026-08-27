@@ -1,0 +1,208 @@
+{
+  "date": "2026-08-27",
+  "baselineHead": "faf6dd13ae69eef2aa0093a71dc6c91ba777bbbc",
+  "invocationSourceCommit": "3aa3a4110c09fbab48d9aa8a8d762f48c8ce56cc",
+  "shellBeforeSha256": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+  "shellAfterSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+  "unchangedRuntimeSha256": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+  "red": {
+    "tests": 64,
+    "pass": 47,
+    "fail": 17,
+    "bomTextFailures": 16,
+    "unrelatedJqDiagnosticFailures": 1,
+    "guard": {
+      "checked": 164,
+      "changed": []
+    }
+  },
+  "initialValidationInvalidation": {
+    "sourceFiles": 156,
+    "checked": 164,
+    "before": "1b81bd7606402b9a30f37ef600ecaaba0d79d550ed1942860bbc51a64a5f905a",
+    "after": "1b4882c9daff3d54678984eed5b40aa4e976235b8794d0ac4822ff70a38cedd6",
+    "changed": [
+      {
+        "path": "src/fs/memory/index.ts",
+        "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+        "after": "e94247b32d53a5f85a082aaad7494dda86e5ec80db3ea26c86766978df31696c"
+      },
+      {
+        "path": "src/fs/mount/COMPARISON.md",
+        "before": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+        "after": "da2ad79b019d6e09f7e4c46440c810a733b2551326be187cf30ee7d419319f10"
+      }
+    ]
+  },
+  "finalValidation": {
+    "headBefore": "f845dd0d728b74576c3e830eabff28a37f673893",
+    "headAfter": "f845dd0d728b74576c3e830eabff28a37f673893",
+    "node": "v22.22.2",
+    "results": [
+      {
+        "name": "BOM64",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-concurrency=1",
+          "--test-reporter=tap",
+          "tests/shell/bom-capture.test.ts"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "counts": {
+          "tests": 64,
+          "pass": 63,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failures": [
+          "not ok 64 - existing jq plugin retains its own JSON input decoding"
+        ],
+        "byteChecks": {
+          "total": 22,
+          "passed": 22
+        },
+        "diagnostics": "not ok 64 - existing jq plugin retains its own JSON input decoding\n  ---\n  duration_ms: 3.843459\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/bom-capture.test.ts:1:6713'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'jq: parse error: Invalid numeric literal at line 1, column 4\\n'\n    - 'jq: invalid JSON input at offset 0\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    jq: invalid JSON input at offset 0\n    \n  actual: |-\n    jq: parse error: Invalid numeric literal at line 1, column 4\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/bom-capture.test.ts:155:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..64\n# tests 64\n# suites 0\n# pass 63\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 147.7335\n",
+        "stderr": ""
+      },
+      {
+        "name": "invocation343",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "tests/shell/invocation-modes.test.ts",
+          "tests/shell/invocation-closure-discovery.test.ts",
+          "tests/shell/invocation-closure-read.test.ts",
+          "tests/shell/invocation-closure-sh.test.ts"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "counts": {
+          "tests": 343,
+          "pass": 343,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failures": [],
+        "stderr": ""
+      },
+      {
+        "name": "global",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "--noEmit"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "counts": {},
+        "failures": [],
+        "diagnostics": "",
+        "stderr": ""
+      },
+      {
+        "name": "build",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "counts": {},
+        "failures": [],
+        "diagnostics": "",
+        "stderr": ""
+      },
+      {
+        "name": "benchmark",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "counts": {},
+        "failures": [],
+        "diagnostics": "",
+        "stderr": ""
+      }
+    ],
+    "guard": {
+      "checked": 164,
+      "sourceFiles": 156,
+      "before": "1b4882c9daff3d54678984eed5b40aa4e976235b8794d0ac4822ff70a38cedd6",
+      "after": "1b4882c9daff3d54678984eed5b40aa4e976235b8794d0ac4822ff70a38cedd6",
+      "changed": []
+    },
+    "shellSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "runtimeSha256": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+    "immutable": {
+      "tests/shell/bom-capture.test.ts": "214f589c39c3b6671178ed6e92c7917c835adb0dd559a9f83c2a1f1ccc3d183a",
+      "tests/shell/BOM_CAPTURE.md": "52bfa1d52d47f2edf3f7ab9fd5204631012744de760d7dd5de26b728aa833c5c",
+      "tests/shell/bom-capture-evidence.json": "852d34597a0ef82c916b870cc0380ed7f72d2ed4def489883bd864e3da76f0df",
+      "tests/shell/invocation-modes.test.ts": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "tests/shell/invocation-closure-discovery.test.ts": "8795cf75c0f40d45fd7ff713b0808df5622e9fcbc5b4e469e297b23c3456a8d9",
+      "tests/shell/invocation-closure-read.test.ts": "80894abd1a7514f92dde935c5092ea341edc1955251d0a520c32f9ed8d5138d0",
+      "tests/shell/invocation-closure-sh.test.ts": "52d7696d5c46745204cb9472437de7e35fbe7543eaa87b2e88e54e430ecb760b",
+      "/tmp/safe-bash-shell-invocation-closure-ready.txt": "32ec7cdab5bd3102cce95eaa930dd44d9289e924c956784f85e70dd9fa0a5738"
+    }
+  },
+  "jsonControls": {
+    "actualShellImport": "file:///Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+    "rows": [
+      {
+        "name": "plain",
+        "exitCode": 0,
+        "stdout": "{\"ok\":1}\n",
+        "stderr": "",
+        "stdoutHex": "7b226f6b223a317d0a",
+        "stderrHex": ""
+      },
+      {
+        "name": "BOM string",
+        "exitCode": 5,
+        "stdout": "",
+        "stderr": "jq: parse error: Invalid numeric literal at line 1, column 4\n",
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20340a"
+      },
+      {
+        "name": "BOM bytes",
+        "exitCode": 5,
+        "stdout": "",
+        "stderr": "jq: parse error: Invalid numeric literal at line 1, column 4\n",
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20340a"
+      }
+    ]
+  },
+  "scope": "Only two final Shell.exec result decoders; raw byte capture/sinks/limits/cancellation/default replacement decoding and JSON/shared helpers unchanged",
+  "publicExportsChanged": [],
+  "runtimeDependenciesAdded": [],
+  "limitations": [
+    "Independent64 retains one unrelated exact jq diagnostic failure, not skipped or changed",
+    "Endpoint source guard cannot exclude transient write/revert; moving-worktree author checkpoint, not independent acceptance",
+    "No first-read/NUL/full suites/native Bash/tar tests run",
+    "Prior invocation READY and independent BOM tests/evidence/MD unchanged",
+    "Full shell objective and source/dot/eval remain pending"
+  ]
+}

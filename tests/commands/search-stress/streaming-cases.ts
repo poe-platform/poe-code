@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { toByteSource, type ByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { native, text } from "./harness.js";
+import { nativeDelivery } from "../../stress/harness-timing-20260827/native-delivery.js";
+import { trace } from "../../stress/harness-timing-20260827/trace.js";
+import { withHarnessWatchdog } from "../../stress/harness-timing-20260827/watchdog.js";
+
+trace("streaming-module-ready", {});
 
 const input = Buffer.from("foo\n\0\nno\n");
 const warning = 'binary file matches (found "\\0" byte around offset 4)\n';
@@ -17,36 +21,45 @@ async function search(stdin: ByteSource, write: (chunk: Uint8Array) => Promise<v
   });
 }
 
-function delayedNative(): Promise<{ code: number | null; stdout: string; stderr: string }> {
-  return new Promise((resolve, reject) => {
-    const child = spawn("rg", ["--no-config", "foo", "-"], { stdio: ["pipe", "pipe", "pipe"] });
-    const output: Buffer[] = []; const errors: Buffer[] = [];
-    let offset = 0; let captured = 0; let failure: Error | undefined;
-    const stop = (error: Error) => { failure ??= error; child.kill("SIGKILL"); };
-    const deadline = setTimeout(() => stop(new Error("delayed native deadline")), 3000);
-    const producer = setInterval(() => {
-      child.stdin.write(input.subarray(offset, ++offset));
-      if (offset === input.length) { clearInterval(producer); child.stdin.end(); }
-    }, 25);
-    for (const [stream, chunks] of [[child.stdout, output], [child.stderr, errors]] as const) stream.on("data", (chunk: Buffer) => {
-      captured += chunk.length;
-      if (captured > 1024 * 1024) stop(new Error("delayed native capture limit")); else chunks.push(chunk);
-    });
-    child.stdin.on("error", error => { clearInterval(producer); if ((error as NodeJS.ErrnoException).code !== "EPIPE") stop(error); });
-    child.on("error", stop);
-    child.on("close", (code, signal) => {
-      clearInterval(producer); clearTimeout(deadline);
-      if (failure || signal) reject(failure ?? new Error(`delayed native signal ${signal}`));
-      else resolve({ code, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString() });
-    });
-  });
-}
-
-for (let repetition = 1; repetition <= 3; repetition++) test(`matched 25ms one-byte delivery ${repetition}`, async () => {
+for (let repetition = 1; repetition <= 3; repetition++) test(`output-acknowledged prefix delivery (native explicitly line-buffered) ${repetition}`, async () => {
   const output: Buffer[] = [];
-  const source = (async function* () { for (const byte of input) { await delay(25); yield Uint8Array.of(byte); } })();
-  const [expected, actual] = await Promise.all([delayedNative(), search(source, async chunk => { output.push(Buffer.from(chunk)); })]);
-  assert.deepEqual(expected, { code: 0, stdout: "foo\n" + warning, stderr: "" });
+  let returned = false;
+  const virtual = withHarnessWatchdog(15000, async signal => {
+    let acknowledge!: () => void;
+    const delivered = new Promise<void>(resolve => { acknowledge = resolve; });
+    let rejectAbort!: (reason: unknown) => void;
+    const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject; });
+    void aborted.catch(() => {});
+    const onAbort = () => rejectAbort(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    const source = (async function* () {
+      try {
+        trace("virtual-entered-read", { repetition });
+        yield input.subarray(0, 4);
+        await Promise.race([delivered, aborted]);
+        trace("virtual-suffix-after-output", { repetition });
+        yield input.subarray(4);
+      } finally { returned = true; }
+    })();
+    try {
+      return await search(source, async chunk => {
+        output.push(Buffer.from(chunk));
+        if (Buffer.concat(output).toString() === "foo\n") {
+          trace("virtual-first-data", { repetition }); acknowledge();
+        }
+      }, signal);
+    } finally { signal.removeEventListener("abort", onAbort); await source.return(undefined); }
+  });
+  const [expected, actual] = await Promise.all([nativeDelivery({ lineBuffered: true }).then(evidence => {
+    trace("native-delivery", { repetition, ...evidence }); return evidence;
+  }), virtual]);
+  assert.deepEqual({ code: expected.code, stdout: expected.stdout, stderr: expected.stderr }, { code: 0, stdout: "foo\n" + warning, stderr: "" });
+  assert.equal(expected.ready, true);
+  assert.equal(expected.actualClose, true);
+  assert.equal(expected.ownedListenersRemaining, 0);
+  assert.deepEqual(expected.streamsDestroyed, [true, true, true]);
+  assert.equal(expected.activeTimers, 0);
+  assert.equal(returned, true);
   assert.equal(actual.exitCode, expected.code);
   assert.equal(Buffer.concat(output).toString(), expected.stdout);
 });

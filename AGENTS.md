@@ -36,8 +36,10 @@
   source/tests without coordination. Count optional curl separately from the
   default bundle. The metadata author integration adds chmod/stat/mktemp to
   the earlier 49-command bundle (52 defaults); curl and SafeJS remain optional.
-  Metadata requires a different agent's independent stress/fix review. Its
-  integration is separate from the earlier curl delivery evidence.
+  Archive integration adds tar afterward (53 defaults). Metadata and archive
+  receive different agents' independent stress/fix review; name counts do not
+  establish option coverage. These integrations are separate from earlier curl
+  delivery evidence.
 - Curl finalization `17285d1` records 214 targeted passes across six separately
   counted cohorts, build success and 5/5 built-package checks on network source
   `aa2da57`; `cbde2fe` corrects one stale author assertion using frozen native
@@ -81,6 +83,19 @@
   cannot justify a truncating cross-backend destination open. This is not a
   lease, transaction, ABA defense or pathname-race guarantee. Poincare owns all
   backend identity propagation and copy guards; Curie owns contracts/type tests.
+- `FileSystem.compareEntry?(path, peer, peerPath, options?: FsOptions)` returns
+  `Promise<"same" | "distinct" | "unknown">` for actual followed backing entries.
+  See `src/contracts/filesystem.md`: metadata-only recognized authority, no
+  content acquisition or mutation, unknown stays unknown, real errors/cancellation
+  propagate, and invalid/conflicting answers fail EIO before effects. It does not
+  authorize unlinking an unknown final symlink or establish a lease/ABA defense.
+  No broad guarded-copy trust flag or fabricated per-client identity is approved.
+- With `permissions:false`, creation modes may be advisory, never a privacy
+  guarantee. Chmod remains ENOTSUP; regular-file X_OK may deny EACCES while
+  directory traversal succeeds. Access is a best-effort backend-policy probe,
+  not proof that later GET/PUT succeeds. Preserve real denial, missing, read-only
+  and cancellation errors. The S3 profile ruling is an intentional expectation
+  delta, not a source fix or permission-enforcement claim.
 - Middleware must await or return `next()`. Filesystem adapters and command
   implementations must propagate the supplied signal into host work; helper
   cancellation does not forcibly terminate an uncooperative host operation.
@@ -108,12 +123,12 @@
 - Root exports include delivered shell, standard/text/structured command
   plugins, filesystem adapters/wrappers, and SafeJS bridges. Wrapper package
   subpaths are `./fs/readonly`, `./fs/mount`, and `./fs/overlay`.
-- `agentCommands(options?)` from the package root installs the six delivered
+- `agentCommands(options?)` from the package root installs the eight delivered
   command families as one bundle; `createAgentCommands(options?)` returns their
   definitions. One top-level `replace` controls all registration; preflight all
   collisions before modifying the host registry. Do not install individual
   families again unless replacement is intentional. `text`, `structured`,
-  `search`, and `diffPatch` preserve the existing family option/limit types;
+  `search`, `diffPatch`, `metadata`, and `archive` preserve existing family option/limit types;
   they are not one shared budget. Shell limits remain separate.
 - Wrapper parity is incomplete: mount rejects missing/dangling symlink tails;
   overlay metadata is instance-local, hardlinks are unsupported, stream buffers
@@ -194,16 +209,23 @@
 - Poincare now owns all filesystem source, backend/wrapper tests, adapter
   conformance/stress, and `tests/integration/adapter-tools/**`. Core commands
   and shared contracts remain Curie's; route cross-layer changes explicitly.
-- Curie owns metadata commands/tests and root package/exports/aggregate wiring.
+- Faraday owns metadata production/tests after the author handoff; Curie retains
+  root package/exports/aggregate wiring.
   Do not fabricate unavailable stat fields or remote permission enforcement;
   mktemp uses exclusive VFS creation and requires an existing virtual temporary
   directory and declared permission support. Preserve explicit GNU/BSD oracle
   differences and bounded author evidence, not universal utility parity.
-- Exclude Archimedes' new tar author scope `src/commands/archive/**` and
-  `tests/commands/archive/**`. Archive integration waits for its handoff; only
-  Curie changes root exports/aggregate/package entries. Exclude Dirac's frozen
+- Dirac owns archive production/author tests and independent archive stress after
+  Archimedes' author handoff. Do not edit `src/commands/archive/**` or its tests;
+  only Curie changes root exports/aggregate/package entries. Standalone archive
+  fixtures must not double-install tar after aggregate integration without an
+  intentional replacement. Exclude Dirac's frozen
   integration audit `benchmarks/reports/current-integration/**`; its observations
   must remain separate from moving-worktree and metadata author checkpoints.
+- Curie's table-text author checkpoint `9d1e0fa` is paused for cp/mv/backend
+  compatibility. Paste/comm/join are not yet wired into the root/aggregate; cut
+  already exists. No new tools take priority over the required positive remote
+  workflows and source-preservation guards.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

@@ -1062,6 +1062,95 @@ that any implementation, command, fixture, or test currently exists.
   checkpoints, independently frozen runs and isolated upstream experiments must
   remain distinct.
 
+### August 27, 2026: copy authority, registry and tar integration
+
+- Ownership: Curie owns contracts/core copy/move and root integration; Poincare
+  owns all backend/wrapper implementations and adapter workflow fixtures.
+  Faraday owns metadata independent source/tests; Dirac owns archive independent
+  source/tests and the separate frozen integration audit. Table-text checkpoint
+  `9d1e0fa` remains paused and unexported; no permission to broaden that work is
+  inferred. The user requirements, zero-runtime-dependency preference and 72-hour
+  request remain active and unproven, not replaced by these narrow gates.
+- `37e19b7` fixes core complete scoped-identity comparison and errno-shaped abort
+  preservation; `a0a32a7` additionally rechecks current identity before cp-f unlink
+  and retries with exclusive creation. `7b04783` adds the EXDEV-only move fallback:
+  bounded shared planning budget, copy all content before removal, source
+  rechecks, safe nonrecursive cleanup and rmdir for directories. Unknown existing
+  identities fail before effects. Unsupported timestamp preservation warns, but
+  real errors/cancellation do not become success. No conditional source deletion,
+  pathname lease, ABA defense, rollback or full GNU cp-a/mv parity is claimed.
+- Exact archive `a0a32a765dc61fa890243484a8a55bd4d8b101e0`, no source overlays:
+  build/typecheck pass; core/plugin tests **207/207**, zero skips/TODOs. The unchanged
+  compatibility suite is **33/43**: **28/38 positive workflows**, five rejection
+  controls, ten failures (eight existing-target remote copies, two existing-target
+  remote moves). Preserve original d799cbb 18/38, later frozen59b1269 23/38, and
+  preliminary moving32/43 / 27/38 independently; none is rewritten as a pass.
+- Decision `5076b32`, after source-owner proposal6df52ef and independent29fe1bf:
+  add only `EntryComparison` and optional `FileSystem.compareEntry(path, peer,
+  peerPath, options?: FsOptions): Promise<"same" | "distinct" | "unknown">`.
+  Exact semantics are in `src/contracts/filesystem.md`: recognized metadata-only
+  followed-entry authority, no broad trust flag or fabricated identity, real
+  errors/cancel propagated, invalid/conflicting observations EIO, actual future
+  mutation-target checks retained. Poincare can implement qualified positive
+  remote workflows now; backend closure is not claimed by this type addition.
+- The same contract checkpoint explicitly permits S3's d0948bb advisory creation
+  modes, regular-file X_OK EACCES and directory X_OK traversal profile. Chmod is
+  still unsupported; access does not promise a subsequent GET/PUT authorization.
+  Updating the old ENOTSUP-mode/X_OK fixture is an intentional profile delta, not
+  a product source repair. Keep the historical red row and all byte, exclusivity,
+  denial, cancellation and read-only controls. Poincare owns that fixture work.
+- Consumer `f291156` uses comparison authority before EXDEV copy/delete and
+  forced-copy unlink, without authorizing unknown final-symlink entries. Focused
+  **64/64** and broader core/contracts/plugin **319/319** pass with zero skips.
+  Six focused contract checks pass. These are overlapping author cohorts, not
+  independent closure of the remote positive38/guard suites. Request a different
+  verifier for consumer changes and rerun backend gates when implementations land.
+- Registry test-only `7d0fe7b` records an explicit literal52-name expected set for
+  the intentional metadata addition. Poincare98498c1 changes adapter preflight to
+  22 required capabilities rather than total count. The remaining unchanged
+  eight diagnostic plus twelve jq interoperability cases pass **20/20** at the
+  committed5076b32-era worktree. This is not a runtime fix or retroactive pass of
+  Dirac's dirty57d9d986 audit (9686 pass /164 fail /70 skip;99 preflight failures).
+- Tar root integration `4a737f984e5dab09bc73cf23aa1486d341373175` exports
+  `archiveCommands/createArchiveCommands/createTarCommand`, options/limits, and
+  `virtual-bash/commands/archive`; `agentCommands({archive:{limits}})` includes tar.
+  The registry fixture now explicitly names all53 defaults and preserves collision
+  preflight/replacement tests. Curl/SafeJS remain optional; zero runtime dependencies.
+  Source/author archive tests were not edited. The author128/128 +4built handoff
+  remains separate from Dirac's ongoing independent archive review; hardlink/full
+  tar parity is not certified by root integration.
+- Frozen4a737f9 build passes. Five built-package smoke checks pass: exact53-name
+  registry, archive root/subpath identity, ten fixed export entries and declaration
+  paths, zero-runtime-dependency/lock consistency, and an actual binary tar pipe
+  with VFS source/output bytes preserved. Scoped tests are **476 total:365 pass,
+  111 fail, zero skips/TODOs**. Exact triage:106 archive duplicate-registration
+  setup failures (boundaries20, core10, lifecycle1, options20, safety55); five
+  archive native cases lack the ignored pinned GNU-tar binary in the source-only
+  snapshot. Dirac owns fixture repair; no failure is silently skipped or rescored.
+- Frozen4a737f9 typecheck fails with one owned exact-optional fixture error plus
+  two unowned jq-report implicit-array errors. Owned correction `b291e2a` is
+  test-only, with28/28 rerun and strict exact-optional scoped types passing. The
+  earlier default strict ad-hoc command missed the exact-optional flag; preserve
+  that validation gap. The moving worktree separately showed a jq toWellFormed
+  build error and two shell BOM sink-signature errors, routed to owners; those
+  dirty-source errors are not part of the frozen build result.
+- At the subsequent moving-worktree typecheck on August27 UTC, those earlier
+  diagnostics no longer appear; the sole error is unowned
+  tests/commands/structured-stress/jq-42-independent-review/evidence.test.ts:26,
+  TS18048 on possibly undefined vector.stages. Source owners remain active; this
+  is not a clean committed snapshot or a global typecheck pass. The unchanged
+  twenty registry-dependent diagnostic/jq cases also pass within frozen4a737f9
+  after tar registration, independently of its111 archive-fixture failures.
+- Reproduction of the frozen scoped run: git archive4a737f9 into a fresh directory,
+  link cached node_modules, run npm run typecheck/build, then node --import tsx
+  --test on tests/commands/*.test.ts, tests/contracts/*.test.ts,
+  tests/plugins/agent-commands.test.ts, tests/commands/metadata/integration.test.ts,
+  tests/integration/adapter-tools-diagnostics/eight-cases.test.ts,
+  tests/commands/structured-stress/split-increment/interop.test.ts,
+  tests/commands/structured-stress/final-increment/fresh-interop.test.ts and
+  tests/commands/archive/**/*.test.ts. Do not silently inject a different native
+  oracle into that source-only historical run. No global full-suite pass follows.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

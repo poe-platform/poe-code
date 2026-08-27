@@ -1,0 +1,20 @@
+Attempted parent command (repository cwd):
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-linear-nonmatch
+
+Tool exit code: 1
+The same tool request first applied the previous control's evidence patch.
+Exact returned tool output follows:
+
+Success. Updated the following files:
+A tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-match.json
+file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/bounded-matrix/run.mjs:23
+  || frozen.node !== process.version || frozen.v8 !== process.versions.v8 || frozen.executable !== process.execPath) throw new Error('Frozen source/runtime drift; stop');
+                                                                                                                           ^
+
+Error: Frozen source/runtime drift; stop
+    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/bounded-matrix/run.mjs:23:124
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

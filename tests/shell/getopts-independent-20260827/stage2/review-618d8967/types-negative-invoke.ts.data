@@ -1,0 +1,3 @@
+import type { CommandInvokeOptions } from 'virtual-bash';
+const options: CommandInvokeOptions = { replaceEnv: 'yes', env: { OPTIND: undefined } };
+void options;

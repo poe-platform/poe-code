@@ -173,6 +173,12 @@
 
 ## Utility dialect policy
 
+- Keep fresh jq closure evidence cohort-specific: d1f78d4/0278a30 and independent
+  bb1ceabe close the42 original audit failures with790/790 exact executions.
+  Separate94 legacy probes (45 exact/49 nonexact) and22 historical red tests
+  remain Archimedes-owned until native-backed fixes/classification. Do not turn
+  this checkpoint into a clean whole-product snapshot during concurrent FS work.
+
 - Preserve the user's decision to retain verified GNU sed 4.9 behavior for
   global `^|$` substitution and invocation-wide successful quit under `-i`/`-s`.
   Do not reproduce BSD's later-file truncation merely to match that oracle.

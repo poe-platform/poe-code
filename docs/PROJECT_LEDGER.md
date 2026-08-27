@@ -1232,6 +1232,34 @@ that any implementation, command, fixture, or test currently exists.
 
 ### Remaining product validation
 
+### August 27, 2026: jq checkpoint and native-first expanded corpus
+
+- Fresh routed jq evidence supersedes the earlier pending42-fix note only for
+  that specific cohort: source d1f78d4/0278a30 and independent bb1ceabe address
+  all42 original full-audit jq failures. The unchanged155+81 cohorts and20
+  reviewer vectors record790/790 exact executions, global types and10 built
+  checks, with no dependencies added. This is not a Curie whole-product rerun.
+- Keep separate remaining jq cohorts:94 legacy probes have45 exact and49
+  nonexact observations (six input-grammar and43 diagnostic differences), and22
+  historical tests remain red. Archimedes owns native-backed fixes and expectation
+  classification; none is waived or counted as a pass. Concurrent FS edits mean
+  these results do not certify a single whole-product snapshot.
+- The expanded comparator now has224 new recipes, with three declared option
+  families for every56 default command,36 kernel/script cases,12 compositions
+  and eight local-network cases. Its first228 native observations (224 functional
+  plus four performance candidates) all have their declared exit status and were
+  captured before product scoring. Recipes and raw native bytes/effects are frozen
+  in benchmarks/reports/expanded-20260827/native-first/native.json. Native validity
+  is not product acceptance; product comparison and distinct fairness review are
+  still pending at this corpus checkpoint.
+- Registry recheck2026-08-27T01:39:51Z still reports latest just-bash3.4.2, matching
+  the installed isolated baseline; release.json records exact provenance. No
+  dependency change/install was needed. Uninstrumented byte controls distinguish
+  the baseline public terminal-output metadata boundary from correct internal
+  byte pipes/VFS effects; do not infer internal corruption from public encoding.
+
+### Remaining product validation (continued)
+
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
   workers deliver code; keep foundation checkpoint evidence separate from
   current product-wide status.

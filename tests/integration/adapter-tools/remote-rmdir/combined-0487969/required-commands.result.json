@@ -1,0 +1,29 @@
+{
+  "name": "required-commands",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "import { requiredWorkflowCommands } from './tests/integration/adapter-tools/preflight-review/preflight.ts'; import { withFixture } from './tests/integration/adapter-tools/fixtures.ts'; const names = [...new Set(Object.values(requiredWorkflowCommands).flat())].sort(); await withFixture('memory', async ({ shell }) => { console.log(JSON.stringify({ requiredNames: names, requiredNameCount: names.length, executableRequiredNameCount: names.filter(name => typeof shell.commands.get(name)?.execute === 'function').length, plugin: 'actual agentCommands() through existing withFixture' })); });"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-LvNq4F",
+  "startedAt": "2026-08-27T07:22:10.787Z",
+  "elapsedMs": 244.1661670000003,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  },
+  "cases": [],
+  "failures": [],
+  "unchangedInputsAfter": true
+}

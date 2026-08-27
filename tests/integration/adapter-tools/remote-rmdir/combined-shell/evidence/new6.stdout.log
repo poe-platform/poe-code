@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: actual S3 snapshot rmdir, mounted=false: exact marker deletion leaves late child visible
+ok 1 - actual S3 snapshot rmdir, mounted=false: exact marker deletion leaves late child visible
+  ---
+  duration_ms: 13.115584
+  type: 'test'
+  ...
+# Subtest: actual S3 snapshot rm -d, mounted=false: exact marker deletion leaves late child visible
+ok 2 - actual S3 snapshot rm -d, mounted=false: exact marker deletion leaves late child visible
+  ---
+  duration_ms: 6.587209
+  type: 'test'
+  ...
+# Subtest: actual S3 snapshot rmdir, mounted=true: exact marker deletion leaves late child visible
+ok 3 - actual S3 snapshot rmdir, mounted=true: exact marker deletion leaves late child visible
+  ---
+  duration_ms: 6.74975
+  type: 'test'
+  ...
+# Subtest: actual S3 snapshot rm -d, mounted=true: exact marker deletion leaves late child visible
+ok 4 - actual S3 snapshot rm -d, mounted=true: exact marker deletion leaves late child visible
+  ---
+  duration_ms: 5.975875
+  type: 'test'
+  ...
+# Subtest: actual aggregate S3 Shell removes quiescent explicit markers with rmdir and rm -d
+ok 5 - actual aggregate S3 Shell removes quiescent explicit markers with rmdir and rm -d
+  ---
+  duration_ms: 3.651584
+  type: 'test'
+  ...
+# Subtest: actual aggregate Shell readonly S3 denies both removal commands without transport deletion
+ok 6 - actual aggregate Shell readonly S3 denies both removal commands without transport deletion
+  ---
+  duration_ms: 3.636041
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 275.803292

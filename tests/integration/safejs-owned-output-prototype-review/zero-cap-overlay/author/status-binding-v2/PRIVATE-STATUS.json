@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "authority": "ROOT NARROW PREPARATION ONLY, user message2026-08-27; exact two observed UNTRACKED status lines only",
+  "historicalSnapshot": {
+    "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+    "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/private-after.json",
+    "sha256": "b09af5cd11c3ea2448666417e787eb67d07fc5a99afa3cb84e24a4f221fe7d93"
+  },
+  "historicalPins": {
+    "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+    "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+    "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+  },
+  "preservedCaptureCommit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+  "historicalStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+  "addedLines": [
+    "?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md",
+    "?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md"
+  ],
+  "expectedStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+  "historicalStatusSha256": "efeba02596c26a1d86d7d38ea766099a0bc8b7c7e8ca7bc3284511cac5349a27",
+  "expectedStatusSha256": "669808b3a9788bc30be0b520ec8befaaf98d8e5ba9efa99454117d68d032c333",
+  "changedExpectedFields": [
+    "status"
+  ],
+  "allOtherHistoricalSnapshotFieldsUnchanged": true,
+  "freshBeforeAfterFullEqualityRequired": true,
+  "runtimeAuthorized": false,
+  "privateFileContentsRead": false,
+  "creatorInference": false,
+  "noPromotion": true
+}

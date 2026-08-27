@@ -1,0 +1,22 @@
+{
+  "verdict": "ALLOW_REPLAY_OF_EXACT_FREEZE",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread 01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "date": "2026-08-27",
+  "inspectionCommit": "50897e9e17b3201235fa1a9f5fe0f7641bc4f4e3",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "stopScope": {
+    "surface": "Exact eight unconditional profiles continue after ordinary per-row nonpass, within existing bounds; capability-finding and infrastructure/deadline stop paths remain unchanged.",
+    "lifecycle": "First nonpass blocks later rows in this11-row cohort; positive-open prerequisite retained.",
+    "controls": "First nonpass blocks later rows in this6-row cohort; Z01-open and matched-open prerequisites retained."
+  },
+  "coordinationAuthority": "ROOT DECISION + CONDITIONAL ACTUAL EXECUTION RELEASE, 2026-08-27, same verifier thread",
+  "previousWithholdReceiptUnchanged": true,
+  "sourceFixtureAssertionDriverChanges": 0,
+  "runtimeAcceptance": false,
+  "newRuntimePassesAtAdmission": 0,
+  "noPromotion": true
+}

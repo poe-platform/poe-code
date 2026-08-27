@@ -1,0 +1,20 @@
+--- previous/lifecycle/run.mjs
++++ status-binding-v2/lifecycle/run.mjs
+@@ -6,7 +6,7 @@
+ import { copyRegular, git, inventory, load, owner, privateState, record, repository, serialize, sha, state, verifyOriginal } from "./common.mjs";
+ 
+ import { verifyProfile } from "./profile.mjs";
+-import { author, candidate, directoryShape, releaseFor, verifyCandidate, verifyFrozen } from "../admission.mjs";
++import { author, candidate, directoryShape, expectedPrivateProfile, releaseFor, verifyCandidate, verifyFrozen } from "../admission.mjs";
+ const admission = releaseFor("lifecycle");
+ const overlay = verifyCandidate(admission);
+ 
+@@ -103,7 +103,7 @@
+   assert.equal(verification.independentResultAssertions, "PASS");
+   assert.equal(verification.actualSourceRouteFiles, 940); assert.equal(verification.actualPackagedRouteFiles, 940);
+   assert.equal(proof.privateClosure.unchanged, true);
+-  assert.deepEqual(before, load(join(lifecycle, "execution-v1/evidence/attempt-01/private-after.json")), "Fresh private state drift from original accepted engine profile");
++  assert.deepEqual(before, expectedPrivateProfile(), "Fresh private state drift from exact status-only binding");
+   assert.equal(before.head, pins.privateExpectedAtRelease.head);
+   assert.equal(before.engine.length, 264);
+   for (const [filename, info] of Object.entries(before.metadata)) assert.equal(info.sha256, pins.privateExpectedAtRelease.metadata[filename].sha256, filename);

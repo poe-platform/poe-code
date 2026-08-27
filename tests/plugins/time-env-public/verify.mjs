@@ -47,7 +47,8 @@ try {
   const source = join(work, "source"); mkdirSync(source);
   const paths = ["src", "README.md", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", owner,
     "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration",
-    "tests/commands/time-env"];
+    "tests/commands/time-env", "tests/integration/stream-inspection-public-author",
+    "tests/commands/split", "tests/commands/stream-format-author-stress"];
   const archive = join(work, "source.tar");
   run("archive", "git", ["--no-replace-objects", "archive", "--format=tar", `--output=${archive}`, sourceCommit, ...paths]);
   run("extract", "/usr/bin/tar", ["-xf", archive, "-C", source]);
@@ -73,6 +74,8 @@ try {
   run("build", process.execPath, [compiler, "-p", "tsconfig.build.json"], source);
   run("source-types", process.execPath, [compiler, "--noEmit", "-p", "tsconfig.build.json"], source);
   const sourceTests = ["tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration/registry.test.ts",
+    "tests/integration/stream-inspection-public-author/public.test.ts", "tests/commands/split/integration.test.ts",
+    "tests/commands/stream-format-author-stress/contracts.test.ts",
     ...["date", "sleep", "printenv", "integration", "stress", "sleep-regressions"].map(name => `tests/commands/time-env/${name}.test.ts`),
     "tests/commands/time-env/fraction-expansion/nanoseconds.test.ts", "tests/commands/time-env/fraction-expansion/iso-year.test.ts"];
   report.sourceTests = sourceTests.map(path => ({ path, sha256: hash(readFileSync(join(source, path))) }));
@@ -88,15 +91,23 @@ try {
   run("unpack", "/usr/bin/tar", ["-xf", tarball, "--strip-components=1", "-C", installed]);
   writeFileSync(join(staged, "package.json"), JSON.stringify({ name: "time-env-public-consumer", private: true, type: "module" }));
   for (const name of ["consumer", "negative"]) copyFileSync(join(source, owner, `${name}.ts.fixture`), join(staged, `${name}.mts`));
+  const adjacentConsumers = [
+    ["tests/plugins/stream-five-fixture-migration/public-options.mts", "stream-options.mts"],
+    ["tests/integration/stream-inspection-public-author/consumer.mts", "inspection-consumer.mts"],
+  ];
+  report.adjacentConsumers = adjacentConsumers.map(([path, target]) => {
+    copyFileSync(join(source, path), join(staged, target));
+    return { path, target, sha256: hash(readFileSync(join(source, path))) };
+  });
   mkdirSync(join(staged, "node_modules/@types"), { recursive: true });
   cpSync(join(repository, "node_modules/@types/node"), join(staged, "node_modules/@types/node"), { recursive: true, dereference: true });
   cpSync(join(repository, "node_modules/undici-types"), join(staged, "node_modules/undici-types"), { recursive: true, dereference: true });
   const compilerOptions = { target: "ES2023", lib: ["ES2023"], module: "NodeNext", moduleResolution: "NodeNext",
     strict: true, skipLibCheck: false, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true,
     verbatimModuleSyntax: true, types: ["node"], outDir: "emitted" };
-  writeFileSync(join(staged, "tsconfig.json"), JSON.stringify({ compilerOptions, files: ["consumer.mts"] }));
+  writeFileSync(join(staged, "tsconfig.json"), JSON.stringify({ compilerOptions, files: ["consumer.mts", ...adjacentConsumers.map(([, target]) => target)] }));
   writeFileSync(join(staged, "negative.json"), JSON.stringify({ compilerOptions: { ...compilerOptions, noEmit: true }, files: ["negative.mts"] }));
-  const moved = join(work, "moved-consumer"); renameSync(staged, moved);
+  const moved = join(work, "moved/consumer"); mkdirSync(dirname(moved)); renameSync(staged, moved);
   renameSync(source, join(work, "withdrawn-source"));
   assert.equal(existsSync(staged), false);
   const positive = run("consumer-types", process.execPath, [compiler, "-p", "tsconfig.json", "--listFiles"], moved);
@@ -110,6 +121,8 @@ try {
   const permissions = ["--unhandled-rejections=strict", "--permission", `--allow-fs-read=${moved}`];
   for (let repeat = 1; repeat <= 2; repeat++) run(`public-repeat-${repeat}`, process.execPath,
     [...permissions, "emitted/consumer.mjs"], moved);
+  for (const [, target] of adjacentConsumers) run(`adjacent-${target}`, process.execPath,
+    [...permissions, `emitted/${target.replace(/\.mts$/, ".mjs")}`], moved);
   const runtime = join(moved, "node_modules/virtual-bash/dist/commands/time-env/index.js");
   const withheld = `${runtime}.withheld`; renameSync(runtime, withheld);
   try {

@@ -2134,3 +2134,44 @@ that any implementation, command, fixture, or test currently exists.
   native17/23 using a Linux argv MODEL, not kernel execution. Expr-match shared
   protocol/client/worker extension is in progress, not accepted by this ledger
   entry. These distinctions must remain explicit in any later gate candidate.
+
+### 2026-08-27 17:39 UTC — successor73 readiness only, no new gate
+
+- Read-only committed observationc355751f36ca3fdbab8f888eaab30203c1bcd343,
+  unchanged HEAD during inventory:600 canonical test paths (old8670:560),
+  73 explicit aggregate names, zero runtime dependencies. Package.json hash
+  691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535 is a
+  manifest hash, not a new tarball. Meitner's review of isolated3dc0ac26 remains
+  pending at this observation; no current-HEAD product execution is inferred.
+- Readiness blockers: inherited native assets48/49 (installed Codex rg content
+  no longer matches required4298efd4…; observed5d24e1af…);190 committed.mts versus
+  179 classified, eleven unknown; two canonical split/stream-format registry
+  fixtures still assert70; existing full-gate drivers/public smoke remain
+  historical70-name b494/8670 bindings. Do not relax these checks to launch.
+- New expr/du native binaries match their local author hashes but are absent
+  from inherited49 staging; expr has a mandatory behavioral qualification and
+  du an explicit optional live-oracle skip. Both need final cohort/profile
+  routing, not an assumed49-asset coverage claim. No native semantics ran here.
+- Treef1a90436, expr/shared-regexfe7083d9 and du877144ea are committed author
+  changes with independent review pending. Nondefault expr changes shared worker
+  code; nondefault du is still built/discovered. Owned-output S1a61e63bc remains
+  TEMP artifacts, not production. Root must choose a truthful complete candidate;
+  no live overlay, hidden source exclusion or false HEAD label is authorized.
+- Cleanup binding recomputed from explicit Git blobs has244 inputs here versus
+  historical220; exact old220 reconstruction matches. This is readiness data,
+  not a launch envelope. Final candidate needs its own source/tree/cleanup and
+  native/package/harness receipt, Node24.11.1 guarded runtime, actual-child
+  permissions/TAP, typecheck:all, explicit runtime consumers and concurrency2.
+- Five split writer sources/helper and direct-curl canonical writer fix remain
+  byte-identical to accepted repairs. Directcurl5f7fe5d7 was already in8670.
+  Capture flags are unset. This does not certify all600 tests against writes:
+  fresh admission checks exact entries, but existing post-phase verifySource
+  only checks expected paths and does not catch added entries. Preserve scope.
+- Historical8670 raw17454/12/0 remains unqualified; separate package2de7d99c
+  remains scoped accepted, not whole-gate completion. Five custom first-read
+  requirements remain known production failures; do not import S1 to hide them.
+- Owned change: concise provider-reported allocatedBytes unknown/zero rule in
+  AGENTS, no transient rules. Evidence and exact unknown paths/commit routing:
+  tests/integration/full-gate-20260827/readiness-73/README.md and INVENTORY.json.
+  No build, suite, service, private engine or package execution; root production
+  files and foreign changes preserved. No superiority or release claim.

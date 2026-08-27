@@ -108,6 +108,9 @@
 - Filesystem errors use typed FsError.code. Shell stderr is human-readable
   utility output, not errno serialization. Preserve error meaning/path, status
   and exact byte/namespace effects; no blanket diagnostic-assertion relaxation.
+- FileStat.allocatedBytes is optional provider-reported allocation: a nonnegative
+  safe integer, with zero known and absence unknown. Preserve it through wrappers;
+  do not invent it from logical size or interpret it as unique physical storage/RSS.
 
 ## Evidence and dialect discipline
 

@@ -1,0 +1,174 @@
+[
+  {
+    "variant": "base",
+    "label": "build",
+    "args": [
+      "/tmp/safe-bash-sort-performance-VrG9w3/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "pid": 24710,
+    "status": 0,
+    "signal": null,
+    "counts": {}
+  },
+  {
+    "variant": "base",
+    "label": "unchanged-core100",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "tests/commands/core-regression-stress/native.test.ts",
+      "tests/commands/core-regression-stress/resources.test.ts",
+      "tests/commands/core-regression-stress/runtime.test.ts"
+    ],
+    "pid": 24723,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 100,
+      "pass": 100,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "variant": "base",
+    "label": "adjacent-sort-expanded",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "tests/commands/core-sort/regressions.test.ts",
+      "tests/commands/core-expanded/regressions.test.ts"
+    ],
+    "pid": 24741,
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "variant": "base",
+    "label": "fresh-heldouts",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "/tmp/safe-bash-sort-performance-VrG9w3/harness/holdouts.mjs"
+    ],
+    "pid": 24747,
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 26,
+      "pass": 25,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "variant": "candidate",
+    "label": "build",
+    "args": [
+      "/tmp/safe-bash-sort-performance-VrG9w3/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "pid": 24770,
+    "status": 0,
+    "signal": null,
+    "counts": {}
+  },
+  {
+    "variant": "candidate",
+    "label": "unchanged-core100",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "tests/commands/core-regression-stress/native.test.ts",
+      "tests/commands/core-regression-stress/resources.test.ts",
+      "tests/commands/core-regression-stress/runtime.test.ts"
+    ],
+    "pid": 24779,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 100,
+      "pass": 100,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "variant": "candidate",
+    "label": "adjacent-sort-expanded",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "tests/commands/core-sort/regressions.test.ts",
+      "tests/commands/core-expanded/regressions.test.ts"
+    ],
+    "pid": 24786,
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "variant": "candidate",
+    "label": "fresh-heldouts",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=30000",
+      "/tmp/safe-bash-sort-performance-VrG9w3/harness/holdouts.mjs"
+    ],
+    "pid": 24791,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  }
+]

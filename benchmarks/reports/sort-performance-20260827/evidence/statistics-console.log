@@ -1,0 +1,62 @@
+[
+  {
+    workload: 'historical-sort-uniq-5000',
+    reduction: 9.571915050919754,
+    pairs: 17,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'plain-5000',
+    reduction: 34.45680160654197,
+    pairs: 17,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'unique-paths-20000',
+    reduction: 24.73846565109573,
+    pairs: 17,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'reverse-logs-12000',
+    reduction: 15.794976859578657,
+    pairs: 16,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'unicode-8000',
+    reduction: 31.80106211879339,
+    pairs: 18,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'numeric-stable-8000',
+    reduction: 4.638542573892257,
+    pairs: 12,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'numeric-key-8000',
+    reduction: 1.5718885319228826,
+    pairs: 11,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'in-place-5000',
+    reduction: 35.50262015405261,
+    pairs: 16,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'tiny-32',
+    reduction: -3.204583946135653,
+    pairs: 9,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  },
+  {
+    workload: 'invalid-bytes-8000',
+    reduction: 42.87816174488152,
+    pairs: 18,
+    warm: { base: [Object], candidate: [Object], baseline: [Object] }
+  }
+]

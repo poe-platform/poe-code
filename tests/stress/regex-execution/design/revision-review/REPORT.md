@@ -159,8 +159,17 @@ for reproducibility; original artifacts remain untouched.
 - `79021e7`: exact fixed source/emitted identities before execution.
 - `323ad4a`: fixed 16/16, guards 12/12, identity and cleanup audit.
 - `ac64252`: independent adapter/policy/package evidence inspection and recount.
+- `8bb3697`: initial final report; final readback correction follows separately.
 - Scoped compiler build and original benign cohort run; new guard JS syntax
   checked. Evidence-only validation review passes. Scoped whitespace checks pass.
   Final tracked scope is clean after committing this report; ignored snapshots
   are intentionally retained. Exact final commit/status is also handed off in
   `/tmp/regex-revision-review-final.txt`. Unrelated worktree/index edits are preserved.
+
+Final readback disclosure: the first evidence-reader attempt failed ENOENT because
+`audit.mjs` labels digest keys `vidence/...` (one leading character omitted).
+Original digests, audit, script and all test evidence remain unchanged.
+`final-verify.mjs` and `evidence/final-verification.json` preserve that failure,
+correct labels in a separate manifest and verify every original digest plus
+fixed identities, immutable originals, validation artifacts and handoff sources.
+This metadata correction reruns no cohort, native command, Worker or regex.

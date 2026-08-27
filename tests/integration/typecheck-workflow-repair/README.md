@@ -1,5 +1,10 @@
 # Build-aware typecheck repair — 2026-08-27
 
+Independent follow-up31e24055 withheld acceptance at20/21 controls because mixed
+candidate/foreign declarations escaped the guard. Author repaira01310c5 and its
+separate evidence are in `binding-followup/README.md`; independent closure is
+pending. The original observations below remain unchanged historical evidence.
+
 Author source/configuration commit **b9559de5c62fb679c8558fc2444ecb99f1d9eee1**.
 This is a narrow workflow/data-classification repair, not product source, native
 semantics, provider acceptance or a whole-product rerun. A different reviewer is

@@ -1,0 +1,17 @@
+import { write } from "stdio";
+const candidate = write.acquire;
+if (typeof candidate !== "undefined") {
+  return { exposurePath: "stdio.write.acquire", type: typeof candidate };
+}
+let startCalls = 0;
+let releaseCalls = 0;
+let errorMessage = "no-error";
+try {
+  candidate(
+    () => { startCalls += 1; return "bounded-token"; },
+    resource => { releaseCalls += 1; return "bounded-release:" + resource; }
+  );
+} catch (error) {
+  errorMessage = error.message;
+}
+return { memberType: typeof candidate, startCalls, releaseCalls, errorMessage };

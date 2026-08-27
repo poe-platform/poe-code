@@ -1,0 +1,22 @@
+import * as shell from "shell";
+import * as stdio from "stdio";
+function shape(value) {
+  const fields = ["ownedOutput","consumerClosed","write","acquire","child","close","registerCleanup","output","signal","context","__proto__","prototype","constructor"];
+  return {
+    keys: Object.keys(value).sort(),
+    entries: Object.entries(value).map(entry => [entry[0], typeof entry[1]]).sort(),
+    types: fields.map(field => [field, typeof value[field]]),
+    own: fields.map(field => [field, Object.hasOwn(value, field)])
+  };
+}
+const shellCopy = { ...shell };
+const reply = await shellCopy.exec("printf '%s' shell-positive");
+await stdio.write(reply.stdout);
+return {
+  reply,
+  shell: shape(shell),
+  shellCopy: shape(shellCopy),
+  exec: shape(shellCopy.exec),
+  result: shape(reply),
+  sameExec: Object.is(shellCopy.exec, shell.exec)
+};

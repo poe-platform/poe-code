@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared.mjs"
+  ],
+  "parentAbsoluteTimeoutMs": 30000,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdout": "{\n  \"status\": \"STATIC_PREPARATION_FAILED\",\n  \"at\": \"2026-08-27T15:02:13.113Z\",\n  \"error\": \"AssertionError [ERR_ASSERTION]: Symlink component: /usr/bin/tar\\n+ actual - expected\\n\\n+ '/usr/bin/bsdtar'\\n- '/usr/bin/tar'\\n            ^\\n\",\n  \"stack\": \"AssertionError [ERR_ASSERTION]: Symlink component: /usr/bin/tar\\n+ actual - expected\\n\\n+ '/usr/bin/bsdtar'\\n- '/usr/bin/tar'\\n            ^\\n\\n    at regular (file:///Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared.mjs:14:10)\\n    at verify (file:///Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared.mjs:137:71)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared.mjs:166:39\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"\n}\n",
+  "stderr": ""
+}

@@ -1,0 +1,7 @@
+import { write } from "stdio";
+const registration = write.registerCleanup;
+if (typeof registration !== "function") {
+  throw new Error("missing frozen exposure premise");
+}
+registration(() => { throw new Error("owned-output-surface-cleanup-marker"); });
+return "registered-once";

@@ -189,6 +189,10 @@ export async function runHarnessPair(
     options.onDiagnostics?.(diagnostics);
     throwOnLintErrors(diagnostics);
 
+    if (options.snapshotBackend === undefined) {
+      await mkdir(dirname(snapshotPath), { recursive: true });
+    }
+
     const usageAccumulator = createSpawnUsageAccumulator();
     let result: Awaited<ReturnType<typeof run>>;
     try {
@@ -365,6 +369,7 @@ async function createHostCallReplay(
   let writeQueue = Promise.resolve();
   let cursor = 0;
   const consumed = new Set<number>();
+  const wrappedBindings = new WeakMap<object, (...args: readonly unknown[]) => unknown>();
 
   return {
     async flush() {
@@ -413,6 +418,8 @@ async function createHostCallReplay(
     if (typeof value !== "function") {
       return value;
     }
+    const existing = wrappedBindings.get(value);
+    if (existing !== undefined) return existing;
 
     const wrapped = (...args: readonly unknown[]) => {
       const replay = records[cursor];
@@ -437,6 +444,14 @@ async function createHostCallReplay(
       void recordHostCall(key, args, result);
       return result;
     };
+    wrappedBindings.set(value, wrapped);
+    for (const [property, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+      if (!("value" in descriptor) || typeof descriptor.value !== "function") continue;
+      Object.defineProperty(wrapped, property, {
+        ...descriptor,
+        value: wrapHostBinding(`${key}.${property}`, descriptor.value)
+      });
+    }
     return declareHostOperation(wrapped, "re-issue", {
       onReplay: (args, outcome) => {
         if (outcome.status === "rejected") return;

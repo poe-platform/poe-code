@@ -41,6 +41,7 @@ export { findExportedConstInitializer } from "./loader/find-exported.js";
 export { splitFrontmatter } from "./loader/frontmatter.js";
 export type { ExportDefaultDeclaration, ExportNamedDeclaration, MetaProperty } from "./parse.js";
 export {
+  AgentSpawnError,
   createSpawnUsageAccumulator,
   makeAgentModule,
   runWithSpawnUsageAccumulator

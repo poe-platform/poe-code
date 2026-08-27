@@ -40,6 +40,45 @@ function deferred<T>() {
 }
 
 describe("spawn.parallel()", () => {
+  it.each(["parent", "tuple"])(
+    "preserves %s cancellation reasons in forwarded signals",
+    async (source) => {
+      for (const reason of [new Error("stop"), null, false, "stop"]) {
+        for (const preAborted of [false, true]) {
+          const controller = new AbortController();
+          const signals: AbortSignal[] = [];
+          const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(
+            (_service, options) => {
+              const signal = options.signal!;
+              signals.push(signal);
+              return {
+                events: emptyEvents(),
+                result: new Promise((_resolve, reject) => {
+                  if (signal.aborted) reject(signal.reason);
+                  else
+                    signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+                })
+              };
+            }
+          );
+          if (preAborted) controller.abort(reason);
+          const promise = parallel(
+            [
+              [
+                "codex",
+                { prompt: "Run", ...(source === "tuple" ? { signal: controller.signal } : {}) }
+              ]
+            ],
+            source === "parent" ? { signal: controller.signal } : {}
+          );
+          controller.abort(reason);
+          await expect(promise).rejects.toBe(reason);
+          for (const signal of signals) expect(signal.reason).toBe(reason);
+        }
+      }
+    }
+  );
+
   const falsyReasons = [
     { label: "undefined", reason: undefined },
     { label: "null", reason: null },
@@ -240,6 +279,68 @@ describe("spawn.parallel()", () => {
     const results = await spawn.parallel([], { maxConcurrent: 2 });
 
     expect(results).toEqual([]);
+  });
+
+  it("returns failed results with check=false even when failFast is true", async () => {
+    const spawnOnce = vi.fn(
+      (): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.resolve(result(1, 7))
+      })
+    );
+    const parallel = createSpawnParallel(spawnOnce);
+
+    await expect(
+      parallel(
+        [
+          ["agent", {}],
+          ["agent", {}]
+        ],
+        { check: false, failFast: true, maxConcurrent: 1 }
+      )
+    ).resolves.toEqual([result(1, 7), result(1, 7)]);
+    expect(spawnOnce).toHaveBeenCalledTimes(2);
+  });
+
+  it("checks complete results after collecting when failFast is false", async () => {
+    const spawnOnce = vi.fn(
+      (): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.resolve(result(1, 7))
+      })
+    );
+    const parallel = createSpawnParallel(spawnOnce);
+
+    await expect(
+      parallel(
+        [
+          ["agent", {}],
+          ["agent", {}]
+        ],
+        { check: true, failFast: false, maxConcurrent: 1 }
+      )
+    ).rejects.toMatchObject({
+      name: "SpawnParallelError",
+      index: 0,
+      result: result(1, 7),
+      results: [result(1, 7), result(1, 7)]
+    });
+    expect(spawnOnce).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([null, "false", 0, {}, []])("rejects invalid check=%j before starting", async (check) => {
+    const spawnOnce = vi.fn(
+      (): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.resolve(result(1))
+      })
+    );
+    const parallel = createSpawnParallel(spawnOnce);
+
+    await expect(parallel([["agent", {}]], { check: check as never })).rejects.toThrow(
+      "check must be a boolean"
+    );
+    expect(spawnOnce).not.toHaveBeenCalled();
   });
 
   it("runs sequentially when maxConcurrent is 1", async () => {

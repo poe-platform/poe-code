@@ -710,7 +710,7 @@ describe("run", () => {
       [
         'import { spawn } from "agent";',
         "try {",
-        '  await spawn("codex", { prompt: "Do the thing." });',
+        '  await spawn("codex", { prompt: "Do the thing.", check: true });',
         "} catch ({ message }) {",
         "  return message;",
         "}"

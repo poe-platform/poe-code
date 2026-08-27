@@ -11,6 +11,22 @@ export type ErrorSourcePosition = {
 
 const wrappedErrorCause = Symbol("wrappedErrorCause");
 
+export const sandboxErrorNames = [
+  "Error",
+  "TypeError",
+  "RangeError",
+  "ReferenceError",
+  "SyntaxError",
+  "AbortError",
+  "AggregateError",
+  "HarnessFailure"
+] as const;
+
+export type SandboxErrorName = (typeof sandboxErrorNames)[number];
+
+export const sandboxErrorTypes = new WeakMap<object, SandboxErrorName>();
+export const hostErrorData = new WeakMap<Error, Record<string, unknown>>();
+
 export function formatErrorStack(
   name: string,
   message: string,

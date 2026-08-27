@@ -154,14 +154,14 @@ callback execution traces also consume the aggregate data budget.
 
 ## Execution compatibility
 
-New run snapshots carry `executionSemantics: "jobs-v3"`. Promise jobs run after
+New run snapshots carry `executionSemantics: "jobs-v4"`. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their
 receiver, ignore settlement attempts after the first, and finish their current
 synchronous invocation before await continuations execute.
 
-The `jobs-v3` marker includes the callable `Promise` constructor, its shared
+The current marker includes the callable `Promise` constructor, its shared
 prototype methods and receiver checks, and identity-preserving cancellation at
 host boundaries. `jobs-v1` snapshots from poe-code 5.0.0 are incompatible: even
 unchanged source such as `return typeof Promise` observes a different global.
@@ -174,6 +174,14 @@ default parameter must not capture a subsequently declared body var. Published
 6.0.0 fixtures reproduce this difference and three formerly failing redeclaration
 cases. Such snapshots are rejected before any host effects, rather than silently
 replayed with the corrected bindings. This remains rejection, not migration.
+
+The marker also covers explicit agent result checking and error identity in
+replay data. Published poe-code 7.0.2 (`jobs-v3`) snapshots reproduce a caught
+exception where a fresh unchecked spawn now returns a result, and omit nested
+aggregate failures that the corrected host bridge preserves. Such snapshots
+are rejected before host effects. New error metadata records the original
+constructor kind separately from mutable `name` fields; copies, heap snapshots,
+and replay journals preserve this identity and reject invalid metadata.
 
 These corrections change execution ordering, not the parsed source hash. An
 upgrade probe against poe-code 4.0.71 reproduced both changed results and stalled

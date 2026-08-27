@@ -1,4 +1,5 @@
 import { Budget } from "../interp/budget.js";
+import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
 import { Scope } from "../interp/interpreter.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
@@ -557,6 +558,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
 
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
   state.heapValueById.set(id, object);
+  if (serialized.errorType !== undefined) sandboxErrorTypes.set(object, serialized.errorType);
 
   for (const [key, entry] of Object.entries(serialized.entries)) {
     object[key] = deserializeValue(entry, state);

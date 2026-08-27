@@ -1036,6 +1036,13 @@ function logHarnessSpawnEvent(
     return;
   }
 
+  if (!event.checked) {
+    logger.warn(
+      `${label} returned an unsuccessful result after ${event.attempt} ${event.attempt === 1 ? "attempt" : "attempts"} (${formatDuration(event.durationMs)})\n${formatSpawnLifecycleError(event.error)}`
+    );
+    return;
+  }
+
   onSpawnFailure(event.error);
   logger.error(
     `${label} failed after ${event.attempt} ${event.attempt === 1 ? "attempt" : "attempts"} (${formatDuration(event.durationMs)})\n${formatSpawnLifecycleError(event.error)}`

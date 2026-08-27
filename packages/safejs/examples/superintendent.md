@@ -55,6 +55,7 @@ const collectReports = async (index, builder, reports) => {
 
   const inspector = inspectors[index];
   const report = await spawn(inspector, {
+    check: true,
     prompt: `Inspect round ${builder.round}\n\n${builder.summary}`
   });
 
@@ -67,13 +68,15 @@ const runRound = async (round) => {
   }
 
   const builder = await spawn(agents.builder, {
+    check: true,
     prompt: `Round ${round + 1}: continue from the current plan state.`
   });
   const reports = await collectReports(0, { round: round + 1, summary: builder.summary }, []);
   const verdict = await spawn(agents.judge, {
+    check: true,
     prompt: `Judge round ${round + 1}\n\n${reports.map((report) => report.summary).join("\n")}`
   });
-  const owner = await spawn(agents.owner, { prompt: verdict.summary });
+  const owner = await spawn(agents.owner, { prompt: verdict.summary, check: true });
   event("round.completed", {
     round: round + 1,
     owner: owner.summary

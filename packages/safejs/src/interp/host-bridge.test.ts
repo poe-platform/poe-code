@@ -13,6 +13,68 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it("does not invoke array accessors while copying aggregate failures", async () => {
+    const accessor = vi.fn(() => "host secret");
+    const failure = new AggregateError([], "failed");
+    Object.defineProperty(failure.errors, "0", { get: accessor, enumerable: true });
+    const result = await run("try { await explode(); } catch(error) { return error.name; }", {
+      bindings: {
+        explode: async () => {
+          throw failure;
+        }
+      }
+    });
+
+    expect(result).toMatchObject({ ok: true, returnValue: "TypeError" });
+    expect(accessor).not.toHaveBeenCalled();
+  });
+
+  it.each(["function", "promise"])(
+    "does not grant a %s capability through aggregate error data",
+    async (kind) => {
+      const capability = vi.fn(() => "host secret");
+      const value = kind === "function" ? capability : Promise.resolve(capability);
+      const result = await run(
+        "try { await explode(); } catch(error) { return { name:error.name, message:error.message, exposed:typeof error.errors }; }",
+        {
+          bindings: {
+            explode: async () => {
+              throw new AggregateError([value], "failed");
+            }
+          }
+        }
+      );
+
+      expect(result).toMatchObject({
+        ok: true,
+        returnValue: {
+          name: "TypeError",
+          message: expect.stringContaining("Host error data"),
+          exposed: "undefined"
+        }
+      });
+      expect(capability).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not copy unregistered host error results or invoke their accessors", async () => {
+    const readResult = vi.fn(() => ({ escape: () => process }));
+    const failure = new Error("failed");
+    Object.defineProperty(failure, "result", { get: readResult, enumerable: true });
+    const result = await run(
+      "try { await explode(); } catch (error) { return typeof error.result; }",
+      {
+        bindings: {
+          explode: async () => {
+            throw failure;
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: "undefined" });
+    expect(readResult).not.toHaveBeenCalled();
+  });
   // The journal consumes a host call result once, but awaiting the same promise
   // twice is ordinary JavaScript and must not read as a double consumption.
   it("delivers one host call result to repeated awaits", async () => {

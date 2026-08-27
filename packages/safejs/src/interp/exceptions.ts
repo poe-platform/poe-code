@@ -23,6 +23,9 @@ import {
   formatErrorStack,
   readErrorCause,
   readErrorSpan,
+  sandboxErrorNames,
+  sandboxErrorTypes,
+  type SandboxErrorName,
   type ErrorSourceSpan
 } from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
@@ -32,28 +35,7 @@ import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
-const sandboxErrorBrand = Symbol("SandboxError");
-const sandboxErrorNames = [
-  "Error",
-  "TypeError",
-  "RangeError",
-  "ReferenceError",
-  "SyntaxError",
-  "AbortError",
-  "AggregateError",
-  "HarnessFailure"
-] as const;
-
-export type SandboxErrorName = (typeof sandboxErrorNames)[number];
-
-type SandboxErrorMetadata = {
-  readonly chain: readonly SandboxErrorName[];
-  readonly name: SandboxErrorName;
-};
-
-type SandboxErrorObject = SandboxObject & {
-  readonly [sandboxErrorBrand]: SandboxErrorMetadata;
-};
+export type { SandboxErrorName } from "../error/shape.js";
 
 export type CompletionKind = "normal" | "return" | "throw" | "break" | "continue";
 
@@ -290,7 +272,7 @@ export function createSubsetErrorValue(
       stack
     };
 
-    defineSandboxErrorMetadata(error, errorName);
+    sandboxErrorTypes.set(error, toSandboxErrorName(errorName));
     attachErrorSpan(error, options.span);
     attachWrappedErrorCause(error, options.cause);
     return error;
@@ -303,31 +285,15 @@ export function isSandboxErrorConstructorInstance(
   value: SandboxValue,
   name: SandboxErrorName
 ): boolean {
-  return isSandboxErrorObject(value) && value[sandboxErrorBrand].chain.includes(name);
-}
-
-function defineSandboxErrorMetadata(error: SandboxObject, name: string): void {
-  const metadataName = toSandboxErrorName(name);
-
-  Object.defineProperty(error, sandboxErrorBrand, {
-    enumerable: false,
-    value: {
-      chain: metadataName === "Error" ? ["Error"] : [metadataName, "Error"],
-      name: metadataName
-    } satisfies SandboxErrorMetadata
-  });
+  if (typeof value !== "object" || value === null) return false;
+  const errorType = sandboxErrorTypes.get(value);
+  return errorType !== undefined && (name === "Error" || name === errorType);
 }
 
 function toSandboxErrorName(name: string): SandboxErrorName {
-  return isSandboxErrorName(name) ? name : "Error";
-}
-
-function isSandboxErrorName(name: string): name is SandboxErrorName {
-  return sandboxErrorNames.includes(name as SandboxErrorName);
-}
-
-function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject {
-  return typeof value === "object" && value !== null && sandboxErrorBrand in value;
+  return sandboxErrorNames.includes(name as SandboxErrorName)
+    ? (name as SandboxErrorName)
+    : "Error";
 }
 
 function isSubsetErrorValue(value: unknown): value is SandboxObject {

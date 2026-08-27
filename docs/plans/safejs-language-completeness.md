@@ -55,6 +55,12 @@ steps in markdown; do not replace QA with a new automation script. Record the
 actual cases and results, including remaining gaps, rather than claiming
 perfection from a green suite.
 
+Stale-artifact cleanup is also a release gate. Recheck removed outputs after
+forced/cache-hit builds and package inventory checks. Archive recoverable output
+before deletion, remove only verified obsolete/generated artifacts, and preserve
+all unrelated source changes and user assets. Clean up this goal's temporary
+repository fixtures after validation; retain external test evidence for review.
+
 For every item: add failing regression tests first, implement the change, run
 focused tests and the SafeJS suite, typecheck/lint, and inspect CLI screenshots
 when output or CLI behavior changes. Unit tests use memfs and mock external
@@ -1031,6 +1037,85 @@ parse-error, missing-file, and budget exit statuses; importing the module must n
 start the CLI. Inspect the standalone and root CLI screenshots. Repeat the matrix
 against the actual published archive after release, not only the working tree.
 This entrypoint fix does not change `jobs-v3` execution or snapshot semantics.
+
+Released in poe-code 7.0.2:
+
+- Commit `6de6b67b72f7e045de3698a41e464455ce9a4782`; GitHub Release run
+  `33038665608` completed successfully. npm publication time is
+  `2026-08-27T04:22:46.738Z`; npm `gitHead` and GitHub tag `v7.0.2` both identify
+  that commit. Normal pre-push hooks passed 20,908 tests with 41 skipped across
+  919 passing files; no hooks were bypassed.
+- Downloaded the actual npm archive to `/tmp/safejs-published-entrypoint.9FSm83`.
+  Its CLI has a Node hashbang and mode 0755; the obsolete lint outputs are absent.
+  With unchanged workspace dependencies linked for execution, all 402 entrypoint
+  processes and another 180 syntax/replay CLI processes pass with zero mismatches.
+  The latter run uses the unresolved `/tmp` path that failed on published 7.0.0.
+  The Release workflow separately passed its fresh-install build, tests, and
+  package smoke checks.
+
+## Agent result policy — release candidate
+
+- SafeJS returns complete nonzero agent results by default. `check: true`
+  explicitly requests `AgentSpawnError.result`; retry policies run before result
+  checking. Parallel groups support explicit checking, fail-fast cancellation,
+  complete delayed results, and nested aggregate failures. Other users of the
+  shared scheduler retain their historical default.
+- Updated successful-path templates to request checking explicitly, revised the
+  existing README API row/obsolete restriction, documented the contracts outside
+  README sections, and synchronized all six installed SafeJS skill copies.
+- Regression-first testing exposed lost error identity in replay, cancellation
+  reason replacement, lost callable helpers in the real harness replay wrapper,
+  invalid retry policies counted as spawns, and missing first-failure snapshot
+  directories. Fixed each and retained focused regressions. Error payload copying
+  rejects function/promise capabilities and array accessors without invoking them.
+- A published-7.0.2 probe demonstrates three incompatible unchanged-source cases:
+  unchecked spawn, retry, and nested aggregate failures. `jobs-v4` rejects their
+  `jobs-v3` snapshots before effects; this is not snapshot migration.
+- Native comparison matrix: 480 cases across ten families, widths 1/4/17/64,
+  exit codes 0/1/7, concurrency 1/4, and default retries on/off; 960 completed
+  restores without additional provider calls. Separate checks cover 480 SDK
+  cancellation cases and 12 throwing-observer/usage-accounting combinations.
+- Fatal payload matrix: 120 string/data-budget cases, each reaching one provider
+  call, with zero catch-block escapes. CLI matrix: 54 raw/Markdown/CRLF cases,
+  90 restores, including caught, unchecked, retry, aggregate, and uncaught errors.
+- Hard-crash matrix: 30 SIGKILL/restart cases across five agent-call families,
+  widths 1/32/256, with replay sidecars both present and missing. Checkpoints
+  occur after handled outcomes; every mock provider effect occurs once.
+- Scope boundary: an uncaught terminal failure retains the existing resumable
+  checkpoint/fallback semantics and can reattempt a declared re-issue operation.
+  The crash matrix does not establish exactly-once behavior in every crash window.
+  Non-idempotent operations still require explicit reconciliation.
+- Inspected three real CLI screenshots with an injected, non-networked test
+  provider: unchecked warning/success, checked error/exit 1, and caught aggregate
+  errors/success. The checked screenshot exposed the directory bug and was
+  rerendered after fixing it. No real agent or LLM was invoked.
+- Full targeted suite before the final directory regression: 3,969 passed,
+  39 skipped; final loader checks: 64 passed. All 67 workspace builds, root
+  typecheck, ESLint, and workflow lint pass. Adversarial/parser fuzz: 9 passed,
+  5 explicitly skipped Test262 cases. A full repository run requires
+  `TERM=xterm-256color`; the five TTY lifecycle failures under an unsuitable TERM
+  pass when rerun in that environment. The normal pre-push suite remains a gate.
+- Rechecked the 153 previously removed outputs and six obsolete output
+  directories: all remain absent after builds and screenshots. Archived and
+  removed this item's generated CLI failure snapshot, leaving user fonts alone.
+
+### Reproducible QA procedure
+
+1. Run the focused SafeJS, harness-loader/template, shared parallel, and root
+   harness-command tests, followed by normal repository checks with a TTY TERM.
+2. Run `/tmp/safejs-agent-result-matrix.mjs`,
+   `/tmp/safejs-agent-budget-matrix.mjs`, and
+   `/tmp/safejs-agent-cli-matrix.mjs`; confirm the counts recorded above.
+3. Run `/tmp/safejs-crash-matrix.mjs` through `node --import tsx` with
+   `SAFEJS_STRESS_FAMILIES=agent-return,agent-checked,agent-retry,agent-parallel,agent-aggregate`.
+   Compare effects and resumed output with each uninterrupted reference.
+4. Run `/tmp/safejs-agent-upgrade-probe.mjs --require-rejection` through tsx;
+   confirm all three published-version fixtures reject before host effects.
+5. Inspect the unchecked, checked, and caught-parallel CLI screenshots. Use the
+   explicit test provider loader; never substitute paid or live model calls.
+6. Audit npm package contents for regenerated stale files, then repeat the result
+   and CLI matrices against the actual published archive. Verify release workflow,
+   GitHub tag, and npm gitHead before marking this item shipped.
 
 ## Stale artifact cleanup
 

@@ -34,9 +34,11 @@ export default async (frontmatter) => {
     const taskIdsSoFar = await previousTaskIds;
     event("task.started", { id: task.id, title: task.title });
     const build = await spawn(frontmatter.agents.builder, {
+      check: true,
       prompt: task.id.concat(": ", task.title, "\n\n", task.prompt, "\n\n", meta.body)
     });
     const review = await spawn(frontmatter.agents.reviewer, {
+      check: true,
       prompt: "Review ".concat(task.id, "\n\n", build.summary)
     });
     event("task.completed", {

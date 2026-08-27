@@ -11,6 +11,7 @@ import { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
 import {
+  AgentSpawnError,
   createSpawnUsageAccumulator,
   makeAgentModule,
   runWithSpawnUsageAccumulator
@@ -42,6 +43,7 @@ describe("@poe-code/safejs public exports", () => {
   it("re-exports the public entrypoints", () => {
     expect(api.Budget).toBe(Budget);
     expect(api.SandboxError).toBe(SandboxError);
+    expect(api.AgentSpawnError).toBe(AgentSpawnError);
     expect(api.parse).toBe(parse);
     expect(api.parseModule).toBe(parseModule);
     expect(api.lint).toBe(lint);
@@ -75,6 +77,7 @@ describe("@poe-code/safejs public exports", () => {
     expect(api.makeTimeModule).toBe(makeTimeModule);
     expect(api.FileSnapshotBackend).toBe(FileSnapshotBackend);
     expect(Object.keys(api).sort()).toEqual([
+      "AgentSpawnError",
       "Budget",
       "FileSnapshotBackend",
       "HostCallResumabilityError",

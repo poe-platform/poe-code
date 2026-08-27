@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import {
@@ -69,6 +70,7 @@ export type SerializedHeapValue =
   | {
       kind: "object";
       entries: Record<string, SerializedSnapshotValue>;
+      errorType?: SandboxErrorName;
     }
   | {
       kind: "map";
@@ -446,9 +448,11 @@ function serializeHeapReference(
       };
     } else {
       const entries = Object.create(null) as Record<string, SerializedSnapshotValue>;
+      const errorType = sandboxErrorTypes.get(value);
       state.heap[String(id)] = {
         kind: "object",
-        entries
+        entries,
+        ...(errorType === undefined ? {} : { errorType })
       };
 
       for (const [key, entry] of Object.entries(value)) {
@@ -551,6 +555,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
       isSandboxMap(value) ||
       isSandboxSet(value)

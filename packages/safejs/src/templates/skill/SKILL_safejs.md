@@ -27,7 +27,10 @@ default function, not from schema initializers. Return a serializable summary.
 ## Spawning Agents
 
 `spawn(definition, options)` resolves to `{ exitCode, stdout, stderr, summary,
-durationMs, usage? }`. Read `summary` for the agent's response. Real harness
+durationMs, usage? }`, including nonzero exits. Inspect `exitCode` to recover or
+set `check: true` to require success. Checked failures throw `AgentSpawnError`
+with the complete result in `error.result`. Transport errors and cancellation
+always reject. Read `summary` for the agent's response. Real harness
 runs show a numbered lifecycle line for every spawn, so sequential loop spawns
 remain readable.
 
@@ -35,16 +38,24 @@ Set `options.label` when the prompt is generated, verbose, or sensitive. The
 label is used only for lifecycle output and is not sent to the agent:
 
 ```js
-await spawn(frontmatter.agent, { label: `Review ${target}`, prompt });
+await spawn(frontmatter.agent, { label: `Review ${target}`, prompt, check: true });
 ```
 
 `poe-code harness run` retries transient spawn failures up to five attempts with
 exponential backoff. The CLI shows every failed attempt, the next delay, and a
-prominent final error. Permanent configuration and authentication failures stop
-immediately. Tuple calls passed to `spawn.parallel` use the same lifecycle and
+warning for returned failures or a final error for checked failures. Permanent
+configuration and authentication failures are not retried. Tuple calls passed
+to `spawn.parallel` use the same lifecycle and
 default retry behavior. Use `spawn.retry(definition, options, retryOptions)` only
 when a particular script needs a different retry policy; `maxAttempts` is always
 capped at five.
+
+`spawn.parallel(calls, { check: true })` checks the group and throws a
+`SpawnParallelError` with `index`, `result`, and `results`. With `failFast: false`,
+every call finishes before checking results. Without `check`, nonzero results
+are returned in input order. Per-call `check: true` still rejects; with
+`failFast: false`, thrown failures are collected in `AggregateError.errors`.
+The retry policy runs before the result policy, including unchecked calls.
 
 ## Supported JavaScript
 
@@ -162,7 +173,7 @@ export default async (frontmatter) => {
   const reviews = [];
   for (const target of frontmatter.targets) {
     const prompt = harness.applyConstraints(`Review ${target} for provider pitfalls.`);
-    const review = await spawn(frontmatter.agent, { prompt });
+    const review = await spawn(frontmatter.agent, { prompt, check: true });
     reviews.push({ target, review });
   }
 

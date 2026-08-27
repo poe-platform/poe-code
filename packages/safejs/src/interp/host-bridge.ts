@@ -28,6 +28,7 @@ import {
 } from "./values.js";
 import { enterRunningState } from "./running-state.js";
 import { promiseReplayContext } from "./promise-replay.js";
+import { hostErrorData } from "../error/shape.js";
 import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import type { RunLifecycle } from "../snapshot/dump.js";
 
@@ -484,28 +485,60 @@ function createHostErrorValue(
   reason: unknown,
   stackFrames: readonly string[],
   budget: Budget,
-  span?: ErrorSourceSpan
+  span?: ErrorSourceSpan,
+  state: { seen: WeakMap<object, SandboxValue> } = { seen: new WeakMap() },
+  chargeBudget = false
 ): SandboxObject {
+  if (reason instanceof Error) {
+    const existing = state.seen.get(reason);
+    if (existing !== undefined) return existing as SandboxObject;
+  }
   const error =
     reason instanceof Error
       ? createSubsetErrorValue(reason.name, reason.message, stackFrames, budget, {
           cause: reason,
-          chargeBudget: false
+          chargeBudget
         })
       : createSubsetErrorValue("Error", describeThrownReason(reason), stackFrames, budget, {
           chargeBudget: false
         });
 
   if (reason instanceof Error) {
-    copyHostErrorMetadata(error, reason, budget);
+    state.seen.set(reason, error);
+    copyHostErrorMetadata(error, reason, budget, chargeBudget);
+    const errors =
+      reason instanceof AggregateError
+        ? Object.getOwnPropertyDescriptor(reason, "errors")
+        : undefined;
+    const registered = hostErrorData.get(reason);
+    const data =
+      errors !== undefined && "value" in errors
+        ? { ...registered, errors: errors.value }
+        : registered;
+    if (data !== undefined) {
+      const copied = copyHostValueToSandbox(
+        data,
+        stackFrames,
+        { budget, errorData: true },
+        state,
+        "<error>"
+      ) as SandboxObject;
+      Object.defineProperties(error, Object.getOwnPropertyDescriptors(copied));
+      budget.provisionDataUsage(measureSandboxData([error]));
+    }
   }
 
   attachErrorSpan(error, span);
   return error;
 }
 
-function copyHostErrorMetadata(error: SandboxObject, reason: Error, budget: Budget): void {
-  const resumeChecks = budget.suspendChecks();
+function copyHostErrorMetadata(
+  error: SandboxObject,
+  reason: Error,
+  budget: Budget,
+  chargeBudget: boolean
+): void {
+  const resumeChecks = chargeBudget ? undefined : budget.suspendChecks();
 
   try {
     for (const [key, expectedType] of Object.entries(hostErrorMetadata)) {
@@ -522,7 +555,7 @@ function copyHostErrorMetadata(error: SandboxObject, reason: Error, budget: Budg
       error[key] = typeof value === "string" ? budget.allocateString(value) : (value as number);
     }
   } finally {
-    resumeChecks();
+    resumeChecks?.();
   }
 }
 
@@ -725,7 +758,7 @@ function wrapHostPromiseWithSignal<TValue>(
 function copyHostValueToSandbox(
   value: unknown,
   stackFrames: readonly string[],
-  options: HostBridgeOptions,
+  options: HostBridgeOptions & { errorData?: boolean },
   state: {
     seen: WeakMap<object, SandboxValue>;
   },
@@ -744,6 +777,20 @@ function copyHostValueToSandbox(
 
   if (typeof value === "string") {
     return options.budget.allocateString(value);
+  }
+
+  if (value instanceof Error) {
+    return createHostErrorValue(value, stackFrames, budget, undefined, state, true);
+  }
+
+  if (
+    options.errorData &&
+    (typeof value === "function" ||
+      isSandboxClosure(value) ||
+      isSandboxPromise(value) ||
+      value instanceof Promise)
+  ) {
+    throw new TypeError("Host error data must not contain functions or promises.");
   }
 
   if (isSandboxClosure(value) || isSandboxPromise(value)) {
@@ -772,7 +819,7 @@ function copyHostValueToSandbox(
     );
   }
 
-  if (isPromiseLike(value)) {
+  if (!options.errorData && isPromiseLike(value)) {
     const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(
       (resolved) => {
         try {
@@ -820,9 +867,20 @@ function copyHostValueToSandbox(
     state.seen.set(value, copy);
     budget.allocateArrayLength(value.length);
 
-    value.forEach((entry, index) => {
-      copy[index] = copyHostValueToSandbox(entry, stackFrames, options, state, `${path}[${index}]`);
-    });
+    for (let index = 0; index < value.length; index++) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (descriptor === undefined) continue;
+      if (!("value" in descriptor)) {
+        throw new TypeError(`Unsupported sandbox value at ${path}[${index}]: accessor property`);
+      }
+      copy[index] = copyHostValueToSandbox(
+        descriptor.value,
+        stackFrames,
+        options,
+        state,
+        `${path}[${index}]`
+      );
+    }
 
     return copy;
   }

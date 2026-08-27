@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { lint, run, splitFrontmatter } from "@poe-code/safejs";
+import { lint, makeAgentModule, run, splitFrontmatter } from "@poe-code/safejs";
 import { describe, expect, it, vi } from "vitest";
 
 import * as api from "../index.js";
@@ -104,11 +104,46 @@ describe("builtin harness templates", () => {
         expect(spawn).not.toHaveBeenCalled();
       } else {
         expect(spawn).toHaveBeenCalled();
+        expect(
+          spawn.mock.calls.every(([, options]) => (options as { check?: boolean }).check === true)
+        ).toBe(true);
       }
       expect(result.ok ? result.returnValue : undefined).toMatchObject({
         kind: template.kind
       });
       expect(flow).toEqual(expectedFlow[template.kind]);
+
+      if (template.kind !== "coverage-demo") {
+        const failedSpawn = vi.fn(async () => ({
+          durationMs: 1,
+          exitCode: 7,
+          stderr: "child failed",
+          stdout: "partial",
+          summary: "partial"
+        }));
+        const completed = vi.fn();
+        await expect(
+          run(ajsSource, {
+            entryPointArgs: [validated],
+            importMeta: {
+              body,
+              dirname: dirname(template.mdPath),
+              filename: template.mdPath,
+              kind: template.kind,
+              version: 1
+            },
+            modules: {
+              agent: makeAgentModule(failedSpawn),
+              log: { event: completed },
+              schema: makeSchemaModule()
+            }
+          })
+        ).rejects.toMatchObject({ message: expect.stringContaining("child failed") });
+        expect(failedSpawn).toHaveBeenCalledOnce();
+        expect(completed.mock.calls.some(([name]) => String(name).endsWith(".completed"))).toBe(
+          false
+        );
+      }
     }
   );
 });

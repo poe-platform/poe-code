@@ -31,6 +31,7 @@ export default async (frontmatter) => {
   const attempts = await frontmatter.attempts.reduce(async (previousAttempts, attempt) => {
     const attemptsSoFar = await previousAttempts;
     const result = await spawn(frontmatter.agents.experimenter, {
+      check: true,
       prompt: attempt.prompt.concat("\n\nMetric: ", frontmatter.metric.name, "\n\n", meta.body)
     });
     event("attempt.kept", {

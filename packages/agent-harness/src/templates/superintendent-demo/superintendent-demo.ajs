@@ -45,19 +45,22 @@ export default async (frontmatter) => {
   const meta = import.meta;
   const inspectors = [frontmatter.agents.security, frontmatter.agents.perf, frontmatter.agents.tests];
   const builder = await spawn(frontmatter.agents.builder, {
+    check: true,
     prompt: "Round 1: ".concat(meta.body)
   });
   const reports = await Promise.all(
     inspectors.map(async (inspector) =>
       await spawn(inspector, {
+        check: true,
         prompt: "Inspect round 1\n\n".concat(builder.summary)
       })
     )
   );
   const verdict = await spawn(frontmatter.agents.judge, {
+    check: true,
     prompt: "Judge round 1\n\n".concat(reports.map((report) => report.summary).join("\n"))
   });
-  const owner = await spawn(frontmatter.agents.owner, { prompt: verdict.summary });
+  const owner = await spawn(frontmatter.agents.owner, { prompt: verdict.summary, check: true });
   event("round.completed", {
     round: 1,
     owner: owner.summary

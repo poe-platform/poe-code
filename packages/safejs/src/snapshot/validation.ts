@@ -1,4 +1,4 @@
-import { replaceErrorStack } from "../error/shape.js";
+import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
 import { types } from "node:util";
 import type { Budget } from "../interp/budget.js";
 import type { ParseResult } from "../parse/parser.js";
@@ -117,6 +117,7 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     const id = parseHeapId(key, path);
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
+    validateErrorType(entry, path);
     if (entry.kind === "arguments") {
       validateArgumentsProperties(entry, path);
       continue;
@@ -502,6 +503,7 @@ function validateGeneratorShape(
 
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
+  validateErrorType(record, path);
   if (!["arguments", "array", "object", "map", "set"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
@@ -516,6 +518,16 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+}
+
+function validateErrorType(record: Record<string, unknown>, path: string): void {
+  if (!Object.hasOwn(record, "errorType")) return;
+  if (
+    record.kind !== "object" ||
+    !sandboxErrorNames.includes(record.errorType as SandboxErrorName)
+  ) {
+    fail("invalidValue", `${path}.errorType`, "invalid error metadata");
+  }
 }
 
 export function validateArgumentsProperties(record: Record<string, unknown>, path: string): void {

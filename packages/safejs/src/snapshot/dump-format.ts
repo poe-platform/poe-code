@@ -1,6 +1,7 @@
 export const DUMP_FORMAT_VERSION = 1;
-export const EXECUTION_SEMANTICS = "jobs-v3";
+export const EXECUTION_SEMANTICS = "jobs-v4";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 
@@ -24,6 +25,7 @@ type DumpHeapValue =
   | {
       kind: "object";
       entries: Record<string, DumpValue>;
+      errorType?: SandboxErrorName;
     };
 
 type DumpState = {
@@ -167,9 +169,11 @@ function serializeHeapReference(
         items: serializeArrayItems(value, path, state)
       };
     } else {
+      const errorType = sandboxErrorTypes.get(value);
       state.heap[String(id)] = {
         kind: "object",
-        entries: serializeObjectEntries(value, path, state)
+        entries: serializeObjectEntries(value, path, state),
+        ...(errorType === undefined ? {} : { errorType })
       };
     }
   }
@@ -212,7 +216,12 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
   const heapIds = new WeakMap<object, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
-    if (stat.count > 1 || stat.cyclic || isSandboxArguments(value)) {
+    if (
+      stat.count > 1 ||
+      stat.cyclic ||
+      isSandboxArguments(value) ||
+      sandboxErrorTypes.has(value)
+    ) {
       heapIds.set(value, nextId);
       nextId += 1;
     }

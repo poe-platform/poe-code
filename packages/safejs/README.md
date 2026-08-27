@@ -170,7 +170,7 @@ Registered by the caller via the factory functions exported from the package. No
 
 | Import    | Factory                                | What it gives the script                                                                                    |
 | --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`                                           |
+| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs, check })` — returns nonzero results unless `check: true`; checked errors retain `result` |
 | `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                            |
 | `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                |
 | `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                                 |
@@ -322,7 +322,6 @@ no module bodies to inspect.
 ## Gotchas
 
 - **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
-- **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
 - **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no partial-result fallback; choose budgets that fit the workload or wrap the run in your own retry policy.

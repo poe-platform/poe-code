@@ -45,6 +45,7 @@ const runLoop = async (kept, attempts) => {
   const savepoint = await checkpoint();
   const attemptNumber = attempts.length + 1;
   const result = await spawn(agents.experimenter, {
+    check: true,
     prompt: `Attempt ${attemptNumber}\n\n${summarizeAttempts(attempts)}`
   });
   const score = await runMetric(metricName);

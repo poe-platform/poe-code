@@ -39,9 +39,11 @@ const runTask = async (index) => {
   const task = tasks[index];
   event("task.started", { id: task.id, title: task.title });
   const build = await spawn(agents.builder, {
+    check: true,
     prompt: `${task.id}: ${task.title}\n\n${task.prompt}`
   });
   const review = await spawn(agents.reviewer, {
+    check: true,
     prompt: `Review ${task.id}\n\n${build.summary}`
   });
   info(task.id, build.summary, review.summary);

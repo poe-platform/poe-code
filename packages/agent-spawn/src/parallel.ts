@@ -10,13 +10,12 @@ export type SpawnParallelThunk<TResult extends { exitCode: number }> = (
   signal?: AbortSignal
 ) => SpawnHandle<TResult>;
 
-export type SpawnParallelCall<
-  TService,
-  TOptions,
-  TResult extends { exitCode: number }
-> = SpawnParallelTuple<TService, TOptions> | SpawnParallelThunk<TResult>;
+export type SpawnParallelCall<TService, TOptions, TResult extends { exitCode: number }> =
+  | SpawnParallelTuple<TService, TOptions>
+  | SpawnParallelThunk<TResult>;
 
 export type SpawnParallelOptions = {
+  check?: boolean;
   maxConcurrent?: number;
   failFast?: boolean;
   signal?: AbortSignal;
@@ -47,12 +46,16 @@ export function createSpawnParallel<
   options?: SpawnParallelOptions
 ) => Promise<TResult[]> {
   return async function parallel(calls, options = {}) {
+    const maxConcurrent = normalizeMaxConcurrent(options.maxConcurrent);
+    const failFast = options.failFast ?? true;
+    const requestedCheck = Object.hasOwn(options, "check") ? options.check : undefined;
+    const check = requestedCheck === undefined ? failFast : requestedCheck;
+    if (typeof check !== "boolean") {
+      throw new Error("spawn.parallel check must be a boolean.");
+    }
     if (calls.length === 0) {
       return [];
     }
-
-    const maxConcurrent = normalizeMaxConcurrent(options.maxConcurrent);
-    const failFast = options.failFast ?? true;
     const group = new AbortController();
     const results: Array<TResult | undefined> = new Array(calls.length);
     const errors: unknown[] = [];
@@ -76,7 +79,7 @@ export function createSpawnParallel<
           const result = await runParallelCall(calls[index], spawnOnce, group.signal);
           results[index] = result;
 
-          if (failFast && result.exitCode !== 0) {
+          if (check && failFast && result.exitCode !== 0) {
             const error = new SpawnParallelError(index, result, results);
             primaryFailure ??= { reason: error };
             group.abort(error);
@@ -107,7 +110,19 @@ export function createSpawnParallel<
     }
 
     if (errors.length > 0) {
-      throw new AggregateError(errors, "spawn.parallel failed before every call returned a result.");
+      throw new AggregateError(
+        errors,
+        "spawn.parallel failed before every call returned a result."
+      );
+    }
+
+    if (check) {
+      const failedIndex = results.findIndex(
+        (result) => result !== undefined && result.exitCode !== 0
+      );
+      if (failedIndex >= 0) {
+        throw new SpawnParallelError(failedIndex, results[failedIndex]!, results);
+      }
     }
 
     return results as TResult[];
@@ -178,22 +193,24 @@ function withAbortSignal<TOptions extends { signal?: AbortSignal }>(
   }
 
   const controller = new AbortController();
-  const abort = () => {
-    controller.abort();
-  };
+  const callSignal = options.signal;
+  const abortGroup = () => controller.abort(signal.reason);
+  const abortCall = () => controller.abort(callSignal.reason);
 
-  if (signal.aborted || options.signal.aborted) {
-    controller.abort();
+  if (signal.aborted) {
+    abortGroup();
+  } else if (callSignal.aborted) {
+    abortCall();
   } else {
-    signal.addEventListener("abort", abort, { once: true });
-    options.signal.addEventListener("abort", abort, { once: true });
+    signal.addEventListener("abort", abortGroup, { once: true });
+    callSignal.addEventListener("abort", abortCall, { once: true });
   }
 
   return {
     options: { ...options, signal: controller.signal },
     cleanup() {
-      signal.removeEventListener("abort", abort);
-      options.signal?.removeEventListener("abort", abort);
+      signal.removeEventListener("abort", abortGroup);
+      callSignal.removeEventListener("abort", abortCall);
     }
   };
 }
@@ -201,14 +218,14 @@ function withAbortSignal<TOptions extends { signal?: AbortSignal }>(
 function linkParentAbort(
   parentSignal: AbortSignal | undefined,
   group: AbortController,
-  setFailure: (error: Error) => void
+  setFailure: (error: unknown) => void
 ): () => void {
   if (!parentSignal) {
     return () => {};
   }
 
   const abort = () => {
-    const error = createAbortError();
+    const error = parentSignal.reason;
     setFailure(error);
     group.abort(error);
   };
@@ -224,12 +241,6 @@ function linkParentAbort(
 
 function throwIfAborted(signal: AbortSignal): void {
   if (signal.aborted) {
-    throw createAbortError();
+    throw signal.reason;
   }
-}
-
-function createAbortError(): Error {
-  const error = new Error("Agent spawn parallel aborted");
-  error.name = "AbortError";
-  return error;
 }

@@ -634,6 +634,7 @@ describe("runHarnessPair", () => {
 
     expect(result).toMatchObject({
       ok: true,
+      returnValue: "Agent spawn retry maxAttempts must not exceed 5.",
       usage: {
         inputTokens: 0,
         outputTokens: 0,

@@ -26,6 +26,7 @@ export default async (frontmatter) => {
   const summaries = await frontmatter.steps.reduce(async (previousSummaries, step) => {
     const summariesSoFar = await previousSummaries;
     const result = await spawn(frontmatter.agent, {
+      check: true,
       prompt: frontmatter.goal.concat("\n\n", step.prompt, "\n\n", meta.body)
     });
     event("iteration.completed", {

@@ -11,6 +11,7 @@ import {
 } from "./cancel.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { sandboxErrorTypes } from "../error/shape.js";
 import {
   copySandboxArgumentProperties,
   createSandboxArguments,
@@ -603,6 +604,8 @@ function copyToSandbox(
 
     const copy = createPlainObject(true);
     state.seen.set(value, copy);
+    const errorType = sandboxErrorTypes.get(value);
+    if (errorType !== undefined) sandboxErrorTypes.set(copy, errorType);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
       defineOwnDataProperty(

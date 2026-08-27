@@ -1,8 +1,13 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
-import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn/parallel";
+import {
+  createSpawnParallel,
+  SpawnParallelError,
+  type SpawnParallelOptions
+} from "@poe-code/agent-spawn/parallel";
 import { DEFAULT_SPAWN_MODE, type SpawnUsage } from "@poe-code/agent-spawn/types";
+import { hostErrorData } from "../error/shape.js";
 import {
   bindOtelSpan,
   activateOtelSpan,
@@ -38,6 +43,7 @@ export type AgentModuleDefinition =
 
 export type AgentModuleSpawnOptions = {
   prompt: string;
+  check?: boolean;
   label?: string;
   mcp?: AgentModuleMcpConfig;
   model?: string;
@@ -48,11 +54,11 @@ export type AgentModuleSpawnOptions = {
   signal?: AbortSignal;
 };
 
-export type SpawnAgentInput = Omit<AgentModuleSpawnOptions, "label"> & {
+export type SpawnAgentInput = Omit<AgentModuleSpawnOptions, "label" | "check"> & {
   agent: string;
 };
 
-type ResolvedSpawnAgentInput = SpawnAgentInput & { label?: string };
+type ResolvedSpawnAgentInput = SpawnAgentInput & { label?: string; check: boolean };
 
 export type SpawnAgentResult = {
   exitCode: number;
@@ -64,6 +70,17 @@ export type SpawnAgentResult = {
 };
 
 export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
+
+export class AgentSpawnError extends Error {
+  readonly result: SpawnAgentResult;
+
+  constructor(result: SpawnAgentResult) {
+    super(createSpawnFailureMessage(result));
+    this.name = "AgentSpawnError";
+    this.result = result;
+    hostErrorData.set(this, { result });
+  }
+}
 
 export type AgentModuleOptions = {
   defaultRetry?: AgentModuleRetryOptions;
@@ -101,6 +118,7 @@ export type AgentSpawnEvent =
     }
   | {
       type: "spawn.failed";
+      checked: boolean;
       spawnId: number;
       agent: string;
       task: string;
@@ -258,6 +276,7 @@ export function makeAgentModule(
         retryOptions: AgentModuleRetryOptions
       ) {
         const input = resolveSpawnInput(agentDef, options);
+        const normalizedRetry = normalizeRetryOptions(retryOptions);
         const spawnId = nextSpawnId;
         nextSpawnId += 1;
         recordActiveSpawnStart();
@@ -265,35 +284,56 @@ export function makeAgentModule(
           runSpawnRetry(
             spawnAgent,
             input,
-            normalizeRetryOptions(retryOptions),
+            normalizedRetry,
             moduleOptions.onEvent,
             spawnId
           )
         );
       },
-      parallel: createSpawnParallel<
-        AgentModuleDefinition,
-        AgentModuleSpawnOptions,
-        SpawnAgentResult
-      >((agentDef, options) => ({
-        events: (async function* () {})(),
-        result: (() => {
-          const input = resolveSpawnInput(agentDef, options);
-          const spawnId = nextSpawnId;
-          nextSpawnId += 1;
-          recordActiveSpawnStart();
-          return runObservedSpawn(moduleOptions.otelSink, input, () =>
-            runSpawnRetry(
-              spawnAgent,
-              input,
-              defaultRetry ?? oneAttemptRetryOptions,
-              moduleOptions.onEvent,
-              spawnId,
-              false
-            )
-          );
-        })()
-      }))
+      async parallel(calls: AgentModuleParallelCall[], options: SpawnParallelOptions = {}) {
+        const check =
+          readOptionalBoolean(getOwnProperty(options, "check"), "Agent parallel options check") ??
+          false;
+        const parallel = createSpawnParallel<
+          AgentModuleDefinition,
+          AgentModuleSpawnOptions,
+          SpawnAgentResult
+        >((agentDef, spawnOptions) => ({
+          events: (async function* () {})(),
+          result: (() => {
+            const input = resolveSpawnInput(agentDef, spawnOptions);
+            const spawnId = nextSpawnId;
+            nextSpawnId += 1;
+            recordActiveSpawnStart();
+            return runObservedSpawn(moduleOptions.otelSink, input, () =>
+              runSpawnRetry(
+                spawnAgent,
+                input,
+                defaultRetry ?? oneAttemptRetryOptions,
+                (event) =>
+                  moduleOptions.onEvent?.(
+                    event.type === "spawn.failed"
+                      ? { ...event, checked: event.checked || check }
+                      : event
+                  ),
+                spawnId
+              )
+            );
+          })()
+        }));
+        try {
+          return await parallel(calls, { ...options, check });
+        } catch (error) {
+          if (error instanceof SpawnParallelError) {
+            hostErrorData.set(error, {
+              index: error.index,
+              result: error.result,
+              results: error.results
+            });
+          }
+          throw error;
+        }
+      }
     })
   };
 }
@@ -328,7 +368,22 @@ async function runSpawnAttempt(
     recordActiveSpawnUsage(result.usage);
 
     if (result.exitCode !== 0) {
-      throw new Error(createSpawnFailureMessage(result));
+      const error = new AgentSpawnError(result);
+      if (input.check) {
+        throw error;
+      }
+      emitFinalSpawnFailure(
+        onEvent,
+        spawnId,
+        input.agent,
+        task,
+        1,
+        1,
+        result.durationMs,
+        error,
+        false
+      );
+      return result;
     }
 
     emitSpawnEvent(onEvent, {
@@ -342,12 +397,14 @@ async function runSpawnAttempt(
     });
     return result;
   } catch (error) {
-    if (isAbortError(error)) {
-      emitSpawnCancelled(onEvent, spawnId, input.agent, task, 1, 1, Date.now() - startedAt, error);
-      throw error;
+    if (isAbortError(error, input.signal)) {
+      const reason = input.signal?.aborted ? readAbortReason(input.signal) : error;
+      emitSpawnCancelled(onEvent, spawnId, input.agent, task, 1, 1, Date.now() - startedAt, reason);
+      throw reason;
     }
     emitSpawnEvent(onEvent, {
       type: "spawn.failed",
+      checked: true,
       spawnId,
       agent: input.agent,
       task,
@@ -410,8 +467,7 @@ async function runSpawnRetry(
   input: ResolvedSpawnAgentInput,
   retryOptions: Required<AgentModuleRetryOptions>,
   onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
-  spawnId: number,
-  throwOnResultFailure = true
+  spawnId: number
 ): Promise<SpawnAgentResult> {
   const task = resolveTaskLabel(input);
   const startedAt = Date.now();
@@ -446,7 +502,8 @@ async function runSpawnRetry(
       result = validateSpawnResult(await spawnAgent(toProviderSpawnInput(input)));
       throwIfAborted(input.signal);
     } catch (error) {
-      if (isAbortError(error)) {
+      if (isAbortError(error, input.signal)) {
+        const reason = input.signal?.aborted ? readAbortReason(input.signal) : error;
         emitSpawnCancelled(
           onEvent,
           spawnId,
@@ -455,9 +512,9 @@ async function runSpawnRetry(
           attempt,
           retryOptions.maxAttempts,
           Date.now() - startedAt,
-          error
+          reason
         );
-        throw error;
+        throw reason;
       }
 
       if (attempt >= retryOptions.maxAttempts) {
@@ -517,7 +574,7 @@ async function runSpawnRetry(
           Date.now() - startedAt
         );
       } catch (retryError) {
-        if (isAbortError(retryError)) {
+        if (isAbortError(retryError, input.signal)) {
           emitSpawnCancelled(
             onEvent,
             spawnId,
@@ -548,7 +605,7 @@ async function runSpawnRetry(
       return result;
     }
 
-    const error = new Error(createSpawnFailureMessage(result));
+    const error = new AgentSpawnError(result);
     if (attempt >= retryOptions.maxAttempts) {
       emitFinalSpawnFailure(
         onEvent,
@@ -558,9 +615,10 @@ async function runSpawnRetry(
         attempt,
         retryOptions.maxAttempts,
         Date.now() - startedAt,
-        error
+        error,
+        input.check
       );
-      if (throwOnResultFailure) {
+      if (input.check) {
         throw error;
       }
       return result;
@@ -592,9 +650,10 @@ async function runSpawnRetry(
         attempt,
         retryOptions.maxAttempts,
         Date.now() - startedAt,
-        error
+        error,
+        input.check
       );
-      if (throwOnResultFailure) {
+      if (input.check) {
         throw error;
       }
       return result;
@@ -603,7 +662,7 @@ async function runSpawnRetry(
     try {
       await scheduleRetry(error, input, retryOptions, onEvent, spawnId, task, attempt);
     } catch (retryError) {
-      if (isAbortError(retryError)) {
+      if (isAbortError(retryError, input.signal)) {
         emitSpawnCancelled(
           onEvent,
           spawnId,
@@ -702,10 +761,12 @@ function emitFinalSpawnFailure(
   attempt: number,
   maxAttempts: number,
   durationMs: number,
-  error: unknown
+  error: unknown,
+  checked = true
 ): void {
   emitSpawnEvent(onEvent, {
     type: "spawn.failed",
+    checked,
     spawnId,
     agent,
     task,
@@ -762,8 +823,8 @@ function resolveTaskLabel(input: ResolvedSpawnAgentInput): string {
   return input.label ?? createTaskLabel(input.prompt);
 }
 
-function isAbortError(error: unknown): boolean {
-  return readErrorField(error, "name") === "AbortError";
+function isAbortError(error: unknown, signal?: AbortSignal): boolean {
+  return signal?.aborted === true || readErrorField(error, "name") === "AbortError";
 }
 
 function formatSpawnError(error: unknown): string {
@@ -879,7 +940,7 @@ function sleep(delayMs: number, signal: AbortSignal | undefined): Promise<void> 
     }, delayMs);
     const onAbort = () => {
       clearTimeout(timeout);
-      reject(createAbortError());
+      reject(readAbortReason(signal));
     };
 
     signal?.addEventListener("abort", onAbort, { once: true });
@@ -888,11 +949,12 @@ function sleep(delayMs: number, signal: AbortSignal | undefined): Promise<void> 
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   if (signal?.aborted) {
-    throw createAbortError();
+    throw readAbortReason(signal);
   }
 }
 
-function createAbortError(): Error {
+function readAbortReason(signal: AbortSignal | undefined): unknown {
+  if (signal?.reason !== undefined) return signal.reason;
   const error = new Error("Agent spawn retry aborted");
   error.name = "AbortError";
   return error;
@@ -913,6 +975,7 @@ function resolveSpawnInput(
   return createNullRecord({
     agent: definition.agent,
     prompt: prependSystemPrompt(definition.prompt, normalizedOptions.prompt),
+    check: normalizedOptions.check ?? false,
     ...(normalizedOptions.label !== undefined ? { label: normalizedOptions.label } : {}),
     ...((normalizedOptions.model ?? definition.model)
       ? { model: normalizedOptions.model ?? definition.model }
@@ -983,6 +1046,7 @@ function normalizeSpawnOptions(
 
   return createNullRecord({
     prompt: readRequiredPrompt(getOwnProperty(options, "prompt")),
+    check: readOptionalBoolean(getOwnProperty(options, "check"), "Agent spawn options check"),
     ...(label === undefined
       ? {}
       : { label: readRequiredString(label, "Agent spawn options label") }),
@@ -1005,9 +1069,16 @@ function normalizeSpawnOptions(
 }
 
 function toProviderSpawnInput(input: ResolvedSpawnAgentInput): SpawnAgentInput {
-  const { label: ignoredLabel, ...providerInput } = input;
+  const { label: ignoredLabel, check: ignoredCheck, ...providerInput } = input;
   void ignoredLabel;
+  void ignoredCheck;
   return providerInput;
+}
+
+function readOptionalBoolean(value: unknown, label: string): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") throw new Error(`${label} must be a boolean.`);
+  return value;
 }
 
 function validateSpawnResult(result: unknown): SpawnAgentResult {

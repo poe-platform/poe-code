@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import {
   createSandboxArguments,
   createSandboxClosure,
@@ -40,6 +41,7 @@ type DataNode =
       properties: Properties;
       extensible: boolean;
       nullPrototype: boolean;
+      errorType?: SandboxErrorName;
     }
   | { kind: "arguments"; data: SerializedArguments<Atom> }
   | { kind: "map"; entries: Array<[Atom, Atom]> }
@@ -130,6 +132,7 @@ export function encodeReplayData(
         throw new TypeError("Replay data contains an unsupported host object or symbol property.");
       }
       const properties: Properties = Object.create(null);
+      const errorType = sandboxErrorTypes.get(entry);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
         if (!("value" in descriptor))
           throw new TypeError(`Cannot record replay data accessor '${key}'.`);
@@ -143,6 +146,7 @@ export function encodeReplayData(
       nodes[id] = {
         kind: Array.isArray(entry) ? "array" : "object",
         nullPrototype: prototype === null,
+        ...(errorType === undefined ? {} : { errorType }),
         extensible: Object.isExtensible(entry),
         properties
       };
@@ -212,6 +216,12 @@ export function decodeReplayData(
     if (restored.has(id)) return restored.get(id);
     const node = record(nodes[id]);
     const kind = own(node, "kind");
+    if (
+      Object.hasOwn(node, "errorType") &&
+      (kind !== "object" || !sandboxErrorNames.includes(node.errorType as SandboxErrorName))
+    ) {
+      throw new TypeError("Invalid replay error metadata.");
+    }
     const child = (value: unknown) => decode(value, depth + 1);
     if (kind === "capability") {
       const capabilityId = own(node, "id");
@@ -296,6 +306,9 @@ export function decodeReplayData(
     }
     const result =
       kind === "array" ? [] : Object.create(node.nullPrototype ? null : Object.prototype);
+    if (Object.hasOwn(node, "errorType")) {
+      sandboxErrorTypes.set(result, node.errorType as SandboxErrorName);
+    }
     if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
     restored.set(id, result);
     defineProperties(result, record(own(node, "properties")), child);

@@ -472,9 +472,9 @@ describe("harness command", () => {
       );
       const spawn = modules.agent.get("spawn") as (
         agentDef: string,
-        spawnOptions: { prompt: string }
+        spawnOptions: { prompt: string; check: boolean }
       ) => Promise<unknown>;
-      await spawn("codex", { prompt: "Build it" });
+      await spawn("codex", { prompt: "Build it", check: true });
       return { ok: true, returnValue: "done" };
     });
 
@@ -485,6 +485,42 @@ describe("harness command", () => {
     expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
     expect(logs.join("\n")).not.toContain("Retrying in");
   });
+
+  it.each([false, true])(
+    "returns unchecked child failures without marking the harness failed (parallel=%s)",
+    async (parallel) => {
+      const logs: string[] = [];
+      harnessMocks.spawnMock.mockImplementation(() => ({
+        events: (async function* () {})(),
+        result: Promise.resolve({
+          exitCode: 1,
+          stdout: "partial output",
+          stderr: "No API key found."
+        })
+      }));
+      harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+        const modules = options.modulesFor(
+          { kind: "test", version: 1 },
+          { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+        );
+        const spawn = modules.agent.get("spawn") as ReturnType<
+          typeof import("@poe-code/safejs").makeAgentModule
+        >["spawn"];
+        const result = parallel
+          ? (await spawn.parallel([["codex", { prompt: "Build it" }]]))[0]
+          : await spawn("codex", { prompt: "Build it" });
+        expect(result).toMatchObject({ exitCode: 1, stdout: "partial output" });
+        return { ok: true, returnValue: "handled" };
+      });
+
+      await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+      expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
+      expect(logs.join("\n")).toContain("returned an unsuccessful result after 1 attempt");
+      expect(logs.join("\n")).not.toContain("failed after");
+      expect(logs.join("\n")).not.toContain("Retrying in");
+    }
+  );
 
   it.each([
     "API key rejected.",
@@ -800,10 +836,10 @@ describe("harness command", () => {
       const spawn = modules.agent.get("spawn") as {
         parallel: (
           calls: Array<[string, { prompt: string }]>,
-          options?: { failFast?: boolean }
+          options?: { failFast?: boolean; check?: boolean }
         ) => Promise<unknown>;
       };
-      await spawn.parallel([["codex", { prompt: "Review feature" }]]);
+      await spawn.parallel([["codex", { prompt: "Review feature" }]], { check: true });
       return { ok: true, returnValue: "done" };
     });
 

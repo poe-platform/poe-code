@@ -259,9 +259,9 @@ describe("makeAgentModule", () => {
     }));
     const agent = makeAgentModule(spawnAgent);
 
-    await expect(agent.spawn({ agent: "codex" }, { prompt: "Try once." })).rejects.toThrow(
-      "Agent spawn failed with exit code 7: agent failed"
-    );
+    await expect(
+      agent.spawn({ agent: "codex" }, { prompt: "Try once.", check: true })
+    ).rejects.toThrow("Agent spawn failed with exit code 7: agent failed");
   });
 
   it("falls back to the summary in the failure message when stderr is empty", async () => {
@@ -274,9 +274,9 @@ describe("makeAgentModule", () => {
     }));
     const agent = makeAgentModule(spawnAgent);
 
-    await expect(agent.spawn({ agent: "codex" }, { prompt: "Try again." })).rejects.toThrow(
-      "Agent spawn failed with exit code 9: timeout waiting for tool"
-    );
+    await expect(
+      agent.spawn({ agent: "codex" }, { prompt: "Try again.", check: true })
+    ).rejects.toThrow("Agent spawn failed with exit code 9: timeout waiting for tool");
   });
 
   it("exposes spawn.retry with the same agent definition and options arity", async () => {
@@ -545,7 +545,7 @@ describe("makeAgentModule", () => {
     await expect(
       agent.spawn.retry(
         "codex",
-        { prompt: "Try this." },
+        { prompt: "Try this.", check: true },
         {
           maxAttempts: 5,
           backoffMs: 0,
@@ -610,7 +610,7 @@ describe("makeAgentModule", () => {
     await expect(
       agent.spawn.retry(
         "codex",
-        { prompt: "Try this." },
+        { prompt: "Try this.", check: true },
         { maxAttempts: 2, backoffMs: 0, isRetryable: classifier }
       )
     ).rejects.toThrow("final result failure");
@@ -902,7 +902,7 @@ describe("makeAgentModule", () => {
         type: "spawn.cancelled",
         attempt: 1,
         maxAttempts: 5,
-        reason: "Agent spawn retry aborted"
+        reason: "This operation was aborted"
       })
     ]);
   });
@@ -924,7 +924,7 @@ describe("makeAgentModule", () => {
         type: "spawn.cancelled",
         attempt: 1,
         maxAttempts: 1,
-        reason: "Agent spawn retry aborted"
+        reason: "This operation was aborted"
       })
     ]);
   });
@@ -985,7 +985,7 @@ describe("makeAgentModule", () => {
       expect.objectContaining({
         type: "spawn.cancelled",
         attempt: 1,
-        reason: "Agent spawn retry aborted"
+        reason: "This operation was aborted"
       })
     );
     vi.useRealTimers();
@@ -1135,7 +1135,7 @@ describe("makeAgentModule", () => {
           ["codex", { prompt: "Slow" }],
           ["codex", { prompt: "Fail" }]
         ],
-        { maxConcurrent: 2 }
+        { maxConcurrent: 2, check: true }
       )
     ).rejects.toMatchObject({ name: "SpawnParallelError" });
 
@@ -1289,7 +1289,7 @@ describe("makeAgentModule", () => {
       { otelSink: sink }
     );
 
-    await expect(agent.spawn("codex", { prompt: "Try." })).rejects.toThrow(
+    await expect(agent.spawn("codex", { prompt: "Try.", check: true })).rejects.toThrow(
       "Agent spawn failed with exit code 3: denied"
     );
 

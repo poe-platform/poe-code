@@ -1,0 +1,31 @@
+{
+  "classification": "Author-only historical audit discovery reclassification; no source or behavioral assertion change",
+  "observedBaseCommit": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "oldPath": "tests/commands/column/padding-evolution/preserved-source.test.ts",
+  "newPath": "tests/commands/column/padding-evolution/preserved-source.audit.ts",
+  "bytes": 1141,
+  "oldBlobSha256": "3e84dc28815cd9c3e2a73cef50cd6457ee12fdcc1f5f91efb35033f783d07172",
+  "newFileSha256": "3e84dc28815cd9c3e2a73cef50cd6457ee12fdcc1f5f91efb35033f783d07172",
+  "oldAndNewGitBlob": "86522c287a3055e2563abcb7d4d1e971414f690c",
+  "byteVerification": "New file compared byte-for-byte with git show observedBaseCommit:oldPath; old working-tree path absent; Git hash-object unchanged. Rename performed with apply_patch.",
+  "historicalCheckCount": 2,
+  "historicalSourceCommit": "a809635432f18a235b8fb622a05367bedc54b315",
+  "historicalSourceTree": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+  "explicitHistoricalCommand": "node --import tsx --test tests/commands/column/padding-evolution/preserved-source.audit.ts",
+  "historicalInvocationExecutedByAuthor": false,
+  "discovery": {
+    "method": "Actual package.json recipe: node:fs globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); sort names for inventory hashing; do not spawn the test runner",
+    "inventoryHashAlgorithm": "SHA256(JSON.stringify(sorted discovered paths))",
+    "beforeCount": 586,
+    "beforeSha256": "41844df95cc6f54f2c539f70b94e7aadba1d7af5ff53d146c50a8a0907a66402",
+    "afterCount": 585,
+    "afterSha256": "56a0e1a776cc87e58115fa81be17fa18aad08960bf7030d2a9bb9dac77e96223",
+    "removed": ["tests/commands/column/padding-evolution/preserved-source.test.ts"],
+    "added": [],
+    "exactDeltaVerification": "Adding only the old path back to the sorted post-rename discovery reproduces the recorded pre-rename inventory digest; neither old nor new audit path is selected afterward.",
+    "scope": "Complete matching path names re-enumerated, including additions/deletions; not a content freeze or a test execution. Other owners' live content changes are not discovery membership changes."
+  },
+  "packageJsonSha256BeforeAndAfter": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+  "unchanged": "Product source, behavioral tests, preserved-source.json, old captures/reports, compiler globs, exclusions and package/configuration remain untouched.",
+  "acceptanceScope": "Two implementation-byte pins become opt-in historical checks; no behavioral coverage is removed. Independent worker verifies commit rename similarity, byte identity, exact discovery delta and historical invocation. No module replay, build, install or full gate run here."
+}

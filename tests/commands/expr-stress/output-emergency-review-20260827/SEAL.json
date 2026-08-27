@@ -1,0 +1,142 @@
+{
+  "sealedAt": "2026-08-27T20:15:44.342Z",
+  "candidate": "7623599c995c42f62ec1cd9ad78ced2913970f66",
+  "entries": [
+    {
+      "path": "FREEZE.json",
+      "type": "file",
+      "size": 118583,
+      "sha256": "0ae24cf1d5f285e7651a9c777e95f099524b52d6eda0454fe5a40a88736398bd"
+    },
+    {
+      "path": "REPORT.md",
+      "type": "file",
+      "size": 10728,
+      "sha256": "cb64d18de5945bafc2dec9d6ca3b437b22021a87bda505e845ec3ba850573d42"
+    },
+    {
+      "path": "capture.mjs",
+      "type": "file",
+      "size": 6199,
+      "sha256": "6ee190ce723ab95065607cb6b84f53306dfc870f3c60a1c4a2200ecd60636285"
+    },
+    {
+      "path": "cases.mjs",
+      "type": "file",
+      "size": 3617,
+      "sha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086"
+    },
+    {
+      "path": "common.mjs",
+      "type": "file",
+      "size": 920,
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f"
+    },
+    {
+      "path": "probe.mjs",
+      "type": "file",
+      "size": 9398,
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1"
+    },
+    {
+      "path": "run01",
+      "type": "directory"
+    },
+    {
+      "path": "run01/archive-before.json",
+      "type": "file",
+      "size": 46512,
+      "sha256": "10badfbfda28cc5ab4ebd48e3184c173fb2d871fab6004abe453fd0605e72f27"
+    },
+    {
+      "path": "run01/build.json",
+      "type": "file",
+      "size": 68,
+      "sha256": "7d24f2ab2740c20d59b3652b754eda1abdd602322a36329cba3e718aa016bf8d"
+    },
+    {
+      "path": "run01/built-before.json",
+      "type": "file",
+      "size": 196169,
+      "sha256": "dd51b488371fecf881d9c1aa4fd99f30875f53bafa789ded6c32b2444db41d7f"
+    },
+    {
+      "path": "run01/cleanup.json",
+      "type": "file",
+      "size": 289,
+      "sha256": "7cde8d8e18e56adea386cb1897a7ea61e77421fc9ac87ba3a0c6d519ca78beb4"
+    },
+    {
+      "path": "run01/integrity.json",
+      "type": "file",
+      "size": 833,
+      "sha256": "5388357bb2a60bdf6842b9ca3b3249634ea618ab97fed94174904cbf570ecc2a"
+    },
+    {
+      "path": "run01/probe-process.json",
+      "type": "file",
+      "size": 68,
+      "sha256": "7d24f2ab2740c20d59b3652b754eda1abdd602322a36329cba3e718aa016bf8d"
+    },
+    {
+      "path": "run01/results.json",
+      "type": "file",
+      "size": 163951,
+      "sha256": "5b13bbe631ec7b0e349584fbb32d27f858eba7afef3dab3ed5d5f05980e37559"
+    },
+    {
+      "path": "run02",
+      "type": "directory"
+    },
+    {
+      "path": "run02/archive-before.json",
+      "type": "file",
+      "size": 46512,
+      "sha256": "10badfbfda28cc5ab4ebd48e3184c173fb2d871fab6004abe453fd0605e72f27"
+    },
+    {
+      "path": "run02/build.json",
+      "type": "file",
+      "size": 68,
+      "sha256": "7d24f2ab2740c20d59b3652b754eda1abdd602322a36329cba3e718aa016bf8d"
+    },
+    {
+      "path": "run02/built-before.json",
+      "type": "file",
+      "size": 196169,
+      "sha256": "dd51b488371fecf881d9c1aa4fd99f30875f53bafa789ded6c32b2444db41d7f"
+    },
+    {
+      "path": "run02/cleanup.json",
+      "type": "file",
+      "size": 289,
+      "sha256": "c066dc4b6b89d8cb63d77a89e471db8684f1d8e273df4a8f7a9dad0bcbc2f764"
+    },
+    {
+      "path": "run02/integrity.json",
+      "type": "file",
+      "size": 833,
+      "sha256": "b61059616fefc60ad624ba22aab26bb46f4f4970d3ef3a30ae94f61f9434b757"
+    },
+    {
+      "path": "run02/probe-process.json",
+      "type": "file",
+      "size": 68,
+      "sha256": "7d24f2ab2740c20d59b3652b754eda1abdd602322a36329cba3e718aa016bf8d"
+    },
+    {
+      "path": "run02/results.json",
+      "type": "file",
+      "size": 163951,
+      "sha256": "5b13bbe631ec7b0e349584fbb32d27f858eba7afef3dab3ed5d5f05980e37559"
+    },
+    {
+      "path": "seal.mjs",
+      "type": "file",
+      "size": 2639,
+      "sha256": "5d30a9331738ca91568a4a452750e2142bf8579c5e632ad4576e3dd78c648f42"
+    }
+  ],
+  "result": "36/47 twice; FAIL, production change required. Historical 11/12 unchanged.",
+  "appendAware": true
+}

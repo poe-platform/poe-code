@@ -1,0 +1,7 @@
+{
+  "method": "Offline second regular extraction after casefold-ancestor guard hardening; no product execution",
+  "fileCount": 955,
+  "identicalFullFileMap": true,
+  "extractorSha256": "08d8b148a845459ff59391ec5d0a24399d32e47ef37d9fc3f6ed26a712e804f4",
+  "destination": "/private/tmp/safe-bash-published-auth-JydnQ4/authenticated-package-guard-recheck"
+}

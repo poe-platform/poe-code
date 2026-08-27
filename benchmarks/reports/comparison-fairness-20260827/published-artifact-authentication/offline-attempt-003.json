@@ -1,0 +1,7 @@
+{
+  "phase": "offline dependency tree digest reconstruction",
+  "outcome": "Auditor compared source manifest tree digest to copied-tree digest and stopped; zero product calls.",
+  "cause": "Original preparation deliberately dereferences source symlinks into regular files, setting copied originalSymlink fields to null. The source path map and copied path map have different canonical hashes even with identical bytes.",
+  "resolution": "Recompute copiedTreeSha256 with recorded originalSymlink values set to null, as exact frozen prepare.mjs:38-75 specifies. Separately retain original source-tree hash and observed physical path/byte/mode hash.",
+  "modeFindingResolved": "Frozen prepare.mjs:116 explicitly strips write bits after recording the seal. Observed0555/0444 modes are expected freeze sealing, not unexplained drift. Preserve these read-only modes in the isolated execution copy; do not edit the original freeze."
+}

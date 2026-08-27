@@ -1,0 +1,39 @@
+{
+  "scope": "Offline field mapping only; raw download.json and metadata unchanged",
+  "source": {
+    "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/download.json",
+    "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0"
+  },
+  "responses": [
+    {
+      "role": "metadata",
+      "status": 200,
+      "requestedUrl": "https://registry.npmjs.org/just-bash/3.4.2",
+      "finalUrl": "https://registry.npmjs.org/just-bash/3.4.2",
+      "bodySha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+      "receivedAt": "2026-08-27T05:49:41.241Z",
+      "tls": {
+        "authorized": true,
+        "authorizationError": null,
+        "protocol": "TLSv1.2",
+        "peerFingerprint256": "4C:76:5B:8D:62:2F:F6:00:10:29:D3:E8:5E:20:98:D4:4E:FD:BE:40:90:DC:21:4F:6A:B2:D9:F1:C0:F8:05:B3",
+        "servername": "registry.npmjs.org"
+      }
+    },
+    {
+      "role": "tarball",
+      "status": 200,
+      "requestedUrl": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "finalUrl": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "bodySha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "receivedAt": "2026-08-27T05:49:41.625Z",
+      "tls": {
+        "authorized": true,
+        "authorizationError": null,
+        "protocol": "TLSv1.2",
+        "peerFingerprint256": "4C:76:5B:8D:62:2F:F6:00:10:29:D3:E8:5E:20:98:D4:4E:FD:BE:40:90:DC:21:4F:6A:B2:D9:F1:C0:F8:05:B3",
+        "servername": "registry.npmjs.org"
+      }
+    }
+  ]
+}

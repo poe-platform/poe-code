@@ -1,0 +1,13 @@
+{
+  "attempt": 1,
+  "scope": "Non-product driver helpers and syntax only",
+  "syntaxCheckProcesses": 7,
+  "nonProductHelperProcesses": 1,
+  "productProcesses": 0,
+  "publicationSucceeded": false,
+  "error": "spawnSync apply_patch ENOENT",
+  "cause": "The evidence-writing wrapper used env -i PATH without the apply_patch executable directory. All eight bounded child checks returned before publication failed; their individual statuses/stdout were not printed or retained and are unknown here.",
+  "followUp": "Source inspection exposed a helper result field mismatch (ok versus success). Align the helper with its coordinator/check consumers, then preserve a separately numbered check attempt using the discovered absolute apply_patch path.",
+  "notAPass": true,
+  "noProductOrApprovalExecution": true
+}

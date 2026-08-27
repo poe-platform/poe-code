@@ -1,0 +1,157 @@
+{
+  "sequence": 2,
+  "profile": "original",
+  "recipeId": "composition/archive-hash/archive-hash",
+  "requestId": 2,
+  "response": {
+    "id": 2,
+    "observation": {
+      "stdout": "ZDFiOWYxMmQwYWJkNzFhYjMwNWFhMjM0MzU2NDcyMThjNmJkNmI3N2I1M2QzMDIzZTJjZGY4MzVhMDc4Njg3OSAgb3V0L3RyZWUvZmlsZQo=",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "out": {
+          "type": "directory"
+        },
+        "out/tree": {
+          "type": "directory"
+        },
+        "out/tree/file": {
+          "type": "file",
+          "bytes": "AAEJCkF/gP8="
+        },
+        "tree": {
+          "type": "directory"
+        },
+        "tree/file": {
+          "type": "file",
+          "bytes": "AAEJCkF/gP8="
+        }
+      },
+      "events": [],
+      "registryEvents": [
+        {
+          "name": "mkdir",
+          "args": [
+            "out"
+          ]
+        },
+        {
+          "name": "tar",
+          "args": [
+            "-cf",
+            "-",
+            "tree"
+          ]
+        },
+        {
+          "name": "tar",
+          "args": [
+            "-xf",
+            "-",
+            "-C",
+            "out"
+          ]
+        },
+        {
+          "name": "sha256sum",
+          "args": [
+            "out/tree/file"
+          ]
+        }
+      ],
+      "executeMs": 41.35416699999999,
+      "memory": {
+        "before": {
+          "rss": 174489600,
+          "heapTotal": 33964032,
+          "heapUsed": 15495992,
+          "external": 4064657,
+          "arrayBuffers": 144201
+        },
+        "after": {
+          "rss": 183042048,
+          "heapTotal": 36388864,
+          "heapUsed": 24604840,
+          "external": 4392557,
+          "arrayBuffers": 372230
+        },
+        "sampledPeak": {
+          "rss": 183025664,
+          "heapUsed": 24604096,
+          "external": 4392557
+        },
+        "processMaxRssKiB": 179008,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 2,
+    "profile": "original",
+    "recipeId": "composition/archive-hash/archive-hash",
+    "requestId": 2,
+    "pid": 80567,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80567,
+  "trace": {
+    "sha256": "7d2fbdeec7595d190d5ce15a1759c7d2989bf6035cba72f0e3ac4272720b68e5",
+    "events": 393,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  }
+]

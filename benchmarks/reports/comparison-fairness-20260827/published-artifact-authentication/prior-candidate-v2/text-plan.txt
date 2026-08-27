@@ -1,0 +1,36 @@
+Published-artifact authentication plan — 2026-08-27 UTC — ROOT APPROVAL REQUIRED FOR PRODUCT EXECUTION
+
+Leaf owns only NEW benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/** excluding verification/**, plus isolated /tmp. No staging/commit, install, scripts, upgrades, production/original harness/golden/previous evidence edits, private runtime or unrelated native directory access.
+
+Offline work authorized now:
+1. Read official https://registry.npmjs.org/just-bash/3.4.2 and exactly its official registry tarball via node:https in a scrubbed child environment, isolated HOME/TMPDIR/npm cache. TLS certificate verification on; hostname allowlist exactly registry.npmjs.org, HTTPS443 only, no credentials/cookies/proxy/profile/env TLS injection. At most3 redirects/request, every hop reauthorized; metadata2MiB, tarball16MiB, response30s/total90s limits. Exact metadata body and response headers/URLs/timestamps retained; tarball only in owned /tmp.
+2. Verify SHA512 SRI and SHA1 shasum against metadata, record actual SHA256 too. Independently decompress with64MiB ceiling and inspect every tar member before any publication: only package/ paths, no absolute/traversal/backslash/NUL/empty components, duplicate/casefold collisions, links/special/sparse entries; regular-file exclusive writes into newly owned directory. No extractall/install/package script.
+3. Compare all published file bytes and membership with frozen installed baseline under /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/benchmarks/node_modules/just-bash, sealed per-file maps and historical expanded manifest/bundle identities. Verify frozen dependency tree/lock identities separately; dependencies are not authenticated by this one package tarball. Review exact frozen engine command registry/network setup and recorded imports with load-attempt versus successful import/handshake qualifications.
+4. If ANY package path/byte mismatch or integrity mismatch occurs: STOP product work, retain paths/hashes; do not relabel old results. Root chooses any different future cohort.
+
+PROPOSED REPRESENTATIVE EXECUTION, NOT YET APPROVED:
+Baseline ONLY,7 distinct existing IDs,8 total result-bearing Bash.exec calls,8 fresh sequential engine child processes,one coordinator process (max2 ordinary OS processes concurrently; Node loader threads separately described). No ours invocation/empty initialization, warmup, neutrality, transport-control, inventory-construction or full224 calls. No retry. Startup ready is not a guest call. Per child startup15s, one request10s, guest5s/network4s as frozen engine; cleanup starts by parent disconnecting IPC (NO synthetic stop message, since the unchanged engine has no stop handler), waits2s for natural exit, then recorded SIGTERM and2s grace, SIGKILL plus2s only for verified owned remaining process; global150s ceiling. Fresh FS/shell once per observation.
+
+Exact existing recipes and native four-field comparator unchanged; use independently extracted authenticated baseline package in a regular-file copy of frozen dependency/harness closure. Preserve original profile unless the scratch difference matters:
+Copy mode policy clarified before approval: preserve actual read-only frozen file modes (recorded pre-seal modes with write bits removed by original prepare.mjs:116); no alteration of original freeze permissions. Byte/membership identity is checked separately from this explained metadata transformation.
+Original profile0294afb/native-corrected:
+1 command/echo/multiple — old baseline PASS (clean positive).
+2 composition/archive-hash/archive-hash — old baseline PASS (pipeline/archive/VFS bytes).
+3 command/cat/binary-stdin — old baseline FAIL stdout only (known public byte boundary).
+4 network/curl/get — old baseline FAIL stdout only (binary loopback response).
+5 network/curl/output — old baseline PASS (loopback download to VFS).
+6 kernel/type/type — old baseline PASS (kernel classification).
+7 command/patch/dry-run — old baseline FAIL stderr,exitCode,entries.
+Scratch-aligned profiled1b10a3/native-scratch-aligned:
+8 command/patch/dry-run — old baseline FAIL stderr,exitCode (the original empty tmp entry requirement differs).
+
+Expected statuses are frozen observations, not a promise the rerun will match. Compare BOTH native four-field predicate and byte-exact old observation fields; keep known failures as failures. Profile tables remain original222/224 and aligned223/224 ours versus155/224 baseline; this subset is NOT a new224 score or denominator extension. Dirty source freeze76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c remains explicit. No baseline-only union.
+
+Planned command after explicit root approval: env -i PATH=<recorded Node dir>:/usr/bin:/bin HOME=<owned-home> TMPDIR=<owned-tmp> npm_config_cache=<owned-cache> LANG=C LC_ALL=C TZ=UTC <recorded-node> benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/representative.mjs --approval /tmp/safe-bash-baseline-auth-approval.json
+This file is a proposal, not an approval token. Do not execute merely because it exists.
+
+Driver/observer proposal now authored but only syntax-checked. Root approval must bind SHA256s of representative.mjs, observe-process.mjs, observe-load.mjs, representative-plan-v2.json and execution-closure.json, plus this text plan, approved:true, authority:root, resultBearingCalls:8, engineChildren:8. The observer logs resolution/load attempts/load returns and forbids extra child_process APIs (records attempt then throws) to enforce the process budget. This is an explicit additional observer/containment difference from old forward-only process tracing, not a changed command implementation; any attempt is an infrastructure/budget failure and stops the subset, never silently counted as semantics. No approved token is authored by this leaf.
+
+Transport/trace/cleanup: one coordinator in-process server binds127.0.0.1 only for exact frozen curl server paths; no external service requests or native oracle. Exact frozen engine instrument=true forward-only registry wrapping, no custom command injection. Parent logs PID/profile/recipe/request id/send time/ready/result-or-error/settlement/termination. Loader logs resolution plus load attempts and returned-load results; ready after top-level entry import provides bounded successful entry-import evidence, not universal module-evaluation proof. Retain all raw outcomes, check owned children/server settled, compare closure hashes before/after. Old capture claims remain qualified, not retrospectively repaired.
+
+Independent reviewer owns verification/**; it must review offline proof and any separately approved subset before staging/commit.

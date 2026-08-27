@@ -1,0 +1,27 @@
+{
+  "at": "2026-08-27T06:30:38.730Z",
+  "reason": "Final source-only launch-journal fence and duplicate survivor-cleanup guard; no helper rerun",
+  "syntaxCheckProcesses": 2,
+  "nonProductHelperProcesses": 0,
+  "productProcesses": 0,
+  "records": [
+    {
+      "name": "supervise-representative.mjs",
+      "kind": "syntax-only",
+      "sha256": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "representative.mjs",
+      "kind": "syntax-only",
+      "sha256": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

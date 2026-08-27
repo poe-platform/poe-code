@@ -1,0 +1,2286 @@
+{
+  "acceptedEvidenceCommit": "245799e7498c849098ca971fe00270112aa5e06e",
+  "manifestFields": [
+    {
+      "field": "name",
+      "equal": true
+    },
+    {
+      "field": "version",
+      "equal": true
+    },
+    {
+      "field": "type",
+      "equal": true
+    },
+    {
+      "field": "main",
+      "equal": true
+    },
+    {
+      "field": "types",
+      "equal": true
+    },
+    {
+      "field": "exports",
+      "equal": true
+    },
+    {
+      "field": "dependencies",
+      "equal": true
+    },
+    {
+      "field": "optionalDependencies",
+      "equal": true
+    },
+    {
+      "field": "engines",
+      "equal": true
+    }
+  ],
+  "manifestByteEquality": true,
+  "historicalIdentities": {
+    "manifest": {
+      "actual": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+      "historical": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd"
+    },
+    "bundle": {
+      "actual": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "historical": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    "benchmarkLock": {
+      "actual": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70",
+      "historical": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+    }
+  },
+  "historicalLimit": "Original expanded run records only baseline manifest/bundle/lock identity; no new full historical dependency authenticity or retrospective universal module-load proof.",
+  "frozenMainLock": {
+    "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "packages": 33,
+    "treeEqual": true
+  },
+  "frozenBenchmarkLock": {
+    "sha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70",
+    "packages": 82,
+    "baseline": {
+      "version": "3.4.2",
+      "resolved": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "dev": true,
+      "license": "Apache-2.0",
+      "dependencies": {
+        "diff": "^8.0.4",
+        "fast-xml-parser": "^5.10.1",
+        "file-type": "^21.3.4",
+        "ini": "^6.0.0",
+        "minimatch": "^10.2.6",
+        "modern-tar": "^0.7.7",
+        "papaparse": "^5.6.0",
+        "quickjs-emscripten": "^0.32.0",
+        "re2js": "^1.3.3",
+        "seek-bzip": "^2.0.0",
+        "smol-toml": "^1.8.0",
+        "sprintf-js": "^1.1.3",
+        "sql.js": "^1.14.1",
+        "turndown": "^7.2.4",
+        "undici": "^7.29.0",
+        "yaml": "^2.9.0"
+      },
+      "bin": {
+        "just-bash": "dist/bin/just-bash.js",
+        "just-bash-shell": "dist/bin/shell/shell.js"
+      },
+      "engines": {
+        "node": ">=20.18.1"
+      },
+      "optionalDependencies": {
+        "@mongodb-js/zstd": "^7.0.0",
+        "node-liblzma": "^2.2.0"
+      }
+    },
+    "graph": {
+      "": {
+        "name": "virtual-bash-comparison",
+        "version": "0.0.0",
+        "devDependencies": {
+          "just-bash": "3.4.2"
+        }
+      },
+      "node_modules/@borewit/text-codec": {
+        "version": "0.2.2",
+        "resolved": "https://registry.npmjs.org/@borewit/text-codec/-/text-codec-0.2.2.tgz",
+        "integrity": "sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==",
+        "dev": true,
+        "license": "MIT",
+        "funding": {
+          "type": "github",
+          "url": "https://github.com/sponsors/Borewit"
+        }
+      },
+      "node_modules/@jitl/quickjs-ffi-types": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/@jitl/quickjs-ffi-types/-/quickjs-ffi-types-0.32.0.tgz",
+        "integrity": "sha512-v9T+GQpmk43VDJ7d72sf0Nexhk+ArvtUihW27dy7lqAl0zBObFKtSBBIm5RBjwIhE8VwsPPm9PNuvPvNqLWUEg==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/@jitl/quickjs-wasmfile-debug-asyncify": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/@jitl/quickjs-wasmfile-debug-asyncify/-/quickjs-wasmfile-debug-asyncify-0.32.0.tgz",
+        "integrity": "sha512-EX8zbXwGqCgAE764M+qvkHtyXDi/FUoMBea0JnES7vCM3P7a2+EOZOjGv85wtZ2sJhI1oJ+nekmqpOODFDY+hw==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-ffi-types": "0.32.0"
+        }
+      },
+      "node_modules/@jitl/quickjs-wasmfile-debug-sync": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/@jitl/quickjs-wasmfile-debug-sync/-/quickjs-wasmfile-debug-sync-0.32.0.tgz",
+        "integrity": "sha512-LeYWrPGC1uNCTBWvibo3ZLJj0CSVNYUXvJpXMCmuQ5Sap2cCACc3uvGvYV4homHHBAzfw5akoTqMMS4YFRtw+Q==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-ffi-types": "0.32.0"
+        }
+      },
+      "node_modules/@jitl/quickjs-wasmfile-release-asyncify": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/@jitl/quickjs-wasmfile-release-asyncify/-/quickjs-wasmfile-release-asyncify-0.32.0.tgz",
+        "integrity": "sha512-3oSwPfja12ICz4aIblB58cuY8JlEq5Txt8Cut4VLo+LH47QN+mzCnSgnbB03hWzg1LBcc+VyyI9UOag7a1NF+Q==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-ffi-types": "0.32.0"
+        }
+      },
+      "node_modules/@jitl/quickjs-wasmfile-release-sync": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/@jitl/quickjs-wasmfile-release-sync/-/quickjs-wasmfile-release-sync-0.32.0.tgz",
+        "integrity": "sha512-BKNDI/TPBfGlLNGYpLrhcDGXmIk4xHm4MRAisOBnOzpXVn9HZWsfmMAc9WMBrAHjvvds6HOikKeaOBKdPdpVrg==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-ffi-types": "0.32.0"
+        }
+      },
+      "node_modules/@mixmark-io/domino": {
+        "version": "2.2.0",
+        "resolved": "https://registry.npmjs.org/@mixmark-io/domino/-/domino-2.2.0.tgz",
+        "integrity": "sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==",
+        "dev": true,
+        "license": "BSD-2-Clause"
+      },
+      "node_modules/@mongodb-js/zstd": {
+        "version": "7.0.0",
+        "resolved": "https://registry.npmjs.org/@mongodb-js/zstd/-/zstd-7.0.0.tgz",
+        "integrity": "sha512-mQ2s0pYYiav+tzCDR05Zptem8Ey2v8s11lri5RKGhTtL4COVCvVCk5vtyRYNT+9L8qSfyOqqefF9UtnW8mC5jA==",
+        "dev": true,
+        "hasInstallScript": true,
+        "license": "Apache-2.0",
+        "optional": true,
+        "dependencies": {
+          "node-addon-api": "^8.5.0",
+          "prebuild-install": "^7.1.3"
+        },
+        "engines": {
+          "node": ">= 20.19.0"
+        }
+      },
+      "node_modules/@nodable/entities": {
+        "version": "3.0.0",
+        "resolved": "https://registry.npmjs.org/@nodable/entities/-/entities-3.0.0.tgz",
+        "integrity": "sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/nodable"
+          }
+        ],
+        "license": "MIT"
+      },
+      "node_modules/@tokenizer/inflate": {
+        "version": "0.4.1",
+        "resolved": "https://registry.npmjs.org/@tokenizer/inflate/-/inflate-0.4.1.tgz",
+        "integrity": "sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "debug": "^4.4.3",
+          "token-types": "^6.1.1"
+        },
+        "engines": {
+          "node": ">=18"
+        },
+        "funding": {
+          "type": "github",
+          "url": "https://github.com/sponsors/Borewit"
+        }
+      },
+      "node_modules/@tokenizer/token": {
+        "version": "0.3.0",
+        "resolved": "https://registry.npmjs.org/@tokenizer/token/-/token-0.3.0.tgz",
+        "integrity": "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/anynum": {
+        "version": "1.0.1",
+        "resolved": "https://registry.npmjs.org/anynum/-/anynum-1.0.1.tgz",
+        "integrity": "sha512-N6//FLET/tXYNM/F6ABca1oH6fWB+KlTt909Le28WMDBk8oaT4vY17DCrwg2MvmuqUKt3Ni4N5dGJ/EoBgcO6A==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT"
+      },
+      "node_modules/balanced-match": {
+        "version": "4.0.4",
+        "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-4.0.4.tgz",
+        "integrity": "sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==",
+        "dev": true,
+        "license": "MIT",
+        "engines": {
+          "node": "18 || 20 || >=22"
+        }
+      },
+      "node_modules/base64-js": {
+        "version": "1.5.1",
+        "resolved": "https://registry.npmjs.org/base64-js/-/base64-js-1.5.1.tgz",
+        "integrity": "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/bl": {
+        "version": "4.1.0",
+        "resolved": "https://registry.npmjs.org/bl/-/bl-4.1.0.tgz",
+        "integrity": "sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "buffer": "^5.5.0",
+          "inherits": "^2.0.4",
+          "readable-stream": "^3.4.0"
+        }
+      },
+      "node_modules/brace-expansion": {
+        "version": "5.0.9",
+        "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz",
+        "integrity": "sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "balanced-match": "^4.0.2"
+        },
+        "engines": {
+          "node": "20 || >=22"
+        }
+      },
+      "node_modules/buffer": {
+        "version": "5.7.1",
+        "resolved": "https://registry.npmjs.org/buffer/-/buffer-5.7.1.tgz",
+        "integrity": "sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "base64-js": "^1.3.1",
+          "ieee754": "^1.1.13"
+        }
+      },
+      "node_modules/chownr": {
+        "version": "1.1.4",
+        "resolved": "https://registry.npmjs.org/chownr/-/chownr-1.1.4.tgz",
+        "integrity": "sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true
+      },
+      "node_modules/commander": {
+        "version": "6.2.1",
+        "resolved": "https://registry.npmjs.org/commander/-/commander-6.2.1.tgz",
+        "integrity": "sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==",
+        "dev": true,
+        "license": "MIT",
+        "engines": {
+          "node": ">= 6"
+        }
+      },
+      "node_modules/debug": {
+        "version": "4.4.3",
+        "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
+        "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "ms": "^2.1.3"
+        },
+        "engines": {
+          "node": ">=6.0"
+        },
+        "peerDependenciesMeta": {
+          "supports-color": {
+            "optional": true
+          }
+        }
+      },
+      "node_modules/decompress-response": {
+        "version": "6.0.0",
+        "resolved": "https://registry.npmjs.org/decompress-response/-/decompress-response-6.0.0.tgz",
+        "integrity": "sha512-aW35yZM6Bb/4oJlZncMH2LCoZtJXTRxES17vE3hoRiowU2kWHaJKFkSBDnDR+cm9J+9QhXmREyIfv0pji9ejCQ==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "mimic-response": "^3.1.0"
+        },
+        "engines": {
+          "node": ">=10"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/sindresorhus"
+        }
+      },
+      "node_modules/deep-extend": {
+        "version": "0.6.0",
+        "resolved": "https://registry.npmjs.org/deep-extend/-/deep-extend-0.6.0.tgz",
+        "integrity": "sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "engines": {
+          "node": ">=4.0.0"
+        }
+      },
+      "node_modules/detect-libc": {
+        "version": "2.1.2",
+        "resolved": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+        "integrity": "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==",
+        "dev": true,
+        "license": "Apache-2.0",
+        "optional": true,
+        "engines": {
+          "node": ">=8"
+        }
+      },
+      "node_modules/diff": {
+        "version": "8.0.4",
+        "resolved": "https://registry.npmjs.org/diff/-/diff-8.0.4.tgz",
+        "integrity": "sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==",
+        "dev": true,
+        "license": "BSD-3-Clause",
+        "engines": {
+          "node": ">=0.3.1"
+        }
+      },
+      "node_modules/end-of-stream": {
+        "version": "1.4.5",
+        "resolved": "https://registry.npmjs.org/end-of-stream/-/end-of-stream-1.4.5.tgz",
+        "integrity": "sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "once": "^1.4.0"
+        }
+      },
+      "node_modules/expand-template": {
+        "version": "2.0.3",
+        "resolved": "https://registry.npmjs.org/expand-template/-/expand-template-2.0.3.tgz",
+        "integrity": "sha512-XYfuKMvj4O35f/pOXLObndIRvyQ+/+6AhODh+OKWj9S9498pHHn/IMszH+gt0fBCRWMNfk1ZSp5x3AifmnI2vg==",
+        "dev": true,
+        "license": "(MIT OR WTFPL)",
+        "optional": true,
+        "engines": {
+          "node": ">=6"
+        }
+      },
+      "node_modules/fast-xml-builder": {
+        "version": "1.3.1",
+        "resolved": "https://registry.npmjs.org/fast-xml-builder/-/fast-xml-builder-1.3.1.tgz",
+        "integrity": "sha512-pIM/1n3ntFXKYrUZwW7QCK0gAW7XY+wzj1YMIV3tLDvPj/V+zTGJK5e3/4WJfwj0qWw2ElNXiTixda/R+3YSug==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT",
+        "dependencies": {
+          "path-expression-matcher": "^1.6.2",
+          "xml-naming": "^0.3.0"
+        }
+      },
+      "node_modules/fast-xml-parser": {
+        "version": "5.11.0",
+        "resolved": "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-5.11.0.tgz",
+        "integrity": "sha512-9IGxMqvqLOnqP+Egi1nqDHKv5k8aZ7r9n558enxcucmyVGEBNPAU+MOg/8jPIS7rO7sSq4gFm1/nHtiaubMruw==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT",
+        "dependencies": {
+          "@nodable/entities": "^3.0.0",
+          "fast-xml-builder": "^1.2.0",
+          "is-unsafe": "^2.0.0",
+          "path-expression-matcher": "^1.6.2",
+          "strnum": "^2.4.2",
+          "xml-naming": "^0.3.0"
+        },
+        "bin": {
+          "fxparser": "src/cli/cli.js"
+        }
+      },
+      "node_modules/file-type": {
+        "version": "21.3.4",
+        "resolved": "https://registry.npmjs.org/file-type/-/file-type-21.3.4.tgz",
+        "integrity": "sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@tokenizer/inflate": "^0.4.1",
+          "strtok3": "^10.3.4",
+          "token-types": "^6.1.1",
+          "uint8array-extras": "^1.4.0"
+        },
+        "engines": {
+          "node": ">=20"
+        },
+        "funding": {
+          "url": "https://github.com/sindresorhus/file-type?sponsor=1"
+        }
+      },
+      "node_modules/fs-constants": {
+        "version": "1.0.0",
+        "resolved": "https://registry.npmjs.org/fs-constants/-/fs-constants-1.0.0.tgz",
+        "integrity": "sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/github-from-package": {
+        "version": "0.0.0",
+        "resolved": "https://registry.npmjs.org/github-from-package/-/github-from-package-0.0.0.tgz",
+        "integrity": "sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/ieee754": {
+        "version": "1.2.1",
+        "resolved": "https://registry.npmjs.org/ieee754/-/ieee754-1.2.1.tgz",
+        "integrity": "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "BSD-3-Clause"
+      },
+      "node_modules/inherits": {
+        "version": "2.0.4",
+        "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+        "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true
+      },
+      "node_modules/ini": {
+        "version": "6.0.0",
+        "resolved": "https://registry.npmjs.org/ini/-/ini-6.0.0.tgz",
+        "integrity": "sha512-IBTdIkzZNOpqm7q3dRqJvMaldXjDHWkEDfrwGEQTs5eaQMWV+djAhR+wahyNNMAa+qpbDUhBMVt4ZKNwpPm7xQ==",
+        "dev": true,
+        "license": "ISC",
+        "engines": {
+          "node": "^20.17.0 || >=22.9.0"
+        }
+      },
+      "node_modules/is-unsafe": {
+        "version": "2.0.2",
+        "resolved": "https://registry.npmjs.org/is-unsafe/-/is-unsafe-2.0.2.tgz",
+        "integrity": "sha512-HgbIHPBH0KHHCcjLfGsCvhtPTVxjaAZlXjwdz7/GQC40SjSe4sfQsar8J5VFo8JOSbarkpV0OLG95bbaNd9aAQ==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT"
+      },
+      "node_modules/just-bash": {
+        "version": "3.4.2",
+        "resolved": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+        "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+        "dev": true,
+        "license": "Apache-2.0",
+        "dependencies": {
+          "diff": "^8.0.4",
+          "fast-xml-parser": "^5.10.1",
+          "file-type": "^21.3.4",
+          "ini": "^6.0.0",
+          "minimatch": "^10.2.6",
+          "modern-tar": "^0.7.7",
+          "papaparse": "^5.6.0",
+          "quickjs-emscripten": "^0.32.0",
+          "re2js": "^1.3.3",
+          "seek-bzip": "^2.0.0",
+          "smol-toml": "^1.8.0",
+          "sprintf-js": "^1.1.3",
+          "sql.js": "^1.14.1",
+          "turndown": "^7.2.4",
+          "undici": "^7.29.0",
+          "yaml": "^2.9.0"
+        },
+        "bin": {
+          "just-bash": "dist/bin/just-bash.js",
+          "just-bash-shell": "dist/bin/shell/shell.js"
+        },
+        "engines": {
+          "node": ">=20.18.1"
+        },
+        "optionalDependencies": {
+          "@mongodb-js/zstd": "^7.0.0",
+          "node-liblzma": "^2.2.0"
+        }
+      },
+      "node_modules/mimic-response": {
+        "version": "3.1.0",
+        "resolved": "https://registry.npmjs.org/mimic-response/-/mimic-response-3.1.0.tgz",
+        "integrity": "sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "engines": {
+          "node": ">=10"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/sindresorhus"
+        }
+      },
+      "node_modules/minimatch": {
+        "version": "10.2.6",
+        "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-10.2.6.tgz",
+        "integrity": "sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==",
+        "dev": true,
+        "license": "BlueOak-1.0.0",
+        "dependencies": {
+          "brace-expansion": "^5.0.8"
+        },
+        "engines": {
+          "node": "18 || 20 || >=22"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/isaacs"
+        }
+      },
+      "node_modules/minimist": {
+        "version": "1.2.8",
+        "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz",
+        "integrity": "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "funding": {
+          "url": "https://github.com/sponsors/ljharb"
+        }
+      },
+      "node_modules/mkdirp-classic": {
+        "version": "0.5.3",
+        "resolved": "https://registry.npmjs.org/mkdirp-classic/-/mkdirp-classic-0.5.3.tgz",
+        "integrity": "sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/modern-tar": {
+        "version": "0.7.7",
+        "resolved": "https://registry.npmjs.org/modern-tar/-/modern-tar-0.7.7.tgz",
+        "integrity": "sha512-t9VmxaqrmANnEOBhpSDI6HD192Ge48k8vmWqQQL7hSFEqHEYwZbbsu49+aKLWZeRvFs3j1pMhXOqqF4kPlvjkQ==",
+        "dev": true,
+        "license": "MIT",
+        "engines": {
+          "node": ">=18.0.0"
+        }
+      },
+      "node_modules/ms": {
+        "version": "2.1.3",
+        "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+        "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/napi-build-utils": {
+        "version": "2.0.0",
+        "resolved": "https://registry.npmjs.org/napi-build-utils/-/napi-build-utils-2.0.0.tgz",
+        "integrity": "sha512-GEbrYkbfF7MoNaoh2iGG84Mnf/WZfB0GdGEsM8wz7Expx/LlWf5U8t9nvJKXSp3qr5IsEbK04cBGhol/KwOsWA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/node-abi": {
+        "version": "3.95.0",
+        "resolved": "https://registry.npmjs.org/node-abi/-/node-abi-3.95.0.tgz",
+        "integrity": "sha512-T9iGctuocf0qIWFFOTxPzjT5q0SILqaBYXt272tlBHvTKC5+3JnkMirLxNJNkXHtFyBjU2Jx+NL4Zipr0B/c6Q==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "semver": "^7.3.5"
+        },
+        "engines": {
+          "node": ">=10"
+        }
+      },
+      "node_modules/node-addon-api": {
+        "version": "8.9.2",
+        "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-8.9.2.tgz",
+        "integrity": "sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "engines": {
+          "node": "^18 || ^20 || >= 21"
+        }
+      },
+      "node_modules/node-gyp-build": {
+        "version": "4.8.4",
+        "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.8.4.tgz",
+        "integrity": "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "bin": {
+          "node-gyp-build": "bin.js",
+          "node-gyp-build-optional": "optional.js",
+          "node-gyp-build-test": "build-test.js"
+        }
+      },
+      "node_modules/node-liblzma": {
+        "version": "2.2.0",
+        "resolved": "https://registry.npmjs.org/node-liblzma/-/node-liblzma-2.2.0.tgz",
+        "integrity": "sha512-s0KzNOWwOJJgPG6wxg6cKohnAl9Wk/oW1KrQaVzJBjQwVcUGPQCzpR46Ximygjqj/3KhOrtJXnYMp/xYAXp75g==",
+        "dev": true,
+        "hasInstallScript": true,
+        "license": "LGPL-3.0",
+        "optional": true,
+        "dependencies": {
+          "node-addon-api": "^8.5.0",
+          "node-gyp-build": "^4.8.4"
+        },
+        "bin": {
+          "nxz": "lib/cli/nxz.js"
+        },
+        "engines": {
+          "node": ">=16.0.0"
+        },
+        "funding": {
+          "type": "github",
+          "url": "https://github.com/sponsors/oorabona"
+        }
+      },
+      "node_modules/once": {
+        "version": "1.4.0",
+        "resolved": "https://registry.npmjs.org/once/-/once-1.4.0.tgz",
+        "integrity": "sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true,
+        "dependencies": {
+          "wrappy": "1"
+        }
+      },
+      "node_modules/papaparse": {
+        "version": "5.7.0",
+        "resolved": "https://registry.npmjs.org/papaparse/-/papaparse-5.7.0.tgz",
+        "integrity": "sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/path-expression-matcher": {
+        "version": "1.6.2",
+        "resolved": "https://registry.npmjs.org/path-expression-matcher/-/path-expression-matcher-1.6.2.tgz",
+        "integrity": "sha512-enSlaiat05iasnzmgNxRj8reFdj3puY2QpNgP1aPIaVfT6nn9ICuPoFlKHk8EN22HcwewshO+mN2DGbkCEOtqQ==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT",
+        "engines": {
+          "node": ">=14.0.0"
+        }
+      },
+      "node_modules/prebuild-install": {
+        "version": "7.1.3",
+        "resolved": "https://registry.npmjs.org/prebuild-install/-/prebuild-install-7.1.3.tgz",
+        "integrity": "sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==",
+        "deprecated": "No longer maintained. Please contact the author of the relevant native addon; alternatives are available.",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "detect-libc": "^2.0.0",
+          "expand-template": "^2.0.3",
+          "github-from-package": "0.0.0",
+          "minimist": "^1.2.3",
+          "mkdirp-classic": "^0.5.3",
+          "napi-build-utils": "^2.0.0",
+          "node-abi": "^3.3.0",
+          "pump": "^3.0.0",
+          "rc": "^1.2.7",
+          "simple-get": "^4.0.0",
+          "tar-fs": "^2.0.0",
+          "tunnel-agent": "^0.6.0"
+        },
+        "bin": {
+          "prebuild-install": "bin.js"
+        },
+        "engines": {
+          "node": ">=10"
+        }
+      },
+      "node_modules/pump": {
+        "version": "3.0.4",
+        "resolved": "https://registry.npmjs.org/pump/-/pump-3.0.4.tgz",
+        "integrity": "sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "end-of-stream": "^1.1.0",
+          "once": "^1.3.1"
+        }
+      },
+      "node_modules/quickjs-emscripten": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/quickjs-emscripten/-/quickjs-emscripten-0.32.0.tgz",
+        "integrity": "sha512-So0Sqw869y/S2oE3Nuc0uT3Dhqgvsj8FSrwBdsuTosVsG8ME5/OcudU1GxsrIFdFABgy17GHnTVO9TYV/bLQcA==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-wasmfile-debug-asyncify": "0.32.0",
+          "@jitl/quickjs-wasmfile-debug-sync": "0.32.0",
+          "@jitl/quickjs-wasmfile-release-asyncify": "0.32.0",
+          "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
+          "quickjs-emscripten-core": "0.32.0"
+        },
+        "engines": {
+          "node": ">=16.0.0"
+        }
+      },
+      "node_modules/quickjs-emscripten-core": {
+        "version": "0.32.0",
+        "resolved": "https://registry.npmjs.org/quickjs-emscripten-core/-/quickjs-emscripten-core-0.32.0.tgz",
+        "integrity": "sha512-QFnPfjFey8EqknSrSxe1hZrf1/8z7/6s1QzGOmKo6++02r7QRRX7ZoyNaZh7JuVjWsVW87KnQrbZqnHkOAzUyg==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@jitl/quickjs-ffi-types": "0.32.0"
+        }
+      },
+      "node_modules/rc": {
+        "version": "1.2.8",
+        "resolved": "https://registry.npmjs.org/rc/-/rc-1.2.8.tgz",
+        "integrity": "sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==",
+        "dev": true,
+        "license": "(BSD-2-Clause OR MIT OR Apache-2.0)",
+        "optional": true,
+        "dependencies": {
+          "deep-extend": "^0.6.0",
+          "ini": "~1.3.0",
+          "minimist": "^1.2.0",
+          "strip-json-comments": "~2.0.1"
+        },
+        "bin": {
+          "rc": "cli.js"
+        }
+      },
+      "node_modules/rc/node_modules/ini": {
+        "version": "1.3.8",
+        "resolved": "https://registry.npmjs.org/ini/-/ini-1.3.8.tgz",
+        "integrity": "sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true
+      },
+      "node_modules/re2js": {
+        "version": "1.3.3",
+        "resolved": "https://registry.npmjs.org/re2js/-/re2js-1.3.3.tgz",
+        "integrity": "sha512-s/I5zEAo79SUK0Qw4dpZKpiMwbQ6Gz0KU2NRr7eaO4x/p2g7Vvmn3hdeXDg8VsaUjfj/ora+e9oi27LX/C9+mw==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/readable-stream": {
+        "version": "3.6.2",
+        "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+        "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "inherits": "^2.0.3",
+          "string_decoder": "^1.1.1",
+          "util-deprecate": "^1.0.1"
+        },
+        "engines": {
+          "node": ">= 6"
+        }
+      },
+      "node_modules/safe-buffer": {
+        "version": "5.2.1",
+        "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.2.1.tgz",
+        "integrity": "sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/seek-bzip": {
+        "version": "2.0.0",
+        "resolved": "https://registry.npmjs.org/seek-bzip/-/seek-bzip-2.0.0.tgz",
+        "integrity": "sha512-SMguiTnYrhpLdk3PwfzHeotrcwi8bNV4iemL9tx9poR/yeaMYwB9VzR1w7b57DuWpuqR8n6oZboi0hj3AxZxQg==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "commander": "^6.0.0"
+        },
+        "bin": {
+          "seek-bunzip": "bin/seek-bunzip",
+          "seek-table": "bin/seek-bzip-table"
+        }
+      },
+      "node_modules/semver": {
+        "version": "7.8.5",
+        "resolved": "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz",
+        "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true,
+        "bin": {
+          "semver": "bin/semver.js"
+        },
+        "engines": {
+          "node": ">=10"
+        }
+      },
+      "node_modules/simple-concat": {
+        "version": "1.0.1",
+        "resolved": "https://registry.npmjs.org/simple-concat/-/simple-concat-1.0.1.tgz",
+        "integrity": "sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/simple-get": {
+        "version": "4.0.1",
+        "resolved": "https://registry.npmjs.org/simple-get/-/simple-get-4.0.1.tgz",
+        "integrity": "sha512-brv7p5WgH0jmQJr1ZDDfKDOSeWWg+OVypG99A/5vYGPqJ6pxiaHLy8nxtFjBA7oMa01ebA9gfh1uMCFqOuXxvA==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/feross"
+          },
+          {
+            "type": "patreon",
+            "url": "https://www.patreon.com/feross"
+          },
+          {
+            "type": "consulting",
+            "url": "https://feross.org/support"
+          }
+        ],
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "decompress-response": "^6.0.0",
+          "once": "^1.3.1",
+          "simple-concat": "^1.0.0"
+        }
+      },
+      "node_modules/smol-toml": {
+        "version": "1.8.0",
+        "resolved": "https://registry.npmjs.org/smol-toml/-/smol-toml-1.8.0.tgz",
+        "integrity": "sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==",
+        "dev": true,
+        "license": "BSD-3-Clause",
+        "engines": {
+          "node": ">= 18"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/cyyynthia"
+        }
+      },
+      "node_modules/sprintf-js": {
+        "version": "1.1.3",
+        "resolved": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+        "integrity": "sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==",
+        "dev": true,
+        "license": "BSD-3-Clause"
+      },
+      "node_modules/sql.js": {
+        "version": "1.14.2",
+        "resolved": "https://registry.npmjs.org/sql.js/-/sql.js-1.14.2.tgz",
+        "integrity": "sha512-3ZGPovObMFrdw79zrUHbfdE/DLIsy8jdNdssmMSQuRAymedU6q84asPt0kgiqrdMYlPegDItiIMfmIXzZnYFcw==",
+        "dev": true,
+        "license": "MIT"
+      },
+      "node_modules/string_decoder": {
+        "version": "1.3.0",
+        "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz",
+        "integrity": "sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "safe-buffer": "~5.2.0"
+        }
+      },
+      "node_modules/strip-json-comments": {
+        "version": "2.0.1",
+        "resolved": "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz",
+        "integrity": "sha512-4gB8na07fecVVkOI6Rs4e7T6NOTki5EmL7TUduTs6bu3EdnSycntVJ4re8kgZA+wx9IueI2Y11bfbgwtzuE0KQ==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "engines": {
+          "node": ">=0.10.0"
+        }
+      },
+      "node_modules/strnum": {
+        "version": "2.4.2",
+        "resolved": "https://registry.npmjs.org/strnum/-/strnum-2.4.2.tgz",
+        "integrity": "sha512-rDG3Ah4TV0k1hWvLSzkZtMmLN9+eS+h3knq4MP6A42Y3Yh5qGNnOUs1jJkoSr8FG5dsL28c7KgkIBzSEykqtuw==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT",
+        "dependencies": {
+          "anynum": "^1.0.1"
+        }
+      },
+      "node_modules/strtok3": {
+        "version": "10.3.5",
+        "resolved": "https://registry.npmjs.org/strtok3/-/strtok3-10.3.5.tgz",
+        "integrity": "sha512-ki4hZQfh5rX0QDLLkOCj+h+CVNkqmp/CMf8v8kZpkNVK6jGQooMytqzLZYUVYIZcFZ6yDB70EfD8POcFXiF5oA==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@tokenizer/token": "^0.3.0"
+        },
+        "engines": {
+          "node": ">=18"
+        },
+        "funding": {
+          "type": "github",
+          "url": "https://github.com/sponsors/Borewit"
+        }
+      },
+      "node_modules/tar-fs": {
+        "version": "2.1.5",
+        "resolved": "https://registry.npmjs.org/tar-fs/-/tar-fs-2.1.5.tgz",
+        "integrity": "sha512-OboTd8mmMhZDNPV+UjQcK9yKAatXu2aJ+r1w4im1Otd4M4fl2hwvdoXUxIYHFTHWK/3y3FarBP70v3vwmGlOxw==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "chownr": "^1.1.1",
+          "mkdirp-classic": "^0.5.2",
+          "pump": "^3.0.0",
+          "tar-stream": "^2.1.4"
+        }
+      },
+      "node_modules/tar-stream": {
+        "version": "2.2.0",
+        "resolved": "https://registry.npmjs.org/tar-stream/-/tar-stream-2.2.0.tgz",
+        "integrity": "sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true,
+        "dependencies": {
+          "bl": "^4.0.3",
+          "end-of-stream": "^1.4.1",
+          "fs-constants": "^1.0.0",
+          "inherits": "^2.0.3",
+          "readable-stream": "^3.1.1"
+        },
+        "engines": {
+          "node": ">=6"
+        }
+      },
+      "node_modules/token-types": {
+        "version": "6.1.2",
+        "resolved": "https://registry.npmjs.org/token-types/-/token-types-6.1.2.tgz",
+        "integrity": "sha512-dRXchy+C0IgK8WPC6xvCHFRIWYUbqqdEIKPaKo/AcTUNzwLTK6AH7RjdLWsEZcAN/TBdtfUw3PYEgPr5VPr6ww==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@borewit/text-codec": "^0.2.1",
+          "@tokenizer/token": "^0.3.0",
+          "ieee754": "^1.2.1"
+        },
+        "engines": {
+          "node": ">=14.16"
+        },
+        "funding": {
+          "type": "github",
+          "url": "https://github.com/sponsors/Borewit"
+        }
+      },
+      "node_modules/tunnel-agent": {
+        "version": "0.6.0",
+        "resolved": "https://registry.npmjs.org/tunnel-agent/-/tunnel-agent-0.6.0.tgz",
+        "integrity": "sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==",
+        "dev": true,
+        "license": "Apache-2.0",
+        "optional": true,
+        "dependencies": {
+          "safe-buffer": "^5.0.1"
+        },
+        "engines": {
+          "node": "*"
+        }
+      },
+      "node_modules/turndown": {
+        "version": "7.2.4",
+        "resolved": "https://registry.npmjs.org/turndown/-/turndown-7.2.4.tgz",
+        "integrity": "sha512-I8yFsfRzmzK0WV1pNNOA4A7y4RDfFxPRxb3t+e3ui14qSGOxGtiSP6GjeX+Y6CHb7HYaFj7ECUD7VE5kQMZWGQ==",
+        "dev": true,
+        "license": "MIT",
+        "dependencies": {
+          "@mixmark-io/domino": "^2.2.0"
+        },
+        "engines": {
+          "node": ">=18",
+          "npm": ">=9"
+        }
+      },
+      "node_modules/uint8array-extras": {
+        "version": "1.5.0",
+        "resolved": "https://registry.npmjs.org/uint8array-extras/-/uint8array-extras-1.5.0.tgz",
+        "integrity": "sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==",
+        "dev": true,
+        "license": "MIT",
+        "engines": {
+          "node": ">=18"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/sindresorhus"
+        }
+      },
+      "node_modules/undici": {
+        "version": "7.29.0",
+        "resolved": "https://registry.npmjs.org/undici/-/undici-7.29.0.tgz",
+        "integrity": "sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==",
+        "dev": true,
+        "license": "MIT",
+        "engines": {
+          "node": ">=20.18.1"
+        }
+      },
+      "node_modules/util-deprecate": {
+        "version": "1.0.2",
+        "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+        "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==",
+        "dev": true,
+        "license": "MIT",
+        "optional": true
+      },
+      "node_modules/wrappy": {
+        "version": "1.0.2",
+        "resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz",
+        "integrity": "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==",
+        "dev": true,
+        "license": "ISC",
+        "optional": true
+      },
+      "node_modules/xml-naming": {
+        "version": "0.3.0",
+        "resolved": "https://registry.npmjs.org/xml-naming/-/xml-naming-0.3.0.tgz",
+        "integrity": "sha512-ghig2TBE/H11aOVgmahA3MhimvkBr6JIYknH/Dhdk10nXwdbIqBJsbfMxpvFPG8bAw77gN29aQWvKpmVoPlvPQ==",
+        "dev": true,
+        "funding": [
+          {
+            "type": "github",
+            "url": "https://github.com/sponsors/NaturalIntelligence"
+          }
+        ],
+        "license": "MIT",
+        "engines": {
+          "node": ">=16.0.0"
+        }
+      },
+      "node_modules/yaml": {
+        "version": "2.9.0",
+        "resolved": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz",
+        "integrity": "sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==",
+        "dev": true,
+        "license": "ISC",
+        "bin": {
+          "yaml": "bin.mjs"
+        },
+        "engines": {
+          "node": ">= 14.6"
+        },
+        "funding": {
+          "url": "https://github.com/sponsors/eemeli"
+        }
+      }
+    }
+  },
+  "entryCandidates": [
+    {
+      "path": "dist/bundle/index.js",
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "./dist/bundle/index.js",
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "./dist/bundle/index.cjs",
+      "sha256": "540a690eff7e1ed758e93276c40ff4bbe841ea0a166ac0ea9d799ec71fa2ee0e"
+    },
+    {
+      "path": "./dist/bundle/browser.js",
+      "sha256": "6390563a926e5018d5bc2e8b824ae1b13b87bdd3ed31857bacef31b3c100f224"
+    }
+  ],
+  "actualFrozenEngineEntry": "dist/bundle/index.js",
+  "authenticatedBundledAndWorkerAssets": [
+    {
+      "path": "dist/bin/chunks/js-exec-worker.js",
+      "bytes": 157508,
+      "sha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "dist/bin/chunks/sqlite3-worker.js",
+      "bytes": 61413,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "dist/bin/chunks/worker.js",
+      "bytes": 105168,
+      "sha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "dist/bundle/browser.js",
+      "bytes": 1242826,
+      "sha256": "6390563a926e5018d5bc2e8b824ae1b13b87bdd3ed31857bacef31b3c100f224"
+    },
+    {
+      "path": "dist/bundle/chunks/alias-T5TO5GWK.js",
+      "bytes": 279,
+      "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0"
+    },
+    {
+      "path": "dist/bundle/chunks/awk2-NPLZQ3K7.js",
+      "bytes": 478,
+      "sha256": "72f4a1977f93ce875ef7fea646acc266804030f2a3e9390be864e1540023c77f"
+    },
+    {
+      "path": "dist/bundle/chunks/base64-2BAITDZF.js",
+      "bytes": 424,
+      "sha256": "e51b403f20799fd3a770b30d6f8b8c4919e22552bad6ef0b2c46ea2d38eb4af8"
+    },
+    {
+      "path": "dist/bundle/chunks/basename-SJZQ5W65.js",
+      "bytes": 230,
+      "sha256": "a497d403e368e079ac36fd4eb49b0525c09fa3d51de43878087c4e942b1d333e"
+    },
+    {
+      "path": "dist/bundle/chunks/bash-HIEWVHJ2.js",
+      "bytes": 324,
+      "sha256": "08351ad82e8ed96953d0f2433bb994b975e13793a9097dfbae536aa9a66f2157"
+    },
+    {
+      "path": "dist/bundle/chunks/cat-33KGN4MZ.js",
+      "bytes": 421,
+      "sha256": "0dfae92b0f8143e4832d17a4a493b1e29e46925985cab6231faf9816f985b0ce"
+    },
+    {
+      "path": "dist/bundle/chunks/chmod-APOXUPXW.js",
+      "bytes": 451,
+      "sha256": "963114c49cb4cb8d6f9113414bad21400772dd4bbb834c99fe476d43658dfa7b"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-273265WK.js",
+      "bytes": 3337,
+      "sha256": "28cceb06b143f5f6f74df54c2a8d23abc7cc6bcd7ce115ea3931be9a9987b7c5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-2KNTH3KH.js",
+      "bytes": 3720,
+      "sha256": "1109df0d0c9551f104a6d0e525df5ea4b9848c0d21743b2bdc49acb9e43d3cb1"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-2SMD2AUA.js",
+      "bytes": 1090,
+      "sha256": "1a7b533dee0c37ffa11ed82b83cfc77080369e40d33719b4278032bfdea0dc6d"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-2VWG4LDT.js",
+      "bytes": 3053,
+      "sha256": "344abd325f48da08d5b01b68333ce2043972a51401da37c319cb0f719ac21098"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-3CBCABOZ.js",
+      "bytes": 62296,
+      "sha256": "e8a8bedbf4701982c123984e088c1e4a04592e7377ba81daa41d888b6bb3bc7a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-4AKAIZPW.js",
+      "bytes": 12282,
+      "sha256": "fe386c4e0f556c5c58662d23fcddfdfa23b71a8d906656da934ad94252a7acc1"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-4HMWZAP7.js",
+      "bytes": 830,
+      "sha256": "67407b891c0bd3f30efc69fdffe086e6acba5fa976fe8f6b39dd506934028e96"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-4MZPEZTU.js",
+      "bytes": 229,
+      "sha256": "a135a0a8a0bdc8bb6ff22e5726e59b489ad673230a192a0df3fcaa2895803e3c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-5ATEFZLC.js",
+      "bytes": 3232,
+      "sha256": "68427d547cff789b30f867cbfdacadd62d7c1acee38c2e5e506c8adb4d272ef4"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-5ELNHAAJ.js",
+      "bytes": 13631,
+      "sha256": "5b607b4ee59454094ce606c4918a651a877b40015f636d413004e2874d83bb65"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-5VCAQBXL.js",
+      "bytes": 5028,
+      "sha256": "5df30c864c46fc2d740ac4351fdc536016576e97a0485fe0b5ed107e6376a910"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "bytes": 2384,
+      "sha256": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6DTD75TR.js",
+      "bytes": 221573,
+      "sha256": "50e376e53da1abf5b7c6187d40502fe898136896cfa4325411e974e25e421b16"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6KK46B7Q.js",
+      "bytes": 79527,
+      "sha256": "9b47d9a6f3e3b39fbee1e1a2024b64665713ea1946e9a9a0b6413acb693f9247"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6R4OQQWP.js",
+      "bytes": 8934,
+      "sha256": "fa067637414e02ca9b26a1894cca574e934a9087e7aa0f6e8cd491502b751d9c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6RK4AAB7.js",
+      "bytes": 20599,
+      "sha256": "9f06be769987e5ce2c1b9e2ecb259964df2b6aaf6ec55976a4ed4a9acdb3e530"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-6WGIZV3E.js",
+      "bytes": 1994,
+      "sha256": "1daa41c78b4854ee20a461949d11fd246f902b4fb8694ae1a1f1416187d01a13"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-7AISL3XV.js",
+      "bytes": 3839,
+      "sha256": "6a5ff2ce6c57049f54e3b856181c3a3829dc8f04ec3ff2f2c5040167e4c4c48d"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-7EUWTCWK.js",
+      "bytes": 413,
+      "sha256": "0fc4b75fe57a67a5f06abec16c114b182d573a18047c45ac86159098fb3de445"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-7IFSXTCJ.js",
+      "bytes": 3119,
+      "sha256": "6fbc690fd60daca3a8e0c17ea0070f88cb495b79639ca32a15b3ba835b02dbca"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-A3D7NRT6.js",
+      "bytes": 77252,
+      "sha256": "92ad6f70b83ef902267b972b1144d23d7698ce3da80accf5c33b2a1f20e07ac3"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-A4R2GWRF.js",
+      "bytes": 2248,
+      "sha256": "239f2504c26ffe94e73f7c7a13296ec45b3b11ea907bbd1944de45cf1445ca8b"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-AFFAMSJT.js",
+      "bytes": 4941,
+      "sha256": "9522fc91e7552ed07df6d515ce0e452d6330a7db9e4e7264da4f4fbf3996e0e5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-AGH5UJJI.js",
+      "bytes": 1870,
+      "sha256": "2d069ebd73731e59208a652ff8c3a162b9ab93113bfea997e47b4a83aa8214a9"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "bytes": 1539,
+      "sha256": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ALOFNPKY.js",
+      "bytes": 66449,
+      "sha256": "2e301a13c7fdd181e045ccb59244818ac8473a188d41c76793ccec006b133af6"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ANCQ4SCV.js",
+      "bytes": 269,
+      "sha256": "4d5a9f3b9364698bbcf64746df7192fc3ded300f33064b34bd37327d483b2cf5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-B3NGH6KE.js",
+      "bytes": 1847,
+      "sha256": "4be3b64e0eb4ad2eacd91131cfe4e4c2ce2bd760418aea1ec97e7b97e7856ddd"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-B5Z5HTFY.js",
+      "bytes": 5970,
+      "sha256": "f37adcc9f299fca078c943325ce883faa228b5427d7c19c7a799d5752217ba34"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "bytes": 635,
+      "sha256": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-BRJERIF4.js",
+      "bytes": 513,
+      "sha256": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-CFBEDNHJ.js",
+      "bytes": 35981,
+      "sha256": "3ed49dbb964416d8a07313b79ba586faf052459879e273905e0e660574ae188f"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-CHHWTPDH.js",
+      "bytes": 1310,
+      "sha256": "fad14348b1e091b2906c929a75698bdaf8204b0b468d63184e7c554c8080d499"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-DLL7UR66.js",
+      "bytes": 335,
+      "sha256": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-DMWNBCXJ.js",
+      "bytes": 1406,
+      "sha256": "7befeeee99089d013e871b352f0135d4cf7865ad68669205c1b82d8015f053a4"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-EFORKKSH.js",
+      "bytes": 2346,
+      "sha256": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-EJFBIRMD.js",
+      "bytes": 2220,
+      "sha256": "65a276ccf4af2e1950392d5d0c93470b2d2e85b2dcc48547a2e9318f2fcdd38b"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ELHOZMBD.js",
+      "bytes": 2125,
+      "sha256": "c34bbc374e1f06f6fd1f5a29e45a686ac033befea7d4c0432095c7e60bc88990"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-EQQGPAXI.js",
+      "bytes": 5798,
+      "sha256": "4a872afe95ad9b49a877bdb5289debbe3c87880e6c9a42701ff07b410422dfbf"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FHC24QSK.js",
+      "bytes": 1641,
+      "sha256": "dcb558f15f21861e78d2d6afef29cafc7efdfa40a0c428a1c2af7d2e6cec680f"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FIMO5HLX.js",
+      "bytes": 2153,
+      "sha256": "a8c4c556e89e522603e6115fa1f8b94660457f221e39e6dbc8c558397ca2da12"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FNEG7DFQ.js",
+      "bytes": 3043,
+      "sha256": "e1734da38f89ac0e5764f147dcedf1197f83c79b10fcd538fa71e0faa9a8ba8e"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "bytes": 710,
+      "sha256": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FT6ODGOU.js",
+      "bytes": 268,
+      "sha256": "7f6fde462f96358e81535ad4b48a3a77a175d575608d8438f0d846382c88b911"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FX4RBUYU.js",
+      "bytes": 717,
+      "sha256": "11030afa6100cdb328b1c25b50b09434f23a7df03799d52eb516112486367392"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-FZRQOL3C.js",
+      "bytes": 2207,
+      "sha256": "bea5a275be75a320568aa646f049b3ec489e47d08c88644291bc0bf6a11419cd"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-G4SEENI7.js",
+      "bytes": 1497,
+      "sha256": "bf7d78ba531c535773b26d594dea81b9f9b9f6e470c8c67aba1cde3876388101"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "bytes": 1712,
+      "sha256": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-GVKYQN5J.js",
+      "bytes": 3256,
+      "sha256": "0f9686778d193a1af6c0c587b9e1910051359c462f456d5438ec7fd3b6e62c0b"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-HDRAUQK2.js",
+      "bytes": 323,
+      "sha256": "b7676779aeaba956f8474a1e97d57dcd3b275085224c7c7751cbde9664b052ac"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-HW6ZCMM5.js",
+      "bytes": 4211,
+      "sha256": "04a28a5560fb94b4d2794124d0096b20919d5772de33424c47d56e396f87d3e2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-IBRT3OJS.js",
+      "bytes": 4318,
+      "sha256": "d137553492567ac66a89cf325857a9b72f46ceeefd678420877d1a5944bbaa3c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ICQYTW7W.js",
+      "bytes": 4529,
+      "sha256": "c062285ce8d9d4747e5f73cbad335b112fed7aea3024dd20c66a627aa1872749"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-INDA53JL.js",
+      "bytes": 9247,
+      "sha256": "064c739ed6e12eefcabb20ffc43f74309ef614f7cc14b768368984948ab7be94"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "bytes": 1240,
+      "sha256": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-JA6EY7US.js",
+      "bytes": 261,
+      "sha256": "8c56d9bddaa7967b5c1316ec99255730a3af8def62b29c2d219f4d089d5f80e5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-KBXRZGTY.js",
+      "bytes": 25449,
+      "sha256": "4df96f58e2278d2688b6899c806abfbd1aa3309182cf7bf61a11da560bb42a5a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-KIGPB52X.js",
+      "bytes": 262,
+      "sha256": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "bytes": 179119,
+      "sha256": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "bytes": 193,
+      "sha256": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-LI6PTSPD.js",
+      "bytes": 681,
+      "sha256": "4c895df118afe1c48d3ab85b6d388ecaaaf673a344b7afe39742144cc514e978"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-LPJEKUCB.js",
+      "bytes": 1443,
+      "sha256": "0e926de4b65f7f282d304400fc2ac1bcbc01ee739a7a775ee564c49e9806b4a2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-LSLPJOYM.js",
+      "bytes": 957,
+      "sha256": "0dcb7d2d0bddbf2005bbef8c317d20577a92b669340e29ab3f358fbd11d83ee5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-LVDUF74R.js",
+      "bytes": 1285,
+      "sha256": "33da8ba3bce20fb3845de011bd05a1183cd42f7fe74434fd8ff9e21c1fb7333c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-MFGH46GH.js",
+      "bytes": 2354,
+      "sha256": "8bbfc5f8389a6e262042a79c07246e90bab7a07d8290a4b77c1edc557db8f0e2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-MHY57JTL.js",
+      "bytes": 6111,
+      "sha256": "2070b8014ddcf4584bdbc7f4c5a312bbf3bc7581cccfc60171416c4c2f157237"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-MLIO3BK2.js",
+      "bytes": 1157,
+      "sha256": "da38794cffd8b38bef784da1b89f997b3bcb0722bed1300b936be458ae8cb6b9"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-MQKGGNPS.js",
+      "bytes": 1601,
+      "sha256": "94fd53d03c8be0536f50b37ebeb9e776ea92d470618e86b2c0be604986162157"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-N3A4JVFJ.js",
+      "bytes": 2585,
+      "sha256": "7ba7cd74caee2fa83f7be0c25437eaf474585b67c0c3d882ac61a048ce4cee3a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-N3FZSEG7.js",
+      "bytes": 16814,
+      "sha256": "f2412dd9521b09d0441a209a2889a22cc359417586ea8870a107f60b1a912764"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-N4TGZ6H7.js",
+      "bytes": 2380,
+      "sha256": "6e09160aef3dec6622eb11bb3c9d97596c3c712fcb55e7728ba8e546aaeb4974"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 886,
+      "sha256": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-OQ7C4FYO.js",
+      "bytes": 276,
+      "sha256": "409122e639d8b400021084eb3cdad1d938a54e692473bbcb65097278156af737"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-P5BOIHWV.js",
+      "bytes": 2383,
+      "sha256": "204e963f86578ba6348b4008cedbc0385fba5204b714ef8333f2eec4a040aba3"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-PMYUC5JF.js",
+      "bytes": 2984,
+      "sha256": "151b34edf3b311da4dfd92c065ed10bd420e3fadeae6e8fc074ac9fe5bbb5bcc"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-POIWRLUV.js",
+      "bytes": 2811,
+      "sha256": "dfdd750f2d5fb1fcc2fffa62d7315d53e599be57e869c18e60f233333bf196ff"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-PPDMRIJ7.js",
+      "bytes": 3508,
+      "sha256": "6d78c8d5c2015351251c5449fe46794540102fa3709fb8fb0a54f7f76dfa6edb"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-Q6JV5CBB.js",
+      "bytes": 3931,
+      "sha256": "7c8fc8240b0b24a4e310f5615ec3021f67b00cc3102dbe9ab3ea13c0343da3b6"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-QAYAQNCG.js",
+      "bytes": 887,
+      "sha256": "bcd07bd24e68569a51963427ed863a5212e43ff30a63a4bf332098babe682de5"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-QE275OWT.js",
+      "bytes": 4464,
+      "sha256": "5c9e868f5c41a92f5fc71655fb1786fb109c388aa200c59d3fb02315d857b3f2"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-QIQMJJZ4.js",
+      "bytes": 1343,
+      "sha256": "a5502e4f96822420294512c04eae51a2f4da9ee05330f750ff065c6d23d9cfcc"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-QPZVR6ZN.js",
+      "bytes": 3672,
+      "sha256": "ac5f25cf8f25a7a7ee877c8f7e950dcae5e126caeb9b2aa10fd6611a340076d7"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-R2FBRMDU.js",
+      "bytes": 2127,
+      "sha256": "6096adde8e9e0a18230b7dfbc29ab3e397792aaf85fa50e3f44d4afca815301f"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-SBBYKIYU.js",
+      "bytes": 243,
+      "sha256": "16b972897934e6f6c1066ca06e9e7a00732c0e95ab5d018644ea4715182d97cb"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-SHKOQWO4.js",
+      "bytes": 430,
+      "sha256": "0ae046dbb1639086734155c03db6e304910b0468fce0c9bc6c4b0ac3044ff361"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-SI5VPVOA.js",
+      "bytes": 31806,
+      "sha256": "96ced2c302d105c8f44073ecba4c93779951300992b2cff260e7c8cfdc85eb04"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-STHBFACM.js",
+      "bytes": 86,
+      "sha256": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-SX2HC7SO.js",
+      "bytes": 339,
+      "sha256": "1912c7a73665bf38188635fe334cfcec9e343adbcda24921df856a10d3044349"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-TDD4NFYE.js",
+      "bytes": 273,
+      "sha256": "17bd1ea6a0f224a1e50077c4f7afbcfa09fa093dabfa7cd22adeea5f25e73a9d"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-TUNYNC46.js",
+      "bytes": 13501,
+      "sha256": "99a13eb5dbf5f702a8a0b5d43486c33e07f885c674b2702fbf1ca945a960a9a1"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-TVJ6JVK4.js",
+      "bytes": 2732,
+      "sha256": "30def56adb6c145c74cfef3b29a7e923b8372585b7c01da7d61f79554269da86"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-UHHCL65P.js",
+      "bytes": 5198,
+      "sha256": "50e6e4ae81f450ae34320717fc9fb8e16e043f4ebacf178c399db2f50c35bdfd"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-UIJUTQPH.js",
+      "bytes": 806,
+      "sha256": "e90054247b35764f78a22d0f6a2095754fe538ca1cf1398af065e3015caf0ab1"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-UL6YJ7FT.js",
+      "bytes": 8894,
+      "sha256": "2fc8e3ec81efa48d59033ffdc39adc48a103633b372ad967eaf7fdc70e7ef6df"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-USNDURQI.js",
+      "bytes": 952,
+      "sha256": "2023d1c85b51957df324a624a3d346af4430d4264cc5ef82cd1db7dfac97ee4a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-UTKGYVUZ.js",
+      "bytes": 1946,
+      "sha256": "53e4d546f2aed092af1e4bf24e9c2897b1c7e4b5f4f67f9fabab3bed8e9ad919"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-UXHSH7BM.js",
+      "bytes": 1829,
+      "sha256": "c3b79db4b007dd5dca47edf8c351d4270ac7580ea1a0f3bd1020ff6fb62879e3"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-V2SOLEQN.js",
+      "bytes": 2451,
+      "sha256": "dd08356de03e71bacc54e9cf3b17598af1d72a58654c1071176f66255ffeb192"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "bytes": 162,
+      "sha256": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-WHHRIZS3.js",
+      "bytes": 2612,
+      "sha256": "2d227c8d43e6600e2daadce3180049ddc956a423bf156cf52ea9fb4bdae0f427"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "bytes": 1224,
+      "sha256": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "bytes": 784,
+      "sha256": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-WZQNMEQW.js",
+      "bytes": 1513,
+      "sha256": "19814a4b3bfe72116e3275601444f1338b491a7948c192f5453a51cc4846e194"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-X3TZEFQG.js",
+      "bytes": 49880,
+      "sha256": "ad0bcf66db6f7993d15df7af099cbca7b89ec5a8dc754ed0455198a721ed635c"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-XMMV24SP.js",
+      "bytes": 12433,
+      "sha256": "127d4ee1ff683b8afcbbe8e50c794bd03183dbbce33123e6251922b33af188bc"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-XPDOK3XY.js",
+      "bytes": 9314,
+      "sha256": "cd0ed810fed5c69b9e9b2cafa570a135ea0cf2010353f4130b16dd1112e1d814"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-XV2V56NQ.js",
+      "bytes": 2621,
+      "sha256": "49dcc3aec5015d4d8ebc96696e6889db9b5aee15bce617e5243760800b5b9273"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-Y62SXZKJ.js",
+      "bytes": 3171,
+      "sha256": "b73528f7915999847b76057de5d86c863c33a27374605380907e7c94da968883"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-YDR2IWKO.js",
+      "bytes": 1016,
+      "sha256": "08bb8318b2f1ba833154defe7a7e57ca6c3b1ec257aa16f92895780556da293b"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-YJKHREBZ.js",
+      "bytes": 15705,
+      "sha256": "6f4f007c0124f7a078f750cf55d25f2d19527133fcebd9c44ae5091ef774d23a"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "bytes": 881,
+      "sha256": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 35477,
+      "sha256": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "dist/bundle/chunks/chunk-ZDPFA4L3.js",
+      "bytes": 1113,
+      "sha256": "29fd081e50f1546d799305597417e6f248b7a9131c5d7db6abdc651a765f7128"
+    },
+    {
+      "path": "dist/bundle/chunks/clear-KPIUNI6K.js",
+      "bytes": 227,
+      "sha256": "50b4279f5cfea14a8624f58b77960de85485ef30c6034a6c7762e511c9bb094f"
+    },
+    {
+      "path": "dist/bundle/chunks/column-LKMDIDCH.js",
+      "bytes": 333,
+      "sha256": "d3a018a4240bebc842f14a51fc692afca490a8b218a0326180a33daab84e0d9d"
+    },
+    {
+      "path": "dist/bundle/chunks/comm-DTWKU2MC.js",
+      "bytes": 254,
+      "sha256": "5019f920d39a3b4e2f55ec91ab9cf74f8becc87fad37e91e497cb9bbb35b763a"
+    },
+    {
+      "path": "dist/bundle/chunks/cp-FKTQRFYJ.js",
+      "bytes": 420,
+      "sha256": "7ffd5df081c5bb161c516376d0bbdd8da3914b7fd50589ed01c521abf17b09ff"
+    },
+    {
+      "path": "dist/bundle/chunks/curl-DEHFBW27.js",
+      "bytes": 12557,
+      "sha256": "848a911a7b198a790faa7beb86321975733fbae4f7bf69772df62adc5c6c06e2"
+    },
+    {
+      "path": "dist/bundle/chunks/cut-RWPUW5FY.js",
+      "bytes": 365,
+      "sha256": "a90cf4140b59a0e6ea566570a829c6375a43a045f049c20b569cdcdec0f0bc55"
+    },
+    {
+      "path": "dist/bundle/chunks/date-FN2DXAEE.js",
+      "bytes": 338,
+      "sha256": "298adab48cbf269688f60aeae3cfcee65e20af760b631e89297ff3c1e13c01c9"
+    },
+    {
+      "path": "dist/bundle/chunks/diff-CSARC7WF.js",
+      "bytes": 282,
+      "sha256": "71308d8503298469521d3adf0c466af8d1bc0507410dc641deec5ef09505777a"
+    },
+    {
+      "path": "dist/bundle/chunks/dirname-Z2ZMOOW2.js",
+      "bytes": 229,
+      "sha256": "51f7b7ffca8dc896c413303d141663aab5055fc1db762ac1cb908fe26c0fc8f4"
+    },
+    {
+      "path": "dist/bundle/chunks/du-PR3M44X6.js",
+      "bytes": 392,
+      "sha256": "b119872235f1069abe77bdf0893307e6adb6267866d64dc770cf24ce2f4e1d3f"
+    },
+    {
+      "path": "dist/bundle/chunks/echo-PLLZYM2L.js",
+      "bytes": 198,
+      "sha256": "dfb9626beda861927d978e83c543f5136f46d7217d13e03be3924255490b85af"
+    },
+    {
+      "path": "dist/bundle/chunks/env-VUUMB47B.js",
+      "bytes": 335,
+      "sha256": "5a57e193c05cca34476722a1418a15dcd3fc2b0b696b71aab81c3aa71d731b96"
+    },
+    {
+      "path": "dist/bundle/chunks/expand-2BPPGGSM.js",
+      "bytes": 305,
+      "sha256": "f8dd72ea5d3bafe166ab577008f593ed7e60ae41a2df16ac19c4b9d200d40cbd"
+    },
+    {
+      "path": "dist/bundle/chunks/expr-UMT2OHZ7.js",
+      "bytes": 394,
+      "sha256": "0f985bcf8fd630ad94642a2039f0dd31148fe52920545507e9a1eeba83fe6846"
+    },
+    {
+      "path": "dist/bundle/chunks/file-VEGKTTSF.js",
+      "bytes": 366,
+      "sha256": "94aff2a71912ad0d2b9362c65d8aa4408c61d52d31dc67daf27a25e0b45d902f"
+    },
+    {
+      "path": "dist/bundle/chunks/find-PM3TD7V4.js",
+      "bytes": 562,
+      "sha256": "220216412f26dbaf35794fdc6e797eae80d5c5dea53aa2b412f1a57a4edb56d8"
+    },
+    {
+      "path": "dist/bundle/chunks/flag-coverage-I6UJUKQ4.js",
+      "bytes": 4633,
+      "sha256": "90b96dbd8e84cef84108bdf0db6caac49bc268efd711f851b0c8db1827f7cb55"
+    },
+    {
+      "path": "dist/bundle/chunks/fold-QJBPHRFJ.js",
+      "bytes": 247,
+      "sha256": "7ccdd9e8012939954fe09068c1dbbe12cb89f9e159594d6d7069aff3daabb5e3"
+    },
+    {
+      "path": "dist/bundle/chunks/grep-5UPEO42U.js",
+      "bytes": 546,
+      "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512"
+    },
+    {
+      "path": "dist/bundle/chunks/gzip-ZINVK3M6.js",
+      "bytes": 602,
+      "sha256": "eed2621d49197d5fd6b88b1785c8481d35205333007c9fb46f1402c7cd61b1d6"
+    },
+    {
+      "path": "dist/bundle/chunks/head-CFENJILH.js",
+      "bytes": 394,
+      "sha256": "78fde441e25544694260ba4504895b43335de104a9574f0758af2dddf6d7c18f"
+    },
+    {
+      "path": "dist/bundle/chunks/help-QDDMBDU7.js",
+      "bytes": 226,
+      "sha256": "96ad493059810decd48e1075288fa4f58d3a83bce98c79b150fe1c094cba6016"
+    },
+    {
+      "path": "dist/bundle/chunks/history-3N762S3K.js",
+      "bytes": 229,
+      "sha256": "ed7e0c911fefa0e2ced47e4c8793550c51290c6bfcbd6570f9f04c380ca07531"
+    },
+    {
+      "path": "dist/bundle/chunks/hostname-CESD3CQR.js",
+      "bytes": 195,
+      "sha256": "ac7e7cf7c434d8d010246b625ed69a6a2ecc36595d13667808c99f4ea51b9473"
+    },
+    {
+      "path": "dist/bundle/chunks/html-to-markdown-GGVR4YGL.js",
+      "bytes": 348,
+      "sha256": "1af7740573e4f5a868cc8fd6f3bfaea391f208597aeac0094973606c85fbe233"
+    },
+    {
+      "path": "dist/bundle/chunks/join-KQ4Z5OD4.js",
+      "bytes": 303,
+      "sha256": "84a965e93f5aa2cc38315998ed8fd9e72bec30d290aa3e2b2633cc5678ff00d7"
+    },
+    {
+      "path": "dist/bundle/chunks/jq-X2P7Q64K.js",
+      "bytes": 588,
+      "sha256": "0214bd547d69b9954e2e55b9db3163b38cd08bb9906b881e65623ea2a0ef8a2a"
+    },
+    {
+      "path": "dist/bundle/chunks/js-exec-XKF2B7C3.js",
+      "bytes": 9752,
+      "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7"
+    },
+    {
+      "path": "dist/bundle/chunks/js-exec-worker.js",
+      "bytes": 157508,
+      "sha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "dist/bundle/chunks/ln-VYDFOFNO.js",
+      "bytes": 252,
+      "sha256": "76a4b46b2823afcbfd272214eaa882f0913cadb3348da366aa1608e8e5e81a38"
+    },
+    {
+      "path": "dist/bundle/chunks/ls-R5CQLZQM.js",
+      "bytes": 448,
+      "sha256": "db9dc53efb37a2d514026fdbb81779aefb0019b6e6d8fc797223b817cde67058"
+    },
+    {
+      "path": "dist/bundle/chunks/md5sum-JEDX55KS.js",
+      "bytes": 284,
+      "sha256": "da2690b4258af4607b26e8d30e3fe5d915d0b74047edf763204e9e05b89151b9"
+    },
+    {
+      "path": "dist/bundle/chunks/mkdir-WDDKK2P3.js",
+      "bytes": 311,
+      "sha256": "1d7548f8a9032744c9b975a53f8f9e352a869f780fffabf8603493007dfda39f"
+    },
+    {
+      "path": "dist/bundle/chunks/mv-XSJA2FNL.js",
+      "bytes": 420,
+      "sha256": "5ea67011f3915ad39271c87c3625ebb32bd23019994b763fa8c7ae20b3ff5f4e"
+    },
+    {
+      "path": "dist/bundle/chunks/nl-RFXH2GNX.js",
+      "bytes": 273,
+      "sha256": "cd6f1f37329d585d7b8934af1a3f95b02f20b3251bd5b2d091c6def32b33165b"
+    },
+    {
+      "path": "dist/bundle/chunks/od-BI6XJPXY.js",
+      "bytes": 329,
+      "sha256": "ac5df8aae80d7110ebdb5405e0da06ab083dbbf70882f9f27482301ce4b519e8"
+    },
+    {
+      "path": "dist/bundle/chunks/paste-LLZ3ZQR2.js",
+      "bytes": 395,
+      "sha256": "35d650ddc67d337f988a67ee322c09626e55a5ffedefa345232da9be6dd1a60a"
+    },
+    {
+      "path": "dist/bundle/chunks/printf-V42QCPHL.js",
+      "bytes": 368,
+      "sha256": "1e5eee55d7665ce96419c154fd486b559ab1be7ffba549912b20a5d4b16ec429"
+    },
+    {
+      "path": "dist/bundle/chunks/pwd-76BPYV5F.js",
+      "bytes": 197,
+      "sha256": "65c9f9c60eaf87886a4375626dfcb544d7582de8af320d0488a348bea465a761"
+    },
+    {
+      "path": "dist/bundle/chunks/python3-F5S5TYGS.js",
+      "bytes": 8221,
+      "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295"
+    },
+    {
+      "path": "dist/bundle/chunks/readlink-IY6QKK2P.js",
+      "bytes": 370,
+      "sha256": "53e0f80523c9f3553e59e5ce30acfe298088245561100713b857dea0bff387ef"
+    },
+    {
+      "path": "dist/bundle/chunks/rev-EPOS3MFH.js",
+      "bytes": 246,
+      "sha256": "41542d88626b49e6b3fc3fa2b4d18e2c66902994aa2f50e7f5fee51c33d16eda"
+    },
+    {
+      "path": "dist/bundle/chunks/rg-UQE6KUBP.js",
+      "bytes": 560,
+      "sha256": "22ae626f7848f0f07e4251345c48b19c550c7d0e0df9d6d02b959a2b8e36760d"
+    },
+    {
+      "path": "dist/bundle/chunks/rm-JQ4GDKDD.js",
+      "bytes": 308,
+      "sha256": "f42b840ed48100ece25a08e56db7562b9bd3a90ce00b6b3d7e664d6f92ccba5c"
+    },
+    {
+      "path": "dist/bundle/chunks/rmdir-WZKAT6M5.js",
+      "bytes": 423,
+      "sha256": "1595e06c920719bd5dda9626906744db1eb72396738fb9016f19b421b747c4bc"
+    },
+    {
+      "path": "dist/bundle/chunks/sed-JW2JDLSI.js",
+      "bytes": 449,
+      "sha256": "584104299666126da835874e182866e997a47a77cdbecc379899d2e15cddf128"
+    },
+    {
+      "path": "dist/bundle/chunks/seq-5R2GKXC6.js",
+      "bytes": 281,
+      "sha256": "08c21d83e124e9d3c5bf3234bdbd757e278509bfa69c443ced49f3cb34987c5f"
+    },
+    {
+      "path": "dist/bundle/chunks/sha1sum-BLPZJ6MP.js",
+      "bytes": 285,
+      "sha256": "7ef3d1771d814654146fc80174fa75bf54bc65c7f5b81a576c391fc0934208ed"
+    },
+    {
+      "path": "dist/bundle/chunks/sha256sum-VJZ4PHQ4.js",
+      "bytes": 287,
+      "sha256": "dd2ebb4508e4b84a1b1e3bc963c4c9f773d181f6c9926d6fdfc8c1c865976586"
+    },
+    {
+      "path": "dist/bundle/chunks/sleep-PPRBTSVR.js",
+      "bytes": 311,
+      "sha256": "700062ddd83b6047aedc71d589caf1fc3579100387cd570825a2779b96823800"
+    },
+    {
+      "path": "dist/bundle/chunks/sort-PV2NEQHF.js",
+      "bytes": 338,
+      "sha256": "d9c7e5246e0a1eaab45c9a92faec5768978db0a07c246b98371b719d7ec2cc37"
+    },
+    {
+      "path": "dist/bundle/chunks/split-2SD6EP72.js",
+      "bytes": 416,
+      "sha256": "a3cf1b8565668b53aafc8697cd64b9ab7f09d83f1667a0c908a825e83832fa0f"
+    },
+    {
+      "path": "dist/bundle/chunks/sqlite3-UVVRYDAL.js",
+      "bytes": 527,
+      "sha256": "617367dcdd7ae8cdcfc6b3343bf25b00d31b1ffeb9e7b8f11032dcddc1354d15"
+    },
+    {
+      "path": "dist/bundle/chunks/sqlite3-worker.js",
+      "bytes": 61413,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "dist/bundle/chunks/stat-6KILP5AL.js",
+      "bytes": 394,
+      "sha256": "eb1f7f782c957513dc3a6826b5755c1254005fec89d33ae4b21ba6dd7b5b6d2b"
+    },
+    {
+      "path": "dist/bundle/chunks/strings-WTD7Q2EF.js",
+      "bytes": 278,
+      "sha256": "094f0377e56e2f3508a5645a609a4098f7aabaa8647001bd34dcafc855c2a560"
+    },
+    {
+      "path": "dist/bundle/chunks/tac-YXC4HBTR.js",
+      "bytes": 218,
+      "sha256": "db0e560b8c81614acdc720b9c1ac88f66c81ea6a8d47434192d0ff96c64112b0"
+    },
+    {
+      "path": "dist/bundle/chunks/tail-BDNMS4FR.js",
+      "bytes": 394,
+      "sha256": "b89fff3c2d7883e30096e7638707b89357b4644c23eba58a8c90a0d0ed667d9a"
+    },
+    {
+      "path": "dist/bundle/chunks/tar-6365WH6H.js",
+      "bytes": 421,
+      "sha256": "231fcf412f9ea25c262264babfac21977d5a80ee8a9c0df7f16fe50517e16139"
+    },
+    {
+      "path": "dist/bundle/chunks/tee-OOWSWHRQ.js",
+      "bytes": 281,
+      "sha256": "5d4fb65b7edcbff49de16ded9f1a6005845fa9a3f3d7fb88f62c6e309c3382a1"
+    },
+    {
+      "path": "dist/bundle/chunks/time-NERE2JJ2.js",
+      "bytes": 338,
+      "sha256": "72dfe24742ea7338169ddebd03337cf355a45e724212ab318d810351c767cfc2"
+    },
+    {
+      "path": "dist/bundle/chunks/timeout-C6WDYPLV.js",
+      "bytes": 397,
+      "sha256": "dbe5560df622b0807c3ec3ccb4181b6c412c8408e1d6a09d0a79c7a4acfe7dec"
+    },
+    {
+      "path": "dist/bundle/chunks/touch-W4DF6Z4T.js",
+      "bytes": 255,
+      "sha256": "99a51b1eb68fa10775d1c4680046df21425715d30cc514b890a4a6a99778b7b8"
+    },
+    {
+      "path": "dist/bundle/chunks/tr-3I4MDKIF.js",
+      "bytes": 392,
+      "sha256": "da45ced93cc2bdb7c2700cd0b606aad7817e694f200df5301571ab8f190b06aa"
+    },
+    {
+      "path": "dist/bundle/chunks/tree-7OOL2MH6.js",
+      "bytes": 282,
+      "sha256": "9218838b33dbd376ab1022c940597954f5d8ed04cd03c2ae3a6f0aa0bd110413"
+    },
+    {
+      "path": "dist/bundle/chunks/true-QUBPEGGU.js",
+      "bytes": 246,
+      "sha256": "af9897132750ed45861deda6adadae7c130c6fb202337f658b530744ce3bd3e9"
+    },
+    {
+      "path": "dist/bundle/chunks/undici-PSPBDOYF.js",
+      "bytes": 519376,
+      "sha256": "f3c9e2832895eaac14f6ddbe09b9aa2b02ec8469960d6d7ab03798fc34eeac9d"
+    },
+    {
+      "path": "dist/bundle/chunks/unexpand-YD5BWFH4.js",
+      "bytes": 251,
+      "sha256": "026129f24c5b906ca2dd5fdd4ddb16a7772385b8d4f9e1369e155049399c5bfa"
+    },
+    {
+      "path": "dist/bundle/chunks/uniq-OVOW532K.js",
+      "bytes": 366,
+      "sha256": "967faee923afd0d52e050d8dcd16858d03167d277aa77e907ce550cc30858b78"
+    },
+    {
+      "path": "dist/bundle/chunks/wc-RUR7HE5O.js",
+      "bytes": 364,
+      "sha256": "9fe94434f117b0f9c75e024cbb3486de958c92174ea10a3d396285e41e3c8a86"
+    },
+    {
+      "path": "dist/bundle/chunks/which-UWVKETYW.js",
+      "bytes": 255,
+      "sha256": "d247c38b38b61508492192562fe9c9b9ed65ed5bb25d96d7e7e460b06d5af327"
+    },
+    {
+      "path": "dist/bundle/chunks/whoami-KR6E7UIR.js",
+      "bytes": 193,
+      "sha256": "b7c14275d73c2d8c7581443fdff35b458565a5546663fda8c3ea0fee48b81496"
+    },
+    {
+      "path": "dist/bundle/chunks/worker.js",
+      "bytes": 105168,
+      "sha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "dist/bundle/chunks/xan-HUOXKUQA.js",
+      "bytes": 645,
+      "sha256": "2a9510fd64c3aa732c94b3965cd776d5af2a765101d9bd799136be5b52f65ed8"
+    },
+    {
+      "path": "dist/bundle/chunks/xan-view-RT2WKDOQ.js",
+      "bytes": 367,
+      "sha256": "c11232091c6c48175a3702b83cb1ffb590f77b247223cf0b6ab2e0ede6309bb1"
+    },
+    {
+      "path": "dist/bundle/chunks/xargs-L7TJHOJT.js",
+      "bytes": 367,
+      "sha256": "7bd72d83b2421ac9cd0b2372629cf9b6b37bfe88b358cc257cf1d32b4438562c"
+    },
+    {
+      "path": "dist/bundle/chunks/yq-MI27NZ2U.js",
+      "bytes": 560,
+      "sha256": "4bd9afa1c2ee26c03046bbd12d75958a56933ffd2078c584ebbd76b19b4733c7"
+    },
+    {
+      "path": "dist/bundle/index.cjs",
+      "bytes": 2249808,
+      "sha256": "540a690eff7e1ed758e93276c40ff4bbe841ea0a166ac0ea9d799ec71fa2ee0e"
+    },
+    {
+      "path": "dist/bundle/index.js",
+      "bytes": 510637,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "dist/commands/js-exec/js-exec-worker.d.ts",
+      "bytes": 1274,
+      "sha256": "05317b310d3f8e8830cd9198ef7970ee8a6ef244e90d75ed348b87caaae4e883"
+    },
+    {
+      "path": "dist/commands/python3/worker.d.ts",
+      "bytes": 1081,
+      "sha256": "7cfe0e88f9d62c1783d6c8f30d96b69c9ff44bdaf4324acf434d407d65e8c98e"
+    },
+    {
+      "path": "dist/commands/sqlite3/worker.d.ts",
+      "bytes": 1446,
+      "sha256": "2a05b31e8586b13b746e98e2ee5e878da1c19662a5b195950adc491fef827d43"
+    },
+    {
+      "path": "dist/commands/sqlite3/worker.js",
+      "bytes": 61413,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "dist/commands/worker-request-controller.d.ts",
+      "bytes": 1424,
+      "sha256": "ae8b9fbeae498bc421754acbe110fe3db0768c13c9284378e800b49d04ec4490"
+    },
+    {
+      "path": "dist/security/worker-defense-in-depth.d.ts",
+      "bytes": 8132,
+      "sha256": "784748425bcdfdaa016f6fed78d5ba27bc966bf676f3a12aa5857b01611599d0"
+    },
+    {
+      "path": "vendor/cpython-emscripten/python.wasm",
+      "bytes": 5974624,
+      "sha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    }
+  ],
+  "assetLimit": "All published files are authenticated, including workers/bundled assets. Inclusion does not prove an optional asset executed; external dependency assets remain tree-equal only."
+}

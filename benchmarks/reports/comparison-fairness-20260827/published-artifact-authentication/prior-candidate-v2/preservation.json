@@ -1,0 +1,60 @@
+{
+  "preservedAt": "2026-08-27T06:12:17.899Z",
+  "method": "apply_patch named copies, byte equality checked before candidate edits",
+  "entries": [
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/representative.mjs",
+      "priorCopy": "prior-candidate-v2/representative.mjs",
+      "bytes": 9907,
+      "sha256": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/observe-process.mjs",
+      "priorCopy": "prior-candidate-v2/observe-process.mjs",
+      "bytes": 1017,
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/observe-load.mjs",
+      "priorCopy": "prior-candidate-v2/observe-load.mjs",
+      "bytes": 1523,
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/representative-plan-v2.json",
+      "priorCopy": "prior-candidate-v2/representative-plan-v2.json",
+      "bytes": 13889,
+      "sha256": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/handoff-manifest.json",
+      "priorCopy": "prior-candidate-v2/handoff-manifest.json",
+      "bytes": 6064,
+      "sha256": "17776da9868967eddcce038984ef5dcf5a8418f0901045d97ccba33d6d4dfc65"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/REPORT.md",
+      "priorCopy": "prior-candidate-v2/REPORT.md",
+      "bytes": 12030,
+      "sha256": "cfe2a7dc2d7b378012a9591195b1afa56c4acb3a701291a6ee07017c884c5adb"
+    },
+    {
+      "source": "/tmp/safe-bash-baseline-auth-plan.txt",
+      "priorCopy": "prior-candidate-v2/text-plan.txt",
+      "bytes": 6737,
+      "sha256": "527ac740058732c25d70ccadfae006a66b3ee9d5a7622af51e8e6429d4a64225"
+    },
+    {
+      "source": "/tmp/safe-bash-baseline-auth-preflight-detail.txt",
+      "priorCopy": "prior-candidate-v2/preflight-detail.txt",
+      "bytes": 8532,
+      "sha256": "59aba77819dc28f224fafc9691588a43a81410872a4e5eeef00ba95877150e4b"
+    },
+    {
+      "source": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/PREFLIGHT.md",
+      "priorCopy": "prior-candidate-v2/PREFLIGHT.md",
+      "bytes": 5208,
+      "sha256": "e6ded1b2e674bfc94d2d081a3c9c4eb3818be6afeefa23ed179ffc4139cdf9e4"
+    }
+  ]
+}

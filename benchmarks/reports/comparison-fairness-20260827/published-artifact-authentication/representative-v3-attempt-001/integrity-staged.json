@@ -1,0 +1,20 @@
+{
+  "files": 3844,
+  "exactMembership": true,
+  "observerAdditions": [
+    {
+      "path": "auth-observer/observe-process.mjs",
+      "source": "observe-process.mjs",
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "bytes": 1017,
+      "mode": 292
+    },
+    {
+      "path": "auth-observer/observe-load.mjs",
+      "source": "observe-load.mjs",
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "bytes": 1523,
+      "mode": 292
+    }
+  ]
+}

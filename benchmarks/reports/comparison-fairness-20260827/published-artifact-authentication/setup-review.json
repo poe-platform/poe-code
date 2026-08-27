@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-08-27T05:56:23.631Z",
+  "method": "Static exact frozen setup review only, no package imported/executed by this script.",
+  "profiles": [
+    {
+      "profile": "original",
+      "revision": "0294afb6e690433aed994868e5ed437ecf58ae48",
+      "path": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/expanded/engine.mjs",
+      "engineSha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "identicalToGitAndSeal": true,
+      "entry": "baselineRoot/dist/bundle/index.js",
+      "constructorAndInvocationExcerpt": "shell = new library.Bash({ fs, cwd: fixtureRoot, env: environment,\n      executionLimits: { maxOutputSize: maximumBytes, maxCommandCount: 10000, maxLoopIterations: 10000, maxExecutionTimeMs: 5000 },\n      ...(specimen.network ? { network: { allowedUrlPrefixes: [baseUrl], allowedMethods: [\"GET\", \"HEAD\", \"POST\", \"PUT\"], denyPrivateRanges: false, maxResponseSize: maximumBytes, timeoutMs: 4000 } } : {}) });\n    if (instrument) for (const [name, definition] of shell.commands) shell.commands.set(name, { ...definition, execute(...args) {\n      registryEvents.push({ name, args: [...args[0]] }); return definition.execute(...args);\n    } });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), {\n        stdin: decode(specimen.stdin).toString(\"latin1\"), stdinKind: \"bytes\", rawScript: true,\n        replaceEnv: true, env: environment, signal: AbortSignal.timeout(5000),\n      });\n      return { stdout: Buffer.from(library.latin1FromBytes(library.stdoutAsBytes(result)), \"latin1\"), stderr: Buffer.from(result.stderr, \"utf8\"), exitCode: result.exitCode };\n    };\n    dispose = async () => {};",
+      "customCommandDefinitionsSupplied": false,
+      "registryInstrumentation": "For each real shell.commands entry, replace with shallow spread plus execute wrapper recording name/argv and immediately returning original definition.execute(...args). No alternate command body or extra command name is injected.",
+      "readyInterpretation": "ready:true is emitted only after awaited entry import resolves. Historical parent readiness is control-flow-inferred from outcomes, not a retained ready/PID/request trace; a future approved subset can log this directly.",
+      "optionalNetwork": "Explicit baseline Bash network configuration only on specimen.network; no default ambient network enablement."
+    },
+    {
+      "profile": "scratch-aligned",
+      "revision": "d1b10a375a13f031f9f604a64395cd507f21a071",
+      "path": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/scratch-aligned/benchmarks/expanded/engine.mjs",
+      "engineSha256": "c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323",
+      "identicalToGitAndSeal": true,
+      "entry": "baselineRoot/dist/bundle/index.js",
+      "constructorAndInvocationExcerpt": "shell = new library.Bash({ fs, cwd: fixtureRoot, env: environment,\n      executionLimits: { maxOutputSize: maximumBytes, maxCommandCount: 10000, maxLoopIterations: 10000, maxExecutionTimeMs: 5000 },\n      ...(specimen.network ? { network: { allowedUrlPrefixes: [baseUrl], allowedMethods: [\"GET\", \"HEAD\", \"POST\", \"PUT\"], denyPrivateRanges: false, maxResponseSize: maximumBytes, timeoutMs: 4000 } } : {}) });\n    if (instrument) for (const [name, definition] of shell.commands) shell.commands.set(name, { ...definition, execute(...args) {\n      registryEvents.push({ name, args: [...args[0]] }); return definition.execute(...args);\n    } });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), {\n        stdin: decode(specimen.stdin).toString(\"latin1\"), stdinKind: \"bytes\", rawScript: true,\n        replaceEnv: true, env: environment, signal: AbortSignal.timeout(5000),\n      });\n      return { stdout: Buffer.from(library.latin1FromBytes(library.stdoutAsBytes(result)), \"latin1\"), stderr: Buffer.from(result.stderr, \"utf8\"), exitCode: result.exitCode };\n    };\n    dispose = async () => {};",
+      "customCommandDefinitionsSupplied": false,
+      "registryInstrumentation": "For each real shell.commands entry, replace with shallow spread plus execute wrapper recording name/argv and immediately returning original definition.execute(...args). No alternate command body or extra command name is injected.",
+      "readyInterpretation": "ready:true is emitted only after awaited entry import resolves. Historical parent readiness is control-flow-inferred from outcomes, not a retained ready/PID/request trace; a future approved subset can log this directly.",
+      "optionalNetwork": "Explicit baseline Bash network configuration only on specimen.network; no default ambient network enablement."
+    }
+  ],
+  "orchestrationHelpers": [
+    {
+      "path": "audit/phase.mjs",
+      "sha256": "6808bc4a9ee158bce7b325512d33c69521d6078de7591ba56b82788e80918e50",
+      "identicalToSeal": true
+    },
+    {
+      "path": "audit/preload.mjs",
+      "sha256": "e1a4fd60ee681b0ee6919dfbdebf8b0d56e65947e3b8aebeb88fdbc61eecd90b",
+      "identicalToSeal": true
+    },
+    {
+      "path": "audit/loader.mjs",
+      "sha256": "0475eb04d5ad2ee9a8b73441244b22a17ca0f2b5bb00eca1b59e64f28d630703",
+      "identicalToSeal": true
+    }
+  ],
+  "priorTraceSemantics": "module-load is written before nextLoad and means a hash/path load attempt. It cannot prove successful evaluation of every module. IPC response ids lack historical PID/recipe request association. CAPTURE-LIMITS.md remains authoritative; no retrospective event ledger invented.",
+  "noStubClaim": "All955 published package paths/bytes equal frozen installed baseline, so no locally modified/replaced package file relative to fetched official artifact. Exact measured engine setup supplies no custom commands; its known forwarding-only observation wrappers remain disclosed. This does not deny diagnostic stubs that the upstream published package itself intentionally contains.",
+  "externalDependencyLimit": "Transitive package code could affect behavior; this task verifies their retained tree/locks, not all publisher archives or absence of upstream bugs."
+}

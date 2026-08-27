@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-08-27T06:01:42.502Z",
+  "archiveRehashMatches": true,
+  "rawMetadataRehashMatches": true,
+  "allPublishedFilesStillEqual": 955,
+  "packageRoots": [
+    "/private/tmp/safe-bash-published-auth-JydnQ4/authenticated-package",
+    "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/benchmarks/node_modules/just-bash",
+    "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash"
+  ],
+  "allPackageFilesRegularSingleLinkDistinctInodesAcrossRoots": true,
+  "executionClosureFilesRehashed": 3842,
+  "executionClosureUnchanged": true,
+  "productExecutions": 0,
+  "representativeApproval": "NOT RECEIVED; prepared code syntax-checked only",
+  "independentReviewerStatus": "pending; verification/** untouched",
+  "originalScoresUnchanged": {
+    "original": {
+      "oursPass": 222,
+      "baselinePass": 155,
+      "total": 224
+    },
+    "scratchAligned": {
+      "oursPass": 223,
+      "baselinePass": 155,
+      "total": 224
+    },
+    "denominatorUnion": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "phase": "offline dependency comparison",
+  "outcome": "Strict combined byte-and-mode comparison stopped on318 development dependency mode differences; product execution remains zero.",
+  "examples": [
+    { "path": "node_modules/.bin/tsx", "recordedMode": "0755", "observedMode": "0555", "sha256Equal": true },
+    { "path": "node_modules/tsx/package.json", "recordedMode": "0644", "observedMode": "0444", "sha256Equal": true }
+  ],
+  "resolution": "Preserve this failure. Continue offline byte/membership authentication with mode differences fully listed separately; do not call physical metadata unchanged. Root approval remains mandatory before execution or accepting copy-mode policy.",
+  "packageResultAlreadyPublished": "955 published file paths/bytes equal frozen baseline/sealed hashes; package-comparison.json retained unchanged."
+}

@@ -1,0 +1,461 @@
+{
+  "preparedAt": "2026-08-27T05:56:23.647Z",
+  "approvalStatus": "NOT APPROVED; explicit root authorization still required before any product process/import",
+  "textPlanSha256": "1d7dee734a65137692951608058931bcadce716e3fabb334a7b44ede77ffa90c",
+  "budget": {
+    "distinctIds": 7,
+    "resultBearingBashExecCalls": 8,
+    "freshEngineChildren": 8,
+    "coordinatorProcesses": 1,
+    "maxConcurrentOsProcesses": 2,
+    "warmups": 0,
+    "neutralityCalls": 0,
+    "transportControls": 0,
+    "inventoryConstructions": 0,
+    "oursInitializationCalls": 0,
+    "retries": 0,
+    "totalMs": 150000,
+    "startupMs": 15000,
+    "requestMs": 10000,
+    "guestMs": 5000
+  },
+  "sourceIdentity": {
+    "acceptedCommit": "245799e7498c849098ca971fe00270112aa5e06e",
+    "priorSourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+    "dirtyFreezeNotHeadOnly": true
+  },
+  "rows": [
+    {
+      "sequence": 1,
+      "profile": "original",
+      "id": "command/echo/multiple",
+      "recipeSha256": "ed63640b5870c37b935aa9330981537aba5c09a9a916ceca5435e6438eef4bba",
+      "recipe": {
+        "id": "command/echo/multiple",
+        "group": "command",
+        "command": "echo",
+        "optionFamily": "multiple",
+        "script": "echo alpha beta",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "command/echo/multiple",
+        "recipeHash": "ed63640b5870c37b935aa9330981537aba5c09a9a916ceca5435e6438eef4bba",
+        "stdout": "YWxwaGEgYmV0YQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "pass",
+      "oldBaselineFourFields": {
+        "stdout": "YWxwaGEgYmV0YQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {}
+      },
+      "oldFailedFields": []
+    },
+    {
+      "sequence": 2,
+      "profile": "original",
+      "id": "composition/archive-hash/archive-hash",
+      "recipeSha256": "b5618bdd26ea3e32c4fdf478581a8b3c684f7fd0b8aae2f4825222d0f7b5769c",
+      "recipe": {
+        "id": "composition/archive-hash/archive-hash",
+        "group": "composition",
+        "command": "archive-hash",
+        "optionFamily": "archive-hash",
+        "script": "mkdir out; tar -cf - tree | tar -xf - -C out; sha256sum out/tree/file",
+        "files": {
+          "tree/file": "AAEJCkF/gP8="
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "composition/archive-hash/archive-hash",
+        "recipeHash": "b5618bdd26ea3e32c4fdf478581a8b3c684f7fd0b8aae2f4825222d0f7b5769c",
+        "stdout": "ZDFiOWYxMmQwYWJkNzFhYjMwNWFhMjM0MzU2NDcyMThjNmJkNmI3N2I1M2QzMDIzZTJjZGY4MzVhMDc4Njg3OSAgb3V0L3RyZWUvZmlsZQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "out": {
+            "type": "directory"
+          },
+          "out/tree": {
+            "type": "directory"
+          },
+          "out/tree/file": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          },
+          "tree": {
+            "type": "directory"
+          },
+          "tree/file": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "pass",
+      "oldBaselineFourFields": {
+        "stdout": "ZDFiOWYxMmQwYWJkNzFhYjMwNWFhMjM0MzU2NDcyMThjNmJkNmI3N2I1M2QzMDIzZTJjZGY4MzVhMDc4Njg3OSAgb3V0L3RyZWUvZmlsZQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "out": {
+            "type": "directory"
+          },
+          "out/tree": {
+            "type": "directory"
+          },
+          "out/tree/file": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          },
+          "tree": {
+            "type": "directory"
+          },
+          "tree/file": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          }
+        }
+      },
+      "oldFailedFields": []
+    },
+    {
+      "sequence": 3,
+      "profile": "original",
+      "id": "command/cat/binary-stdin",
+      "recipeSha256": "232d53a341e8c9c97fdfe2f7028e8fff048bd61f38d156960d991480729f01fd",
+      "recipe": {
+        "id": "command/cat/binary-stdin",
+        "group": "command",
+        "command": "cat",
+        "optionFamily": "binary-stdin",
+        "script": "cat",
+        "files": {},
+        "stdin": "AAEJCkF/gP8=",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "command/cat/binary-stdin",
+        "recipeHash": "232d53a341e8c9c97fdfe2f7028e8fff048bd61f38d156960d991480729f01fd",
+        "stdout": "AAEJCkF/gP8=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "fail",
+      "oldBaselineFourFields": {
+        "stdout": "AAEJCkF/woDDvw==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {}
+      },
+      "oldFailedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "sequence": 4,
+      "profile": "original",
+      "id": "network/curl/get",
+      "recipeSha256": "4131258c9e582bb26ef0512c85e713c56c2bd773d7238f7611f4f526d478d42a",
+      "recipe": {
+        "id": "network/curl/get",
+        "group": "network",
+        "command": "curl",
+        "optionFamily": "get",
+        "script": "curl -s '{{BASE}}/bytes'",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": true,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "network/curl/get",
+        "recipeHash": "4131258c9e582bb26ef0512c85e713c56c2bd773d7238f7611f4f526d478d42a",
+        "stdout": "AP9BCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "fail",
+      "oldBaselineFourFields": {
+        "stdout": "AMO/QQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {}
+      },
+      "oldFailedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "sequence": 5,
+      "profile": "original",
+      "id": "network/curl/output",
+      "recipeSha256": "3f4a00a19881d35ffba9a668f28fcf376e408c1e17e5b27f7ae15e44e43d9695",
+      "recipe": {
+        "id": "network/curl/output",
+        "group": "network",
+        "command": "curl",
+        "optionFamily": "output",
+        "script": "curl -s -o result '{{BASE}}/bytes'",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": true,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "network/curl/output",
+        "recipeHash": "3f4a00a19881d35ffba9a668f28fcf376e408c1e17e5b27f7ae15e44e43d9695",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "result": {
+            "type": "file",
+            "bytes": "AP9BCg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "pass",
+      "oldBaselineFourFields": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "result": {
+            "type": "file",
+            "bytes": "AP9BCg=="
+          }
+        }
+      },
+      "oldFailedFields": []
+    },
+    {
+      "sequence": 6,
+      "profile": "original",
+      "id": "kernel/type/type",
+      "recipeSha256": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+      "recipe": {
+        "id": "kernel/type/type",
+        "group": "kernel",
+        "command": "type",
+        "optionFamily": "type",
+        "script": "type -t printf; type -t cat; f(){ :; }; type -t f",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "kernel/type/type",
+        "recipeHash": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+        "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "pass",
+      "oldBaselineFourFields": {
+        "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {}
+      },
+      "oldFailedFields": []
+    },
+    {
+      "sequence": 7,
+      "profile": "original",
+      "id": "command/patch/dry-run",
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "recipe": {
+        "id": "command/patch/dry-run",
+        "group": "command",
+        "command": "patch",
+        "optionFamily": "dry-run",
+        "script": "patch -s --dry-run -p0 < change",
+        "files": {
+          "input": "b2xkCg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "command/patch/dry-run",
+        "recipeHash": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          },
+          "tmp": {
+            "type": "directory"
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "fail",
+      "oldBaselineFourFields": {
+        "stdout": "",
+        "stderr": "YmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+        "exitCode": 127,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        }
+      },
+      "oldFailedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ]
+    },
+    {
+      "sequence": 8,
+      "profile": "scratch-aligned",
+      "id": "command/patch/dry-run",
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "recipe": {
+        "id": "command/patch/dry-run",
+        "group": "command",
+        "command": "patch",
+        "optionFamily": "dry-run",
+        "script": "patch -s --dry-run -p0 < change",
+        "files": {
+          "input": "b2xkCg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expectedNative": {
+        "id": "command/patch/dry-run",
+        "recipeHash": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "oldBaselineStatus": "fail",
+      "oldBaselineFourFields": {
+        "stdout": "",
+        "stderr": "YmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+        "exitCode": 127,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        }
+      },
+      "oldFailedFields": [
+        "stderr",
+        "exitCode"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "sequence": 6,
+  "profile": "original",
+  "recipeId": "kernel/type/type",
+  "requestId": 6,
+  "response": {
+    "id": 6,
+    "observation": {
+      "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {},
+      "events": [],
+      "registryEvents": [],
+      "executeMs": 6.660209000000009,
+      "memory": {
+        "before": {
+          "rss": 173031424,
+          "heapTotal": 33439744,
+          "heapUsed": 15455560,
+          "external": 4064569,
+          "arrayBuffers": 144113
+        },
+        "after": {
+          "rss": 173637632,
+          "heapTotal": 33964032,
+          "heapUsed": 16688432,
+          "external": 4067592,
+          "arrayBuffers": 144135
+        },
+        "sampledPeak": {
+          "rss": 173637632,
+          "heapUsed": 16687272,
+          "external": 4067592
+        },
+        "processMaxRssKiB": 169568,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 6,
+    "profile": "original",
+    "recipeId": "kernel/type/type",
+    "requestId": 6,
+    "pid": 80657,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80657,
+  "trace": {
+    "sha256": "71de7fe958d044ba01f3290617d80f9bfd2e23119ca5dd4ac591d9fef513c122",
+    "events": 320,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "sequence": 5,
+  "profile": "original",
+  "recipeId": "network/curl/output",
+  "requestId": 5,
+  "response": {
+    "id": 5,
+    "observation": {
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "result": {
+          "type": "file",
+          "bytes": "AP9BCg=="
+        }
+      },
+      "events": [],
+      "registryEvents": [
+        {
+          "name": "curl",
+          "args": [
+            "-s",
+            "-o",
+            "result",
+            "http://127.0.0.1:52610/bytes"
+          ]
+        }
+      ],
+      "executeMs": 17.151791000000003,
+      "memory": {
+        "before": {
+          "rss": 174768128,
+          "heapTotal": 33964032,
+          "heapUsed": 15463088,
+          "external": 4064633,
+          "arrayBuffers": 144177
+        },
+        "after": {
+          "rss": 176439296,
+          "heapTotal": 34488320,
+          "heapUsed": 17565056,
+          "external": 4088488,
+          "arrayBuffers": 152474
+        },
+        "sampledPeak": {
+          "rss": 176439296,
+          "heapUsed": 17563864,
+          "external": 4088488
+        },
+        "processMaxRssKiB": 172304,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 5,
+    "profile": "original",
+    "recipeId": "network/curl/output",
+    "requestId": 5,
+    "pid": 80630,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80630,
+  "trace": {
+    "sha256": "45257dd028965f66f24f51c2aed85d65842b1e83e6728286a5c1dafc56258f5d",
+    "events": 332,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

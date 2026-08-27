@@ -1,0 +1,114 @@
+{
+  "sequence": 3,
+  "profile": "original",
+  "recipeId": "command/cat/binary-stdin",
+  "requestId": 3,
+  "response": {
+    "id": 3,
+    "observation": {
+      "stdout": "AAEJCkF/woDDvw==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {},
+      "events": [],
+      "registryEvents": [
+        {
+          "name": "cat",
+          "args": []
+        }
+      ],
+      "executeMs": 12.670083000000005,
+      "memory": {
+        "before": {
+          "rss": 173883392,
+          "heapTotal": 33439744,
+          "heapUsed": 15455664,
+          "external": 4064551,
+          "arrayBuffers": 144095
+        },
+        "after": {
+          "rss": 174473216,
+          "heapTotal": 33964032,
+          "heapUsed": 16701296,
+          "external": 4116714,
+          "arrayBuffers": 193257
+        },
+        "sampledPeak": {
+          "rss": 174473216,
+          "heapUsed": 16700296,
+          "external": 4116714
+        },
+        "processMaxRssKiB": 170432,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": false,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": false
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 3,
+    "profile": "original",
+    "recipeId": "command/cat/binary-stdin",
+    "requestId": 3,
+    "pid": 80581,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80581,
+  "trace": {
+    "sha256": "a5bd474f56589939780ff9dd734d4d4e25d70f352acf9f45407f6ed7ddc165b8",
+    "events": 360,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

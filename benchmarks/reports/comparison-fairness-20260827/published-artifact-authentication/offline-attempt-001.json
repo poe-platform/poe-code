@@ -1,0 +1,7 @@
+{
+  "phase": "offline comparison script parse",
+  "outcome": "SyntaxError before comparison or product execution",
+  "error": "An extra closing parenthesis in entryCandidates optional-chain expression prevented module parsing.",
+  "productCalls": 0,
+  "resolution": "Correct the authored comparison expression; no dependency, downloaded archive or prior evidence changes."
+}

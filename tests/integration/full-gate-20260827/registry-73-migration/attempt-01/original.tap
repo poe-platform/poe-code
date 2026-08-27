@@ -1,0 +1,204 @@
+TAP version 13
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 1 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 17.297958
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 20.505625
+  type: 'test'
+  ...
+# Subtest: actual default registry contains 70 including split without duplicate installation
+not ok 3 - actual default registry contains 70 including split without duplicate installation
+  ---
+  duration_ms: 2.028292
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/registry-73-execution-wfRUfv/source/tests/commands/split/integration.test.ts:1:1976'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    73 !== 70
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 70
+  actual: 73
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/registry-73-execution-wfRUfv/source/tests/commands/split/integration.test.ts:39:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 4 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 0.795666
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 5 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 1.23125
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 6 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 24.981417
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 11.040333
+  type: 'test'
+  ...
+# Subtest: default factory contains70 and standalone formatting installs exactly four without split
+not ok 8 - default factory contains70 and standalone formatting installs exactly four without split
+  ---
+  duration_ms: 4.508792
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/registry-73-execution-wfRUfv/source/tests/commands/stream-format-author-stress/contracts.test.ts:1:903'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    73 !== 70
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 70
+  actual: 73
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/registry-73-execution-wfRUfv/source/tests/commands/stream-format-author-stress/contracts.test.ts:19:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: collision preflight does not partially register; replacement is intentional
+ok 9 - collision preflight does not partially register; replacement is intentional
+  ---
+  duration_ms: 3.678708
+  type: 'test'
+  ...
+# Subtest: limits reject invalid typed values rather than treating them as unlimited
+ok 10 - limits reject invalid typed values rather than treating them as unlimited
+  ---
+  duration_ms: 0.087917
+  type: 'test'
+  ...
+# Subtest: seq awaits sinks, does not pull ahead, and owns published chunks
+ok 11 - seq awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.882459
+  type: 'test'
+  ...
+# Subtest: seq cancellation propagates an errno-shaped reason through blocked sink
+ok 12 - seq cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 2.811209
+  type: 'test'
+  ...
+# Subtest: seq sink failure does not keep consuming input
+ok 13 - seq sink failure does not keep consuming input
+  ---
+  duration_ms: 0.350834
+  type: 'test'
+  ...
+# Subtest: nl awaits sinks, does not pull ahead, and owns published chunks
+ok 14 - nl awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.717875
+  type: 'test'
+  ...
+# Subtest: nl cancellation propagates an errno-shaped reason through blocked sink
+ok 15 - nl cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 1.063542
+  type: 'test'
+  ...
+# Subtest: nl sink failure does not keep consuming input
+ok 16 - nl sink failure does not keep consuming input
+  ---
+  duration_ms: 0.393209
+  type: 'test'
+  ...
+# Subtest: rev awaits sinks, does not pull ahead, and owns published chunks
+ok 17 - rev awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.508208
+  type: 'test'
+  ...
+# Subtest: rev cancellation propagates an errno-shaped reason through blocked sink
+ok 18 - rev cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.594208
+  type: 'test'
+  ...
+# Subtest: rev sink failure does not keep consuming input
+ok 19 - rev sink failure does not keep consuming input
+  ---
+  duration_ms: 0.256792
+  type: 'test'
+  ...
+# Subtest: unexpand awaits sinks, does not pull ahead, and owns published chunks
+ok 20 - unexpand awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.616
+  type: 'test'
+  ...
+# Subtest: unexpand cancellation propagates an errno-shaped reason through blocked sink
+ok 21 - unexpand cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.485292
+  type: 'test'
+  ...
+# Subtest: unexpand sink failure does not keep consuming input
+ok 22 - unexpand sink failure does not keep consuming input
+  ---
+  duration_ms: 0.14625
+  type: 'test'
+  ...
+# Subtest: VFS host reads receive cancellation and late rejection is observed
+ok 23 - VFS host reads receive cancellation and late rejection is observed
+  ---
+  duration_ms: 0.810833
+  type: 'test'
+  ...
+# Subtest: real Shell pipes, files, invoke middleware, and shared output budget
+ok 24 - real Shell pipes, files, invoke middleware, and shared output budget
+  ---
+  duration_ms: 15.02875
+  type: 'test'
+  ...
+# Subtest: long records and explicit UTF-8 split chunks stay byte faithful
+ok 25 - long records and explicit UTF-8 split chunks stay byte faithful
+  ---
+  duration_ms: 250.162416
+  type: 'test'
+  ...
+# Subtest: timer cancellation stops bounded ongoing work
+ok 26 - timer cancellation stops bounded ongoing work
+  ---
+  duration_ms: 21.518
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 24
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 825.471417

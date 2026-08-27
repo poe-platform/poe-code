@@ -134,8 +134,30 @@ test("staging path escape is rejected before publishing a binary", async () => f
 test("root executable rejects an unreviewed candidate before creating output", () => {
   const output = join(tmpdir(), `full-gate-forbidden-preflight-${process.pid}`); assert.equal(existsSync(output), false);
   const result = spawnSync(process.execPath, ["scripts/verify-whole-gate.mjs", "--handoff", "f".repeat(40), "--execute", output], { cwd: repository, encoding: "utf8", timeout: 10000 });
-  assert.equal(result.status, 1); assert.match(result.stdout, /unreviewed-candidate/); assert.equal(existsSync(output), false);
+  assert.equal(result.status, 78); assert.match(result.stdout, /unreviewed-candidate/); assert.equal(existsSync(output), false);
 });
+
+for (const failure of ["missing", "changed", "nonexecutable"]) {
+  test(`both public routes return78 before launcher import for ${failure} mandatory native`, async () => fixture(async ({ root, candidate, native, profile }) => {
+    const directory = join(root, "tests/integration/full-gate-20260827/preflight-repair");
+    mkdirSync(directory, { recursive: true }); mkdirSync(join(root, "scripts"));
+    writeFileSync(join(root, "scripts/verify-whole-gate.mjs"), readFileSync(join(repository, "scripts/verify-whole-gate.mjs")));
+    writeFileSync(join(directory, "preflight.mjs"), readFileSync(new URL("./preflight.mjs", import.meta.url)));
+    writeFileSync(join(directory, "policy.json"), JSON.stringify(profile));
+    const sentinel = join(root, "forbidden-launcher-import");
+    writeFileSync(join(directory, "run.mjs"), `import { writeFileSync } from 'node:fs'; writeFileSync(${JSON.stringify(sentinel)}, 'forbidden');`);
+    if (failure === "missing") rmSync(native);
+    else if (failure === "changed") writeFileSync(native, "changed bytes");
+    else chmodSync(native, 0o644);
+    for (const suffix of [["--preflight-only"], ["--execute", join(root, "forbidden-output")]]) {
+      const result = spawnSync(process.execPath, ["scripts/verify-whole-gate.mjs", "--handoff", candidate, ...suffix], { cwd: root, encoding: "utf8", timeout: 10000 });
+      assert.equal(result.status, 78, result.stderr); assert.equal(result.stderr, "");
+      const report = JSON.parse(result.stdout); assert.equal(report.suiteLaunched, false);
+      assert.equal(report.issues.length, 1); assert.equal(report.issues[0].kind, "native-unavailable-or-mismatched");
+      assert.equal(existsSync(sentinel), false); assert.equal(existsSync(join(root, "forbidden-output")), false);
+    }
+  }));
+}
 
 for (const mutant of ["bypass-admission", "drop-native-issues"]) {
   test(`negative control kills ${mutant} mutant using a sentinel, never a product suite`, async () => fixture(async ({ root, candidate, native, profile }) => {

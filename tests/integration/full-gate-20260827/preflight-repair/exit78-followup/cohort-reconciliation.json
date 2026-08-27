@@ -1,0 +1,38 @@
+{
+  "date": "2026-08-27",
+  "scope": "Read-only reconciliation of original and same-source focused captures; no new product run.",
+  "originalCandidate": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "matchedTestInstances": 122,
+  "originalFailed": 114,
+  "originalPassed": 8,
+  "focused": {
+    "tests": 122,
+    "suites": 0,
+    "pass": 122,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 1526.416583
+  },
+  "originalAlreadyPassingNames": [
+    "rev bounded native mixed-stream []",
+    "rev bounded native mixed-stream []",
+    "nl bounded matcher consumes the invocation's shared step budget",
+    "nl continues over missing files and preserves numbering",
+    "seq exact bounded decimal extension does not accumulate floating drift",
+    "seq output, digit, step and argument budgets fail boundedly",
+    "unexpand continuous file columns and repeated stdin",
+    "unexpand and existing expand compose through actual pipes"
+  ],
+  "sourceCaptures": [
+    {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.accounting.json.data.gzbase64",
+      "sha256": "62c0fa698b23a26a9c7b75fabdcea27b5bcbd698e61458871e9d2d2fcf96c1c7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/focused-v2/missing-native-focused-tests.stdout.log.data",
+      "sha256": "aab9c53f704f1b11e635d58acbee931b1aa56c624fd7a989c5d5f647756c7088"
+    }
+  ]
+}

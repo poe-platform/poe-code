@@ -7,7 +7,7 @@ import { createFixture } from "./fixture.js";
 type Mutable<Value> = { -readonly [Key in keyof Value]: Value[Key] };
 type Representation = "prototype-accessors" | "nonenumerable-own";
 
-const optionalFields = ["birthtimeMs", "ino", "dev", "nlink", "uid", "gid"] as const;
+const optionalFields = ["allocatedBytes", "birthtimeMs", "ino", "dev", "nlink", "uid", "gid"] as const;
 
 function metadata<Value extends object>(values: Value, representation: Representation) {
   class MetadataView {}
@@ -42,7 +42,7 @@ function requiredStat(): Mutable<FileStat> {
 }
 
 function fullStat(): Mutable<Required<FileStat>> {
-  return { ...requiredStat(), birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
+  return { ...requiredStat(), allocatedBytes: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {
@@ -91,8 +91,8 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       for (const key of optionalFields) assert.equal(Object.hasOwn(snapshot, key), false);
     });
 
-    test(`${method} preserves all 64 optional-field permutations for ${representation}`, async () => {
-      for (let mask = 0; mask < 64; mask++) {
+    test(`${method} preserves all ${2 ** optionalFields.length} optional-field permutations for ${representation}`, async () => {
+      for (let mask = 0; mask < 2 ** optionalFields.length; mask++) {
         const fixture = createFixture();
         const expected = requiredStat();
         optionalFields.forEach((key, index) => {

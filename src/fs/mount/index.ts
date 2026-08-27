@@ -60,9 +60,10 @@ function fail(code: ErrnoCode): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),

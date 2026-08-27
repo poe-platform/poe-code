@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: exact target and archived positive body retain original bytes; no other matrix changes
+ok 1 - exact target and archived positive body retain original bytes; no other matrix changes
+  ---
+  duration_ms: 92.084167
+  type: 'test'
+  ...
+# Subtest: fixture delta is exactly optional factory injection; helper and mock have zero delta
+ok 2 - fixture delta is exactly optional factory injection; helper and mock have zero delta
+  ---
+  duration_ms: 167.950958
+  type: 'test'
+  ...
+# Subtest: source and strict packed canonical runs register 81 distinct rows without waivers
+ok 3 - source and strict packed canonical runs register 81 distinct rows without waivers
+  ---
+  duration_ms: 3.00175
+  type: 'test'
+  ...
+# Subtest: unchanged 22 author and 27 prior controls, 14 fresh controls and three mutations are recorded
+ok 4 - unchanged 22 author and 27 prior controls, 14 fresh controls and three mutations are recorded
+  ---
+  duration_ms: 4.679125
+  type: 'test'
+  ...
+# Subtest: packed product equals entire isolated build and actual runtime load hashes
+ok 5 - packed product equals entire isolated build and actual runtime load hashes
+  ---
+  duration_ms: 8271.491375
+  type: 'test'
+  ...
+# Subtest: historical source/mock and authenticated configured WsgiDAV seals are preserved separately
+ok 6 - historical source/mock and authenticated configured WsgiDAV seals are preserved separately
+  ---
+  duration_ms: 295.216292
+  type: 'test'
+  ...
+# Subtest: all verifier attempts are retained and only owned scratch has been removed
+ok 7 - all verifier attempts are retained and only owned scratch has been removed
+  ---
+  duration_ms: 2.158333
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8887.926625

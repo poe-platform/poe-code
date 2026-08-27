@@ -1,0 +1,23 @@
+diff --git a/tests/integration/adapter-tools/matrix.test.ts b/tests/integration/adapter-tools/matrix.test.ts
+index 6c7991d1..ccd4eafb 100644
+--- a/tests/integration/adapter-tools/matrix.test.ts
++++ b/tests/integration/adapter-tools/matrix.test.ts
+@@ -7,6 +7,7 @@ import {
+   allFamiliesDispatched, change, fsError, original, payload, revised, snapshotTree, success,
+   withFixture, writableAdapters,
+ } from "./fixtures.js";
++import { withRmdirFixture } from "./profiles/rmdir-fixtures.js";
+ 
+ const digest = createHash("sha256").update(payload).digest("hex");
+ const options = { timeout: 20_000 };
+@@ -97,8 +98,8 @@ for (const backend of writableAdapters) {
+     });
+   });
+ 
+-  test(`${backend}: create, copy, append, inspect and remove files`, options, async () => {
+-    await withFixture(backend, async ({ exec, fs }) => {
++  test(`${backend === "webdav" ? "webdav configured atomic-empty" : backend}: create, copy, append, inspect and remove files`, options, async () => {
++    await withRmdirFixture(backend, async ({ exec, fs }) => {
+       success(await exec("mkdir -p scratch/nested && cp old.txt scratch/nested/copy.txt && printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
+       assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), original);
+       success(await exec("find scratch -type f | sort"), "scratch/nested/copy.txt\n");

@@ -1,0 +1,16 @@
+{
+  "name": "prior-one-shot-audit-intact",
+  "args": [
+    "tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs"
+  ],
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "source": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "author": "a5f7d236b40446468ffa739ce8d26b172ed8e5d2",
+  "initialReview": "44534900396654ac760c49e599be738a1e6cf689",
+  "decision": "accept bounded configured stable single-provider profile on measured pinned service; not stock or universal support",
+  "originalAuthor18": {
+    "positive": {
+      "pass": 4,
+      "fail": 0
+    },
+    "guard": {
+      "pass": 12,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 2,
+      "fail": 0
+    }
+  },
+  "independent26": {
+    "positive": 8,
+    "guard": 17,
+    "refusal": 1,
+    "failed": 0
+  },
+  "mutationControls": {
+    "killed": 4,
+    "survived": 0,
+    "includedInNormalPassTotals": false
+  },
+  "unchangedStandaloneExamplePassed": true,
+  "actualLoadedPackageModules": 157,
+  "actualLoadedPythonSiteModules": 65,
+  "actualManagerSerializationMeasured": [
+    "target acquire after native ENOTEMPTY",
+    "expiry and parent acquire after native success",
+    "refresh",
+    "UNLOCK",
+    "DAV PUT membership"
+  ],
+  "actualFinalLockDiscoveryEmpty": true,
+  "configuredProfileNoDeleteRecursion": true,
+  "nativeChildHex": "00ff80410d0a",
+  "originalStock78of79Unchanged": true,
+  "sourceDefectsReproduced": [],
+  "verifierFailuresPreserved": 2,
+  "phase1ArtifactHashesUnchanged": 57,
+  "singleDevEnvironment": true,
+  "downloadedWheelBytes": 1769458,
+  "originalAuthorArtifactHashesUnchanged": 99,
+  "compiler": {
+    "version": "5.9.3",
+    "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "originalAuthorFixturesByteIdentical": true,
+  "isolatedPackageSha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937",
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH",
+    "removed": true,
+    "children": [
+      {
+        "pid": 7971,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "pid": 7985,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "noSharedDist": true,
+    "ownedVenvDownloadsRootsAndKeysRemoved": true,
+    "completedAt": "2026-08-27T08:41:24.132Z"
+  },
+  "newServiceRun": false,
+  "newlyDownloadedBytes": 0,
+  "basisCommit": "b22d00c2834358dc3083de58774f3aa188093f9b",
+  "evidenceAuditOnly": true,
+  "archiveSha256": "ef3ceb903d9566ee306651af0fe94eb2d293e5c007a7b481ba3ad3094bd8e528"
+}

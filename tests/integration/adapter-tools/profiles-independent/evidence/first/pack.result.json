@@ -1,0 +1,28 @@
+{
+  "name": "pack",
+  "executable": "npm",
+  "args": [
+    "--offline",
+    "--cache",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/npm-cache",
+    "pack",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/evidence/first"
+  ],
+  "cwd": "source",
+  "status": 0,
+  "signal": null,
+  "durationMs": 779.5823330000003,
+  "counts": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  },
+  "names": [],
+  "failures": []
+}

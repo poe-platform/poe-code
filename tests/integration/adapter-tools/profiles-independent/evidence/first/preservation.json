@@ -1,0 +1,2337 @@
+{
+  "protectedHashes": [
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/.gitignore",
+      "sha256": "1e1d43a7bd60996fc2e4c4a9d19c1e60d546c009770db8ef31af4c841874d823"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/ARTIFACTS.sha256",
+      "sha256": "b95cde223a4467ecc16059e6a2d471261b6c9c89088c38a625df8855d22642dc"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/CHECKPOINT.json",
+      "sha256": "df6ad208407d53336bcc5f4fbd9081b2ed995729085f5edde6cac0389495461c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/README.md",
+      "sha256": "a84b961df6f72b35e66495e86ac49d90921550495b083fea902c6e80a4b01fc5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/SERVICE-HOLDOUTS.md",
+      "sha256": "3622e19501d29aedc578034799633974bbd8da8ab5350148dcbe26fc53006258"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/cleanup.json",
+      "sha256": "e0cabe0faa6350383619a827560519beb8b5df2a0165943379a08b1d87eaa058"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/commands.json",
+      "sha256": "3dcb800d94789d6a79039fdf87f64824b43300ef11ad197bd342017fabc54a26"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/input-consumer.mts.txt",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/input-holdouts.test.ts.txt",
+      "sha256": "1326f42e407c103eee378434a27c3c7353389a8329f493122bb855ceea05062a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/input-loaded.mjs.txt",
+      "sha256": "ea5182aadbd0ec7de8287dec00cca47e2d8354aa68aa87e8fde2d97215b37396"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/input-verify.mjs.txt",
+      "sha256": "08d106b4205ce5691af9cee97baf3aa4421673ae48bc1a79b1c784daf7212e4b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/inputs.json",
+      "sha256": "8e7c37b0952bb1aad387ef788a0ae36ed9ee9db879fe84142c23106b005dc970"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/loaded-verification.json",
+      "sha256": "2644c1b91d970e9f715c34825d06e320baf01f2e31358571fba450acac7b2dcf"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/loaded.jsonl",
+      "sha256": "ea77e7d0a64c376b11865e32177ebcfded2401437c1a5ed796890dacff8f846d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/package.json",
+      "sha256": "96c53a1e95cce20d51757eae0849d563cb2b1ae5b2421d9daadc14128a95c659"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/final/virtual-bash-0.0.0.tgz",
+      "sha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/cleanup.json",
+      "sha256": "29623d8c3de55cb8ef78e8c39a5b38de7bd45655307b177bb9b4b728c335d3c7"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/commands.json",
+      "sha256": "4acadd8f4709e8f96c7cf62fa83d64161bc63f4b346b9332604e6d58f80288a2"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/input-consumer.mts.txt",
+      "sha256": "ba6811e1adf870bcb3bc94eb87fec1a6d8cf7fc72be9a099e591a663202acc6a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/input-holdouts.test.ts.txt",
+      "sha256": "386ed80962766c85141ab046cb3a57f827bcc303287f4afdcc274c72b071bb11"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/input-loaded.mjs.txt",
+      "sha256": "ea5182aadbd0ec7de8287dec00cca47e2d8354aa68aa87e8fde2d97215b37396"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/input-verify.mjs.txt",
+      "sha256": "6a8d6b9173463e31f9ea899cc016cfa8b9eab5e8c38b3da447f50f5d3e03006a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/inputs.json",
+      "sha256": "cf641c610c2409fc1126f3ec4e97708067f4451892da82cb5ee850db8b5aa3c5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/package.json",
+      "sha256": "96c53a1e95cce20d51757eae0849d563cb2b1ae5b2421d9daadc14128a95c659"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/first/virtual-bash-0.0.0.tgz",
+      "sha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/author-observations.json",
+      "sha256": "8a5bbb95a52ae19353f457d5023b564b65e9633c5664e470970f81267773ed0b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/author-observed-dependencies.json.txt",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/author-observed-example.mts.txt",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/author-observed-https.mts.txt",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/author-observed-server.py.txt",
+      "sha256": "8076df1208ae8e8c442e8d1af3bb227c582b56dc17c7943a61bf2962e563e472"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/candidate.tar.gz",
+      "sha256": "0bbfbebaa2f61174db0617059a97f59091524207e36ccc53eb33c787edfc790b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/manifest.json",
+      "sha256": "2423235361e67a3c71e1beaccee17de534348e4a51ed886c0b8bca016101dbf4"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/predecessor.tar.gz",
+      "sha256": "f22eb26f554c4eaebb99d6cf6a8a3f23c9ebda675e888889041b63460f9e4a78"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/freeze/source.diff",
+      "sha256": "fecba0463fe192b72404bcb3ac119125cd317c0851fbd1280ea2c88c1d16ee93"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/fs_dav_provider.py.txt",
+      "sha256": "e86c0365fc7384171642d6b0b0ab8cb26454419f6b405475feb5c8d76bff133d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/http_authenticator.py.txt",
+      "sha256": "bc44c2aa82d34b415cddef3d71b967ab276ef328edc32590b720f8d4cbe758b8"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/lock_man-lock_manager.py.txt",
+      "sha256": "00ed2aefbf04fc27befb598e2c4c164597315f88171d7ab96fb3858bf46682f4"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/request_resolver.py.txt",
+      "sha256": "1808ccf117e14ba071a4cb29331295d4201047d234159289084d68cf81783075"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/request_server.py.txt",
+      "sha256": "1594b6cd9be9cc9eb0ac0f34e3e6b8a9f61b508701207cd47cf0c2a1d1b8c87e"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/sources.json",
+      "sha256": "2d3b670861780898ae52871ac2bf6cc72a2f885b78ab84ceda5fbb5cc2ed038e"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/primary/wsgidav_app.py.txt",
+      "sha256": "ec7c4c5608e9028f41775f8169e06cda6441e9e854ad405fa18a2fc7bbeac7b0"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/cleanup.json",
+      "sha256": "23ab383303c2883721bdac91159f1786e2228a1c2257a7f73deb585c921a4efd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/commands.json",
+      "sha256": "d26b2c92d3f97c1caf80a3f9af106e27659fa9433d2b42ca1a9cfd46ddb9166c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/input-consumer.mts.txt",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/input-holdouts.test.ts.txt",
+      "sha256": "2933973fad9986ad6c8031422cc825b774711bb267d2e9f691fba6e6aaa64a60"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/input-loaded.mjs.txt",
+      "sha256": "ea5182aadbd0ec7de8287dec00cca47e2d8354aa68aa87e8fde2d97215b37396"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/input-verify.mjs.txt",
+      "sha256": "6a8d6b9173463e31f9ea899cc016cfa8b9eab5e8c38b3da447f50f5d3e03006a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/inputs.json",
+      "sha256": "150c4af9464d5cad8148b369be3b88395a4c53f27c52d2166066437bbd306339"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/loaded.jsonl",
+      "sha256": "2c536a2e4a4e68f265883868a6ee854e4ccbebbb0d3bdeca091340f982e8a51a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/package.json",
+      "sha256": "96c53a1e95cce20d51757eae0849d563cb2b1ae5b2421d9daadc14128a95c659"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/evidence/qualified/virtual-bash-0.0.0.tgz",
+      "sha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/freeze.mjs",
+      "sha256": "f18b3159c0b4a0a76c039ba839f9868d04ea94a022ad165dac26eb1e1441d72d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/holdouts.test.ts",
+      "sha256": "1326f42e407c103eee378434a27c3c7353389a8329f493122bb855ceea05062a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/loaded.mjs",
+      "sha256": "ea5182aadbd0ec7de8287dec00cca47e2d8354aa68aa87e8fde2d97215b37396"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/.gitattributes",
+      "sha256": "44f611fbc7359f71157957712688b75ff4f43a828941dc71dc769e30eb79362a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/.gitignore",
+      "sha256": "3b4bcf59f0e1e51fb99249e8a605069746d3533afa2f5bcf7d102d894bb5fee3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/ARTIFACTS.sha256",
+      "sha256": "470c8577552ba7b3515a0348838a80ed7d4d8fbd1d38fe7b77c58ecf477e55c4"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/CHECKPOINT.json",
+      "sha256": "06bf11a895c0f55de2e58fdf8f744f691d76aad5439f9a64eaad55e696f0af9d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/README.md",
+      "sha256": "b8e6cdf7a2c7db578c4b4c55ee5c036ef6fb069207c7cf0ca33b6d96b994cdab"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/audit.mjs",
+      "sha256": "716ffeba084318efc96a1c8951a5fbc1153a7533aa8d30bc7655c92829081141"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/closure.json",
+      "sha256": "ed8ff2f17cadf8c4889085c3cb40bec1a05bc91ee056661b2d65ba4cf7bd50b3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/config.json",
+      "sha256": "0db3d5c457ee03e7a5434aa53449292a63ed75f8059c7e289910a1d508986fd2"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/consumer.json",
+      "sha256": "0f91978f6d2d4d25a8dfa1afdcb506abd463272b65ab68865b8926ac98eb7862"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/loaded.jsonl",
+      "sha256": "18b1a973d5a8cf1992f520ba4d2f8294553a59d009c10fb43741692745d995ca"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/provider.jsonl",
+      "sha256": "a4fb5b6c44050448208e4a2ca099031164124f7b209289b9e2b22d86e15ae794"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/server.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/server.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/summary.json",
+      "sha256": "ff63d1915e315ec9f88d095aaeb1565fa5685a83b01df002026d5c4cda5aaedf"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/author-replay/wire.json",
+      "sha256": "7d54b6e4bcc89f31780d4ceb999a8f69e80dcb0fb894041cd3e080fd677e337d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/baseline.json",
+      "sha256": "035a9a36860042bc664de574984c5dc05e2a16f84f1c8efb1738b501f554e3db"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/between-cohort-reset.json",
+      "sha256": "8c1f20f8cb53788c3f1e86c7c73108dc142fa1bc618bd73585319ba795145e61"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/binary-hashes.json",
+      "sha256": "a1941e6658ff983836bc7d41aa0fbfce87b070d820a70f4ab5e5e1e1e4d200eb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/cert.pem",
+      "sha256": "5fe3b2484f7c000f0f55b33bbfd21dca07de050b88417cf4de69ace04bea58de"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/cleanup.json",
+      "sha256": "819e605d193210006c7598c57b785528f7aebdacdd64284707376c323da39e51"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/commands.json",
+      "sha256": "589bbd821fa023f9fc75ebb121071123022e083ecf2cdd0fef5099033661ac98"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/downloads.json",
+      "sha256": "cdecb1ba9fd7d216055686500e4be1cf29361efa2c4afd732b4a18917de061fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/final-lock-discovery.json",
+      "sha256": "3830e8879ff89c998e5a1a133a483a0ac5a304b274b083e0347343f41d6f58de"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/final-native-tree.json",
+      "sha256": "8667b55595106e60dbda0c5f149a9158fbf5a162ff0b15b91bcf362294528767"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/before-reset-independent.jsonl",
+      "sha256": "13ee02d387c8e236748c9e006b45380cb736a76f8bdc55e0202f591fd25a82ab"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/closure.json",
+      "sha256": "20b5f1358745b16f6fc7349f5036f920b07d29ed573e81ab68260b9e34ef2eba"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/config.json",
+      "sha256": "39ec22f91120a6caf257085e50be7a5e8c553775c02537858e2bce06b00f7fc9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/independent.jsonl",
+      "sha256": "13ee02d387c8e236748c9e006b45380cb736a76f8bdc55e0202f591fd25a82ab"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/input-holdouts.mjs.txt",
+      "sha256": "19190a4cbea4d6d7ed1201c9cc06d8563290d346250ef6c9cf4b1cbc1a4a718b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/input-instrument.py.txt",
+      "sha256": "acde188b941a34f1b4962e92d273f926314802c8fa10b6028a52aafbc858a38f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/input-loader.mjs.txt",
+      "sha256": "3495b12057196fde5014bbe3ac54517d03dd2ea65d411f484b17b35e9edd4979"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/loaded.jsonl",
+      "sha256": "e1152c8b18f99e1237d2baae5b67152f675412b98e3eee2a7983866a70d4c06b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/provider.jsonl",
+      "sha256": "f73d76de50be35d2462e79bc46ac92a4e9cc01c8777fae074e9a974d07469d76"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/rows.json",
+      "sha256": "268a20edca673f12f1c9968c7e6d49a8ef5f60fe015abf06ae234cba5778807a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/summary.json",
+      "sha256": "521553a76c8cbe2b50c1af1d3a79a8f614016a276580e3ce51273a1795c6573b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-first/wire.json",
+      "sha256": "5b2e82ed301bdaa610e7a7617e64c3c1acc8efcce95c2431489dcac9304f4c9d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/closure.json",
+      "sha256": "00476873a2280ed50ec2449f94763793f9cfeff11ddedfacb9836362722d1a14"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/config.json",
+      "sha256": "39ec22f91120a6caf257085e50be7a5e8c553775c02537858e2bce06b00f7fc9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/independent.jsonl",
+      "sha256": "9599c30fd3488d7fd5ec3a038920fc8a19fae5b1d7c8b2f17c2cee29fb7b3ff0"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/input-holdouts.mjs.txt",
+      "sha256": "3b9623df65b720ec2ecaa9e214913816b77e367e46909e41785e33ae6a8c39c5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/input-instrument.py.txt",
+      "sha256": "acde188b941a34f1b4962e92d273f926314802c8fa10b6028a52aafbc858a38f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/input-loader.mjs.txt",
+      "sha256": "3495b12057196fde5014bbe3ac54517d03dd2ea65d411f484b17b35e9edd4979"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/loaded.jsonl",
+      "sha256": "23dca25ab7b1fde7a6f9f9fb5aecf8d00571c0c59b41ef3064b50cdcd6815de8"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/provider.jsonl",
+      "sha256": "d2581afc4d735e08f5b8c76a6771a88d7c67d6f22b6955e92ef365253a2b583a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/rows.json",
+      "sha256": "9f4bb3dad6dd7e14387bc18f9d79e685af8fdc9744a2783ce72a3ecc62cc623a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/summary.json",
+      "sha256": "3fed826fbae8109117e0278b66f7a2ea37a3c009d124d5f2e876684d2c9d2072"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/independent-qualified/wire.json",
+      "sha256": "f0408e7fda6856a2d5b7fbd7d98566bc70725ee857ab73c481b7cb963399c632"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/CHECKPOINT.json.txt",
+      "sha256": "cb5521e490ec9cf140472b7a5a77d82d131ae780813c2615ba2e9078cc0cb9eb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/README.md.txt",
+      "sha256": "b8e14af483095ac353d0e33d3c7a0bd30b78bfb0003e6c9d01730f9626aab640"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/audit.mjs.txt",
+      "sha256": "e4c036f6fb9337364e1ad585f4fb09917aa604e7239269c1ffc52b3c18f46388"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/closure-loader.mjs.txt",
+      "sha256": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/consumer.mts.txt",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/dependencies.json.txt",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/example.mts.txt",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/https.mts.txt",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/independent-run.mjs.txt",
+      "sha256": "03e85865abbd4a4e6c68b8a2160ebedf1ceb59265bba8f46f842d5c974f0aa07"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/openssl.cnf.txt",
+      "sha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/run.mjs.txt",
+      "sha256": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/server.py.txt",
+      "sha256": "9e9c9d660857e715aba1cd312eb1d30082742602027508eb9b4dd3530de03c9b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/inputs/source.tar.gz",
+      "sha256": "4fbdca87ae20636904a2155f38fad92e5ab6e537df32bb074e1083b22c0d9cc6"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/installed-source/cheroot.wsgi.py.txt",
+      "sha256": "d91417984c4d09df72d0d633110e8d2ab0b8138d19824d96d0845c9c3ebcd812"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/installed-source/wsgidav.fs_dav_provider.py.txt",
+      "sha256": "6bacc94cac0c2ce1eeab975ef7e47b30e19521d70de5f0a0dc7643bb66806d8f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/installed-source/wsgidav.http_authenticator.py.txt",
+      "sha256": "8a32dba71c27c1e27ea0eb748d7a5e65a27bd2b2be3a4eee05b0bc3548137453"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/installed-source/wsgidav.lock_man.lock_manager.py.txt",
+      "sha256": "3c489dd3f3e9bcaf9ceacd3f3f97363f0eb357db07d1ad4cce0dcab866c0b346"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/installed-source/wsgidav.request_server.py.txt",
+      "sha256": "232d1b902668d57eeb2be55cefe89b5b8bb269f169c1ae78bbc363198d8b6203"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/config.json",
+      "sha256": "39ec22f91120a6caf257085e50be7a5e8c553775c02537858e2bce06b00f7fc9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/independent.jsonl",
+      "sha256": "2e6472ca7fbf54584ade183cad70f803fdfe8399d1164d403d2dc91d732deb6f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/provider.jsonl",
+      "sha256": "d2581afc4d735e08f5b8c76a6771a88d7c67d6f22b6955e92ef365253a2b583a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/python-closure.json",
+      "sha256": "76df75c8c310f67fd1daba9425b29b8ec4164cad94a7388ffe8f1d6163f7d2ed"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/server.stderr",
+      "sha256": "234bd43323391932a232254f202947fd06a2a846d89d0ef57218c796563946fe"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/instrumented-service/server.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/package.json",
+      "sha256": "2c9dd6e20fee3b2db6f084b3e5fb1b2694539c3b4926b94fd1cf01d165927fb9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/post-live.json",
+      "sha256": "58b81ac715b23029629645921bc354bf701770728cd07fd433f72231614feffd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/primary-wheel-comparison.json",
+      "sha256": "904bf3ff660ddf1362cf16196c37fdd10cfd45cef588d3b867d20897c458427d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/service-inspection.json",
+      "sha256": "d2100bc73f0fce84316ca4b7880ae99ca62710f63cd047a5fb369505c539fc11"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/evidence/real-provider/virtual-bash-0.0.0.tgz",
+      "sha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/holdouts.mjs",
+      "sha256": "3b9623df65b720ec2ecaa9e214913816b77e367e46909e41785e33ae6a8c39c5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/instrument.py",
+      "sha256": "acde188b941a34f1b4962e92d273f926314802c8fa10b6028a52aafbc858a38f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/loader.mjs",
+      "sha256": "3495b12057196fde5014bbe3ac54517d03dd2ea65d411f484b17b35e9edd4979"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/post-live.mjs",
+      "sha256": "93d946821173c31ce711489206d7652d7b6625281dfaf22ae66c0dddbb7a0128"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/run.mjs",
+      "sha256": "03e85865abbd4a4e6c68b8a2160ebedf1ceb59265bba8f46f842d5c974f0aa07"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/seal.mjs",
+      "sha256": "cf839bd5bcc0eaec60b23eef2c0abeaebe67e1f2c49577c9b62e73dc69c432c0"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/primary.mjs",
+      "sha256": "1069f555f12998567826c801dac35f41e29b4f0fde6ca1b224fbc43fcfd6db16"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/seal.mjs",
+      "sha256": "c66fd038d011d8cae46ff79c0f5651caf495660beba51061bef20fdda27b78e7"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/verify.mjs",
+      "sha256": "08d106b4205ce5691af9cee97baf3aa4421673ae48bc1a79b1c784daf7212e4b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/CHECKPOINT.json",
+      "sha256": "cb5521e490ec9cf140472b7a5a77d82d131ae780813c2615ba2e9078cc0cb9eb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/HARNESS-NOTES.md",
+      "sha256": "5363e87e0daa387f26e82dd5b58c6821ab37f1ffe085037028f51fc5dcef8f34"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/README.md",
+      "sha256": "b8e14af483095ac353d0e33d3c7a0bd30b78bfb0003e6c9d01730f9626aab640"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/SOURCE.md",
+      "sha256": "4f21da65c35218e7747b6c9b2d6ee2ddf23d012aa03bfc80f3908465ad6b4700"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/audit.mjs",
+      "sha256": "e4c036f6fb9337364e1ad585f4fb09917aa604e7239269c1ffc52b3c18f46388"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/capability.test.ts",
+      "sha256": "887d3c198ab8bba338604a436a5884720ca0a8e0f574e79199fda1f6c5a7e157"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/closure-loader.mjs",
+      "sha256": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/dependencies.json",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/audit.json",
+      "sha256": "8671cf8127cc09780a615d5a2eaf2c2fcf73882b5d88af8a9e68e51016e7628d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+      "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/cert.pem",
+      "sha256": "6547340988f3fdb923b6e9c410a991cdd8e04e458ac76f8c2e2d0cb3df7dc481"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/commands.json",
+      "sha256": "6341e9db19b1668733e92b73e935afec9bbcc0f47426cdeb68a8273a37853c4f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/consumer-package.json",
+      "sha256": "b370dcf545c45052ec519462725afaf55af391906502d65516a518a0497add96"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/consumer.json",
+      "sha256": "56a48dffd8376680b782170f73f4a4c467862b517969e6c2be9f1746d6c3d187"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+      "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/closure-loader.mjs",
+      "sha256": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/dependencies.json",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/openssl.cnf",
+      "sha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/run.mjs",
+      "sha256": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/server.py",
+      "sha256": "9e9c9d660857e715aba1cd312eb1d30082742602027508eb9b4dd3530de03c9b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/literal-config.json",
+      "sha256": "2ed7cec0b0c9b6bf8f4d7abddfaf526e0aa7d90c1718ee36bb0d75c2ef012b0e"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/module-resolution.jsonl",
+      "sha256": "32d1affa6d0b646ca77e4eb23971f7bad08fbeed298609aa6a37ce5ba07dc513"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+      "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/primary-metadata.json",
+      "sha256": "33a713bcd078de2ec4e6e80c9ef7a831da6a7c8fa94fc9cc844ac0aadce12ae5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/profile.json",
+      "sha256": "618c28642bb7b62476e1eff27cbfa5d3016f111dbc21a06eba4d76f3bd6ead96"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/provider-source-order.json",
+      "sha256": "ea908e93cb6f467dae7beab0120b55319d39558ea3bdcd121479aaa5c7281f6c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/provider.jsonl",
+      "sha256": "a4fb5b6c44050448208e4a2ca099031164124f7b209289b9e2b22d86e15ae794"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+      "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/runtime-closure.json",
+      "sha256": "6e9756c1c76a2b3278d77067ca833a1cf3ed3e153306e4f6ffbf2f4925f0a9cc"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/server.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/server.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/summary.json",
+      "sha256": "080e7b1fe7b5b28dbd543f1d5e6a8f850b62682c8b3601230d07ca11e2ab782c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/wire.json",
+      "sha256": "eac4a76ba6634d75d39bff9dbca1a62f960d17f8afec918c52eac8764aa710a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+      "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/commands.json",
+      "sha256": "14bbab90304ee67f84183dabdcd6de79c0c2fa67d9e712be78f43bcb707f2e88"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/consumer-package.json",
+      "sha256": "b370dcf545c45052ec519462725afaf55af391906502d65516a518a0497add96"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+      "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/closure-loader.mjs",
+      "sha256": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/dependencies.json",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/openssl.cnf",
+      "sha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/run.mjs",
+      "sha256": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/server.py",
+      "sha256": "8076df1208ae8e8c442e8d1af3bb227c582b56dc17c7943a61bf2962e563e472"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+      "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+      "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/server.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/server.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/audit.json",
+      "sha256": "c202dc422d945a901fc45b759d7dc6ad537e88c2a85c00df679cd5108917bdd0"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+      "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/cert.pem",
+      "sha256": "ad179529a777a98c0fdb2345bedd95c953e587a3644e99deac455ad85ea08214"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/commands.json",
+      "sha256": "f144dbf91377a5bb7ecbac2e7ca76e76dc9c97205daa0378add141cc047ee56e"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/consumer-package.json",
+      "sha256": "b370dcf545c45052ec519462725afaf55af391906502d65516a518a0497add96"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/consumer.json",
+      "sha256": "7b56814dda128bc63d3be73248e69edab8f4e98ae44187adf4830c06223776a0"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+      "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/closure-loader.mjs",
+      "sha256": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/dependencies.json",
+      "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/openssl.cnf",
+      "sha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/run.mjs",
+      "sha256": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/server.py",
+      "sha256": "9e9c9d660857e715aba1cd312eb1d30082742602027508eb9b4dd3530de03c9b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/literal-config.json",
+      "sha256": "61e34356becdce4c79404c85ad1fab1071a9a084ba1319b50841c087162059ff"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/module-resolution.jsonl",
+      "sha256": "e2b9e3fa8f7db0dada4570ef42bcde91c596e5062ab3838e0f04a2594990fcc3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+      "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/primary-metadata.json",
+      "sha256": "33a713bcd078de2ec4e6e80c9ef7a831da6a7c8fa94fc9cc844ac0aadce12ae5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/profile.json",
+      "sha256": "618c28642bb7b62476e1eff27cbfa5d3016f111dbc21a06eba4d76f3bd6ead96"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/provider-source-order.json",
+      "sha256": "de8c89e776e4556bafa62fd8cd2fb8d3c35b542820103a6ef742afcd7fef82b4"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/provider.jsonl",
+      "sha256": "a4fb5b6c44050448208e4a2ca099031164124f7b209289b9e2b22d86e15ae794"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+      "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/runtime-closure.json",
+      "sha256": "8bd6d73ef14a0d004f0d4d70b8c5be4f99beea9a14c157965628c98857306909"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/server.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/server.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/summary.json",
+      "sha256": "82d4938989e964d119639cc0161126f71c54242f4b59399a9f75edda52a5e506"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/wire.json",
+      "sha256": "5d393109c62a086027ec016dcff9ce34586fc9c7f1879607d398de20569098ab"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-candidate/cleanup.json",
+      "sha256": "fdf8e17963bcc67dbb3f7a213a36ca778e2de7e88cb186262769823968409e58"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-candidate/commands.json",
+      "sha256": "388f0f4ad7d40988fbb5978d0c2b34bbb370434be8698de45a6ce40e49295b08"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-candidate/inputs.json",
+      "sha256": "733db26ea61f82a32766891e67c78f8399bfd301d91912c65c08c461ad8e6482"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-final/cleanup.json",
+      "sha256": "2184e610efbadc35f5a391690368dc9d877fdcd969833b37655143e4d2046bd3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-final/commands.json",
+      "sha256": "c0e8f1acdcfef0859d18bf37caae139a443f40cb874368ad2b84166fe18e7215"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-final/inputs.json",
+      "sha256": "b43250ee10dfb3c34bd5d7d5fd87804290706806454a5ffc0ae8bcfb5a469bdb"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-qualified/cleanup.json",
+      "sha256": "af8789a955b1f2e172036fe10a6cd77e8ff9948d891421adbfc3bac5096ce7ef"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-qualified/commands.json",
+      "sha256": "589bff28c8987c3d5f1abd0d3972ecbaa5d86f0ffbcacbc799bf0653175eccc6"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/source-qualified/inputs.json",
+      "sha256": "ad3fb9c09ddb2ac8ddcf4ba6d8a85188a6ffb2f0d7694750cf31ecfc275800c5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/unit-before/baseline.json",
+      "sha256": "da1fa9e92ce703787506a61c555c8d2e75df248b64bebc36fc78514b37c3ccc3"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/unit-before/input.test.ts.txt",
+      "sha256": "887d3c198ab8bba338604a436a5884720ca0a8e0f574e79199fda1f6c5a7e157"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/unit-before/test.tap",
+      "sha256": "3ad4863f8c3ccd8fd3c34da89d4b49bcfeb2b62c94e363774bc7e4bac243bc8a"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/openssl.cnf",
+      "sha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/run.mjs",
+      "sha256": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/seal.mjs",
+      "sha256": "9b3508039bc6c82dbba157f079eeb4beb0a7ef5a5ad2eb171680ca6b84735cc5"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/server.py",
+      "sha256": "9e9c9d660857e715aba1cd312eb1d30082742602027508eb9b4dd3530de03c9b"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/validate.mjs",
+      "sha256": "742bb36ffd3dc7ee56738feddb1d9ac2e20dd4dde1f30c45a98a75001884226d"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/.gitignore",
+      "sha256": "6f3dc95d5e404e76e5a5dd8939455ce51887d8dc366d1dd3cc6e3c22d90203ec"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/ARTIFACTS.sha256",
+      "sha256": "fcd901dfd0ce927bbb2e43d62f8994e1dcedacd7dee2ebdddbd659819a219961"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/ATTEMPTS.md",
+      "sha256": "9ccad0b2dcf71ae65653846219aa72b93f88c327deab803cc98a8db2b077c745"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/CANONICAL_PROPOSAL.md",
+      "sha256": "215317e49ad12416a98a5593ab470b9c27613c5d78b114d98451cc11060c6a38"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/FINAL_AUDIT.json",
+      "sha256": "89791437873be0fa4d238a8a7dec74aaac2f41861265fb3364b146cdf807e378"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/README.md",
+      "sha256": "31a99c0be8eff93390fee446459581330e13670a65790acb2fa82c832573e1a5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/REPORT.md",
+      "sha256": "bdbbf9a9533ab813306364dd857cc479f3f0cbfaf8109c8389707c7d84bf10ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs",
+      "sha256": "889d5c5384386de6168c0f817004b8c2419625a20b479e2f7915f5e23dea203a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/built-manifest.json",
+      "sha256": "3cf9dcf166168b0d0289cec803caac05ce33f5288c49852a6ddd2800cd420b1b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/capture.json",
+      "sha256": "dad91e06e79975af30c04d6e739d1dc9de97e0e36b8086aef8e44fd2b7a29dbc"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/cleanup.json",
+      "sha256": "3aa704a37f4395fc9a96836b3b24425e6063e36c093231c073a172bb93d7f57a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/committed-runtime.delta.patch",
+      "sha256": "2f1c0896da83fd1e1a832fb04351688b83306b869efb3ee4be6a3d0ad19981e3"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/configured-fixture.ts.txt",
+      "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/current-vs-frozen.json",
+      "sha256": "881b4be6097f9585f9112a37b5f27e52508d4c2f66cda29df5cf43ddba764611"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-frozen.result.json",
+      "sha256": "fed68eb6e4843fa873486af344cd6aa343ac45ddcf274065f9ac6c539811858b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-frozen.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-frozen.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-package.result.json",
+      "sha256": "55d2f28c4feae29021926b05bb49df341a64d701058de3548d2760d89d73add3"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-package.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/extract-package.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/failed-consumer-archive.result.json",
+      "sha256": "8f6a3dc87b38402937f70ff672d71f384dffc154ba4f0644236f0aaed26acdef"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/failed-consumer-archive.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/failed-consumer-archive.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/failed-consumer-inputs-and-emission.tar.gz",
+      "sha256": "7366638f89d8b9b1af5808e82a1adb370d0cd88adafe8386983c58681cf6d2b4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/failure.json",
+      "sha256": "e009cdb89fdf40bf57949a8f3fea26fce18aff4ae9e7e42e87a5ee2300d8e525"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-build.result.json",
+      "sha256": "cbe0390d79f54143ed55c69d58b33aae7156b563388ab68c4900c4a69466263c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-inputs.tar.gz",
+      "sha256": "8748fc66c4a50b7508c6f3f57a9f1fdfff6d9b8d6e050da32308b93ef3875fdf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-manifest.json",
+      "sha256": "3b848851532bdbfba69c7514d5565e28383800460536a77a23e3da5919ec39fa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/import-relocations.json",
+      "sha256": "a8adbd0dcb6d4f4bf847c11aa510b4c58ebc1bd1ff17c7dcd4b07c4139c703e5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/live-runtime.delta.patch",
+      "sha256": "e6a955237a274c28dafa4423ef79dd8c959f0fed36b923ff4efc6b5d62052311"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/original-seals.json",
+      "sha256": "25bf4564505f1732917627211d339543d9342fdf17af5a734e77dfece91cd25f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/original-stock79.result.json",
+      "sha256": "a932d4e4c3834cb80d63649d9710470542dc6c91e693c4f5601b5a815c3017f6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/original-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/original-stock79.stdout.log",
+      "sha256": "b07b04199e1fc26159c41bf96630c9af2ead398c42130cc61006f9aa2bb1aa6b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/pack.result.json",
+      "sha256": "ca4d524e462e11ad84e71b7d984a5166d9fd136dddbe63b458994350dd9fc587"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/pack.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/pack.stdout.log",
+      "sha256": "b31e6b627a24e0f67ba212205e5cae2341b5bc56d9763e0b8b8f4f6ddd12ef5b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/packed-manifest.json",
+      "sha256": "668dd9019bbe66d18f7adaaff3114a34806071f8d504861614566737851499cb"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/packed-stock79.modules.jsonl",
+      "sha256": "1469ba228eb3fea6fa6e24d142fd4a820c9ecd868133dc5aafb0a30da151b739"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/packed-stock79.result.json",
+      "sha256": "c9ac0b07b2e4027ccc133706d35d13c6c6116705930ea04f644f4cac4fa7bb8e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/packed-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/packed-stock79.stdout.log",
+      "sha256": "4f67f52ea5e3311f6a83db10ebe13cfb98060bb1aa6916d71581b98cb693cce7"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/partial-module-closures.json",
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/shared-readonly-before.json",
+      "sha256": "0f9e0f0f6a5de9255d329c8cf4b53ead5a1284d4a3d271760ab461bef4434b6b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/stock-fixture.ts.txt",
+      "sha256": "edb8cc75f31123382c41759eec9e6f4c1e1436719739a5ea7572411d708edb66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-original.result.json",
+      "sha256": "aa918708ac131d09a2530cf69ac5f336de24ab53f6f0da2b7dcda3f96968f83c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-original.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-original.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-packed-stock.result.json",
+      "sha256": "1e69907df9d80aba7ce803dc596a6a797b21d0f9b39659c521a089107bb90418"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-packed-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-packed-stock.stdout.log",
+      "sha256": "4d6cb1b18b591a162ddea3186c9ef504232ac318e4f528d42dbfc8a6e68b5678"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/strict-packed-stock.type-closure.json",
+      "sha256": "d5214303989a0eac96936fcc639a39dc67dedf3a811a8fa068e6ede4683897f6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/verifier-inputs/hidden.ts.txt",
+      "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/verifier-inputs/observe.mjs.txt",
+      "sha256": "864667548943b69aac5e8ba36f9612b9d3e94512b7c091135b58877aae07d1c9"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/verifier-inputs/verify.mjs.txt",
+      "sha256": "aa0751eae1f75d7764c5ba9754ad671861c312c227bc517c56a7d02c68c6a025"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/virtual-bash-0.0.0.tgz",
+      "sha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/archive-consumer.result.json",
+      "sha256": "3275a9c501d7d67c1065c0b28b84b16fddeff678335e49fd0b1893f2cd0a1094"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/archive-consumer.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/archive-consumer.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/author-controls22.modules.jsonl",
+      "sha256": "1e1fdfceb5db53dcc9a18a772edf581fec8cf839a6efa7550cc55ce4eb634eb9"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/author-controls22.result.json",
+      "sha256": "97cf4d8510a47da08a9048734027dd03975779a4a7985c18dc8bae1b0600f49c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/author-controls22.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/author-controls22.stdout.log",
+      "sha256": "b22a1db00a45ace6368cb1d9f831a81157c54462c775347e906bb60a537312b1"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/built-manifest.json",
+      "sha256": "3cf9dcf166168b0d0289cec803caac05ce33f5288c49852a6ddd2800cd420b1b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/capture.json",
+      "sha256": "f8900fc89ab59785f5514ae3bc6488b58a8831ce08aa1cd6fae51d60757531a6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/cleanup.json",
+      "sha256": "ea1a2f8f2ef70fc921f9e5b63b904c1f6967ce46799242df26041481543910d8"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/committed-runtime.delta.patch",
+      "sha256": "2f1c0896da83fd1e1a832fb04351688b83306b869efb3ee4be6a3d0ad19981e3"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/configured-fixture.ts.txt",
+      "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/configured79.modules.jsonl",
+      "sha256": "7300ada4c14a1a8a7fee2d2c72be821d75f5d4ebab0292c00d0a79e047f40c88"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/configured79.result.json",
+      "sha256": "b21ba11942f676f119e8b0b37e14bee98a65dc2b260d4f040e9022322dea4d75"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/configured79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/configured79.stdout.log",
+      "sha256": "e7f24298f28e5c9d77e0b97e2ec34afed59deea02694b1a749854bb7a3c27b15"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/consumer-inputs-and-emission.tar.gz",
+      "sha256": "8fb7dfa1ddfeb0597517e5043778809f5a41d4f70532ca6c4f6e7db2614ebd74"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/consumer-manifest.json",
+      "sha256": "86f004172541f08cc9bfdd9959a1c8f33530a117310cddc22e9f20212eeea3a3"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/current-vs-frozen.json",
+      "sha256": "28ec2069800d3bb3333a8b6211a971ab7b481188778dd9a8718bc01abc5616b0"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-frozen.result.json",
+      "sha256": "d7d78c50a6039e24fce2dc88a3536acfc6f8b2d1f3a6782494ec21c4fc23d34b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-frozen.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-frozen.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-package.result.json",
+      "sha256": "674fa5eb2e45091772e52411c600c5f553da66ecfaa6db05ae4a39b35d9d1361"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-package.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/extract-package.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/frozen-build.result.json",
+      "sha256": "bdd7f0575f4ba91d867a71e94d7c2f51f8cd270132552bf7893594b53fde1345"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/frozen-build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/frozen-build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/frozen-inputs.tar.gz",
+      "sha256": "8748fc66c4a50b7508c6f3f57a9f1fdfff6d9b8d6e050da32308b93ef3875fdf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/frozen-manifest.json",
+      "sha256": "3b848851532bdbfba69c7514d5565e28383800460536a77a23e3da5919ec39fa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/gate.json",
+      "sha256": "9483cfe317be9f7918bcf88ecd02ff2e75d9056a1c1e2f85df35927beaf5b88e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/hidden-restored.modules.jsonl",
+      "sha256": "c4c7ba64381c408880732f74caf12bdd383e3d43fb4602369f335ccc2177b045"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/hidden-restored.result.json",
+      "sha256": "45f119886336554c2fcbbd4cb47913402ef078da5a23078458aeba70945f4149"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/hidden-restored.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/hidden-restored.stdout.log",
+      "sha256": "cef329ab0df7f33263162da6382ebe9329d5c492c075bcbc74b59723a5621381"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/import-relocations.json",
+      "sha256": "4cd2efee45a34e77f0be3a8e02ee3f0adcd65c748a9fd7041f90193c051f5ef6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/independent-hidden.modules.jsonl",
+      "sha256": "c4c7ba64381c408880732f74caf12bdd383e3d43fb4602369f335ccc2177b045"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/independent-hidden.result.json",
+      "sha256": "3d08442bc66af4f48289b96383dc0a92ce5043c01cbd3283476f60abdcef4ba6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/independent-hidden.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/independent-hidden.stdout.log",
+      "sha256": "ea5c0ceb274d260e0af2e67df05a9098727239d5dd269d9ebc568ee4e8563d51"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/live-runtime.delta.patch",
+      "sha256": "9c8166ebab64d2aeb6e8d8267d66a6c2840b2ebb4fb39d63d06cb6919872daff"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/module-closures.json",
+      "sha256": "a27969065bf6e0a536566b36854e941772dca4460fb34717806f58b4d637e144"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/ignore-locks.js.txt",
+      "sha256": "c61e6d9d8f0bee9c80024a8d1f5104f775456b58c39295fc44af7cd747efd1aa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/ignore-namespace.js.txt",
+      "sha256": "51f52cfa9a7b222f25a803f49c07b547796322b4f5af7e13fe9048b6b74b27a5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/ignore-nonempty.js.txt",
+      "sha256": "a7784983412e375df63c8b9f4c0acd4cccf1c3883058fff664808ca484ac3455"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/lost-capability.js.txt",
+      "sha256": "dac7dd55f9d2c2e7eef2db66ee9e87ace883dae9c812522264a6b284c5471187"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/prefix-sibling-refusal.js.txt",
+      "sha256": "3fcc0532b4d06c51bb11a027b95b2a5f0054fa3e8dc17efdd6a4a9a9112f37cf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/recursive-child-deletion.js.txt",
+      "sha256": "2280647092629b113b8a9520dc7f0c2bf20201c672f5fb7c1a649d820b4f8b79"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/recursive-http-delete.js.txt",
+      "sha256": "c9aec0db29ce9db4f290530c91c2d94b7284ba8ffd14618931a53f8aaab281da"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/wrong-receipt.js.txt",
+      "sha256": "995e506892a596d0be033cf224c18c2390f71994182dd28bca059a8eb0a153ac"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/wrong-target.js.txt",
+      "sha256": "7b621384eea0a9b4b3b6630360b186ecba1ace142a7576552769fa668643c91a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutants/yield-before-delete.js.txt",
+      "sha256": "c85542d51233b4f939af765e5bf0c161c7122260be90dd09c993767a11f23eff"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-locks.modules.jsonl",
+      "sha256": "d3e47a35580f937c6a38e02ed57c54f9c8ba864c365408971ded157880020c69"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-locks.result.json",
+      "sha256": "1d017711896767bc05a884d53d3b9a20f4c22ed82ef2a9fd5d679fcd99a62290"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-locks.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-locks.stdout.log",
+      "sha256": "6c5b22ae16edf2c1606ac80c997e4cb39dba5df9dad5ed8cdfbdfc147c4f3835"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-namespace.modules.jsonl",
+      "sha256": "5f2f63458cb3fa7b33e69c59fc6e2fe4be7ceb56a65fa2e8d790a66c0cbb3297"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-namespace.result.json",
+      "sha256": "a0a6e4f1e529272e95ce6a7cae547a3d0eea48b7449821d667559bfd765141f8"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-namespace.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-namespace.stdout.log",
+      "sha256": "5b7c1655d99eded1f4aa33d7353b7c9cfc4e362614f2f6140686d1ef33d8a04e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-nonempty.modules.jsonl",
+      "sha256": "44776488e53809c0d85618cef8acbfafedda211b0e9429fadb28f053d8ad6a48"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-nonempty.result.json",
+      "sha256": "799fd7e68feacfe18c29b2a0e65ccf2a93207b333946ef98326808f263158293"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-nonempty.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-ignore-nonempty.stdout.log",
+      "sha256": "f69932447386352082ca11406372f81f28bbf992f7b1c4a1ee8c2676f64b1c23"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-lost-capability.modules.jsonl",
+      "sha256": "c4c7ba64381c408880732f74caf12bdd383e3d43fb4602369f335ccc2177b045"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-lost-capability.result.json",
+      "sha256": "41dad4087e1d12210101e0b5d445873ce8e58fc16f36c7063705082f1fd5d4ed"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-lost-capability.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-lost-capability.stdout.log",
+      "sha256": "201041f3cd9018499fc349d98f97d94da15c4015a8822fba285a85b909686f5b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-prefix-sibling-refusal.modules.jsonl",
+      "sha256": "f88ce8f09a8fbb6e09bfb8c880baeb44db3609c14da47ca1001bcce160ce3066"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-prefix-sibling-refusal.result.json",
+      "sha256": "d27004c5f2e8af31e5b2a7a5181d34873b4602195b440851874c3c6ada0b7df2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-prefix-sibling-refusal.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-prefix-sibling-refusal.stdout.log",
+      "sha256": "6f2ee04f43e4b31cca73efe71723c4c2d88ba5843c9c5112487f2cf6247b369b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-child-deletion.modules.jsonl",
+      "sha256": "7040a11f4024b4607adc3ca70489e90bb04d248fc8be075fde5464852197c5e6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-child-deletion.result.json",
+      "sha256": "3cb9419fb4e71647bcde362b27839e48b6e4b7060b7922c6c3712e02d16ea4c2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-child-deletion.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-child-deletion.stdout.log",
+      "sha256": "c4cbfd4e94d76952f2068cb0e496f5659619571180f36f1b80096aaa5ebb66dd"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-http-delete.modules.jsonl",
+      "sha256": "aa50ff059b77ac2fc01970a5130a47b583b2c11394564b1140a71f131c626783"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-http-delete.result.json",
+      "sha256": "0ae1f23a9c68d6c8c0a415890e9cc2021d8f0041e70199bdbe983be743820d37"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-http-delete.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-recursive-http-delete.stdout.log",
+      "sha256": "e387b91e2bff5536dc6c8fa9a78b215accfe110001acbc5dd429f28e787692a9"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-results.json",
+      "sha256": "83c31fd2fe6214a480f914e7b9c2c897a514dad2b04c1c67227711208528e512"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-receipt.modules.jsonl",
+      "sha256": "2fefe871451e8a9bf73b708a3bf8ed73557b1592d00c6cccbbadfea8bcff6dfd"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-receipt.result.json",
+      "sha256": "be642786a353631ab710cb8648caf3a4e3437dce28aa395414d1afda5eab5e51"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-receipt.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-receipt.stdout.log",
+      "sha256": "17e8062d643eeff32d7b3fa71c5a654781f0c0b1eb49ec16cb5e7252a2ede007"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-target.modules.jsonl",
+      "sha256": "5c0f6b514fa53c1b57dbb45f41c6f6a9f83d622eb07265d9fafbe814a2841ac2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-target.result.json",
+      "sha256": "3a8473e4b0087a0132505c6bb265431e925496fee0ff26c4f55a0ec2b9ed5e25"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-target.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-wrong-target.stdout.log",
+      "sha256": "84b2ab00e77c28b838e28827d3613d159f3307b289d1a7539bfff46ebc4f90fe"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-yield-before-delete.modules.jsonl",
+      "sha256": "f4809edc364450e2b8f79622e14f71c09b01dc315635a2e55781e363c5ddbaaf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-yield-before-delete.result.json",
+      "sha256": "70f4b947f9a47792ccd332cded8c8b88fc512e2b00cfb5f9b6ac01b23489b95a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-yield-before-delete.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/mutation-yield-before-delete.stdout.log",
+      "sha256": "85a84b09545078963facde8994f15687b114b4dd87d1d2a18f97e1638a0240a0"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/original-seals.json",
+      "sha256": "25bf4564505f1732917627211d339543d9342fdf17af5a734e77dfece91cd25f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/original-stock79.result.json",
+      "sha256": "d0c37b5fe245f8d8998e92ae4a397c5b09ca18e5d6499c1a1f781fe06f714708"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/original-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/original-stock79.stdout.log",
+      "sha256": "e4ac415e0299fb68879cb9be3c2132143f1a20a148e469574de1f1714c11aca2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/pack.result.json",
+      "sha256": "8e523650cebea872eb1f196a1181fc2447396c16be07316d0ec49b6a606e7ce7"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/pack.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/pack.stdout.log",
+      "sha256": "b31e6b627a24e0f67ba212205e5cae2341b5bc56d9763e0b8b8f4f6ddd12ef5b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/packed-manifest.json",
+      "sha256": "668dd9019bbe66d18f7adaaff3114a34806071f8d504861614566737851499cb"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/packed-stock79.modules.jsonl",
+      "sha256": "bfa543c29f23e7e95a453a44355336c8fe9ebac7f5d1559317e347d2c5e0135d"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/packed-stock79.result.json",
+      "sha256": "99d851bb7057b2418c878d08d84bd134321eadc14a2483486105c2a92d6c1703"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/packed-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/packed-stock79.stdout.log",
+      "sha256": "d059262254475fa4788694134d97d5ab63e3c78633e0eb718eaf3d7586e38f95"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/public-boundary.json",
+      "sha256": "7b07becf77aaf966549866bfd9ef42ffbcfc0b303ffadda9a0e71bb1bf8cb11b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/public-boundary.modules.jsonl",
+      "sha256": "fd672ea6edf3f35b5b1eb54817b3b72607f6b96b88207ba208136890c4832c78"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/public-boundary.result.json",
+      "sha256": "08479300223c9bfaa3bbdbf707ad7476335c06d3460edab99a29362ae60faf96"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/public-boundary.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/public-boundary.stdout.log",
+      "sha256": "7f0ed314aa3ec984c5821ad7f4c453e24bd6115e6a8de862b88e29d82acd2c69"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/shared-readonly-after.json",
+      "sha256": "bf40b40853033d7991b98140ccec7370a5be06f3c2620b960cad25f127a3dc0e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/shared-readonly-before.json",
+      "sha256": "5e9e14ada5e3251cbd2d40db10663b9b0f2a811d91b19aa3e3db20fe57340ced"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/stock-fixture.ts.txt",
+      "sha256": "edb8cc75f31123382c41759eec9e6f4c1e1436719739a5ea7572411d708edb66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-original.result.json",
+      "sha256": "ff4eaa4ca37cc82e10d1302497b56599f92e1ccc4730c11a75fed90b0ac11a66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-original.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-original.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-configured.result.json",
+      "sha256": "8d13d7468346ac557794c755d62608b8a79c6a31bfb54be257f1636bf8bf4133"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-configured.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-configured.stdout.log",
+      "sha256": "1333d3a07d3da1217743395e111bd0790a8f8a1c0ad2bdad8e969cfe62cb1b83"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-configured.type-closure.json",
+      "sha256": "caeb3f92bbe2c3b72f2ef0cd8775ba1bd8f90ac3277f38474b5612f5de777dbf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-stock.result.json",
+      "sha256": "884255530595d42634f560b19d853adf943fb057acecb76fa2fcc66113b23cd4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-stock.stdout.log",
+      "sha256": "c2d5c9326b87521257c9693d5fd57b0055bc704463c103658bff373092dd971f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/strict-packed-stock.type-closure.json",
+      "sha256": "4e52d8ec57aff5d48bf4b08237a469011f2f6dfb91d81197ccb446e1868420a3"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/summary.json",
+      "sha256": "a6ffb031a7b01c7068a0697aed606fe08f48f9ee7c17256351af3712e2671f37"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/verifier-inputs/hidden.ts.txt",
+      "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/verifier-inputs/observe.mjs.txt",
+      "sha256": "864667548943b69aac5e8ba36f9612b9d3e94512b7c091135b58877aae07d1c9"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/verifier-inputs/verify.mjs.txt",
+      "sha256": "9d4da198070c61f9dde3a7ebedadc97df1a291e4b3c7faa81c0057ea6fa50918"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/virtual-bash-0.0.0.tgz",
+      "sha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+      "sha256": "864667548943b69aac5e8ba36f9612b9d3e94512b7c091135b58877aae07d1c9"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/verify.mjs",
+      "sha256": "9d4da198070c61f9dde3a7ebedadc97df1a291e4b3c7faa81c0057ea6fa50918"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/AUTHOR_HANDOFF.md",
+      "sha256": "302e5307ef98de4b4bbaf99d36a7b1b84e46380b864dc402abc7d7736d0a2552"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/README.md",
+      "sha256": "044cb5e61b9e8e1fab3ca1ecbb2d9fc10a6333ed30d2980e78cc06bbb5e28d89"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "sha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/build.result.json",
+      "sha256": "4fa1676174a284270fd51287f7d28b731f2cfd233e4ea15c9effcc0cc019b40c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/built.json",
+      "sha256": "3cf9dcf166168b0d0289cec803caac05ce33f5288c49852a6ddd2800cd420b1b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/capture.json",
+      "sha256": "ebe7972bdc85a42cfb5dc26ce9c59dfbc2ce9be776eeaadb04f57d23db1ea283"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/cleanup.json",
+      "sha256": "ce3437dc1c1d26facdc5d8464fc36231fbd34c548ad105c3a478a0c4d51e06b6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/committed-inputs.tar.gz",
+      "sha256": "8748fc66c4a50b7508c6f3f57a9f1fdfff6d9b8d6e050da32308b93ef3875fdf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/consumer-generated.json",
+      "sha256": "c44bc9bc0775055ca9031af8cbabf926924e67017364612fa30a2456d5b9cd93"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/fixture-config-only.delta.txt",
+      "sha256": "69f9ffa892c8c3db30f63f07a5ed3f2a842168b3583847ab95fb9733d69c1347"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/fixtures.configured-public.ts.txt",
+      "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/fixtures.stock-public.ts.txt",
+      "sha256": "edb8cc75f31123382c41759eec9e6f4c1e1436719739a5ea7572411d708edb66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/gate.json",
+      "sha256": "0a1ec7de094529a0a2d935e5bf4ca5a18ff42b946afa895d508debcbd8c82edf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/import-relocation.json",
+      "sha256": "c8464049fb98c68974684413ec57ad4e0ca318c74c0c11ca82b35059faab9c72"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/inputs.json",
+      "sha256": "3b848851532bdbfba69c7514d5565e28383800460536a77a23e3da5919ec39fa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/pack.result.json",
+      "sha256": "9966c01c8756b0b3bfcd8842766aeb9479e3bfc1a4a8ba1274a00dd8d24a31ef"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/pack.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/pack.stdout.log",
+      "sha256": "b31e6b627a24e0f67ba212205e5cae2341b5bc56d9763e0b8b8f4f6ddd12ef5b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-configured79.loaded.jsonl",
+      "sha256": "5ea6870fefeaebd1e4def0c0e66488200d05489d9744f7928d8fb39086364ab6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-configured79.result.json",
+      "sha256": "bc8c30acc96d8f1f9dadd2c52bbebacfb37c1a94fd2dedc4a848991233bbcd8c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-configured79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-configured79.stdout.log",
+      "sha256": "6390d85abbc8ec43149d47f2f2389d4b387d2bf946e4aa66e25a2efdcc555594"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-controls.loaded.jsonl",
+      "sha256": "5fbdaac4be6ee5b3cd6962efccb974bf863527dc8c7325b8a13c523cf9768535"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-controls.result.json",
+      "sha256": "b8ea609eb93cbdddbbdf131101fb51f335dd6e981bd5e3b27403246951c6c239"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-controls.stdout.log",
+      "sha256": "a33c12a63e464e4d1a0c60ded981a7fdb7aeee9298f20f959eb35fe87a78ef52"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-stock79.loaded.jsonl",
+      "sha256": "6cf10605b86a7a56e0ddb05232c66af5880d767e6f6912f99ec9b3d7522419f4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-stock79.result.json",
+      "sha256": "40d53b87c99ad241de2a2748c1f4857be031ba4847ce906a504c422c7ddf4b10"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed-stock79.stdout.log",
+      "sha256": "0e1a139644f136295ee9286d96be7bcef25de22e7604bc6b6b0f3be412963651"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/packed.json",
+      "sha256": "668dd9019bbe66d18f7adaaff3114a34806071f8d504861614566737851499cb"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/public-resolution.json",
+      "sha256": "99791053c895f2b42d87dc60c564475f359685209cf840104b563cfb4dc5a60f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/public-resolution.result.json",
+      "sha256": "1466b1b777db822ced21292fe4f51de542c1eb79720e95d5d3daf59a6dfea859"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/public-resolution.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/public-resolution.stdout.log",
+      "sha256": "f1605ebb46688600ec5e6d8f06e34a0bca1d80ed3cf3336f326efb2f64641b08"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/stock-original79.result.json",
+      "sha256": "63b0b685f6c06c9303da330277dc3bb9f4201af592bda52053df57cca5a626d1"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/stock-original79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/stock-original79.stdout.log",
+      "sha256": "041a55d395e6bf49c7891039026bf264ec078a7fc69ce3186e3534bfb8dd62cf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-configured.result.json",
+      "sha256": "9dad23d458c135ad7ff19f033414917370b38ba48fe7203059f3d0f55200065f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-configured.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-configured.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-stock.result.json",
+      "sha256": "d5c1a8a3a0c6e1d1c1f1c8d2d0c6717eff4cded22b863f8384cf31e177bad1da"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-public-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-stock.result.json",
+      "sha256": "bff12ab6bf652460489c73f3bbce1def4b201bb14890b530a69e029945174a12"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/strict-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/summary.json",
+      "sha256": "18fee0e94d7f221a23a9b1fc9fa2590392481f4d6977aac68bf0984509adedc8"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/virtual-bash-0.0.0.tgz",
+      "sha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/build.result.json",
+      "sha256": "b58b70ac2feeb8d5421ed1a068a26329b25edcbdbd2587116bbe1d9d6e3649b2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/built.json",
+      "sha256": "3cf9dcf166168b0d0289cec803caac05ce33f5288c49852a6ddd2800cd420b1b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/capture.json",
+      "sha256": "9a8fe970602e57ad5ad13578103150ce49e0121a7601896067d75723a83aca7d"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/cleanup.json",
+      "sha256": "34544e73319f854efbaf2af55d1056d21b675314b9137dee0cb5063e2f8f11c8"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/committed-inputs.tar.gz",
+      "sha256": "520a448f167238a0d0b98ad05761890f1e62b70c079e7f9dffbf0ddfdaac79b5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/consumer-generated.json",
+      "sha256": "9620ab1a36c07909d63ffdfce158fec7ea33d415e978557cb10adf1897851636"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/failure.json",
+      "sha256": "98698bbc73360ccf79f968abd211ce583bf2476d351c52618c5549e987e80377"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/fixture-config-only.delta.txt",
+      "sha256": "69f9ffa892c8c3db30f63f07a5ed3f2a842168b3583847ab95fb9733d69c1347"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/fixtures.configured-public.ts.txt",
+      "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/fixtures.stock-public.ts.txt",
+      "sha256": "edb8cc75f31123382c41759eec9e6f4c1e1436719739a5ea7572411d708edb66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/import-relocation.json",
+      "sha256": "df0eb7550088dacab657caeb4dcdfe7078e822df868e9d486eb58329c7f88599"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/inputs.json",
+      "sha256": "14b069a6ff77f1e976117f1191740df37b8eb1c22ea7186f9f3cba7cad4e6a5e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/pack.result.json",
+      "sha256": "fe4c25158ad5f251c1a7f281de1681d20f115d802df9f187317a05518a7626d5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/pack.stderr.log",
+      "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/pack.stdout.log",
+      "sha256": "b31e6b627a24e0f67ba212205e5cae2341b5bc56d9763e0b8b8f4f6ddd12ef5b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-configured79.loaded.jsonl",
+      "sha256": "82ae7c94e2be36447fd4ed7873723f1d92d58d1e45b99e7edf52dd345c0f0c4b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-configured79.result.json",
+      "sha256": "5f61a53b493bf0c45a5ea3d47f4ddae39a93fbf389e6d750f1615eaf88f9771e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-configured79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-configured79.stdout.log",
+      "sha256": "717128916fadecb5b7fbdd4470fc8947ec87b2cbcd6a731271c2776639bd1e34"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-controls.loaded.jsonl",
+      "sha256": "693b33359772cd16b8b0bf9341d2b7aa92e169fc0bfb23a287fa6b37890f63e6"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-controls.result.json",
+      "sha256": "82ae604b13603b9b5eb1e68d4a9d7b5c2218b97b1cb479cdb55785af06bf9fd1"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-controls.stdout.log",
+      "sha256": "ceeda6d0ef84fa39eade229831b71f0195fcd0d393c35fa7ad1bc65490e58b91"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-stock79.loaded.jsonl",
+      "sha256": "9b87c7b3aba15f4d0d4bb85393238499085f5ec647bafaeeff2b942f3bfc493b"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-stock79.result.json",
+      "sha256": "b0398f3e3310eb2eb4069617db84a60f6cd71839856c987a52eac191a0106672"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed-stock79.stdout.log",
+      "sha256": "56ec55f8115548df601908456c623747f4576a05dbdfe88fb39dcec7a93f98de"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/packed.json",
+      "sha256": "668dd9019bbe66d18f7adaaff3114a34806071f8d504861614566737851499cb"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/public-resolution.json",
+      "sha256": "48e501c2559bfdd740bd77b57bf6f86661905070d7000bef1857d065dada5f8c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/public-resolution.result.json",
+      "sha256": "8e7ee69fa9a0c9011c0bf175bf0f347540b6924600e70c7d7f3cd68ac81efd36"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/public-resolution.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/public-resolution.stdout.log",
+      "sha256": "7ee51fd1fda69e54c14bbc9b693bcb019edeabf6139b2b317777d2e4faf0283f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/stock-original79.result.json",
+      "sha256": "ce6ad49e71d61da113ce40893c082992eb7670c3de3b90621135face5e03819c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/stock-original79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/stock-original79.stdout.log",
+      "sha256": "756095139a879ac13becbf24b02fd3bef75b5e23c340a8f62fbc69d7effb92d4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-configured.result.json",
+      "sha256": "bfc8cf99e0dbb156a6af1f417e8a5863a624bf942caf99863525850becbfe1bc"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-configured.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-configured.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-stock.result.json",
+      "sha256": "bb5bf4d7d784d9e5c1278bf0735c807a7d99a69d6e3566bb2ec394b6024b0678"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-public-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-stock.result.json",
+      "sha256": "976c19316342c05323cb2e624ef3dfdfd8f1f50dbf576751211efb97a8a0a0e2"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/strict-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/summary.json",
+      "sha256": "cf49444b4b11165e0071c25274d8546b60d168a9d0f3d07a70d970676043d62c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/virtual-bash-0.0.0.tgz",
+      "sha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/build.result.json",
+      "sha256": "15bdadc378c3344302af2cbd63f9b3e468bfd0dc1b92ec68b01c4bacf74e200e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/built.json",
+      "sha256": "b079647cdfde122d362cb65417f03dc220805c32a6524fd1e8251a845b6e2e8f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/capture.json",
+      "sha256": "94358900e45184954b7ba2ff10fbc990846c7c964f7f95f19026172e85b2546a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/cleanup.json",
+      "sha256": "04f6af8f92c65d1a9bc9adc28f2a109d280071d6bd9aaac074e6e52717b5446f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/committed-inputs.tar.gz",
+      "sha256": "e03b0a2d7c8cbfa8edff9a0208b92cde00fd523ef934b6f5e4b3962ab7d4c25a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/consumer-generated.json",
+      "sha256": "9b3a55f162fc3ddebb89a55fbc4162dc9470483a930c33102c0bbebb859ee4d0"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/failure.json",
+      "sha256": "3285b8c792b0794ed6bc56c00846651a51d67fa1058748497debe4af2ee17f04"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/fixture-config-only.delta.txt",
+      "sha256": "69f9ffa892c8c3db30f63f07a5ed3f2a842168b3583847ab95fb9733d69c1347"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/fixtures.configured-public.ts.txt",
+      "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/fixtures.stock-public.ts.txt",
+      "sha256": "edb8cc75f31123382c41759eec9e6f4c1e1436719739a5ea7572411d708edb66"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/import-relocation.json",
+      "sha256": "6ae3467fbccac40ae142ebeab6434d5843635d6261829f4796ef232fe1dec2c5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/inputs.json",
+      "sha256": "c55fc810ad0a34dfb9683bfbedef8164a86473704cbd3cec045f3771ba02e2aa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/pack.result.json",
+      "sha256": "99e5a03735da58a351a246fa480a28a723e9b506d5a3d76c1794149e70be0985"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/pack.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/pack.stdout.log",
+      "sha256": "601e62b32d8d6f922c83e37558d69d07fda8905781f3b6d90f80ca34c17a8a50"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-configured79.loaded.jsonl",
+      "sha256": "0482dea6efad7fe866df42562070aa1c7a536d15a288a4a9bd395b90f1d11d0a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-configured79.result.json",
+      "sha256": "5a5cedc9cf548ee87ae883b960a49dad80b838a4c7e103346df6754f4071513d"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-configured79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-configured79.stdout.log",
+      "sha256": "a6a6695e0fdbccfb6aa75cbba7f3d7c8355cff3f555ed6d3ad87c19186ee2fde"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-controls.loaded.jsonl",
+      "sha256": "faa979e8fabb44fea7d27c2bd28ce260c0ce469f53532771fa854809d621ffbd"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-controls.result.json",
+      "sha256": "0cb1b478255f31fd09f9abb4b84986cb56b15858ea4a3d75c5c35ee4702ffb81"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-controls.stdout.log",
+      "sha256": "e1125935b4420b45515ec7c7133886bd24e009e680fc93ba9d265c5ab96282dc"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-stock79.loaded.jsonl",
+      "sha256": "5c37451a3f52f7864b282a742742c4c47e254eddcaa5e4c2f3c422711fa589fd"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-stock79.result.json",
+      "sha256": "980ac3219eaadac9d0377fbc89d9c3a999f622cd08267744dd55d35bf802cd5f"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-stock79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/packed-stock79.stdout.log",
+      "sha256": "af85c737ca9ced13533f0ca653981278c805242ff6aa43187af4b3661507c89c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/public-resolution.result.json",
+      "sha256": "23ae85084f17aaf3cdb0edfb4da8431cf11b2938bec18d08f622723d06f529cd"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/public-resolution.stderr.log",
+      "sha256": "d2a9e050f7cb8a6a9f069d558e716527482f243e4c0c87e7db38cb3eb6b7d94c"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/public-resolution.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/stock-original79.result.json",
+      "sha256": "ce7891c3df3cc9719faac33d9f15e50a9f66c1b8cedb05866cab1ed860919c92"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/stock-original79.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/stock-original79.stdout.log",
+      "sha256": "219ff9f41cf363c03c44315590491bd7fb1a62d7852b667338aba6d3c304bbf4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-configured.result.json",
+      "sha256": "c49793b4057440c0863ca63baacaa889222ba1099c9cc2986285028b2c34cc7a"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-configured.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-configured.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-stock.result.json",
+      "sha256": "93d459f415200840d6ee0f73a14a3ed5099c29c52db7a1b67620f7ec7bf658fa"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-public-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-stock.result.json",
+      "sha256": "23eaa1b418ce38867f5132bf069608596ed931802d07ddd303e3b0def3849190"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-stock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/strict-stock.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-first/virtual-bash-0.0.0.tgz",
+      "sha256": "d4b92cf564a96caeac3ee88dea0afe79458a592fe462c9765aa13127257f80d5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+      "sha256": "d7d3f592f49592153022a563e0a1786fd7691cc887ba699e83176b61f8136bea"
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/verify.mjs",
+      "sha256": "c45b79d9848bf48bf99a8db833fc43d078192c33d1d137e449ab957fe909f05e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/README.md",
+      "sha256": "0ca2df25c4f7a26f02c825f79245dc63d7db4c852588eb8709570fdec6909544"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/before.json",
+      "sha256": "9a50591b789dff0eb5d15d671d6241c2bac62bcd274a8a281cc7fce68e394f07"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/fixtures.ts.txt",
+      "sha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/matrix.test.ts.txt",
+      "sha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/rmdir-body.ts.txt",
+      "sha256": "81ca50e611045a348db5954c53b26762da66ff4ba2c4af530349601f8d910b5e"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/history/rmdir-row.ts.txt",
+      "sha256": "1b6bec20f3a9cae1f04ed30f8e21f758e5ba72d48715dc5c18e4770c310fe0ba"
+    }
+  ],
+  "changedProtected": []
+}

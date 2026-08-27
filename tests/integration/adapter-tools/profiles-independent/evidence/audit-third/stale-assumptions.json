@@ -1,0 +1,27 @@
+{
+  "priorAudit": "tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs",
+  "immutableSealGuardExpected": true,
+  "stale": [
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "historicalSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "candidateSha256": "616f099aabda4353b53fd1cc2a9137e71bdc611b831e9120ad93f5432d0dbe22",
+      "historyPath": "tests/integration/adapter-tools/profiles/history/matrix.test.ts.txt"
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "historicalSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "candidateSha256": "d1fcd360170a9ea5467697fa5a1bc64e53f5589ad376ddd3c01aa65cf119729f",
+      "historyPath": "tests/integration/adapter-tools/profiles/history/fixtures.ts.txt"
+    }
+  ],
+  "oldFrozen": "68059389bf95e03caeae6479837187add3d07814",
+  "canonicalDiff": [
+    "tests/integration/adapter-tools/fixtures.ts",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "minimalAssertion": "prior audit.mjs:52 git diff --exit-code <old frozen> -- matrix.test.ts fixtures.ts preflight.ts mock.ts atomic-mock.ts controls.ts",
+  "classification": "one-shot historical sealing audit assumes live originals never migrate; immutable old evidence remains valid; authorized canonical migration needs a separate current-input equivalence contract, not replacement of old seals",
+  "removedOnlyInOwnedCopy": "tests/integration/adapter-tools/atomic-webdav-profile-independent/ARTIFACTS.sha256",
+  "originalFilesModified": false
+}

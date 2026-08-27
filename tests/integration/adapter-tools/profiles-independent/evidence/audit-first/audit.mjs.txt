@@ -1,0 +1,124 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const own = dirname(fileURLToPath(import.meta.url));
+const root = resolve(own, "../../../..");
+const revision = "3bf672f722da2bdf1591ed112290b702987bf63a";
+const serviceRevision = "b22d00c2834358dc3083de58774f3aa188093f9b";
+const evidence = join(own, "evidence", process.argv[2] ?? "");
+assert.match(process.argv[2] ?? "", /^[a-z][a-z0-9-]*$/);
+assert.equal(existsSync(evidence), false);
+mkdirSync(evidence, { recursive: true });
+const scratch = mkdtempSync(join(own, ".audit-"));
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const save = (name, value) => writeFileSync(join(evidence, name), JSON.stringify(value, null, 2) + "\n");
+const git = (...args) => {
+  const result = spawnSync("git", args, { cwd: root, maxBuffer: 128 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr.toString());
+  return result.stdout;
+};
+const blob = path => git("show", `${revision}:${path}`);
+const json = path => JSON.parse(blob(path));
+const base = "tests/integration/adapter-tools";
+const service = "tests/fs/webdav/atomic-extension-independent/phase2";
+const checks = [];
+const environment = { ...process.env, NODE_OPTIONS: "", TMPDIR: scratch, TMP: scratch, TEMP: scratch, TSX_DISABLE_CACHE: "1" };
+delete environment.NODE_TEST_CONTEXT;
+function run(name, args, cwd) {
+  const result = spawnSync(process.execPath, args, { cwd, env: environment, encoding: "utf8", timeout: 120_000, maxBuffer: 16 * 1024 * 1024 });
+  writeFileSync(join(evidence, `${name}.stdout.log`), result.stdout ?? "");
+  writeFileSync(join(evidence, `${name}.stderr.log`), result.stderr ?? "");
+  const summary = { name, args, status: result.status, signal: result.signal, error: result.error?.message,
+    counts: Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(key => [key, Number(new RegExp(`^# ${key} (\\d+)$`, "m").exec(result.stdout ?? "")?.[1] ?? NaN)])) };
+  checks.push(summary);
+  save(`${name}.result.json`, summary);
+  console.log(`${name}: ${result.status}`);
+  return summary;
+}
+let failure;
+try {
+  writeFileSync(join(evidence, "audit.mjs.txt"), readFileSync(fileURLToPath(import.meta.url)));
+  const seals = [];
+  for (const directory of [`${base}/atomic-webdav-profile-independent`, "tests/fs/webdav/atomic-extension-independent", service]) {
+    const seal = blob(`${directory}/ARTIFACTS.sha256`);
+    const rows = seal.toString().trimEnd().split("\n").map(line => {
+      const [expected, name] = line.split("  ");
+      const path = `${directory}/${name}`;
+      assert.equal(hash(blob(path)), expected, path);
+      assert.equal(hash(readFileSync(join(root, path))), expected, `live historical preservation: ${path}`);
+      return { path, sha256: expected };
+    });
+    seals.push({ path: `${directory}/ARTIFACTS.sha256`, sha256: hash(seal), rows });
+  }
+  save("historical-seals.json", seals);
+  assert.equal(git("diff", revision, "--", `${base}/atomic-webdav-profile`, `${base}/atomic-webdav-profile-independent`, `${base}/profiles/history`).length, 0);
+  const oldIndependent = json(`${base}/atomic-webdav-profile-independent/evidence/independent-second/summary.json`);
+  const oldAuthor = json(`${base}/atomic-webdav-profile/evidence/author-final/summary.json`);
+  for (const [name, count, pass] of [["original-stock79", 79, 78], ["packed-stock79", 79, 78], ["configured79", 79, 79]]) {
+    assert.deepEqual(oldIndependent.counts[name], { tests: count, pass, fail: count - pass, cancelled: 0, skipped: 0, todo: 0 });
+  }
+  for (const [name, pass] of [["stock-original79", 78], ["packed-stock79", 78], ["packed-configured79", 79]]) {
+    assert.deepEqual(oldAuthor.summaries[name], { tests: 79, pass, fail: 79 - pass, cancelled: 0, skipped: 0, todo: 0 });
+  }
+  save("historical-denominators.json", { oldAuthor, oldIndependent, wholeHistoricalRerun: false });
+  const providerPaths = git("ls-tree", "-r", "--name-only", revision, "--", "src/fs/webdav", "tests/fs/webdav/atomic-extension").toString().trim().split("\n");
+  const providerHashes = providerPaths.map(path => {
+    const current = hash(blob(path));
+    const old = hash(git("show", `${serviceRevision}:${path}`));
+    assert.equal(current, old, path);
+    assert.equal(hash(readFileSync(join(root, path))), current, path);
+    return { path, sha256: current, sameAtB22d00c: true };
+  });
+  save("service-provider-hashes.json", { revision, serviceRevision, providerHashes,
+    fullProductChangesSinceService: git("diff", "--name-only", serviceRevision, revision, "--", "src").toString().trim().split("\n"),
+    scope: "WebDAV adapter and original configured provider unchanged, not a new whole-product or deployed-provider run" });
+  const paths = ["package.json", "src", `${base}/matrix.test.ts`, `${base}/fixtures.ts`, `${base}/profiles`,
+    `${base}/atomic-webdav-profile`, `${base}/atomic-webdav-profile-independent`,
+    "tests/fs/webdav/atomic-extension", "tests/fs/webdav/atomic-extension-independent",
+    "tests/fs/s3/rmdir-independent", "tests/fs/s3/rmdir-real-service"];
+  const archive = git("archive", "--format=tar.gz", revision, "--", ...paths);
+  writeFileSync(join(evidence, "readonly-audit-inputs.tar.gz"), archive);
+  assert.equal(spawnSync("tar", ["-xzf", join(evidence, "readonly-audit-inputs.tar.gz"), "-C", scratch]).status, 0);
+  symlinkSync(join(root, "node_modules"), join(scratch, "node_modules"), "dir");
+  const serviceAudit = run("b22d00c-real-evidence-audit", [`${service}/audit.mjs`], scratch);
+  assert.equal(serviceAudit.status, 0);
+  const actual = JSON.parse(readFileSync(join(scratch, service, "CHECKPOINT.json")));
+  assert.equal(actual.actualLoadedPackageModules, 157);
+  assert.deepEqual(actual.independent26, { positive: 8, guard: 17, refusal: 1, failed: 0 });
+  save("authenticated-service-reuse.json", { ...actual, newServiceRun: false, newlyDownloadedBytes: 0,
+    basisCommit: serviceRevision, evidenceAuditOnly: true, archiveSha256: hash(archive) });
+  const s3Audit = run("existing-s3-provenance-audit", ["--test", "--test-reporter=tap", "tests/fs/s3/rmdir-independent/audit.test.mjs"], scratch);
+  assert.equal(s3Audit.status, 0);
+  const priorAudit = `${base}/atomic-webdav-profile-independent/audit.mjs`;
+  const intactAudit = run("prior-one-shot-audit-intact", [priorAudit], scratch);
+  assert.equal(intactAudit.status, 1);
+  assert.match(readFileSync(join(evidence, "prior-one-shot-audit-intact.stderr.log"), "utf8"), /do not overwrite an evidence seal/);
+  rmSync(join(scratch, base, "atomic-webdav-profile-independent/ARTIFACTS.sha256"));
+  const exposedAudit = run("prior-one-shot-audit-preseal-copy", [priorAudit], scratch);
+  assert.equal(exposedAudit.status, 1);
+  const error = readFileSync(join(evidence, "prior-one-shot-audit-preseal-copy.stderr.log"), "utf8");
+  assert.match(error, /git diff --exit-code/);
+  const oldInputs = json(`${base}/profiles/history/before.json`).inputs;
+  const stale = oldInputs.filter(entry => ["matrix.test.ts", "fixtures.ts"].some(name => entry.path.endsWith(`/${name}`))).map(entry => ({
+    path: entry.path, historicalSha256: entry.sha256, candidateSha256: hash(blob(entry.path)),
+    historyPath: `${base}/profiles/history/${entry.path.endsWith("matrix.test.ts") ? "matrix.test.ts.txt" : "fixtures.ts.txt"}`,
+  }));
+  save("stale-assumptions.json", { priorAudit, immutableSealGuardExpected: true, stale,
+    minimalAssertion: "prior audit.mjs:52 git diff --exit-code <old frozen> -- matrix.test.ts fixtures.ts preflight.ts mock.ts atomic-mock.ts controls.ts",
+    classification: "one-shot historical sealing audit assumes live originals never migrate; immutable old evidence remains valid; authorized canonical migration needs a separate current-input equivalence contract, not replacement of old seals",
+    removedOnlyInOwnedCopy: `${base}/atomic-webdav-profile-independent/ARTIFACTS.sha256`, originalFilesModified: false });
+  save("summary.json", { revision, checks, oldSealsVerified: seals.map(({ rows, ...seal }) => ({ ...seal, files: rows.length })),
+    newServiceRun: false, staleHistoricalOneShotAudit: true, sourceDefectsReproduced: [], fullRelease: false });
+} catch (error) {
+  failure = error;
+  save("failure.json", { message: String(error), stack: error.stack, checks });
+  console.error(error);
+} finally {
+  rmSync(scratch, { recursive: true, force: true });
+  save("cleanup.json", { scratch, removed: !existsSync(scratch) });
+}
+if (failure) process.exitCode = 1;

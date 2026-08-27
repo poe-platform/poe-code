@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/request_server.py",
+    "file": "request_server.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.217Z",
+    "sha256": "1594b6cd9be9cc9eb0ac0f34e3e6b8a9f61b508701207cd47cf0c2a1d1b8c87e",
+    "bytes": 66073,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/request_resolver.py",
+    "file": "request_resolver.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.303Z",
+    "sha256": "1808ccf117e14ba071a4cb29331295d4201047d234159289084d68cf81783075",
+    "bytes": 8590,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/lock_man/lock_manager.py",
+    "file": "lock_man-lock_manager.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.382Z",
+    "sha256": "00ed2aefbf04fc27befb598e2c4c164597315f88171d7ab96fb3858bf46682f4",
+    "bytes": 18261,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/fs_dav_provider.py",
+    "file": "fs_dav_provider.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.539Z",
+    "sha256": "e86c0365fc7384171642d6b0b0ab8cb26454419f6b405475feb5c8d76bff133d",
+    "bytes": 18471,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/wsgidav_app.py",
+    "file": "wsgidav_app.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.649Z",
+    "sha256": "ec7c4c5608e9028f41775f8169e06cda6441e9e854ad405fa18a2fc7bbeac7b0",
+    "bytes": 24869,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/http_authenticator.py",
+    "file": "http_authenticator.py.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-27T08:20:48.735Z",
+    "sha256": "bc44c2aa82d34b415cddef3d71b967ab276ef328edc32590b720f8d4cbe758b8",
+    "bytes": 23280,
+    "qualification": "primary tagged source only; no service distribution downloaded or installed"
+  }
+]

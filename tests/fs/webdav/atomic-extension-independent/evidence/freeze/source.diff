@@ -1,0 +1,201 @@
+diff --git a/src/fs/webdav/README.md b/src/fs/webdav/README.md
+index c953bfb..fe3bb3a 100644
+--- a/src/fs/webdav/README.md
++++ b/src/fs/webdav/README.md
+@@ -7,6 +7,30 @@ root re-exports, manifests, dependencies, or plugin registration.
+ 
+ ## Configuration and transport boundary
+ 
++`atomicEmptyDirectory` optionally supplies a trusted host's strict empty-only
++removal operation. Its `namespaceUrl` must equal the canonical configured base URL
++(including the trailing slash) at construction, and `removeEmptyDirectory` must be
++a function. The adapter captures both values. The named public types are
++`WebDavAtomicEmptyDirectoryBinding`, `WebDavAtomicEmptyDirectoryRequest` and
++`WebDavAtomicEmptyDirectoryResult`.
++
++After root, cancellation and observed directory-type checks, configured `rmdir`
++calls the binding with frozen `{ operation: "atomic-empty-rmdir/v1", namespaceUrl,
++path, signal }`; `path` is canonical and namespace-relative. The host must enforce
++actual removal-time emptiness, final-symlink protection, backing namespace and
++caller authorization, including real provider locks. Metadata observations and
++callback receipts are not cryptographic proof against a dishonest host. Ordinary
++recursive WebDAV DELETE is not a valid implementation of this callback.
++
++Success requires a receipt matching operation, namespace and path exactly, with
++`outcome: "removed"`. Receipt mismatch is EIO with an uncertain removal outcome.
++Native errno-shaped failures become typed filesystem errors; caller cancellation
++and the adapter timeout bound the wait, including callbacks that ignore signals.
++Late rejections are observed. No retry, rollback or absence guarantee follows a
++failure after dispatch. Host code must handle its own late work and lock cleanup.
++Omission preserves the existing ENOTSUP empty-directory default. This strict
++operation does not advertise `snapshotRmdir`; `atomicRename` remains false.
++
+ Required options are `baseUrl` and `fetch`. The transport signature is
+ `(url: string, init: RequestInit) => Promise<Response>`; passing Node's `fetch`
+ explicitly enables real HTTP. Constructing an adapter makes no requests. There
+@@ -204,7 +228,7 @@ by an empty check followed by recursive DELETE. Both streaming capabilities
+ are true. These remaining gaps are explicit backend
+ limitations, not claims of full POSIX or full WebDAV compliance.
+ 
+-Additive `rmdir(path, options?)` distinguishes observed files (`ENOTDIR`), missing
++Without `atomicEmptyDirectory`, `rmdir(path, options?)` distinguishes observed files (`ENOTDIR`), missing
+ paths (`ENOENT`), and nonempty collections (`ENOTEMPTY`). An observed-empty
+ collection returns `ENOTSUP`; the root returns `EBUSY`. Inspection is read-only:
+ no DELETE, LOCK, or other mutation is sent. Cancellation remains `ECANCELED`,
+@@ -215,7 +239,7 @@ is unchanged.
+ RFC 4918 section 9.6.1 requires collection DELETE to operate recursively, even
+ without a Depth header. Neither an empty PROPFIND result nor a collection ETag
+ establishes an atomic empty-collection deletion guarantee in this adapter.
+-No provider-specific guarantee is configured, so `rmdir` never follows an empty
++In that default profile no provider-specific guarantee is configured, so `rmdir` never follows an empty
+ listing with DELETE or invents a capability. A child created after the listing
+ is preserved. Listings are not snapshots, and existing non-atomic MOVE and
+ identity/overwrite caveats remain unchanged. Reference, consulted August 26, 2026:
+@@ -504,8 +528,9 @@ explicit property discovery), and RFC4918 propstat/status processing. References
+ 
+ ## Safe cleanup workflows and the empty-collection gap
+ 
+-Safe empty-only `rmdir` remains unsupported for an empty remote collection, under
+-both existing overwrite policies. This is an honest required-workflow gap: the
++Without an explicit `atomicEmptyDirectory` binding, safe empty-only `rmdir` remains
++unsupported for an empty remote collection under both overwrite policies. This is
++an honest required-workflow gap in the stock-provider profile: the
+ unchanged aggregate adapter-tools checkpoint `421ce3f` records 77/79, with WebDAV
+ and S3 failing `/work/scratch/nested` cleanup. Neither this section nor the new
+ targeted tests turns that matrix green or claims alias closure.
+diff --git a/src/fs/webdav/index.ts b/src/fs/webdav/index.ts
+index 24e4c34..c24b8f3 100644
+--- a/src/fs/webdav/index.ts
++++ b/src/fs/webdav/index.ts
+@@ -1,2 +1,5 @@
+ export { WebDavFileSystem } from "./webdav.js";
+-export type { WebDavFileSystemOptions, WebDavFetch } from "./webdav.js";
++export type {
++  WebDavFileSystemOptions, WebDavFetch, WebDavAtomicEmptyDirectoryBinding,
++  WebDavAtomicEmptyDirectoryRequest, WebDavAtomicEmptyDirectoryResult,
++} from "./webdav.js";
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index d71a4e6..a9c2fa2 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -1,4 +1,4 @@
+-import { FsError, isFsError } from "../../contracts/errors.js";
++import { FsError, isErrnoCode, isFsError } from "../../contracts/errors.js";
+ import type { ErrnoCode } from "../../contracts/errors.js";
+ import { readBytes } from "../../contracts/io.js";
+ import type { ByteSource } from "../../contracts/io.js";
+@@ -13,6 +13,25 @@ import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceSta
+ 
+ export type WebDavFetch = (url: string, init: RequestInit) => Promise<Response>;
+ 
++export interface WebDavAtomicEmptyDirectoryRequest {
++  readonly operation: "atomic-empty-rmdir/v1";
++  readonly namespaceUrl: string;
++  readonly path: string;
++  readonly signal?: AbortSignal;
++}
++
++export interface WebDavAtomicEmptyDirectoryResult {
++  readonly operation: "atomic-empty-rmdir/v1";
++  readonly namespaceUrl: string;
++  readonly path: string;
++  readonly outcome: "removed";
++}
++
++export interface WebDavAtomicEmptyDirectoryBinding {
++  readonly namespaceUrl: string;
++  readonly removeEmptyDirectory: (request: WebDavAtomicEmptyDirectoryRequest) => Promise<WebDavAtomicEmptyDirectoryResult>;
++}
++
+ export interface WebDavFileSystemOptions {
+   readonly baseUrl: string;
+   readonly fetch: WebDavFetch;
+@@ -22,6 +41,7 @@ export interface WebDavFileSystemOptions {
+   readonly maxEntries?: number;
+   readonly timeoutMs?: number;
+   readonly overwritePolicy?: "lock" | "etag";
++  readonly atomicEmptyDirectory?: WebDavAtomicEmptyDirectoryBinding;
+   readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
+     => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
+ }
+@@ -116,6 +136,7 @@ export class WebDavFileSystem implements FileSystem {
+   private readonly timeoutMs: number;
+   private readonly overwritePolicy: "lock" | "etag";
+   private readonly configuredComparison: boolean;
++  private readonly atomicEmptyDirectory: WebDavAtomicEmptyDirectoryBinding | undefined;
+   private readonly etags = new WeakMap<FileStat, string>();
+ 
+   constructor(options: WebDavFileSystemOptions) {
+@@ -143,6 +164,14 @@ export class WebDavFileSystem implements FileSystem {
+     } catch (cause) {
+       throw new FsError("EINVAL", { message: "invalid WebDAV base URL or headers", cause });
+     }
++    const binding = options.atomicEmptyDirectory;
++    if (binding !== undefined) {
++      if (!binding || typeof binding !== "object" || binding.namespaceUrl !== this.base.href
++        || typeof binding.removeEmptyDirectory !== "function") {
++        throw new FsError("EINVAL", { message: "atomicEmptyDirectory must bind the canonical WebDAV namespace and a callback" });
++      }
++      this.atomicEmptyDirectory = Object.freeze({ namespaceUrl: this.base.href, removeEmptyDirectory: binding.removeEmptyDirectory });
++    }
+     this.transport = options.fetch;
+     this.maxResponseBytes = positive(options.maxResponseBytes ?? 64 * 1024 * 1024, "maxResponseBytes");
+     this.maxXmlBytes = positive(options.maxXmlBytes ?? 2 * 1024 * 1024, "maxXmlBytes");
+@@ -745,6 +774,10 @@ export class WebDavFileSystem implements FileSystem {
+       const stat = await this.stat(path, options);
+       if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
+       if (stat.type !== "directory") fail("ENOTDIR", "rmdir", path);
++      if (this.atomicEmptyDirectory) {
++        await this.atomicRmdir(normalized, path, options);
++        return;
++      }
+       const entries = await this.readdir(path, options);
+       if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
+       if (entries.length) fail("ENOTEMPTY", "rmdir", path);
+@@ -757,6 +790,46 @@ export class WebDavFileSystem implements FileSystem {
+     }
+   }
+ 
++  private async atomicRmdir(normalized: string, path: string, options: FsOptions): Promise<void> {
++    const timeout = AbortSignal.timeout(this.timeoutMs);
++    const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
++    try {
++      signal.throwIfAborted();
++      const receipt = await new Promise<WebDavAtomicEmptyDirectoryResult>((resolve, reject) => {
++        const abort = (): void => {
++          signal.removeEventListener("abort", abort);
++          reject(signal.reason);
++        };
++        signal.addEventListener("abort", abort, { once: true });
++        try {
++          Promise.resolve(this.atomicEmptyDirectory!.removeEmptyDirectory(Object.freeze({
++            operation: "atomic-empty-rmdir/v1", namespaceUrl: this.base.href, path: normalized, signal,
++          }))).then((result) => {
++            signal.removeEventListener("abort", abort);
++            resolve(result);
++          }, (error: unknown) => {
++            signal.removeEventListener("abort", abort);
++            reject(error);
++          });
++        } catch (error) {
++          signal.removeEventListener("abort", abort);
++          reject(error);
++        }
++      });
++      signal.throwIfAborted();
++      if (!receipt || receipt.operation !== "atomic-empty-rmdir/v1" || receipt.namespaceUrl !== this.base.href
++        || receipt.path !== normalized || receipt.outcome !== "removed") {
++        fail("EIO", "rmdir", path, "atomic empty-directory receipt mismatch; removal outcome is uncertain");
++      }
++    } catch (cause) {
++      if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "rmdir", path, cause });
++      if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "rmdir", path, cause });
++      if (isFsError(cause)) throw cause;
++      const code = cause && typeof cause === "object" && "code" in cause && isErrnoCode(cause.code) ? cause.code : "EIO";
++      throw new FsError(code, { syscall: "rmdir", path, cause });
++    }
++  }
++
+   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
+     const normalized = normalize(path);
+     if (normalized === "/") fail("EBUSY", "rm", path, "cannot remove WebDAV root");

@@ -1,0 +1,52 @@
+import assert from "node:assert/strict";
+import { readFile, realpath } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { FsError, WebDavFileSystem as RootWebDav } from "virtual-bash";
+import type { WebDavAtomicEmptyDirectoryBinding as RootBinding } from "virtual-bash";
+import { WebDavFileSystem } from "virtual-bash/fs/webdav";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest, WebDavAtomicEmptyDirectoryResult } from "virtual-bash/fs/webdav";
+
+const ownPackage = JSON.parse(await readFile(new URL("./package.json", import.meta.url), "utf8")) as { name: string };
+assert.notEqual(ownPackage.name, "virtual-bash");
+assert.equal(RootWebDav, WebDavFileSystem);
+const namespaceUrl = "https://consumer.invalid/dav/";
+let calls = 0;
+let exists = true;
+const methods: string[] = [];
+const removeEmptyDirectory = async (request: WebDavAtomicEmptyDirectoryRequest): Promise<WebDavAtomicEmptyDirectoryResult> => {
+  assert.equal(Object.isFrozen(request), true);
+  assert.equal(request.path, "/empty");
+  assert.equal(request.namespaceUrl, namespaceUrl);
+  calls++;
+  exists = false;
+  return { operation: request.operation, namespaceUrl, path: request.path, outcome: "removed" };
+};
+const binding: WebDavAtomicEmptyDirectoryBinding = { namespaceUrl, removeEmptyDirectory };
+const rootBinding: RootBinding = binding;
+const fetch = async (url: string, init: RequestInit): Promise<Response> => {
+  assert.equal(new URL(url).pathname.replace(/\/$/u, ""), "/dav/empty");
+  assert.equal(init.method, "PROPFIND");
+  methods.push(init.method);
+  if (!exists) return new Response(null, { status: 404 });
+  return new Response('<d:multistatus xmlns:d="DAV:"><d:response><d:href>/dav/empty/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>', { status: 207 });
+};
+const configured = new WebDavFileSystem({ baseUrl: namespaceUrl, fetch, atomicEmptyDirectory: rootBinding });
+assert.notEqual(configured.capabilities.snapshotRmdir, true);
+assert.equal(configured.capabilities.atomicRename, false);
+await configured.rmdir("//empty/./");
+assert.equal(exists, false);
+assert.equal(calls, 1);
+assert.deepEqual(methods, ["PROPFIND"]);
+exists = true;
+await assert.rejects(new WebDavFileSystem({ baseUrl: namespaceUrl, fetch }).rmdir("/empty"),
+  (error: unknown) => error instanceof FsError && error.code === "ENOTSUP");
+assert.equal(exists, true);
+const modules = [];
+for (const specifier of ["virtual-bash", "virtual-bash/fs/webdav"]) {
+  const resolved = import.meta.resolve(specifier);
+  const actualPath = await realpath(fileURLToPath(resolved));
+  assert.ok(actualPath.includes("/consumer/node_modules/virtual-bash/dist/"));
+  modules.push({ specifier, resolved, actualPath, sha256: createHash("sha256").update(await readFile(actualPath)).digest("hex") });
+}
+console.log(JSON.stringify({ consumerPackage: ownPackage, methods, calls, modules, passed: true }, null, 2));

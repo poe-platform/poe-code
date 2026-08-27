@@ -1,0 +1,37 @@
+{
+  "sealedAt": "2026-08-27T07:38:20.080Z",
+  "sourceCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "currentHead": "9ad8165dc263f492a664d49d828b69ee61667766",
+  "files": {
+    "CONTRACT-NOTES.md": "4a601efebeeb2b099ca19ca2eda2a064b03641e393bed9e6fd6d996678120682",
+    "INTEGRATION.md": "e1574404458495eec2d26f80e0584b00934218f9f998340a13548047a27e29aa",
+    "README.md": "c3cdf49cbb93d0a9133c297c4b676b7d52c870ba3b23b50a4f624b3a558890fa",
+    "baseline.json": "ffc4b037718bb870499900e761ae272d282762a4dc885d74e1a68ac535ad40ad",
+    "capture.mjs": "0202cf76a15ae24985c787eb567ac7655a8ca3f74a3afa6f97e1f7c6f9b9bea5",
+    "provenance-review.json": "18681543ab88fa0d14627051ac9ae32c629efb054db18a4b348e09a0c3603b5d",
+    "repro.mjs": "b523bd1f072f7c6dace8018231f596fed6ba73737a1ac8717027f838078b1dca",
+    "source-identities.json": "98d94cdf3f98e170f83f09ffc50db77fbf514ba817ec85a9692dd18a13c25958",
+    "trace.mjs": "70781710e2283400c0051a65ac1f8094522f79cc773bca31233e39dd4dd1504a"
+  },
+  "sourceNow": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/commands/grep.ts": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+    "src/commands/search/rg.ts": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+    "src/commands/regex-execution/client.ts": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9"
+  },
+  "originalInspectedSourceUnchanged": true,
+  "typescriptVersion": "5.9.3",
+  "reviewedReport": {
+    "commit": "839f2d468311d170ba80d5bf19db94484f9afd66",
+    "file": "tests/stress/regex-execution/production-continuation-review/REPORT.md",
+    "sha256": "d54af48b5e1e53fcf89904435b66555ef1c299da04e23a6fe15f912366831021"
+  },
+  "sourceEditsByThisTask": [],
+  "testsRun": "One bounded own three-case public baseline; strict intended cleanup exit 1. No existing suites or native oracles.",
+  "ownership": "Investigation artifacts only. No runtime writer lease assumed; awaiting explicit ROOT routing despite observed contract commit."
+}

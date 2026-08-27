@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const base = new URL('./', import.meta.url);
-const cases = ['exit-active', 'error-active', 'exit-error-abort-race', 'partial-live-close', 'pending-source-reject', 'pending-source-abort', 'downstream-throw', 'single-next-order', 'batch-byte-cap', 'capacity-policy'];
+const cases = ['exit-active', 'error-active', 'exit-error-abort-race', 'partial-live-close', 'pending-source-reject', 'pending-source-abort', 'uncooperative-pending-abort', 'downstream-close-pending', 'downstream-throw', 'single-next-order', 'batch-byte-cap', 'capacity-policy'];
 const flags = ['--unhandled-rejections=strict', '--max-old-space-size=64', '--stack-size=2048'];
 const manifest = JSON.parse(readFileSync(new URL('evidence/fixed-freeze.json', base)));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');

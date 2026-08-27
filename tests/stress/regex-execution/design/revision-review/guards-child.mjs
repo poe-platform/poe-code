@@ -3,7 +3,7 @@ import { once, getEventListeners } from 'node:events';
 import { Client, Capacity } from './.temporary/fixed/tests/stress/regex-execution/design/review/.temporary/js/tests/stress/regex-execution/design/client.js';
 import { caps } from './.temporary/fixed/tests/stress/regex-execution/design/review/.temporary/js/tests/stress/regex-execution/design/protocol.js';
 
-export const cases = ['exit-active', 'error-active', 'exit-error-abort-race', 'partial-live-close', 'pending-source-reject', 'pending-source-abort', 'downstream-throw', 'single-next-order', 'batch-byte-cap', 'capacity-policy'];
+export const cases = ['exit-active', 'error-active', 'exit-error-abort-race', 'partial-live-close', 'pending-source-reject', 'pending-source-abort', 'uncooperative-pending-abort', 'downstream-close-pending', 'downstream-throw', 'single-next-order', 'batch-byte-cap', 'capacity-policy'];
 const name = process.argv[2];
 assert(process.send && cases.includes(name), 'STATIC_BENIGN_GUARD_ONLY');
 const clients = [];
@@ -22,7 +22,7 @@ const clean = client => {
   assert(Object.values(state.listeners).every(count => count === 0));
   if (client.worker) assert.equal(state.thread, -1);
 };
-const controlled = (initial = []) => {
+const controlled = (initial = [], signal) => {
   let reads = 0; let returns = 0; let outstanding = 0; let maximum = 0; let resolvePending; let rejectPending;
   const source = {
     [Symbol.asyncIterator]() { return this; },
@@ -31,9 +31,11 @@ const controlled = (initial = []) => {
       if (initial.length) { outstanding--; return Promise.resolve({ done: false, value: initial.shift() }); }
       return new Promise((resolve, reject) => { resolvePending = value => { outstanding--; resolvePending = undefined; rejectPending = undefined; resolve(value); }; rejectPending = error => { outstanding--; resolvePending = undefined; rejectPending = undefined; reject(error); }; });
     },
-    async return() { returns++; rejectPending?.(new Error('SOURCE_CLOSED')); return { done: true }; },
+    async return() { returns++; signal?.removeEventListener('abort', abort); rejectPending?.(new Error('SOURCE_CLOSED')); return { done: true }; },
   };
-  return { source, state: () => ({ reads, returns, outstanding, maximum }), reject: message => { assert(rejectPending, 'EXPECTED_PENDING_SOURCE'); rejectPending(new Error(message)); }, finish: () => resolvePending?.({ done: true }) };
+  const abort = () => rejectPending?.(signal.reason);
+  signal?.addEventListener('abort', abort, { once: true });
+  return { source, state: () => ({ reads, returns, outstanding, maximum }), reject: message => { assert(rejectPending, 'EXPECTED_PENDING_SOURCE'); rejectPending(new Error(message)); }, deliver: () => resolvePending?.({ done: false, value: row }), finish: () => resolvePending?.({ done: true }) };
 };
 
 async function run() {
@@ -64,12 +66,31 @@ async function run() {
   }
   if (name === 'pending-source-reject' || name === 'pending-source-abort') {
     const controller = new AbortController(); const client = make(undefined, controller.signal); await client.ready();
-    const control = controlled(); const iterator = client.stream(control.source, 16); const pending = settled(iterator.next());
+    const control = controlled([], name === 'pending-source-abort' ? controller.signal : undefined); const iterator = client.stream(control.source, 16); const pending = settled(iterator.next());
     await delay(10); assert.equal(control.state().outstanding, 1);
     if (name === 'pending-source-reject') control.reject('GUARD_SOURCE_FAILURE'); else controller.abort(new Error('GUARD_SOURCE_ABORT'));
     const outcome = await Promise.race([pending, delay(100).then(() => ({ status: 'timeout' }))]);
     record('pending-read-settlement', { outcome, source: control.state(), client: snapshot(client) });
     assert.equal(outcome.error, name === 'pending-source-reject' ? 'GUARD_SOURCE_FAILURE' : 'GUARD_SOURCE_ABORT');
+    assert.equal(control.state().returns, 1); assert.equal(control.state().outstanding, 0); clean(client); return;
+  }
+  if (name === 'uncooperative-pending-abort') {
+    const controller = new AbortController(); const client = make(undefined, controller.signal); await client.ready();
+    const control = controlled(); const iterator = client.stream(control.source, 16); let hasSettled = false;
+    const pending = settled(iterator.next()).then(outcome => { hasSettled = true; return outcome; });
+    await delay(10); controller.abort(new Error('GUARD_SOURCE_ABORT')); await delay(30);
+    record('uncooperative-read-after-abort', { hasSettled, source: control.state(), client: snapshot(client) });
+    assert.equal(hasSettled, false); assert.equal(control.state().outstanding, 1); assert.equal(control.state().returns, 0); clean(client);
+    control.reject('GUARD_SOURCE_ABORT'); assert.equal((await pending).error, 'GUARD_SOURCE_ABORT');
+    assert.equal(control.state().returns, 1); assert.equal(control.state().outstanding, 0); clean(client); return;
+  }
+  if (name === 'downstream-close-pending') {
+    const client = make(); await client.ready(); const control = controlled(); const iterator = client.stream(control.source, 16);
+    const pending = settled(iterator.next()); await delay(10); let closeSettled = false;
+    const closing = settled(iterator.return()).then(outcome => { closeSettled = true; return outcome; }); await delay(20);
+    record('return-queued-behind-owned-next', { closeSettled, source: control.state() });
+    assert.equal(closeSettled, false); assert.equal(control.state().returns, 0); assert.equal(control.state().outstanding, 1);
+    control.deliver(); assert.equal((await pending).value.done, false); assert.equal((await closing).value.done, true);
     assert.equal(control.state().returns, 1); assert.equal(control.state().outstanding, 0); clean(client); return;
   }
   if (name === 'downstream-throw') {

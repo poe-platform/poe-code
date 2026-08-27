@@ -49,3 +49,27 @@ The correction recognizes Node's isBuiltin and still requires the canonical
 name in the same inspected allowlist. Build/pack passed; no packed runtime
 fixture or type check ran before this harness rejection. Failure details and
 full original-report hash/path are retained in `evidence/packed-attempt-3/`.
+
+## Outer release attempt 2: native scratch inherited an unauthorized group
+
+The exact outer command correctly rejected missing/wrong copied prerequisites
+with exit78, then failed the positive canonical gate at 316/318 and native20/22.
+Both failures were chmod directory setid cases. These are retained failures,
+not counted as passes and not evidence of universal native parity.
+
+The newly created `/tmp` archive inherited gid0 (wheel); uid501/gid20 is not a
+member of group0. The canonical repository's metadata directory has gid20.
+The original failing `6755`, `+2000`, directory row was reproduced unchanged:
+inherited gid0 returns native EPERM both without and with the network sandbox;
+the same row in a newly created gid20 directory passes under the same sandbox.
+Node's initial chmod6755 measured4755 under gid0 but6755 under gid20. This is
+host-specific evidence, not a product-API requirement or a diagnostic waiver.
+
+The verifier now aligns only its NEW isolated output root to the canonical
+reference directory's gid, after asserting membership, and records that setup
+plus actual extracted metadata-directory gid. It preserves the network/write
+sandbox, exact outer command, source, all318 tests, all82 native stream inputs,
+strict classifiers and original host pins. Prior attempts/native artifacts
+remain unchanged. `native-group-control.mjs` and its raw evidence reproduce the
+profile distinction; no new corpus row is counted. Full positive replay remains
+required after this disclosed harness-environment correction.

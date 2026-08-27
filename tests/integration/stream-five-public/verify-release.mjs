@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { chownSync, copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +18,10 @@ assert.match(gate, /2919/u);
 assert.match(gate, /CLOSED/u);
 assert.match(gate, /root/iu);
 mkdirSync(output, { recursive: true });
+const nativeReferenceGid = statSync(join(repository, 'tests/commands/metadata-stress')).gid;
+assert.ok(process.getgroups().includes(nativeReferenceGid), 'native reference group must belong to the executing user');
+const inheritedOutputGid = statSync(output).gid;
+chownSync(output, process.getuid(), nativeReferenceGid);
 const hash = data => createHash('sha256').update(data).digest('hex');
 const node = realpathSync(process.execPath);
 const npm = realpathSync(join(dirname(process.execPath), 'npm'));
@@ -27,6 +31,7 @@ const env = { PATH: `${dirname(node)}:/usr/bin:/bin`, HOME: home, TMPDIR: output
 writeFileSync(env.npm_config_userconfig, '');
 writeFileSync(env.npm_config_globalconfig, '');
 const report = { started: new Date().toISOString(), commit, gate, gateSha256: hash(gate), node: process.version, nodeSha256: hash(readFileSync(node)), npm, npmSha256: hash(readFileSync(npm)), environment: env, steps: [], cases: [], failures: [] };
+report.directoryGroupProfile = { uid: process.getuid(), gid: process.getgid(), groups: process.getgroups(), inheritedOutputGid, nativeReferenceGid, actualOutputGid: statSync(output).gid, scope: 'new owned isolated output directory only; original artifacts unchanged' };
 const save = (name, value) => writeFileSync(join(output, name), JSON.stringify(value, null, 2) + '\n');
 const profile = join(output, 'release-offline.sb');
 const absoluteStat = '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat';
@@ -67,6 +72,7 @@ try {
   const authenticated = join(output, 'authenticated-workspace');
   mkdirSync(authenticated);
   run('extract authenticated workspace', '/usr/bin/tar', ['-xf', archive, '-C', authenticated]);
+  assert.equal(statSync(join(authenticated, 'tests/commands/metadata-stress')).gid, nativeReferenceGid);
   const gitDirectory = join(authenticated, '.git');
   mkdirSync(join(gitDirectory, 'refs'), { recursive: true });
   cpSync(join(repository, '.git/objects'), join(gitDirectory, 'objects'), { recursive: true, dereference: true });

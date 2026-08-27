@@ -1,0 +1,86 @@
+{
+  "identity": {
+    "uid": 501,
+    "gid": 20,
+    "groups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      701,
+      33,
+      98,
+      100,
+      204,
+      250,
+      395,
+      398,
+      400
+    ],
+    "referenceDirectoryGid": 20,
+    "initialOutputGid": 0
+  },
+  "binarySha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+  "inputOrigin": "unchanged first failing canonical directory-setid row",
+  "cases": [
+    {
+      "label": "inherited-plain",
+      "alignGroup": false,
+      "sandbox": false,
+      "requestedInitial": "6755",
+      "mode": "+2000",
+      "before": {
+        "gid": 0,
+        "mode": "4755"
+      },
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "chmod-copied: changing permissions of 'directory': Operation not permitted\n",
+      "after": {
+        "gid": 0,
+        "mode": "4755"
+      }
+    },
+    {
+      "label": "inherited-sandbox",
+      "alignGroup": false,
+      "sandbox": true,
+      "requestedInitial": "6755",
+      "mode": "+2000",
+      "before": {
+        "gid": 0,
+        "mode": "4755"
+      },
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "chmod-copied: changing permissions of 'directory': Operation not permitted\n",
+      "after": {
+        "gid": 0,
+        "mode": "4755"
+      }
+    },
+    {
+      "label": "reference-group-sandbox",
+      "alignGroup": true,
+      "sandbox": true,
+      "requestedInitial": "6755",
+      "mode": "+2000",
+      "before": {
+        "gid": 20,
+        "mode": "6755"
+      },
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "gid": 20,
+        "mode": "6755"
+      }
+    }
+  ]
+}

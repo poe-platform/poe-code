@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "fixtureCommit": "efb1a25aa3e2544cf71aba10f2aaa54b256091ff",
+  "fixture": "tests/commands/expr/inactive-prefix.test.ts",
+  "originalSha256": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70",
+  "overlaySha256": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e",
+  "changedSourceLines": 1,
+  "changedStringLiterals": 1,
+  "expandedAssertionDelta": 4,
+  "exactReplacementOnly": true,
+  "unrelatedCaseChanges": 0,
+  "inputs": [
+    [
+      "length",
+      "inactive-length"
+    ],
+    [
+      "index",
+      "inactive-index",
+      "z"
+    ],
+    [
+      "substr",
+      "inactive-substr",
+      "999",
+      "888"
+    ],
+    [
+      "match",
+      "inactive-match",
+      "["
+    ]
+  ],
+  "unchanged": [
+    "argv",
+    "env",
+    "options",
+    "status 2",
+    "stdout empty",
+    "jobs empty",
+    "encoding",
+    "cancellation",
+    "all other assertions"
+  ],
+  "oldDiagnostic": "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n",
+  "newDiagnostic": "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+}

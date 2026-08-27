@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "fixtureCommit": "efb1a25aa3e2544cf71aba10f2aaa54b256091ff",
+  "baselineOriginal": {
+    "tests": 68,
+    "pass": 64,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "newFixtureOverlay": {
+    "tests": 68,
+    "pass": 68,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failureNames": [
+    "active length still rejects unsupported character locale",
+    "active index still rejects unsupported character locale",
+    "active substr still rejects unsupported character locale",
+    "active match still rejects unsupported character locale"
+  ],
+  "changedExpandedAssertions": 4,
+  "changedInputCount": 0,
+  "unchangedTestNames": true,
+  "strictScopedTypesStatus": 0,
+  "workerPrerequisiteBuildStatus": 0,
+  "probeRows": 4,
+  "probeRowsNotAdditionalTests": true,
+  "independentOriginal225NotRescored": true,
+  "separateOld217NotRequalified": true,
+  "separateContractsOldEnUSRefusalNotRun": true,
+  "oldOneByteRedAnd19SequenceFailuresNotChangedOrRerun": true,
+  "sourceTreeSha256": "f08b5fdb469741e44b1878b2fc561da2fb0c49b2de96c166ca632e504a8949e3"
+}

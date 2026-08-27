@@ -1,0 +1,134 @@
+[
+  {
+    "args": [
+      "length",
+      "inactive-length"
+    ],
+    "options": {},
+    "env": {
+      "LC_ALL": "unsupported-inactive-profile"
+    },
+    "cwd": "/",
+    "stdin": "throw-on-acquisition",
+    "fs": "throw-on-access",
+    "signal": "fresh non-aborted AbortController",
+    "originalExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+    ],
+    "newExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "actual": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "jobs": [],
+    "stdoutHex": "",
+    "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a"
+  },
+  {
+    "args": [
+      "index",
+      "inactive-index",
+      "z"
+    ],
+    "options": {},
+    "env": {
+      "LC_ALL": "unsupported-inactive-profile"
+    },
+    "cwd": "/",
+    "stdin": "throw-on-acquisition",
+    "fs": "throw-on-access",
+    "signal": "fresh non-aborted AbortController",
+    "originalExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+    ],
+    "newExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "actual": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "jobs": [],
+    "stdoutHex": "",
+    "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a"
+  },
+  {
+    "args": [
+      "substr",
+      "inactive-substr",
+      "999",
+      "888"
+    ],
+    "options": {},
+    "env": {
+      "LC_ALL": "unsupported-inactive-profile"
+    },
+    "cwd": "/",
+    "stdin": "throw-on-acquisition",
+    "fs": "throw-on-access",
+    "signal": "fresh non-aborted AbortController",
+    "originalExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+    ],
+    "newExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "actual": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "jobs": [],
+    "stdoutHex": "",
+    "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a"
+  },
+  {
+    "args": [
+      "match",
+      "inactive-match",
+      "["
+    ],
+    "options": {},
+    "env": {
+      "LC_ALL": "unsupported-inactive-profile"
+    },
+    "cwd": "/",
+    "stdin": "throw-on-acquisition",
+    "fs": "throw-on-access",
+    "signal": "fresh non-aborted AbortController",
+    "originalExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+    ],
+    "newExpected": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "actual": [
+      2,
+      "",
+      "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+    ],
+    "jobs": [],
+    "stdoutHex": "",
+    "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a"
+  }
+]

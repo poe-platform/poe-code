@@ -1,0 +1,8 @@
+{
+  "completed": true,
+  "temporaryDirectoryRemoved": true,
+  "ownedRunningProcesses": 0,
+  "processModel": "Synchronous bounded child processes, none detached; Node worker threads exit with their test process. No separate worker-lifecycle instrumentation in this fixture-only cohort.",
+  "nativeProcessesStarted": false,
+  "timestamp": "2026-08-27T19:43:50.277Z"
+}

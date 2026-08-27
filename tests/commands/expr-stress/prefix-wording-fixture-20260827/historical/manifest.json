@@ -1,0 +1,79 @@
+{
+  "capturedAt": "2026-08-27T19:44:52.866Z",
+  "immutableAuthorEvidenceCommit": "d2115bc6be84bf2102cd64ffd1cf23db61ff83b3",
+  "independentOriginal": {
+    "passed": 221,
+    "total": 225,
+    "failed": 4,
+    "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+    "remainsRed": true
+  },
+  "oldIsolatedAuthor": {
+    "passed": 217,
+    "total": 217,
+    "acceptedSource": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "overlays": [
+      "src/commands/expr/evaluate.ts",
+      "tests/commands/expr/inactive-prefix.test.ts"
+    ],
+    "notCombined4fQualification": true
+  },
+  "entries": [
+    {
+      "path": "isolated-author-REPORT.md.data",
+      "origin": "tests/commands/expr-stress/inactive-prefix-author-20260827/REPORT.md",
+      "commit": "d2115bc6be84bf2102cd64ffd1cf23db61ff83b3",
+      "sha256": "3729b2f213c8de8a64e460e9d228d671f91fdf5a7fe9eb8bc29b52685b022c87",
+      "size": 6901,
+      "classification": "immutable historical author evidence, not this candidate"
+    },
+    {
+      "path": "isolated-author-binding.json",
+      "origin": "tests/commands/expr-stress/inactive-prefix-author-20260827/candidate-01/binding.json",
+      "commit": "d2115bc6be84bf2102cd64ffd1cf23db61ff83b3",
+      "sha256": "f940b23c61ff0eba3c116821fdf44eb9f1a4c884fb68846a89ebffceb3b3af72",
+      "size": 1869,
+      "classification": "immutable historical author evidence, not this candidate"
+    },
+    {
+      "path": "isolated-author-summary.json",
+      "origin": "tests/commands/expr-stress/inactive-prefix-author-20260827/candidate-01/summary.json",
+      "commit": "d2115bc6be84bf2102cd64ffd1cf23db61ff83b3",
+      "sha256": "a1c29cd3b4f6f3e5e665a19405e79b4337d754295e2014ae91bf8e3c1e02f917",
+      "size": 4408,
+      "classification": "immutable historical author evidence, not this candidate"
+    },
+    {
+      "path": "isolated-author-regressions.json",
+      "origin": "tests/commands/expr-stress/inactive-prefix-author-20260827/candidate-01/regressions.json",
+      "commit": "d2115bc6be84bf2102cd64ffd1cf23db61ff83b3",
+      "sha256": "30fb6bd15da58bd62e921aaf1f8d8399099b52ced3b531b43922f94b2ea60f05",
+      "size": 45122,
+      "classification": "immutable historical author evidence, not this candidate"
+    },
+    {
+      "path": "independent-original-221-of-225.json",
+      "origin": "tests/commands/expr-stress/qualified-final-review-20260827/source-author-additional.json",
+      "commit": null,
+      "sha256": "3d219365fa5c0f823fee94e81cb056ec2e8ccfd6e450d13dd8afc8f450d0777d",
+      "size": 20930,
+      "classification": "read-only snapshot of completed independent capture; not a rerun, rescore, or edit of reviewer artifacts"
+    },
+    {
+      "path": "independent-original-provenance.json",
+      "origin": "tests/commands/expr-stress/qualified-final-review-20260827/provenance.json",
+      "commit": null,
+      "sha256": "f68f3b140969720d439bc571bc3d12ce95c17545dc1af998b92945ff0c533cc5",
+      "size": 64583,
+      "classification": "read-only snapshot of completed independent capture; not a rerun, rescore, or edit of reviewer artifacts"
+    },
+    {
+      "path": "independent-original-issue.txt",
+      "origin": "/tmp/expr-qualified-final-review-20260827-issue.txt",
+      "commit": null,
+      "sha256": "584af57018d10f639794a13893e5a4f7d7d0604d485a6b10f3559e131a89372c",
+      "size": 8129,
+      "classification": "read-only snapshot of completed independent capture; not a rerun, rescore, or edit of reviewer artifacts"
+    }
+  ]
+}

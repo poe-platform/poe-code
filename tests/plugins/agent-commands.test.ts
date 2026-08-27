@@ -32,17 +32,17 @@ test("aggregate definitions are exactly the delivered families, each registered 
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
     "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv",
+    "date", "sleep", "printenv", "tree", "file",
   ].sort();
-  assert.equal(expected.length, 68);
-  assert.equal(new Set(expected).size, 68);
+  assert.equal(expected.length, 70);
+  assert.equal(new Set(expected).size, 70);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);
 });
 
-for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join", "date", "sleep", "printenv"]) {
+for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join", "date", "sleep", "printenv", "tree", "file"]) {
   test(`collision with ${conflict} leaves the entire host registry untouched`, () => {
     const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);
     const before = commands.list();
@@ -58,7 +58,7 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 69);
+  assert.equal(target.commands.list().length, 71);
   assert.equal(target.commands.get("custom"), original[0]);
   for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));

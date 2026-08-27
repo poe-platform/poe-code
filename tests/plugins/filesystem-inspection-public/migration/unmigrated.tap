@@ -1,0 +1,1045 @@
+TAP version 13
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 1 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 20.4505
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 56.208625
+  type: 'test'
+  ...
+# Subtest: actual default registry contains 68 including split without duplicate installation
+not ok 3 - actual default registry contains 68 including split without duplicate installation
+  ---
+  duration_ms: 1.915875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:1:1976'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    70 !== 68
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 68
+  actual: 70
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:39:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 4 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 0.884834
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 5 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 0.93925
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 6 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 27.996667
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 11.07625
+  type: 'test'
+  ...
+# Subtest: default factory contains68 and standalone formatting installs exactly four without split
+not ok 8 - default factory contains68 and standalone formatting installs exactly four without split
+  ---
+  duration_ms: 4.712709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/stream-format-author-stress/contracts.test.ts:1:903'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    70 !== 68
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 68
+  actual: 70
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/stream-format-author-stress/contracts.test.ts:19:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: collision preflight does not partially register; replacement is intentional
+ok 9 - collision preflight does not partially register; replacement is intentional
+  ---
+  duration_ms: 7.063375
+  type: 'test'
+  ...
+# Subtest: limits reject invalid typed values rather than treating them as unlimited
+ok 10 - limits reject invalid typed values rather than treating them as unlimited
+  ---
+  duration_ms: 0.189208
+  type: 'test'
+  ...
+# Subtest: seq awaits sinks, does not pull ahead, and owns published chunks
+ok 11 - seq awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 1.731333
+  type: 'test'
+  ...
+# Subtest: seq cancellation propagates an errno-shaped reason through blocked sink
+ok 12 - seq cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 3.246625
+  type: 'test'
+  ...
+# Subtest: seq sink failure does not keep consuming input
+ok 13 - seq sink failure does not keep consuming input
+  ---
+  duration_ms: 0.629708
+  type: 'test'
+  ...
+# Subtest: nl awaits sinks, does not pull ahead, and owns published chunks
+ok 14 - nl awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.722625
+  type: 'test'
+  ...
+# Subtest: nl cancellation propagates an errno-shaped reason through blocked sink
+ok 15 - nl cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.518375
+  type: 'test'
+  ...
+# Subtest: nl sink failure does not keep consuming input
+ok 16 - nl sink failure does not keep consuming input
+  ---
+  duration_ms: 0.314167
+  type: 'test'
+  ...
+# Subtest: rev awaits sinks, does not pull ahead, and owns published chunks
+ok 17 - rev awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.481541
+  type: 'test'
+  ...
+# Subtest: rev cancellation propagates an errno-shaped reason through blocked sink
+ok 18 - rev cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.858625
+  type: 'test'
+  ...
+# Subtest: rev sink failure does not keep consuming input
+ok 19 - rev sink failure does not keep consuming input
+  ---
+  duration_ms: 0.32325
+  type: 'test'
+  ...
+# Subtest: unexpand awaits sinks, does not pull ahead, and owns published chunks
+ok 20 - unexpand awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.544375
+  type: 'test'
+  ...
+# Subtest: unexpand cancellation propagates an errno-shaped reason through blocked sink
+ok 21 - unexpand cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.453791
+  type: 'test'
+  ...
+# Subtest: unexpand sink failure does not keep consuming input
+ok 22 - unexpand sink failure does not keep consuming input
+  ---
+  duration_ms: 0.1495
+  type: 'test'
+  ...
+# Subtest: VFS host reads receive cancellation and late rejection is observed
+ok 23 - VFS host reads receive cancellation and late rejection is observed
+  ---
+  duration_ms: 0.724459
+  type: 'test'
+  ...
+# Subtest: real Shell pipes, files, invoke middleware, and shared output budget
+ok 24 - real Shell pipes, files, invoke middleware, and shared output budget
+  ---
+  duration_ms: 10.8685
+  type: 'test'
+  ...
+# Subtest: long records and explicit UTF-8 split chunks stay byte faithful
+ok 25 - long records and explicit UTF-8 split chunks stay byte faithful
+  ---
+  duration_ms: 200.101417
+  type: 'test'
+  ...
+# Subtest: timer cancellation stops bounded ongoing work
+ok 26 - timer cancellation stops bounded ongoing work
+  ---
+  duration_ms: 16.360375
+  type: 'test'
+  ...
+# Subtest: root family exports preserve four inspection definitions in the 68-command aggregate
+not ok 27 - root family exports preserve four inspection definitions in the 68-command aggregate
+  ---
+  duration_ms: 4.788
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:1:995'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    70 !== 68
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 68
+  actual: 70
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:31:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: factory actual Shell dispatch: tac
+ok 28 - factory actual Shell dispatch: tac
+  ---
+  duration_ms: 3.954333
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: expand
+ok 29 - factory actual Shell dispatch: expand
+  ---
+  duration_ms: 1.1005
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: fold
+ok 30 - factory actual Shell dispatch: fold
+  ---
+  duration_ms: 0.841375
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: strings
+ok 31 - factory actual Shell dispatch: strings
+  ---
+  duration_ms: 0.832625
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: tac
+ok 32 - plugin actual Shell dispatch: tac
+  ---
+  duration_ms: 0.72
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: expand
+ok 33 - plugin actual Shell dispatch: expand
+  ---
+  duration_ms: 0.561291
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: fold
+ok 34 - plugin actual Shell dispatch: fold
+  ---
+  duration_ms: 0.95475
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: strings
+ok 35 - plugin actual Shell dispatch: strings
+  ---
+  duration_ms: 1.163
+  type: 'test'
+  ...
+# Subtest: aggregate preflights tac before installing any family
+ok 36 - aggregate preflights tac before installing any family
+  ---
+  duration_ms: 0.431708
+  type: 'test'
+  ...
+# Subtest: aggregate preflights expand before installing any family
+ok 37 - aggregate preflights expand before installing any family
+  ---
+  duration_ms: 0.098708
+  type: 'test'
+  ...
+# Subtest: aggregate preflights fold before installing any family
+ok 38 - aggregate preflights fold before installing any family
+  ---
+  duration_ms: 0.171625
+  type: 'test'
+  ...
+# Subtest: aggregate preflights strings before installing any family
+ok 39 - aggregate preflights strings before installing any family
+  ---
+  duration_ms: 0.069875
+  type: 'test'
+  ...
+# Subtest: standalone and aggregate share one explicit replacement boundary
+not ok 40 - standalone and aggregate share one explicit replacement boundary
+  ---
+  duration_ms: 0.38775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:1:2909'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:79:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: aggregate validates stream limits before registration
+ok 41 - aggregate validates stream limits before registration
+  ---
+  duration_ms: 0.073833
+  type: 'test'
+  ...
+# Subtest: stream family limits reach all four defaults without restricting other families
+ok 42 - stream family limits reach all four defaults without restricting other families
+  ---
+  duration_ms: 2.593292
+  type: 'test'
+  ...
+# Subtest: memory defaults preserve byte pipes and VFS publication
+ok 43 - memory defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 13.009083
+  type: 'test'
+  ...
+# Subtest: real defaults preserve byte pipes and VFS publication
+ok 44 - real defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 20.50825
+  type: 'test'
+  ...
+# Subtest: registry-only fallback dispatches all four without an invocation stub
+ok 45 - registry-only fallback dispatches all four without an invocation stub
+  ---
+  duration_ms: 0.756625
+  type: 'test'
+  ...
+# Subtest: actual invoke retains literal argv, middleware, VFS and shared output budget
+ok 46 - actual invoke retains literal argv, middleware, VFS and shared output budget
+  ---
+  duration_ms: 1.194875
+  type: 'test'
+  ...
+# Subtest: default bundle leaves optional curl and SafeJS unavailable
+ok 47 - default bundle leaves optional curl and SafeJS unavailable
+  ---
+  duration_ms: 0.455541
+  type: 'test'
+  ...
+# Subtest: aggregate definitions are exactly the delivered families, each registered once
+not ok 48 - aggregate definitions are exactly the delivered families, each registered once
+  ---
+  duration_ms: 3.899708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/agent-commands.test.ts:1:1057'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        '[',
+        'awk',
+        'base32',
+        'base64',
+    ...
+        'false',
+    +   'file',
+        'find',
+        'fold',
+        'grep',
+        'gunzip',
+        'gzip',
+    ...
+        'tr',
+    +   'tree',
+        'true',
+        'unexpand',
+        'uniq',
+        'wc',
+        'xargs',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: '['
+    1: 'awk'
+    2: 'base32'
+    3: 'base64'
+    4: 'basename'
+    5: 'cat'
+    6: 'chmod'
+    7: 'cksum'
+    8: 'comm'
+    9: 'cp'
+    10: 'cut'
+    11: 'date'
+    12: 'diff'
+    13: 'dirname'
+    14: 'echo'
+    15: 'env'
+    16: 'expand'
+    17: 'false'
+    18: 'find'
+    19: 'fold'
+    20: 'grep'
+    21: 'gunzip'
+    22: 'gzip'
+    23: 'head'
+    24: 'join'
+    25: 'jq'
+    26: 'ln'
+    27: 'ls'
+    28: 'md5sum'
+    29: 'mkdir'
+    30: 'mktemp'
+    31: 'mv'
+    32: 'nl'
+    33: 'od'
+    34: 'paste'
+    35: 'patch'
+    36: 'printenv'
+    37: 'printf'
+    38: 'pwd'
+    39: 'readlink'
+    40: 'realpath'
+    41: 'rev'
+    42: 'rg'
+    43: 'rm'
+    44: 'rmdir'
+    45: 'sed'
+    46: 'seq'
+    47: 'sha1sum'
+    48: 'sha256sum'
+    49: 'sleep'
+    50: 'sort'
+    51: 'split'
+    52: 'stat'
+    53: 'strings'
+    54: 'tac'
+    55: 'tail'
+    56: 'tar'
+    57: 'tee'
+    58: 'test'
+    59: 'touch'
+    60: 'tr'
+    61: 'true'
+    62: 'unexpand'
+    63: 'uniq'
+    64: 'wc'
+    65: 'xargs'
+    66: 'xxd'
+    67: 'zcat'
+  actual:
+    0: '['
+    1: 'awk'
+    2: 'base32'
+    3: 'base64'
+    4: 'basename'
+    5: 'cat'
+    6: 'chmod'
+    7: 'cksum'
+    8: 'comm'
+    9: 'cp'
+    10: 'cut'
+    11: 'date'
+    12: 'diff'
+    13: 'dirname'
+    14: 'echo'
+    15: 'env'
+    16: 'expand'
+    17: 'false'
+    18: 'file'
+    19: 'find'
+    20: 'fold'
+    21: 'grep'
+    22: 'gunzip'
+    23: 'gzip'
+    24: 'head'
+    25: 'join'
+    26: 'jq'
+    27: 'ln'
+    28: 'ls'
+    29: 'md5sum'
+    30: 'mkdir'
+    31: 'mktemp'
+    32: 'mv'
+    33: 'nl'
+    34: 'od'
+    35: 'paste'
+    36: 'patch'
+    37: 'printenv'
+    38: 'printf'
+    39: 'pwd'
+    40: 'readlink'
+    41: 'realpath'
+    42: 'rev'
+    43: 'rg'
+    44: 'rm'
+    45: 'rmdir'
+    46: 'sed'
+    47: 'seq'
+    48: 'sha1sum'
+    49: 'sha256sum'
+    50: 'sleep'
+    51: 'sort'
+    52: 'split'
+    53: 'stat'
+    54: 'strings'
+    55: 'tac'
+    56: 'tail'
+    57: 'tar'
+    58: 'tee'
+    59: 'test'
+    60: 'touch'
+    61: 'tr'
+    62: 'tree'
+    63: 'true'
+    64: 'unexpand'
+    65: 'uniq'
+    66: 'wc'
+    67: 'xargs'
+    68: 'xxd'
+    69: 'zcat'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/agent-commands.test.ts:39:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: collision with printf leaves the entire host registry untouched
+ok 49 - collision with printf leaves the entire host registry untouched
+  ---
+  duration_ms: 0.443792
+  type: 'test'
+  ...
+# Subtest: collision with sed leaves the entire host registry untouched
+ok 50 - collision with sed leaves the entire host registry untouched
+  ---
+  duration_ms: 0.181834
+  type: 'test'
+  ...
+# Subtest: collision with jq leaves the entire host registry untouched
+ok 51 - collision with jq leaves the entire host registry untouched
+  ---
+  duration_ms: 0.1505
+  type: 'test'
+  ...
+# Subtest: collision with rg leaves the entire host registry untouched
+ok 52 - collision with rg leaves the entire host registry untouched
+  ---
+  duration_ms: 0.0915
+  type: 'test'
+  ...
+# Subtest: collision with gzip leaves the entire host registry untouched
+ok 53 - collision with gzip leaves the entire host registry untouched
+  ---
+  duration_ms: 0.073958
+  type: 'test'
+  ...
+# Subtest: collision with patch leaves the entire host registry untouched
+ok 54 - collision with patch leaves the entire host registry untouched
+  ---
+  duration_ms: 0.064583
+  type: 'test'
+  ...
+# Subtest: collision with chmod leaves the entire host registry untouched
+ok 55 - collision with chmod leaves the entire host registry untouched
+  ---
+  duration_ms: 0.065417
+  type: 'test'
+  ...
+# Subtest: collision with stat leaves the entire host registry untouched
+ok 56 - collision with stat leaves the entire host registry untouched
+  ---
+  duration_ms: 0.348083
+  type: 'test'
+  ...
+# Subtest: collision with mktemp leaves the entire host registry untouched
+ok 57 - collision with mktemp leaves the entire host registry untouched
+  ---
+  duration_ms: 0.305125
+  type: 'test'
+  ...
+# Subtest: collision with tar leaves the entire host registry untouched
+ok 58 - collision with tar leaves the entire host registry untouched
+  ---
+  duration_ms: 0.082959
+  type: 'test'
+  ...
+# Subtest: collision with paste leaves the entire host registry untouched
+ok 59 - collision with paste leaves the entire host registry untouched
+  ---
+  duration_ms: 0.060875
+  type: 'test'
+  ...
+# Subtest: collision with comm leaves the entire host registry untouched
+ok 60 - collision with comm leaves the entire host registry untouched
+  ---
+  duration_ms: 0.055125
+  type: 'test'
+  ...
+# Subtest: collision with join leaves the entire host registry untouched
+ok 61 - collision with join leaves the entire host registry untouched
+  ---
+  duration_ms: 0.051959
+  type: 'test'
+  ...
+# Subtest: collision with date leaves the entire host registry untouched
+ok 62 - collision with date leaves the entire host registry untouched
+  ---
+  duration_ms: 0.052083
+  type: 'test'
+  ...
+# Subtest: collision with sleep leaves the entire host registry untouched
+ok 63 - collision with sleep leaves the entire host registry untouched
+  ---
+  duration_ms: 0.050792
+  type: 'test'
+  ...
+# Subtest: collision with printenv leaves the entire host registry untouched
+ok 64 - collision with printenv leaves the entire host registry untouched
+  ---
+  duration_ms: 0.055375
+  type: 'test'
+  ...
+# Subtest: explicit replacement affects all families once and preserves unrelated commands
+not ok 65 - explicit replacement affects all families once and preserves unrelated commands
+  ---
+  duration_ms: 0.339375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/agent-commands.test.ts:1:2447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/agent-commands.test.ts:61:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invalid eager family limits install no commands
+ok 66 - invalid eager family limits install no commands
+  ---
+  duration_ms: 0.056667
+  type: 'test'
+  ...
+# Subtest: definitions fallback resolves nested argv across families without a shell
+ok 67 - definitions fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 22.463958
+  type: 'test'
+  ...
+# Subtest: plugin fallback resolves nested argv across families without a shell
+ok 68 - plugin fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 16.730834
+  type: 'test'
+  ...
+# Subtest: plugin fallback can resolve host commands outside the aggregate
+ok 69 - plugin fallback can resolve host commands outside the aggregate
+  ---
+  duration_ms: 0.267
+  type: 'test'
+  ...
+# Subtest: custom fallback applies only without the shell invocation hook
+ok 70 - custom fallback applies only without the shell invocation hook
+  ---
+  duration_ms: 3.722083
+  type: 'test'
+  ...
+# Subtest: aggregate forwards text limits without rewriting them
+ok 71 - aggregate forwards text limits without rewriting them
+  ---
+  duration_ms: 0.838667
+  type: 'test'
+  ...
+# Subtest: aggregate forwards structured limits without rewriting them
+ok 72 - aggregate forwards structured limits without rewriting them
+  ---
+  duration_ms: 1.223667
+  type: 'test'
+  ...
+# Subtest: aggregate forwards search limits without rewriting them
+ok 73 - aggregate forwards search limits without rewriting them
+  ---
+  duration_ms: 16.648125
+  type: 'test'
+  ...
+# Subtest: aggregate forwards diffPatch limits without rewriting them
+ok 74 - aggregate forwards diffPatch limits without rewriting them
+  ---
+  duration_ms: 2.322917
+  type: 'test'
+  ...
+# Subtest: aggregate forwards metadata limits without rewriting them
+ok 75 - aggregate forwards metadata limits without rewriting them
+  ---
+  duration_ms: 1.178375
+  type: 'test'
+  ...
+# Subtest: aggregate forwards archive limits without rewriting them
+ok 76 - aggregate forwards archive limits without rewriting them
+  ---
+  duration_ms: 1.714083
+  type: 'test'
+  ...
+# Subtest: aggregate forwards tableText limits without rewriting them
+ok 77 - aggregate forwards tableText limits without rewriting them
+  ---
+  duration_ms: 0.602167
+  type: 'test'
+  ...
+# Subtest: search defaultInput remains an explicit family override
+ok 78 - search defaultInput remains an explicit family override
+  ---
+  duration_ms: 14.4635
+  type: 'test'
+  ...
+# Subtest: README aggregate example and binary pipelines use the actual shell
+ok 79 - README aggregate example and binary pipelines use the actual shell
+  ---
+  duration_ms: 8.158333
+  type: 'test'
+  ...
+# Subtest: aggregate tar streams binary archives through the actual VFS pipeline
+ok 80 - aggregate tar streams binary archives through the actual VFS pipeline
+  ---
+  duration_ms: 2.700459
+  type: 'test'
+  ...
+# Subtest: aggregate table-text composes with existing cut and virtual files
+ok 81 - aggregate table-text composes with existing cut and virtual files
+  ---
+  duration_ms: 4.412417
+  type: 'test'
+  ...
+# Subtest: current factory and installed registry are frozen60 plus approved five and time-env three
+not ok 82 - current factory and installed registry are frozen60 plus approved five and time-env three
+  ---
+  duration_ms: 4.073541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:641'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        'true',
+        'false',
+        'echo',
+        'pwd',
+    ...
+        'printenv',
+    +   'tree',
+    +   'file'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'true'
+    1: 'false'
+    2: 'echo'
+    3: 'pwd'
+    4: 'basename'
+    5: 'dirname'
+    6: 'printf'
+    7: 'mkdir'
+    8: 'touch'
+    9: 'cp'
+    10: 'mv'
+    11: 'rm'
+    12: 'rmdir'
+    13: 'ln'
+    14: 'readlink'
+    15: 'realpath'
+    16: 'ls'
+    17: 'cat'
+    18: 'head'
+    19: 'tail'
+    20: 'wc'
+    21: 'tee'
+    22: 'tr'
+    23: 'sort'
+    24: 'uniq'
+    25: 'cut'
+    26: 'grep'
+    27: 'test'
+    28: '['
+    29: 'env'
+    30: 'xargs'
+    31: 'find'
+    32: 'sed'
+    33: 'awk'
+    34: 'jq'
+    35: 'rg'
+    36: 'base64'
+    37: 'base32'
+    38: 'xxd'
+    39: 'od'
+    40: 'sha256sum'
+    41: 'sha1sum'
+    42: 'md5sum'
+    43: 'cksum'
+    44: 'gzip'
+    45: 'gunzip'
+    46: 'zcat'
+    47: 'diff'
+    48: 'patch'
+    49: 'chmod'
+    50: 'stat'
+    51: 'mktemp'
+    52: 'tar'
+    53: 'paste'
+    54: 'comm'
+    55: 'join'
+    56: 'tac'
+    57: 'expand'
+    58: 'fold'
+    59: 'strings'
+    60: 'seq'
+    61: 'nl'
+    62: 'rev'
+    63: 'unexpand'
+    64: 'split'
+    65: 'date'
+    66: 'sleep'
+    67: 'printenv'
+  actual:
+    0: 'true'
+    1: 'false'
+    2: 'echo'
+    3: 'pwd'
+    4: 'basename'
+    5: 'dirname'
+    6: 'printf'
+    7: 'mkdir'
+    8: 'touch'
+    9: 'cp'
+    10: 'mv'
+    11: 'rm'
+    12: 'rmdir'
+    13: 'ln'
+    14: 'readlink'
+    15: 'realpath'
+    16: 'ls'
+    17: 'cat'
+    18: 'head'
+    19: 'tail'
+    20: 'wc'
+    21: 'tee'
+    22: 'tr'
+    23: 'sort'
+    24: 'uniq'
+    25: 'cut'
+    26: 'grep'
+    27: 'test'
+    28: '['
+    29: 'env'
+    30: 'xargs'
+    31: 'find'
+    32: 'sed'
+    33: 'awk'
+    34: 'jq'
+    35: 'rg'
+    36: 'base64'
+    37: 'base32'
+    38: 'xxd'
+    39: 'od'
+    40: 'sha256sum'
+    41: 'sha1sum'
+    42: 'md5sum'
+    43: 'cksum'
+    44: 'gzip'
+    45: 'gunzip'
+    46: 'zcat'
+    47: 'diff'
+    48: 'patch'
+    49: 'chmod'
+    50: 'stat'
+    51: 'mktemp'
+    52: 'tar'
+    53: 'paste'
+    54: 'comm'
+    55: 'join'
+    56: 'tac'
+    57: 'expand'
+    58: 'fold'
+    59: 'strings'
+    60: 'seq'
+    61: 'nl'
+    62: 'rev'
+    63: 'unexpand'
+    64: 'split'
+    65: 'date'
+    66: 'sleep'
+    67: 'printenv'
+    68: 'tree'
+    69: 'file'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:19:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: seq aggregate collision is atomic and replacement remains explicit
+not ok 83 - seq aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 1.037625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:1326'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nl aggregate collision is atomic and replacement remains explicit
+not ok 84 - nl aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.331125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:1326'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: rev aggregate collision is atomic and replacement remains explicit
+not ok 85 - rev aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.231625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:1326'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unexpand aggregate collision is atomic and replacement remains explicit
+not ok 86 - unexpand aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.480209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:1326'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: split aggregate collision is atomic and replacement remains explicit
+not ok 87 - split aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.211042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:1:1326'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    71 !== 69
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69
+  actual: 71
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/registry.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..87
+# tests 87
+# suites 0
+# pass 75
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 614.365667

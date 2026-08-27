@@ -1,0 +1,576 @@
+TAP version 13
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 1 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 25.585958
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 31.897208
+  type: 'test'
+  ...
+# Subtest: actual default registry contains 70 including split without duplicate installation
+ok 3 - actual default registry contains 70 including split without duplicate installation
+  ---
+  duration_ms: 3.3405
+  type: 'test'
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 4 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 0.739292
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 5 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 1.304834
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 6 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 26.388709
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+not ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 11.04025
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:1:4082'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   input: '6162630a6465660a676869',
+    -   input: '6162630a6465660a677069',
+        xaa: '6162630a',
+        xab: '6465660a',
+    +   xac: '676869'
+    -   xac: '677069'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    input: '6162630a6465660a677069'
+    xaa: '6162630a'
+    xab: '6465660a'
+    xac: '677069'
+  actual:
+    input: '6162630a6465660a676869'
+    xaa: '6162630a'
+    xab: '6465660a'
+    xac: '676869'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:86:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: default factory contains70 and standalone formatting installs exactly four without split
+ok 8 - default factory contains70 and standalone formatting installs exactly four without split
+  ---
+  duration_ms: 9.133208
+  type: 'test'
+  ...
+# Subtest: collision preflight does not partially register; replacement is intentional
+ok 9 - collision preflight does not partially register; replacement is intentional
+  ---
+  duration_ms: 1.532667
+  type: 'test'
+  ...
+# Subtest: limits reject invalid typed values rather than treating them as unlimited
+ok 10 - limits reject invalid typed values rather than treating them as unlimited
+  ---
+  duration_ms: 0.115667
+  type: 'test'
+  ...
+# Subtest: seq awaits sinks, does not pull ahead, and owns published chunks
+ok 11 - seq awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.50125
+  type: 'test'
+  ...
+# Subtest: seq cancellation propagates an errno-shaped reason through blocked sink
+ok 12 - seq cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 2.498875
+  type: 'test'
+  ...
+# Subtest: seq sink failure does not keep consuming input
+ok 13 - seq sink failure does not keep consuming input
+  ---
+  duration_ms: 0.345083
+  type: 'test'
+  ...
+# Subtest: nl awaits sinks, does not pull ahead, and owns published chunks
+ok 14 - nl awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 1.128959
+  type: 'test'
+  ...
+# Subtest: nl cancellation propagates an errno-shaped reason through blocked sink
+ok 15 - nl cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 1.255959
+  type: 'test'
+  ...
+# Subtest: nl sink failure does not keep consuming input
+ok 16 - nl sink failure does not keep consuming input
+  ---
+  duration_ms: 0.717042
+  type: 'test'
+  ...
+# Subtest: rev awaits sinks, does not pull ahead, and owns published chunks
+ok 17 - rev awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.700375
+  type: 'test'
+  ...
+# Subtest: rev cancellation propagates an errno-shaped reason through blocked sink
+ok 18 - rev cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.558709
+  type: 'test'
+  ...
+# Subtest: rev sink failure does not keep consuming input
+ok 19 - rev sink failure does not keep consuming input
+  ---
+  duration_ms: 0.371083
+  type: 'test'
+  ...
+# Subtest: unexpand awaits sinks, does not pull ahead, and owns published chunks
+ok 20 - unexpand awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.531125
+  type: 'test'
+  ...
+# Subtest: unexpand cancellation propagates an errno-shaped reason through blocked sink
+ok 21 - unexpand cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.846417
+  type: 'test'
+  ...
+# Subtest: unexpand sink failure does not keep consuming input
+ok 22 - unexpand sink failure does not keep consuming input
+  ---
+  duration_ms: 0.203292
+  type: 'test'
+  ...
+# Subtest: VFS host reads receive cancellation and late rejection is observed
+ok 23 - VFS host reads receive cancellation and late rejection is observed
+  ---
+  duration_ms: 0.628042
+  type: 'test'
+  ...
+# Subtest: real Shell pipes, files, invoke middleware, and shared output budget
+ok 24 - real Shell pipes, files, invoke middleware, and shared output budget
+  ---
+  duration_ms: 13.516125
+  type: 'test'
+  ...
+# Subtest: long records and explicit UTF-8 split chunks stay byte faithful
+ok 25 - long records and explicit UTF-8 split chunks stay byte faithful
+  ---
+  duration_ms: 204.469208
+  type: 'test'
+  ...
+# Subtest: timer cancellation stops bounded ongoing work
+ok 26 - timer cancellation stops bounded ongoing work
+  ---
+  duration_ms: 22.681959
+  type: 'test'
+  ...
+# Subtest: root family exports preserve four inspection definitions in the 70-command aggregate
+ok 27 - root family exports preserve four inspection definitions in the 70-command aggregate
+  ---
+  duration_ms: 2.918167
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: tac
+ok 28 - factory actual Shell dispatch: tac
+  ---
+  duration_ms: 3.92675
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: expand
+ok 29 - factory actual Shell dispatch: expand
+  ---
+  duration_ms: 1.077
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: fold
+ok 30 - factory actual Shell dispatch: fold
+  ---
+  duration_ms: 0.839667
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: strings
+ok 31 - factory actual Shell dispatch: strings
+  ---
+  duration_ms: 0.845709
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: tac
+ok 32 - plugin actual Shell dispatch: tac
+  ---
+  duration_ms: 0.877792
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: expand
+ok 33 - plugin actual Shell dispatch: expand
+  ---
+  duration_ms: 0.792666
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: fold
+ok 34 - plugin actual Shell dispatch: fold
+  ---
+  duration_ms: 1.002417
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: strings
+ok 35 - plugin actual Shell dispatch: strings
+  ---
+  duration_ms: 1.23675
+  type: 'test'
+  ...
+# Subtest: aggregate preflights tac before installing any family
+ok 36 - aggregate preflights tac before installing any family
+  ---
+  duration_ms: 0.419167
+  type: 'test'
+  ...
+# Subtest: aggregate preflights expand before installing any family
+ok 37 - aggregate preflights expand before installing any family
+  ---
+  duration_ms: 0.102375
+  type: 'test'
+  ...
+# Subtest: aggregate preflights fold before installing any family
+ok 38 - aggregate preflights fold before installing any family
+  ---
+  duration_ms: 0.071833
+  type: 'test'
+  ...
+# Subtest: aggregate preflights strings before installing any family
+ok 39 - aggregate preflights strings before installing any family
+  ---
+  duration_ms: 0.065208
+  type: 'test'
+  ...
+# Subtest: standalone and aggregate share one explicit replacement boundary
+ok 40 - standalone and aggregate share one explicit replacement boundary
+  ---
+  duration_ms: 0.237917
+  type: 'test'
+  ...
+# Subtest: aggregate validates stream limits before registration
+ok 41 - aggregate validates stream limits before registration
+  ---
+  duration_ms: 0.068167
+  type: 'test'
+  ...
+# Subtest: stream family limits reach all four defaults without restricting other families
+ok 42 - stream family limits reach all four defaults without restricting other families
+  ---
+  duration_ms: 3.272875
+  type: 'test'
+  ...
+# Subtest: memory defaults preserve byte pipes and VFS publication
+ok 43 - memory defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 10.400125
+  type: 'test'
+  ...
+# Subtest: real defaults preserve byte pipes and VFS publication
+ok 44 - real defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 19.896917
+  type: 'test'
+  ...
+# Subtest: registry-only fallback dispatches all four without an invocation stub
+ok 45 - registry-only fallback dispatches all four without an invocation stub
+  ---
+  duration_ms: 0.854959
+  type: 'test'
+  ...
+# Subtest: actual invoke retains literal argv, middleware, VFS and shared output budget
+ok 46 - actual invoke retains literal argv, middleware, VFS and shared output budget
+  ---
+  duration_ms: 1.182292
+  type: 'test'
+  ...
+# Subtest: default bundle leaves optional curl and SafeJS unavailable
+ok 47 - default bundle leaves optional curl and SafeJS unavailable
+  ---
+  duration_ms: 0.560625
+  type: 'test'
+  ...
+# Subtest: aggregate definitions are exactly the delivered families, each registered once
+ok 48 - aggregate definitions are exactly the delivered families, each registered once
+  ---
+  duration_ms: 3.449208
+  type: 'test'
+  ...
+# Subtest: collision with printf leaves the entire host registry untouched
+ok 49 - collision with printf leaves the entire host registry untouched
+  ---
+  duration_ms: 0.323416
+  type: 'test'
+  ...
+# Subtest: collision with sed leaves the entire host registry untouched
+ok 50 - collision with sed leaves the entire host registry untouched
+  ---
+  duration_ms: 0.16775
+  type: 'test'
+  ...
+# Subtest: collision with jq leaves the entire host registry untouched
+ok 51 - collision with jq leaves the entire host registry untouched
+  ---
+  duration_ms: 0.0945
+  type: 'test'
+  ...
+# Subtest: collision with rg leaves the entire host registry untouched
+ok 52 - collision with rg leaves the entire host registry untouched
+  ---
+  duration_ms: 0.116375
+  type: 'test'
+  ...
+# Subtest: collision with gzip leaves the entire host registry untouched
+ok 53 - collision with gzip leaves the entire host registry untouched
+  ---
+  duration_ms: 0.067791
+  type: 'test'
+  ...
+# Subtest: collision with patch leaves the entire host registry untouched
+ok 54 - collision with patch leaves the entire host registry untouched
+  ---
+  duration_ms: 0.064541
+  type: 'test'
+  ...
+# Subtest: collision with chmod leaves the entire host registry untouched
+ok 55 - collision with chmod leaves the entire host registry untouched
+  ---
+  duration_ms: 0.257542
+  type: 'test'
+  ...
+# Subtest: collision with stat leaves the entire host registry untouched
+ok 56 - collision with stat leaves the entire host registry untouched
+  ---
+  duration_ms: 0.254292
+  type: 'test'
+  ...
+# Subtest: collision with mktemp leaves the entire host registry untouched
+ok 57 - collision with mktemp leaves the entire host registry untouched
+  ---
+  duration_ms: 0.372958
+  type: 'test'
+  ...
+# Subtest: collision with tar leaves the entire host registry untouched
+ok 58 - collision with tar leaves the entire host registry untouched
+  ---
+  duration_ms: 0.083417
+  type: 'test'
+  ...
+# Subtest: collision with paste leaves the entire host registry untouched
+ok 59 - collision with paste leaves the entire host registry untouched
+  ---
+  duration_ms: 0.061833
+  type: 'test'
+  ...
+# Subtest: collision with comm leaves the entire host registry untouched
+ok 60 - collision with comm leaves the entire host registry untouched
+  ---
+  duration_ms: 0.238667
+  type: 'test'
+  ...
+# Subtest: collision with join leaves the entire host registry untouched
+ok 61 - collision with join leaves the entire host registry untouched
+  ---
+  duration_ms: 0.182208
+  type: 'test'
+  ...
+# Subtest: collision with date leaves the entire host registry untouched
+ok 62 - collision with date leaves the entire host registry untouched
+  ---
+  duration_ms: 0.09825
+  type: 'test'
+  ...
+# Subtest: collision with sleep leaves the entire host registry untouched
+ok 63 - collision with sleep leaves the entire host registry untouched
+  ---
+  duration_ms: 0.066167
+  type: 'test'
+  ...
+# Subtest: collision with printenv leaves the entire host registry untouched
+ok 64 - collision with printenv leaves the entire host registry untouched
+  ---
+  duration_ms: 0.05925
+  type: 'test'
+  ...
+# Subtest: collision with tree leaves the entire host registry untouched
+ok 65 - collision with tree leaves the entire host registry untouched
+  ---
+  duration_ms: 0.055667
+  type: 'test'
+  ...
+# Subtest: collision with file leaves the entire host registry untouched
+ok 66 - collision with file leaves the entire host registry untouched
+  ---
+  duration_ms: 0.060084
+  type: 'test'
+  ...
+# Subtest: explicit replacement affects all families once and preserves unrelated commands
+ok 67 - explicit replacement affects all families once and preserves unrelated commands
+  ---
+  duration_ms: 0.271417
+  type: 'test'
+  ...
+# Subtest: invalid eager family limits install no commands
+ok 68 - invalid eager family limits install no commands
+  ---
+  duration_ms: 0.058708
+  type: 'test'
+  ...
+# Subtest: definitions fallback resolves nested argv across families without a shell
+ok 69 - definitions fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 23.144875
+  type: 'test'
+  ...
+# Subtest: plugin fallback resolves nested argv across families without a shell
+ok 70 - plugin fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 17.702542
+  type: 'test'
+  ...
+# Subtest: plugin fallback can resolve host commands outside the aggregate
+ok 71 - plugin fallback can resolve host commands outside the aggregate
+  ---
+  duration_ms: 0.255917
+  type: 'test'
+  ...
+# Subtest: custom fallback applies only without the shell invocation hook
+ok 72 - custom fallback applies only without the shell invocation hook
+  ---
+  duration_ms: 4.170208
+  type: 'test'
+  ...
+# Subtest: aggregate forwards text limits without rewriting them
+ok 73 - aggregate forwards text limits without rewriting them
+  ---
+  duration_ms: 0.976709
+  type: 'test'
+  ...
+# Subtest: aggregate forwards structured limits without rewriting them
+ok 74 - aggregate forwards structured limits without rewriting them
+  ---
+  duration_ms: 0.760375
+  type: 'test'
+  ...
+# Subtest: aggregate forwards search limits without rewriting them
+ok 75 - aggregate forwards search limits without rewriting them
+  ---
+  duration_ms: 16.873209
+  type: 'test'
+  ...
+# Subtest: aggregate forwards diffPatch limits without rewriting them
+ok 76 - aggregate forwards diffPatch limits without rewriting them
+  ---
+  duration_ms: 2.574958
+  type: 'test'
+  ...
+# Subtest: aggregate forwards metadata limits without rewriting them
+ok 77 - aggregate forwards metadata limits without rewriting them
+  ---
+  duration_ms: 1.285208
+  type: 'test'
+  ...
+# Subtest: aggregate forwards archive limits without rewriting them
+ok 78 - aggregate forwards archive limits without rewriting them
+  ---
+  duration_ms: 1.628875
+  type: 'test'
+  ...
+# Subtest: aggregate forwards tableText limits without rewriting them
+ok 79 - aggregate forwards tableText limits without rewriting them
+  ---
+  duration_ms: 0.838875
+  type: 'test'
+  ...
+# Subtest: search defaultInput remains an explicit family override
+ok 80 - search defaultInput remains an explicit family override
+  ---
+  duration_ms: 14.836917
+  type: 'test'
+  ...
+# Subtest: README aggregate example and binary pipelines use the actual shell
+ok 81 - README aggregate example and binary pipelines use the actual shell
+  ---
+  duration_ms: 10.358375
+  type: 'test'
+  ...
+# Subtest: aggregate tar streams binary archives through the actual VFS pipeline
+ok 82 - aggregate tar streams binary archives through the actual VFS pipeline
+  ---
+  duration_ms: 2.602666
+  type: 'test'
+  ...
+# Subtest: aggregate table-text composes with existing cut and virtual files
+ok 83 - aggregate table-text composes with existing cut and virtual files
+  ---
+  duration_ms: 2.974583
+  type: 'test'
+  ...
+# Subtest: current factory and installed registry are frozen60 plus approved five plus time-env three and tree/file
+ok 84 - current factory and installed registry are frozen60 plus approved five plus time-env three and tree/file
+  ---
+  duration_ms: 3.804584
+  type: 'test'
+  ...
+# Subtest: seq aggregate collision is atomic and replacement remains explicit
+ok 85 - seq aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.492667
+  type: 'test'
+  ...
+# Subtest: nl aggregate collision is atomic and replacement remains explicit
+ok 86 - nl aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.215708
+  type: 'test'
+  ...
+# Subtest: rev aggregate collision is atomic and replacement remains explicit
+ok 87 - rev aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.125583
+  type: 'test'
+  ...
+# Subtest: unexpand aggregate collision is atomic and replacement remains explicit
+ok 88 - unexpand aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.310875
+  type: 'test'
+  ...
+# Subtest: split aggregate collision is atomic and replacement remains explicit
+ok 89 - split aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.117
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 88
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 632.328625

@@ -30,8 +30,8 @@ test("moved package resolves only compiled public root and subpaths", () => {
   assert.deepEqual(createStreamFormatCommands().map(command => command.name), ["seq", "nl", "rev", "unexpand"]);
   assert.deepEqual(createSplitCommands().map(command => command.name), ["split"]);
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 68);
-  assert.equal(new Set(names).size, 68);
+  assert.equal(names.length, 70);
+  assert.equal(new Set(names).size, 70);
   assert.ok([...newNames, "tac", "expand", "fold", "strings"].every(name => names.includes(name)));
   assert.ok(!names.includes("curl") && !names.includes("safejs"));
 });
@@ -123,7 +123,7 @@ for (const name of newNames) {
     assert.throws(() => agentCommands().setup(host), /already registered/u);
     assert.deepEqual(commands.list(), [sentinel]);
     await agentCommands({ replace: true }).setup(host);
-    assert.equal(commands.list().length, 68);
+    assert.equal(commands.list().length, 70);
     assert.notEqual(commands.get(name), sentinel);
   });
 }

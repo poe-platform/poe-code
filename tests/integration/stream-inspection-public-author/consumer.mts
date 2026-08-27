@@ -34,10 +34,10 @@ assert.ok(rootResolution.includes("/consumer/node_modules/virtual-bash/dist/inde
 assert.ok(subpathResolution.includes("/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js"), subpathResolution);
 
 const names = createAgentCommands(aggregateOptions).map(command => command.name);
-assert.equal(names.length, 68);
-assert.equal(new Set(names).size, 68);
+assert.equal(names.length, 70);
+assert.equal(new Set(names).size, 70);
 assert.deepEqual(names.slice(56, 60), ["tac", "expand", "fold", "strings"]);
-assert.deepEqual(names.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv"]);
+assert.deepEqual(names.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file"]);
 assert.equal(names.includes("curl"), false);
 assert.equal(names.includes("safejs"), false);
 const results: { mode: string; command: string; stdoutHex: string }[] = [];

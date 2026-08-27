@@ -126,7 +126,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
     }
     if (precision !== undefined && !Object.hasOwn(times, code)) throw new FsError("ENOTSUP", { message: "stat precision is only supported for epoch timestamps" });
     if (numeric && flags.includes("#")) text = code === "a" ? (text.startsWith("0") ? text : `0${text}`) : code === "f" || code === "D" ? `0x${text}` : text;
-    if (numeric && !text.startsWith("-") && (flags.includes("+") || flags.includes(" "))) text = `${flags.includes("+") ? "+" : " "}${text}`;
+    if (Object.hasOwn(times, code) && !text.startsWith("-") && (flags.includes("+") || flags.includes(" "))) text = `${flags.includes("+") ? "+" : " "}${text}`;
     const padding = Math.max(0, width - text.length);
     if (flags.includes("-")) text += " ".repeat(padding);
     else if (numeric && flags.includes("0") && padding) {

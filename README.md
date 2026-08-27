@@ -63,10 +63,11 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs seven delivered families once: standard,
-text programs, structured (`jq`), search (`rg`), byte tools, diff/patch, and
-metadata (`chmod`, `stat`, `mktemp`), totaling 52 registered plugin names.
-Metadata is an author delivery awaiting a different agent's independent review.
+`agentCommands(options?)` installs eight delivered families once: standard,
+text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
+metadata (`chmod`, `stat`, `mktemp`), and archives (`tar`), totaling 53 registered
+plugin names. Metadata and archive independent verification are in progress;
+name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
 `replace: true` applies uniformly across all families, leaving unrelated commands.
@@ -88,6 +89,7 @@ agentCommands({
   search: { maxLineBytes: 1024 * 1024, defaultInput: "auto" },
   diffPatch: { maxInputBytes: 8 * 1024 * 1024, maxWork: 1_000_000 },
   metadata: { umask: 0o022, limits: { maxEntries: 100_000 } },
+  archive: { limits: { maxArchiveBytes: 64 * 1024 * 1024 } },
 });
 ```
 
@@ -96,6 +98,27 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 `exec` buffers its returned output under shell limits, while internal pipes use
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
+
+## Archive Commands
+
+The package root and `virtual-bash/commands/archive` export
+`archiveCommands(options?)`, `createArchiveCommands(options?)`,
+`createTarCommand(options?)`, `ArchiveCommandsOptions`, `ArchiveLimits` and
+`DEFAULT_ARCHIVE_LIMITS`. Register the standalone plugin or use `agentCommands`,
+not both unless replacement is intentional. Options are `{ replace?, limits? }`.
+
+With `/input` and `/output` already created in the VFS, the aggregate can run:
+
+```ts
+await shell.exec("tar -cf - -C /input . | tar -xf - -C /output");
+```
+
+This transfers byte streams through virtual pipes; no product subprocess or host
+filesystem fallback is used. Author checkpoint `be29e38`/`0eaffb7` reports
+128 tests and four built checks. Independent archive source/test review belongs
+to Dirac and is not complete here. Exact author flags, bounds and hardlink
+restrictions remain in `src/commands/archive/README.md`; this integration does
+not certify hardlink completeness, arbitrary archive safety or full tar parity.
 
 ## Metadata Commands
 
@@ -181,7 +204,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Archimedes retains
 network source/test ownership until reassigned.
 
-The current default aggregate has 52 plugin names; optional `curl` and `safejs`
+The current default aggregate has 53 plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

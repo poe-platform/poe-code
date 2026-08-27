@@ -30,6 +30,10 @@
       "types": "./dist/commands/metadata/index.d.ts",
       "import": "./dist/commands/metadata/index.js"
     },
+    "./commands/archive": {
+      "types": "./dist/commands/archive/index.d.ts",
+      "import": "./dist/commands/archive/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

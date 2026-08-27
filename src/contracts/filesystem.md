@@ -1,3 +1,61 @@
+# Optional allocation metadata
+
+`FileStat.allocatedBytes?: number` is an optional, readonly observation of the
+bytes allocated to the same backing entry by its filesystem or provider. A
+present value must be a nonnegative safe integer; reported zero is valid.
+Absence means unknown or unavailable, never zero. Existing structural `FileStat`
+implementations remain valid without the field; no capability flag is required.
+`stat` describes the followed entry and `lstat` the final entry without following
+its symlink, subject to the filesystem's existing path-resolution contract.
+
+This is filesystem/provider-reported per-entry allocation, not logical length,
+unique physical storage, exclusive or reclaimable bytes, quota/billing usage,
+process RSS, or a sum of all storage layers. Shared extents and hardlinks may
+report allocation attributed to more than one visible entry. Directory and
+symlink observations are provider-specific. Do not derive allocation from `size`,
+round logical length to an assumed block size, or substitute preferred I/O size.
+Consumers needing comparable accounting must qualify the reporting providers and
+handle unknown entries explicitly; they must not silently fall back to length.
+
+Faithful wrappers preserve a present value and its absence for the selected
+backing entry, including reported zero. Synthetic directories and providers
+without an allocation observation omit the field. After copy-up or another
+backing-entry change, use the new entry's observation or omit it; do not retain
+allocation from the replaced view or sum invisible overlay layers. This metadata
+adds no identity authority, lease, snapshot, transaction, or race protection and
+does not change `identityScope`, `compareEntry`, or `snapshotRmdir` semantics.
+Memory, S3, and WebDAV do not acquire physical-allocation values by this addition.
+
+## Real filesystem conversion
+
+Real uses the native `Stats.blocks` observation returned by the existing rooted
+`stat`/`lstat` operation. On Darwin and Linux only, the documented unit is 512
+bytes. The count must itself be a nonnegative safe integer and its product with
+512 must also be a safe integer. Missing, invalid, negative, fractional, unsafe,
+or overflowing reports, and other platforms, omit `allocatedBytes`; they do not
+fabricate zero or fail an otherwise valid stat. Existing filesystem errors and
+cancellation still propagate. No extra content read, native process, provider
+lookup, or dependency is used to obtain allocation.
+
+Primary references for the unit and mapping:
+
+- [Node v22.22.2 `stats.blocks`](https://github.com/nodejs/node/blob/v22.22.2/doc/api/fs.md#statsblocks)
+  defines the allocated block count, not a portable byte unit.
+- [Apple `stat(2)`](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/stat.2.html)
+  specifies 512-byte `st_blocks` units and allows zero for short symlinks.
+- [Linux `inode(7)`](https://man7.org/linux/man-pages/man7/inode.7.html)
+  specifies 512-byte units, distinct from `st_blksize`, and notes that POSIX does
+  not universally specify the `st_blocks` unit.
+- [Node v22.22.2 bundled libuv Unix mapping](https://github.com/nodejs/node/blob/v22.22.2/deps/uv/src/unix/fs.c)
+  copies native `st_blocks` into the returned stat structure.
+- [The corresponding Linux statx mapping](https://github.com/nodejs/node/blob/v22.22.2/deps/uv/src/unix/linux.c)
+  likewise forwards `stx_blocks` without logical-size estimation.
+
+These sources justify the platform-specific conversion, not universal runtime
+acceptance. Native witnesses must record their actual platform, runtime, and
+filesystem profile; executing a Linux conversion branch on Darwin is not a
+Linux filesystem witness.
+
 # Empty-directory removal
 
 `FileSystem.rmdir?(path: string, options?: FsOptions): Promise<void>` is an

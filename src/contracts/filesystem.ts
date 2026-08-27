@@ -6,6 +6,7 @@ export type EntryComparison = "same" | "distinct" | "unknown";
 export interface FileStat {
   readonly type: FileType;
   readonly size: number;
+  readonly allocatedBytes?: number;
   readonly mode: number;
   readonly mtimeMs: number;
   readonly atimeMs: number;

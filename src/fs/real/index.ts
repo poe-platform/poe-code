@@ -1,6 +1,7 @@
 import { constants, type Stats } from "node:fs";
 import * as native from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { nativeAllocatedBytes } from "./allocation.js";
 import {
   FsError, collectBytes, isErrnoCode, toByteSource, toFsError, validatePath,
 } from "../../contracts/index.js";
@@ -35,8 +36,10 @@ function fileType(stats: Pick<Stats, "isFile" | "isDirectory" | "isSymbolicLink"
 }
 
 function fileStat(stats: Stats): FileStat {
+  const allocatedBytes = nativeAllocatedBytes(stats.blocks, process.platform);
   return {
     type: fileType(stats), size: stats.size, mode: stats.mode,
+    ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
     birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
     ...(Number.isSafeInteger(stats.dev) && stats.dev >= 0 && Number.isSafeInteger(stats.ino) && stats.ino >= 0

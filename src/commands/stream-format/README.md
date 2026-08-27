@@ -1,9 +1,32 @@
-# Stream formatting (source-only opt-in)
+# Stream formatting
 
-This module is not added to root exports, package subpaths or default commands.
-Its source entry is `index.ts`: `createStreamFormatCommands(options?)` returns
-command definitions and `streamFormatCommands(options?)` installs them explicitly.
+`seq`, `nl`, `rev` and `unexpand` are included in `agentCommands()` and
+`createAgentCommands()`. Together with `split`, they extend the preserved prior
+60-command registry to exactly 65 unique defaults; curl and SafeJS remain optional.
+`createStreamFormatCommands(options?)` returns four command definitions and
+`streamFormatCommands(options?)` installs that family explicitly. Both functions,
+`StreamFormatCommandsOptions` and `StreamFormatLimits` are exported from
+`virtual-bash` and `virtual-bash/commands/stream-format`.
 The plugin preflights collisions; `replace: true` intentionally replaces them.
+
+Configure the default family through the aggregate, rather than installing the
+explicit plugin again. Aggregate replacement belongs at the top level, not inside
+`streamFormat`:
+
+```ts
+import { agentCommands, createMemoryFileSystem, Shell } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({
+  streamFormat: { limits: { maxInputBytes: 1024 * 1024 } },
+}));
+```
+
+The original **source-only opt-in** delivery had no root exports, package subpaths
+or default registration. That historical scope and its evidence remain historical;
+the current availability proof is the isolated ESM/declaration build and strict
+root/subpath consumers in `tests/plugins/stream-five-fixture-migration`. This is
+not a published-release claim, final independent packed verification, or an
+extension of the native semantic coverage below.
 
 `StreamFormatCommandsOptions.limits` accepts partial `StreamFormatLimits`.
 Defaults per invocation: input 32 MiB, output 64 MiB, record 8 MiB, input/output

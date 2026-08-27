@@ -1,12 +1,31 @@
-# Standalone split commands
+# Split commands
 
 `createSplitCommands(options?)` returns a one-element command-definition list.
 `splitCommands(options?)` returns the `split-commands` plugin, with collision
-preflight and opt-in `replace`. Both are exported by this source directory's
-`index.ts`; this batch does **not** add package/root exports or default commands.
-The existing `createAgentCommands()` list remains 60 definitions. Tests import
-this module directly; there is no claim of a published `virtual-bash/commands/split`
-subpath. No runtime dependencies, subprocesses, implicit host files or network
+preflight and opt-in `replace`. Both functions, `SplitCommandsOptions` and
+`SplitLimits` are exported from `virtual-bash` and `virtual-bash/commands/split`.
+`split` is included in `agentCommands()` and `createAgentCommands()`: the default
+registry is exactly the preserved prior 60 plus `seq`, `nl`, `rev`, `unexpand`
+and `split`, each registered once. Curl and SafeJS remain optional.
+
+Configure the default family through `AgentCommandsOptions.split`, not a second
+explicit plugin installation. Aggregate replacement is a top-level option:
+
+```ts
+import { agentCommands, createMemoryFileSystem, Shell } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({
+  split: { limits: { maxFiles: 128 } },
+}));
+```
+
+The original standalone source-only delivery had no root/package exports and
+left the default registry at 60. Those records remain historical, not assertions
+about current availability. Current availability is checked by the isolated
+ESM/declaration build and strict root/subpath consumers in
+`tests/plugins/stream-five-fixture-migration`; it is not a published-release claim,
+final independent packed verification, or broader native semantic parity.
+No runtime dependencies, subprocesses, implicit host files or network
 credentials are used.
 
 ## Command profile

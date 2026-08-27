@@ -10,7 +10,7 @@ import { WebDavFileSystem } from "../../../../../src/fs/webdav/index.js";
 import type { WebDavFetch } from "../../../../../src/fs/webdav/index.js";
 import { davChild, davChildren, parseXml, scalar } from "../../../../../src/fs/webdav/xml.js";
 import { MockDav } from "../../../webdav/mock.js";
-import { bytes, comparison, seeded, text } from "./support.js";
+import { bytes, comparison, opaque, seeded, text } from "./support.js";
 
 const observe = (name: string, data: unknown): void => console.log(`IMPLEMENTATION_OBSERVATION ${Buffer.from(JSON.stringify({ name, data })).toString("base64")}`);
 
@@ -73,7 +73,7 @@ for (const fault of ["source", "target", "cancel"] as const) {
   });
 }
 
-test("S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy", async () => {
+test("S3 honest local-data remapper strips unrelated HEAD authority before destructive copy", async () => {
   const memory = await seeded();
   const store = new MockS3Client({ buckets: ["bucket"] });
   await store.putObject({ Bucket: "bucket", Key: "source", Body: bytes("source sentinel") });
@@ -81,6 +81,8 @@ test("S3 unrecognized custom transport aliasing local memory remains unknown bef
   const effects: string[] = [];
   const transport: S3Transport = {
     ...forwarding,
+    capabilities: { ...store.capabilities, streamingRead: false, streamingWrite: false },
+    headObject: async (input, options) => ({ ...await forwarding.headObject(input, options) }),
     getObject: async () => { effects.push("GET"); return { Body: await memory.readFile("/source") }; },
     putObject: async () => { effects.push("PUT"); await memory.writeFile("/source", bytes("damaged")); throw new S3ServiceError("InternalError", 500); },
   };
@@ -93,25 +95,34 @@ test("S3 unrecognized custom transport aliasing local memory remains unknown bef
   assert.equal(await text(memory, "/source"), "source sentinel");
 });
 
-test("S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority", async () => {
-  const local = await seeded();
-  class SplitClient extends MockS3Client {
-    override async getObject() { return { Body: await local.readFile("/source") }; }
+test("S3 faithful subclass and late content decorator retain fresh backing authority", async () => {
+  class ForwardingClient extends MockS3Client {
+    override getObject(...args: Parameters<MockS3Client["getObject"]>) { return super.getObject(...args); }
   }
-  const subclass = new SplitClient({ buckets: ["bucket"] });
+  const subclass = new ForwardingClient({ buckets: ["bucket"] });
   const other = new MockS3Client({ buckets: ["bucket"] });
   for (const client of [subclass, other]) await client.putObject({ Bucket: "bucket", Key: "file", Body: bytes("same") });
   const first = new S3FileSystem({ transport: subclass, bucket: "bucket" });
-  const transport = createS3Transport(other, other.capabilities);
+  const transport = createS3Transport(other, { ...other.capabilities, streamingRead: false, streamingWrite: false });
   const second = new S3FileSystem({ transport, bucket: "bucket" });
-  assert.equal(await comparison(first, "/file", second, "/file"), "unknown");
+  assert.equal(await comparison(first, "/file", second, "/file"), "distinct");
   const canonical = new S3FileSystem({ transport: other, bucket: "bucket" });
   assert.equal(await comparison(canonical, "/file", second, "/file"), "same");
-  transport.putObject = async () => { await local.writeFile("/source", bytes("damaged")); throw new S3ServiceError("InternalError", 500); };
-  assert.equal(await comparison(canonical, "/file", second, "/file"), "unknown");
+  let writes = 0;
+  const put = transport.putObject;
+  transport.putObject = (...args) => { writes++; return put(...args); };
+  assert.equal(await comparison(canonical, "/file", second, "/file"), "same");
+  await first.writeFile("/file", bytes("changed source"));
+  const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/first": first, "/second": second, "/alias": canonical } });
+  await mount.copyFile("/first/file", "/second/file");
+  assert.equal(writes, 1);
+  await assert.rejects(mount.copyFile("/alias/file", "/second/file"), { code: "EINVAL" });
+  assert.equal(writes, 1);
+  assert.equal(await text(first, "/file"), "changed source");
+  assert.equal(await text(second, "/file"), "changed source");
 });
 
-test("S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data", async () => {
+test("S3 two honest clients omit unrelated mock authority for shared local data", async () => {
   const memory = await seeded();
   const effects: string[] = [];
   const make = async () => {
@@ -120,6 +131,7 @@ test("S3 two custom clients returning private mock metadata cannot claim distinc
     const transport: S3Transport = {
       ...createS3Transport(store, store.capabilities),
       capabilities: { ...store.capabilities, streamingRead: false, streamingWrite: false },
+      headObject: async (input, options) => ({ ...await store.headObject(input, options) }),
       getObject: async () => { effects.push("GET"); return { Body: await memory.readFile("/source") }; },
       putObject: async () => { effects.push("PUT"); await memory.writeFile("/source", bytes("partial S3 write hit source")); throw new S3ServiceError("InternalError", 500); },
     };
@@ -291,13 +303,16 @@ async function splitDavTransport() {
       await memory.writeFile("/source", bytes("partial remote write hit local source"));
       return new Response(null, { status: 500 });
     }
-    return metadataProvider.fetch(url, init);
+    const response = await metadataProvider.fetch(url, init);
+    if (init.method !== "PROPFIND" || response.status !== 207) return response;
+    const xml = (await response.text()).replace(/<z:resource-id>.*?<\/z:resource-id>/gs, "");
+    return new Response(xml, { status: response.status, headers: response.headers });
   };
   const remote = new WebDavFileSystem({ baseUrl: "https://split.example/dav/", fetch, overwritePolicy: "etag" });
   return { memory, remote, effects };
 }
 
-test("WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint", async () => {
+test("WebDAV honest local-data fetch omits unrelated private and protocol identity", async () => {
   const { memory, remote, effects } = await splitDavTransport();
   const result = await comparison(remote, "/source", memory, "/source");
   observe("split-dav-comparison", { result, effects });
@@ -305,7 +320,7 @@ test("WebDAV custom fetch returning genuine MockDav metadata but local data is u
   assert.deepEqual(effects, []);
 });
 
-test("WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source", async () => {
+test("WebDAV honest remapper cannot authorize truncating an unproven aliased local source", async () => {
   const { memory, remote, effects } = await splitDavTransport();
   const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
   const failure = await mount.copyFile("/local/source", "/remote/source").then(() => undefined, error => error);
@@ -314,25 +329,29 @@ test("WebDAV mixed metadata/data transport cannot authorize truncating an aliase
   assert.deepEqual({ code: failure?.code, effects, source }, { code: "ENOTSUP", effects: [], source: "source sentinel" });
 });
 
-test("WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store", async () => {
+test("WebDAV data-method remapper strips inherited authority at its public filesystem view", async () => {
   const memory = await seeded();
   const effects: string[] = [];
   class DataView extends WebDavFileSystem {
-    override async readFile(_path: string) { effects.push("readFile"); return memory.readFile("/source"); }
-    override async *readStream(_path: string) { effects.push("readStream"); yield await memory.readFile("/source"); }
-    override async writeFile(_path: string) { effects.push("writeFile"); await memory.writeFile("/source", bytes("subclass destination damaged source")); throw new FsError("EIO"); }
-    override async writeStream(_path: string) { effects.push("writeStream"); await memory.writeFile("/source", bytes("subclass destination damaged source")); throw new FsError("EIO"); }
+    override stat(...args: Parameters<WebDavFileSystem["stat"]>) { return memory.stat(...args); }
+    override lstat(...args: Parameters<WebDavFileSystem["lstat"]>) { return memory.lstat(...args); }
+    override realpath(...args: Parameters<WebDavFileSystem["realpath"]>) { return memory.realpath(...args); }
+    override readdir(...args: Parameters<WebDavFileSystem["readdir"]>) { return memory.readdir(...args); }
+    override readFile(...args: Parameters<WebDavFileSystem["readFile"]>) { effects.push("readFile"); return memory.readFile(...args); }
+    override async *readStream(...args: Parameters<WebDavFileSystem["readStream"]>) { effects.push("readStream"); yield* memory.readStream!(...args); }
+    override writeFile(...args: Parameters<WebDavFileSystem["writeFile"]>) { effects.push("writeFile"); return memory.writeFile(...args); }
+    override writeStream(...args: Parameters<WebDavFileSystem["writeStream"]>) { effects.push("writeStream"); return memory.writeStream!(...args); }
   }
   const make = async () => {
     const store = new MockDav();
     const seed = new WebDavFileSystem({ baseUrl: "https://provider.example/dav/", fetch: store.fetch });
     await seed.writeFile("/source", bytes("source sentinel"));
-    return new DataView({ baseUrl: "https://provider.example/dav/", fetch: store.fetch });
+    return opaque(new DataView({ baseUrl: "https://provider.example/dav/", fetch: store.fetch }));
   };
   const first = await make();
   const second = await make();
-  const result = await comparison(first, "/source", second, "/source");
   const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/first": first, "/second": second } });
+  const result = await comparison(mount, "/first/source", mount, "/second/source");
   const failure = await mount.copyFile("/first/source", "/second/source").then(() => undefined, error => error);
   const source = await text(memory, "/source");
   observe("subclass-dav-copy", { result, code: failure?.code, effects, source });

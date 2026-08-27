@@ -8,11 +8,10 @@ import { createReadOnlyFileSystem } from "../../../../../src/fs/readonly/index.j
 import { MockS3Client, S3FileSystem, createS3Transport } from "../../../../../src/fs/s3/index.js";
 import { WebDavFileSystem } from "../../../../../src/fs/webdav/index.js";
 import { MockDav } from "../../../webdav/mock.js";
-import { bytes, comparison } from "./support.js";
+import { bytes, comparison, opaque, wrapped } from "./support.js";
 
 const sourceBytes = bytes("source survives\u0000\ufffd");
 const targetBytes = bytes("independent target survives");
-const damage = bytes("wrong route damaged source");
 const observe = (name: string, data: unknown): void => console.log(`IMPLEMENTATION_OBSERVATION ${Buffer.from(JSON.stringify({ name, data })).toString("base64")}`);
 
 function replace(object: object, name: string, value: unknown): () => void {
@@ -24,7 +23,7 @@ function replace(object: object, name: string, value: unknown): () => void {
 for (const backend of ["memory", "s3"] as const) {
   for (const streaming of [false, true]) {
     for (const timing of ["subclass-before", "prototype-before", "own-after", "prototype-after"] as const) {
-      test(`${backend} ${timing} ${streaming ? "streamed" : "buffered"}: changed writer cannot redirect qualified target into source`, async () => {
+      test(`${backend} ${timing} ${streaming ? "streamed" : "buffered"}: faithful writer preserves qualified copy and alias rejection`, async () => {
         const root = new MemoryFileSystem();
         const store = new MockS3Client({ buckets: ["bucket"] });
         const source: FileSystem = backend === "memory" ? new MemoryFileSystem() : new S3FileSystem({
@@ -32,28 +31,22 @@ for (const backend of ["memory", "s3"] as const) {
         });
         await source.writeFile("/source", sourceBytes);
         await source.writeFile("/keep", bytes("namespace sentinel"));
-        const writeSource = backend === "memory" ? source.writeFile.bind(source) : async (_path: string, data: Uint8Array): Promise<void> => {
-          await store.putObject({ Bucket: "bucket", Key: "left/source", Body: data });
-        };
         const readSource = source.readFile.bind(source);
         const initializeMemory = MemoryFileSystem.prototype.writeFile;
         const sourceNames = await source.readdir("/");
         const effects: string[] = [];
-        const badWriter = async (): Promise<never> => {
-          effects.push("misrouted-write");
-          await writeSource("/source", damage);
-          throw new FsError("EIO", { message: "wrong backing write failed after mutation" });
-        };
         class MemoryView extends MemoryFileSystem {}
         class S3View extends S3FileSystem {}
         const prototype: object = backend === "memory" ? MemoryFileSystem.prototype : S3FileSystem.prototype;
         const subclass: object = backend === "memory" ? MemoryView.prototype : S3View.prototype;
         const method = !streaming ? "writeFile" : backend === "s3" && timing === "prototype-after" ? "call"
           : backend === "s3" && timing !== "own-after" ? "streamWrite" : "writeStream";
-        const originalCall = Reflect.get(prototype, "call") as (...args: unknown[]) => unknown;
-        const replacement = method === "call" ? function(this: object, ...args: unknown[]): unknown {
-          return args[0] === "putObject" ? badWriter() : Reflect.apply(originalCall, this, args);
-        } : badWriter;
+        let original = Reflect.get(prototype, method) as (...args: unknown[]) => unknown;
+        const replacement = function(this: object, ...args: unknown[]): unknown {
+          assert.equal(typeof original, "function");
+          if (method !== "call" || args[0] === "putObject") effects.push("forwarded-write");
+          return Reflect.apply(original, this, args);
+        };
         let restore = (): void => {};
         let target: FileSystem;
         try {
@@ -73,8 +66,11 @@ for (const backend of ["memory", "s3"] as const) {
           if (backend === "memory" && !streaming) Object.defineProperty(target, "capabilities", {
             value: { ...target.capabilities, streamingWrite: false }, configurable: true,
           });
+          if (timing === "own-after") original = Reflect.get(target, method) as typeof original;
           if (timing === "own-after" || timing === "prototype-after") restore = replace(timing === "own-after" ? target : prototype, method, replacement);
-          const mount = createMountFileSystem({ root, mounts: { "/source-view": source, "/target-view": target } });
+          const mount = createMountFileSystem({ root, mounts: {
+            "/source-view": source, "/target-view": target, "/target-alias": createReadOnlyFileSystem(target),
+          } });
           const answer = await comparison(mount, "/source-view/source", mount, "/target-view/target");
           const failure = await mount.copyFile("/source-view/source", "/target-view/target").then(() => undefined, error => error as FsError);
           const sourceAfter = await readSource("/source");
@@ -82,11 +78,15 @@ for (const backend of ["memory", "s3"] as const) {
           observe(`${backend}-${timing}-${streaming ? "stream" : "buffer"}`, {
             answer, error: failure?.code, effects, source: Buffer.from(sourceAfter).toString("base64"), target: Buffer.from(targetAfter).toString("base64"),
           });
-          assert.equal(answer, "unknown");
-          assert.equal(failure?.code, "ENOTSUP");
-          assert.deepEqual(effects, []);
+          assert.equal(answer, "distinct");
+          assert.equal(failure, undefined);
+          assert.deepEqual(effects, ["forwarded-write"]);
           assert.deepEqual(sourceAfter, sourceBytes);
-          assert.deepEqual(targetAfter, targetBytes);
+          assert.deepEqual(targetAfter, sourceBytes);
+          assert.equal(await comparison(mount, "/target-alias/target", mount, "/target-view/target"), "same");
+          await assert.rejects(mount.copyFile("/target-alias/target", "/target-view/target"), { code: "EINVAL" });
+          assert.deepEqual(effects, ["forwarded-write"]);
+          assert.deepEqual(await target.readFile("/target"), sourceBytes);
           assert.deepEqual(await source.readdir("/"), sourceNames);
           assert.deepEqual((await target.readdir("/")).map(entry => entry.name), ["target"]);
         } finally { restore(); }
@@ -96,7 +96,7 @@ for (const backend of ["memory", "s3"] as const) {
 }
 
 for (const backend of ["memory", "s3"] as const) {
-  test(`${backend} changed content acquisition invalidates authority before opening source or target`, async () => {
+  test(`${backend} faithful content acquisition retains authority without reading during comparison`, async () => {
     const store = new MockS3Client({ buckets: ["bucket"] });
     const source: FileSystem = backend === "memory" ? new MemoryFileSystem() : new S3FileSystem({
       bucket: "bucket", transport: createS3Transport(store, store.capabilities),
@@ -105,15 +105,49 @@ for (const backend of ["memory", "s3"] as const) {
     await source.writeFile("/source", sourceBytes);
     await target.writeFile("/target", targetBytes);
     let acquisitions = 0;
-    const restore = replace(source, "readStream", async function* () { acquisitions++; yield targetBytes; });
+    const read = source.readStream!.bind(source);
+    const restore = replace(source, "readStream", async function* (...args: Parameters<typeof read>) {
+      acquisitions++;
+      yield* read(...args);
+    });
     try {
       const mount = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/left": source, "/right": target } });
-      assert.equal(await comparison(mount, "/left/source", mount, "/right/target"), "unknown");
-      await assert.rejects(mount.copyFile("/left/source", "/right/target"), { code: "ENOTSUP" });
+      assert.equal(await comparison(mount, "/left/source", mount, "/right/target"), "distinct");
       assert.equal(acquisitions, 0);
+      await mount.copyFile("/left/source", "/right/target");
+      assert.equal(acquisitions, 1);
       assert.deepEqual(await source.readFile("/source"), sourceBytes);
-      assert.deepEqual(await target.readFile("/target"), targetBytes);
+      assert.deepEqual(await target.readFile("/target"), sourceBytes);
     } finally { restore(); }
+  });
+}
+
+for (const backend of ["memory", "s3"] as const) {
+  test(`${backend} honest path remapper omits changed authority and refuses an unproven existing-target overwrite`, async () => {
+    const store = new MockS3Client({ buckets: ["bucket"] });
+    const backing: FileSystem = backend === "memory" ? new MemoryFileSystem()
+      : new S3FileSystem({ bucket: "bucket", transport: store });
+    await backing.writeFile("/source", sourceBytes);
+    await backing.writeFile("/keep", targetBytes);
+    const effects: string[] = [];
+    const mapped = (path: string): string => path === "/target" ? "/source" : path;
+    const remapper = opaque(wrapped(backing, {
+      stat: (path, options) => backing.stat(mapped(path), options),
+      lstat: (path, options) => backing.lstat(mapped(path), options),
+      realpath: async (path, options) => { await backing.realpath(mapped(path), options); return path; },
+      readFile: (path, options) => { effects.push("read"); return backing.readFile(mapped(path), options); },
+      readStream: (path, options) => { effects.push("readStream"); return backing.readStream!(mapped(path), options); },
+      writeFile: (path, data, options) => { effects.push("write"); return backing.writeFile(mapped(path), data, options); },
+      writeStream: (path, data, options) => { effects.push("writeStream"); return backing.writeStream!(mapped(path), data, options); },
+    }));
+    const mount = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/original": backing, "/mapped": remapper } });
+    assert.equal(await comparison(mount, "/original/source", mount, "/mapped/target"), "unknown");
+    await assert.rejects(mount.copyFile("/original/source", "/mapped/target"), { code: "ENOTSUP" });
+    await assert.rejects(mount.copyFile("/mapped/target", "/original/source"), { code: "ENOTSUP" });
+    assert.deepEqual(effects, []);
+    assert.deepEqual(await backing.readFile("/source"), sourceBytes);
+    assert.deepEqual(await backing.readFile("/keep"), targetBytes);
+    assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), ["keep", "source"]);
   });
 }
 

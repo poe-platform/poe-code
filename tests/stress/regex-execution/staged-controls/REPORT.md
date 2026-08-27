@@ -93,10 +93,10 @@ safety evidence, hard RSS confinement, or a product cancellation acceptance.
 - `src/contracts/command.ts:20` requires an `AbortSignal`; it declares no hard
   wall-clock timeout. `src/contracts/command.md:15` preserves signal/budgets
   across invocation, not preemption of arbitrary synchronous work.
-- `src/shell/types.ts:16` lists logical shell limits, with no timeout field.
+- `src/shell/types.ts:17` lists logical shell limits, with no timeout field.
   `src/shell/shell.ts:70` constructs a Budget from the supplied signal;
-  `src/shell/runtime.ts:48` combines signals and counts work/output, while
-  `src/shell/runtime.ts:94` races promise settlement with abort notification.
+  `src/shell/runtime.ts:57` combines signals and counts work/output, while
+  `src/shell/runtime.ts:100` races promise settlement with abort notification.
   Static inference: these are checkpoints/async wait interruption, not an
   independently scheduled mechanism that can preempt synchronous JavaScript.
 - `src/contracts/io.ts:173` observes abort around host promise operations,

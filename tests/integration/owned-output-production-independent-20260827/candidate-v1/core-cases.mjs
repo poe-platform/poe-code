@@ -27,6 +27,7 @@ cases.A03 = async (events, values) => {
   const acquisition = outcome(operation.acquire(() => { events.push('start'); return resource.promise; }, async () => { releases++; events.push('release-start'); releasing.resolve(); await release.promise; owned--; events.push('release-finish'); }));
   events.push('close-enter'); const closing = operation.close().then(() => { settled = true; events.push('close-settle'); });
   await turn(); values.pendingBeforeResource = !settled;
+  assert.equal(values.pendingBeforeResource, true, 'A03 close must await admitted acquisition');
   await outcome(operation.acquire(() => { lateStarts++; }, () => {}));
   events.push('resource-resolve'); owned++; resource.resolve({}); await releasing.promise;
   values.pendingDuringRelease = !settled; release.resolve(); await closing; await acquisition;
@@ -112,8 +113,9 @@ cases.E02 = async (events, values) => {
   const exactExecutionReasons = [], cleanupReleases = [];
   for (const reason of [new Error('execution'), false, 0, undefined]) {
     const shell = makeShell(); let releases = 0;
-    shell.register({ name: 'reject', async execute(context) { createOutputOperation(context, context.stdout).registerCleanup(() => { releases++; throw new Error('cleanup'); }); throw reason; } });
-    const result = await outcome(shell.exec('reject')); await outcome(shell.dispose()); exactExecutionReasons.push(!result.fulfilled && Object.is(result.reason, reason)); cleanupReleases.push(releases);
+    shell.register({ name: 'reject', async execute(context) { createOutputOperation(context, context.stdout).registerCleanup(() => { releases++; throw new Error('cleanup'); }); await context.stdin[Symbol.asyncIterator]().next(); return { exitCode: 0 }; } });
+    const stdin = { [Symbol.asyncIterator]() { return { async next() { return { done: false, value: Buffer.from('x') }; }, async return() { throw reason; } }; } };
+    const result = await outcome(shell.exec('reject', { stdin })); await outcome(shell.dispose()); exactExecutionReasons.push(!result.fulfilled && Object.is(result.reason, reason)); cleanupReleases.push(releases);
   }
   Object.assign(values, { exactExecutionReasons, cleanupReleases });
 };

@@ -125,7 +125,7 @@ for (const prefix of inactivePrefixes) test(`active ${prefix[0]} still rejects u
   const observed = observe(context);
   const actual = await run(prefix, {}, { env: { LC_ALL: "unsupported-inactive-profile" }, fs: noFileSystem });
   assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr],
-    [2, "", "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"]);
+    [2, "", "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"]);
   assert.deepEqual(observed.jobs, []);
 });
 

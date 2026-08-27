@@ -48,7 +48,7 @@ try {
   const paths = ["src", "README.md", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", owner,
     "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration",
     "tests/commands/time-env", "tests/integration/stream-inspection-public-author",
-    "tests/commands/split", "tests/commands/stream-format-author-stress"];
+    "tests/commands/split", "tests/commands/stream-format-author-stress", "tests/commands/stream-format/helpers.ts"];
   const archive = join(work, "source.tar");
   run("archive", "git", ["--no-replace-objects", "archive", "--format=tar", `--output=${archive}`, sourceCommit, ...paths]);
   run("extract", "/usr/bin/tar", ["-xf", archive, "-C", source]);

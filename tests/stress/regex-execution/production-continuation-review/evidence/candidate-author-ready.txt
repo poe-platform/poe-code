@@ -1,0 +1,64 @@
+AUTHOR READY FOR INDEPENDENT REVIEW — August 27, 2026
+Source/evidence commit ef8bbe749b1d4cf129f758ded158f5611b8ac894.
+Frozen author pre-fix regressions commit 858f387; independent baseline471f4ca read
+before product edits. STOPPED source edits. Owned paths clean after commit;
+foreign dirty/staged/untracked work preserved. No active author child or Worker.
+
+Host filename/CLI include-exclude/ignore parser and RegExp work now exclusively
+in static matching.ts Worker, through async Glob/Walker session requests.
+128 predicate /64KiB input batching targets, copied flags + UTF16LE path bytes,
+existing queue/reply validation and cancellation; no speculative file reads;
+same-priority ignore groups preserve skip/selection/order. Errors from worker
+resources/transport stop traversal; malformed ignore rules retain old report/
+discard behavior; errno-shaped abort retains identity and stops VFS calls.
+No lifecycle/contract/runtime/shell/FS/root export/dependency/default changes.
+
+Default state ACTIVE1000ms/startup3000ms,maxWorkers2,maxQueuedRequests64,
+maxQueuedBytes134217728,idle100ms. Configure standardCommands/createStandardCommands
+({regex}), searchCommands/createSearchCommands({regex}); aggregate rg uses
+agentCommands({search:{regex}}). No aggregate top-level regex option exists.
+No Worker at registration; open inside command try and optional close finally.
+
+F1 STILL RED: actual packed grep|head and rg|head each return before exact Worker
+exit; shell.dispose also returns early. Four required assertions retained FAIL,
+all exact workers eventually exit once, not an indefinite leak. Proposal ONLY:
+type InvocationCleanup = () => Promise<void>;
+CommandContext readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
+Register synchronously before first worker request, per-dispatch scope tracked
+through nested invoke/pipelines; close admission on interruption/settlement;
+drain once before exec and dispose, no arbitrary host/handler promise waiting.
+Preserve caller abort identity, else original execution rejection, else cleanup
+failure/AggregateError; drain all callbacks. Direct contexts optional. Existing
+finally and plugin.dispose cannot express earlier public exec settlement across
+runtime.ts870/345/371 and shell/shell.ts107 interruptible races. NOT implemented.
+
+Checks: final focused76/76; scoped types and production build pass; moved Node22
+real npm package runtime35/35 controls (12 Workers), declaration consumer pass,
+16 JS/type assets match emitted build, zero runtime deps. Packed lifecycle3/7
+(4 cleanup FAIL,2 Workers); all14 workers exit once, no safety termination.
+Related existing111-test cohort110/111: unchanged gitignore-requires-git fixture
+comparison fails with repository-local TMPDIR/native enclosing .git profile;
+retain red evidence, no unrelated code/assertion change or fullgate claim.
+Ten benign glob dialect probes10/10 baseline equality,6/10 native equality;
+newline globstar, Unicode ?, parser diagnostic differences explicitly recorded.
+Initial arity build failure and both package-harness defects retained separately.
+Independent final47 public cases/15 fake transport and32-file timing pending.
+All6 additional pathological probes UNUSED; allocation0; no new risky execution.
+
+Owned source SHA256:
+src/commands/grep.ts f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23
+src/commands/regex-execution/client.ts 6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9
+src/commands/regex-execution/worker.ts ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e
+src/commands/regex-execution/protocol.ts 0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6
+src/commands/regex-execution/matching.ts 1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737
+src/commands/search/glob.ts 7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da
+src/commands/search/walk.ts 20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0
+src/commands/search/rg.ts 4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999
+
+Evidence root tests/commands/regex-execution/continuation/:
+REPORT.md SHA256 924b077d7c692da84425531c72b3f57ccbd040ed393cdf9fa42fffd23141e184
+final-author-cohort.json SHA256 e442723129ebeb0148da0913145d22b704dcf5e7fac4ad289fc9eacbb4b7edca
+final-package-evidence.json SHA256 896719efa08e657eb4b7f097511abb7c5675ddc90a6f831d14eb55b09fdb28b4
+Final archive SHA256 ff1a07b65945752c5505b4964de81dbc911e0adf078d30c756c45c928d810033
+Capture records include tracked-source before/after hashes and shared HEAD/status.
+No tracked-source drift during final tests/types/package; not globally frozen.

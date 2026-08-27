@@ -1,0 +1,63 @@
+AUTHOR preliminary static findings (2026-08-27; no product edits yet)
+
+F1 remains an external lifecycle contract blocker, not an indefinite leak.
+Public repro: new Shell({fs:new MemoryFileSystem()}).use(agentCommands());
+await shell.exec("grep -E '^a' | head -n 1", {stdin:'ab\n'.repeat(200)});
+await shell.dispose(); exact Worker exit is not awaited. Prior frozen reports
+already reproduce this with the moved package; new benign controls will retain
+zero-live-worker assertions, not redefine eventual exit as acceptance.
+
+Callpath: src/shell/shell.ts:107 exec races Runtime.runUnit; src/shell/runtime.ts dispatch
+interruptible(execute(context), this.signal), pipeline abort races; grep.ts and
+search/rg.ts session.close() finally is downstream of those interruptible races.
+CommandContext currently has signal/invoke, no resource-finalizer registration.
+VirtualShellPlugin.dispose exists but is shell-wide, not an exec-settlement
+barrier; wiring it cannot retroactively await the already-returned exec.
+
+MINIMAL EXACT typed proposal for ROOT review ONLY (NOT implemented here):
+type InvocationCleanup = () => Promise<void>;
+CommandContext: readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
+Synchronous registration before resource acquisition; runtime-owned invocation
+scope tracks callbacks, drains once on every success/error/caller abort/early EOF
+before public exec settlement, and Shell.dispose awaits outstanding drains.
+Nested invoke and pipeline scopes must propagate ownership. Registration after
+drain begins rejects synchronously. Cleanup callback must be bounded/cooperative;
+do not await arbitrary command/FS/sink promises. Cleanup failures are observed;
+preserve caller abort reason by identity, otherwise original execution rejection,
+otherwise reject cleanup error (AggregateError if multiple). Drain all callbacks
+even if one rejects. Regex use would register the
+same idempotent session.close also awaited in handler finally before first run.
+Optional permits existing custom contexts; Shell must supply it for its promise
+guarantee. No source addition under this assignment, even if proposal accepted.
+
+Host-glob blocker: search/glob.ts Glob constructor constructs native RegExp from
+CLI -g/--iglob and ignore text; matches executes it. Walker constructor/load/
+accepted invoke these via rg public traversal. Benign repro: rg --files -g '*.ts'
+over /a.ts; ignore repro .ignore contains '*.tmp', rg --files traverses directory.
+These are untrusted expressions outside content-worker containment.
+Plan: preserve current glob compiler/dialect/validation and selection/traversal
+order, move native compile/match to existing bounded request-lease executor.
+Batch rule predicates per path without speculative VFS reads, account descriptor
+and row bytes, preserve reply validators, release lease before VFS/sink awaits.
+No shellpattern rewrite, circular imports, new dependencies, opt-in/default change.
+
+Admission audit: executor.open throws before increment for preabort/disposed;
+grep validates inside session try; inspect rg matcher validation placement and
+ensure acquisition-to-validation exceptions cannot strand a session count.
+Executor registration constructs no Worker; first request does. Worker request
+errors retire before request settlement; this does not fix outer public races.
+Independent baseline471f4ca read before all product edits. Author frozen tests
+858f387: benign public controls have exactly one failed host-containment assertion,
+all content/glob outputs and ordinary cleanup pass; original grep|head and new
+rg|head each fail both exec and dispose zero-live-worker assertions. All 6 native
+Workers across the two children retire exactly once, zero safety terminations.
+No new pathological requests; risk allocation 0, all6 UNUSED.
+
+In progress: complete glob parser/RegExp compilation/matching moved to matching.ts
+static worker; per-path CLI rule batches and same-priority ignore batches retain
+rule order/priority skipping. UTF16LE path bytes preserve original JS code units,
+including lone surrogates. Glob descriptors/options/rows copied and byte accounted.
+Malformed CLI validation awaited before pattern-file reads; ignore-file validation
+awaited before publishing that file's rules. No new public/lifecycle API.
+First build caught a wrapper arity typing error, preserved as after-build.json;
+corrected narrow wrapper, rebuilding next. Not a passing-build claim yet.

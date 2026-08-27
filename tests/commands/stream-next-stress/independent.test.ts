@@ -100,8 +100,11 @@ function compare(record: NativeRecord, actual: Actual, backend: string): Compari
 
 after(async () => {
   const summarize = (rows: Comparison[]) => ({ executions: rows.length, strict: rows.filter(row => row.strict).length, selectedSemantic: rows.filter(row => row.semantic).length });
+  const primary = comparisons.filter(row => row.profile === (row.id.startsWith("rev-") ? "apple" : "gnu-darwin"));
   await writeFile(join(output!, "results.json"), JSON.stringify({ comparisons, workflowResults, contractResults,
-    summary: { primary: summarize(comparisons.filter(row => row.profile === (row.id.startsWith("rev-") ? "apple" : "gnu-darwin"))),
+    summary: { primary: summarize(primary),
+      primaryByBackend: Object.fromEntries(["memory", "real"].map(backend => [backend, summarize(primary.filter(row => row.backend === backend))])),
+      primaryByCommand: Object.fromEntries(commands.map(command => [command, summarize(primary.filter(row => row.id.startsWith(`${command}-`)))])),
       appleSecondary: summarize(comparisons.filter(row => row.profile === "apple" && !row.id.startsWith("rev-"))),
       distinctPrimaryInputs: new Set(comparisons.filter(row => row.profile === (row.id.startsWith("rev-") ? "apple" : "gnu-darwin")).map(row => row.id)).size } }, null, 2) + "\n");
 });
@@ -133,6 +136,8 @@ test("frozen native primary inputs on MemoryFS and explicit-root RealFS", { time
     } catch (error) {
       const actual = { status: null, stdout: base64(Buffer.concat(observedOutput)), stderr: base64(Buffer.concat(observedError)), after: await snapshot(fs), thrown: error instanceof Error ? error.stack ?? error.message : String(error) };
       comparisons.push(compare(record, actual, backend));
+      const secondary = native.records.find(candidate => candidate.id === record.id && candidate.profile === "apple" && record.profile !== "apple");
+      if (secondary) comparisons.push(compare(secondary, actual, backend));
       failures.push(`${backend}:${record.id}:thrown (no returned byte result; not fabricated status)`);
     } finally { await instance.dispose(); }
   }

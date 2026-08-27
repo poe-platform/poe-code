@@ -1,0 +1,339 @@
+[
+  {
+    "label": "qualified-384",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/observe.mjs",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-name-pattern",
+      "^GNU chmod seeded symbolic/numeric differential: 384 mode transitions$",
+      "tests/commands/metadata-stress/native-differential.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/qualified-384"
+    },
+    "started": "2026-08-27T13:15:46.587Z",
+    "ended": "2026-08-27T13:15:51.802Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 384
+  },
+  {
+    "label": "chmod-controls",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/observe.mjs",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/commands/metadata-stress/chmod-controls.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/chmod-controls"
+    },
+    "started": "2026-08-27T13:15:51.803Z",
+    "ended": "2026-08-27T13:15:52.698Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 53
+  },
+  {
+    "label": "author-regressions",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/observe.mjs",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/commands/metadata-stress/permission-profile/archive.test.ts",
+      "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/author-regressions"
+    },
+    "started": "2026-08-27T13:15:52.698Z",
+    "ended": "2026-08-27T13:15:53.296Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 7
+  },
+  {
+    "label": "independent-native-profiles",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/observe.mjs",
+      "--import",
+      "tsx",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/native-profile.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/independent-native-profiles"
+    },
+    "started": "2026-08-27T13:15:53.296Z",
+    "ended": "2026-08-27T13:15:54.203Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {},
+    "observedOracles": 22
+  },
+  {
+    "label": "independent-guards",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/independent-guards"
+    },
+    "started": "2026-08-27T13:15:54.203Z",
+    "ended": "2026-08-27T13:15:56.257Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 0
+  },
+  {
+    "label": "mutant-missing-group",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "^independent helper:",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/mutant-missing-group",
+      "METADATA_HELPER_COPY": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-group.ts.data"
+    },
+    "started": "2026-08-27T13:15:56.270Z",
+    "ended": "2026-08-27T13:15:56.791Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "expectedFailure": true,
+    "tap": {
+      "tests": 4,
+      "pass": 2,
+      "fail": 2,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 0
+  },
+  {
+    "label": "mutant-missing-mode-readback",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "^independent helper:",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/mutant-missing-mode-readback",
+      "METADATA_HELPER_COPY": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-mode-readback.ts.data"
+    },
+    "started": "2026-08-27T13:15:56.812Z",
+    "ended": "2026-08-27T13:15:57.359Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "expectedFailure": true,
+    "tap": {
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 0
+  },
+  {
+    "label": "mutant-missing-owner",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "^independent helper:",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/mutant-missing-owner",
+      "METADATA_HELPER_COPY": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-owner.ts.data"
+    },
+    "started": "2026-08-27T13:15:57.377Z",
+    "ended": "2026-08-27T13:15:57.900Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "expectedFailure": true,
+    "tap": {
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 0
+  },
+  {
+    "label": "mutant-missing-group-readback",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "^independent helper:",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/mutant-missing-group-readback",
+      "METADATA_HELPER_COPY": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-group-readback.ts.data"
+    },
+    "started": "2026-08-27T13:15:57.920Z",
+    "ended": "2026-08-27T13:15:58.463Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "expectedFailure": true,
+    "tap": {
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observedOracles": 0
+  },
+  {
+    "label": "scoped-noemit",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--forceConsistentCasingInFileNames",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/native-differential.test.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/chmod-controls.test.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/helpers.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/permission-profile/fixtures.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/permission-profile/archive.test.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate",
+    "envDelta": {
+      "TSX_DISABLE_CACHE": "1",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+      "METADATA_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/scoped-noemit"
+    },
+    "started": "2026-08-27T13:15:58.464Z",
+    "ended": "2026-08-27T13:15:58.979Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "expectedFailure": false,
+    "tap": {},
+    "observedOracles": 0
+  }
+]

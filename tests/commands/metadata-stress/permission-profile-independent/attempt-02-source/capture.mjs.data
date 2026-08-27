@@ -1,0 +1,157 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const owned = fileURLToPath(new URL("./", import.meta.url));
+const repository = fileURLToPath(new URL("../../../../", import.meta.url));
+const revision = "3a1025f53e502c3426ffee34eb8d8037b27c26f8";
+const seal = execFileSync("git", ["rev-parse", "9fa86b2f"], { cwd: repository, encoding: "utf8" }).trim();
+const name = process.argv[2];
+assert.match(name ?? "", /^attempt-[0-9]{2}$/u);
+const work = join(owned, ".work", name);
+const frozen = join(work, "candidate");
+const evidence = join(owned, name);
+assert.equal(fs.existsSync(work), false, "attempt scratch already exists");
+assert.equal(fs.existsSync(evidence), false, "immutable evidence already exists");
+fs.mkdirSync(frozen, { recursive: true });
+const prefix = "tests/commands/metadata-stress/";
+const selected = ["package.json", "tsconfig.json", "src", `${prefix}helpers.ts`, `${prefix}native-differential.test.ts`, `${prefix}chmod-controls.test.ts`,
+  ...["fixtures.ts", "qualification.test.ts", "darwin-profile.test.ts", "archive.test.ts", "classification-seal"].map(file => `${prefix}permission-profile/${file}`)];
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const git = args => execFileSync("git", args, { cwd: repository, maxBuffer: 64 * 1024 * 1024 });
+const files = git(["ls-tree", "-r", "--name-only", revision, "--", ...selected]).toString().trim().split("\n");
+const liveBefore = Object.fromEntries(files.map(file => [file, hash(fs.readFileSync(join(repository, file)))]));
+const initialStatus = git(["status", "--short"]).toString();
+const initialIndex = git(["diff", "--cached", "--name-only"]).toString();
+const archive = git(["archive", revision, ...selected]);
+execFileSync("/usr/bin/tar", ["-xf", "-", "-C", frozen], { input: archive });
+const frozenBefore = Object.fromEntries(files.map(file => [file, hash(fs.readFileSync(join(frozen, file)))]));
+for (const file of files) assert.equal(frozenBefore[file], hash(git(["show", `${revision}:${file}`])), file);
+const oracleDirectory = join(repository, prefix, ".oracle");
+fs.symlinkSync(oracleDirectory, join(frozen, prefix, ".oracle"), "dir");
+const oracle = join(oracleDirectory, "coreutils-9.7/src/chmod");
+const identity = {
+  started: new Date().toISOString(), revision, seal, headAtStart: git(["rev-parse", "HEAD"]).toString().trim(),
+  node: process.version, uv: process.versions.uv, nodeExecutable: process.execPath, nodeSha256: hash(fs.readFileSync(process.execPath)),
+  platform: process.platform, arch: process.arch, uid: process.getuid(), euid: process.geteuid(), gid: process.getgid(), egid: process.getegid(), groups: process.getgroups(), umask: process.umask().toString(8),
+  uname: execFileSync("/usr/bin/uname", ["-a"], { encoding: "utf8" }),
+  oracle, oracleSha256: hash(fs.readFileSync(oracle)), oracleVersion: execFileSync(oracle, ["--version"], { encoding: "utf8" }),
+  tooling: Object.fromEntries(["typescript", "tsx", "@types/node"].map(tool => [tool, JSON.parse(fs.readFileSync(join(repository, "node_modules", tool, "package.json"))).version])),
+};
+assert.equal(identity.oracleSha256, "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2");
+assert.equal(identity.node, "v22.22.2");
+assert.equal(identity.uv, "1.51.0");
+assert.equal(identity.platform, "darwin");
+assert.equal(identity.arch, "arm64");
+assert.equal(identity.oracleVersion.split("\n")[0], "chmod (GNU coreutils) 9.7");
+const archiveManifest = JSON.parse(git(["show", `${seal}:${prefix}permission-profile/classification-seal/MANIFEST.json`]));
+const rawAuthentication = archiveManifest.records.map(record => {
+  const preserved = fs.readFileSync(join(frozen, prefix, "permission-profile/classification-seal", record.destination));
+  const originalExists = fs.existsSync(record.source);
+  const originalSha256 = originalExists ? hash(fs.readFileSync(record.source)) : null;
+  assert.equal(hash(preserved), record.sha256);
+  if (originalExists) assert.equal(originalSha256, record.sha256);
+  return { ...record, originalExists, originalSha256, frozenSha256: hash(preserved) };
+});
+const additions = new Map();
+const json = (file, value) => additions.set(file, JSON.stringify(value, null, 2) + "\n");
+const executions = [];
+function run(label, args, options = {}) {
+  const trace = join(work, label);
+  const envDelta = { TSX_DISABLE_CACHE: "1", TMPDIR: work, METADATA_TRACE: trace, ...options.env };
+  const started = new Date().toISOString();
+  const result = spawnSync(process.execPath, args, {
+    cwd: options.cwd ?? frozen, env: { ...process.env, ...envDelta }, timeout: 120000, encoding: "utf8", maxBuffer: 16 * 1024 * 1024,
+  });
+  const traceFiles = fs.readdirSync(work).filter(file => file.startsWith(label + ".") && file.endsWith(".jsonl.data"));
+  const traces = traceFiles.flatMap(file => fs.readFileSync(join(work, file), "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line)));
+  const stdout = result.stdout ?? "";
+  const execution = { label, binary: process.execPath, args, cwd: options.cwd ?? frozen, envDelta, started, ended: new Date().toISOString(),
+    status: result.status, signal: result.signal, error: result.error ? String(result.error) : null,
+    expectedFailure: options.expectedFailure ?? false,
+    tap: Object.fromEntries([...stdout.matchAll(/^# (tests|pass|fail|skipped|todo) (\d+)$/gmu)].map(match => [match[1], Number(match[2])])),
+    observedOracles: traces.filter(record => record.operation === "oracle").length,
+  };
+  executions.push(execution);
+  additions.set(`${label}.stdout.log.data`, stdout);
+  additions.set(`${label}.stderr.log.data`, result.stderr ?? "");
+  if (traces.length) additions.set(`${label}.trace.jsonl.data`, traces.map(record => JSON.stringify(record)).join("\n") + "\n");
+  for (const record of traces.filter(record => record.operation === "root")) assert.equal(fs.existsSync(record.root), false, `native cleanup ${record.root}`);
+  for (const record of traces.filter(record => record.operation === "exit")) assert.deepEqual(record.remainingRoots, []);
+  console.log(JSON.stringify(execution));
+  return execution;
+}
+const prelude = ["--import", join(owned, "observe.mjs"), "--import", "tsx", "--test", "--test-concurrency=1"];
+run("qualified-384", [...prelude, "--test-name-pattern", "^GNU chmod seeded symbolic/numeric differential: 384 mode transitions$", `${prefix}native-differential.test.ts`]);
+run("chmod-controls", [...prelude, `${prefix}chmod-controls.test.ts`]);
+run("author-regressions", [...prelude, ...["archive", "qualification", "darwin-profile"].map(file => `${prefix}permission-profile/${file}.test.ts`)]);
+run("independent-native-profiles", ["--import", join(owned, "observe.mjs"), "--import", "tsx", join(owned, "native-profile.mjs"), frozen]);
+run("independent-guards", ["--import", "tsx", "--test", join(owned, "review.test.ts")]);
+const helperPath = `${prefix}permission-profile/fixtures.ts`;
+const helper = fs.readFileSync(join(frozen, helperPath), "utf8");
+const mutants = [
+  ["missing-group", "      await host.chown(join(canonicalRoot, name), before.uid, gid);", ""],
+  ["missing-mode-readback", "&& (after.mode & 0o7777) === mode", ""],
+  ["missing-owner", "&& entry.uid === uid,", ","],
+  ["missing-group-readback", "&& after.gid === gid,", ","],
+];
+const mutationResults = [];
+function addTemporary(file, text) {
+  assert.equal(fs.existsSync(file), false);
+  const patch = `*** Begin Patch\n*** Add File: ${relative(repository, file)}\n${text.trimEnd().split("\n").map(line => `+${line}`).join("\n")}\n*** End Patch\n`;
+  execFileSync("apply_patch", [], { cwd: repository, input: patch, maxBuffer: 8 * 1024 * 1024 });
+}
+for (const [label, before, after] of mutants) {
+  assert.equal(helper.split(before).length, 2, `${label}: exact isolated helper mutation`);
+  const source = helper.replace(before, after);
+  const copy = join(work, `${label}.ts.data`);
+  addTemporary(copy, source);
+  const execution = run(`mutant-${label}`, ["--import", "tsx", "--test", "--test-name-pattern", "^independent helper:", join(owned, "review.test.ts")], { env: { METADATA_HELPER_COPY: copy }, expectedFailure: true });
+  mutationResults.push({ label, path: copy, before, after, originalSha256: hash(helper), mutatedSha256: hash(source), status: execution.status,
+    killed: execution.status !== 0 && execution.signal === null && execution.error === null && execution.tap.fail > 0 });
+}
+const checked = [join(owned, "review.test.ts"), ...["native-differential.test.ts", "chmod-controls.test.ts", "helpers.ts", "permission-profile/fixtures.ts", "permission-profile/qualification.test.ts", "permission-profile/archive.test.ts", "permission-profile/darwin-profile.test.ts"].map(file => join(frozen, prefix, file))];
+run("scoped-noemit", [join(repository, "node_modules/typescript/bin/tsc"), "--noEmit", "--target", "ES2023", "--lib", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--forceConsistentCasingInFileNames", "--skipLibCheck", "--types", "node", ...checked]);
+const frozenAfter = Object.fromEntries(files.map(file => [file, hash(fs.readFileSync(join(frozen, file)))]));
+const liveAfter = Object.fromEntries(files.map(file => [file, hash(fs.readFileSync(join(repository, file)))]));
+const changed = (before, after) => Object.keys(before).filter(file => before[file] !== after[file]);
+const integrity = { frozenFiles: files.length, frozenChanged: changed(frozenBefore, frozenAfter), liveChanged: changed(liveBefore, liveAfter),
+  oracleBefore: identity.oracleSha256, oracleAfter: hash(fs.readFileSync(oracle)), initialStatus, initialIndex,
+  finalStatus: git(["status", "--short"]).toString(), finalIndex: git(["diff", "--cached", "--name-only"]).toString(),
+  headAtEnd: git(["rev-parse", "HEAD"]).toString().trim(),
+  reviewSourceHashes: Object.fromEntries(["capture.mjs", "observe.mjs", "review.test.ts", "native-profile.mjs"].map(file => [file, hash(fs.readFileSync(join(owned, file)))])),
+};
+json("identity.json.data", identity);
+json("raw-authentication.json.data", rawAuthentication);
+json("source-inventory.json.data", { revision, seal, records: files.map(file => ({ path: file, sha256: frozenBefore[file], liveBefore: liveBefore[file], liveAfter: liveAfter[file] })) });
+json("approved-diff.json.data", { diff: git(["diff", seal, revision, "--", `${prefix}native-differential.test.ts`, `${prefix}chmod-controls.test.ts`]).toString(),
+  productionDiffInFixtureCommit: git(["diff", `${revision}^`, revision, "--", "src", "package.json"]).toString() });
+json("executions.json.data", executions);
+json("mutations.json.data", mutationResults);
+json("integrity.json.data", integrity);
+assert.deepEqual(integrity.frozenChanged, []);
+assert.deepEqual(integrity.liveChanged, []);
+assert.equal(integrity.oracleBefore, integrity.oracleAfter);
+assert.equal(integrity.initialIndex, integrity.finalIndex);
+const nativeRemaining = fs.readdirSync(join(frozen, prefix)).filter(file => file.startsWith(".native-"));
+assert.deepEqual(nativeRemaining, []);
+fs.rmSync(work, { recursive: true });
+json("cleanup.json.data", { work, absent: !fs.existsSync(work), nativeRemaining, allProcessesSettled: true,
+  observer: "Native roots only; non-symlink owned modes restored to 0700 directories/0600 files before removal; no unauthorized chgrp or ambient permission changes.",
+  profileRoots: "Original Darwin test-created /tmp roots inherit gid0 without chgrp; they are traced and removed. Other native roots are inside the task-owned frozen copy." });
+const records = [...additions].map(([file, text]) => ({ path: file, bytes: Buffer.byteLength(text), sha256: hash(text), classification: "independent captured data, not executable source or discovered test" }));
+json("MANIFEST.json", { recordedAt: new Date().toISOString(), revision, seal, records });
+let patch = "*** Begin Patch\n";
+for (const [file, text] of additions) {
+  patch += `*** Add File: ${relative(repository, join(evidence, file))}\n`;
+  if (text) patch += text.replace(/\n$/u, "").split("\n").map(line => `+${line}`).join("\n") + "\n";
+}
+patch += "*** End Patch\n";
+execFileSync("apply_patch", [], { cwd: repository, input: patch, maxBuffer: 8 * 1024 * 1024 });
+for (const record of records) assert.equal(hash(fs.readFileSync(join(evidence, record.path))), record.sha256);
+const unexpected = executions.filter(execution => execution.expectedFailure ? !mutationResults.find(mutation => `mutant-${mutation.label}` === execution.label)?.killed : execution.status !== 0);
+console.log(JSON.stringify({ evidence, unexpected, mutations: mutationResults.length, cleanup: !fs.existsSync(work) }, null, 2));
+assert.deepEqual(unexpected, [], "all attempted executions preserved; unexpected failures require a new attempt");

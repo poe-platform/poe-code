@@ -1,0 +1,252 @@
+[
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/FINAL_SEAL.json",
+    "destination": "FINAL_SEAL.json.data",
+    "bytes": 2447,
+    "sha256": "46095b5af9dea76036c789d00360c45176f298ec59b6e51ac7d6ef639bcd32a3",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "46095b5af9dea76036c789d00360c45176f298ec59b6e51ac7d6ef639bcd32a3",
+    "frozenSha256": "46095b5af9dea76036c789d00360c45176f298ec59b6e51ac7d6ef639bcd32a3"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/REPORT.md",
+    "destination": "REPORT.md.data",
+    "bytes": 15195,
+    "sha256": "99c20197ff2b05302c25b36d58f3f8129fa848d0b517aade33b9dc1c8eb4e98b",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "99c20197ff2b05302c25b36d58f3f8129fa848d0b517aade33b9dc1c8eb4e98b",
+    "frozenSha256": "99c20197ff2b05302c25b36d58f3f8129fa848d0b517aade33b9dc1c8eb4e98b"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/after.json",
+    "destination": "after.json.data",
+    "bytes": 3557083,
+    "sha256": "36a336fee4ef577f25ed1f5ada36ec005121af06584b46d6ef0e7b7cc469a99e",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "36a336fee4ef577f25ed1f5ada36ec005121af06584b46d6ef0e7b7cc469a99e",
+    "frozenSha256": "36a336fee4ef577f25ed1f5ada36ec005121af06584b46d6ef0e7b7cc469a99e"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt1.results.json",
+    "destination": "attempt1.results.json.data",
+    "bytes": 5356,
+    "sha256": "6daf232d2b1cb211b5adf02c2b9ba35ed75118c3a32f151203e978ba9fe289a3",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "6daf232d2b1cb211b5adf02c2b9ba35ed75118c3a32f151203e978ba9fe289a3",
+    "frozenSha256": "6daf232d2b1cb211b5adf02c2b9ba35ed75118c3a32f151203e978ba9fe289a3"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt1.stderr.log",
+    "destination": "attempt1.stderr.log.data",
+    "bytes": 544,
+    "sha256": "da1e313b0820f4444a472cf0805e8da47757410cd047ae465f210e7a2692fa1a",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "da1e313b0820f4444a472cf0805e8da47757410cd047ae465f210e7a2692fa1a",
+    "frozenSha256": "da1e313b0820f4444a472cf0805e8da47757410cd047ae465f210e7a2692fa1a"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt1.stdout.log",
+    "destination": "attempt1.stdout.log.data",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt2.results.json",
+    "destination": "attempt2.results.json.data",
+    "bytes": 176326,
+    "sha256": "dcd65b73cb946bdec98abd5a7d72f30ab09e76088372b80247c70d3699166a1a",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "dcd65b73cb946bdec98abd5a7d72f30ab09e76088372b80247c70d3699166a1a",
+    "frozenSha256": "dcd65b73cb946bdec98abd5a7d72f30ab09e76088372b80247c70d3699166a1a"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt2.stderr.log",
+    "destination": "attempt2.stderr.log.data",
+    "bytes": 1190,
+    "sha256": "1bae9181e0205d3c6c043684ed02740f3bb516d701b5cbf7d6b7bab10219d902",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "1bae9181e0205d3c6c043684ed02740f3bb516d701b5cbf7d6b7bab10219d902",
+    "frozenSha256": "1bae9181e0205d3c6c043684ed02740f3bb516d701b5cbf7d6b7bab10219d902"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/attempt2.stdout.log",
+    "destination": "attempt2.stdout.log.data",
+    "bytes": 2629,
+    "sha256": "e7a9ebcd47e4dc8743e3b35f6b8d99dd81675bd24046d22c0bc8e2640166bb57",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "e7a9ebcd47e4dc8743e3b35f6b8d99dd81675bd24046d22c0bc8e2640166bb57",
+    "frozenSha256": "e7a9ebcd47e4dc8743e3b35f6b8d99dd81675bd24046d22c0bc8e2640166bb57"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/before.json",
+    "destination": "before.json.data",
+    "bytes": 3540365,
+    "sha256": "bab1e18be1d679c8a2dab48b308bba7955c03dbed52411499afff064f2483063",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "bab1e18be1d679c8a2dab48b308bba7955c03dbed52411499afff064f2483063",
+    "frozenSha256": "bab1e18be1d679c8a2dab48b308bba7955c03dbed52411499afff064f2483063"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/freeze.mjs",
+    "destination": "freeze.mjs.data",
+    "bytes": 6209,
+    "sha256": "fb97a10725c479dccaf3a339c3604d4c8bf5841680b76b7f9b9bdab50e2c4543",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "fb97a10725c479dccaf3a339c3604d4c8bf5841680b76b7f9b9bdab50e2c4543",
+    "frozenSha256": "fb97a10725c479dccaf3a339c3604d4c8bf5841680b76b7f9b9bdab50e2c4543"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/frozen-oracle-fields.json",
+    "destination": "frozen-oracle-fields.json.data",
+    "bytes": 9504,
+    "sha256": "9f3f359a862dc9dd04a5bb50417a95aeb7f828f2f66e44f9e5fd94e921ddd835",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "9f3f359a862dc9dd04a5bb50417a95aeb7f828f2f66e44f9e5fd94e921ddd835",
+    "frozenSha256": "9f3f359a862dc9dd04a5bb50417a95aeb7f828f2f66e44f9e5fd94e921ddd835"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/host-tool-identity.json",
+    "destination": "host-tool-identity.json.data",
+    "bytes": 4810,
+    "sha256": "121149dcb9e7f424534137eceb7a1de1f412b169633753a2b436eb3c525bcf85",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "121149dcb9e7f424534137eceb7a1de1f412b169633753a2b436eb3c525bcf85",
+    "frozenSha256": "121149dcb9e7f424534137eceb7a1de1f412b169633753a2b436eb3c525bcf85"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/integrity.json",
+    "destination": "integrity.json.data",
+    "bytes": 382,
+    "sha256": "8ebfaccbb56179c2e9fa11299f4b7780daa2233c332dda02714cdb9420f9d10f",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "8ebfaccbb56179c2e9fa11299f4b7780daa2233c332dda02714cdb9420f9d10f",
+    "frozenSha256": "8ebfaccbb56179c2e9fa11299f4b7780daa2233c332dda02714cdb9420f9d10f"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/primary-check.mjs",
+    "destination": "primary-check.mjs.data",
+    "bytes": 2056,
+    "sha256": "0833f92be57c78a4f083b9a98ea3157aa05e820987b8255dce75d44e94963782",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "0833f92be57c78a4f083b9a98ea3157aa05e820987b8255dce75d44e94963782",
+    "frozenSha256": "0833f92be57c78a4f083b9a98ea3157aa05e820987b8255dce75d44e94963782"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/primary-sources.json",
+    "destination": "primary-sources.json.data",
+    "bytes": 17426,
+    "sha256": "c3a1e22902b65a9a6b5793c395f028d9598238280f5c8f2fd328ca15b2c65a75",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "c3a1e22902b65a9a6b5793c395f028d9598238280f5c8f2fd328ca15b2c65a75",
+    "frozenSha256": "c3a1e22902b65a9a6b5793c395f028d9598238280f5c8f2fd328ca15b2c65a75"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/raw-authentication.json",
+    "destination": "raw-authentication.json.data",
+    "bytes": 516,
+    "sha256": "3c835653b31c20c97d43dbf101d1e4019a583f276b49d4b0e72ff08c992dd1a3",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "3c835653b31c20c97d43dbf101d1e4019a583f276b49d4b0e72ff08c992dd1a3",
+    "frozenSha256": "3c835653b31c20c97d43dbf101d1e4019a583f276b49d4b0e72ff08c992dd1a3"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/raw-failure-excerpts.json",
+    "destination": "raw-failure-excerpts.json.data",
+    "bytes": 9172,
+    "sha256": "bcefa0718e320f2d1001c64171ff37424431bc8d2e38e633c912a591301bd7a9",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "bcefa0718e320f2d1001c64171ff37424431bc8d2e38e633c912a591301bd7a9",
+    "frozenSha256": "bcefa0718e320f2d1001c64171ff37424431bc8d2e38e633c912a591301bd7a9"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/replay.mjs",
+    "destination": "replay.mjs.data",
+    "bytes": 14493,
+    "sha256": "32442dfc23c448cf23a919d3b4a5120f53d2159d1f5f9caafbefc9125ee776e3",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "32442dfc23c448cf23a919d3b4a5120f53d2159d1f5f9caafbefc9125ee776e3",
+    "frozenSha256": "32442dfc23c448cf23a919d3b4a5120f53d2159d1f5f9caafbefc9125ee776e3"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/replay.stderr.log",
+    "destination": "replay.stderr.log.data",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/replay.stdout.log",
+    "destination": "replay.stdout.log.data",
+    "bytes": 4361,
+    "sha256": "e10f22503838d55cd221ee976f49dc8a6c03dcaa5bff514861cac5e41ce8e1ec",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "e10f22503838d55cd221ee976f49dc8a6c03dcaa5bff514861cac5e41ce8e1ec",
+    "frozenSha256": "e10f22503838d55cd221ee976f49dc8a6c03dcaa5bff514861cac5e41ce8e1ec"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/results.json",
+    "destination": "results.json.data",
+    "bytes": 356112,
+    "sha256": "24027c4cff8e7a4819eeb1bdcf7bb22a5b784f11308b1f39889eb4c312a3a982",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "24027c4cff8e7a4819eeb1bdcf7bb22a5b784f11308b1f39889eb4c312a3a982",
+    "frozenSha256": "24027c4cff8e7a4819eeb1bdcf7bb22a5b784f11308b1f39889eb4c312a3a982"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/source-freeze.json",
+    "destination": "source-freeze.json.data",
+    "bytes": 46981,
+    "sha256": "edf791368e71bf2dd63471a1af4b2277604fe054eb2c61e1b2e1f97077a60c47",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "edf791368e71bf2dd63471a1af4b2277604fe054eb2c61e1b2e1f97077a60c47",
+    "frozenSha256": "edf791368e71bf2dd63471a1af4b2277604fe054eb2c61e1b2e1f97077a60c47"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/verification-cleanup.json",
+    "destination": "verification-cleanup.json.data",
+    "bytes": 31994,
+    "sha256": "26b442c179124cad8d73e53894465a8b70a8a380e132126e56a51c1915ee6919",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "26b442c179124cad8d73e53894465a8b70a8a380e132126e56a51c1915ee6919",
+    "frozenSha256": "26b442c179124cad8d73e53894465a8b70a8a380e132126e56a51c1915ee6919"
+  },
+  {
+    "source": "/tmp/safe-bash-darwin-classification-b04J1M/verify-cleanup.mjs",
+    "destination": "verify-cleanup.mjs.data",
+    "bytes": 6934,
+    "sha256": "80d9327aa26a0c4ad2a8052ea3418a74c5bee05c2de072e486da7c2b4dfb9c8b",
+    "classification": "immutable historical captured data; not canonical code or test input",
+    "originalExists": true,
+    "originalSha256": "80d9327aa26a0c4ad2a8052ea3418a74c5bee05c2de072e486da7c2b4dfb9c8b",
+    "frozenSha256": "80d9327aa26a0c4ad2a8052ea3418a74c5bee05c2de072e486da7c2b4dfb9c8b"
+  }
+]

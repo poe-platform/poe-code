@@ -1,0 +1,199 @@
+{
+  "recordedAt": "2026-08-27T13:14:09.462Z",
+  "revision": "3a1025f53e502c3426ffee34eb8d8037b27c26f8",
+  "seal": "9fa86b2fd23525bfa4ab944fef404654ce90c9d6",
+  "records": [
+    {
+      "path": "qualified-384.stdout.log.data",
+      "bytes": 330,
+      "sha256": "139b1363015567c9f4758f40b1bf43ed4a9ac4171f1108942d44bb0121887a2c",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "qualified-384.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "qualified-384.trace.jsonl.data",
+      "bytes": 400395,
+      "sha256": "5b1d3d3125d3cdd18e534fd46e14ede7b4a1138e44976542132f287162d3435e",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "chmod-controls.stdout.log.data",
+      "bytes": 775,
+      "sha256": "5d99cdd4b1161eb98b33ae79fc891c7d1b6f239661b99990c74f49d01b59402d",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "chmod-controls.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "chmod-controls.trace.jsonl.data",
+      "bytes": 55834,
+      "sha256": "f3154747c555433abc3b112d5cc09691b92a3d5c8567206d83d67952ed2f68bc",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "author-regressions.stdout.log.data",
+      "bytes": 2908,
+      "sha256": "f9074b5847356d7990b20d31831af0065ca6cc7540ef84dd901406b59338e669",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "author-regressions.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "author-regressions.trace.jsonl.data",
+      "bytes": 13416,
+      "sha256": "8d266124115211213759b399a304962437f93fedeb4738f73c902c844c60710d",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "independent-native-profiles.stdout.log.data",
+      "bytes": 53140,
+      "sha256": "f7c5fe7204320e1653c1d3da9362b7e1f700de7c13a32a391992c02566874a0a",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "independent-native-profiles.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "independent-native-profiles.trace.jsonl.data",
+      "bytes": 35072,
+      "sha256": "08e8e414e9c87fb7bcf8b9489af893d5a92fdbf78138d6822cc90f8de7c2d829",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "independent-guards.stdout.log.data",
+      "bytes": 1798,
+      "sha256": "e94589a21c2acfc05473f5b34df054db5a695f8a08eb5a65032ad32fe9cd148d",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "independent-guards.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-group.stdout.log.data",
+      "bytes": 2386,
+      "sha256": "2953291c3064aebd0b04633b2cb2f08f52f130231b12f0a8aa243299f0e78e49",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-group.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-mode-readback.stdout.log.data",
+      "bytes": 1663,
+      "sha256": "718d7f6359953575c0e707e8692682934d193e7638c50e98305848907a62c920",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-mode-readback.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-owner.stdout.log.data",
+      "bytes": 1674,
+      "sha256": "5cc185336b9c8d33d814bddfa08ed036861c3e96849cfa41deea1117b1c1f434",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-owner.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-group-readback.stdout.log.data",
+      "bytes": 1663,
+      "sha256": "33dd6bf506ecd06a9a0e9bf22079355ab86c1e0dc6b42b451cf7cc71acebf8b1",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutant-missing-group-readback.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "scoped-noemit.stdout.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "scoped-noemit.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "identity.json.data",
+      "bytes": 1477,
+      "sha256": "cdb8ff5e8c43b23cf471bf7e6c620da672374574415f9f661cdaa99c45ec4b90",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "raw-authentication.json.data",
+      "bytes": 13358,
+      "sha256": "b70ec83676f3821f4178f429a83bfc7ac1bb95657011072d0c015c86fb10381d",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "source-inventory.json.data",
+      "bytes": 81294,
+      "sha256": "e15c9284bdd8b64df2213c22ce310cf9c0569d486ec7d3e6d720b7adf9da9f1a",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "approved-diff.json.data",
+      "bytes": 3435,
+      "sha256": "0b3291d17aa674a4141c4860f271ac3a2c98f4ac6ae4c40722b480deedefe2b7",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "executions.json.data",
+      "bytes": 14278,
+      "sha256": "6f6982b41576b556077e91fc716dec25e9040a4de4f635c8ae788d4d655de63b",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "mutations.json.data",
+      "bytes": 1937,
+      "sha256": "7027609a6d1965d6ee6fadfad7edd309969ba7e6dad61c54ebe23acc45f4fa74",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "integrity.json.data",
+      "bytes": 2534,
+      "sha256": "e3d1473c3cc02cdd6ba1921d2b8574199394cbdf49c6e3ad25056106342c2e2d",
+      "classification": "independent captured data, not executable source or discovered test"
+    },
+    {
+      "path": "cleanup.json.data",
+      "bytes": 548,
+      "sha256": "eb2e3c3a7695d3f04c8d4c62da4f53a641508268bd041b50e6bd216724791cd4",
+      "classification": "independent captured data, not executable source or discovered test"
+    }
+  ]
+}

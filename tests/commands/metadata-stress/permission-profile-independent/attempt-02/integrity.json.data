@@ -1,0 +1,18 @@
+{
+  "frozenFiles": 249,
+  "frozenChanged": [],
+  "liveChanged": [],
+  "oracleBefore": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+  "oracleAfter": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+  "initialStatus": "?? benchmarks/reports/current-comparison-20260827/measurement-freeze/\n?? benchmarks/reports/current-comparison-20260827/measurement-review/\n?? benchmarks/reports/current-comparison-20260827/measurement/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/permission-profile-independent/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/native-preflight-independent-20260827/\n?? tests/integration/typecheck-workflow-independent-20260827-closure/\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/seal-check-pre-execution.json\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/seal-check.mjs.data\n?? tests/stress/adapters/s3-snapshot-profile-independent/\n",
+  "initialIndex": "",
+  "finalStatus": "?? benchmarks/reports/current-comparison-20260827/measurement-freeze/\n?? benchmarks/reports/current-comparison-20260827/measurement-review/\n?? benchmarks/reports/current-comparison-20260827/measurement/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/permission-profile-independent/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/authentication-after.json\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/seal-check-post-execution.json\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/seal-check-pre-execution.json\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/seal-check.mjs.data\n?? tests/stress/adapters/s3-snapshot-profile-independent/\n",
+  "finalIndex": "",
+  "headAtEnd": "d209711fdbeaf65479307ca299f6ef7c11753658",
+  "reviewSourceHashes": {
+    "capture.mjs": "1a52e719f165da8a955a6d92acf7269d8859e512a1ebb85572f23369a1c6d74a",
+    "observe.mjs": "9f1594c8745a48806739bdf31de6a2db8dbaff8100d5598461f8df53015c5902",
+    "review.test.ts": "8cb950148f04f94cbc9c2027c6438b893483a1a0a170fddc503f75cc5e413b83",
+    "native-profile.mjs": "bb64ea01f7243d6c79eea27a31447ba450a4c8edd76161521de46ee71f405e03"
+  }
+}

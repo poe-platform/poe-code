@@ -1,0 +1,128 @@
+{
+  "at": "2026-08-27T13:19:20.735Z",
+  "revision": "3a1025f53e502c3426ffee34eb8d8037b27c26f8",
+  "attempts": [
+    {
+      "attempt": "attempt-01",
+      "manifestSha256": "5a734d9af98a87d023abb5cfa86618d510e9ed2297ed787a4ca958a681c184e4",
+      "dataFiles": 29,
+      "tapTests": 20,
+      "tapPassed": 19,
+      "unexpectedFailures": [
+        "independent-guards"
+      ],
+      "nativeRootsRemoved": 10
+    },
+    {
+      "attempt": "attempt-02",
+      "manifestSha256": "498717c46d3187bce7304fc8a221363065f58485a8bab13e7253d28a5dea6796",
+      "dataFiles": 32,
+      "tapTests": 20,
+      "tapPassed": 20,
+      "unexpectedFailures": [],
+      "nativeRootsRemoved": 12
+    },
+    {
+      "attempt": "attempt-03",
+      "manifestSha256": "0cc854bffe72f82cefc0180c2e8ea89c89b3a4e8801119a40309a8210bad2ee1",
+      "dataFiles": 33,
+      "tapTests": 20,
+      "tapPassed": 20,
+      "unexpectedFailures": [],
+      "nativeRootsRemoved": 13
+    }
+  ],
+  "finalFrozenFilesAuthenticated": 249,
+  "finalTrackedSourceMatchesFreeze": true,
+  "exactObservedTransitionVectors": 384,
+  "exactObservedDirectoryControls": 48,
+  "isolatedHelperMutantsKilled": 4,
+  "structuralMutationGuards": 8,
+  "originalRawFilesAuthenticated": 25,
+  "independentMemberTransitions": 4,
+  "independentNonmemberCharacterizations": 17,
+  "independentDenialControls": 1,
+  "actualInheritedToMemberTransitions": [
+    {
+      "operation": "chown",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/.native-independent-member-QIEArW/directory",
+      "uid": 501,
+      "gid": 20,
+      "beforeGid": 0,
+      "afterGid": 20
+    },
+    {
+      "operation": "chown",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/.native-independent-member-QIEArW/file",
+      "uid": 501,
+      "gid": 20,
+      "beforeGid": 0,
+      "afterGid": 20
+    }
+  ],
+  "oldStrictGap": {
+    "cases": 6,
+    "records": [
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-feasibility.txt",
+        "sha256": "92777ed384b1512d537c042b12c3bbeeae857211714a50593026ee9016b52737",
+        "bytes": 16540
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-status.txt",
+        "sha256": "59d43720a03a9492b0ee31eb47aa4f43892af462997c3074e3564e26d69b14f5",
+        "bytes": 678
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-replay.mjs",
+        "sha256": "0725f3aa137c0a86d6fb0d6cb9fe067508178f694e465a61878427d6f225df49",
+        "bytes": 17181
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-replay.json",
+        "sha256": "0fa98f7ded51eb0024f631c35aefcc5b1592c2aa5395622c8da965be42825328",
+        "bytes": 287688
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-controls.mjs",
+        "sha256": "34a1dfc0df80ef3a0b333c997162b2e2766e7ecba291290849ef261554fcb842",
+        "bytes": 8797
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/safe-bash-metadata-sgid-controls.json",
+        "sha256": "44a87a141f596bef65418723ad35b460ec3376d294d77d08573a89e387af382a",
+        "bytes": 32313
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/support/source-proof.json",
+        "sha256": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f",
+        "bytes": 5160
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/support/source-proof.mjs",
+        "sha256": "92b88ad09ea8e199ccfd4b1540bb294902902aa2c8d2bd033a8cddb34b5ac438",
+        "bytes": 3470
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/support/syscall-probe.c",
+        "sha256": "86e14248249ec20ca08e9c5a04008028883e0f19c254230353bbfe71f619cb40",
+        "bytes": 1084
+      },
+      {
+        "path": "tests/commands/metadata-stress/sgid-feasibility/support/trace-fchmodat.c",
+        "sha256": "b87b6da606aa4213c867745b5efafce76b709515c2296e4e23da342dec8b2045",
+        "bytes": 737
+      }
+    ],
+    "freshExecutionCount": 0,
+    "remainsUnresolved": true
+  },
+  "discoveredOwnedTests": [
+    "review.test.ts"
+  ],
+  "fullGateRun": false,
+  "linuxRun": false,
+  "buildRun": false,
+  "dependenciesInstalled": false,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/audit.mjs"
+}

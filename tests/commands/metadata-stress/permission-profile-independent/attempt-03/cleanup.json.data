@@ -1,0 +1,8 @@
+{
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03",
+  "absent": true,
+  "nativeRemaining": [],
+  "allProcessesSettled": true,
+  "observer": "Native roots only; non-symlink owned modes restored to 0700 directories/0600 files before removal; no unauthorized chgrp or ambient permission changes.",
+  "profileRoots": "Original Darwin test-created /tmp roots inherit gid0 without chgrp; they are traced and removed. Other native roots are inside the task-owned frozen copy."
+}

@@ -1,0 +1,65 @@
+{
+  "count": 8,
+  "records": [
+    {
+      "file": "native-differential.test.ts",
+      "kind": "lost-vector",
+      "originalSha256": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999",
+      "mutatedSha256": "bdc0ff805dfde1631b5ae4d953d0b7a834c2ba8f908b1b03f4cde966b27c73f7",
+      "oracle": "exact inverse-diff structural guard, not mutated native execution"
+    },
+    {
+      "file": "native-differential.test.ts",
+      "kind": "weakened-assertion",
+      "originalSha256": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999",
+      "mutatedSha256": "2f24d5bec79429a2fea6316dd07b23647419e028a32a31609329f978bc14282d",
+      "oracle": "exact inverse-diff structural guard, not mutated native execution"
+    },
+    {
+      "file": "chmod-controls.test.ts",
+      "kind": "lost-vector",
+      "originalSha256": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c",
+      "mutatedSha256": "650c1f68ce74298eb42761b4dbc6d972d83ab09c7780017fc5cd97ae20c6d73c",
+      "oracle": "exact inverse-diff structural guard, not mutated native execution"
+    },
+    {
+      "file": "chmod-controls.test.ts",
+      "kind": "weakened-assertion",
+      "originalSha256": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c",
+      "mutatedSha256": "af070e761728b65bf942bfb815aec44300f8b3f5afb13bfbddbbb4d8f958da9f",
+      "oracle": "exact inverse-diff structural guard, not mutated native execution"
+    },
+    {
+      "file": "permission-profile/darwin-profile.test.ts",
+      "before": "assert.equal(native.status, 1);",
+      "after": "assert.equal(native.status, 0);",
+      "originalSha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52",
+      "mutatedSha256": "eebe143b45fdf42fe01843e9a2fb5cb173f51772a4b1894e02be1aa435f73cc9",
+      "oracle": "independent static profile contract guard, not mutated production or native execution"
+    },
+    {
+      "file": "permission-profile/darwin-profile.test.ts",
+      "before": "assert.equal(error.code, \"EACCES\");",
+      "after": "assert.ok(error.code);",
+      "originalSha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52",
+      "mutatedSha256": "998ace23975c8aa3f876ed400b347c964bdeec240cf9803a8214e0b5499c1e6a",
+      "oracle": "independent static profile contract guard, not mutated production or native execution"
+    },
+    {
+      "file": "permission-profile/darwin-profile.test.ts",
+      "before": "assert.deepEqual(await metadata(file), before);",
+      "after": "",
+      "originalSha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52",
+      "mutatedSha256": "17816c0edbcd937493d30626a404b13aefda7049440f3424137e969e12d78549",
+      "oracle": "independent static profile contract guard, not mutated production or native execution"
+    },
+    {
+      "file": "permission-profile/darwin-profile.test.ts",
+      "before": "ctimeNs: entry.ctimeNs",
+      "after": "omittedCtime: 0",
+      "originalSha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52",
+      "mutatedSha256": "18fe1610b97a948a6cd45e5a87c25a99e098d6e988cd078b785ac956dbc312ea",
+      "oracle": "independent static profile contract guard, not mutated production or native execution"
+    }
+  ]
+}

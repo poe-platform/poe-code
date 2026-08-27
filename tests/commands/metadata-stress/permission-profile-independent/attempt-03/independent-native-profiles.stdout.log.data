@@ -1,0 +1,2041 @@
+{
+  "memberTransitions": 4,
+  "historicalNonmemberCharacterizations": 17,
+  "denialControls": 1,
+  "observations": [
+    {
+      "profile": "inherited nonmember fixture before authorized qualification",
+      "name": "directory",
+      "before": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "755",
+        "ino": "174230677",
+        "dev": "16777232",
+        "ctimeNs": "1787836553418782874",
+        "mtimeNs": "1787836553418194361",
+        "size": "64",
+        "nlink": "2"
+      }
+    },
+    {
+      "profile": "inherited nonmember fixture before authorized qualification",
+      "name": "file",
+      "before": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "644",
+        "ino": "174230678",
+        "dev": "16777232",
+        "ctimeNs": "1787836553418994045",
+        "mtimeNs": "1787836553418510742",
+        "size": "5",
+        "nlink": "1"
+      }
+    },
+    {
+      "profile": "member-group",
+      "name": "directory",
+      "operation": "creation",
+      "before": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "755",
+        "ino": "174230677",
+        "dev": "16777232",
+        "ctimeNs": "1787836553420633039",
+        "mtimeNs": "1787836553418194361",
+        "size": "64",
+        "nlink": "2"
+      },
+      "result": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "after": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230677",
+        "dev": "16777232",
+        "ctimeNs": "1787836553432120834",
+        "mtimeNs": "1787836553418194361",
+        "size": "64",
+        "nlink": "2"
+      }
+    },
+    {
+      "profile": "member-group",
+      "name": "directory",
+      "operation": "preservation",
+      "before": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230677",
+        "dev": "16777232",
+        "ctimeNs": "1787836553432789349",
+        "mtimeNs": "1787836553418194361",
+        "size": "64",
+        "nlink": "2"
+      },
+      "result": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "after": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230677",
+        "dev": "16777232",
+        "ctimeNs": "1787836553444231018",
+        "mtimeNs": "1787836553418194361",
+        "size": "64",
+        "nlink": "2"
+      }
+    },
+    {
+      "profile": "member-group",
+      "name": "file",
+      "operation": "creation",
+      "before": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "755",
+        "ino": "174230678",
+        "dev": "16777232",
+        "ctimeNs": "1787836553444738571",
+        "mtimeNs": "1787836553418510742",
+        "size": "5",
+        "nlink": "1"
+      },
+      "result": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "after": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230678",
+        "dev": "16777232",
+        "ctimeNs": "1787836553455178635",
+        "mtimeNs": "1787836553418510742",
+        "size": "5",
+        "nlink": "1"
+      }
+    },
+    {
+      "profile": "member-group",
+      "name": "file",
+      "operation": "preservation",
+      "before": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230678",
+        "dev": "16777232",
+        "ctimeNs": "1787836553455707230",
+        "mtimeNs": "1787836553418510742",
+        "size": "5",
+        "nlink": "1"
+      },
+      "result": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "after": {
+        "uid": "501",
+        "gid": "20",
+        "mode": "6755",
+        "ino": "174230678",
+        "dev": "16777232",
+        "ctimeNs": "1787836553466518594",
+        "mtimeNs": "1787836553418510742",
+        "size": "5",
+        "nlink": "1"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "setid-control",
+        "initial": "6755",
+        "mode": "+2000",
+        "umask": "0022",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "4755",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553469944503",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553481141000",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553486506744",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553486717665",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553492115451",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553492285955",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4755",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553498490300",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6755"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-7",
+        "iteration": 7,
+        "initial": "0051",
+        "mode": "ug+s",
+        "umask": "0000",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "51",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553499285484",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "51",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553511116704",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4051",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553516540032",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "51",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553516729286",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4051",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553522167448",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "51",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553522350244",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4051",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553528204915",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6051"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-31",
+        "iteration": 31,
+        "initial": "0601",
+        "mode": "ug+s",
+        "umask": "0022",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "601",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553528805678",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553540992906",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553546227146",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553546359983",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553551783102",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553551931106",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4601",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553556336828",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6601"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-55",
+        "iteration": 55,
+        "initial": "0731",
+        "mode": "ug+s",
+        "umask": "0077",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "731",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553556974884",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553571601373",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553576850948",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553577004659",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553582361569",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553582639117",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4731",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553587912275",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6731"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-79",
+        "iteration": 79,
+        "initial": "0461",
+        "mode": "ug+s",
+        "umask": "0200",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "461",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553588790920",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553601507909",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553606789817",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553606975947",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553612363066",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553612561736",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4461",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553618147693",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6461"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-103",
+        "iteration": 103,
+        "initial": "0611",
+        "mode": "ug+s",
+        "umask": "0000",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "611",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553619015087",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553640400518",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553645704344",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553645956974",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553650824790",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553651174923",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4611",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553656820923",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6611"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-127",
+        "iteration": 127,
+        "initial": "0341",
+        "mode": "ug+s",
+        "umask": "0022",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "341",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553657423727",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553674495646",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553679809847",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553680005685",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553684999378",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553685210925",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4341",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553690698921",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6341"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-151",
+        "iteration": 151,
+        "initial": "0471",
+        "mode": "ug+s",
+        "umask": "0077",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "471",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553691426104",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553712233063",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553717084879",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553717347385",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553722794713",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553723598773",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4471",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553729450985",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6471"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-175",
+        "iteration": 175,
+        "initial": "0221",
+        "mode": "ug+s",
+        "umask": "0200",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "221",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553730352755",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553753699562",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553759047222",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553759243227",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553765269818",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553765812122",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4221",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553771995175",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6221"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-199",
+        "iteration": 199,
+        "initial": "0351",
+        "mode": "ug+s",
+        "umask": "0000",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "351",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553773441957",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553801071984",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553806851528",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553807962011",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553813719722",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553814211191",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4351",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553820581623",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6351"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-223",
+        "iteration": 223,
+        "initial": "0101",
+        "mode": "ug+s",
+        "umask": "0022",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "101",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553822776547",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553849204506",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553854508123",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553854924382",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553860691926",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553861129602",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4101",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553867271821",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6101"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-247",
+        "iteration": 247,
+        "initial": "0231",
+        "mode": "ug+s",
+        "umask": "0077",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "231",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553868266010",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553895617239",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553901283947",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553901745416",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553907637546",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553908113557",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4231",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553914335111",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6231"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-271",
+        "iteration": 271,
+        "initial": "0761",
+        "mode": "ug+s",
+        "umask": "0200",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "761",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553915785060",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553942315021",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553947951103",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553948473865",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553954339703",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553954694336",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4761",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553960929307",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6761"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-295",
+        "iteration": 295,
+        "initial": "0111",
+        "mode": "ug+s",
+        "umask": "0000",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "111",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836553962106833",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553990738632",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553996439425",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836553997003604",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554002888775",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554003323368",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4111",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554008873699",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6111"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-319",
+        "iteration": 319,
+        "initial": "0641",
+        "mode": "ug+s",
+        "umask": "0022",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "641",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836554009736926",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554036767607",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554042333730",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554042755072",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554048066773",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554048475907",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4641",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554054569459",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6641"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-343",
+        "iteration": 343,
+        "initial": "0771",
+        "mode": "ug+s",
+        "umask": "0077",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "771",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836554055550772",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554086261575",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554092261166",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554092725968",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554098586306",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554099141651",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4771",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554106507814",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6771"
+      }
+    },
+    {
+      "profile": "Darwin strict mismatch, NOT equality",
+      "input": {
+        "id": "differential-367",
+        "iteration": 367,
+        "initial": "0521",
+        "mode": "ug+s",
+        "umask": "0200",
+        "name": "directory"
+      },
+      "established": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "521",
+        "ino": "174230683",
+        "dev": "16777232",
+        "ctimeNs": "1787836554108706279",
+        "mtimeNs": "1787836553469390157",
+        "size": "64",
+        "nlink": "2"
+      },
+      "gnu": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "layers": {
+        "node": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554139866426",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554144396109",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554144925288",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554150613747",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        },
+        "command-realfs": {
+          "status": 0,
+          "before": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554150950379",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          },
+          "after": {
+            "uid": "501",
+            "gid": "0",
+            "mode": "4521",
+            "ino": "174230683",
+            "dev": "16777232",
+            "ctimeNs": "1787836554157040847",
+            "mtimeNs": "1787836553469390157",
+            "size": "64",
+            "nlink": "2"
+          }
+        }
+      },
+      "memory": {
+        "status": 0,
+        "mode": "6521"
+      }
+    },
+    {
+      "profile": "actual search denial, diagnostics NOT equality",
+      "before": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "600",
+        "ino": "174230699",
+        "dev": "16777232",
+        "ctimeNs": "1787836554158431836",
+        "mtimeNs": "1787836554158431836",
+        "size": "5",
+        "nlink": "1"
+      },
+      "after": {
+        "uid": "501",
+        "gid": "0",
+        "mode": "600",
+        "ino": "174230699",
+        "dev": "16777232",
+        "ctimeNs": "1787836554158431836",
+        "mtimeNs": "1787836554158431836",
+        "size": "5",
+        "nlink": "1"
+      },
+      "bytesHex": "00ff0a0d80",
+      "denial": {
+        "gnu": {
+          "status": 1,
+          "stdoutHex": "",
+          "stderr": "chmod: cannot access 'blocked/file': Permission denied\n"
+        },
+        "virtualExit": 1,
+        "virtualDiagnostic": "chmod: EACCES: permission denied, lstat '/work/blocked/file'\n",
+        "typedCode": "EACCES",
+        "typedPath": "/work/blocked/file"
+      }
+    }
+  ],
+  "rootsRemoved": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/candidate/tests/commands/metadata-stress/.native-independent-member-QIEArW",
+    "/private/tmp/virtual-bash-independent-permission-dyCYr0"
+  ]
+}

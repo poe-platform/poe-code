@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "kind": "fresh-v5-complete-non-self-freeze",
+  "generatedAtUtc": "2026-08-27T19:26:49.337Z",
+  "exactCandidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "authenticatedCurrentFixture": "66975ea8ffeedd7c1df510bac2b13e1767bef610",
+  "manifestSelfExcluded": true,
+  "freezeCommitBindsManifest": true,
+  "semanticCandidateCasesExecutedBeforeFreeze": false,
+  "semanticNativeCasesExecutedBeforeFreeze": false,
+  "files": [
+    {
+      "path": "CASE_MAP.md",
+      "bytes": 1424,
+      "sha256": "73de7e5435a3fdd4db4a29ff0f0ac2cd5da70c4d1c73daf2015b6c2813ce6875",
+      "gitBlob": "80cacb3456426d3da6568ee42fd4df36a5d033c2"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 6473,
+      "sha256": "ce3daa9287a4ccfe1db3e8196413cb8a89ce7590b1b25b649460c73923c94554",
+      "gitBlob": "b1f6264c12168600ac9e8540012d286a1b02a8a4"
+    },
+    {
+      "path": "ORIGINS.json",
+      "bytes": 4143,
+      "sha256": "1950880e0a493660411b5a8cd6f0d9f388f090ce921aac510221dce94c1eb9ae",
+      "gitBlob": "2ac32682806867111f3f9dbb0a6aa0667875614a"
+    },
+    {
+      "path": "config/candidate-selected-paths.txt",
+      "bytes": 7522,
+      "sha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+      "gitBlob": "65e8eea7ed343140252629a5e030c102033e48d2"
+    },
+    {
+      "path": "config/oracle-identity.json",
+      "bytes": 582,
+      "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+      "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+    },
+    {
+      "path": "config/static-tooling.json",
+      "bytes": 210,
+      "sha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f",
+      "gitBlob": "09bca6e67f082086ea7b7020acf08f0ed3eea673"
+    },
+    {
+      "path": "consumer/consumer.ts",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "gitBlob": "6544c8e7f1fb4df43d84ea6c8e1b812fa040ca9d"
+    },
+    {
+      "path": "consumer/package.json",
+      "bytes": 93,
+      "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f",
+      "gitBlob": "58b3477b86fba4b5cf05ed7ac6715996ea6e9fce"
+    },
+    {
+      "path": "consumer/runtime.mjs",
+      "bytes": 1420,
+      "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5",
+      "gitBlob": "5d4b023c175da6084b26875a9431b0ea27ff20fe"
+    },
+    {
+      "path": "consumer/tsconfig.json",
+      "bytes": 236,
+      "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b",
+      "gitBlob": "9be38da0ab7fecf777ed8667dce8015956f9af16"
+    },
+    {
+      "path": "fixtures/native-env-cases.json",
+      "bytes": 4259,
+      "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+      "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+    },
+    {
+      "path": "harness/attest-loader.mjs",
+      "bytes": 1358,
+      "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d",
+      "gitBlob": "f3ecf208359702d9946f13b5da8558fa0792bea2"
+    },
+    {
+      "path": "harness/verify-original.mjs",
+      "bytes": 26190,
+      "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+      "gitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c"
+    },
+    {
+      "path": "harness/verify-v5.mjs",
+      "bytes": 50453,
+      "sha256": "f40777ca6cf3e8cbc0ca86b1750ce80162e9bb5e565da77bdabdd778645185ce",
+      "gitBlob": "5ebbf27cbcf94ebec1e0ec93592d94fde3e9d262"
+    },
+    {
+      "path": "native-env.mjs",
+      "bytes": 4429,
+      "sha256": "ae4e32fbb7ecec262bd9e4a5edfb8d9307290035d41d3e46cd7e001f36c603dd",
+      "gitBlob": "9dfebfe79a60cf51b1b2ff17af3c9ed38316d998"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 27124,
+      "sha256": "cef278d0ea70f59e4e7351f6ca4459977a3c67b7e3d354d66589b5432abc07ce",
+      "gitBlob": "9eeae1c9d25b4087b21a7456e24d967030936e41"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "bytes": 2463,
+      "sha256": "8b2c31f4519cefd97352c73923ce037d9bbd2bb0edae4c52456ee6b0658ffe17",
+      "gitBlob": "85d57052040f35718bc783b0aa4c2ebcbb62c420"
+    }
+  ]
+}

@@ -13,6 +13,19 @@ test("bounded settings reject invalid options without registry work", () => {
   assert.deepEqual(createSplitCommands().map(command => command.name), ["split"]);
 });
 
+test("GNU size unit grammar distinguishes accepted and rejected spellings", async () => {
+  for (const value of ["1g", "1t", "1p", "1e", "1z", "1y", "1r", "1q", "1B", "+K", " K", "0K"]) {
+    const result = await run(["-b", value]);
+    assert.equal(result.exitCode, 1, value);
+    assert.match(result.stderr, /invalid number of bytes/);
+  }
+  for (const value of ["K", "1mB", "1miB", " +2", "1T", "1P"]) {
+    const result = await run(["-b", value], "abc");
+    assert.equal(result.exitCode, 0, `${value}: ${result.stderr}`);
+    assert.equal(Buffer.concat(Object.values(await files(result.fs)).map(hex => Buffer.from(hex, "hex"))).toString(), "abc");
+  }
+});
+
 test("binary input survives every chunk boundary and buffer reuse", async () => {
   const input = Uint8Array.from({ length: 513 }, (_, index) => index % 19 === 0 ? 10 : index % 256);
   for (const args of [["-l3"], ["-b17"], ["-C23"]]) {

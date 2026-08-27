@@ -41,14 +41,14 @@ export interface SplitArguments {
 
 function number(text: string, label: string, units = false, zero = false): number {
   const match = /^[\t\n\v\f\r ]*\+?([0-9]*)([a-zA-Z]*)$/u.exec(text);
-  if (!match || (!match[1] && (!units || !match[2]))) throw new Error(`invalid ${label}: '${text}'`);
+  if (!match || (!match[1] && (!units || !match[2] || text !== match[2]))) throw new Error(`invalid ${label}: '${text}'`);
   const suffix = match[2]!;
   let multiplier = 1;
   if (suffix) {
     if (!units) throw new Error(`invalid ${label}: '${text}'`);
     if (suffix === "b") multiplier = 512;
     else {
-      const unit = /^([kKmMgGtTpPeEzZyYrRqQ])(?:(i?B))?$/u.exec(suffix);
+      const unit = /^([kKmMGTPEZYRQ])(?:(i?B))?$/u.exec(suffix);
       if (!unit) throw new Error(`invalid ${label}: '${text}'`);
       const exponent = "KMGTPEZYRQ".indexOf(unit[1]!.toUpperCase()) + 1;
       multiplier = (unit[2] === "B" ? 1000 : 1024) ** exponent;

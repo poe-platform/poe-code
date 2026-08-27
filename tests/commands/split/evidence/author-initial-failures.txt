@@ -19,3 +19,7 @@ new S3FileSystem (/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts:108:
 TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:82:14)
 
 Cause: author fixture mistakenly passed {client} rather than actual documented {transport}. Inspected S3FileSystemOptions and corrected fixture to {transport: client}; no provider or product source change. This is a disclosed fixture correction, not an unchanged-input product fix.
+
+Native edge controls (edge-initial.json) revealed two independent product causes:
+1. Unit parser overaccepted lower-case g/t/p and signed/space-prefixed bare units. Pinned GNU9.7 rejects these; retain exact spelling controls, restrict to GNU's accepted unit alphabet and require unsigned/unspaced bare units. Safe-integer limits remain explicit.
+2. Eager output-directory preflight rejected empty input even though native creates no output and succeeds. Correction follows separately, without changing alias preflight requirements or deleting partial outputs.

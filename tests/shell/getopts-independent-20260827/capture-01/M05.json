@@ -1,0 +1,26 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M05/getopts.ts",
+    "bytes": 9912,
+    "sha256": "21fc5e3b96dc849aeb447d2305ef83758402b9a75ee0ae9d0c0155f8d1bf12db",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "results": [
+    {
+      "id": "P02/clones",
+      "status": "fail",
+      "milliseconds": 3.924082999999982,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected \"actual\" not to be reference-equal to \"expected\":\n\n{\n  argument: 0,\n  offset: 2\n}\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected \"actual\" not to be reference-equal to \"expected\":\n\n{\n  argument: 0,\n  offset: 2\n}\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:75:41)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:73:1)"
+      }
+    }
+  ]
+}

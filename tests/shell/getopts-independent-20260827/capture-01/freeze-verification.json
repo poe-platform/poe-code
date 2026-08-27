@@ -1,0 +1,17 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/verify-freeze.mjs"
+  ],
+  "started": "2026-08-27T19:44:07.104Z",
+  "milliseconds": 36.19266699999997,
+  "status": 0,
+  "signal": null,
+  "terminated": null,
+  "pid": 5439,
+  "settled": true,
+  "stdout": "{\n  \"scope\": \"frozen owned control integrity only; no candidate/native/type/mutation execution\",\n  \"counts\": {\n    \"semanticSequences\": 31,\n    \"scanProjections\": 85,\n    \"indexEvents\": 5,\n    \"nativeScripts\": 12,\n    \"nativeRecordsPerProfile\": 71,\n    \"policyControls\": 32,\n    \"mutationTargets\": 16,\n    \"positiveTypeProbes\": 2,\n    \"negativeTypeProbes\": 26\n  }\n}\n",
+  "stderr": "",
+  "stdoutBase64": "ewogICJzY29wZSI6ICJmcm96ZW4gb3duZWQgY29udHJvbCBpbnRlZ3JpdHkgb25seTsgbm8gY2FuZGlkYXRlL25hdGl2ZS90eXBlL211dGF0aW9uIGV4ZWN1dGlvbiIsCiAgImNvdW50cyI6IHsKICAgICJzZW1hbnRpY1NlcXVlbmNlcyI6IDMxLAogICAgInNjYW5Qcm9qZWN0aW9ucyI6IDg1LAogICAgImluZGV4RXZlbnRzIjogNSwKICAgICJuYXRpdmVTY3JpcHRzIjogMTIsCiAgICAibmF0aXZlUmVjb3Jkc1BlclByb2ZpbGUiOiA3MSwKICAgICJwb2xpY3lDb250cm9scyI6IDMyLAogICAgIm11dGF0aW9uVGFyZ2V0cyI6IDE2LAogICAgInBvc2l0aXZlVHlwZVByb2JlcyI6IDIsCiAgICAibmVnYXRpdmVUeXBlUHJvYmVzIjogMjYKICB9Cn0K",
+  "stderrBase64": ""
+}

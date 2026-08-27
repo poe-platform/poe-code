@@ -1,0 +1,38 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M16/getopts.ts",
+    "bytes": 9946,
+    "sha256": "8011ec3c8eea9298fa635bfc41d020d31992267e060f5d2ab68416e63deecfb2",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 3,
+    "pass": 2,
+    "fail": 1
+  },
+  "results": [
+    {
+      "id": "P27/initial",
+      "status": "pass",
+      "milliseconds": 0.8145409999999913,
+      "detail": null
+    },
+    {
+      "id": "P27/final",
+      "status": "pass",
+      "milliseconds": 0.13562500000000455,
+      "detail": null
+    },
+    {
+      "id": "P27/final-microtask",
+      "status": "fail",
+      "milliseconds": 3.362832999999995,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:167:10)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:163:65)"
+      }
+    }
+  ]
+}

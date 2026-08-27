@@ -1,0 +1,21 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "--input-type=module",
+    "-e",
+    "const candidate = await import(\"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M12/getopts.ts\"); if (typeof candidate.scanGetopts !== 'function') throw Error('missing scanner'); console.log('loaded');"
+  ],
+  "started": "2026-08-27T19:44:16.487Z",
+  "milliseconds": 118.7050419999996,
+  "status": 0,
+  "signal": null,
+  "terminated": null,
+  "pid": 5988,
+  "settled": true,
+  "stdout": "loaded\n",
+  "stderr": "",
+  "stdoutBase64": "bG9hZGVkCg==",
+  "stderrBase64": ""
+}

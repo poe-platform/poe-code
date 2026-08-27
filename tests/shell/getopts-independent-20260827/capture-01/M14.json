@@ -1,0 +1,65 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M14/getopts.ts",
+    "bytes": 9871,
+    "sha256": "e7169ce58c70b33fc76fca4aba8d1046c292b8a73a2a6043a3b5bd46b4506512",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 5,
+    "pass": 1,
+    "fail": 4
+  },
+  "results": [
+    {
+      "id": "P29/success",
+      "status": "fail",
+      "milliseconds": 6.814541999999989,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+      }
+    },
+    {
+      "id": "P29/validation",
+      "status": "fail",
+      "milliseconds": 1.261749999999978,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+      }
+    },
+    {
+      "id": "P29/limit",
+      "status": "fail",
+      "milliseconds": 0.25341600000001563,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+      }
+    },
+    {
+      "id": "P29/callback",
+      "status": "fail",
+      "milliseconds": 0.2596659999999815,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort]\n  ]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+      }
+    },
+    {
+      "id": "P29/abort",
+      "status": "pass",
+      "milliseconds": 0.9538340000000005,
+      "detail": null
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+export interface GetoptsState {
+    readonly index: number;
+    readonly active?: {
+        readonly argument: number;
+        readonly offset: number;
+    };
+}
+export interface GetoptsWork {
+    readonly maxArguments: number;
+    readonly maxBytes: number;
+    readonly maxSteps: number;
+    readonly yieldEvery: number;
+    readonly signal?: AbortSignal;
+    readonly checkpoint: (steps: number) => void | Promise<void>;
+}
+export interface GetoptsScanOptions {
+    readonly reportErrors: boolean;
+    readonly work: GetoptsWork;
+}
+export type GetoptsDiagnostic = {
+    readonly kind: "unknown-option" | "missing-argument";
+    readonly option: string;
+};
+export interface GetoptsScanResult {
+    readonly state: GetoptsState;
+    readonly kind: "option" | "unknown-option" | "missing-argument" | "end";
+    readonly status: 0 | 1;
+    readonly option: string;
+    readonly optind: number;
+    readonly argument: {
+        readonly kind: "set";
+        readonly value: string;
+    } | {
+        readonly kind: "unset";
+    };
+    readonly diagnostic: GetoptsDiagnostic | null;
+}
+export declare class GetoptsError extends Error {
+    readonly code: "INVALID_INPUT" | "NON_ASCII_OPTION" | "ARGUMENT_LIMIT" | "BYTE_LIMIT" | "STEP_LIMIT";
+    constructor(code: "INVALID_INPUT" | "NON_ASCII_OPTION" | "ARGUMENT_LIMIT" | "BYTE_LIMIT" | "STEP_LIMIT", message: string);
+}
+export declare function createGetoptsState(): GetoptsState;
+export declare function cloneGetoptsState(state: GetoptsState): GetoptsState;
+export declare function withGetoptsIndex(state: GetoptsState, index: number): GetoptsState;
+export declare function scanGetopts(state: GetoptsState, optstring: string, args: readonly string[], options: GetoptsScanOptions): Promise<GetoptsScanResult>;

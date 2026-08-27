@@ -1,0 +1,71 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M12/getopts.ts",
+    "bytes": 10004,
+    "sha256": "24c7667bd2d2babfa6aa0cf7fa639db20851752966f86ec0d00113ed543da41a",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 6,
+    "pass": 2,
+    "fail": 4
+  },
+  "results": [
+    {
+      "id": "P25/0",
+      "status": "pass",
+      "milliseconds": 1.1900000000000261,
+      "detail": null
+    },
+    {
+      "id": "P25/1",
+      "status": "fail",
+      "milliseconds": 6.9743330000000014,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+      }
+    },
+    {
+      "id": "P25/2",
+      "status": "fail",
+      "milliseconds": 1.874541999999991,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+      }
+    },
+    {
+      "id": "P25/3",
+      "status": "fail",
+      "milliseconds": 0.9980419999999981,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+      }
+    },
+    {
+      "id": "P25/4",
+      "status": "fail",
+      "milliseconds": 0.8801670000000001,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+      }
+    },
+    {
+      "id": "P25/5",
+      "status": "pass",
+      "milliseconds": 0.09975000000000023,
+      "detail": null
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/type-review.mjs",
+    "source",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/source/src/shell",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/capture-01/types-source.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/types-source"
+  ],
+  "started": "2026-08-27T19:44:09.062Z",
+  "milliseconds": 1749.568209,
+  "status": 1,
+  "signal": null,
+  "terminated": null,
+  "pid": 5556,
+  "settled": true,
+  "stdout": "{\"mode\":\"source\",\"total\":28,\"fail\":1}\n",
+  "stderr": "",
+  "stdoutBase64": "eyJtb2RlIjoic291cmNlIiwidG90YWwiOjI4LCJmYWlsIjoxfQo=",
+  "stderrBase64": ""
+}

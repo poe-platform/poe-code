@@ -1,0 +1,3623 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/consumer/virtual-bash/dist/shell/getopts.js",
+    "bytes": 9066,
+    "sha256": "e6c92f625e233c1a6994580cba6832e21bc2f397191f7d6476325c99b867bbe0",
+    "mode": "moved"
+  },
+  "counts": {
+    "total": 238,
+    "pass": 237,
+    "fail": 1
+  },
+  "results": [
+    {
+      "id": "S01/1",
+      "status": "pass",
+      "milliseconds": 0.5164580000000001,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S01/2",
+      "status": "pass",
+      "milliseconds": 0.06187500000000057,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "S01/3",
+      "status": "pass",
+      "milliseconds": 0.05466700000000202,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "VALUE"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "VALUE"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S01/4",
+      "status": "pass",
+      "milliseconds": 0.018458000000002528,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 4,
+          "argument": {
+            "kind": "set",
+            "value": "next"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 4,
+          "argument": {
+            "kind": "set",
+            "value": "next"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S01/5",
+      "status": "pass",
+      "milliseconds": 0.09550000000000125,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S01/6",
+      "status": "pass",
+      "milliseconds": 0.02462500000000034,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S02/1",
+      "status": "pass",
+      "milliseconds": 0.017208000000003665,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "--"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "--"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S02/2",
+      "status": "pass",
+      "milliseconds": 0.011499999999998067,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 5,
+          "argument": {
+            "kind": "set",
+            "value": ""
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 5,
+          "argument": {
+            "kind": "set",
+            "value": ""
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "id": "S02/3",
+      "status": "pass",
+      "milliseconds": 0.07062499999999972,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 7,
+          "argument": {
+            "kind": "set",
+            "value": "-p"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 7,
+          "argument": {
+            "kind": "set",
+            "value": "-p"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 7
+        }
+      }
+    },
+    {
+      "id": "S02/4",
+      "status": "pass",
+      "milliseconds": 0.01950000000000074,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 7,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 7,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 7
+        }
+      }
+    },
+    {
+      "id": "S03/1",
+      "status": "pass",
+      "milliseconds": 0.009624999999999773,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S03/2",
+      "status": "pass",
+      "milliseconds": 0.07754200000000111,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "unknown-option",
+            "option": "z"
+          }
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "unknown-option",
+            "option": "z"
+          }
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "S03/3",
+      "status": "pass",
+      "milliseconds": 0.011208000000003437,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S03/4",
+      "status": "pass",
+      "milliseconds": 0.005624999999994884,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-000/1",
+      "status": "pass",
+      "milliseconds": 0.01141600000000409,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-000/2",
+      "status": "pass",
+      "milliseconds": 0.006415999999994426,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-001/1",
+      "status": "pass",
+      "milliseconds": 0.0055419999999983816,
+      "detail": {
+        "expected": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-001/2",
+      "status": "pass",
+      "milliseconds": 0.004249999999998977,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-010/1",
+      "status": "pass",
+      "milliseconds": 0.006000000000000227,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "unknown-option",
+            "option": "z"
+          }
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "unknown-option",
+            "option": "z"
+          }
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-010/2",
+      "status": "pass",
+      "milliseconds": 0.0037080000000031532,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-011/1",
+      "status": "pass",
+      "milliseconds": 0.006000000000000227,
+      "detail": {
+        "expected": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "missing-argument",
+            "option": "q"
+          }
+        },
+        "actual": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": {
+            "kind": "missing-argument",
+            "option": "q"
+          }
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-011/2",
+      "status": "pass",
+      "milliseconds": 0.0037499999999965894,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-100/1",
+      "status": "pass",
+      "milliseconds": 0.008708000000005711,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-100/2",
+      "status": "pass",
+      "milliseconds": 0.005207999999996105,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-101/1",
+      "status": "pass",
+      "milliseconds": 0.005709000000003073,
+      "detail": {
+        "expected": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-101/2",
+      "status": "pass",
+      "milliseconds": 0.0040410000000008495,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-110/1",
+      "status": "pass",
+      "milliseconds": 0.003875000000000739,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-110/2",
+      "status": "pass",
+      "milliseconds": 0.004167000000002474,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-111/1",
+      "status": "pass",
+      "milliseconds": 0.004041999999998325,
+      "detail": {
+        "expected": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-111/2",
+      "status": "pass",
+      "milliseconds": 0.005542000000005487,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S05/1",
+      "status": "pass",
+      "milliseconds": 0.005749999999999034,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S05/2",
+      "status": "pass",
+      "milliseconds": 0.006333000000005029,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S05/3",
+      "status": "pass",
+      "milliseconds": 0.004375000000003126,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S05/4",
+      "status": "pass",
+      "milliseconds": 0.0048340000000024475,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "id": "S05/5",
+      "status": "pass",
+      "milliseconds": 0.005542000000005487,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "id": "S06-0/1",
+      "status": "pass",
+      "milliseconds": 0.0035829999999990036,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-0/2",
+      "status": "pass",
+      "milliseconds": 0.004833999999995342,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-1/1",
+      "status": "pass",
+      "milliseconds": 0.0034999999999953957,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-1/2",
+      "status": "pass",
+      "milliseconds": 0.26891700000000185,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-2/1",
+      "status": "pass",
+      "milliseconds": 0.019874999999998977,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-2/2",
+      "status": "pass",
+      "milliseconds": 0.006332999999997924,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-3/1",
+      "status": "pass",
+      "milliseconds": 0.005250000000003752,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S06-3/2",
+      "status": "pass",
+      "milliseconds": 0.004541000000003237,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S07/1",
+      "status": "pass",
+      "milliseconds": 0.003875000000000739,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S07/2",
+      "status": "pass",
+      "milliseconds": 0.0034159999999943125,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S08/1",
+      "status": "pass",
+      "milliseconds": 0.005375000000000796,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S08/2",
+      "status": "pass",
+      "milliseconds": 0.011042000000003327,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "Z"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "Z"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S08/3",
+      "status": "pass",
+      "milliseconds": 0.0051250000000067075,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S09/1",
+      "status": "pass",
+      "milliseconds": 0.004874999999998408,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "qq"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "qq"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S09/2",
+      "status": "pass",
+      "milliseconds": 0.004166999999995369,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S10/1",
+      "status": "pass",
+      "milliseconds": 0.004582999999996673,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "-p"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "-p"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S10/2",
+      "status": "pass",
+      "milliseconds": 0.004083000000001391,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S11/1",
+      "status": "pass",
+      "milliseconds": 0.0037090000000006285,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "1",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "1",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S11/2",
+      "status": "pass",
+      "milliseconds": 0.006624999999999659,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S11/3",
+      "status": "pass",
+      "milliseconds": 0.004708999999998298,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S12/1",
+      "status": "pass",
+      "milliseconds": 0.004666999999997756,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S12/2",
+      "status": "pass",
+      "milliseconds": 0.005874999999996078,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S12/3",
+      "status": "pass",
+      "milliseconds": 0.005000000000002558,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "S12/4",
+      "status": "pass",
+      "milliseconds": 0.004125000000001933,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S12/5",
+      "status": "pass",
+      "milliseconds": 0.003875000000000739,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S13/1",
+      "status": "pass",
+      "milliseconds": 0.00491699999999895,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S13/2",
+      "status": "pass",
+      "milliseconds": 0.018582999999999572,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "S13/3",
+      "status": "pass",
+      "milliseconds": 0.008874999999996191,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "r",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S13/4",
+      "status": "pass",
+      "milliseconds": 0.009957999999997469,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "z",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "z",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S13/5",
+      "status": "pass",
+      "milliseconds": 0.005457999999997298,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S14/1",
+      "status": "pass",
+      "milliseconds": 0.006416000000001532,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S14/2",
+      "status": "pass",
+      "milliseconds": 0.008416000000003976,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "y",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "y",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "S14/3",
+      "status": "pass",
+      "milliseconds": 0.0055419999999983816,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "z",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "z",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S14/4",
+      "status": "pass",
+      "milliseconds": 0.004417000000003668,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S15/1",
+      "status": "pass",
+      "milliseconds": 0.004083999999998866,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S15/2",
+      "status": "pass",
+      "milliseconds": 0.004666999999997756,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "x",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "x",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S15/3",
+      "status": "pass",
+      "milliseconds": 0.0037090000000006285,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S16/1",
+      "status": "pass",
+      "milliseconds": 0.0038330000000001974,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S16/2",
+      "status": "pass",
+      "milliseconds": 0.004167000000002474,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "id": "S17/1",
+      "status": "pass",
+      "milliseconds": 0.0037499999999965894,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "S17/2",
+      "status": "pass",
+      "milliseconds": 0.005292000000004293,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "r"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "r"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S18/1",
+      "status": "pass",
+      "milliseconds": 0.010583000000004006,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "🧪é\n"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "🧪é\n"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S18/2",
+      "status": "pass",
+      "milliseconds": 0.007541000000003351,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 4,
+          "argument": {
+            "kind": "set",
+            "value": "漢字"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 4,
+          "argument": {
+            "kind": "set",
+            "value": "漢字"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S18/3",
+      "status": "pass",
+      "milliseconds": 0.0051660000000026685,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "id": "S18/4",
+      "status": "pass",
+      "milliseconds": 0.004915999999994369,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 5,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "id": "S19/1",
+      "status": "pass",
+      "milliseconds": 0.004750000000001364,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "\ud800"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "\ud800"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S19/2",
+      "status": "pass",
+      "milliseconds": 0.0037090000000006285,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S20/1",
+      "status": "pass",
+      "milliseconds": 0.0050829999999990605,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S21/1",
+      "status": "pass",
+      "milliseconds": 0.004167000000002474,
+      "detail": {
+        "expected": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "-"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 3,
+          "argument": {
+            "kind": "set",
+            "value": "-"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "S21/2",
+      "status": "pass",
+      "milliseconds": 0.0039579999999972415,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 3,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "id": "P01/fresh",
+      "status": "pass",
+      "milliseconds": 0.052250000000000796,
+      "detail": null
+    },
+    {
+      "id": "P02/clones",
+      "status": "pass",
+      "milliseconds": 0.0328749999999971,
+      "detail": null
+    },
+    {
+      "id": "P03/reset-clones",
+      "status": "fail",
+      "milliseconds": 0.3410420000000016,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\n'?' !== 'q'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'?' !== 'q'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:83:52\n    at async settle (file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:79:1"
+      }
+    },
+    {
+      "id": "P04/0",
+      "status": "pass",
+      "milliseconds": 0.04520899999999983,
+      "detail": null
+    },
+    {
+      "id": "P04/1",
+      "status": "pass",
+      "milliseconds": 0.010332999999995707,
+      "detail": null
+    },
+    {
+      "id": "P04/2",
+      "status": "pass",
+      "milliseconds": 0.008124999999999716,
+      "detail": null
+    },
+    {
+      "id": "P04/3",
+      "status": "pass",
+      "milliseconds": 0.007000000000005002,
+      "detail": null
+    },
+    {
+      "id": "P04/4",
+      "status": "pass",
+      "milliseconds": 0.006499999999995509,
+      "detail": null
+    },
+    {
+      "id": "P04/5",
+      "status": "pass",
+      "milliseconds": 0.006292000000001963,
+      "detail": null
+    },
+    {
+      "id": "P04/6",
+      "status": "pass",
+      "milliseconds": 0.006624999999999659,
+      "detail": null
+    },
+    {
+      "id": "P04/7",
+      "status": "pass",
+      "milliseconds": 0.006417000000006112,
+      "detail": null
+    },
+    {
+      "id": "P04/8",
+      "status": "pass",
+      "milliseconds": 0.07695799999999764,
+      "detail": null
+    },
+    {
+      "id": "P05/0",
+      "status": "pass",
+      "milliseconds": 0.04408300000000054,
+      "detail": null
+    },
+    {
+      "id": "P05/1",
+      "status": "pass",
+      "milliseconds": 0.0098339999999979,
+      "detail": null
+    },
+    {
+      "id": "P05/2",
+      "status": "pass",
+      "milliseconds": 0.010334000000000287,
+      "detail": null
+    },
+    {
+      "id": "P05/3",
+      "status": "pass",
+      "milliseconds": 0.007458999999997218,
+      "detail": null
+    },
+    {
+      "id": "P05/4",
+      "status": "pass",
+      "milliseconds": 0.0073330000000026985,
+      "detail": null
+    },
+    {
+      "id": "P05/5",
+      "status": "pass",
+      "milliseconds": 0.008082999999999174,
+      "detail": null
+    },
+    {
+      "id": "P05/6",
+      "status": "pass",
+      "milliseconds": 0.007708000000000936,
+      "detail": null
+    },
+    {
+      "id": "P05/7",
+      "status": "pass",
+      "milliseconds": 0.007415999999999201,
+      "detail": null
+    },
+    {
+      "id": "P06/0",
+      "status": "pass",
+      "milliseconds": 0.05195900000000364,
+      "detail": null
+    },
+    {
+      "id": "P06/1",
+      "status": "pass",
+      "milliseconds": 0.018250000000001876,
+      "detail": null
+    },
+    {
+      "id": "P06/2",
+      "status": "pass",
+      "milliseconds": 0.019040999999994312,
+      "detail": null
+    },
+    {
+      "id": "P06/3",
+      "status": "pass",
+      "milliseconds": 0.015875000000001194,
+      "detail": null
+    },
+    {
+      "id": "P07/0",
+      "status": "pass",
+      "milliseconds": 0.021625000000000227,
+      "detail": null
+    },
+    {
+      "id": "P07/1",
+      "status": "pass",
+      "milliseconds": 0.016542000000001167,
+      "detail": null
+    },
+    {
+      "id": "P07/2",
+      "status": "pass",
+      "milliseconds": 0.015125000000004718,
+      "detail": null
+    },
+    {
+      "id": "P07/3",
+      "status": "pass",
+      "milliseconds": 0.012833000000000538,
+      "detail": null
+    },
+    {
+      "id": "P08/0",
+      "status": "pass",
+      "milliseconds": 0.05920799999999815,
+      "detail": null
+    },
+    {
+      "id": "P08/1",
+      "status": "pass",
+      "milliseconds": 0.020040999999999087,
+      "detail": null
+    },
+    {
+      "id": "P08/2",
+      "status": "pass",
+      "milliseconds": 0.09325000000000472,
+      "detail": null
+    },
+    {
+      "id": "P09/selected-only",
+      "status": "pass",
+      "milliseconds": 0.0296250000000029,
+      "detail": null
+    },
+    {
+      "id": "P10/0",
+      "status": "pass",
+      "milliseconds": 0.03841600000000511,
+      "detail": null
+    },
+    {
+      "id": "P10/1",
+      "status": "pass",
+      "milliseconds": 0.02620900000000148,
+      "detail": null
+    },
+    {
+      "id": "P11/p/?",
+      "status": "pass",
+      "milliseconds": 0.015292000000002304,
+      "detail": null
+    },
+    {
+      "id": "P11/p/:",
+      "status": "pass",
+      "milliseconds": 0.0029169999999965057,
+      "detail": null
+    },
+    {
+      "id": "P11/?p/?",
+      "status": "pass",
+      "milliseconds": 0.002709000000002959,
+      "detail": null
+    },
+    {
+      "id": "P11/?p/:",
+      "status": "pass",
+      "milliseconds": 0.002625000000001876,
+      "detail": null
+    },
+    {
+      "id": "P11/p:?/?",
+      "status": "pass",
+      "milliseconds": 0.00274999999999892,
+      "detail": null
+    },
+    {
+      "id": "P11/p:?/:",
+      "status": "pass",
+      "milliseconds": 0.002625000000001876,
+      "detail": null
+    },
+    {
+      "id": "P11/:p/?",
+      "status": "pass",
+      "milliseconds": 0.19241600000000147,
+      "detail": null
+    },
+    {
+      "id": "P11/:p/:",
+      "status": "pass",
+      "milliseconds": 0.006542000000003156,
+      "detail": null
+    },
+    {
+      "id": "P11/:?p/?",
+      "status": "pass",
+      "milliseconds": 0.005542000000005487,
+      "detail": null
+    },
+    {
+      "id": "P11/:?p/:",
+      "status": "pass",
+      "milliseconds": 0.007625000000004434,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/0",
+      "status": "pass",
+      "milliseconds": 0.04433299999999463,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/1",
+      "status": "pass",
+      "milliseconds": 0.02300000000000324,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/2",
+      "status": "pass",
+      "milliseconds": 0.015416999999999348,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/3",
+      "status": "pass",
+      "milliseconds": 0.012208999999998582,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/4",
+      "status": "pass",
+      "milliseconds": 0.011749999999999261,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/5",
+      "status": "pass",
+      "milliseconds": 0.012374999999998693,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/6",
+      "status": "pass",
+      "milliseconds": 0.011375000000001023,
+      "detail": null
+    },
+    {
+      "id": "P12/maxArguments/7",
+      "status": "pass",
+      "milliseconds": 0.013249999999999318,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/0",
+      "status": "pass",
+      "milliseconds": 0.012542000000003384,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/1",
+      "status": "pass",
+      "milliseconds": 0.13624999999999687,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/2",
+      "status": "pass",
+      "milliseconds": 0.015582999999999458,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/3",
+      "status": "pass",
+      "milliseconds": 0.012833000000000538,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/4",
+      "status": "pass",
+      "milliseconds": 0.012000000000000455,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/5",
+      "status": "pass",
+      "milliseconds": 0.012667000000000428,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/6",
+      "status": "pass",
+      "milliseconds": 0.012000000000000455,
+      "detail": null
+    },
+    {
+      "id": "P12/maxBytes/7",
+      "status": "pass",
+      "milliseconds": 0.012541000000005909,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/0",
+      "status": "pass",
+      "milliseconds": 0.012416999999999234,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/1",
+      "status": "pass",
+      "milliseconds": 0.015749999999997044,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/2",
+      "status": "pass",
+      "milliseconds": 0.011874999999996305,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/3",
+      "status": "pass",
+      "milliseconds": 0.011583000000001675,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/4",
+      "status": "pass",
+      "milliseconds": 0.011499999999998067,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/5",
+      "status": "pass",
+      "milliseconds": 0.01216699999999804,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/6",
+      "status": "pass",
+      "milliseconds": 0.011541999999998609,
+      "detail": null
+    },
+    {
+      "id": "P12/maxSteps/7",
+      "status": "pass",
+      "milliseconds": 0.016334000000000515,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/0",
+      "status": "pass",
+      "milliseconds": 0.01287500000000108,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/1",
+      "status": "pass",
+      "milliseconds": 0.015625,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/2",
+      "status": "pass",
+      "milliseconds": 0.012082999999996957,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/3",
+      "status": "pass",
+      "milliseconds": 0.011375000000001023,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/4",
+      "status": "pass",
+      "milliseconds": 0.011499999999998067,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/5",
+      "status": "pass",
+      "milliseconds": 0.012084000000001538,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/6",
+      "status": "pass",
+      "milliseconds": 0.011250000000003979,
+      "detail": null
+    },
+    {
+      "id": "P12/yieldEvery/7",
+      "status": "pass",
+      "milliseconds": 0.012166000000000565,
+      "detail": null
+    },
+    {
+      "id": "P12/yield-zero",
+      "status": "pass",
+      "milliseconds": 0.08979200000000276,
+      "detail": null
+    },
+    {
+      "id": "P13/cardinality",
+      "status": "pass",
+      "milliseconds": 0.03175000000000239,
+      "detail": null
+    },
+    {
+      "id": "P14/admission",
+      "status": "pass",
+      "milliseconds": 0.09962500000000318,
+      "detail": null
+    },
+    {
+      "id": "P15/bytes",
+      "status": "pass",
+      "milliseconds": 0.028209000000003925,
+      "detail": null
+    },
+    {
+      "id": "P16/0",
+      "status": "pass",
+      "milliseconds": 0.040957999999996275,
+      "detail": null
+    },
+    {
+      "id": "P16/1",
+      "status": "pass",
+      "milliseconds": 0.018457999999995423,
+      "detail": null
+    },
+    {
+      "id": "P16/2",
+      "status": "pass",
+      "milliseconds": 0.018166999999998268,
+      "detail": null
+    },
+    {
+      "id": "P16/3",
+      "status": "pass",
+      "milliseconds": 0.01720799999999656,
+      "detail": null
+    },
+    {
+      "id": "P17/0",
+      "status": "pass",
+      "milliseconds": 0.028790999999998235,
+      "detail": null
+    },
+    {
+      "id": "P17/1",
+      "status": "pass",
+      "milliseconds": 0.019790999999997894,
+      "detail": null
+    },
+    {
+      "id": "P18/0",
+      "status": "pass",
+      "milliseconds": 0.04779200000000117,
+      "detail": null
+    },
+    {
+      "id": "P18/1",
+      "status": "pass",
+      "milliseconds": 0.01445799999999764,
+      "detail": null
+    },
+    {
+      "id": "P18/2",
+      "status": "pass",
+      "milliseconds": 0.008999999999993236,
+      "detail": null
+    },
+    {
+      "id": "P19/short-cap",
+      "status": "pass",
+      "milliseconds": 0.042667000000001565,
+      "detail": null
+    },
+    {
+      "id": "P19/3",
+      "status": "pass",
+      "milliseconds": 0.017040999999998974,
+      "detail": null
+    },
+    {
+      "id": "P19/1",
+      "status": "pass",
+      "milliseconds": 0.0056250000000019895,
+      "detail": null
+    },
+    {
+      "id": "P19/100",
+      "status": "pass",
+      "milliseconds": 0.0033340000000023906,
+      "detail": null
+    },
+    {
+      "id": "P20/spec",
+      "status": "pass",
+      "milliseconds": 0.37920799999999844,
+      "detail": null
+    },
+    {
+      "id": "P20/arg",
+      "status": "pass",
+      "milliseconds": 0.22008399999999995,
+      "detail": null
+    },
+    {
+      "id": "P21/reuse-and-index",
+      "status": "pass",
+      "milliseconds": 0.1233750000000029,
+      "detail": null
+    },
+    {
+      "id": "P22/awaited-gates",
+      "status": "pass",
+      "milliseconds": 0.28666700000000134,
+      "detail": null
+    },
+    {
+      "id": "P23/0/initial/throw",
+      "status": "pass",
+      "milliseconds": 0.05799999999999983,
+      "detail": null
+    },
+    {
+      "id": "P23/0/initial/reject",
+      "status": "pass",
+      "milliseconds": 0.014832999999995877,
+      "detail": null
+    },
+    {
+      "id": "P23/0/final/throw",
+      "status": "pass",
+      "milliseconds": 0.01345799999999997,
+      "detail": null
+    },
+    {
+      "id": "P23/0/final/reject",
+      "status": "pass",
+      "milliseconds": 0.012250000000001648,
+      "detail": null
+    },
+    {
+      "id": "P23/1/initial/throw",
+      "status": "pass",
+      "milliseconds": 0.011665999999998178,
+      "detail": null
+    },
+    {
+      "id": "P23/1/initial/reject",
+      "status": "pass",
+      "milliseconds": 0.010750000000001592,
+      "detail": null
+    },
+    {
+      "id": "P23/1/final/throw",
+      "status": "pass",
+      "milliseconds": 0.010916999999999177,
+      "detail": null
+    },
+    {
+      "id": "P23/1/final/reject",
+      "status": "pass",
+      "milliseconds": 0.010624999999997442,
+      "detail": null
+    },
+    {
+      "id": "P23/2/initial/throw",
+      "status": "pass",
+      "milliseconds": 0.053666999999997245,
+      "detail": null
+    },
+    {
+      "id": "P23/2/initial/reject",
+      "status": "pass",
+      "milliseconds": 0.015999999999998238,
+      "detail": null
+    },
+    {
+      "id": "P23/2/final/throw",
+      "status": "pass",
+      "milliseconds": 0.012084000000001538,
+      "detail": null
+    },
+    {
+      "id": "P23/2/final/reject",
+      "status": "pass",
+      "milliseconds": 0.010415999999999315,
+      "detail": null
+    },
+    {
+      "id": "P23/3/initial/throw",
+      "status": "pass",
+      "milliseconds": 0.010083000000001618,
+      "detail": null
+    },
+    {
+      "id": "P23/3/initial/reject",
+      "status": "pass",
+      "milliseconds": 0.009791999999997358,
+      "detail": null
+    },
+    {
+      "id": "P23/3/final/throw",
+      "status": "pass",
+      "milliseconds": 0.010042000000005658,
+      "detail": null
+    },
+    {
+      "id": "P23/3/final/reject",
+      "status": "pass",
+      "milliseconds": 0.010083999999999094,
+      "detail": null
+    },
+    {
+      "id": "P23/4/initial/throw",
+      "status": "pass",
+      "milliseconds": 0.009500000000002728,
+      "detail": null
+    },
+    {
+      "id": "P23/4/initial/reject",
+      "status": "pass",
+      "milliseconds": 0.009834000000005005,
+      "detail": null
+    },
+    {
+      "id": "P23/4/final/throw",
+      "status": "pass",
+      "milliseconds": 0.010457999999999856,
+      "detail": null
+    },
+    {
+      "id": "P23/4/final/reject",
+      "status": "pass",
+      "milliseconds": 0.01304100000000119,
+      "detail": null
+    },
+    {
+      "id": "P24/0",
+      "status": "pass",
+      "milliseconds": 0.15125000000000455,
+      "detail": null
+    },
+    {
+      "id": "P24/1",
+      "status": "pass",
+      "milliseconds": 0.017665999999998405,
+      "detail": null
+    },
+    {
+      "id": "P24/2",
+      "status": "pass",
+      "milliseconds": 0.01416600000000301,
+      "detail": null
+    },
+    {
+      "id": "P24/3",
+      "status": "pass",
+      "milliseconds": 0.013500000000000512,
+      "detail": null
+    },
+    {
+      "id": "P24/4",
+      "status": "pass",
+      "milliseconds": 0.013584000000001595,
+      "detail": null
+    },
+    {
+      "id": "P24/5",
+      "status": "pass",
+      "milliseconds": 0.019041000000001418,
+      "detail": null
+    },
+    {
+      "id": "P25/0",
+      "status": "pass",
+      "milliseconds": 0.12045799999999929,
+      "detail": null
+    },
+    {
+      "id": "P25/1",
+      "status": "pass",
+      "milliseconds": 0.09949999999999903,
+      "detail": null
+    },
+    {
+      "id": "P25/2",
+      "status": "pass",
+      "milliseconds": 0.08554199999999668,
+      "detail": null
+    },
+    {
+      "id": "P25/3",
+      "status": "pass",
+      "milliseconds": 0.02850000000000108,
+      "detail": null
+    },
+    {
+      "id": "P25/4",
+      "status": "pass",
+      "milliseconds": 0.020749999999999602,
+      "detail": null
+    },
+    {
+      "id": "P25/5",
+      "status": "pass",
+      "milliseconds": 0.026000000000003354,
+      "detail": null
+    },
+    {
+      "id": "P26/resolve",
+      "status": "pass",
+      "milliseconds": 0.1779160000000033,
+      "detail": null
+    },
+    {
+      "id": "P26/reject",
+      "status": "pass",
+      "milliseconds": 0.1317500000000038,
+      "detail": null
+    },
+    {
+      "id": "P27/initial",
+      "status": "pass",
+      "milliseconds": 0.05216699999999719,
+      "detail": null
+    },
+    {
+      "id": "P27/final",
+      "status": "pass",
+      "milliseconds": 0.017040999999998974,
+      "detail": null
+    },
+    {
+      "id": "P27/final-microtask",
+      "status": "pass",
+      "milliseconds": 0.04279199999999861,
+      "detail": null
+    },
+    {
+      "id": "P28/task-yield",
+      "status": "pass",
+      "milliseconds": 0.3172080000000008,
+      "detail": {
+        "calls": 1,
+        "charges": 8,
+        "timerFired": true
+      }
+    },
+    {
+      "id": "P29/success",
+      "status": "pass",
+      "milliseconds": 0.0966669999999965,
+      "detail": null
+    },
+    {
+      "id": "P29/validation",
+      "status": "pass",
+      "milliseconds": 0.08295799999999787,
+      "detail": null
+    },
+    {
+      "id": "P29/limit",
+      "status": "pass",
+      "milliseconds": 0.0277499999999975,
+      "detail": null
+    },
+    {
+      "id": "P29/callback",
+      "status": "pass",
+      "milliseconds": 0.02395900000000495,
+      "detail": null
+    },
+    {
+      "id": "P29/abort",
+      "status": "pass",
+      "milliseconds": 0.02054199999999895,
+      "detail": null
+    },
+    {
+      "id": "P30/concurrent-input",
+      "status": "pass",
+      "milliseconds": 0.07929100000000489,
+      "detail": null
+    },
+    {
+      "id": "P31/0",
+      "status": "pass",
+      "milliseconds": 0.02354100000000159,
+      "detail": null
+    },
+    {
+      "id": "P31/1",
+      "status": "pass",
+      "milliseconds": 0.008791999999999689,
+      "detail": null
+    },
+    {
+      "id": "P31/2",
+      "status": "pass",
+      "milliseconds": 0.008459000000001993,
+      "detail": null
+    },
+    {
+      "id": "P31/3",
+      "status": "pass",
+      "milliseconds": 0.008207999999996218,
+      "detail": null
+    },
+    {
+      "id": "P31/4",
+      "status": "pass",
+      "milliseconds": 0.00766699999999787,
+      "detail": null
+    },
+    {
+      "id": "P31/5",
+      "status": "pass",
+      "milliseconds": 0.007208000000005654,
+      "detail": null
+    },
+    {
+      "id": "P31/6",
+      "status": "pass",
+      "milliseconds": 0.009375000000005684,
+      "detail": null
+    },
+    {
+      "id": "P31/7",
+      "status": "pass",
+      "milliseconds": 0.0077499999999943725,
+      "detail": null
+    },
+    {
+      "id": "P31/8",
+      "status": "pass",
+      "milliseconds": 0.03912499999999852,
+      "detail": null
+    },
+    {
+      "id": "P31/9",
+      "status": "pass",
+      "milliseconds": 0.010792000000002133,
+      "detail": null
+    },
+    {
+      "id": "P31/10",
+      "status": "pass",
+      "milliseconds": 0.009624999999999773,
+      "detail": null
+    },
+    {
+      "id": "P32/purity",
+      "status": "pass",
+      "milliseconds": 0.5402909999999963,
+      "detail": {
+        "sourceImports": 0,
+        "injectedHostCapabilities": [
+          "checkpoint",
+          "AbortSignal"
+        ],
+        "noRuntimeBindingAcceptance": true
+      }
+    }
+  ]
+}

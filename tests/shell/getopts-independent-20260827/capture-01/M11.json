@@ -1,0 +1,26 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M11/getopts.ts",
+    "bytes": 9977,
+    "sha256": "a630d579b1cae4b0f9c28ade219d71c20b53b9bd02920e042d49e0f19876ace6",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "results": [
+    {
+      "id": "P22/awaited-gates",
+      "status": "fail",
+      "milliseconds": 3.9737499999999812,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:136:87)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:133:1)"
+      }
+    }
+  ]
+}

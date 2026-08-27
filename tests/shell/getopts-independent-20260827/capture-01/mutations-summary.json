@@ -1,0 +1,782 @@
+[
+  {
+    "id": "M01",
+    "status": "killed",
+    "controls": [
+      "S01"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "301196306605ea97b07875c6c4b1fe5d8ef0fffd78c6b8978ec6a4d0df5f2c69",
+    "loadPassed": true,
+    "counts": {
+      "total": 6,
+      "pass": 2,
+      "fail": 4
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S01/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'p',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'p',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'r',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'r',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'VALUE'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 2,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'VALUE'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 2,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/4",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'next'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'next'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M02",
+    "status": "killed",
+    "controls": [
+      "S01",
+      "S12"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "10c95a883da355594e18e5bc3c8d020c1d39cd42f082556f1b051f1c3d0d30ad",
+    "loadPassed": true,
+    "counts": {
+      "total": 11,
+      "pass": 5,
+      "fail": 6
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S01/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'p',\n-   option: 'r',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'p',\n-   option: 'r',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'unset'\n-     kind: 'set',\n-     value: 'VALUE'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 1,\n+   option: 'p',\n-   optind: 2,\n-   option: 'q',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'unset'\n-     kind: 'set',\n-     value: 'VALUE'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 1,\n+   option: 'p',\n-   optind: 2,\n-   option: 'q',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/4",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'unset'\n-     kind: 'set',\n-     value: 'next'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 1,\n+   option: 'p',\n-   optind: 4,\n-   option: 'q',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'unset'\n-     kind: 'set',\n-     value: 'next'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 1,\n+   option: 'p',\n-   optind: 4,\n-   option: 'q',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/5",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 1,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 1,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S01/6",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 1,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 1,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S12/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'p',\n-   option: 'q',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'p',\n-   option: 'q',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M03",
+    "status": "killed",
+    "controls": [
+      "S12",
+      "P03"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "07e13e17feac9076369f9e5ee5349b47539d15209f05cbc72e9f7407802b1291",
+    "loadPassed": true,
+    "counts": {
+      "total": 6,
+      "pass": 2,
+      "fail": 4
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S12/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'q',\n-   option: 'p',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'q',\n-   option: 'p',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S12/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 2,\n+   option: 'r',\n-   optind: 1,\n-   option: 'q',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 2,\n+   option: 'r',\n-   optind: 1,\n-   option: 'q',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S12/5",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'q',\n-   option: 'p',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n    optind: 1,\n+   option: 'q',\n-   option: 'p',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "P03/reset-clones",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\n'q' !== 'p'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'q' !== 'p'\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:81:10)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:79:1)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M04",
+    "status": "killed",
+    "controls": [
+      "S13"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "966097b841a074f7293fac5a5a596278e879a953d5395fa479ea0b79cd2dfd12",
+    "loadPassed": true,
+    "counts": {
+      "total": 5,
+      "pass": 2,
+      "fail": 3
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S13/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 3,\n+   option: 'x',\n-   optind: 2,\n-   option: 'q',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 3,\n+   option: 'x',\n-   optind: 2,\n-   option: 'q',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S13/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 4,\n+   option: 'z',\n-   optind: 3,\n-   option: 'r',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'option',\n+   optind: 4,\n+   option: 'z',\n-   optind: 3,\n-   option: 'r',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S13/4",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'z',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'z',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M05",
+    "status": "killed",
+    "controls": [
+      "P02"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "21fc5e3b96dc849aeb447d2305ef83758402b9a75ee0ae9d0c0155f8d1bf12db",
+    "loadPassed": true,
+    "counts": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P02/clones",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected \"actual\" not to be reference-equal to \"expected\":\n\n{\n  argument: 0,\n  offset: 2\n}\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected \"actual\" not to be reference-equal to \"expected\":\n\n{\n  argument: 0,\n  offset: 2\n}\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:75:41)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:73:1)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M06",
+    "status": "killed",
+    "controls": [
+      "S05"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "d423d5c8e3926d2d1728769f2c88b7bc006600227a824c5529a23cbe7097b28c",
+    "loadPassed": true,
+    "counts": {
+      "total": 5,
+      "pass": 1,
+      "fail": 4
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S05/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n+   optind: 2,\n+   option: '?',\n+   status: 1\n-   kind: 'option',\n-   optind: 3,\n-   option: 'p',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n+   optind: 2,\n+   option: '?',\n+   status: 1\n-   kind: 'option',\n-   optind: 3,\n-   option: 'p',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S05/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 3,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'option',\n+   optind: 3,\n+   option: 'p',\n+   status: 0\n-   kind: 'end',\n-   optind: 4,\n-   option: '?',\n-   status: 1\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S05/4",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n+   optind: 4,\n+   option: '?',\n+   status: 1\n-   kind: 'option',\n-   optind: 5,\n-   option: 'r',\n-   status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n+   optind: 4,\n+   option: '?',\n+   status: 1\n-   kind: 'option',\n-   optind: 5,\n-   option: 'r',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S05/5",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'end',\n+   optind: 4,\n-   optind: 5,\n    option: '?',\n    status: 1\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'end',\n+   optind: 4,\n-   optind: 5,\n    option: '?',\n    status: 1\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M07",
+    "status": "killed",
+    "controls": [
+      "S04-000",
+      "S04-001",
+      "S04-100",
+      "S04-101"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "673af37fa31c9d3330e88bcf9fbfbda6d415690fbd35dcec4cbcf7b60fba1d43",
+    "loadPassed": true,
+    "counts": {
+      "total": 8,
+      "pass": 6,
+      "fail": 2
+    },
+    "meaningfulFailures": [
+      {
+        "id": "S04-000/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'z'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'unknown-option',\n    optind: 2,\n    option: '?',\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'z'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'unknown-option',\n    optind: 2,\n    option: '?',\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      },
+      {
+        "id": "S04-001/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'q'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'unknown-option',\n-   kind: 'missing-argument',\n    optind: 2,\n    option: '?',\n    status: 0\n  }\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'q'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'unknown-option',\n-   kind: 'missing-argument',\n    optind: 2,\n    option: '?',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M08",
+    "status": "killed",
+    "controls": [
+      "P13",
+      "P14"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "36637ea8727eb7491cbcba5caba4b0e6e7dd7384130ba8383aede38f6d5edf24",
+    "loadPassed": true,
+    "counts": {
+      "total": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P13/cardinality",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected ARGUMENT_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected ARGUMENT_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:107:103)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:107:1)"
+        }
+      },
+      {
+        "id": "P14/admission",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INVALID_INPUT'\n- 'ARGUMENT_LIMIT'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INVALID_INPUT'\n- 'ARGUMENT_LIMIT'\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:36:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:108:67)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:108:1)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M09",
+    "status": "killed",
+    "controls": [
+      "P15",
+      "P16",
+      "P17"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "12ebbefac9bc0929006181aeff683ce5ca9167d2958b5b080431984af8d49dc1",
+    "loadPassed": true,
+    "counts": {
+      "total": 7,
+      "pass": 0,
+      "fail": 7
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P15/bytes",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:109:93)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:109:1)"
+        }
+      },
+      {
+        "id": "P16/0",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:112:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:110:104)"
+        }
+      },
+      {
+        "id": "P16/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:112:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:110:104)"
+        }
+      },
+      {
+        "id": "P16/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:112:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:110:104)"
+        }
+      },
+      {
+        "id": "P16/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:112:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:110:104)"
+        }
+      },
+      {
+        "id": "P17/0",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:114:61)"
+        }
+      },
+      {
+        "id": "P17/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected BYTE_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected BYTE_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:114:61)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M10",
+    "status": "killed",
+    "controls": [
+      "P18",
+      "P19",
+      "P20"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "773ec4d787d84f2837574dd0bb34e38b2f04e8bbd74d1c841a1ef0fcbdeb032f",
+    "loadPassed": true,
+    "counts": {
+      "total": 9,
+      "pass": 4,
+      "fail": 5
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P18/0",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:117:16)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:115:30)"
+        }
+      },
+      {
+        "id": "P18/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:117:16)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:115:30)"
+        }
+      },
+      {
+        "id": "P19/short-cap",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:120:1)"
+        }
+      },
+      {
+        "id": "P20/spec",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:126:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:124:41)"
+        }
+      },
+      {
+        "id": "P20/arg",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:126:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:124:41)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M11",
+    "status": "killed",
+    "controls": [
+      "P22"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "a630d579b1cae4b0f9c28ade219d71c20b53b9bd02920e042d49e0f19876ace6",
+    "loadPassed": true,
+    "counts": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P22/awaited-gates",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:136:87)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:133:1)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M12",
+    "status": "killed",
+    "controls": [
+      "P25"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "24c7667bd2d2babfa6aa0cf7fa639db20851752966f86ec0d00113ed543da41a",
+    "loadPassed": true,
+    "counts": {
+      "total": 6,
+      "pass": 2,
+      "fail": 4
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P25/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+          "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+        }
+      },
+      {
+        "id": "P25/2",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+          "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+        }
+      },
+      {
+        "id": "P25/3",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+          "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+        }
+      },
+      {
+        "id": "P25/4",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n",
+          "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Object.is(outcome.reason, controller.signal.reason))\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:153:196)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:150:70)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M13",
+    "status": "killed",
+    "controls": [
+      "P25"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "c9e9845a59f6a9e076e3462fc4d1bac99b65233ab27c54261d91a731eeb81e2f",
+    "loadPassed": true,
+    "counts": {
+      "total": 6,
+      "pass": 0,
+      "fail": 6
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P25/0",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      },
+      {
+        "id": "P25/1",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      },
+      {
+        "id": "P25/2",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      },
+      {
+        "id": "P25/3",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      },
+      {
+        "id": "P25/4",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      },
+      {
+        "id": "P25/5",
+        "error": {
+          "name": "Error",
+          "message": "watchdog: pending checkpoint cancellation",
+          "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M14",
+    "status": "killed",
+    "controls": [
+      "P29"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "e7169ce58c70b33fc76fca4aba8d1046c292b8a73a2a6043a3b5bd46b4506512",
+    "loadPassed": true,
+    "counts": {
+      "total": 5,
+      "pass": 1,
+      "fail": 4
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P29/success",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+        }
+      },
+      {
+        "id": "P29/validation",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+        }
+      },
+      {
+        "id": "P29/limit",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+        }
+      },
+      {
+        "id": "P29/callback",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort]\n  ]\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [Function: hostListener],\n+   [Function: abort]\n  ]\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:179:12)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:174:77)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M15",
+    "status": "killed",
+    "controls": [
+      "P10"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "fc080b330d441ef1290f6f74fb2e9d93676b2df722020463bfcccd261676349f",
+    "loadPassed": true,
+    "counts": {
+      "total": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P10/0",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected NON_ASCII_OPTION rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected NON_ASCII_OPTION rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:96:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:95:59)"
+        }
+      },
+      {
+        "id": "P10/1",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "expected NON_ASCII_OPTION rejection\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: expected NON_ASCII_OPTION rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:96:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:95:59)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "M16",
+    "status": "killed",
+    "controls": [
+      "P27"
+    ],
+    "originalSha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "mutantSha256": "8011ec3c8eea9298fa635bfc41d020d31992267e060f5d2ab68416e63deecfb2",
+    "loadPassed": true,
+    "counts": {
+      "total": 3,
+      "pass": 2,
+      "fail": 1
+    },
+    "meaningfulFailures": [
+      {
+        "id": "P27/final-microtask",
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:167:10)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:163:65)"
+        }
+      }
+    ]
+  }
+]

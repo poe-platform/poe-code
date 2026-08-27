@@ -1,0 +1,286 @@
+{
+  "mode": "moved",
+  "module": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/moved-virtual-bash/dist/shell/getopts.js",
+  "results": [
+    {
+      "id": "F01",
+      "firstArgs": [
+        "-pqr"
+      ],
+      "secondArgs": [
+        "-pqr"
+      ],
+      "expected": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "0",
+          "q",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "actual": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "1",
+          "?",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "pass": false,
+      "transitions": {
+        "initial": {
+          "index": 0
+        },
+        "first": {
+          "state": {
+            "index": 1,
+            "active": {
+              "argument": 0,
+              "offset": 2
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "clone": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "jumped": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "second": {
+          "state": {
+            "index": 2
+          },
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    },
+    {
+      "id": "F02",
+      "firstArgs": [
+        "-pqr",
+        "operand"
+      ],
+      "secondArgs": [
+        "-pqr",
+        "operand"
+      ],
+      "expected": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "0",
+          "q",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "actual": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "0",
+          "q",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "pass": true,
+      "transitions": {
+        "initial": {
+          "index": 0
+        },
+        "first": {
+          "state": {
+            "index": 1,
+            "active": {
+              "argument": 0,
+              "offset": 2
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "clone": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "jumped": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "second": {
+          "state": {
+            "index": 2,
+            "active": {
+              "argument": 0,
+              "offset": 3
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    },
+    {
+      "id": "F03",
+      "firstArgs": [
+        "-pqr",
+        "operand"
+      ],
+      "secondArgs": [
+        "-pqr"
+      ],
+      "expected": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "0",
+          "q",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "actual": [
+        [
+          "0",
+          "p",
+          "1",
+          "",
+          ""
+        ],
+        [
+          "1",
+          "?",
+          "2",
+          "",
+          ""
+        ]
+      ],
+      "pass": false,
+      "transitions": {
+        "initial": {
+          "index": 0
+        },
+        "first": {
+          "state": {
+            "index": 1,
+            "active": {
+              "argument": 0,
+              "offset": 2
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "clone": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "jumped": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "second": {
+          "state": {
+            "index": 2
+          },
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    }
+  ]
+}

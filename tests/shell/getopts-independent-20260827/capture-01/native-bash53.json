@@ -1,0 +1,1751 @@
+{
+  "id": "bash53",
+  "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "acceptance": true,
+  "version": {
+    "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "args": [
+      "--version"
+    ],
+    "started": "2026-08-27T19:44:12.461Z",
+    "milliseconds": 23.54162499999984,
+    "status": 0,
+    "signal": null,
+    "terminated": null,
+    "pid": 5590,
+    "settled": true,
+    "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+    "stderr": "",
+    "stdoutBase64": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+    "stderrBase64": ""
+  },
+  "platform": {
+    "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "args": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "printf \"%s\\n\" \"$BASH_VERSION\" \"$MACHTYPE\" \"$OSTYPE\""
+    ],
+    "started": "2026-08-27T19:44:12.485Z",
+    "milliseconds": 15.56841599999916,
+    "status": 0,
+    "signal": null,
+    "terminated": null,
+    "pid": 5591,
+    "settled": true,
+    "stdout": "5.3.0(1)-release\naarch64-apple-darwin25.4.0\ndarwin25.4.0\n",
+    "stderr": "",
+    "stdoutBase64": "NS4zLjAoMSktcmVsZWFzZQphYXJjaDY0LWFwcGxlLWRhcndpbjI1LjQuMApkYXJ3aW4yNS40LjAK",
+    "stderrBase64": ""
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "scriptHash": "9abd42b46cb2e17daead9abdf71c61fd70a3e02cece19d29c1f2d72a9d99d17a",
+  "cases": [
+    {
+      "id": "N01",
+      "expectedRecords": 6,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHIAMQAAADAAcQAyAHgAVkFMVUUAMABxADQAeABuZXh0ADEAPwA0AAAAMQA/ADQAAAA=",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "r",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "r",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "VALUE"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "VALUE"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "0",
+            "q",
+            "4",
+            "x",
+            "next"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "4",
+            "x",
+            "next"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 6,
+          "expected": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N01"
+        ],
+        "started": "2026-08-27T19:44:12.501Z",
+        "milliseconds": 24.345040999999583,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5592,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000r\u00001\u0000\u0000\u00000\u0000q\u00002\u0000x\u0000VALUE\u00000\u0000q\u00004\u0000x\u0000next\u00001\u0000?\u00004\u0000\u0000\u00001\u0000?\u00004\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHIAMQAAADAAcQAyAHgAVkFMVUUAMABxADQAeABuZXh0ADEAPwA0AAAAMQA/ADQAAAA=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N02",
+      "expectedRecords": 4,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABxADMAeAAtLQAwAHEANQB4AAAwAHEANwB4AC1wADEAPwA3AAAA",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "q",
+            "3",
+            "x",
+            "--"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "3",
+            "x",
+            "--"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "q",
+            "5",
+            "x",
+            ""
+          ],
+          "actual": [
+            "0",
+            "q",
+            "5",
+            "x",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "q",
+            "7",
+            "x",
+            "-p"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "7",
+            "x",
+            "-p"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "7",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "7",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N02"
+        ],
+        "started": "2026-08-27T19:44:12.525Z",
+        "milliseconds": 13.281874999999673,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5593,
+        "settled": true,
+        "stdout": "0\u0000q\u00003\u0000x\u0000--\u00000\u0000q\u00005\u0000x\u0000\u00000\u0000q\u00007\u0000x\u0000-p\u00001\u0000?\u00007\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABxADMAeAAtLQAwAHEANQB4AAAwAHEANwB4AC1wADEAPwA3AAAA",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N03",
+      "expectedRecords": 4,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAD8AMQAAADAAcAAyAAAAMQA/ADIAAAA=",
+      "expectedStderr": "getopts-independent: illegal option -- z\n",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "p",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N03"
+        ],
+        "started": "2026-08-27T19:44:12.539Z",
+        "milliseconds": 12.442957999999635,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5594,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000?\u00001\u0000\u0000\u00000\u0000p\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "getopts-independent: illegal option -- z\n",
+        "stdoutBase64": "MABwADEAAAAwAD8AMQAAADAAcAAyAAAAMQA/ADIAAAA=",
+        "stderrBase64": "Z2V0b3B0cy1pbmRlcGVuZGVudDogaWxsZWdhbCBvcHRpb24gLS0gego="
+      }
+    },
+    {
+      "id": "N04",
+      "expectedRecords": 16,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MAA/ADIAAAAxAD8AMgAAADAAPwAyAAAAMQA/ADIAAAAwAD8AMgAAADEAPwAyAAAAMAA/ADIAAAAxAD8AMgAAADAAPwAyAHgAegAxAD8AMgAAADAAOgAyAHgAcQAxAD8AMgAAADAAPwAyAHgAegAxAD8AMgAAADAAOgAyAHgAcQAxAD8AMgAAAA==",
+      "expectedStderr": "getopts-independent: illegal option -- z\ngetopts-independent: option requires an argument -- q\n",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 6,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 7,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 8,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 9,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "x",
+            "z"
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "x",
+            "z"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 10,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 11,
+          "expected": [
+            "0",
+            ":",
+            "2",
+            "x",
+            "q"
+          ],
+          "actual": [
+            "0",
+            ":",
+            "2",
+            "x",
+            "q"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 12,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 13,
+          "expected": [
+            "0",
+            "?",
+            "2",
+            "x",
+            "z"
+          ],
+          "actual": [
+            "0",
+            "?",
+            "2",
+            "x",
+            "z"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 14,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 15,
+          "expected": [
+            "0",
+            ":",
+            "2",
+            "x",
+            "q"
+          ],
+          "actual": [
+            "0",
+            ":",
+            "2",
+            "x",
+            "q"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 16,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N04"
+        ],
+        "started": "2026-08-27T19:44:12.551Z",
+        "milliseconds": 12.818417000000409,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5595,
+        "settled": true,
+        "stdout": "0\u0000?\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u00000\u0000?\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u00000\u0000?\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u00000\u0000?\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u00000\u0000?\u00002\u0000x\u0000z\u00001\u0000?\u00002\u0000\u0000\u00000\u0000:\u00002\u0000x\u0000q\u00001\u0000?\u00002\u0000\u0000\u00000\u0000?\u00002\u0000x\u0000z\u00001\u0000?\u00002\u0000\u0000\u00000\u0000:\u00002\u0000x\u0000q\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "getopts-independent: illegal option -- z\ngetopts-independent: option requires an argument -- q\n",
+        "stdoutBase64": "MAA/ADIAAAAxAD8AMgAAADAAPwAyAAAAMQA/ADIAAAAwAD8AMgAAADEAPwAyAAAAMAA/ADIAAAAxAD8AMgAAADAAPwAyAHgAegAxAD8AMgAAADAAOgAyAHgAcQAxAD8AMgAAADAAPwAyAHgAegAxAD8AMgAAADAAOgAyAHgAcQAxAD8AMgAAAA==",
+        "stderrBase64": "Z2V0b3B0cy1pbmRlcGVuZGVudDogaWxsZWdhbCBvcHRpb24gLS0gegpnZXRvcHRzLWluZGVwZW5kZW50OiBvcHRpb24gcmVxdWlyZXMgYW4gYXJndW1lbnQgLS0gcQo="
+      }
+    },
+    {
+      "id": "N05",
+      "expectedRecords": 5,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MQA/ADIAAAAwAHAAMwAAADEAPwA0AAAAMAByADUAAAAxAD8ANQAAAA==",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "p",
+            "3",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "3",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "0",
+            "r",
+            "5",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "r",
+            "5",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "1",
+            "?",
+            "5",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "5",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N05"
+        ],
+        "started": "2026-08-27T19:44:12.564Z",
+        "milliseconds": 12.68762499999957,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5596,
+        "settled": true,
+        "stdout": "1\u0000?\u00002\u0000\u0000\u00000\u0000p\u00003\u0000\u0000\u00001\u0000?\u00004\u0000\u0000\u00000\u0000r\u00005\u0000\u0000\u00001\u0000?\u00005\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MQA/ADIAAAAwAHAAMwAAADEAPwA0AAAAMAByADUAAAAxAD8ANQAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N06",
+      "expectedRecords": 8,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MQA/ADEAAAAxAD8AMQAAADEAPwAxAAAAMQA/ADEAAAAxAD8AMQAAADEAPwAxAAAAMQA/ADEAAAAxAD8AMQAAAA==",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 6,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 7,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 8,
+          "expected": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N06"
+        ],
+        "started": "2026-08-27T19:44:12.577Z",
+        "milliseconds": 12.890999999999622,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5597,
+        "settled": true,
+        "stdout": "1\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u00001\u0000?\u00001\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MQA/ADEAAAAxAD8AMQAAADEAPwAxAAAAMQA/ADEAAAAxAD8AMQAAADEAPwAxAAAAMQA/ADEAAAAxAD8AMQAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N07",
+      "expectedRecords": 5,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHAAMQAAADAAcQAxAAAAMABwADEAAAAwAHAAMQAAAA==",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "q",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "q",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N07"
+        ],
+        "started": "2026-08-27T19:44:12.590Z",
+        "milliseconds": 12.257042000000183,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5598,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000p\u00001\u0000\u0000\u00000\u0000q\u00001\u0000\u0000\u00000\u0000p\u00001\u0000\u0000\u00000\u0000p\u00001\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHAAMQAAADAAcQAxAAAAMABwADEAAAAwAHAAMQAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N08",
+      "expectedRecords": 5,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAADAAcgAzAAAAMAB6ADQAAAAxAD8ANAAAAA==",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "q",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "q",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "r",
+            "3",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "r",
+            "3",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "0",
+            "z",
+            "4",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "z",
+            "4",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "4",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N08"
+        ],
+        "started": "2026-08-27T19:44:12.602Z",
+        "milliseconds": 13.321500000000015,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5599,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000q\u00002\u0000\u0000\u00000\u0000r\u00003\u0000\u0000\u00000\u0000z\u00004\u0000\u0000\u00001\u0000?\u00004\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHEAMgAAADAAcgAzAAAAMAB6ADQAAAAxAD8ANAAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N09",
+      "expectedRecords": 4,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHkAMQAAADAAegAyAAAAMQA/ADIAAAA=",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "y",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "y",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "z",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "z",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N09"
+        ],
+        "started": "2026-08-27T19:44:12.616Z",
+        "milliseconds": 12.351791999999477,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5600,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000y\u00001\u0000\u0000\u00000\u0000z\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHkAMQAAADAAegAyAAAAMQA/ADIAAAA=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N10",
+      "expectedRecords": 3,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHgAMgAAADEAPwAyAAAA",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "x",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "x",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N10"
+        ],
+        "started": "2026-08-27T19:44:12.628Z",
+        "milliseconds": 13.429917000000387,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5601,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000x\u00002\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHgAMgAAADEAPwAyAAAA",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N11",
+      "expectedRecords": 7,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgB4AFoAMQA/ADIAAAAwAHAAMgB4AHFxADEAPwAyAAAAMABxADMAeAAtcAAxAD8AMwAAAA==",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "1",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "Z"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "Z"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "0",
+            "p",
+            "2",
+            "x",
+            "qq"
+          ],
+          "actual": [
+            "0",
+            "p",
+            "2",
+            "x",
+            "qq"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 5,
+          "expected": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "2",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 6,
+          "expected": [
+            "0",
+            "q",
+            "3",
+            "x",
+            "-p"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "3",
+            "x",
+            "-p"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 7,
+          "expected": [
+            "1",
+            "?",
+            "3",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "3",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N11"
+        ],
+        "started": "2026-08-27T19:44:12.642Z",
+        "milliseconds": 12.377332999999453,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5602,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000q\u00002\u0000x\u0000Z\u00001\u0000?\u00002\u0000\u0000\u00000\u0000p\u00002\u0000x\u0000qq\u00001\u0000?\u00002\u0000\u0000\u00000\u0000q\u00003\u0000x\u0000-p\u00001\u0000?\u00003\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHEAMgB4AFoAMQA/ADIAAAAwAHAAMgB4AHFxADEAPwAyAAAAMABxADMAeAAtcAAxAD8AMwAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "N12",
+      "expectedRecords": 4,
+      "stdoutMatches": true,
+      "stderrMatches": true,
+      "expectedStdoutBase64": "MABxADIAeADwn6eqw6kKADAAcQA0AHgA5ryi5a2XADAAcAA1AAAAMQA/ADUAAAA=",
+      "expectedStderr": "",
+      "exactRecordMembership": true,
+      "pass": true,
+      "comparisons": [
+        {
+          "ordinal": 1,
+          "expected": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "🧪é\n"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "2",
+            "x",
+            "🧪é\n"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 2,
+          "expected": [
+            "0",
+            "q",
+            "4",
+            "x",
+            "漢字"
+          ],
+          "actual": [
+            "0",
+            "q",
+            "4",
+            "x",
+            "漢字"
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 3,
+          "expected": [
+            "0",
+            "p",
+            "5",
+            "",
+            ""
+          ],
+          "actual": [
+            "0",
+            "p",
+            "5",
+            "",
+            ""
+          ],
+          "pass": true
+        },
+        {
+          "ordinal": 4,
+          "expected": [
+            "1",
+            "?",
+            "5",
+            "",
+            ""
+          ],
+          "actual": [
+            "1",
+            "?",
+            "5",
+            "",
+            ""
+          ],
+          "pass": true
+        }
+      ],
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\n\nobserve() {\n  getopts \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\n\ncase \"$1\" in\n  N01)\n    for observation in 1 2 3 4 5 6; do\n      observe 'pq:r' option_name '-prqVALUE' '-q' 'next' 'operand' '-p'\n    done\n    ;;\n  N02)\n    for observation in 1 2 3 4; do\n      observe 'pq:' option_name '-q' '--' '-q' '' '-q' '-p'\n    done\n    ;;\n  N03)\n    for observation in 1 2 3 4; do observe 'p' option_name '-pzp'; done\n    ;;\n  N04)\n    for optstring in 'q:' ':q:'; do\n      for report_errors in 0 1; do\n        for token in '-z' '-q'; do\n          OPTIND=1\n          OPTERR=$report_errors\n          observe \"$optstring\" option_name \"$token\"\n          observe \"$optstring\" option_name \"$token\"\n        done\n      done\n    done\n    ;;\n  N05)\n    for observation in 1 2 3 4 5; do observe 'pr' option_name '--' '-p' '--' '-r'; done\n    ;;\n  N06)\n    for token in '-' '+' '' 'operand'; do\n      OPTIND=1\n      observe 'p' option_name \"$token\" '-p'\n      observe 'p' option_name \"$token\" '-p'\n    done\n    ;;\n  N07)\n    observe 'pqr' option_name '-pqr'\n    OPTIND=1\n    observe 'pqr' option_name '-pqr'\n    observe 'pqr' option_name '-pqr'\n    OPTIND=0\n    observe 'pqr' option_name '-pqr'\n    OPTIND=-9\n    observe 'pqr' option_name '-pqr'\n    ;;\n  N08)\n    observe 'pqrxz' option_name '-pqr' '-x' '-z'\n    OPTIND=2\n    for observation in 1 2 3 4; do observe 'pqrxz' option_name '-pqr' '-x' '-z'; done\n    ;;\n  N09)\n    observe 'pqrxyz' option_name '-pqr'\n    observe 'pqrxyz' option_name '-xyz'\n    observe 'pqrxyz' option_name '-pqz'\n    observe 'pqrxyz' option_name '-pqz'\n    ;;\n  N10)\n    observe 'pqrx' option_name '-pqr'\n    observe 'pqrx' option_name '-x'\n    observe 'pqrx' option_name '-x'\n    ;;\n  N11)\n    for observation in 1 2 3; do observe 'pp:q:' option_name '-pqZ'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'p:pq' option_name '-pqq'; done\n    OPTIND=1\n    for observation in 1 2; do observe 'q::p' option_name '-q' '-p'; done\n    ;;\n  N12)\n    for observation in 1 2 3 4; do observe 'q:p' option_name $'-q🧪é\\n' '-q' '漢字' '-p'; done\n    ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent",
+          "N12"
+        ],
+        "started": "2026-08-27T19:44:12.654Z",
+        "milliseconds": 12.22966600000018,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 5603,
+        "settled": true,
+        "stdout": "0\u0000q\u00002\u0000x\u0000🧪é\n\u00000\u0000q\u00004\u0000x\u0000漢字\u00000\u0000p\u00005\u0000\u0000\u00001\u0000?\u00005\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABxADIAeADwn6eqw6kKADAAcQA0AHgA5ryi5a2XADAAcAA1AAAAMQA/ADUAAAA=",
+        "stderrBase64": ""
+      }
+    }
+  ],
+  "counts": {
+    "scripts": 12,
+    "pass": 12,
+    "fail": 0,
+    "records": 71,
+    "passedRecords": 71
+  }
+}

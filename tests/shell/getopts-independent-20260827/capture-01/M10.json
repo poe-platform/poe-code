@@ -1,0 +1,94 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M10/getopts.ts",
+    "bytes": 9941,
+    "sha256": "773ec4d787d84f2837574dd0bb34e38b2f04e8bbd74d1c841a1ef0fcbdeb032f",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 9,
+    "pass": 4,
+    "fail": 5
+  },
+  "results": [
+    {
+      "id": "P18/0",
+      "status": "fail",
+      "milliseconds": 3.1927080000000103,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:117:16)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:115:30)"
+      }
+    },
+    {
+      "id": "P18/1",
+      "status": "fail",
+      "milliseconds": 0.21316699999999855,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:117:16)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:115:30)"
+      }
+    },
+    {
+      "id": "P18/2",
+      "status": "pass",
+      "milliseconds": 0.3087500000000034,
+      "detail": null
+    },
+    {
+      "id": "P19/short-cap",
+      "status": "fail",
+      "milliseconds": 0.18129100000001586,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:120:1)"
+      }
+    },
+    {
+      "id": "P19/3",
+      "status": "pass",
+      "milliseconds": 0.0922909999999888,
+      "detail": null
+    },
+    {
+      "id": "P19/1",
+      "status": "pass",
+      "milliseconds": 0.01504099999999653,
+      "detail": null
+    },
+    {
+      "id": "P19/100",
+      "status": "pass",
+      "milliseconds": 0.010290999999995165,
+      "detail": null
+    },
+    {
+      "id": "P20/spec",
+      "status": "fail",
+      "milliseconds": 254.057792,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:126:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:124:41)"
+      }
+    },
+    {
+      "id": "P20/arg",
+      "status": "fail",
+      "milliseconds": 77.25020899999998,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected STEP_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected STEP_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:126:3)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:124:41)"
+      }
+    }
+  ]
+}

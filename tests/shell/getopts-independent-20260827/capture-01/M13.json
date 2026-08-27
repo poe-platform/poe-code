@@ -1,0 +1,75 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M13/getopts.ts",
+    "bytes": 9961,
+    "sha256": "c9e9845a59f6a9e076e3462fc4d1bac99b65233ab27c54261d91a731eeb81e2f",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 6,
+    "pass": 0,
+    "fail": 6
+  },
+  "results": [
+    {
+      "id": "P25/0",
+      "status": "fail",
+      "milliseconds": 2001.914667,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    },
+    {
+      "id": "P25/1",
+      "status": "fail",
+      "milliseconds": 2001.7050829999998,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    },
+    {
+      "id": "P25/2",
+      "status": "fail",
+      "milliseconds": 2000.7131669999999,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    },
+    {
+      "id": "P25/3",
+      "status": "fail",
+      "milliseconds": 2000.1547499999997,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    },
+    {
+      "id": "P25/4",
+      "status": "fail",
+      "milliseconds": 2001.4537090000003,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    },
+    {
+      "id": "P25/5",
+      "status": "fail",
+      "milliseconds": 2000.7822919999999,
+      "error": {
+        "name": "Error",
+        "message": "watchdog: pending checkpoint cancellation",
+        "stack": "Error: watchdog: pending checkpoint cancellation\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:27:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+      }
+    }
+  ]
+}

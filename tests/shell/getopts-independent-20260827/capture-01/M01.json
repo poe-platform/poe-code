@@ -1,0 +1,119 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M01/getopts.ts",
+    "bytes": 9955,
+    "sha256": "301196306605ea97b07875c6c4b1fe5d8ef0fffd78c6b8978ec6a4d0df5f2c69",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 6,
+    "pass": 2,
+    "fail": 4
+  },
+  "results": [
+    {
+      "id": "S01/1",
+      "status": "fail",
+      "milliseconds": 3.85475000000001,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'p',\n-   status: 0\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'p',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S01/2",
+      "status": "fail",
+      "milliseconds": 0.4820829999999887,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'r',\n-   status: 0\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 1,\n+   option: '?',\n+   status: 1\n-   option: 'r',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S01/3",
+      "status": "fail",
+      "milliseconds": 0.21670800000001122,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'VALUE'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 2,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'VALUE'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 2,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S01/4",
+      "status": "fail",
+      "milliseconds": 0.23637500000000955,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'next'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n      kind: 'set',\n      value: 'next'\n    },\n    diagnostic: null,\n+   kind: 'end',\n-   kind: 'option',\n    optind: 4,\n+   option: '?',\n+   status: 1\n-   option: 'q',\n-   status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S01/5",
+      "status": "pass",
+      "milliseconds": 0.1202080000000052,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    },
+    {
+      "id": "S01/6",
+      "status": "pass",
+      "milliseconds": 0.026082999999999856,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 4,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 4
+        }
+      }
+    }
+  ]
+}

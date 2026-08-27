@@ -1,0 +1,37 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M08/getopts.ts",
+    "bytes": 9938,
+    "sha256": "36637ea8727eb7491cbcba5caba4b0e6e7dd7384130ba8383aede38f6d5edf24",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 2,
+    "pass": 0,
+    "fail": 2
+  },
+  "results": [
+    {
+      "id": "P13/cardinality",
+      "status": "fail",
+      "milliseconds": 3.7078750000000014,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "expected ARGUMENT_LIMIT rejection\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: expected ARGUMENT_LIMIT rejection\n\ntrue !== false\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:35:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:107:103)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:107:1)"
+      }
+    },
+    {
+      "id": "P14/admission",
+      "status": "fail",
+      "milliseconds": 0.655666999999994,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INVALID_INPUT'\n- 'ARGUMENT_LIMIT'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INVALID_INPUT'\n- 'ARGUMENT_LIMIT'\n\n    at expectCode (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:36:10)\n    at async rejectScan (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:42:3)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:108:67)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:108:1)"
+      }
+    }
+  ]
+}

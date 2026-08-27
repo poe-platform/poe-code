@@ -1,0 +1,221 @@
+{
+  "module": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/M07/getopts.ts",
+    "bytes": 9989,
+    "sha256": "673af37fa31c9d3330e88bcf9fbfbda6d415690fbd35dcec4cbcf7b60fba1d43",
+    "mode": "mutation"
+  },
+  "counts": {
+    "total": 8,
+    "pass": 6,
+    "fail": 2
+  },
+  "results": [
+    {
+      "id": "S04-000/1",
+      "status": "fail",
+      "milliseconds": 3.9707909999999913,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'z'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'unknown-option',\n    optind: 2,\n    option: '?',\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'z'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n    kind: 'unknown-option',\n    optind: 2,\n    option: '?',\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S04-000/2",
+      "status": "pass",
+      "milliseconds": 0.1357500000000016,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-001/1",
+      "status": "fail",
+      "milliseconds": 0.5004579999999947,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'q'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'unknown-option',\n-   kind: 'missing-argument',\n    optind: 2,\n    option: '?',\n    status: 0\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    argument: {\n+     kind: 'set',\n+     value: 'q'\n-     kind: 'unset'\n    },\n    diagnostic: null,\n+   kind: 'unknown-option',\n-   kind: 'missing-argument',\n    optind: 2,\n    option: '?',\n    status: 0\n  }\n\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:63:14)\n    at async settle (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:17:71)\n    at async capture (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:21:19)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs:55:5)"
+      }
+    },
+    {
+      "id": "S04-001/2",
+      "status": "pass",
+      "milliseconds": 0.06658299999999429,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-100/1",
+      "status": "pass",
+      "milliseconds": 0.021416999999999575,
+      "detail": {
+        "expected": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "unknown-option",
+          "status": 0,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "z"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-100/2",
+      "status": "pass",
+      "milliseconds": 0.16766700000000867,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-101/1",
+      "status": "pass",
+      "milliseconds": 0.019541000000003805,
+      "detail": {
+        "expected": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "missing-argument",
+          "status": 0,
+          "option": ":",
+          "optind": 2,
+          "argument": {
+            "kind": "set",
+            "value": "q"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "id": "S04-101/2",
+      "status": "pass",
+      "milliseconds": 0.01099999999999568,
+      "detail": {
+        "expected": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "actual": {
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "state": {
+          "index": 2
+        }
+      }
+    }
+  ]
+}

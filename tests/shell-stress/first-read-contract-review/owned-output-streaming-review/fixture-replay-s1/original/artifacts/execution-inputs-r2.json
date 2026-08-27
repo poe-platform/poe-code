@@ -1,0 +1,48 @@
+{
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "rootFreshExecutorAuthorization": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/root-authorization.json",
+    "sha256": "ca09fce57ac14bab198e82338cadb1de0576baf332f7b1e9f1748e9b4d307121"
+  },
+  "authorActualClosedEvidence": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/actual-closed.json",
+    "sha256": "05ba4dcef2bf0c69cd3f0bcbf91ff7c1dad07801b2ce77e5f8d741222cec8ee9"
+  },
+  "streamingReady": {
+    "path": "/tmp/safe-bash-owned-output-streaming-prototype.ready",
+    "sha256": "f016214887c9827af40f54e74b3100026565dd070de4f63b9657e887db2bdb4d"
+  },
+  "sourceTestsBuildPrerequisitesAuthenticated": true,
+  "sourceManifest": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/source-manifest-r2.json",
+    "sha256": "1874d09af8464cc7f3977b20df3d94e9bf765fffc82867045b086cf8e52405b3"
+  },
+  "toolManifest": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/tool-manifest.json",
+    "sha256": "6971af91ddb5e3decdd59c78d0e7c8db957f9aebb7613b3f449f6582b4bff215"
+  },
+  "candidateEntry": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/dist/index.js",
+    "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+  },
+  "historicalHelper": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/stress/remote-cancellation/helpers.ts",
+    "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+  },
+  "historicalProbe": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/shell/first-read-probe.ts",
+    "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+  },
+  "historicalFacade": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/index.ts",
+    "sha256": "1c2deba9b2e9d1124c58663b72197a06600eb7830ba8dabb33f52dc330713fa4"
+  },
+  "tsxImport": {
+    "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+  },
+  "publicProfiles": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/public-profiles.json",
+    "sha256": "1a8e73e4a0a26b812ecc3e0c4c7f2ecebfeb8258f7ce5f7b48231bee8c03bae6"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "classification": "fixture-only event instrumentation, not acceptance corpus or product execution",
+  "records": [
+    {
+      "version": "original",
+      "sent": "first-request-bytes",
+      "captured": "",
+      "receivedResponse": "witness-complete",
+      "events": [
+        {
+          "sequence": 0,
+          "name": "witness.original.guard.data",
+          "detail": {
+            "bytes": 19,
+            "dataListeners": 1
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 1,
+          "name": "witness.handler.enter",
+          "detail": {
+            "dataListeners": 1
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 2,
+          "name": "fixture.teardown.begin",
+          "detail": null,
+          "phase": "teardown"
+        }
+      ],
+      "teardown": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "version": "r1",
+      "sent": "first-request-bytes",
+      "captured": "first-request-bytes",
+      "receivedResponse": "witness-complete",
+      "events": [
+        {
+          "sequence": 0,
+          "name": "fixture.capture.installed",
+          "detail": {
+            "dataListeners": 1
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 1,
+          "name": "fixture.capture.data",
+          "detail": {
+            "bytes": 19,
+            "total": 19,
+            "dataListeners": 1
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 2,
+          "name": "witness.handler.enter",
+          "detail": {
+            "dataListeners": 1
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 3,
+          "name": "fixture.capture.end",
+          "detail": {
+            "bytes": 19
+          },
+          "phase": "observation"
+        },
+        {
+          "sequence": 4,
+          "name": "fixture.teardown.begin",
+          "detail": null,
+          "phase": "teardown"
+        }
+      ],
+      "teardown": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "at": "2026-08-27T11:56:21.207Z",
+  "productReplayNotStarted": true,
+  "safeImportQualificationOnly": true,
+  "fixtureCorrectionRound": 1,
+  "maximumExecutionCorrectionRounds": 2,
+  "sourceFixCount": 0,
+  "plan": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/PLAN.md",
+    "sha256": "0610d9ea23fda93260ccf09dad8dcc5b9399c8f2f8e65559f0d3e265adc6de0c"
+  },
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "files": [
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-r1.mjs",
+      "sha256": "28c090b7b2cfa0a6d9cb1f5c1837ca3d0726734dea630ab4557beb0a9da8bd82"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/execution-inputs.json",
+      "sha256": "008fa2c2e0ca81f916e1e14d7d335061e6b9e898e09b8d3f62ccf1b51d7b1ac5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/binding-map.json",
+      "sha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/public-profiles.json",
+      "sha256": "1a8e73e4a0a26b812ecc3e0c4c7f2ecebfeb8258f7ce5f7b48231bee8c03bae6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/source-manifest.json",
+      "sha256": "44b0c5d4a73b78ffc29becc031bc3854f9e067c63977b6b274a26748db317664"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tool-manifest.json",
+      "sha256": "e36a0fa7027aed9472ef854651495f6a5ab72b163d38d26a92532871a498874b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/root-authorization.json",
+      "sha256": "c296d0b0652da74c342a93e6f5c30982883aafa83fbd931c367d07512c0c3275"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/actual-closed.json",
+      "sha256": "05ba4dcef2bf0c69cd3f0bcbf91ff7c1dad07801b2ce77e5f8d741222cec8ee9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/import-closure-proof.json",
+      "sha256": "3a241a1136afe3c5fb65897ef3bc6a787f63cc3488c9712a686b98fd25b76c91"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/assertions-proof.json",
+      "sha256": "0607ba10d9f7bac9bcdda0cb73d0a5b10cf2732cac2e00b851a6b1f5d0d4f2a8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/fixture-order-proof.json",
+      "sha256": "7afca70846afa7dccc7df4c135a8fd6024e20cb8ee46b4713d246dddeb4366e4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-fixture-delta.patch-data",
+      "sha256": "1f44d0a78d2664a78281e5dac9e5bc8ffe28071a10c4cbdcfe3c784dcba12e31"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/config-fixture-delta.patch-data",
+      "sha256": "61d70821216a76e520c9a2899e3b40a518a3501dfa7b6f8184d79dfe15220572"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/manifest-fixture-delta.patch-data",
+      "sha256": "723bcb30452f61ad527c765a2ccae653050351c29062c9d9036a4d4b36094d2e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/prepare.mjs",
+      "sha256": "53630faea3c458f1fb75fa44760abf48123877178059a98b34fa73f7714f08bd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/qualify.mjs",
+      "sha256": "46bfde061a5953e85b034aaa4f2cb4c47dd9fa86e5148b9da20d90334e394af8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/run.mjs",
+      "sha256": "4895aabca5557b2fdc536b07cd0fbd983ce501aee68a040d69de06a96c06b913"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/fixture-order.mjs",
+      "sha256": "ed66a639f58a61e3025c83970f1d02284808d4b2d51d54ccccde75c4d9a7e0db"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/freeze.mjs",
+      "sha256": "9af30668d8bca58d0ff6995a1e8bd2606541b16668e0e95362074f1436fa610c"
+    }
+  ],
+  "previousRaw": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/artifacts/acceptance.result.json",
+    "sha256": "f84033d66942d5e700dba76beef83e7c38537f6cb53819ec9da7d77c61b5cd28"
+  },
+  "unchangedPublicProfiles": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/artifacts/public-profiles.json",
+    "sha256": "1a8e73e4a0a26b812ecc3e0c4c7f2ecebfeb8258f7ce5f7b48231bee8c03bae6"
+  },
+  "unchangedExpected": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/expected-observations.json",
+    "sha256": "cfbaf336e5ba3dc31cc43384718c608cfebf4df8b4b3744c10b6a2c090b4ec25"
+  },
+  "strictParameters": {
+    "qualified": 17,
+    "blocked": 3
+  },
+  "mapping": {
+    "logical": 12,
+    "parameters": 20
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "frozenBeforeCandidateExecution": true,
+  "derivedFromCandidateImplementation": false,
+  "authoritativeContractEvidence": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/PRE-RUN.md",
+    "sha256": "4a059f0a4dba4618cec03ac1148ecb272b78261d28cba2a43b16029bb31dbc7f"
+  },
+  "profiles": {
+    "S07/stdout-only-streaming-upload": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S07/stdout-only-request": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S08/stdout-body-and-required-header-file": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S08/required-body-file-and-stdout-writeout": {
+      "diagnosticOnly": true,
+      "nestedPublicResult": {
+        "unboundDiagnostic": true
+      },
+      "diagnostic": {
+        "unboundDiagnostic": true
+      },
+      "stdoutWriteout": {
+        "unboundDiagnostic": true
+      }
+    },
+    "S08/required-files-writeout-and-independent-stderr": {
+      "diagnosticOnly": true,
+      "nestedPublicResult": {
+        "unboundDiagnostic": true
+      },
+      "diagnostic": {
+        "unboundDiagnostic": true
+      },
+      "stdoutWriteout": {
+        "unboundDiagnostic": true
+      }
+    },
+    "S11/caller-abort-before-late-io-rejection": {
+      "command": "set -o pipefail; precedence-probe | cat",
+      "publicResult": {
+        "kind": "error",
+        "error": 0
+      },
+      "operationSignal": {
+        "aborted": true,
+        "reason": 0
+      }
+    },
+    "S11/io-error-before-caller-abort": {
+      "diagnosticOnly": true,
+      "command": "set -o pipefail; precedence-probe | cat",
+      "publicResult": {
+        "kind": "error",
+        "error": 0
+      },
+      "operationSignal": {
+        "unboundDiagnostic": true
+      }
+    }
+  }
+}

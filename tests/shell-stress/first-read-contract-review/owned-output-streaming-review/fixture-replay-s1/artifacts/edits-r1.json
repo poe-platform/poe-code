@@ -1,0 +1,34 @@
+[
+  {
+    "from": "safe-bash-owned-output-streaming-execution-[^/]+$",
+    "to": "safe-bash-owned-output-streaming-fixture-replay-[^/]+$"
+  },
+  {
+    "from": "assert.match(candidatePhysical, /^\\/(?:private\\/)?tmp\\/safe-bash-owned-output-streaming-execution-[^/]+\\//, 'candidate copy must be task TMP, not live product or root dist');",
+    "to": "assert.equal(candidatePhysical, await realpath(config.authenticatedReadOnlyCandidateEntry), 'exact authenticated read-only S1 compiled candidate; no live source fallback');"
+  },
+  {
+    "from": "  const config = JSON.parse(await readFile(configPath, 'utf8'));",
+    "to": "  assert.equal(process.env.TSX_DISABLE_CACHE, '1');\n  assert.equal(await realpath(process.env.TMPDIR), join(physicalDirectory, 'tmp'));\n  const config = JSON.parse(await readFile(configPath, 'utf8'));\n  await verifiedArtifact(config.importClosureProof, 'pre-acceptance complete selected fixture import proof');"
+  },
+  {
+    "from": "  const child = spawn(process.execPath, argumentsList, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32', cwd: directory });",
+    "to": "  const child = spawn(process.execPath, argumentsList, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32', cwd: directory, env: { ...process.env, TSX_DISABLE_CACHE: '1', TMPDIR: join(directory, 'tmp'), TMP: join(directory, 'tmp'), TEMP: join(directory, 'tmp'), TSX_CACHE_DIR: join(directory, 'tmp', 'tsx') } });"
+  },
+  {
+    "from": "    let received = 0;\n    request.on('data', chunk => {\n      received += chunk.length;\n      if (received > outputLimitBytes) {\n        failures.push(new Error('bounded loopback request exceeded 1 MiB'));\n        request.destroy();\n      }\n    });\n    const task = Promise.resolve().then(() => handler(request, response)).catch(error => {",
+    "to": "    let received = 0;\n    const body = { first: gate(), complete: gate(), chunks: [] };\n    request.on('data', chunk => {\n      received += chunk.length;\n      if (received > outputLimitBytes) {\n        const error = new Error('bounded loopback request exceeded 1 MiB');\n        failures.push(error);\n        body.first.reject(error);\n        body.complete.reject(error);\n        request.destroy();\n        return;\n      }\n      body.chunks.push(Buffer.from(chunk));\n      scope.event('fixture.capture.data', { bytes: chunk.length, total: received, dataListeners: request.listenerCount('data') });\n      body.first.resolve();\n    });\n    request.once('end', () => {\n      scope.event('fixture.capture.end', { bytes: received });\n      body.complete.resolve(body.chunks);\n    });\n    const rejectBody = error => { body.first.reject(error); body.complete.reject(error); };\n    request.once('aborted', () => rejectBody(new Error('fixture upload aborted before data/end')));\n    request.once('error', rejectBody);\n    scope.event('fixture.capture.installed', { dataListeners: request.listenerCount('data') });\n    const task = Promise.resolve().then(() => handler(request, response, body)).catch(error => {"
+  },
+  {
+    "from": "  const fixture = await loopback(scope, async (request, response) => {\n    assert.equal(request.method, 'PUT');\n    for await (const chunk of request) {\n      uploaded.push(Buffer.from(chunk));\n      scope.event('server.body.bytes', { bytes: chunk.length, eof });\n      serverBytes.resolve();\n    }",
+    "to": "  const fixture = await loopback(scope, async (request, response, body) => {\n    assert.equal(request.method, 'PUT');\n    await body.first.promise;\n    scope.event('server.body.bytes', { bytes: body.chunks[0].length, eof });\n    serverBytes.resolve();\n    uploaded.push(...await body.complete.promise);"
+  },
+  {
+    "from": "  const fixture = await loopback(scope, async (request, response) => {\n    response.once('close', () => serverClosed.resolve());\n    if (upload) {\n      await new Promise((resolveData, rejectData) => {\n        request.once('data', () => { scope.event('server.upload.bytes'); resolveData(); });\n        request.once('aborted', () => rejectData(new Error('fixture upload aborted before data')));\n        request.once('error', rejectData);\n        request.once('close', () => rejectData(new Error('fixture upload closed before data')));\n      });\n    }",
+    "to": "  const fixture = await loopback(scope, async (request, response, body) => {\n    response.once('close', () => serverClosed.resolve());\n    if (upload) {\n      await body.first.promise;\n      scope.event('server.upload.bytes');\n    }"
+  },
+  {
+    "from": "      if (bodyFile) assert.equal(text(await fs.readFile('/body', { signal: context.signal })), 'required-body\\n');",
+    "to": "      if (bodyFile) result.bodyFileObservation = text(await fs.readFile('/body', { signal: context.signal }));\n      if (bodyFile) assert.equal(text(await fs.readFile('/body', { signal: context.signal })), 'required-body\\n');"
+  }
+]

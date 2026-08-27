@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { createRequire, isBuiltin } from 'node:module';
+const temp = dirname(fileURLToPath(import.meta.url));
+const root = '/Users/kjopek/Workspace/safe-bash';
+const require = createRequire(root + '/package.json');
+const ts = require('typescript');
+const inputs = JSON.parse(readFileSync(temp + '/pre-import-inputs.json'));
+const candidate = realpathSync(inputs.candidate);
+assert.equal(process.env.TSX_DISABLE_CACHE, '1');
+assert.equal(realpathSync(process.env.TMPDIR), temp + '/tmp');
+const hash = content => createHash('sha256').update(content).digest('hex');
+const files = new Map();
+const edges = [];
+const typeOnly = statement => {
+  if (statement.isTypeOnly || statement.importClause?.isTypeOnly) return true;
+  const clause = statement.importClause;
+  return clause && !clause.name && clause.namedBindings && ts.isNamedImports(clause.namedBindings) && clause.namedBindings.elements.length > 0 && clause.namedBindings.elements.every(element => element.isTypeOnly);
+};
+const visit = input => {
+  const path = realpathSync(input);
+  if (files.has(path)) return;
+  assert.ok(path.startsWith(temp + '/historical/') || path.startsWith(candidate + '/dist/'), path);
+  const content = readFileSync(path, 'utf8');
+  files.set(path, { path, sha256: hash(readFileSync(path)) });
+  const source = ts.createSourceFile(path, content, ts.ScriptTarget.Latest, true);
+  const add = (specifier, erased) => {
+    if (erased) { edges.push({ from: path, specifier, classification: 'erased-type-only' }); return; }
+    if (isBuiltin(specifier)) { edges.push({ from: path, specifier, classification: 'node-builtin' }); return; }
+    assert.ok(specifier.startsWith('.') || specifier.startsWith('/'), 'unexpected external runtime import: ' + specifier);
+    const requested = resolve(dirname(path), specifier);
+    const target = [requested, requested.replace(/\.js$/, '.ts')].find(existsSync);
+    assert.ok(target, 'unresolved runtime import: ' + requested);
+    edges.push({ from: path, specifier, target: realpathSync(target), classification: 'runtime' });
+    visit(target);
+  };
+  const scan = node => {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) add(node.moduleSpecifier.text, typeOnly(node));
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      assert.equal(node.arguments.length, 1);
+      assert.ok(ts.isStringLiteral(node.arguments[0]), 'nonliteral dynamic import must be qualified explicitly');
+      add(node.arguments[0].text, false);
+    }
+    ts.forEachChild(node, scan);
+  };
+  scan(source);
+};
+const roots = ['tests/stress/remote-cancellation/helpers.ts', 'tests/shell/first-read-probe.ts'].map(path => temp + '/historical/' + path);
+for (const path of roots) visit(path);
+const publicFacade = await import(pathToFileURL(temp + '/historical/src/index.ts').href);
+const publicCandidate = await import(pathToFileURL(candidate + '/dist/index.js').href);
+assert.equal(publicFacade.Shell, publicCandidate.Shell);
+const internalFacade = await import(pathToFileURL(temp + '/historical/src/fs/webdav/resource-id.ts').href);
+const internalCandidate = await import(pathToFileURL(candidate + '/dist/fs/webdav/resource-id.js').href);
+assert.equal(internalFacade.registerOwnedResourceResponse, internalCandidate.registerOwnedResourceResponse);
+const helper = await import(pathToFileURL(roots[0]).href);
+assert.equal(typeof helper.Trace, 'function');
+assert.equal(typeof helper.httpFixture, 'function');
+assert.equal(typeof helper.s3Fixture, 'function');
+for (const entry of inputs.history) assert.equal(hash(readFileSync(temp + '/historical/' + entry.path)), entry.sha256, entry.path);
+const proof = { at: new Date().toISOString(), selectedRoots: roots, files: [...files.values()], edges, selectedRuntimeClosureAuthenticated: true, erasedTypeOnlyNotRuntime: true, sameCompiledPublicAndInternalExportIdentity: true, safeHelperImported: true, historicalProbeExecuted: false, candidateSourceFallback: false, all19HistoricalBytesUnchanged: true, referenceOnlySnapshotNotExecuted: 'historical/tests/shell/first-read-independent.snapshot.mjs', loaderEnvironment: Object.fromEntries(['TMPDIR', 'TMP', 'TEMP', 'TSX_DISABLE_CACHE', 'TSX_CACHE_DIR'].map(name => [name, process.env[name]])) };
+writeFileSync(temp + '/import-closure-proof.json', JSON.stringify(proof, null, 2) + '\n');
+console.log(JSON.stringify({ qualified: true, modules: files.size, edges: edges.length, historicalInputFiles: inputs.history.length, probeNotExecuted: true }));

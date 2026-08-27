@@ -1,0 +1,29 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]:   const fixture = await loopback(scope, async (request, response) => {
+    response.once('close', () => serverClosed.resolve());
+    if (upload) {
+      await new Promise((resolveData, rejectData) => {
+        request.once('data', () => { scope.event('server.upload.bytes'); resolveData(); });
+        request.once('aborted', () => rejectData(new Error('fixture upload aborted before data')));
+      });
+    }
+
+1 !== 2
+
+    at replace (file:///private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/prepare.mjs:71:10)
+    at file:///private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/prepare.mjs:124:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

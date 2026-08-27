@@ -126,7 +126,10 @@ export function superviseControl(mode) {
         }
         if (result[observedKey] > limits[`${streamName}Bytes`]) terminate(`${streamName}-limit`);
       });
-      child[streamName].on('close', () => { result[`${streamName}Closed`] = true; });
+      child[streamName].on('close', () => {
+        result[`${streamName}Closed`] = true;
+        finish();
+      });
       child[streamName].on('error', () => terminate(`${streamName}-error`));
     }
     child.on('message', (message) => {
@@ -175,6 +178,11 @@ export function superviseControl(mode) {
       result.closeMs = elapsed();
       result.closeCode = code;
       result.closeSignal = signal;
+      finish();
+    });
+    function finish() {
+      if (!result.closeObserved || !result.stdoutClosed || !result.stderrClosed
+        || result.activeOwnedChildren === 0) return;
       clearTimeout(startupTimer);
       clearTimeout(executionTimer);
       clearTimeout(cleanupTimer);
@@ -196,16 +204,16 @@ export function superviseControl(mode) {
         && result.stderr === '' && result.stdoutObservedBytes === result.stdoutCapturedBytes
         && result.stderrObservedBytes === 0;
       const expectedEnd = mode === 'benign'
-        ? code === 0 && signal === null && result.exitCode === 0
+        ? result.closeCode === 0 && result.closeSignal === null && result.exitCode === 0
           && result.exitSignal === null && result.terminationReason === null
           && result.postStartCloseMs < limits.executionMs
-        : code === null && signal === 'SIGKILL' && result.exitSignal === 'SIGKILL'
+        : result.closeCode === null && result.closeSignal === 'SIGKILL' && result.exitSignal === 'SIGKILL'
           && result.terminationReason === 'execution-deadline' && result.killAccepted === true
           && result.deadlineFiredMs - result.startSentMs >= 150
           && result.deadlineFiredMs - result.startSentMs <= 250;
       result.pass = cleanupComplete && protocolComplete && outputMatches && expectedEnd
         && result.error === null && result.killError === null;
       resolve(result);
-    });
+    }
   });
 }

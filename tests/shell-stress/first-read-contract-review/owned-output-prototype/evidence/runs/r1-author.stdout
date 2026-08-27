@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: A1: owned close preserves independent file/stderr and status 0
+ok 1 - A1: owned close preserves independent file/stderr and status 0
+  ---
+  duration_ms: 14.300583
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"diagnostic\\n","stdoutBytes":{},"stderrBytes":{"0":100,"1":105,"2":97,"3":103,"4":110,"5":111,"6":115,"7":116,"8":105,"9":99,"10":10},"exitCode":0},"effect":"kept","releases":1,"events":["set:0","read:1","head:0","read:finally","released","independent-effects","owned:0"]}
+# Subtest: A2: owned close preserves independent file/stderr and status 7
+ok 2 - A2: owned close preserves independent file/stderr and status 7
+  ---
+  duration_ms: 1.784292
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"diagnostic\\n","stdoutBytes":{},"stderrBytes":{"0":100,"1":105,"2":97,"3":103,"4":110,"5":111,"6":115,"7":116,"8":105,"9":99,"10":10},"exitCode":7},"effect":"kept","releases":1,"events":["set:0","read:1","head:0","read:finally","released","independent-effects","owned:7"]}
+# Subtest: A3: borrowed shared stdin survives owned cancellation and nested independent destination
+ok 3 - A3: borrowed shared stdin survives owned cancellation and nested independent destination
+  ---
+  duration_ms: 2.80725
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"reads":2,"returned":0,"file":"borrowed\\nretained\\n","events":["nested-done"]}
+# Subtest: A4: writer empty completion and opaque sinks are not consumer close
+ok 4 - A4: writer empty completion and opaque sinks are not consumer close
+  ---
+  duration_ms: 0.937708
+  type: 'test'
+  ...
+# {"result":{"stdout":"kept","stderr":"","stdoutBytes":{"0":107,"1":101,"2":112,"3":116},"stderrBytes":{},"exitCode":0},"releases":1}
+# Subtest: A5: caller wins public outcome after operation EPIPE and cleanup failure
+ok 5 - A5: caller wins public outcome after operation EPIPE and cleanup failure
+  ---
+  duration_ms: 1.388667
+  type: 'test'
+  ...
+# {"callerIdentityPreserved":true,"operationEPIPE":true,"cleanups":1}
+# Subtest: A6: late opaque acquisition refused/released, rejection observed, admission closed
+ok 6 - A6: late opaque acquisition refused/released, rejection observed, admission closed
+  ---
+  duration_ms: 2.806666
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"releases":1,"admissions":1,"unhandled":0}
+# Subtest: A7: curl -o file ignores unused closed stdout before headers
+ok 7 - A7: curl -o file ignores unused closed stdout before headers
+  ---
+  duration_ms: 9.624375
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"requests":1,"body":"hello","headers":null,"events":["request-start","head-done","send-headers","response-close"]}
+# {"cleanup":"server-closed","sockets":0}
+# Subtest: A8: curl -o/-D files finish before closed --write-out
+ok 8 - A8: curl -o/-D files finish before closed --write-out
+  ---
+  duration_ms: 3.510541
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":141},"requests":1,"body":"hello","headers":"HTTP/1.1 200 OK\\r\\nContent-Length: 5\\r\\nX-Owned: kept\\r\\nDate: Thu, 27 Aug 2026 09:51:19 GMT\\r\\nConnection: close\\r\\n\\r\\n","events":["request-start","head-done","send-headers","response-close"]}
+# {"cleanup":"server-closed","sockets":0}
+# Subtest: A9: curl -D stdout close does not cancel independent -o file
+ok 9 - A9: curl -D stdout close does not cancel independent -o file
+  ---
+  duration_ms: 2.672542
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":141},"requests":1,"body":"hello","headers":null,"events":["request-start","head-done","send-headers","response-close"]}
+# {"cleanup":"server-closed","sockets":0}
+# Subtest: A10: curl -D file survives closed stdout then owns body
+ok 10 - A10: curl -D file survives closed stdout then owns body
+  ---
+  duration_ms: 2.36625
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":141},"requests":1,"body":null,"headers":"HTTP/1.1 200 OK\\r\\nContent-Length: 5\\r\\nX-Owned: kept\\r\\nDate: Thu, 27 Aug 2026 09:51:19 GMT\\r\\nConnection: close\\r\\n\\r\\n","events":["request-start","head-done","send-headers","response-close"]}
+# {"cleanup":"server-closed","sockets":0}
+# Subtest: A12: curl HTTP failure preserves independent header effect and status
+ok 11 - A12: curl HTTP failure preserves independent header effect and status
+  ---
+  duration_ms: 3.560584
+  type: 'test'
+  ...
+# {"result":{"stdout":"","stderr":"curl: (22) HTTP response status 404\\n","stdoutBytes":{},"stderrBytes":{"0":99,"1":117,"2":114,"3":108,"4":58,"5":32,"6":40,"7":50,"8":50,"9":41,"10":32,"11":72,"12":84,"13":84,"14":80,"15":32,"16":114,"17":101,"18":115,"19":112,"20":111,"21":110,"22":115,"23":101,"24":32,"25":115,"26":116,"27":97,"28":116,"29":117,"30":115,"31":32,"32":52,"33":48,"34":52,"35":10},"exitCode":22},"requests":1,"body":null,"headers":"HTTP/1.1 404 Not Found\\r\\nContent-Length: 5\\r\\nX-Owned: kept\\r\\nDate: Thu, 27 Aug 2026 09:51:19 GMT\\r\\nConnection: close\\r\\n\\r\\n","events":["request-start","head-done","send-headers","response-close"]}
+# {"cleanup":"server-closed","sockets":0}
+# Subtest: A11: actual curl body closes after owned write without aborting invoking stage
+ok 12 - A11: actual curl body closes after owned write without aborting invoking stage
+  ---
+  duration_ms: 2.527541
+  type: 'test'
+  ...
+# {"result":{"stdout":"x","stderr":"","stdoutBytes":{"0":120},"stderrBytes":{},"exitCode":0},"requests":1,"file":"kept","events":["request","first-byte","after","closed"]}
+# {"cleanup":"server-closed","sockets":0}
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 270.932291

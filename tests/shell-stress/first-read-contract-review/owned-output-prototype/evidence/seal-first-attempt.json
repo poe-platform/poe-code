@@ -1,0 +1,9 @@
+{
+  "phase": "evidence sealing, no source execution",
+  "assertion": "git diff --no-index --check exit status must equal zero",
+  "actualStatus": 1,
+  "stdout": "",
+  "stderr": "",
+  "result": "seal stopped before chmod or artifact manifest publication",
+  "correction": "accept difference status 0 or 1 only with empty whitespace diagnostics"
+}

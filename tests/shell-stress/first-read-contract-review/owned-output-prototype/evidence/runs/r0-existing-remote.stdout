@@ -1,0 +1,251 @@
+TAP version 13
+# Subtest: hard-deadline pipeline close: transport
+ok 1 - hard-deadline pipeline close: transport
+  ---
+  duration_ms: 140.822333
+  type: 'test'
+  ...
+# {"scenario":"transport","pid":86070,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: pipefail
+ok 2 - hard-deadline pipeline close: pipefail
+  ---
+  duration_ms: 133.465167
+  type: 'test'
+  ...
+# {"scenario":"pipefail","pid":86072,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle
+ok 3 - hard-deadline pipeline close: middle
+  ---
+  duration_ms: 135.37525
+  type: 'test'
+  ...
+# {"scenario":"middle","pid":86074,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle-status
+ok 4 - hard-deadline pipeline close: middle-status
+  ---
+  duration_ms: 138.83925
+  type: 'test'
+  ...
+# {"scenario":"middle-status","pid":86076,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: nested-invoke
+ok 5 - hard-deadline pipeline close: nested-invoke
+  ---
+  duration_ms: 139.908625
+  type: 'test'
+  ...
+# {"scenario":"nested-invoke","pid":86078,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: redirect
+ok 6 - hard-deadline pipeline close: redirect
+  ---
+  duration_ms: 136.071458
+  type: 'test'
+  ...
+# {"scenario":"redirect","pid":86080,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: group
+ok 7 - hard-deadline pipeline close: group
+  ---
+  duration_ms: 141.397833
+  type: 'test'
+  ...
+# {"scenario":"group","pid":86082,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-rejection
+ok 8 - hard-deadline pipeline close: consumer-rejection
+  ---
+  duration_ms: 136.047334
+  type: 'test'
+  ...
+# {"scenario":"consumer-rejection","pid":86084,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-status
+ok 9 - hard-deadline pipeline close: consumer-status
+  ---
+  duration_ms: 135.675167
+  type: 'test'
+  ...
+# {"scenario":"consumer-status","pid":86086,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: late-read-rejection
+ok 10 - hard-deadline pipeline close: late-read-rejection
+  ---
+  duration_ms: 137.895833
+  type: 'test'
+  ...
+# {"scenario":"late-read-rejection","pid":86088,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: iterator-return
+ok 11 - hard-deadline pipeline close: iterator-return
+  ---
+  duration_ms: 136.74025
+  type: 'test'
+  ...
+# {"scenario":"iterator-return","pid":86090,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: caller-abort
+ok 12 - hard-deadline pipeline close: caller-abort
+  ---
+  duration_ms: 131.481042
+  type: 'test'
+  ...
+# {"scenario":"caller-abort","pid":86093,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: budget-abort
+ok 13 - hard-deadline pipeline close: budget-abort
+  ---
+  duration_ms: 132.930334
+  type: 'test'
+  ...
+# {"scenario":"budget-abort","pid":86095,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-success
+not ok 14 - hard-deadline pipeline close: completed-success
+  ---
+  duration_ms: 133.665875
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-success: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    
+    false !== true
+    
+        at <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: false,
+      expected: true,
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-success","pid":86097,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-failure
+not ok 15 - hard-deadline pipeline close: completed-failure
+  ---
+  duration_ms: 134.795708
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-failure: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    
+    false !== true
+    
+        at <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: false,
+      expected: true,
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-failure","pid":86099,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-rejection
+not ok 16 - hard-deadline pipeline close: completed-rejection
+  ---
+  duration_ms: 136.4195
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-rejection: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    
+    false !== true
+    
+        at <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: false,
+      expected: true,
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close-probe.ts:132:12) {
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-rejection","pid":86102,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: delayed-no-write
+ok 17 - hard-deadline pipeline close: delayed-no-write
+  ---
+  duration_ms: 134.144167
+  type: 'test'
+  ...
+# {"scenario":"delayed-no-write","pid":86110,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: closed-before-write
+ok 18 - hard-deadline pipeline close: closed-before-write
+  ---
+  duration_ms: 137.913166
+  type: 'test'
+  ...
+# {"scenario":"closed-before-write","pid":86112,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: zero-byte-no-write
+ok 19 - hard-deadline pipeline close: zero-byte-no-write
+  ---
+  duration_ms: 135.560458
+  type: 'test'
+  ...
+# {"scenario":"zero-byte-no-write","pid":86114,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+1..19
+# tests 19
+# suites 0
+# pass 16
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2694.227125

@@ -1,0 +1,451 @@
+{
+  "sealedAt": "2026-08-27T09:59:43.391Z",
+  "sourceUnchangedSinceR1": true,
+  "candidateRegularFilesReadOnly": true,
+  "dependencySymlinkNotTraversed": true,
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "testManifestSha256": "bdae375b37ea07dcbbd505a23873d472cfd379eae70f0b037d82b9830046de44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0",
+  "originalAcceptedPathsChecked": 159,
+  "changedAcceptedPaths": [],
+  "rawCodeDiscoveryFiles": [],
+  "compiledImportSmoke": "Actual dist/index.js exports createOutputOperation, Shell, createBytePipe; not counted as another logical product case",
+  "sourceWhitespace": {
+    "status": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  "processClosure": [
+    {
+      "label": "baseline-control-C1",
+      "pid": 79889,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C2",
+      "pid": 79892,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C3",
+      "pid": 79897,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C4",
+      "pid": 79905,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C5",
+      "pid": 79909,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C6",
+      "pid": 79913,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C7",
+      "pid": 79916,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C8",
+      "pid": 79919,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "baseline-control-C9",
+      "pid": 79922,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C1",
+      "pid": 79362,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C2",
+      "pid": 79365,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C3",
+      "pid": 79369,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C4",
+      "pid": 79372,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C5",
+      "pid": 79375,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C6",
+      "pid": 79378,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C7",
+      "pid": 79381,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C8",
+      "pid": 79384,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "control-C9",
+      "pid": 79387,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "copied-source-build",
+      "pid": 79316,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "existing-byte-io",
+      "pid": 79283,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "existing-remote-after-write-and-no-write",
+      "pid": 79214,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "existing-shared-lifecycle",
+      "pid": 79290,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "existing-streaming",
+      "pid": 79309,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-C3",
+      "pid": 79397,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-C4",
+      "pid": 79404,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-C5",
+      "pid": 79411,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-C6",
+      "pid": 79418,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-C7",
+      "pid": 79425,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "native-profile",
+      "pid": 79391,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "original-five-and-head-zero",
+      "pid": 79166,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-adapted-five",
+      "pid": 86025,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-author",
+      "pid": 86805,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C1",
+      "pid": 86467,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C2",
+      "pid": 86521,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C3",
+      "pid": 86578,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C4",
+      "pid": 86630,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C5",
+      "pid": 86685,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C6",
+      "pid": 86729,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C7",
+      "pid": 86769,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C8",
+      "pid": 86796,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-control-C9",
+      "pid": 86800,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-existing-byte-io",
+      "pid": 86118,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-existing-remote",
+      "pid": 86066,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-existing-shared",
+      "pid": 86138,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-existing-streaming",
+      "pid": 86383,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-original-five-and-head-zero",
+      "pid": 86040,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-scoped-typecheck",
+      "pid": 86014,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r0-source-build",
+      "pid": 86010,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-adapted-five",
+      "pid": 87647,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-author",
+      "pid": 87847,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C1",
+      "pid": 87812,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C2",
+      "pid": 87815,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C3",
+      "pid": 87818,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C4",
+      "pid": 87821,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C5",
+      "pid": 87824,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C6",
+      "pid": 87828,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C7",
+      "pid": 87832,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C8",
+      "pid": 87838,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-control-C9",
+      "pid": 87844,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-existing-byte-io",
+      "pid": 87784,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-existing-remote",
+      "pid": 87727,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-existing-shared",
+      "pid": 87791,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-existing-streaming",
+      "pid": 87807,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-original-five-and-head-zero",
+      "pid": 87682,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-scoped-typecheck",
+      "pid": 87631,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    },
+    {
+      "label": "r1-source-build",
+      "pid": 87627,
+      "immediateOwnedGroupClosed": true,
+      "currentPidIdentity": ""
+    }
+  ],
+  "protectedPaths": [
+    {
+      "path": "src/index.ts",
+      "sha256": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+      "finalSha256": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+      "atSealSha256": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36",
+      "finalSha256": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36",
+      "atSealSha256": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36"
+    },
+    {
+      "path": "package.json",
+      "sha256": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+      "finalSha256": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+      "atSealSha256": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a"
+    },
+    {
+      "path": "README.md",
+      "sha256": "60c6e736cb11ebb226d4ab3f590286cc03c1a95889d44b6c50d73ffc674e7204",
+      "finalSha256": "60c6e736cb11ebb226d4ab3f590286cc03c1a95889d44b6c50d73ffc674e7204",
+      "atSealSha256": "60c6e736cb11ebb226d4ab3f590286cc03c1a95889d44b6c50d73ffc674e7204"
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "sha256": "8b22030f8d41b0b627210afebeaa0e5b79466f327c9f3f0ee77e2ec71c576874",
+      "finalSha256": "7d5d5c87e4eedd09261bb36b35bba3f446108d2f14c861c22e1466bab9b1f588",
+      "atSealSha256": "7d5d5c87e4eedd09261bb36b35bba3f446108d2f14c861c22e1466bab9b1f588"
+    }
+  ],
+  "indexBeforeOwnedStage": "",
+  "statusBeforeOwnedStage": " M scripts/verify-current-consumers.mjs\n M tests/integration/adapter-tools/README.md\n M tests/integration/adapter-tools/fixtures.ts\n M tests/integration/adapter-tools/matrix.test.ts\n M tests/plugins/qualified-current-release/consumers.mjs\n M tests/plugins/qualified-current-release/snapshot.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-v2/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/profiles/\n?? tests/integration/safejs-cleanup-regression/integration/\n?? tests/plugins/qualified-current-release/inventory-check.mjs\n?? tests/plugins/time-env-public-independent/\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype/\n",
+  "finality": "No further source, test or compiled artifact edits. Root must independently observe actual leaf CLOSED before READY. Temporary files retained, no live task process intended."
+}

@@ -1,0 +1,86 @@
+FROZEN PROTOTYPE CONTRACT v1 — 2026-08-27; root decides final API
+Baseline: accepted 3eba797a review; c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79
+plus exact preserved dirty tree bytes; source manifest
+6d8589043618e623e35a63e92cbecc160b7f587335a69bba3e0b0f57e34dca8b.
+
+Candidate types (names provisional, semantics frozen before implementation):
+interface ByteSink {
+  write(chunk: Uint8Array): Promise<void>;
+  readonly ownedOutput?: {
+    readonly consumerClosed: AbortSignal;
+    write(chunk: Uint8Array): Promise<void>;
+  };
+}
+interface OutputOperation {
+  readonly signal: AbortSignal;
+  readonly output: ByteSink;
+  registerCleanup(cleanup: InvocationCleanup): void;
+  acquire<T>(start: (signal: AbortSignal) => T | Promise<T>,
+             release: (resource: T) => void | Promise<void>): Promise<T>;
+  close(): Promise<void>;
+}
+createOutputOperation(context: Pick<CommandContext, 'signal' | 'registerCleanup'>,
+                      destination: ByteSink): OutputOperation
+
+Sink-bound capability chosen because actual destinations survive descriptor
+redirection and context.invoke. Transparent budget/signal wrappers must preserve
+both close provenance and accounted owned writes. The owned write path must NOT
+mark legacy stage writes or trigger stage-wide EPIPE cancellation. Opaque sinks
+without the optional capability support caller cancellation/cleanup only: no
+fabricated reader-demand knowledge. Writable completion/empty success is NOT
+consumer close. BytePipe consumer return/abort supplies the actual capability.
+
+Lifecycle: construct -> synchronously register idempotent close with existing
+07acb invocation cleanup -> enroll listeners -> OPEN/admission -> start owned IO
+immediately (no demand gate). Consumer close -> first operation reason EPIPE ->
+CLOSING/admission shut -> abort operation signal only -> drain registered
+cooperative releases -> CLOSED. Normal close drains without manufacturing EPIPE.
+Register cleanup before acquisition; finally awaits the same close promise.
+Late opaque acquisition is never awaited by close; fulfillment after admission
+closes is refused and released, rejection observed. Only registered cooperative
+cleanup is awaited. Host callbacks must honor this cooperation contract.
+
+Reason precedence: first operation abort reason wins identity; already-aborted
+caller wins enrollment races. Later caller abort still wins public exec outcome
+through existing caller signal even if operation reason remains EPIPE. Explicit
+command failures stay failures, not EPIPE unless that operation actually aborted;
+cleanup failures are observed and surfaced when no earlier operation error wins.
+EPIPE maps to existing 141 producer status, normal pipefail/rightmost rules stay.
+Commands may catch operation EPIPE and continue independent work; no stage abort.
+
+Ownership matrix / intended bounded integrations:
+- explicit custom source factory -> operation signal, owned iterator release;
+- cat named VFS input -> own per-destination work before stat/open/read;
+- borrowed stdin -> NEVER enroll or return/cancel on mere stdout closure;
+- curl stdout-only transfer -> enroll before authorization/request (preheaders);
+- curl any necessary -o/-O body file or -D header file -> request remains under
+  caller/transfer lifetime, not stdout lifetime; enroll stdout writes separately;
+  a closed stdout must not prevent independent body/header file completion;
+- stderr diagnostics remain caller-owned; -w stdout is its own output operation;
+- no default automatic enrollment of other commands, no global stage shortcut.
+
+Acceptance intentions (not claimed results): unchanged original5 baseline replay
+must retain 1200ms failures. Adapted5 keep exact starts/barriers/deadlines/commands
+and require ONE started read/request, zero first writes, EPIPE operation reason,
+stage/caller NOT globally aborted, cleanup before fixture teardown. Publish exact
+binding/assertion delta separately; never call adapted5 unchanged original5green.
+Replay 57+9 controls and pinned GNU5.3 effects; C9 remains synthetic/non-product.
+Author regressions <=12 logical cases cover independent file/stderr/empty/error,
+borrowed retention, nested destinations, actual curl mixed outputs/preheaders/body,
+caller precedence, late acquisition/rejection, exact-once cooperative cleanup.
+No production permission; no superiority/release/full-gate claim.
+
+Pre-implementation addendum v1.1: actual Node transport needs optional
+HttpRequest.registerCleanup?: (cleanup: InvocationCleanup) => void, forwarding
+the existing 07acb hook. It registers idempotent request/socket close BEFORE
+http.request, including pre-response cancellation. Custom opaque transports may
+omit cooperative registration; late acquired responses are disposed/observed,
+never awaited as opaque acquisitions. This is a prototype type addition, not an
+assertion about the current released HttpRequest interface.
+
+Actual temporary compiled import (build verified, NOT immutable until CLOSED):
+/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/dist/index.js
+also /tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/dist/contracts/output.js
+Both export createOutputOperation. OutputOperation is in corresponding .d.ts;
+ByteSink is dist/contracts/io.d.ts; HttpRequest hook is
+dist/commands/network/types.d.ts. No live export/barrel has been changed.

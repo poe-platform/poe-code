@@ -1,0 +1,52 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const root = resolve(owned, "../../../..");
+const output = mkdtempSync(join(owned, "primary-evidence-"));
+writeFileSync(join(output, "auditor-input.mjs.txt"), readFileSync(fileURLToPath(import.meta.url)));
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const originalPath = "tests/fs/s3/rmdir-real-service/list-oracle-review/primary-sources.json";
+const original = readFileSync(join(root, originalPath));
+assert.deepEqual(original, execFileSync("git", ["show", `df780f6ddb6292283114461ff4f9ebacfb269205:${originalPath}`], { cwd: root, maxBuffer: 16 * 1024 * 1024 }));
+const retained = JSON.parse(original);
+const blobs = retained.sourceFiles.map(source => {
+  const bytes = Buffer.from(source.text);
+  assert.equal(sha256(bytes), source.sha256);
+  assert.equal(bytes.length, source.bytes);
+  const gitBlob = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+  assert.equal(gitBlob, source.gitBlobSha1);
+  assert.equal(retained.gitTree.selectedEntries.find(entry => entry.path === source.path).sha, gitBlob);
+  return { path: source.path, sha256: source.sha256, gitBlob };
+});
+const server = retained.sourceFiles.find(source => source.path === "cmd/erasure-server-pool.go");
+const shortcutStart = server.text.indexOf('if len(prefix) > 0 && maxKeys == 1 && marker == ""');
+assert.ok(shortcutStart > 0);
+const shortcutEnd = server.text.indexOf("return loi, nil", server.text.indexOf("loi.Objects = append(loi.Objects, objInfo)", shortcutStart));
+assert.ok(shortcutEnd > shortcutStart);
+const shortcut = server.text.slice(shortcutStart, shortcutEnd + "return loi, nil".length);
+assert.match(shortcut, /GetObjectInfo\(ctx, bucket, prefix/);
+assert.doesNotMatch(shortcut, /IsTruncated\s*=|NextMarker\s*=/);
+const fresh = [];
+for (const [name, url] of [["pinned-erasure-server-pool.go", server.url], ["aws-listobjects-v2.html", retained.documents[0].url]]) {
+  const response = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(30000) });
+  assert.equal(response.status, 200);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (name.endsWith(".go")) assert.equal(sha256(bytes), server.sha256);
+  else {
+    assert.match(bytes.toString(), /fewer keys but will never contain more/);
+    assert.match(bytes.toString(), /all results were returned/);
+    assert.match(bytes.toString(), /NextContinuationToken/);
+  }
+  writeFileSync(join(output, name), bytes);
+  fresh.push({ name, url, retrievedAt: new Date().toISOString(), sha256: sha256(bytes), bytes: bytes.length });
+}
+writeFileSync(join(output, "audit.json"), JSON.stringify({ independentlyVerified: true, sourceCommit: retained.sourceCommit,
+  originalPath, originalSha256: sha256(original), retainedBlobs: blobs, fresh, shortcutStartLine: server.text.slice(0, shortcutStart).split("\n").length,
+  shortcut, serviceDownloads: 0, serviceLaunches: 0,
+  conclusion: "Exact-prefix, maxKeys=1, no-marker shortcut bypasses normal enumeration. max(2,pageSize) avoids this branch only; incomplete or malformed pagination must refuse mutation." }, null, 2) + "\n");
+console.log(output);

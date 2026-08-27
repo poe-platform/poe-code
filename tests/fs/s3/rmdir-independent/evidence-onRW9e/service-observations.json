@@ -1,0 +1,386 @@
+{
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/evidence-onRW9e/service-1tEezg",
+  "independentlyExecuted": true,
+  "originalMetadataUnchanged": true,
+  "categories": {
+    "public profile": 1,
+    "public positive workflow": 4,
+    "public nonempty guard": 2,
+    "public negative": 4,
+    "public denial": 1,
+    "public representation guard": 1,
+    "public snapshot race": 1,
+    "public snapshot identity limit": 1,
+    "actual service error": 1,
+    "actual service cancellation boundary": 1,
+    "actual service cancellation with effects": 1,
+    "synthetic host error after actual service success": 1,
+    "native provider limitation": 1
+  },
+  "results": [
+    {
+      "name": "public capability and unchanged provider declarations",
+      "kind": "public profile",
+      "passed": true,
+      "observation": {
+        "filesystem": {
+          "readOnly": false,
+          "symlinks": false,
+          "hardlinks": false,
+          "permissions": false,
+          "timestamps": true,
+          "atomicRename": false,
+          "snapshotRmdir": true,
+          "streamingRead": true,
+          "streamingWrite": false
+        },
+        "transport": {
+          "streamingRead": true,
+          "streamingWrite": false,
+          "conditionalPut": true,
+          "conditionalCopy": true,
+          "conditionalDelete": false
+        }
+      },
+      "productRequests": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "public API removes quiescent explicit marker",
+      "kind": "public positive workflow",
+      "passed": true,
+      "observation": {
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/api/",
+            "status": 204
+          }
+        ],
+        "absentInQuiescentControl": true
+      },
+      "productRequests": [
+        0,
+        14
+      ]
+    },
+    {
+      "name": "packed Shell rmdir removes explicit marker",
+      "kind": "public positive workflow",
+      "passed": true,
+      "observation": {
+        "exitCode": 0,
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/shell/",
+            "status": 204
+          }
+        ]
+      },
+      "productRequests": [
+        14,
+        24
+      ]
+    },
+    {
+      "name": "packed Shell rm -d removes explicit marker",
+      "kind": "public positive workflow",
+      "passed": true,
+      "observation": {
+        "exitCode": 0,
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/rm-dir/",
+            "status": 204
+          }
+        ]
+      },
+      "productRequests": [
+        24,
+        37
+      ]
+    },
+    {
+      "name": "packed byte pipeline and pipeline rmdir cleanup",
+      "kind": "public positive workflow",
+      "passed": true,
+      "observation": {
+        "pipelineBytes": [
+          0,
+          255,
+          128,
+          10
+        ],
+        "exitCode": 0,
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/pipeline/",
+            "status": 204
+          }
+        ],
+        "knownFileRemovalWasExplicit": true
+      },
+      "productRequests": [
+        37,
+        75
+      ]
+    },
+    {
+      "name": "nonempty marker with configured pageSize=1",
+      "kind": "public nonempty guard",
+      "passed": true,
+      "observation": {
+        "code": "ENOTEMPTY",
+        "inspection": [
+          {
+            "method": "GET",
+            "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fnonempty%2F",
+            "status": 200
+          }
+        ],
+        "requestPolicyChangedNotOldOracleExpectation": true
+      },
+      "productRequests": [
+        75,
+        79
+      ]
+    },
+    {
+      "name": "nonempty marker with configured pageSize=1000",
+      "kind": "public nonempty guard",
+      "passed": true,
+      "observation": {
+        "code": "ENOTEMPTY",
+        "inspection": [
+          {
+            "method": "GET",
+            "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=snapshot%2Fnonempty%2F",
+            "status": 200
+          }
+        ],
+        "requestPolicyChangedNotOldOracleExpectation": true
+      },
+      "productRequests": [
+        79,
+        83
+      ]
+    },
+    {
+      "name": "/nonempty/file retains ENOTDIR",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTDIR",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        83,
+        89
+      ]
+    },
+    {
+      "name": "/missing retains ENOENT",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOENT",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        89,
+        93
+      ]
+    },
+    {
+      "name": "/ retains EBUSY",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "EBUSY",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        93,
+        93
+      ]
+    },
+    {
+      "name": "/implicit retains ENOTEMPTY",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTEMPTY",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        93,
+        98
+      ]
+    },
+    {
+      "name": "readonly and pre-aborted profile make no requests",
+      "kind": "public denial",
+      "passed": true,
+      "observation": {
+        "codes": [
+          "EROFS",
+          "ECANCELED"
+        ],
+        "requests": 0
+      },
+      "productRequests": [
+        98,
+        98
+      ]
+    },
+    {
+      "name": "ambiguous file-prefix representation is not deleted",
+      "kind": "public representation guard",
+      "passed": true,
+      "observation": {
+        "code": "ENOTSUP",
+        "bothEntriesPreserved": true
+      },
+      "productRequests": [
+        98,
+        101
+      ]
+    },
+    {
+      "name": "late nested descendants survive successful public rmdir",
+      "kind": "public snapshot race",
+      "passed": true,
+      "observation": {
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/race/",
+            "status": 204
+          }
+        ],
+        "survivingDescendants": 3,
+        "logicalDirectoryStillVisible": true,
+        "markerRollback": false
+      },
+      "productRequests": [
+        101,
+        110
+      ]
+    },
+    {
+      "name": "public unconditional marker removal characterizes same-content ABA",
+      "kind": "public snapshot identity limit",
+      "passed": true,
+      "observation": {
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/aba/",
+            "status": 204
+          }
+        ],
+        "sameEtag": true,
+        "replacementRemoved": true,
+        "atomicIdentityClaim": false
+      },
+      "productRequests": [
+        110,
+        115
+      ]
+    },
+    {
+      "name": "DELETE authorization failure preserves typed error and marker",
+      "kind": "actual service error",
+      "passed": true,
+      "observation": {
+        "code": "EACCES",
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/forbidden/",
+            "status": 403
+          }
+        ],
+        "markerPreserved": true
+      },
+      "productRequests": [
+        115,
+        120
+      ]
+    },
+    {
+      "name": "abort after actual LIST prevents DELETE",
+      "kind": "actual service cancellation boundary",
+      "passed": true,
+      "observation": {
+        "code": "ECANCELED",
+        "markerPreserved": true
+      },
+      "productRequests": [
+        120,
+        124
+      ]
+    },
+    {
+      "name": "abort during issued DELETE after HTTP204 retains completed effect",
+      "kind": "actual service cancellation with effects",
+      "passed": true,
+      "observation": {
+        "code": "ECANCELED",
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/abort-delete/",
+            "status": 204
+          }
+        ],
+        "markerAbsentAfterAbort": true,
+        "responseCallbackForwardedBeforeAbort": true
+      },
+      "productRequests": [
+        124,
+        129
+      ]
+    },
+    {
+      "name": "host response-loss error does not roll back actual service deletion",
+      "kind": "synthetic host error after actual service success",
+      "passed": true,
+      "observation": {
+        "code": "EIO",
+        "deletes": [
+          {
+            "method": "DELETE",
+            "path": "/safe-bash-interop/snapshot/lost-response/",
+            "status": 204
+          }
+        ],
+        "actualServerEffect": true,
+        "syntheticFailureAfterSuccess": true
+      },
+      "productRequests": [
+        129,
+        134
+      ]
+    },
+    {
+      "name": "native stale If-Match still does not verify conditional DELETE",
+      "kind": "native provider limitation",
+      "passed": true,
+      "observation": {
+        "observed": 204,
+        "requiredForVerifiedGuard": 412,
+        "conditionalDelete": false
+      },
+      "productRequests": [
+        134,
+        134
+      ]
+    }
+  ]
+}

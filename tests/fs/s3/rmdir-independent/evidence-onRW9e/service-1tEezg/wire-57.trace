@@ -1,0 +1,31 @@
+*   Trying 127.0.0.1:51066...
+* Connected to 127.0.0.1 (127.0.0.1) port 51066
+> PUT /safe-bash-interop/independent-wire/target/.hidden HTTP/1.1
+> Host: 127.0.0.1:51066
+> User-Agent: curl/8.7.1
+> Accept: */*
+> x-amz-date: 20260827T075021Z
+> x-amz-content-sha256: 6d6f7836f1e146dc0204afb5133dae52fdc05603d8ac2dc793b481b0e0829fd1
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d303643b22d3a834ad299f8eb873e889c82d3c0d70db58db96655c9833870a2d
+> Content-Length: 4
+> Content-Type: application/x-www-form-urlencoded
+> 
+} [4 bytes data]
+* upload completely sent off: 4 bytes
+< HTTP/1.1 200 OK
+< Accept-Ranges: bytes
+< Content-Length: 0
+< ETag: "1f6d00cbabcca8fc08047742afdf6cf0"
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: b15f25204a595b8914321e0e258db45d013fe9a07cd80645df86585e9aae6d2f
+< X-Amz-Request-Id: 18CF9A1BC885CE18
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1507
+< X-Ratelimit-Remaining: 1507
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 07:50:21 GMT
+< 
+* Connection #0 to host 127.0.0.1 left intact

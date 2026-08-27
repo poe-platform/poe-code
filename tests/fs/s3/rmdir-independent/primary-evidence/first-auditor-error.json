@@ -1,0 +1,9 @@
+{
+  "classification": "verifier input-schema mistake before any network request",
+  "incorrectExpression": "retained.gitTree.tree.find(entry => entry.path === source.path)",
+  "error": "TypeError: Cannot read properties of undefined (reading 'find')",
+  "correctField": "retained.gitTree.selectedEntries",
+  "changedProductOrOriginalEvidence": false,
+  "downloads": 0,
+  "serviceLaunches": 0
+}

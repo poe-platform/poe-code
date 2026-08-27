@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+    <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ListObjectsV2 - Amazon S3</title><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="assets_root" content="/assets" /><meta name="target_state" content="API_ListObjectsV2" /><meta name="default_state" content="API_ListObjectsV2" /><link rel="icon" type="image/ico" href="/assets/images/favicon.ico" /><link rel="shortcut icon" type="image/ico" href="/assets/images/favicon.ico" /><link rel="canonical" href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" /><meta name="description" content="Returns some or all (up to 1,000) of the objects in a bucket with each request. You can use the request parameters as selection criteria to return a subset of the objects in a bucket. A 200 OK response can contain valid or invalid XML. Make sure to design your application to parse the contents of the response and handle it appropriately. For more information about listing objects, see" /><meta name="deployment_region" content="IAD" /><meta name="product" content="Amazon S3" /><meta name="guide" content="API Reference" /><meta name="abstract" content="Welcome to the Amazon S3 API Reference. This guide explains the Amazon Simple Storage Service (Amazon S3) application programming interface (API)." /><meta name="guide-locale" content="en_us" /><meta name="tocs" content="toc-contents.json" /><link rel="canonical" href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" /><link rel="alternate" href="https://docs.aws.amazon.com/id_id/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="id-id" /><link rel="alternate" href="https://docs.aws.amazon.com/id_id/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="id" /><link rel="alternate" href="https://docs.aws.amazon.com/de_de/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="de-de" /><link rel="alternate" href="https://docs.aws.amazon.com/de_de/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="de" /><link rel="alternate" href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="en-us" /><link rel="alternate" href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="en" /><link rel="alternate" href="https://docs.aws.amazon.com/es_es/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="es-es" /><link rel="alternate" href="https://docs.aws.amazon.com/es_es/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="es" /><link rel="alternate" href="https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="fr-fr" /><link rel="alternate" href="https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="fr" /><link rel="alternate" href="https://docs.aws.amazon.com/it_it/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="it-it" /><link rel="alternate" href="https://docs.aws.amazon.com/it_it/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="it" /><link rel="alternate" href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="ja-jp" /><link rel="alternate" href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="ja" /><link rel="alternate" href="https://docs.aws.amazon.com/ko_kr/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="ko-kr" /><link rel="alternate" href="https://docs.aws.amazon.com/ko_kr/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="ko" /><link rel="alternate" href="https://docs.aws.amazon.com/pt_br/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="pt-br" /><link rel="alternate" href="https://docs.aws.amazon.com/pt_br/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="pt" /><link rel="alternate" href="https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="zh-cn" /><link rel="alternate" href="https://docs.aws.amazon.com/zh_tw/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="zh-tw" /><link rel="alternate" href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" hreflang="x-default" /><meta name="feedback-item" content="S3" /><meta name="this_doc_product" content="Amazon S3" /><meta name="this_doc_guide" content="API Reference" /><head xmlns="http://www.w3.org/1999/xhtml"> <script defer="" src="/assets/r/awsdocs-doc-page.2.0.0.js"></script><link href="/assets/r/awsdocs-doc-page.2.0.0.css" rel="stylesheet"/></head>
+<script defer="" id="awsc-panorama-bundle" type="text/javascript" src="https://prod.pa.cdn.uis.awsstatic.com/panorama-nav-init.js" data-config="{'appEntity':'aws-documentation','region':'us-east-1','service':'s3'}"></script><meta id="panorama-serviceSubSection" value="API Reference" /><meta id="panorama-serviceConsolePage" value="ListObjectsV2" /></head><body class="awsdocs awsui"><div class="awsdocs-container"><p><a href="API_ListObjectsV2.md">View a markdown version of this page</a></p><awsdocs-header></awsdocs-header><awsui-app-layout id="app-layout" class="awsui-util-no-gutters" ng-controller="ContentController as $ctrl" header-selector="awsdocs-header" navigation-hide="false" navigation-width="$ctrl.navWidth" navigation-open="$ctrl.navOpen" navigation-change="$ctrl.onNavChange($event)" tools-hide="$ctrl.hideTools" tools-width="$ctrl.toolsWidth" tools-open="$ctrl.toolsOpen" tools-change="$ctrl.onToolsChange($event)"><div id="guide-toc" dom-region="navigation"><awsdocs-toc></awsdocs-toc></div><div id="main-column" dom-region="content" tabindex="-1"><awsdocs-view class="awsdocs-view"><div id="awsdocs-content"><head><title>ListObjectsV2 - Amazon S3</title><meta name="pdf" content="/pdfs/AmazonS3/latest/API/s3-api.pdf#API_ListObjectsV2" /><meta name="forums" content="https://repost.aws/tags/TADSTjraA0Q4-a1dxk6eUYaw" /><meta name="feedback" content="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=S3&amp;topic_url=https://docs.aws.amazon.com/en_us/AmazonS3/latest/API/API_ListObjectsV2.html" /><meta name="feedback-yes" content="feedbackyes.html?topic_url=https://docs.aws.amazon.com/en_us/AmazonS3/latest/API/API_ListObjectsV2.html" /><meta name="feedback-no" content="feedbackno.html?topic_url=https://docs.aws.amazon.com/en_us/AmazonS3/latest/API/API_ListObjectsV2.html" /><meta name="keywords" content="API,requests,ListObjectsV2" /><link rel="alternate" type="text/markdown" href="API_ListObjectsV2.md" title="Markdown version" /><script type="application/ld+json">
+{
+    "@context" : "https://schema.org",
+    "@type" : "BreadcrumbList",
+    "itemListElement" : [
+      {
+        "@type" : "ListItem",
+        "position" : 1,
+        "name" : "AWS",
+        "item" : "https://aws.amazon.com"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 2,
+        "name" : "Amazon Simple Storage Service (S3)",
+        "item" : "https://docs.aws.amazon.com/s3/index.html"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 3,
+        "name" : "API Reference",
+        "item" : "https://docs.aws.amazon.com/AmazonS3/latest/API"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 4,
+        "name" : "Actions",
+        "item" : "https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations.html"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 5,
+        "name" : "Amazon S3",
+        "item" : "https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations_Amazon_Simple_Storage_Service.html"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 6,
+        "name" : "ListObjectsV2",
+        "item" : "https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations_Amazon_Simple_Storage_Service.html"
+      }
+    ]
+}
+</script></head><body><div id="main"><div style="display: none"><a href="/pdfs/AmazonS3/latest/API/s3-api.pdf#API_ListObjectsV2" target="_blank" rel="noopener noreferrer" title="Open PDF"></a></div><div id="breadcrumbs" class="breadcrumb"><a href="/index.html">Documentation</a><a href="/s3/index.html">Amazon Simple Storage Service (S3)</a><a href="Welcome.html">API Reference</a></div><div id="page-toc-src"><a href="#API_ListObjectsV2_RequestSyntax">Request Syntax</a><a href="#API_ListObjectsV2_RequestParameters">URI Request Parameters</a><a href="#API_ListObjectsV2_RequestBody">Request Body</a><a href="#API_ListObjectsV2_ResponseSyntax">Response Syntax</a><a href="#API_ListObjectsV2_ResponseElements">Response Elements</a><a href="#API_ListObjectsV2_Errors">Errors</a><a href="#API_ListObjectsV2_Examples">Examples</a><a href="#API_ListObjectsV2_SeeAlso">See Also</a></div><div id="main-content" class="awsui-util-container"><div id="main-col-body"><awsdocs-language-banner data-service="$ctrl.pageService"></awsdocs-language-banner><h1 class="topictitle" id="API_ListObjectsV2">ListObjectsV2</h1><div class="awsdocs-page-header-container"><awsdocs-page-header></awsdocs-page-header><awsdocs-filter-selector id="awsdocs-filter-selector"></awsdocs-filter-selector></div><p>Returns some or all (up to 1,000) of the objects in a bucket with each request. You can use the
+      request parameters as selection criteria to return a subset of the objects in a bucket. A <code class="code">200
+        OK</code> response can contain valid or invalid XML. Make sure to design your application to parse the
+      contents of the response and handle it appropriately. For more information about listing objects, see
+        <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ListingKeysUsingAPIs.html">Listing object
+        keys programmatically</a> in the <em>Amazon S3 User Guide</em>. To get a list of your
+      buckets, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html">ListBuckets</a>.</p><div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><div class="itemizedlist">
+          
+          
+          
+      <ul class="itemizedlist"><li class="listitem">
+            <p>
+               <b>General purpose bucket</b> - For general purpose buckets,
+              <code class="code">ListObjectsV2</code> doesn't return prefixes that are related only to in-progress
+            multipart uploads.</p>
+         </li><li class="listitem">
+            <p>
+               <b>Directory buckets</b> - For directory buckets,
+              <code class="code">ListObjectsV2</code> response includes the prefixes that are related only to in-progress
+            multipart uploads. </p>
+         </li><li class="listitem">
+            <p>
+               <b>Directory buckets</b> - For directory buckets, you must make requests for this API operation to the Zonal endpoint. These endpoints support virtual-hosted-style requests in the format <code class="code">https://<em>amzn-s3-demo-bucket</em>.s3express-<em>zone-id</em>.<em>region-code</em>.amazonaws.com/<em>key-name</em>
+               </code>. Path-style requests are not supported. For more information about endpoints in Availability Zones, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/endpoint-directory-buckets-AZ.html">Regional and Zonal endpoints for directory buckets in Availability Zones</a> in the
+    <em>Amazon S3 User Guide</em>. For more information about endpoints in Local Zones, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-lzs-for-directory-buckets.html">Concepts for directory buckets in Local Zones</a> in the
+    <em>Amazon S3 User Guide</em>.</p>
+         </li></ul></div></div></div><div class="variablelist">
+       
+       
+       
+   <dl>
+         <dt><span class="term">Permissions</span></dt>
+         <dd>
+            <div class="itemizedlist">
+                
+                
+            <ul class="itemizedlist"><li class="listitem">
+                  <p>
+                     <b>General purpose bucket permissions</b> - To use this
+                operation, you must have READ access to the bucket. You must have permission to perform the
+                  <code class="code">s3:ListBucket</code> action. The bucket owner has this permission by default and can
+                grant this permission to others. For more information about permissions, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-with-s3-actions.html#using-with-s3-actions-related-to-bucket-subresources">Permissions Related to Bucket Subresource Operations</a> and <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-access-control.html">Managing Access
+                  Permissions to Your Amazon S3 Resources</a> in the
+                <em>Amazon S3 User Guide</em>.</p>
+               </li><li class="listitem">
+                  <p>
+                     <b>Directory bucket permissions</b> - To grant access to this API operation on a directory bucket, we recommend that you use the <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateSession.html"><code class="code">CreateSession</code></a> API operation for session-based authorization. Specifically, you grant the <code class="code">s3express:CreateSession</code> permission to the directory bucket in a bucket policy or an IAM identity-based policy. Then, you make the <code class="code">CreateSession</code> API call on the bucket to obtain a session token. With the session token in your request header, you can make API requests to this operation. After the session token expires, you make another <code class="code">CreateSession</code> API call to generate a new session token for use. 
+AWS CLI or SDKs create session and refresh the session token automatically to avoid service interruptions when a session expires. For more information about authorization, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateSession.html"><code class="code">CreateSession</code></a>.</p>
+               </li></ul></div>
+         </dd>
+       
+         <dt><span class="term">Sorting order of returned objects</span></dt>
+         <dd>
+            <div class="itemizedlist">
+                
+                
+            <ul class="itemizedlist"><li class="listitem">
+                  <p>
+                     <b>General purpose bucket</b> - For general purpose buckets,
+                  <code class="code">ListObjectsV2</code> returns objects in lexicographical order based on their key
+                names.</p>
+               </li><li class="listitem">
+                  <p>
+                     <b>Directory bucket</b> - For directory buckets,
+                  <code class="code">ListObjectsV2</code> does not return objects in lexicographical order.</p>
+               </li></ul></div>
+         </dd>
+       
+         <dt><span class="term">HTTP Host header syntax</span></dt>
+         <dd>
+            <p>
+               <b>Directory buckets </b> - The HTTP Host header syntax is <code class="code">
+                  <em>Bucket-name</em>.s3express-<em>zone-id</em>.<em>region-code</em>.amazonaws.com</code>.</p>
+         </dd>
+      </dl></div><div class="awsdocs-note awsdocs-important"><div class="awsdocs-note-title"><awsui-icon name="status-warning" variant="error"></awsui-icon><h6>Important</h6></div><div class="awsdocs-note-text"><p>This section describes the latest revision of this action. We recommend that you use this revised
+        API operation for application development. For backward compatibility, Amazon S3 continues to support the
+        prior version of this API operation, <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html">ListObjects</a>.</p></div></div><p>The following operations are related to <code class="code">ListObjectsV2</code>:</p><div class="itemizedlist">
+       
+       
+       
+   <ul class="itemizedlist"><li class="listitem">
+         <p>
+            <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html">GetObject</a>
+         </p>
+      </li><li class="listitem">
+         <p>
+            <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html">PutObject</a>
+         </p>
+      </li><li class="listitem">
+         <p>
+            <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html">CreateBucket</a>
+         </p>
+      </li></ul></div><div class="awsdocs-note awsdocs-important"><div class="awsdocs-note-title"><awsui-icon name="status-warning" variant="error"></awsui-icon><h6>Important</h6></div><div class="awsdocs-note-text"><p>You must URL encode any signed header values that contain spaces. For example, if your header value is <code class="code">my  file.txt</code>, containing two spaces after <code class="code">my</code>, you must URL encode this value to <code class="code">my%20%20file.txt</code>.</p></div></div>
+      <h2 id="API_ListObjectsV2_RequestSyntax">Request Syntax</h2>
+      <pre class="programlisting"><div class="code-btn-container"></div><!--DEBUG: cli ()--><code class="nohighlight">GET /?list-type=2&amp;continuation-token=<code class="replaceable">ContinuationToken</code>&amp;delimiter=<code class="replaceable">Delimiter</code>&amp;encoding-type=<code class="replaceable">EncodingType</code>&amp;fetch-owner=<code class="replaceable">FetchOwner</code>&amp;max-keys=<code class="replaceable">MaxKeys</code>&amp;prefix=<code class="replaceable">Prefix</code>&amp;start-after=<code class="replaceable">StartAfter</code> HTTP/1.1
+Host: <code class="replaceable">Bucket</code>.s3.amazonaws.com
+x-amz-request-payer: <code class="replaceable">RequestPayer</code>
+x-amz-expected-bucket-owner: <code class="replaceable">ExpectedBucketOwner</code>
+x-amz-optional-object-attributes: <code class="replaceable">OptionalObjectAttributes</code>
+</code></pre>
+    
+      <h2 id="API_ListObjectsV2_RequestParameters">URI Request Parameters</h2>
+      <p>The request uses the following URI parameters.</p>
+      <div class="variablelist">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      <dl>
+            <dt id="AmazonS3-ListObjectsV2-request-header-Bucket"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">Bucket</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>
+                  <b>Directory buckets</b> - When you use this operation with a directory bucket, you must use virtual-hosted-style requests in the format <code class="code">
+                     <em>Bucket-name</em>.s3express-<em>zone-id</em>.<em>region-code</em>.amazonaws.com</code>. Path-style requests are not supported.  Directory bucket names must be unique in the chosen Zone (Availability Zone or Local Zone). Bucket names must follow the format <code class="code">
+                     <em>bucket-base-name</em>--<em>zone-id</em>--x-s3</code> (for example, <code class="code">
+                     <em>amzn-s3-demo-bucket</em>--<em>usw2-az1</em>--x-s3</code>). For information about bucket naming
+         restrictions, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-naming-rules.html">Directory bucket naming
+            rules</a> in the <em>Amazon S3 User Guide</em>.</p>
+               <p>
+                  <b>Access points</b> - When you use this action with an access point for general purpose buckets, you must provide the alias of the access point in place of the bucket name or specify the access point ARN. When you use this action with an access point for directory buckets, you must provide the access point name in place of the bucket name. When using the access point ARN, you must direct requests to the access point hostname. The access point hostname takes the form <em>AccessPointName</em>-<em>AccountId</em>.s3-accesspoint.<em>Region</em>.amazonaws.com. When using this action with an access point through the AWS SDKs, you provide the access point ARN in place of the bucket name. For more information about access point ARNs, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html">Using access points</a> in the <em>Amazon S3 User Guide</em>.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>Object Lambda access points are not supported by directory buckets.</p></div></div>
+               <p>
+                  <b>S3 on Outposts</b> - When you use this action with S3 on Outposts, you must direct requests to the S3 on Outposts hostname. The S3 on Outposts hostname takes the 
+                     form <code class="code">
+                     <em>AccessPointName</em>-<em>AccountId</em>.<em>outpostID</em>.s3-outposts.<em>Region</em>.amazonaws.com</code>. When you use this action with S3 on Outposts, the destination bucket must be the Outposts access point ARN or the access point alias. For more information about S3 on Outposts, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/S3onOutposts.html">What is S3 on Outposts?</a> in the <em>Amazon S3 User Guide</em>.</p>
+               <p>Required: Yes</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-ContinuationToken"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">continuation-token</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>
+                  <code class="code">ContinuationToken</code> indicates to Amazon S3 that the list is being continued on this bucket
+      with a token. <code class="code">ContinuationToken</code> is obfuscated and is not a real key. You can use this
+        <code class="code">ContinuationToken</code> for pagination of the list results. </p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-Delimiter"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">delimiter</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>A delimiter is a character that you use to group keys.</p>
+               <p>
+                  <code class="code">CommonPrefixes</code> is filtered out from results if it is not lexicographically greater than
+      the <code class="code">StartAfter</code> value.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><div class="itemizedlist">
+                      
+                      
+                  <ul class="itemizedlist"><li class="listitem">
+                        <p>
+                           <b>Directory buckets</b> - For directory buckets, <code class="code">/</code> is the only supported delimiter.</p>
+                     </li><li class="listitem">
+                        <p>
+                           <b>Directory buckets </b> - When you query
+              <code class="code">ListObjectsV2</code> with a delimiter during in-progress multipart uploads, the
+              <code class="code">CommonPrefixes</code> response parameter contains the prefixes that are associated with
+            the in-progress multipart uploads. For more information about multipart uploads, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html">Multipart Upload
+              Overview</a> in the <em>Amazon S3 User Guide</em>.</p>
+                     </li></ul></div></div></div>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-EncodingType"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">encoding-type</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Encoding type used by Amazon S3 to encode the <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html">object keys</a> in the response. Responses are
+      encoded only in UTF-8. An object key can contain any Unicode character. However, the XML 1.0 parser
+      can't parse certain characters, such as characters with an ASCII value from 0 to 10. For characters that
+      aren't supported in XML 1.0, you can add this parameter to request that Amazon S3 encode the keys in the
+      response. For more information about characters to avoid in object key names, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html#object-key-guidelines">Object key
+        naming guidelines</a>.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>When using the URL encoding type, non-ASCII characters that are used in an object's key name will
+        be percent-encoded according to UTF-8 code values. For example, the object
+          <code class="code">test_file(3).png</code> will appear as <code class="code">test_file%283%29.png</code>.</p></div></div>
+               <p>Valid Values: <code class="code">url</code>
+               </p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-FetchOwner"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">fetch-owner</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>The owner field is not present in <code class="code">ListObjectsV2</code> by default. If you want to return the
+      owner field with each key in the result, then set the <code class="code">FetchOwner</code> field to
+      <code class="code">true</code>.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>
+                     <b>Directory buckets</b> - For directory buckets, the bucket
+        owner is returned as the object owner for all objects.</p></div></div>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-MaxKeys"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">max-keys</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Sets the maximum number of keys returned in the response. By default, the action returns up to 1,000
+      key names. The response might contain fewer keys but will never contain more.</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-Prefix"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">prefix</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Limits the response to keys that begin with the specified prefix.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>
+                     <b>Directory buckets</b> - For directory buckets, only prefixes that end in a delimiter (<code class="code">/</code>) are supported.</p></div></div>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-uri-querystring-StartAfter"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">start-after</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>StartAfter is where you want Amazon S3 to start listing from. Amazon S3 starts listing after this specified
+      key. StartAfter can be any key in the bucket.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>This functionality is not supported for directory buckets.</p></div></div>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-header-ExpectedBucketOwner"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">x-amz-expected-bucket-owner</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>The account ID of the expected bucket owner. If the account ID that you provide does not match the actual owner of the bucket, the request fails with the HTTP status code <code class="code">403 Forbidden</code> (access denied).</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-header-OptionalObjectAttributes"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">x-amz-optional-object-attributes</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Specifies the optional fields that you want returned in the response. Fields that you do not specify
+      are not returned.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>This functionality is not supported for directory buckets.</p></div></div>
+               <p>Valid Values: <code class="code">RestoreStatus</code>
+               </p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-request-header-RequestPayer"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_RequestSyntax">x-amz-request-payer</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Confirms that the requester knows that she or he will be charged for the list objects request in V2
+      style. Bucket owners need not specify this parameter in their requests.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>This functionality is not supported for directory buckets.</p></div></div>
+               <p>Valid Values: <code class="code">requester</code>
+               </p>
+            </dd>
+         </dl></div>
+    
+      <h2 id="API_ListObjectsV2_RequestBody">Request Body</h2>
+      <p>The request does not have a request body.</p>
+    
+      <h2 id="API_ListObjectsV2_ResponseSyntax">Response Syntax</h2>
+      <pre class="programlisting"><div class="code-btn-container"></div><!--DEBUG: cli ()--><code class="nohighlight">HTTP/1.1 200
+x-amz-request-charged: <code class="replaceable">RequestCharged</code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;<a href="#AmazonS3-ListObjectsV2-response-ListObjectsV2Output">ListBucketResult</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-IsTruncated">IsTruncated</a>&gt;<b><em>boolean</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-IsTruncated">IsTruncated</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-Contents">Contents</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-ChecksumAlgorithm">ChecksumAlgorithm</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-ChecksumAlgorithm">ChecksumAlgorithm</a>&gt;
+      ...
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-ChecksumType">ChecksumType</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-ChecksumType">ChecksumType</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-ETag">ETag</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-ETag">ETag</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-Key">Key</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-Key">Key</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-LastModified">LastModified</a>&gt;<b><em>timestamp</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-LastModified">LastModified</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-Owner">Owner</a>&gt;
+         &lt;<a href="./API_Owner.html#AmazonS3-Type-Owner-DisplayName">DisplayName</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Owner.html#AmazonS3-Type-Owner-DisplayName">DisplayName</a>&gt;
+         &lt;<a href="./API_Owner.html#AmazonS3-Type-Owner-ID">ID</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Owner.html#AmazonS3-Type-Owner-ID">ID</a>&gt;
+      &lt;/<a href="./API_Object.html#AmazonS3-Type-Object-Owner">Owner</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-RestoreStatus">RestoreStatus</a>&gt;
+         &lt;<a href="./API_RestoreStatus.html#AmazonS3-Type-RestoreStatus-IsRestoreInProgress">IsRestoreInProgress</a>&gt;<b><em>boolean</em></b>&lt;/<a href="./API_RestoreStatus.html#AmazonS3-Type-RestoreStatus-IsRestoreInProgress">IsRestoreInProgress</a>&gt;
+         &lt;<a href="./API_RestoreStatus.html#AmazonS3-Type-RestoreStatus-RestoreExpiryDate">RestoreExpiryDate</a>&gt;<b><em>timestamp</em></b>&lt;/<a href="./API_RestoreStatus.html#AmazonS3-Type-RestoreStatus-RestoreExpiryDate">RestoreExpiryDate</a>&gt;
+      &lt;/<a href="./API_Object.html#AmazonS3-Type-Object-RestoreStatus">RestoreStatus</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-Size">Size</a>&gt;<b><em>long</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-Size">Size</a>&gt;
+      &lt;<a href="./API_Object.html#AmazonS3-Type-Object-StorageClass">StorageClass</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_Object.html#AmazonS3-Type-Object-StorageClass">StorageClass</a>&gt;
+   &lt;/<a href="#AmazonS3-ListObjectsV2-response-Contents">Contents</a>&gt;
+   ...
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-Name">Name</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-Name">Name</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-Prefix">Prefix</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-Prefix">Prefix</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-Delimiter">Delimiter</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-Delimiter">Delimiter</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-MaxKeys">MaxKeys</a>&gt;<b><em>integer</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-MaxKeys">MaxKeys</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-CommonPrefixes">CommonPrefixes</a>&gt;
+      &lt;<a href="./API_CommonPrefix.html#AmazonS3-Type-CommonPrefix-Prefix">Prefix</a>&gt;<b><em>string</em></b>&lt;/<a href="./API_CommonPrefix.html#AmazonS3-Type-CommonPrefix-Prefix">Prefix</a>&gt;
+   &lt;/<a href="#AmazonS3-ListObjectsV2-response-CommonPrefixes">CommonPrefixes</a>&gt;
+   ...
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-EncodingType">EncodingType</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-EncodingType">EncodingType</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-KeyCount">KeyCount</a>&gt;<b><em>integer</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-KeyCount">KeyCount</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-ContinuationToken">ContinuationToken</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-ContinuationToken">ContinuationToken</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-NextContinuationToken">NextContinuationToken</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-NextContinuationToken">NextContinuationToken</a>&gt;
+   &lt;<a href="#AmazonS3-ListObjectsV2-response-StartAfter">StartAfter</a>&gt;<b><em>string</em></b>&lt;/<a href="#AmazonS3-ListObjectsV2-response-StartAfter">StartAfter</a>&gt;
+&lt;/<a href="#AmazonS3-ListObjectsV2-response-ListObjectsV2Output">ListBucketResult</a>&gt;</code></pre>
+    
+      <h2 id="API_ListObjectsV2_ResponseElements">Response Elements</h2>
+      <p>If the action is successful, the service sends back an HTTP 200 response.</p>
+      <p>The response returns the following HTTP headers.</p>
+      <div class="variablelist">
+          
+      <dl>
+            <dt id="AmazonS3-ListObjectsV2-response-header-RequestCharged"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">x-amz-request-charged</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>If present, indicates that the requester was successfully charged for the request. For more
+      information, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RequesterPaysBuckets.html">Using Requester Pays buckets for storage transfers and usage</a> in the <em>Amazon Simple
+        Storage Service user guide</em>.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>This functionality is not supported for directory buckets.</p></div></div>
+               <p>Valid Values: <code class="code">requester</code>
+               </p>
+            </dd>
+         </dl></div>
+      <p>The following data is returned in XML format by the service.</p>
+      <div class="variablelist">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      <dl>
+            <dt id="AmazonS3-ListObjectsV2-response-ListObjectsV2Output"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">ListBucketResult</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Root level tag for the ListBucketResult parameters.</p>
+               <p>Required: Yes</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-CommonPrefixes"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">CommonPrefixes</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>All of the keys (up to 1,000) that share the same prefix are grouped together. When counting the
+      total numbers of returns by this API operation, this group of keys is considered as one item.</p>
+               <p>A response can contain <code class="code">CommonPrefixes</code> only if you specify a delimiter.</p>
+               <p>
+                  <code class="code">CommonPrefixes</code> contains all (if there are any) keys between <code class="code">Prefix</code> and the
+      next occurrence of the string specified by a delimiter.</p>
+               <p>
+                  <code class="code">CommonPrefixes</code> lists keys that act like subdirectories in the directory specified by
+        <code class="code">Prefix</code>.</p>
+               <p>For example, if the prefix is <code class="code">notes/</code> and the delimiter is a slash (<code class="code">/</code>) as
+      in <code class="code">notes/summer/july</code>, the common prefix is <code class="code">notes/summer/</code>. All of the keys that
+      roll up into a common prefix count as a single return when calculating the number of returns. </p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><div class="itemizedlist">
+                      
+                      
+                  <ul class="itemizedlist"><li class="listitem">
+                        <p>
+                           <b>Directory buckets</b> - For directory buckets, only prefixes that end in a delimiter (<code class="code">/</code>) are supported.</p>
+                     </li><li class="listitem">
+                        <p>
+                           <b>Directory buckets </b> - When you query
+              <code class="code">ListObjectsV2</code> with a delimiter during in-progress multipart uploads, the
+              <code class="code">CommonPrefixes</code> response parameter contains the prefixes that are associated with
+            the in-progress multipart uploads. For more information about multipart uploads, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html">Multipart Upload
+              Overview</a> in the <em>Amazon S3 User Guide</em>.</p>
+                     </li></ul></div></div></div>
+               <p>Type: Array of <a href="./API_CommonPrefix.html">CommonPrefix</a> data types</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-Contents"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">Contents</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Metadata about each object returned.</p>
+               <p>Type: Array of <a href="./API_Object.html">Object</a> data types</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-ContinuationToken"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">ContinuationToken</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p> If <code class="code">ContinuationToken</code> was sent with the request, it is included in the response. You
+      can use the returned <code class="code">ContinuationToken</code> for pagination of the list response.</p>
+               <p>Type: String</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-Delimiter"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">Delimiter</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Causes keys that contain the same string between the <code class="code">prefix</code> and the first occurrence of
+      the delimiter to be rolled up into a single result element in the <code class="code">CommonPrefixes</code>
+      collection. These rolled-up keys are not returned elsewhere in the response. Each rolled-up result
+      counts as only one return against the <code class="code">MaxKeys</code> value.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>
+                     <b>Directory buckets</b> - For directory buckets, <code class="code">/</code> is the only supported delimiter.</p></div></div>
+               <p>Type: String</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-EncodingType"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">EncodingType</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Encoding type used by Amazon S3 to encode object key names in the XML response.</p>
+               <p>If you specify the <code class="code">encoding-type</code> request parameter, Amazon S3 includes this element in the
+      response, and returns encoded key name values in the following response elements:</p>
+               <p>
+                  <code class="code">Delimiter, Prefix, Key,</code> and <code class="code">StartAfter</code>.</p>
+               <p>Type: String</p>
+               <p>Valid Values: <code class="code">url</code>
+               </p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-IsTruncated"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">IsTruncated</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Set to <code class="code">false</code> if all of the results were returned. Set to <code class="code">true</code> if more keys
+      are available to return. If the number of results exceeds that specified by <code class="code">MaxKeys</code>, all of
+      the results might not be returned.</p>
+               <p>Type: Boolean</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-KeyCount"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">KeyCount</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>
+                  <code class="code">KeyCount</code> is the number of keys returned with this request. <code class="code">KeyCount</code> will
+      always be less than or equal to the <code class="code">MaxKeys</code> field. For example, if you ask for 50 keys,
+      your result will include 50 keys or fewer.</p>
+               <p>Type: Integer</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-MaxKeys"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">MaxKeys</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Sets the maximum number of keys returned in the response. By default, the action returns up to 1,000
+      key names. The response might contain fewer keys but will never contain more.</p>
+               <p>Type: Integer</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-Name"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">Name</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>The bucket name.</p>
+               <p>Type: String</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-NextContinuationToken"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">NextContinuationToken</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>
+                  <code class="code">NextContinuationToken</code> is sent when <code class="code">isTruncated</code> is true, which means there
+      are more keys in the bucket that can be listed. The next list requests to Amazon S3 can be continued with
+      this <code class="code">NextContinuationToken</code>. <code class="code">NextContinuationToken</code> is obfuscated and is not a
+      real key</p>
+               <p>Type: String</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-Prefix"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">Prefix</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>Keys that begin with the indicated prefix.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>
+                     <b>Directory buckets</b> - For directory buckets, only prefixes that end in a delimiter (<code class="code">/</code>) are supported.</p></div></div>
+               <p>Type: String</p>
+            </dd>
+          
+            <dt id="AmazonS3-ListObjectsV2-response-StartAfter"><span class="term">
+               <b>
+                  <a href="#API_ListObjectsV2_ResponseSyntax">StartAfter</a>
+               </b>
+            </span></dt>
+            <dd>
+               <p>If StartAfter was sent with the request, it is included in the response.</p>
+               <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>This functionality is not supported for directory buckets.</p></div></div>
+               <p>Type: String</p>
+            </dd>
+         </dl></div>
+    
+      <h2 id="API_ListObjectsV2_Errors">Errors</h2>
+      <div class="variablelist">
+          
+      <dl>
+            <dt><span class="term">
+               <b>
+                  NoSuchBucket
+               </b>
+            </span></dt>
+            <dd>
+               <p>The specified bucket does not exist.</p>
+               <p>HTTP Status Code: 404</p>
+            </dd>
+         </dl></div>
+    
+      <h2 id="API_ListObjectsV2_Examples">Examples</h2>
+       
+         <h3 id="API_ListObjectsV2_Example_1">Sample Request for general purpose buckets: Listing keys</h3>
+         <p>This request returns the objects in <code class="code">bucket</code>. The request specifies the
+            <code class="code">list-type</code> parameter, which indicates version 2 of the API operation.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2 HTTP/1.1
+Host: bucket.s3.&lt;Region&gt;.amazonaws.com
+x-amz-date: 20160430T233541Z
+Authorization: authorization string
+Content-Type: text/plain
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_2">Sample Response for general purpose buckets</h3>
+         <p>This example illustrates one usage of ListObjectsV2.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+    &lt;Name&gt;bucket&lt;/Name&gt;
+    &lt;Prefix/&gt;
+    &lt;KeyCount&gt;205&lt;/KeyCount&gt;
+    &lt;MaxKeys&gt;1000&lt;/MaxKeys&gt;
+    &lt;IsTruncated&gt;false&lt;/IsTruncated&gt;
+    &lt;Contents&gt;
+        &lt;Key&gt;my-image.jpg&lt;/Key&gt;
+        &lt;LastModified&gt;2009-10-12T17:50:30.000Z&lt;/LastModified&gt;
+        &lt;ETag&gt;"fba9dede5f27731c9771645a39863328"&lt;/ETag&gt;
+        &lt;Size&gt;434234&lt;/Size&gt;
+        &lt;StorageClass&gt;STANDARD&lt;/StorageClass&gt;
+    &lt;/Contents&gt;
+    &lt;Contents&gt;
+       ...
+    &lt;/Contents&gt;
+    ...
+&lt;/ListBucketResult&gt;
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_3">Sample Request for general purpose buckets: Listing keys using the max-keys, prefix, and start-after parameters</h3>
+         <p>In addition to the <code class="code">list-type</code> parameter that indicates version 2 of the API
+          operation, the request also specifies additional parameters to retrieve up to three keys in the
+            <code class="code">quotes</code> bucket that start with <code class="code">E</code> and occur lexicographically after
+            <code class="code">ExampleGuide.pdf</code>.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2&amp;max-keys=3&amp;prefix=E&amp;start-after=ExampleGuide.pdf HTTP/1.1
+Host: quotes.s3.&lt;Region&gt;.amazonaws.com
+x-amz-date: 20160430T232933Z
+Authorization: authorization string
+
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_4">Sample Response for general purpose buckets</h3>
+         <p>This example illustrates one usage of ListObjectsV2.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+HTTP/1.1 200 OK
+x-amz-id-2: gyB+3jRPnrkN98ZajxHXr3u7EFM67bNgSAxexeEHndCX/7GRnfTXxReKUQF28IfP
+x-amz-request-id: 3B3C7C725673C630
+Date: Sat, 30 Apr 2016 23:29:37 GMT
+Content-Type: application/xml
+Content-Length: length
+Connection: close
+Server: AmazonS3
+
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+  &lt;Name&gt;quotes&lt;/Name&gt;
+  &lt;Prefix&gt;E&lt;/Prefix&gt;
+  &lt;StartAfter&gt;ExampleGuide.pdf&lt;/StartAfter&gt;
+  &lt;KeyCount&gt;1&lt;/KeyCount&gt;
+  &lt;MaxKeys&gt;3&lt;/MaxKeys&gt;
+  &lt;IsTruncated&gt;false&lt;/IsTruncated&gt;
+  &lt;Contents&gt;
+    &lt;Key&gt;ExampleObject.txt&lt;/Key&gt;
+    &lt;LastModified&gt;2013-09-17T18:07:53.000Z&lt;/LastModified&gt;
+    &lt;ETag&gt;"599bab3ed2c697f1d26842727561fd94"&lt;/ETag&gt;
+    &lt;Size&gt;857&lt;/Size&gt;
+    &lt;StorageClass&gt;REDUCED_REDUNDANCY&lt;/StorageClass&gt;
+  &lt;/Contents&gt;
+&lt;/ListBucketResult&gt;
+
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_5">Sample Request for general purpose buckets: Listing keys by using the prefix and delimiter parameters</h3>
+         <p>This example illustrates the use of the <code class="code">prefix</code> and the <code class="code">delimiter</code>
+          parameters in the request. For this example, we assume that you have the
+          following keys in your bucket:</p>
+         <div class="itemizedlist">
+             
+             
+             
+             
+             
+         <ul class="itemizedlist"><li class="listitem">
+               <p>
+                  <code class="code">sample.jpg</code>
+               </p>
+            </li><li class="listitem">
+               <p>
+                  <code class="code">photos/2006/January/sample.jpg</code>
+               </p>
+            </li><li class="listitem">
+               <p>
+                  <code class="code">photos/2006/February/sample2.jpg</code>
+               </p>
+            </li><li class="listitem">
+               <p>
+                  <code class="code">photos/2006/February/sample3.jpg</code>
+               </p>
+            </li><li class="listitem">
+               <p>
+                  <code class="code">photos/2006/February/sample4.jpg</code>
+               </p>
+            </li></ul></div>
+         <p>The following <code class="code">GET</code> request specifies the <code class="code">delimiter</code> parameter with a
+          value of <code class="code">/</code>.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2&amp;delimiter=/ HTTP/1.1
+Host: example-bucket.s3.&lt;Region&gt;.amazonaws.com
+x-amz-date: 20160430T235931Z
+Authorization: authorization string			
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_6">Sample Response for general purpose buckets</h3>
+         <p>The key <code class="code">sample.jpg</code> does not contain the delimiter character, and Amazon S3 returns it in
+          the <code class="code">Contents</code> element in the response. However, all of the other keys contain the
+          delimiter character. Amazon S3 groups these keys and returns a single <code class="code">CommonPrefixes</code> element
+          with the <code class="code">Prefix</code> value <code class="code">photos/</code>. The <code class="code">Prefix</code> element is a
+          substring that starts at the beginning of these keys and ends at the first occurrence of the
+          specified delimiter.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+  &lt;Name&gt;example-bucket&lt;/Name&gt;
+  &lt;Prefix&gt;&lt;/Prefix&gt;
+  &lt;KeyCount&gt;2&lt;/KeyCount&gt;
+  &lt;MaxKeys&gt;1000&lt;/MaxKeys&gt;
+  &lt;Delimiter&gt;/&lt;/Delimiter&gt;
+  &lt;IsTruncated&gt;false&lt;/IsTruncated&gt;
+  &lt;Contents&gt;
+    &lt;Key&gt;sample.jpg&lt;/Key&gt;
+    &lt;LastModified&gt;2011-02-26T01:56:20.000Z&lt;/LastModified&gt;
+    &lt;ETag&gt;"bf1d737a4d46a19f3bced6905cc8b902"&lt;/ETag&gt;
+    &lt;Size&gt;142863&lt;/Size&gt;
+    &lt;StorageClass&gt;STANDARD&lt;/StorageClass&gt;
+  &lt;/Contents&gt;
+  &lt;CommonPrefixes&gt;
+    &lt;Prefix&gt;photos/&lt;/Prefix&gt;
+  &lt;/CommonPrefixes&gt;
+&lt;/ListBucketResult&gt;	
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_7">Sample Request for general purpose buckets</h3>
+         <p>The following request specifies the <code class="code">delimiter</code> parameter with the value
+            <code class="code">/</code>, and the <code class="code">prefix</code> parameter with the value
+          <code class="code">photos/2006/</code>.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2&amp;prefix=photos/2006/&amp;delimiter=/ HTTP/1.1
+Host: example-bucket.s3.&lt;Region&gt;.amazonaws.com
+x-amz-date: 20160501T000433Z
+Authorization: authorization string
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_8">Sample Response for general purpose buckets</h3>
+         <p>In response, Amazon S3 returns only the keys that start with the specified prefix. Further, Amazon S3 uses
+          the delimiter character to group keys that contain the same substring until the first occurrence of
+          the delimiter character after the specified prefix. For each such key group, Amazon S3 returns one
+            <code class="code">CommonPrefixes</code> element in the response. The keys grouped under this
+            <code class="code">CommonPrefixes</code> element are not returned elsewhere in the response. The
+            <code class="code">Prefix</code> value returned in the <code class="code">CommonPrefixes</code> element is a substring that
+          starts at the beginning of the key and ends at the first occurrence of the specified delimiter after
+          the prefix.</p>
+         <div class="awsdocs-note"><div class="awsdocs-note-title"><awsui-icon name="status-info" variant="link"></awsui-icon><h6>Note</h6></div><div class="awsdocs-note-text"><p>If you created folders by using the Amazon S3 console, you will see an additional 0-byte object
+            with a key of <code class="code">photos/2006/</code>. This object is created because of the way that the
+            console supports folder structures. For more information, see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-folders.html">Organizing objects in the Amazon S3 console using
+              folders</a> in the <em>Amazon S3 User Guide</em>. </p></div></div>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+  &lt;Name&gt;example-bucket&lt;/Name&gt;
+  &lt;Prefix&gt;photos/2006/&lt;/Prefix&gt;
+  &lt;KeyCount&gt;2&lt;/KeyCount&gt;
+  &lt;MaxKeys&gt;1000&lt;/MaxKeys&gt;
+  &lt;Delimiter&gt;/&lt;/Delimiter&gt;
+  &lt;IsTruncated&gt;false&lt;/IsTruncated&gt;
+
+  &lt;CommonPrefixes&gt;
+    &lt;Prefix&gt;photos/2006/February/&lt;/Prefix&gt;
+  &lt;/CommonPrefixes&gt;
+  &lt;CommonPrefixes&gt;
+    &lt;Prefix&gt;photos/2006/January/&lt;/Prefix&gt;
+  &lt;/CommonPrefixes&gt;
+&lt;/ListBucketResult&gt;
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_9">Sample Request for general purpose buckets: Using a continuation token</h3>
+         <p>In this example, the initial request returns more than 1,000 keys. In response to this request,
+          Amazon S3 returns the <code class="code">IsTruncated</code> element with the value set to <code class="code">true</code> and with a
+            <code class="code">NextContinuationToken</code> element.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2 HTTP/1.1
+Host: bucket.s3.&lt;Region&gt;.amazonaws.com
+Date: Mon, 02 May 2016 23:17:07 GMT
+Authorization: authorization string
+
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_10">Sample Response for general purpose buckets: Using a continuation token</h3>
+         <p>This example illustrates one usage of ListObjectsV2.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+HTTP/1.1 200 OK
+x-amz-id-2: gyB+3jRPnrkN98ZajxHXr3u7EFM67bNgSAxexeEHndCX/7GRnfTXxReKUQF28IfP
+x-amz-request-id: 3B3C7C725673C630
+Date: Sat, 30 Apr 2016 23:29:37 GMT
+Content-Type: application/xml
+Content-Length: length
+Connection: close
+Server: AmazonS3
+
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+  &lt;Name&gt;bucket&lt;/Name&gt;
+  &lt;Prefix&gt;&lt;/Prefix&gt;
+  &lt;NextContinuationToken&gt;1ueGcxLPRx1Tr/XYExHnhbYLgveDs2J/wm36Hy4vbOwM=&lt;/NextContinuationToken&gt;
+  &lt;KeyCount&gt;1000&lt;/KeyCount&gt;
+  &lt;MaxKeys&gt;1000&lt;/MaxKeys&gt;
+  &lt;IsTruncated&gt;true&lt;/IsTruncated&gt;
+  &lt;Contents&gt;
+    &lt;Key&gt;happyface.jpg&lt;/Key&gt;
+    &lt;LastModified&gt;2014-11-21T19:40:05.000Z&lt;/LastModified&gt;
+    &lt;ETag&gt;"70ee1738b6b21e2c8a43f3a5ab0eee71"&lt;/ETag&gt;
+    &lt;Size&gt;11&lt;/Size&gt;
+    &lt;StorageClass&gt;STANDARD&lt;/StorageClass&gt;
+  &lt;/Contents&gt;
+   ...
+&lt;/ListBucketResult&gt;
+
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_11">Sample request for general purpose buckets</h3>
+         <p>In the following subsequent request, we include a <code class="code">continuation-token</code> query
+          parameter in the request with the value of the <code class="code">NextContinuationToken</code> element from the
+          preceding response.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+GET /?list-type=2 HTTP/1.1
+GET /?list-type=2&amp;continuation-token=1ueGcxLPRx1Tr/XYExHnhbYLgveDs2J/wm36Hy4vbOwM= HTTP/1.1
+
+Host: bucket.s3.&lt;Region&gt;.amazonaws.com
+Date: Mon, 02 May 2016 23:17:07 GMT
+Authorization: authorization string
+
+
+         </code></pre>
+         
+       
+       
+         <h3 id="API_ListObjectsV2_Example_12">Sample response for general purpose buckets:</h3>
+         <p>Amazon S3 returns a list of the next set of keys starting where the previous request ended.</p>
+         
+            <pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli ()--><code class="">
+HTTP/1.1 200 OK
+x-amz-id-2: gyB+3jRPnrkN98ZajxHXr3u7EFM67bNgSAxexeEHndCX/7GRnfTXxReKUQF28IfP
+x-amz-request-id: 3B3C7C725673C630
+Date: Sat, 30 Apr 2016 23:29:37 GMT
+Content-Type: application/xml
+Content-Length: length
+Connection: close
+Server: AmazonS3
+
+&lt;ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+  &lt;Name&gt;bucket&lt;/Name&gt;
+  &lt;Prefix&gt;&lt;/Prefix&gt;
+  &lt;ContinuationToken&gt;1ueGcxLPRx1Tr/XYExHnhbYLgveDs2J/wm36Hy4vbOwM=&lt;/ContinuationToken&gt;
+  &lt;KeyCount&gt;112&lt;/KeyCount&gt;
+  &lt;MaxKeys&gt;1000&lt;/MaxKeys&gt;
+  &lt;IsTruncated&gt;false&lt;/IsTruncated&gt;
+  &lt;Contents&gt;
+    &lt;Key&gt;happyfacex.jpg&lt;/Key&gt;
+    &lt;LastModified&gt;2014-11-21T19:40:05.000Z&lt;/LastModified&gt;
+    &lt;ETag&gt;"70ee1738b6b21e2c8a43f3a5ab0eee71"&lt;/ETag&gt;
+    &lt;Size&gt;1111&lt;/Size&gt;
+    &lt;StorageClass&gt;STANDARD&lt;/StorageClass&gt;
+  &lt;/Contents&gt;
+   ...
+&lt;/ListBucketResult&gt;
+         </code></pre>
+         
+       
+    
+      <h2 id="API_ListObjectsV2_SeeAlso">See Also</h2>
+      <p>For more information about using this API in one of the language-specific AWS SDKs, see the following:</p>
+      <div class="itemizedlist">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      <ul class="itemizedlist"><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/cli2/s3-2006-03-01/ListObjectsV2">AWS Command Line Interface V2</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/DotNetSDKV4/s3-2006-03-01/ListObjectsV2">AWS SDK for .NET V4</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForCpp/s3-2006-03-01/ListObjectsV2">AWS SDK for C++</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForGoV2/s3-2006-03-01/ListObjectsV2">AWS SDK for Go v2</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForJavaV2/s3-2006-03-01/ListObjectsV2">AWS SDK for Java V2</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForJavaScriptV3/s3-2006-03-01/ListObjectsV2">AWS SDK for JavaScript V3</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForKotlin/s3-2006-03-01/ListObjectsV2">AWS SDK for Kotlin</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForPHPV3/s3-2006-03-01/ListObjectsV2">AWS SDK for PHP V3</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/boto3/s3-2006-03-01/ListObjectsV2">AWS SDK for Python</a>
+            </p>
+         </li><li class="listitem">
+            <p>
+               <a href="https://docs.aws.amazon.com/goto/SdkForRubyV3/s3-2006-03-01/ListObjectsV2">AWS SDK for Ruby V3</a>
+            </p>
+         </li></ul></div>
+   <awsdocs-copyright class="copyright-print"></awsdocs-copyright><awsdocs-thumb-feedback right-edge="{{$ctrl.thumbFeedbackRightEdge}}"></awsdocs-thumb-feedback></div><noscript><div><div><div><div id="js_error_message"><p><img src="https://d1ge0kk1l5kms0.cloudfront.net/images/G/01/webservices/console/warning.png" alt="Warning" /> <strong>Javascript is disabled or is unavailable in your browser.</strong></p><p>To use the Amazon Web Services Documentation, Javascript must be enabled. Please refer to your browser's Help pages for instructions.</p></div></div></div></div></noscript><div id="main-col-footer" class="awsui-util-font-size-0"><div id="doc-conventions"><a target="_top" href="/general/latest/gr/docconventions.html">Document Conventions</a></div><div class="prev-next"><div id="previous" class="prev-link" accesskey="p" href="./API_ListObjects.html">ListObjects</div><div id="next" class="next-link" accesskey="n" href="./API_ListObjectVersions.html">ListObjectVersions</div></div></div><awsdocs-page-utilities></awsdocs-page-utilities></div><div id="quick-feedback-yes" style="display: none;"><div class="title">Did this page help you? - Yes</div><div class="content"><p>Thanks for letting us know we're doing a good job!</p><p>If you've got a moment, please tell us what we did right so we can do more of it.</p><p><awsui-button id="fblink" rel="noopener noreferrer" target="_blank" text="Feedback" click="linkClick($event)" href="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=S3&amp;topic_url=https://docs.aws.amazon.com/en_us/AmazonS3/latest/API/API_ListObjectsV2.html"></awsui-button></p></div></div><div id="quick-feedback-no" style="display: none;"><div class="title">Did this page help you? - No</div><div class="content"><p>Thanks for letting us know this page needs work. We're sorry we let you down.</p><p>If you've got a moment, please tell us how we can make the documentation better.</p><p><awsui-button id="fblink" rel="noopener noreferrer" target="_blank" text="Feedback" click="linkClick($event)" href="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=S3&amp;topic_url=https://docs.aws.amazon.com/en_us/AmazonS3/latest/API/API_ListObjectsV2.html"></awsui-button></p></div></div></div></body></div></awsdocs-view><div class="page-loading-indicator" id="page-loading-indicator"><awsui-spinner size="large"></awsui-spinner></div></div><div id="tools-panel" dom-region="tools"><awsdocs-tools-panel id="awsdocs-tools-panel"></awsdocs-tools-panel></div></awsui-app-layout><awsdocs-cookie-banner class="doc-cookie-banner"></awsdocs-cookie-banner></div></body></html>

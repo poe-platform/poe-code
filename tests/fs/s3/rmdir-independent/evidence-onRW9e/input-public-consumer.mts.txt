@@ -1,0 +1,10 @@
+import { FsError, MemoryFileSystem, MountFileSystem, Shell, standardCommands, createOverlayFileSystem } from "virtual-bash";
+import { S3FileSystem, MockS3Client, createS3Transport } from "virtual-bash/fs/s3";
+import { createS3HttpTransport } from "virtual-bash/fs/s3/http";
+const client = new MockS3Client({ buckets: ["synthetic"] });
+const filesystem = new S3FileSystem({ bucket: "synthetic", transport: createS3Transport(client, {}) });
+const mounted = new MountFileSystem({ root: filesystem });
+const overlay = createOverlayFileSystem({ lower: new MemoryFileSystem(), upper: mounted });
+const shell = new Shell({ fs: filesystem }).use(standardCommands());
+const snapshot: boolean | undefined = mounted.capabilities.snapshotRmdir;
+void [FsError, createS3HttpTransport, shell, overlay, snapshot];

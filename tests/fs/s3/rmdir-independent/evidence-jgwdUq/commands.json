@@ -1,0 +1,438 @@
+[
+  {
+    "name": "build",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:33.597Z",
+    "elapsedMs": 1624.1646659999997,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "original-s3-http382",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/fs/s3/adapter-overrides.test.ts",
+      "tests/fs/s3/comparison.test.ts",
+      "tests/fs/s3/constructor-comparison.test.ts",
+      "tests/fs/s3/copy-races.test.ts",
+      "tests/fs/s3/faithful-decorators.test.ts",
+      "tests/fs/s3/filesystem.test.ts",
+      "tests/fs/s3/late-authority.test.ts",
+      "tests/fs/s3/mock.test.ts",
+      "tests/fs/s3/mutation-regressions.test.ts",
+      "tests/fs/s3/production-flows.test.ts",
+      "tests/fs/s3/rename-guards.test.ts",
+      "tests/fs/s3/rmdir.test.ts",
+      "tests/fs/s3/streaming.test.ts",
+      "tests/fs/s3/stress.test.ts",
+      "tests/fs/s3/trusted-forwarding.test.ts",
+      "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts",
+      "tests/fs/s3/http/unit/errors.test.ts",
+      "tests/fs/s3/http/unit/fallback.test.ts",
+      "tests/fs/s3/http/unit/signature.test.ts",
+      "tests/fs/s3/http/unit/transport.test.ts",
+      "tests/fs/s3/http/unit/xml.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:35.252Z",
+    "elapsedMs": 779.6087079999998,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 382,
+      "pass": 382,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": []
+  },
+  {
+    "name": "original-wrappers16",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/fs/mount/snapshot-rmdir.test.ts",
+      "tests/fs/overlay/snapshot-rmdir.test.ts",
+      "tests/fs/readonly/snapshot-rmdir.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:36.063Z",
+    "elapsedMs": 307.56975000000057,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": []
+  },
+  {
+    "name": "original-alias49",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/fs/mount/copy-identity-guards.test.ts",
+      "tests/fs/overlay/copy-identity.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:36.393Z",
+    "elapsedMs": 263.4119580000006,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": []
+  },
+  {
+    "name": "original-integrations6",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/integration/adapter-tools/remote-rmdir/combined-shell/snapshot.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:36.681Z",
+    "elapsedMs": 256.1440829999992,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": []
+  },
+  {
+    "name": "original-preflight30",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/integration/adapter-tools/preflight-review/preflight.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:36.966Z",
+    "elapsedMs": 240.10437499999898,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": []
+  },
+  {
+    "name": "original-matrix79",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/integration/adapter-tools/matrix.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:37.234Z",
+    "elapsedMs": 1709.434083,
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [
+      "webdav: create, copy, append, inspect and remove files"
+    ]
+  },
+  {
+    "name": "scoped-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/fs/s3/adapter-overrides.test.ts",
+      "tests/fs/s3/comparison.test.ts",
+      "tests/fs/s3/constructor-comparison.test.ts",
+      "tests/fs/s3/copy-races.test.ts",
+      "tests/fs/s3/faithful-decorators.test.ts",
+      "tests/fs/s3/filesystem.test.ts",
+      "tests/fs/s3/late-authority.test.ts",
+      "tests/fs/s3/mock.test.ts",
+      "tests/fs/s3/mutation-regressions.test.ts",
+      "tests/fs/s3/production-flows.test.ts",
+      "tests/fs/s3/rename-guards.test.ts",
+      "tests/fs/s3/rmdir.test.ts",
+      "tests/fs/s3/streaming.test.ts",
+      "tests/fs/s3/stress.test.ts",
+      "tests/fs/s3/trusted-forwarding.test.ts",
+      "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts",
+      "tests/fs/s3/http/unit/errors.test.ts",
+      "tests/fs/s3/http/unit/fallback.test.ts",
+      "tests/fs/s3/http/unit/signature.test.ts",
+      "tests/fs/s3/http/unit/transport.test.ts",
+      "tests/fs/s3/http/unit/xml.test.ts",
+      "tests/fs/mount/snapshot-rmdir.test.ts",
+      "tests/fs/overlay/snapshot-rmdir.test.ts",
+      "tests/fs/readonly/snapshot-rmdir.test.ts",
+      "tests/fs/mount/copy-identity-guards.test.ts",
+      "tests/fs/overlay/copy-identity.test.ts",
+      "tests/integration/adapter-tools/remote-rmdir/combined-shell/snapshot.test.ts",
+      "tests/integration/adapter-tools/fixtures.ts",
+      "tests/integration/adapter-tools/matrix.test.ts",
+      "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "tests/fs/webdav/mock.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:38.971Z",
+    "elapsedMs": 1286.335083,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "pack",
+    "executable": "npm",
+    "args": [
+      "pack",
+      "--ignore-scripts",
+      "--json",
+      "--pack-destination",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/evidence-jgwdUq"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:40.286Z",
+    "elapsedMs": 760.8362500000003,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "unpack",
+    "executable": "tar",
+    "args": [
+      "-xzf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/evidence-jgwdUq/virtual-bash-0.0.0.tgz",
+      "--strip-components=1",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/node_modules/virtual-bash"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/source",
+    "startedAt": "2026-08-27T07:48:41.066Z",
+    "elapsedMs": 136.07979200000045,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "resolution-before-boundary",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--input-type=module",
+      "--eval",
+      "console.log(import.meta.resolve(\"virtual-bash\"))"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer",
+    "startedAt": "2026-08-27T07:48:41.306Z",
+    "elapsedMs": 26.386915999999474,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "public-probe",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--loader",
+      "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/load-audit.mjs",
+      "probe.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer",
+    "startedAt": "2026-08-27T07:48:41.354Z",
+    "elapsedMs": 90.08350000000064,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "public-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "public-consumer.mts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer",
+    "startedAt": "2026-08-27T07:48:41.465Z",
+    "elapsedMs": 233.56820899999911,
+    "status": 0,
+    "signal": null,
+    "counts": {
+      "tests": -1,
+      "pass": -1,
+      "fail": -1,
+      "cancelled": -1,
+      "skipped": -1,
+      "todo": -1
+    },
+    "failures": []
+  },
+  {
+    "name": "independent",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--loader",
+      "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/load-audit.mjs",
+      "--unhandled-rejections=strict",
+      "--test",
+      "--test-reporter=tap",
+      "independent.test.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer",
+    "startedAt": "2026-08-27T07:48:41.717Z",
+    "elapsedMs": 149.29724999999962,
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 24,
+      "pass": 22,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [
+      "cancel after complete LIST, errno-shaped reason: no DELETE",
+      "capability changes during final readdir: overlay must recheck before DELETE"
+    ]
+  }
+]

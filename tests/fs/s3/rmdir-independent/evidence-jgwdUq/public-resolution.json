@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "specifier": "virtual-bash",
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/node_modules/virtual-bash/dist/index.js",
+      "sha256": "27a19e8e4f5505e3aad5395d13e0a4c17e54d4096aac872261580220b28f2c1a"
+    },
+    {
+      "specifier": "virtual-bash/fs/s3",
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/node_modules/virtual-bash/dist/fs/s3/index.js",
+      "sha256": "1c174c48e88516790e1776bf32b87597a29a79b029dd06aa972acf061c3d647f"
+    },
+    {
+      "specifier": "virtual-bash/fs/s3/http",
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js",
+      "sha256": "7e356b1ee365ce29d6c66d4f08f1447e7d79f551fd9fb79c0076e3924f679479"
+    }
+  ],
+  "factoryIdentity": true
+}

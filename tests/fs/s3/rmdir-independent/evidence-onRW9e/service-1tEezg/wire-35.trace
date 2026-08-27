@@ -1,0 +1,31 @@
+*   Trying 127.0.0.1:51066...
+* Connected to 127.0.0.1 (127.0.0.1) port 51066
+> PUT /safe-bash-interop/snapshot/race/nested/file HTTP/1.1
+> Host: 127.0.0.1:51066
+> User-Agent: curl/8.7.1
+> Accept: */*
+> x-amz-date: 20260827T075020Z
+> x-amz-content-sha256: 66f99a5dae4e1c00a3b222fea7fb86e81232d12b9697c92428746f5262e50dcc
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=853884bcfb38b67fdd5cd7759b2cc3e0d2df3d73bd0391bb6862f68bc23dbbde
+> Content-Length: 2
+> Content-Type: application/x-www-form-urlencoded
+> 
+} [2 bytes data]
+* upload completely sent off: 2 bytes
+< HTTP/1.1 200 OK
+< Accept-Ranges: bytes
+< Content-Length: 0
+< ETag: "145e29a06b49db91d09147cd35a20fc7"
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: b15f25204a595b8914321e0e258db45d013fe9a07cd80645df86585e9aae6d2f
+< X-Amz-Request-Id: 18CF9A1BB79D19A8
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1507
+< X-Ratelimit-Remaining: 1507
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 07:50:20 GMT
+< 
+* Connection #0 to host 127.0.0.1 left intact

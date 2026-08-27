@@ -2409,3 +2409,53 @@ that any implementation, command, fixture, or test currently exists.
   a separate publicDU75 freeze while HTML74's different-agent review proceeds.
   The exactaff899aa HTML candidate/default inventory/package remain untouched;
   no DU source/public integration is performed by this handoff.
+
+### 2026-08-27 22:57 UTC — separate DU75 public author candidate ready
+
+- Root authorized DU integration after HTML74 was bound, with Raman's immutable
+  pre-candidate freeze1bd1048b. Source/export/docs b2b4604f adds root and explicit
+  `virtual-bash/commands/du` factories/types, `AgentCommandsOptions.du` limits and
+  top-level replacement authority. Default75 is exactly HTML74 plus du; curl and
+  SafeJS remain optional, expr76 remains unwritten. HTMLaff899aa and its full pack
+  d9c1a973 are not changed or silently recounted by this separate candidate.
+- Frozen author candidate0895de2dc63014989f23912c3d48f7c4d0d35a47, tree
+  0d6fe4cc764e047c0f4c9eb93cfaa3824be36965, complete tarball SHA
+  4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d.
+  Its package.json SHA60e3e393 is a different artifact.834 installed/832 emitted
+  files and771 scoped committed input files are authenticated; all200 observed
+  main-thread modules per moved program match captured expected bytes. No worker
+  dependency tracing or entire historical-repository archive claim is made.
+- Only DUdu.ts/budget.ts behavior changes: optional owned stdout enrollment after
+  validation and before metadata, one unchanged budget, operation-scoped metadata/
+  accounted stdout, original-caller required stderr. Exact direct close reason is
+  rethrown; caller abort takes priority. Owned local waits/close are awaited, but
+  opaque underlying provider promises are not forcibly retired. Known allocation
+  zero, absent allocation and explicit apparent-size mode remain distinct.
+- Frozen build/scoped strict types/public strict types pass; four intended negative
+  type diagnostics, eight moved programs on Node22.22.2/24.11.1, four fallback
+  controls and two actual source-read permission denials pass.166/166 source tests
+  comprise102 unchanged non-native DU,13 new DU,9 HTML lifecycle and42 registry
+  checks.20 author harness commands/22 checks pass; no skip/TODO. Source/artifact,
+  built and installed inventories are unchanged with added-entry detection.
+  This is author-scoped evidence, not Raman acceptance or a current whole gate.
+- Original17284 isolated attempt remains failed: missing archived WebDAV mock
+  helper produced156/157 source results plus count/type failures; its eight public
+  programs passed but that did not make the attempt pass.0895 adds only the helper
+  to archive selection; both attempts have identical product tarballs.52 raw logs/
+  reports preserve both attempts and prior source/type diagnostics. Exact current
+  fixture migrations9cccda89 preserve prior74 evidence and change no tool semantics.
+- The package also contains separately authored private cancellation helper67472272
+  and its four emitted files; it is not imported by these public programs or
+  approved through this DU review. Later first-read canonical migration commits
+  are outside this scoped run; Heisenberg owns that separate work. No runtime,
+  HTML renderer, expr or DU-independent fixture was edited for this integration.
+- Handoff and eight lifecycle mapping sections:
+  tests/plugins/du-public-author/README.md and POLICY.md. Receipt
+  evidence-v1/REVIEW-HANDOFF.json SHA1ff91fcf815f57a895bf46d4aeca8e5da488971d918009dbb1d24b356e7f5b8a
+  binds exact source/Git blobs, package, tools, names and policies. Root must route
+  that candidate/mapping to Raman; author does not invent independent executor or
+  root replay authorization. Different-agent public/lifecycle review remains open.
+- Separate DU typing-author evidencee9843e60/frozen491da31 has not been recast as
+  a current global type pass. This integration ran only build and scoped checks.
+  No whole gate, external native/service replay, superiority or72-hour completion
+  is claimed.

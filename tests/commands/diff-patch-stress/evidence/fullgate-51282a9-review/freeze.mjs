@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
@@ -19,6 +19,7 @@ const classification = JSON.parse(readFileSync('tests/integration/full-gate-2026
 const failures = classification.failures.filter(row => /tests\/commands\/(diff-patch-stress|metadata-stress|table-text-stress)\//.test(row.path));
 const targets = [...new Set(failures.map(row => row.path))];
 function save(path, value) {
+  if (existsSync(path)) throw new Error(`Refusing to replace frozen evidence: ${path}`);
   const text = typeof value === 'string' ? value : `${JSON.stringify(value, null, 2)}\n`;
   execFileSync('apply_patch', [], { input: `*** Begin Patch\n*** Add File: ${path}\n${text.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`, maxBuffer: 16 * 1024 * 1024 });
 }

@@ -1,0 +1,3954 @@
+{
+  "capturedAt": "2026-08-27T06:45:09.833Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "qualification": "GNU 2.8 / Apple patch on Darwin, not GNU/Linux; --atomic has no native equivalent; controls excluded from eight-original coverage",
+  "profiles": [
+    {
+      "profile": "gnu",
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    {
+      "profile": "apple-calibration",
+      "path": "/usr/bin/patch",
+      "realpath": "/usr/bin/patch",
+      "version": "patch 2.0-12u11-Apple",
+      "dialect": "apple-patch-2.0-12u11",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+    }
+  ],
+  "results": [
+    {
+      "fixture": {
+        "name": "normal/-E/apply",
+        "cohort": "original",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "081538266bde70618ba6d8dc0c8d6b0b26c7156059e862b897eae6458d5310d5",
+      "virtual": {
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-pdyfuq/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d7064796675712f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-pdyfuq/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555357",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555359",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555363",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555358",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555361",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555360",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555362",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555357",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555358",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555361",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555360",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555362",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-Fzgjdl/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d467a676a646c2f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-Fzgjdl/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555366",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555368",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555372",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555367",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555370",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555369",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555371",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555366",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555368",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555367",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555370",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555369",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555371",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "normal/--remove-empty-files/apply",
+        "cohort": "original",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "081538266bde70618ba6d8dc0c8d6b0b26c7156059e862b897eae6458d5310d5",
+      "virtual": {
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-Tfcqda/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d5466637164612f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-Tfcqda/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555377",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555379",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555383",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555378",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555381",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555380",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555382",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555377",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555378",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555381",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555380",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555382",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-t9bxuB/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d7439627875422f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-t9bxuB/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555386",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555388",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555392",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555387",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555390",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555389",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555391",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555386",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555388",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555387",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555390",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555389",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555391",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "context/-E/apply",
+        "cohort": "original",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "d298e3d3ca24ff0f333159e1921f12ba0b90f675674a8e1d6ade1e8b1a68707a",
+      "virtual": {
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-ULEdvT/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d554c456476542f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-ULEdvT/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555397",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555399",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555403",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555398",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555401",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555400",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555402",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555397",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555398",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555401",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555400",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555402",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-mHqF1t/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d6d48714631742f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-mHqF1t/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555406",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555408",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555412",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555407",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555410",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555409",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555411",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555406",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555408",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555407",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555410",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555409",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555411",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "context/--remove-empty-files/apply",
+        "cohort": "original",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "d298e3d3ca24ff0f333159e1921f12ba0b90f675674a8e1d6ade1e8b1a68707a",
+      "virtual": {
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-KKSrWm/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d4b4b5372576d2f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-KKSrWm/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555417",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555419",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555423",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555418",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555421",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555420",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555422",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555417",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555418",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555421",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555420",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555422",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-LgwPed/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d4c67775065642f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-LgwPed/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555426",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555428",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555432",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555427",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555430",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555429",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555431",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555426",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555428",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555427",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555430",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555429",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555431",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "unified/-E/apply",
+        "cohort": "original",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "e625978bc95188371f00ad350d67299432d3c4ba08f6b60f1a95aff1f353eb3e",
+      "virtual": {
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-O2qmxt/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d4f32716d78742f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-O2qmxt/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555437",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555439",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555443",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555438",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555441",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555440",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555442",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555437",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555438",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555441",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555440",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555442",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "-E",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-tJNX4L/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d744a4e58344c2f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-tJNX4L/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555446",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555448",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555452",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555447",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555450",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555449",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555451",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555446",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555448",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555447",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555450",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555449",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555451",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "unified/--remove-empty-files/apply",
+        "cohort": "original",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "files": {
+          "/work/old-label": "old decoy\n",
+          "/work/new-label": "new decoy\n",
+          "/work/sentinel": "do not touch\n",
+          "/authorized/target": "alpha\nbeta\n"
+        },
+        "directories": [
+          "/work",
+          "/authorized"
+        ]
+      },
+      "inputSha256": "e625978bc95188371f00ad350d67299432d3c4ba08f6b60f1a95aff1f353eb3e",
+      "virtual": {
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "status": 0,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c65202f617574686f72697a65642f7461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "616c7068610a626574610a"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e6577206465636f790a"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c64206465636f790a"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "646f206e6f7420746f7563680a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-kQgie3/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c65202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d6b51676965332f617574686f72697a65642f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-kQgie3/authorized/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555457",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555459",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555463",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555458",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555461",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555460",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555462",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555457",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555458",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555461",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555460",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555462",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "--remove-empty-files",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-7dFwJq/authorized/target"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c6520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d376446774a712f617574686f72697a65642f746172676574270a",
+          "stderrHex": "",
+          "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-7dFwJq/authorized/target'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555466",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555468",
+              "size": "96"
+            },
+            "/authorized/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555472",
+              "size": "11",
+              "hex": "616c7068610a626574610a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555467",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555470",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555469",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555471",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555466",
+              "size": "128"
+            },
+            "/authorized": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 2,
+              "device": "16777232",
+              "inode": "171555468",
+              "size": "64"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555467",
+              "size": "160"
+            },
+            "/work/new-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555470",
+              "size": "10",
+              "hex": "6e6577206465636f790a"
+            },
+            "/work/old-label": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555469",
+              "size": "10",
+              "hex": "6f6c64206465636f790a"
+            },
+            "/work/sentinel": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555471",
+              "size": "13",
+              "hex": "646f206e6f7420746f7563680a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "quoted ancestor symlink",
+        "cohort": "original",
+        "args": [],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/work/first": "old\n",
+          "/work/target": "old\n",
+          "/work/dir/target": "old\n"
+        },
+        "directories": [
+          "/work",
+          "/work/dir"
+        ],
+        "links": {
+          "/work/alias": "dir"
+        }
+      },
+      "inputSha256": "9d9f9892edb1ea92c526629a3b317c516e84981219a0e464b3e22951a908b365",
+      "virtual": {
+        "args": [],
+        "status": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e65770a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e65770a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555477",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555478",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555483",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555479",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555482",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555480",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555481",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555477",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555478",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555483",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555479",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555482",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555485",
+              "size": "4",
+              "hex": "6e65770a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555486",
+              "size": "4",
+              "hex": "6e65770a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f"
+          ],
+          "status": 1,
+          "stdoutHex": "7061746368696e672066696c652066697273740a4e6f2066696c6520746f2070617463682e2020536b697070696e672e2e2e0a31206f7574206f6620312068756e6b732069676e6f7265642d2d736176696e672072656a6563747320746f2027746172676574222e72656a270a",
+          "stderrHex": "",
+          "stdout": "patching file first\nNo file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'target\".rej'\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555487",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555488",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555493",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555489",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555492",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555490",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555491",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555487",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 7,
+              "device": "16777232",
+              "inode": "171555488",
+              "size": "224"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555493",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555489",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555492",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555494",
+              "size": "4",
+              "hex": "6e65770a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555491",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/target\".rej": {
+              "type": "file",
+              "mode": 384,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555496",
+              "size": "26",
+              "hex": "4040202d312c31202b312c312040400a2d6f6c640a2b6e65770a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "repeated hunk",
+        "cohort": "original",
+        "args": [],
+        "atomic": true,
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "directories": [
+          "/work"
+        ],
+        "files": {
+          "/work/first": "keep\n",
+          "/work/target": "old\nmiddle\ntail\n"
+        }
+      },
+      "inputSha256": "c674970eaa157aef330ee0d7509e19fbf5e38177a89f910b1eababc631d074fd",
+      "virtual": {
+        "args": [
+          "--atomic"
+        ],
+        "status": 1,
+        "stdout": "",
+        "stderr": "patch: hunk 2 does not match target\n",
+        "stdoutHex": "",
+        "stderrHex": "70617463683a2068756e6b203220646f6573206e6f74206d61746368207461726765740a",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a7461696c0a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a7461696c0a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch"
+          ],
+          "status": 1,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a6d69736f7264657265642068756e6b7321206f757470757420776f756c6420626520676172626c65640a48756e6b202332204641494c454420617420312e0a31206f7574206f6620322068756e6b73204641494c4544202d2d20736176696e672072656a6563747320746f2066696c65207461726765742e72656a0a",
+          "stderrHex": "",
+          "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555498",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555499",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555500",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555502",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555498",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555499",
+              "size": "160"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555505",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555506",
+              "size": "16",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "/work/target.rej": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555507",
+              "size": "46",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f"
+          ],
+          "status": 2,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "70617463683a202a2a2a2a206d69736f7264657265642068756e6b7321206f757470757420776f756c6420626520676172626c65640a",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555508",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555509",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555510",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555511",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555508",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555509",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555512",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555511",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "selected ancestor control",
+        "cohort": "control-not-coverage",
+        "args": [
+          "-p0"
+        ],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/work/first": "old\n",
+          "/work/target": "old\n",
+          "/work/dir/target": "old\n"
+        },
+        "directories": [
+          "/work",
+          "/work/dir"
+        ],
+        "links": {
+          "/work/alias": "dir"
+        }
+      },
+      "inputSha256": "9d9f9892edb1ea92c526629a3b317c516e84981219a0e464b3e22951a908b365",
+      "virtual": {
+        "args": [
+          "-p0"
+        ],
+        "status": 2,
+        "stdout": "",
+        "stderr": "patch: symlink paths are unsupported: /work/alias\n",
+        "stdoutHex": "",
+        "stderrHex": "70617463683a2073796d6c696e6b2070617468732061726520756e737570706f727465643a202f776f726b2f616c6961730a",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch",
+            "-p0"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c6520616c6961732f7461726765740a",
+          "stderrHex": "",
+          "stdout": "patching file first\npatching file alias/target\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555517",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555518",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555523",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555519",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555522",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555520",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555521",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555517",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555518",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555523",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555519",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555526",
+              "size": "4",
+              "hex": "6e65770a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555525",
+              "size": "4",
+              "hex": "6e65770a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555521",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f",
+            "-p0"
+          ],
+          "status": 1,
+          "stdoutHex": "7061746368696e672066696c652066697273740a4e6f2066696c6520746f2070617463682e2020536b697070696e672e2e2e0a31206f7574206f6620312068756e6b732069676e6f7265642d2d736176696e672072656a6563747320746f202722616c6961732f746172676574222e72656a270a43616e27742063726561746520272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d5356526c446a2f70617463687273784978577a537a7447272c206f757470757420697320696e20272f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d7265766965772f2e736372617463682f6e61746976652d5356526c446a2f70617463687273784978577a537a7447273a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "stderrHex": "",
+          "stdout": "patching file first\nNo file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to '\"alias/target\".rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-SVRlDj/patchrsxIxWzSztG', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/native-SVRlDj/patchrsxIxWzSztG': No such file or directory\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555527",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555528",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555533",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555529",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555532",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555530",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555531",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555527",
+              "size": "128"
+            },
+            "/patchrsxIxWzSztG": {
+              "type": "file",
+              "mode": 384,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555537",
+              "size": "26",
+              "hex": "4040202d312c31202b312c312040400a2d6f6c640a2b6e65770a"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 6,
+              "device": "16777232",
+              "inode": "171555528",
+              "size": "192"
+            },
+            "/work/alias": {
+              "type": "symlink",
+              "mode": 493,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555533",
+              "size": "3",
+              "link": "dir"
+            },
+            "/work/dir": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555529",
+              "size": "96"
+            },
+            "/work/dir/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555532",
+              "size": "4",
+              "hex": "6f6c640a"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555535",
+              "size": "4",
+              "hex": "6e65770a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555531",
+              "size": "4",
+              "hex": "6f6c640a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "repeated hunk second matching line control",
+        "cohort": "control-not-coverage",
+        "args": [],
+        "atomic": true,
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "directories": [
+          "/work"
+        ],
+        "files": {
+          "/work/first": "keep\n",
+          "/work/target": "old\nold\ntail\n"
+        }
+      },
+      "inputSha256": "c674970eaa157aef330ee0d7509e19fbf5e38177a89f910b1eababc631d074fd",
+      "virtual": {
+        "args": [
+          "--atomic"
+        ],
+        "status": 0,
+        "stdout": "patching file first\npatching file target\nHunk #2 succeeded at 2 (offset 1 line).\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203220286f66667365742031206c696e65292e0a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6f6c640a7461696c0a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6368616e6765640a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e65770a6f746865720a7461696c0a"
+          },
+          "/work/target.orig": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6f6c640a7461696c0a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch"
+          ],
+          "status": 0,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203220286f66667365742031206c696e65292e0a",
+          "stderrHex": "",
+          "stdout": "patching file first\npatching file target\nHunk #2 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555539",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555540",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555541",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555542",
+              "size": "13",
+              "hex": "6f6c640a6f6c640a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555539",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555540",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555544",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555545",
+              "size": "15",
+              "hex": "6e65770a6f746865720a7461696c0a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f"
+          ],
+          "status": 2,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "70617463683a202a2a2a2a206d69736f7264657265642068756e6b7321206f757470757420776f756c6420626520676172626c65640a",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555546",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555547",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555548",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555549",
+              "size": "13",
+              "hex": "6f6c640a6f6c640a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555546",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555547",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555550",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555549",
+              "size": "13",
+              "hex": "6f6c640a6f6c640a7461696c0a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "incomplete repeated hunk control",
+        "cohort": "control-not-coverage",
+        "args": [],
+        "atomic": true,
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1,2 +1 @@\n-old\n+other\n",
+        "directories": [
+          "/work"
+        ],
+        "files": {
+          "/work/first": "keep\n",
+          "/work/target": "old\nmiddle\ntail\n"
+        }
+      },
+      "inputSha256": "843b000bb4a34fc73b3e04d0e6b729729daa7270003af981f87b8dd9640c498a",
+      "virtual": {
+        "args": [
+          "--atomic"
+        ],
+        "status": 2,
+        "stdout": "",
+        "stderr": "patch: truncated or malformed hunk body\n",
+        "stdoutHex": "",
+        "stderrHex": "70617463683a207472756e6361746564206f72206d616c666f726d65642068756e6b20626f64790a",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a7461696c0a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a7461696c0a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch"
+          ],
+          "status": 2,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "2f746d702f736166652d626173682d676e752d6f7261636c652e5967324630572f70617463682d322e382f7372632f70617463683a202a2a2a2a206d616c666f726d6564207061746368206174206c696e652031333a20200a0a",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 13:  \n\n",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555555",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555556",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555557",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555558",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555555",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555556",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555560",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555558",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f"
+          ],
+          "status": 2,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "70617463683a202a2a2a2a206d616c666f726d6564207061746368206174206c696e652031343a20200a",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "patch: **** malformed patch at line 14:  \n",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555562",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555563",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555564",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555565",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555562",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555563",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555566",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555565",
+              "size": "16",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "name": "repeated hunk later matching line control",
+        "cohort": "control-not-coverage",
+        "args": [],
+        "atomic": true,
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "directories": [
+          "/work"
+        ],
+        "files": {
+          "/work/first": "keep\n",
+          "/work/target": "old\nmiddle\nold\n"
+        }
+      },
+      "inputSha256": "c674970eaa157aef330ee0d7509e19fbf5e38177a89f910b1eababc631d074fd",
+      "virtual": {
+        "args": [
+          "--atomic"
+        ],
+        "status": 0,
+        "stdout": "patching file first\npatching file target\nHunk #2 succeeded at 3 (offset 2 lines).\n",
+        "stderr": "",
+        "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203320286f66667365742032206c696e6573292e0a",
+        "stderrHex": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6b6565700a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a6f6c640a"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6368616e6765640a"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6e65770a6d6964646c650a6f746865720a"
+          },
+          "/work/target.orig": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "hex": "6f6c640a6d6964646c650a6f6c640a"
+          }
+        }
+      },
+      "natives": [
+        {
+          "profile": "gnu",
+          "args": [
+            "-f",
+            "--no-backup-if-mismatch"
+          ],
+          "status": 1,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a6d69736f7264657265642068756e6b7321206f757470757420776f756c6420626520676172626c65640a48756e6b202332204641494c454420617420312e0a31206f7574206f6620322068756e6b73204641494c4544202d2d20736176696e672072656a6563747320746f2066696c65207461726765742e72656a0a",
+          "stderrHex": "",
+          "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555571",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555572",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555573",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555574",
+              "size": "15",
+              "hex": "6f6c640a6d6964646c650a6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555571",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 5,
+              "device": "16777232",
+              "inode": "171555572",
+              "size": "160"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555576",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555577",
+              "size": "15",
+              "hex": "6e65770a6d6964646c650a6f6c640a"
+            },
+            "/work/target.rej": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555578",
+              "size": "46",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "profile": "apple-calibration",
+          "args": [
+            "-f"
+          ],
+          "status": 2,
+          "stdoutHex": "7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a",
+          "stderrHex": "70617463683a202a2a2a2a206d69736f7264657265642068756e6b7321206f757470757420776f756c6420626520676172626c65640a",
+          "stdout": "patching file first\npatching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "before": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555579",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555580",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555581",
+              "size": "5",
+              "hex": "6b6565700a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555582",
+              "size": "15",
+              "hex": "6f6c640a6d6964646c650a6f6c640a"
+            }
+          },
+          "after": {
+            "/": {
+              "type": "directory",
+              "mode": 448,
+              "nlink": 3,
+              "device": "16777232",
+              "inode": "171555579",
+              "size": "96"
+            },
+            "/work": {
+              "type": "directory",
+              "mode": 493,
+              "nlink": 4,
+              "device": "16777232",
+              "inode": "171555580",
+              "size": "128"
+            },
+            "/work/first": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555583",
+              "size": "8",
+              "hex": "6368616e6765640a"
+            },
+            "/work/target": {
+              "type": "file",
+              "mode": 420,
+              "nlink": 1,
+              "device": "16777232",
+              "inode": "171555582",
+              "size": "15",
+              "hex": "6f6c640a6d6964646c650a6f6c640a"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

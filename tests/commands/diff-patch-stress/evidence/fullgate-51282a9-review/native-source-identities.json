@@ -1,0 +1,13 @@
+{
+  "scope": "Read-only pinned GNU2.8 local source identities supporting native interpretation; no binary-to-source reproducible-build guarantee",
+  "rows": [
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch.c",
+      "sha256": "ca20b87c33247159560d896283c7ac506f71304bdc3249d9826c8bfb92417106"
+    },
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/pch.c",
+      "sha256": "8783613c48836e634cb7457396b8b81b0a57aaec53053034e2dd18d8299e5bf9"
+    }
+  ]
+}

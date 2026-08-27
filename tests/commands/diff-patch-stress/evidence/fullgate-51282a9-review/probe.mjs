@@ -1,27 +1,20 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import * as host from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { base, hash, save } from './replay.mjs';
 
 const label = process.argv[2] ?? 'initial';
+const outputLabel = process.argv[3] ?? label;
 const directory = resolve(base, '.scratch', label);
 const load = path => import(pathToFileURL(resolve(directory, path)).href);
 const { MemoryFileSystem, Shell, diffPatchCommands } = await load('src/index.ts');
-const { vectors, decoys } = await load('tests/commands/diff-patch-stress/emptyfile-delta/vectors.ts');
 const { oracleIdentity } = await load('tests/commands/diff-patch-stress/gnu-target/oracle.ts');
 const profiles = ['gnu', 'apple-calibration'].map(profile => ({ profile, ...oracleIdentity('patch', profile) }));
-const frozen = JSON.parse(await host.readFile(`${base}/initial-freeze.json`, 'utf8'));
-const failedNames = new Set(frozen.failures.filter(row => row.classification === 'directory-nlink-expectation').map(row => row.name.replace('GNU default: ', '')));
-const replace = (path, before = 'old', after = 'new') => `--- ${path}\n+++ ${path}\n@@ -1 +1 @@\n-${before}\n+${after}\n`;
-const repeated = replace('first', 'keep', 'changed') + replace('target') + '@@ -1 +1 @@\n-old\n+other\n';
-const cases = vectors.filter(vector => failedNames.has(vector.name)).map(vector => ({ name: vector.name, cohort: 'original', args: vector.args, input: vector.input, files: { ...Object.fromEntries(Object.entries(decoys).map(([name, bytes]) => [`/work/${name}`, bytes])), '/authorized/target': vector.initial }, directories: ['/work', '/authorized'] }));
-cases.push({ name: 'quoted ancestor symlink', cohort: 'original', args: [], input: replace('first') + replace('"alias/target"'), files: { '/work/first': 'old\n', '/work/target': 'old\n', '/work/dir/target': 'old\n' }, directories: ['/work', '/work/dir'], links: { '/work/alias': 'dir' } });
-cases.push({ name: 'repeated hunk', cohort: 'original', args: [], atomic: true, input: repeated, directories: ['/work'], files: { '/work/first': 'keep\n', '/work/target': 'old\nmiddle\ntail\n' } });
-cases.push({ ...cases[6], name: 'selected ancestor control', cohort: 'control-not-coverage', args: ['-p0'] });
-cases.push({ ...cases[7], name: 'repeated hunk second matching line control', cohort: 'control-not-coverage', files: { '/work/first': 'keep\n', '/work/target': 'old\nold\ntail\n' } });
-cases.push({ ...cases[7], name: 'incomplete repeated hunk control', cohort: 'control-not-coverage', input: repeated.replace('@@ -1 +1 @@\n-old\n+other\n', '@@ -1,2 +1 @@\n-old\n+other\n') });
+const frozen = JSON.parse(await host.readFile(`${base}/initial-extra-control-native-product.json`, 'utf8'));
+assert.deepEqual(profiles, frozen.profiles);
+const cases = frozen.results.map(row => row.fixture);
 
 async function virtualNamespace(filesystem) {
   const rows = {};
@@ -74,5 +67,5 @@ for (const fixture of cases) {
   }
   results.push({ fixture, inputSha256: hash(fixture.input), virtual, natives });
 }
-save(`${base}/${label}-native-product.json`, { capturedAt: new Date().toISOString(), platform: process.platform, arch: process.arch, qualification: 'GNU 2.8 / Apple patch on Darwin, not GNU/Linux; --atomic has no native equivalent; controls excluded from eight-original coverage', profiles, results });
+save(`${base}/${outputLabel}-native-product.json`, { capturedAt: new Date().toISOString(), platform: process.platform, arch: process.arch, qualification: 'GNU 2.8 / Apple patch on Darwin, not GNU/Linux; --atomic has no native equivalent; controls excluded from eight-original coverage', profiles, results });
 console.log(results.map(row => ({ name: row.fixture.name, virtual: row.virtual.status, natives: row.natives.map(native => [native.profile, native.status]), beforeRootLinks: row.virtual.before['/'].nlink, afterRootLinks: row.virtual.after['/'].nlink })));

@@ -1,0 +1,718 @@
+{
+  "revision": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+  "capturedAt": "2026-08-27T10:20:57.457Z",
+  "counts": {
+    "current": 29,
+    "declaration": 4,
+    "frozen-oracle": 1,
+    "frozen-evidence": 141,
+    "negative-types": 2
+  },
+  "rows": [
+    {
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/commands/time-env-stress/fix-review/README.md",
+          "sha256": "e5c80d3eb3b901b3115269db2b5f4edbf86d9fb543441fec4bd5c9f865b04cfb",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/commands/time-env-stress/fix-review/evidence/packed-compiled-after/manifest.json",
+          "sha256": "0d4478b472be1bab7caeda6ed678e9286ca6043397cdc7dd54a029913c86d1e4",
+          "containsInputHash": true
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+        "packageIdentity": "841faa4e09e4ffaa973b69f54d1a2f8165a04e944dddec2b4b5c051d86ff944b"
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+          "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+          "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageIdentity": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a"
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0",
+      "classification": "negative-types",
+      "routes": [],
+      "negative": {
+        "name": "time-env-leaf-negative",
+        "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+        "expected": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/internal-leaf-negative-types.stdout",
+        "positive": "time-env-leaf",
+        "diagnostics": 5
+      },
+      "proofs": []
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+      "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "time-env-leaf",
+          "runtime": [
+            "leaf-positive.mjs"
+          ],
+          "qualification": "maintained internal packed leaf types and factory construction; not export-map acceptance"
+        }
+      ],
+      "proofs": []
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af",
+      "classification": "negative-types",
+      "routes": [],
+      "negative": {
+        "name": "time-env-public-negative",
+        "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+        "expected": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/public-negative-types.stdout",
+        "positive": "time-env-public",
+        "diagnostics": 2
+      },
+      "proofs": []
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+      "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "time-env-public",
+          "runtime": [
+            "public-positive.mjs"
+          ],
+          "qualification": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "proofs": []
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+          "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+          "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageIdentity": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a"
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "webdav-atomic",
+          "runtime": [],
+          "companions": [
+            "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+          ],
+          "qualification": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"
+        }
+      ],
+      "proofs": []
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "webdav-atomic",
+          "runtime": [],
+          "companions": [
+            "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+          ],
+          "qualification": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"
+        }
+      ],
+      "proofs": []
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+          "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+          "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+          "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+          "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+          "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+          "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+          "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+          "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+          "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+          "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+          "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+          "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+          "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+          "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+          "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+          "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+          "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+          "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+          "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "routes": [],
+      "proofs": [
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+          "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+          "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833",
+          "containsInputHash": false
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+          "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5",
+          "containsInputHash": true
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+          "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6",
+          "containsInputHash": false
+        }
+      ],
+      "binding": {
+        "sourceExists": true,
+        "sourceLinked": true,
+        "packageLinked": true,
+        "archiveLinked": true,
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "packageIdentity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w=="
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "webdav-atomic",
+          "runtime": [],
+          "companions": [
+            "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+          ],
+          "qualification": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"
+        }
+      ],
+      "proofs": []
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "current",
+      "routes": [
+        {
+          "name": "webdav-atomic",
+          "runtime": [],
+          "companions": [
+            "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+          ],
+          "qualification": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"
+        }
+      ],
+      "proofs": []
+    }
+  ],
+  "census": {
+    "allMts": 177,
+    "scopedMts": 177,
+    "explicitlyExcluded": []
+  },
+  "canonicalRoute": {
+    "name": "webdav-timestamp-independent",
+    "files": [
+      "tests/fs/webdav/release-timestamp-independent/independent.test.mts"
+    ],
+    "runtime": [
+      "independent.test.mjs"
+    ],
+    "existingCoverage": "tests/fs/webdav/release-timestamp-independent/run.mjs",
+    "qualification": "current loopback runtime:20 controls plus3 mutant kills, not23 provider successes",
+    "companions": [
+      "tests/fs/webdav/consumer/provider.mts"
+    ],
+    "nodeTests": 23
+  },
+  "mutations": [
+    {
+      "name": "unknown tracked input examples/fresh.test.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "standalone inventory changed; classify new paths explicitly before qualification\n+ actual - expected\n\n  [\n+   'examples/fresh.test.mts',\n    'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n    'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/cases.d.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/common.d.mts',\n"
+    },
+    {
+      "name": "unknown tracked input src/fresh.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "standalone inventory changed; classify new paths explicitly before qualification\n+ actual - expected\n\n  [\n+   'src/fresh.mts',\n    'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n    'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/cases.d.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/common.d.mts',\n"
+    },
+    {
+      "name": "unknown tracked input root.test.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "standalone inventory changed; classify new paths explicitly before qualification\n+ actual - expected\n\n  [\n+   'root.test.mts',\n    'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n    'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/cases.d.mts',\n    'tests/commands/structured-stress/jq-42-independent-review/common.d.mts',\n"
+    },
+    {
+      "name": "current compile-route omitted",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "current consumers must have an explicit compile/runtime route\n+ actual - expected\n\n  [\n    'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n-   'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts',\n    'tests/fs/s3/constructor-comparison/consumer.mts',\n    'tests/fs/s3/http-independent/public-workflow.mts',\n    'tests/fs/s3/http/author/public-consumer.mts',\n"
+    },
+    {
+      "name": "negative route omitted",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "negative consumers must have exact-diagnostic routes\n+ actual - expected\n\n  [\n    'tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts',\n-   'tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts'\n  ]\n"
+    },
+    {
+      "name": "frozen input changed tests/commands/time-env-stress/fix-review/holdout.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/commands/time-env-stress/fix-review/holdout.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- 'a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823'\n"
+    },
+    {
+      "name": "frozen input changed tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/commands/time-env-stress/fraction-independent/packed/controls.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19'\n"
+    },
+    {
+      "name": "frozen input changed tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- 'c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- '0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04'\n"
+    },
+    {
+      "name": "frozen input changed tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts\n+ actual - expected\n\n+ '2fb5196088a2cd71b7b89c6aac90867dea600a47964aa7a49b971ba439e8b499'\n- 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n"
+    },
+    {
+      "name": "negative bytes changed tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts\n+ actual - expected\n\n+ '4f56045c295617d094843daf46a0b666472d5613d232b9fe302224248ed4d362'\n- '1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af'\n"
+    },
+    {
+      "name": "negative bytes changed tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "historical/declaration/negative inventory changed: tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts\n+ actual - expected\n\n+ '4f56045c295617d094843daf46a0b666472d5613d232b9fe302224248ed4d362'\n- '95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0'\n"
+    },
+    {
+      "name": "frozen proof changed",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "frozen evidence changed: tests/commands/time-env-stress/fix-review/README.md\n+ actual - expected\n\n+ '44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a'\n- 'e5c80d3eb3b901b3115269db2b5f4edbf86d9fb543441fec4bd5c9f865b04cfb'\n"
+    },
+    {
+      "name": "unknown classification",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "current consumers must have an explicit compile/runtime route\n+ actual - expected\n\n  [\n+   'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n    'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts',\n    'tests/fs/s3/constructor-comparison/consumer.mts',\n"
+    },
+    {
+      "name": "invented total",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "inventory totals disagree with entries\n+ actual - expected\n\n  {\n    'frozen-evidence': 141,\n    'frozen-oracle': 1,\n    'negative-types': 2,\n+   current: 29,\n-   current: 30,\n    declaration: 4\n  }\n"
+    },
+    {
+      "name": "single classification downgrade",
+      "expectedRejection": true,
+      "rejected": true,
+      "message": "current consumers must have an explicit compile/runtime route\n+ actual - expected\n\n  [\n+   'tests/commands/regex-execution/continuation/package-consumer.mts',\n    'tests/commands/regex-execution/followup/product-consumer.mts',\n    'tests/commands/regex-execution/package-consumer.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts',\n    'tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts',\n    'tests/fs/s3/constructor-comparison/consumer.mts',\n"
+    },
+    {
+      "name": "coupled route/classification downgrade survives current guard",
+      "expectedRejection": false,
+      "rejected": false
+    },
+    {
+      "name": "frozen claimed identity can disagree with authenticated evidence",
+      "expectedRejection": false,
+      "rejected": false
+    },
+    {
+      "name": "new path under existing excluded prefix is invisible to census",
+      "expectedRejection": false,
+      "rejected": false
+    },
+    {
+      "name": "canonical runtime omission leaves current inventory guard green",
+      "expectedRejection": false,
+      "rejected": false
+    }
+  ],
+  "scope": "Read-only frozen config/provenance and independent in-memory guard mutations; runtime omissions need separate execution repro. No product or private-source writes."
+}

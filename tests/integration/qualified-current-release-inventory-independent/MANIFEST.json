@@ -1,0 +1,45 @@
+{
+  "sourceCommit": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+  "files": [
+    {
+      "path": "audit.mjs",
+      "sha256": "311113b567a3c85f09f12859599bcdf42deed5099faa759fcc8ca33e2b608ea2"
+    },
+    {
+      "path": "evidence/audit.json",
+      "sha256": "25419b0752e3f966cb24373dba6f94e7f4dc63dc4628761aea2bff083e391e1a"
+    },
+    {
+      "path": "evidence/qualified.json",
+      "sha256": "9203c0f60df3baedac61b706db91218edc93388131307462ac3c7cbc4ee023be"
+    },
+    {
+      "path": "evidence/runtime-attempts.json",
+      "sha256": "73259ebfc243d2499f3ea3898267641a2bfee85f8f97da433e1926c1b819f8e9"
+    },
+    {
+      "path": "evidence/runtime/declared-runtime.json",
+      "sha256": "c67ea4fc45080ccd7cae1500f4618c4fb8e2b570f4918537f0d031d0e1cfb797"
+    },
+    {
+      "path": "evidence/runtime/omitted-runtime.json",
+      "sha256": "42569c8bc1a613c4977b8ef6401f39c4664c510a12694176e86398fca503aece"
+    },
+    {
+      "path": "evidence/runtime/report.json",
+      "sha256": "912810a7b8252a5d64cd5b0ca41a9c1172f0e855191c0715245dc0d115c48c74"
+    },
+    {
+      "path": "evidence/runtime/self-contained-atomic-consumer.json",
+      "sha256": "3ac42ebe82cc3bf49e8af8751bf47dc9f1ab78bda6d9d32f73a77059467363e8"
+    },
+    {
+      "path": "README.md",
+      "sha256": "e507939cbb091bee0aa8336d306bcca8c4a9125a19ae105af100ba18f160ec52"
+    },
+    {
+      "path": "runtime-review.mjs",
+      "sha256": "ac1ae1b6c9d8efd90aa53e084e7a346969325b217835f7ffa7163e6710a75506"
+    }
+  ]
+}

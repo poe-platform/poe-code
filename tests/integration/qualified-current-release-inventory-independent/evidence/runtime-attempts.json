@@ -1,0 +1,97 @@
+[
+  {
+    "path": "/tmp/safe-bash-inventory-independent-runtime-20260827",
+    "report": {
+      "startedAt": "2026-08-27T10:18:34.137Z",
+      "sourceCommit": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+      "originalQualified": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB",
+      "experiments": [],
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'PROPFIND',\n+   'PROPFIND',\n+   'PROPFIND'\n  ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-inventory-independent/runtime-review.mjs:47:12",
+      "status": "review-harness-failed",
+      "cleaned": true,
+      "finishedAt": "2026-08-27T10:18:34.255Z"
+    },
+    "atomic": {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+        "--unhandled-rejections=strict",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/webdav-atomic/emitted/independent.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"consumerPackage\": {\n    \"name\": \"independent-atomic-public-consumer\",\n    \"private\": true,\n    \"type\": \"module\"\n  },\n  \"methods\": [\n    \"PROPFIND\",\n    \"PROPFIND\",\n    \"PROPFIND\"\n  ],\n  \"calls\": 1,\n  \"modules\": [\n    {\n      \"specifier\": \"virtual-bash\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"sha256\": \"0b5b5b39167ca71c69f52ff8b363e6b626136f3bfab12abda434b2f94503d4c8\"\n    },\n    {\n      \"specifier\": \"virtual-bash/fs/webdav\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"sha256\": \"f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1\"\n    }\n  ],\n  \"passed\": true\n}\n",
+      "stderr": ""
+    }
+  },
+  {
+    "path": "/tmp/safe-bash-inventory-independent-runtime-r2-20260827",
+    "report": {
+      "startedAt": "2026-08-27T10:18:50.101Z",
+      "sourceCommit": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+      "originalQualified": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB",
+      "experiments": [
+        {
+          "mode": "declared-runtime",
+          "rejected": true,
+          "compiled": "pass",
+          "runtimeResults": [],
+          "sentinelObserved": false
+        }
+      ],
+      "selfContainedAtomic": {
+        "status": "passes-without-service",
+        "observations": {
+          "consumerPackage": {
+            "name": "independent-atomic-public-consumer",
+            "private": true,
+            "type": "module"
+          },
+          "methods": [
+            "PROPFIND",
+            "PROPFIND",
+            "PROPFIND"
+          ],
+          "calls": 1,
+          "modules": [
+            {
+              "specifier": "virtual-bash",
+              "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js",
+              "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js",
+              "sha256": "0b5b5b39167ca71c69f52ff8b363e6b626136f3bfab12abda434b2f94503d4c8"
+            },
+            {
+              "specifier": "virtual-bash/fs/webdav",
+              "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js",
+              "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js",
+              "sha256": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1"
+            }
+          ],
+          "passed": true
+        },
+        "fixtureSha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+        "setup": "only a consumer identity package.json beside emitted program, as required by original fixture; no source/fixture edits or service"
+      },
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /INDEPENDENT_RUNTIME_SENTINEL/. Input:\n\n'AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\\n' +\n  '\\n' +\n  '  assert.ok(compilerFiles.includes(join(groupInstalled, \"dist/index.d.ts\")))\\n' +\n  '\\n' +\n  '    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/snapshot/scripts/verify-current-consumers.mjs:51:14)\\n' +\n  '    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-inventory-independent/runtime-review.mjs:73:11'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-inventory-independent/runtime-review.mjs:83:32",
+      "status": "review-harness-failed",
+      "cleaned": true,
+      "finishedAt": "2026-08-27T10:18:55.043Z"
+    },
+    "atomic": {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+        "--unhandled-rejections=strict",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/webdav-atomic/emitted/independent.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"consumerPackage\": {\n    \"name\": \"independent-atomic-public-consumer\",\n    \"private\": true,\n    \"type\": \"module\"\n  },\n  \"methods\": [\n    \"PROPFIND\",\n    \"PROPFIND\",\n    \"PROPFIND\"\n  ],\n  \"calls\": 1,\n  \"modules\": [\n    {\n      \"specifier\": \"virtual-bash\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"sha256\": \"0b5b5b39167ca71c69f52ff8b363e6b626136f3bfab12abda434b2f94503d4c8\"\n    },\n    {\n      \"specifier\": \"virtual-bash/fs/webdav\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"sha256\": \"f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1\"\n    }\n  ],\n  \"passed\": true\n}\n",
+      "stderr": ""
+    }
+  }
+]

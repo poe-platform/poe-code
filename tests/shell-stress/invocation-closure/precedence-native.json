@@ -1,0 +1,381 @@
+{
+  "timestamp": "2026-08-27T01:26:52.269Z",
+  "path": "tests/shell-stress/script-entrypoint/cases.ts",
+  "originalFileHash": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+  "originalDefinition": "  async \"builtin-function-registry-shadow\"() {\n    const fixture = setup();\n    const seen: string[] = [];\n    fixture.commands.register({ name: \"true\", execute() { seen.push(\"registry-true\"); return { exitCode: 91 }; } });\n    fixture.commands.register({ name: \"bash\", execute() { seen.push(\"registry-bash\"); return { exitCode: 12 }; } });\n    await script(fixture, \"/shadow\", '#!/bin/bash\\nbash; args \"$?\"');\n    const result = await fixture.shell.exec('true() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow');\n    assert.equal(result.stderr, \"\");\n    assert.equal(result.stdout, '[\"0\"][\"12\"][\"13\"][\"12\"]');\n    assert.deepEqual(seen, [\"registry-bash\", \"registry-bash\"]);\n  },",
+  "otherDefinitionsHash": "e23f0b78b2cf2a8c220e98952105546d917bf9c6d27ec2bc880f28dce9a4a553",
+  "oldExpected": "[\"0\"][\"12\"][\"13\"][\"12\"]",
+  "sources": [
+    {
+      "id": "original",
+      "source": "true() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+      "expected": "unexpected-function\n[\"0\"][\"12\"][\"13\"][\"12\"]"
+    },
+    {
+      "id": "strengthened",
+      "source": "true() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+      "expected": "function-true\n[\"7\"][\"0\"][\"12\"][\"13\"][\"12\"][\"12\"]"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "gnu-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "expectedHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versions": [
+        {
+          "argv": [
+            "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"%s\\n\" \"$BASH_VERSION\"; set -o"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89672,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "352e332e302831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f66660a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+          "stderrHex": "",
+          "stdout": "5.3.0(1)-release\nallexport      \toff\nbraceexpand    \ton\nemacs          \toff\nerrexit        \toff\nerrtrace       \toff\nfunctrace      \toff\nhashall        \ton\nhistexpand     \toff\nhistory        \toff\nignoreeof      \toff\ninteractive-comments\ton\nkeyword        \toff\nmonitor        \toff\nnoclobber      \toff\nnoexec         \toff\nnoglob         \toff\nnolog          \toff\nnotify         \toff\nnounset        \toff\nonecmd         \toff\nphysical       \toff\npipefail       \toff\nposix          \toff\nprivileged     \toff\nverbose        \toff\nvi             \toff\nxtrace         \toff\n",
+          "stderr": "",
+          "elapsedMs": 9.232582999999991
+        },
+        {
+          "argv": [
+            "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"%s\\n\" \"$BASH_VERSION\"; set -o"
+          ],
+          "argv0": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89673,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "352e332e302831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f6e0a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+          "stderrHex": "",
+          "stdout": "5.3.0(1)-release\nallexport      \toff\nbraceexpand    \ton\nemacs          \toff\nerrexit        \toff\nerrtrace       \toff\nfunctrace      \toff\nhashall        \ton\nhistexpand     \toff\nhistory        \toff\nignoreeof      \toff\ninteractive-comments\ton\nkeyword        \toff\nmonitor        \toff\nnoclobber      \toff\nnoexec         \toff\nnoglob         \toff\nnolog          \toff\nnotify         \toff\nnounset        \toff\nonecmd         \toff\nphysical       \toff\npipefail       \toff\nposix          \ton\nprivileged     \toff\nverbose        \toff\nvi             \toff\nxtrace         \toff\n",
+          "stderr": "",
+          "elapsedMs": 9.695875000000001
+        }
+      ],
+      "rows": [
+        {
+          "id": "original",
+          "source": "true() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+          "expected": "unexpected-function\n[\"0\"][\"12\"][\"13\"][\"12\"]",
+          "renderedSource": "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+          "fixtures": [
+            {
+              "name": "tools/true",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a657869742039310a",
+              "sha256": "25c650371fb85e83adc2162f6c3e006431897a880ded5a460581ee9c75b5902f"
+            },
+            {
+              "name": "tools/bash",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a657869742031320a",
+              "sha256": "fd4c38651cfb0bce5cd6722f38b2949f712f3e52c2bcedd540099a4d62aa58af"
+            },
+            {
+              "name": "shadow",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a626173683b20617267732022243f220a",
+              "sha256": "bd079213e29f3f8f8ce4f3ab2e91dd42e4d70a87065c39fcb5ad745cbb47e729"
+            }
+          ],
+          "result": {
+            "argv": [
+              "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "--noprofile",
+              "--norc",
+              "-c",
+              "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+              "bash"
+            ],
+            "argv0": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-XvLTDJ",
+            "env": {
+              "PATH": "tools",
+              "HOME": "/nonexistent",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC"
+            },
+            "pid": 48557,
+            "code": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "stdoutHex": "756e65787065637465642d66756e6374696f6e0a5b2230225d5b223132225d5b223133225d5b223132225d",
+            "stderrHex": "",
+            "stdout": "unexpected-function\n[\"0\"][\"12\"][\"13\"][\"12\"]",
+            "stderr": "",
+            "elapsedMs": 432.308833
+          }
+        },
+        {
+          "id": "strengthened",
+          "source": "true() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+          "expected": "function-true\n[\"7\"][\"0\"][\"12\"][\"13\"][\"12\"][\"12\"]",
+          "renderedSource": "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+          "fixtures": [
+            {
+              "name": "tools/true",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a657869742039310a",
+              "sha256": "25c650371fb85e83adc2162f6c3e006431897a880ded5a460581ee9c75b5902f"
+            },
+            {
+              "name": "tools/bash",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a657869742031320a",
+              "sha256": "fd4c38651cfb0bce5cd6722f38b2949f712f3e52c2bcedd540099a4d62aa58af"
+            },
+            {
+              "name": "shadow",
+              "mode": 493,
+              "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a626173683b20617267732022243f220a",
+              "sha256": "bd079213e29f3f8f8ce4f3ab2e91dd42e4d70a87065c39fcb5ad745cbb47e729"
+            }
+          ],
+          "result": {
+            "argv": [
+              "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "--noprofile",
+              "--norc",
+              "-c",
+              "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+              "bash"
+            ],
+            "argv0": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-RsBEZr",
+            "env": {
+              "PATH": "tools",
+              "HOME": "/nonexistent",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC"
+            },
+            "pid": 48560,
+            "code": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "stdoutHex": "66756e6374696f6e2d747275650a5b2237225d5b2230225d5b223132225d5b223133225d5b223132225d5b223132225d",
+            "stderrHex": "",
+            "stdout": "function-true\n[\"7\"][\"0\"][\"12\"][\"13\"][\"12\"][\"12\"]",
+            "stderr": "",
+            "elapsedMs": 331.37537499999996
+          }
+        }
+      ]
+    },
+    {
+      "id": "historical-3.2",
+      "executable": "/bin/bash",
+      "expectedHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "versions": [
+        {
+          "argv": [
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"%s\\n\" \"$BASH_VERSION\"; set -o"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89722,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "332e322e35372831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f66660a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+          "stderrHex": "",
+          "stdout": "3.2.57(1)-release\nallexport      \toff\nbraceexpand    \ton\nemacs          \toff\nerrexit        \toff\nerrtrace       \toff\nfunctrace      \toff\nhashall        \ton\nhistexpand     \toff\nhistory        \toff\nignoreeof      \toff\ninteractive-comments\ton\nkeyword        \toff\nmonitor        \toff\nnoclobber      \toff\nnoexec         \toff\nnoglob         \toff\nnolog          \toff\nnotify         \toff\nnounset        \toff\nonecmd         \toff\nphysical       \toff\npipefail       \toff\nposix          \toff\nprivileged     \toff\nverbose        \toff\nvi             \toff\nxtrace         \toff\n",
+          "stderr": "",
+          "elapsedMs": 6.845250000000078
+        },
+        {
+          "argv": [
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"%s\\n\" \"$BASH_VERSION\"; set -o"
+          ],
+          "argv0": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89723,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "332e322e35372831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f6e0a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+          "stderrHex": "",
+          "stdout": "3.2.57(1)-release\nallexport      \toff\nbraceexpand    \ton\nemacs          \toff\nerrexit        \toff\nerrtrace       \toff\nfunctrace      \toff\nhashall        \ton\nhistexpand     \toff\nhistory        \toff\nignoreeof      \toff\ninteractive-comments\ton\nkeyword        \toff\nmonitor        \toff\nnoclobber      \toff\nnoexec         \toff\nnoglob         \toff\nnolog          \toff\nnotify         \toff\nnounset        \toff\nonecmd         \toff\nphysical       \toff\npipefail       \toff\nposix          \ton\nprivileged     \toff\nverbose        \toff\nvi             \toff\nxtrace         \toff\n",
+          "stderr": "",
+          "elapsedMs": 5.78816699999993
+        }
+      ],
+      "rows": [
+        {
+          "id": "original",
+          "source": "true() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+          "expected": "unexpected-function\n[\"0\"][\"12\"][\"13\"][\"12\"]",
+          "renderedSource": "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+          "fixtures": [
+            {
+              "name": "tools/true",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a657869742039310a",
+              "sha256": "790ed0dbcc2def06d16bd53c94d9cc9c91d7d644f02533674d1e8314e122fd25"
+            },
+            {
+              "name": "tools/bash",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a657869742031320a",
+              "sha256": "16beba66f7114efd01e90806a734a3cdb0f9c2c6545abffcd9fb4f4171865143"
+            },
+            {
+              "name": "shadow",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a626173683b20617267732022243f220a",
+              "sha256": "e0d7e7e299d002697bd07f41a03ac75bc1aae2c9c5634c7330e21468eb0709d6"
+            }
+          ],
+          "result": {
+            "argv": [
+              "/bin/bash",
+              "--noprofile",
+              "--norc",
+              "-c",
+              "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say unexpected-function; }; true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; ./shadow",
+              "bash"
+            ],
+            "argv0": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-zIc3bW",
+            "env": {
+              "PATH": "tools",
+              "HOME": "/nonexistent",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC"
+            },
+            "pid": 48565,
+            "code": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "stdoutHex": "756e65787065637465642d66756e6374696f6e0a5b2230225d5b223132225d5b223133225d5b223132225d",
+            "stderrHex": "",
+            "stdout": "unexpected-function\n[\"0\"][\"12\"][\"13\"][\"12\"]",
+            "stderr": "",
+            "elapsedMs": 372.47633299999995
+          }
+        },
+        {
+          "id": "strengthened",
+          "source": "true() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+          "expected": "function-true\n[\"7\"][\"0\"][\"12\"][\"13\"][\"12\"][\"12\"]",
+          "renderedSource": "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+          "fixtures": [
+            {
+              "name": "tools/true",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a657869742039310a",
+              "sha256": "790ed0dbcc2def06d16bd53c94d9cc9c91d7d644f02533674d1e8314e122fd25"
+            },
+            {
+              "name": "tools/bash",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a657869742031320a",
+              "sha256": "16beba66f7114efd01e90806a734a3cdb0f9c2c6545abffcd9fb4f4171865143"
+            },
+            {
+              "name": "shadow",
+              "mode": 493,
+              "hex": "23212f62696e2f626173680a626173683b20617267732022243f220a",
+              "sha256": "e0d7e7e299d002697bd07f41a03ac75bc1aae2c9c5634c7330e21468eb0709d6"
+            }
+          ],
+          "result": {
+            "argv": [
+              "/bin/bash",
+              "--noprofile",
+              "--norc",
+              "-c",
+              "say() { printf \"%s\\n\" \"$*\"; }; args() { printf '[\"%s\"]' \"$1\"; }; status() { return \"$1\"; }; export -f args;\ntrue() { say function-true; status 7; }; true; args \"$?\"; command true; args \"$?\"; bash; args \"$?\"; bash() { status 13; }; bash; args \"$?\"; command bash; args \"$?\"; ./shadow",
+              "bash"
+            ],
+            "argv0": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-uwPTcC",
+            "env": {
+              "PATH": "tools",
+              "HOME": "/nonexistent",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC"
+            },
+            "pid": 48569,
+            "code": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "stdoutHex": "66756e6374696f6e2d747275650a5b2237225d5b2230225d5b223132225d5b223133225d5b223132225d5b223132225d",
+            "stderrHex": "",
+            "stdout": "function-true\n[\"7\"][\"0\"][\"12\"][\"13\"][\"12\"][\"12\"]",
+            "stderr": "",
+            "elapsedMs": 307.80541700000003
+          }
+        }
+      ]
+    }
+  ],
+  "primaryManuals": [
+    "https://www.gnu.org/software/bash/manual/html_node/Command-Search-and-Execution.html",
+    "https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html"
+  ],
+  "nativeSource": {
+    "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/execute_cmd.c",
+    "sha256": "edca6ab242353ca928d2d991eb5cd92d6267b6be39f990aac6532263bfe0548d"
+  },
+  "adaptation": "Native executable true/bash fixtures model the virtual registry fallback, not native registry support. args/say/status helpers model only literal status rendering; exported args is inherited by the actual profile-shebang child. Same two sources for both profiles, no output normalization. Virtual registry precedence additionally remains asserted by seen[]."
+}

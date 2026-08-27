@@ -36,10 +36,11 @@ export const cases: Record<string, () => Promise<void>> = {
     fixture.commands.register({ name: "true", execute() { seen.push("registry-true"); return { exitCode: 91 }; } });
     fixture.commands.register({ name: "bash", execute() { seen.push("registry-bash"); return { exitCode: 12 }; } });
     await script(fixture, "/shadow", '#!/bin/bash\nbash; args "$?"');
-    const result = await fixture.shell.exec('true() { say unexpected-function; }; true; args "$?"; bash; args "$?"; bash() { status 13; }; bash; args "$?"; ./shadow');
+    const result = await fixture.shell.exec('true() { say function-true; status 7; }; true; args "$?"; command true; args "$?"; bash; args "$?"; bash() { status 13; }; bash; args "$?"; command bash; args "$?"; ./shadow');
+    assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, '["0"]["12"]["13"]["12"]');
-    assert.deepEqual(seen, ["registry-bash", "registry-bash"]);
+    assert.equal(result.stdout, 'function-true\n["7"]["0"]["12"]["13"]["12"]["12"]');
+    assert.deepEqual(seen, ["registry-bash", "registry-bash", "registry-bash"]);
   },
 
   async "nested-function-argv0-and-positional-restore"() {

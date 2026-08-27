@@ -1,0 +1,100 @@
+{
+  "format": "independent-getopts-freeze-v1",
+  "frozenAt": "2026-08-27T19:31:58.634Z",
+  "sessionId": "01a044aa-5c10-7831-84fd-45eafeade370",
+  "candidateCommit": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+  "authorFreezeCommit": "10291e716fefb939a7d1f4ffed5b24591fd1b664",
+  "authorEvidenceCommit": "a03b9288a6f4b652387be9fefa8faf17ef58b9e7",
+  "initialLiveHead": "0a86a4b43fc9173d0cd6bb49da93bf77f0d4bdd6",
+  "chronology": "post-source-commit; pre-independent implementation inspection and execution",
+  "candidateImplementationInspected": false,
+  "candidateExecuted": false,
+  "nativeExecuted": false,
+  "typesCompiled": false,
+  "mutationsExecuted": false,
+  "candidateScannerSha256ClaimOnly": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+  "controls": {
+    "FREEZE.md": {
+      "bytes": 11299,
+      "sha256": "c4218b7c2c45e5cc9d868823a238340e0b75e8e10d768d28fee6fae3d35c5615"
+    },
+    "semantic-controls.mjs": {
+      "bytes": 6356,
+      "sha256": "b6f2d107caa33b1a0358db838a49873dbd00bcdbc6cafc5d29ec7c40db5b0be2"
+    },
+    "native-holdouts.sh": {
+      "bytes": 2214,
+      "sha256": "9abd42b46cb2e17daead9abdf71c61fd70a3e02cece19d29c1f2d72a9d99d17a"
+    },
+    "policy-controls.json": {
+      "bytes": 15452,
+      "sha256": "774d4b0a7322f7256feb3b29773647500415920c21eff12fd1bea72620cad61e"
+    },
+    "type-probes.json": {
+      "bytes": 5945,
+      "sha256": "f04f4ff24de3779946949c658d1d0ba9396f719395ac2a764dceed652e6ef661"
+    },
+    "proof-procedures.md": {
+      "bytes": 9648,
+      "sha256": "8b9f6b685a0ee5cf382e03fb108ad81c62ab015a5d613f07266eeda5c4907c42"
+    },
+    "verify-freeze.mjs": {
+      "bytes": 3139,
+      "sha256": "a0309b401e08d38bd3cd4bb00e71d1cd4baba4f62b6411a96a64c9a0fba0a2c7"
+    }
+  },
+  "consultedLocalDocuments": {
+    "../AGENTS.md": {
+      "bytes": 424,
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    },
+    "AGENTS.md": {
+      "bytes": 11954,
+      "sha256": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c"
+    },
+    "tests/shell/getopts/AUTHOR_HANDOFF.md": {
+      "bytes": 5201,
+      "sha256": "e512df0a8e7e71b36e4f49f3944bd9d01237476b00a98ffd177547bb1645ee8d"
+    },
+    "tests/shell/getopts/README.md": {
+      "bytes": 6278,
+      "sha256": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16"
+    },
+    "tests/shell/getopts/evidence/freeze.json": {
+      "bytes": 803,
+      "sha256": "d55449e225dd72b6d66d68ac8543a4ab9a3d3fc3b95d4fb299f1f33bb64dbfc5"
+    },
+    "tests/shell/getopts/evidence/scanner-facts.json": {
+      "bytes": 79027,
+      "sha256": "00799e9f48766bb6a42da92222a7097d5ae4f3dd064d42076f8d10a56626c4c3"
+    },
+    "tests/shell/getopts/evidence/design-v1/archive.json": {
+      "bytes": 334271,
+      "sha256": "c48b8cee0be966b3e4fdbaa146c007b3da45d0228f2c0a7f99ac2166613ec198"
+    },
+    "tests/shell/getopts/evidence/phase1-validation.json": {
+      "bytes": 7507,
+      "sha256": "c2015759f1602a646cd1144de29635710c389fe059af2b3debe4da132f9b2f2f"
+    }
+  },
+  "archiveVerification": "21 encoded member byte lengths and SHA256s independently checked; no archived driver inspected or executed",
+  "counts": {
+    "semanticSequences": 31,
+    "scanProjections": 85,
+    "indexEvents": 5,
+    "nativeScripts": 12,
+    "nativeRecordsPerProfile": 71,
+    "policyControls": 32,
+    "mutationTargets": 16,
+    "positiveTypeProbes": 2,
+    "negativeTypeProbes": 26
+  },
+  "independentExecutionCounts": {
+    "candidate": 0,
+    "native": 0,
+    "types": 0,
+    "mutation": 0
+  },
+  "currentPhase": "freeze-only; stop at commit until root resume",
+  "manifestBinding": "This manifest is bound by the containing Git freeze commit, not a circular self-hash; source/package load identity procedures remain unexecuted."
+}

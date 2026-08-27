@@ -1,0 +1,72 @@
+HTML74 bounded RSS diagnosis, authored 2026-08-27. NOT admission/retry/rescore.
+
+Freeze this entire recipe directory, including MANIFEST.json, in its own explicit-path
+commit BEFORE calling supervise.mjs with that full commit. Exactly one call is
+authorized. The exclusive execution-01 directory prevents another invocation.
+Prerequisite/syntax checks do not import diagnose.mjs or the fixture. No warmups.
+
+Invocation from repository root:
+/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/supervise.mjs RECIPE_FREEZE_COMMIT
+
+The supervisor authenticates only the selected small sealed sources/captures and
+Node/Git/ps tools, records command/environment hashes and realpaths, then launches
+one detached process group. Consumer and producer both retain the original
+--max-old-space-size=96 and pinned v22.22.2 binary. No exposed/forced GC, new heap
+ceiling, limit, buffer-pool change, production code, candidate or cohort execution.
+One producer streams exactly 1073872896 bytes of 0x61, expected SHA256
+f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f.
+Core hashProcess/hashStream and stream-fixture.mjs are imported/executed unchanged.
+Original stream options, consume's awaited setImmediate, stdout/stderr pipes and
+timeouts remain intact. Spawn interception adds only --import producer-observer.mjs
+to the producer, with observation paths in explicitly scoped environment variables.
+No injected fixture preparation: binding, 36351-entry tree, inventory, structuredClone
+mutations and all preceding30 controls are omitted, not approximated/replayed.
+
+Observation is not identical execution: per-instance async iterator delegation,
+stdout.write forwarding, a drain listener, numeric counters and memory sampling
+add scheduling/allocation overhead. No data listener is added to consumer stdout;
+no stream data is copied or retained by the observer. Producer write args, return
+values and original drain behavior are preserved, with no callbacks added. Aggregate
+counts only; every256 consumer chunks/producer writes plus named phase snapshots.
+Earliest launch snapshots follow builtin/observer module loading, not OS exec startup.
+Read queue samples occur around iterator next and after consume's setImmediate;
+write queue samples occur before/after writes. High-water marks are actual Node
+properties, not inferred hard bounds. Native/kernel pending writes are unobserved.
+Consumer RSS does not include producer or supervisor RSS. Producer has its own
+memory report. resourceUsage.maxRSS is intentionally not used. Sampled peaks are
+not continuous maxima and cannot disprove transient or historical retention.
+
+RESULT.json retains the full native result and all available telemetry BEFORE
+any external validation. Same strict native maxRssBytes <268435456 comparison is
+a diagnostic boolean only, never an assertion or new acceptance score. A false
+boolean does not discard numbers. Runtime errors are preserved and stop; no retry.
+All diagnostic output, HOME and TMPDIR are within execution-01. Supervisor capture
+descriptors close after child close; the original hashProcess awaits producer close.
+Normal completion is natural. Supervisory190s/195s group termination is only an
+unexpected-hang fail-safe, and any signals are retained. ps verifies group closure.
+
+Postchecks hash only this exact frozen recipe, explicit selected historical inputs,
+and tools; recipe inventory detects new entries. No equality requirement for the
+foreign repository index; no claim that historical evidence subtrees were scanned
+append-proof. No full archive/build/pack/install/reconstruction/actual34 execution.
+Seal results separately without editing any recipe bytes.
+
+Interpretation fixed before execution: core starts maxRssBytes from current consumer
+RSS, samples every256 processed chunks and at successful completion. Not lifetime
+process.resourceUsage maxRSS. Original controls also retain top-level tree/binding/
+rows and run allocation-heavy clones/maps/inventory first. Their live or unreleased
+allocation footprint is included, but dead earlier pages already released are not
+automatically counted. There is no historical baseline/heap/producer telemetry.
+The old positive's local result is lost at controls.mjs:81 before return at82;
+catch at28-30 preserves only selected error fields. New probe cannot recover it.
+Original HOLD34/35 and actual34=0 remain; four later extra controls, positive
+materialization/build/pack/reconstruction remain unexecuted independently. Author
+39/39 and830/828 remain author-only; missing original old-admission raw rejection,
+three author development failures, two path-scoped reconstruction qualifications
+remain unchanged. Any author repair/replay requires root authorization.
+
+Pre-freeze exploratory shell notes: first inline authentication attempt had an
+invalid regex and did not execute; second checked author inputs but initially
+treated independent manifest object entries as hash strings. Corrected selected
+authentication succeeded. These are pre-recipe helper mistakes, not diagnostic
+executions or new admission failures. No historical files were written.

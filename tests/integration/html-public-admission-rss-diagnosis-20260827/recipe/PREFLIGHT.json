@@ -1,0 +1,83 @@
+{
+  "at": "2026-08-27T23:06:54.862Z",
+  "scope": "Syntax and static authentication only; no diagnostic fixture import/execution",
+  "syntax": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/authenticate.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "858ebe102e0db4520fadfd285428f42c0a75989641568075e3dad5f18df4eaf3"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/diagnose.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "37772cd56b1490dac72effb5efad69a7c0fb4ad3a407802889edfcf1a2523168"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/memory.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "88ccefe3253b57126e6566bf1512e579efcf8b42f7e84fef607a294d12f0cb45"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/producer-observer.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "706c533532f6ea791342d762104fb87989a4ec234e466b253b8a1828aed317b6"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/supervise.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "b600f480c50428d8b9f19e620e5502ff10297825b767b4e0e204c0f7815d14bd"
+    }
+  ],
+  "initialAuthenticationSha256": "1c7d6554530d50175ed15907238fa12c2a1d88486bef599974c9b642850444c9",
+  "selectedHistoricalFiles": 35,
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    }
+  ],
+  "ownership": "Only new tests/integration/html-public-admission-rss-diagnosis-20260827; confirmed absent initially; no leaf delegation",
+  "originalProcessFlags": "Independent supervisor consumer and positive producer both --max-old-space-size=96; author PRE argv omits flags and does not prove author execArgv",
+  "singleExecutionNotYetStarted": true
+}

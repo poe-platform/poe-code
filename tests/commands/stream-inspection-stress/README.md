@@ -83,7 +83,26 @@ it does not modify old audit/default-count fixtures or claim integration.
 
 Full user goal, superiority, deployed-provider coverage, 72-hour work target,
 public/default integration and batch completion remain open.
-# Independent execution checkpoint
+# Independent verification result
+
+After confirmed fixer closure, source commit
+`335d2c3705b4892a56e807010cd7ca50145fefce` passes **85/85 native-backed selected
+semantics** and **39/39 contract groups**. Original literal expectations remain
+**84/85**, with the documented lone-dash manual-oracle conflict preserved.
+Strict native stdout/stderr/status agreement is **68/85**; seventeen diagnostic
+prose differences are not full byte-parity passes. All four reported source
+defects are fixed by the separate fixer, not this reviewer.
+
+Final eight-file source manifest:
+`4c52a321778aafad0e41b5858d30746d728306e35e26a44554146a69a05c91a0`.
+Replay at2026-08-27T05:10:42Z..05:10:45Z uses173 copied source files and495
+hashed snapshot entries. Strict noEmit, isolated ESM/declaration build and
+post-run source/dependency/config/loader integrity checks pass. No root build
+or default/public integration is claimed. See `REVIEW.md` and
+`evidence/SUMMARY.json` for original/fixed results and complete attempt counts.
+Actual test calls are581 across8 runs, not581 distinct workloads.
+
+## Initial execution checkpoint
 
 Fresh reviewer, distinct from the expired preparation leaf and closed author,
 executed the original frozen corpus after root's CLOSED author gate. The
@@ -110,11 +129,12 @@ directories, binaries, dependencies or product source are published here.
 GNU captures are on Darwin arm64, not GNU/Linux. The original strings metadata
 still says unavailable because it records the earlier preparation, not now.
 
-Reproduce the root-authorized native profile (currently four expected defects):
+Reproduce the root-authorized native profile on the fixed source:
 
 ```sh
 STREAM_PROFILE=native node --unhandled-rejections=strict --import tsx --test tests/commands/stream-inspection-stress/holdouts.test.ts
 STREAM_PROFILE=original node --unhandled-rejections=strict --import tsx --test --test-name-pattern='^frozen fixture:' tests/commands/stream-inspection-stress/holdouts.test.ts
+node tests/commands/stream-inspection-stress/tools/check-evidence.mjs
 ```
 
 Default profile is native; original explicitly retains its historical dash

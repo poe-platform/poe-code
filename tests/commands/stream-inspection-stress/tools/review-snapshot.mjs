@@ -5,10 +5,13 @@ import { join, resolve, relative, isAbsolute } from 'node:path';
 
 const root='/Users/kjopek/Workspace/safe-bash';
 const privateRoot='/tmp/safe-bash-stream-verifier-20260827-A';
-const gatePath='/tmp/safe-bash-stream-batch-review.ready';
+const gatePath=process.argv[2]??'/tmp/safe-bash-stream-batch-review.ready';
+const expectedAuthorManifest=process.argv[3]??'57c6e29cc6fae6dce5946dddb211b0cc1bf94ef20badb4286546aeafe1e1d553';
+const expectedCommit=process.argv[4]??'4af1b107d4b9449a2c4e7fed467d187448392fd5';
 if(!existsSync(gatePath)) throw Error('No root final review gate; module execution prohibited');
 const gate=readFileSync(gatePath,'utf8');
 if(!/CLOSED/.test(gate)) throw Error('Gate must explicitly identify CLOSED author source');
+if(!gate.includes(expectedCommit)||!gate.includes(expectedAuthorManifest)) throw Error('Expected commit/hash absent from gate');
 const target=join(privateRoot,`snapshot-${new Date().toISOString().replaceAll(/[:.]/g,'-')}`);
 mkdirSync(target);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -32,8 +35,12 @@ function hashes(directory){
 const sourceBefore=hashes(join(root,'src'));
 const authorEntries=Object.entries(sourceBefore).filter(([name])=>name.startsWith('commands/stream-inspection/')).sort(([left],[right])=>left<right?-1:left>right?1:0);
 const authorManifest=hash(authorEntries.map(([name,digest])=>`src/${name}\0${digest}\n`).join(''));
-if(authorManifest!=='57c6e29cc6fae6dce5946dddb211b0cc1bf94ef20badb4286546aeafe1e1d553') throw Error(`Author source mismatch: ${authorManifest}`);
+if(authorManifest!==expectedAuthorManifest) throw Error(`Author source mismatch: ${authorManifest}`);
 if(!gate.includes(authorManifest)) throw Error('Author manifest absent from gate');
+for(const [name,digest] of authorEntries) {
+  const committed=spawnSync('git',['show',`${expectedCommit}:src/${name}`],{cwd:root,maxBuffer:2*1024*1024,timeout:3000});
+  if(committed.status!==0||hash(committed.stdout)!==digest) throw Error(`Source differs from CLOSED commit: ${name}`);
+}
 if(Object.values(sourceBefore).some(value=>typeof value!=='string')) throw Error('Source symlinks prohibited');
 const dependencyBefore=hashes(join(root,'node_modules'));
 const metadataBefore=Object.fromEntries(['package.json','package-lock.json','tsconfig.json'].map(name=>[name,hash(readFileSync(join(root,name)))]));

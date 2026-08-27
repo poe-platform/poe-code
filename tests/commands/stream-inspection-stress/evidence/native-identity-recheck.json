@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-27T05:08:48.046Z",
+  "checks": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/tac",
+      "expected": "14f76420b6798d90c684ca9407ccde81881251ab9667fa16116f6b41567edea6",
+      "actual": "14f76420b6798d90c684ca9407ccde81881251ab9667fa16116f6b41567edea6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expand",
+      "expected": "f19115d8c05e065d11cb0bfc7fb46470f00c815f8d44a6d2c3575bd8da4363b3",
+      "actual": "f19115d8c05e065d11cb0bfc7fb46470f00c815f8d44a6d2c3575bd8da4363b3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/fold",
+      "expected": "72ffc0170ff95860c249b1f721298d8ebf570fdf65125ad9943330cc68436113",
+      "actual": "72ffc0170ff95860c249b1f721298d8ebf570fdf65125ad9943330cc68436113"
+    },
+    {
+      "path": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+      "expected": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "actual": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f"
+    }
+  ],
+  "extraNativeWorkloadCalls": 0
+}

@@ -1,0 +1,37 @@
+{
+  "at": "2026-08-27T05:10:45.749Z",
+  "target": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z",
+  "snapshotHash": "4770b3a2d931a0d5055a6e9a442c6d8dd32b0eac43ae425c91d705b24c4855f4",
+  "mismatches": [],
+  "resolved": {
+    "tsx": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/node_modules/tsx/dist/loader.mjs",
+    "typescript": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/node_modules/typescript/lib/typescript.js",
+    "esbuild": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/node_modules/esbuild/lib/main.js",
+    "cwd": "/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z"
+  },
+  "initialSourceDelta": [
+    {
+      "path": "commands/stream-inspection/expand.ts",
+      "initial": "481bc77d34ce1db7410e6e2c9fd5f49a0e287b025b8e9253d884dadb4ae3298c",
+      "actual": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "commands/stream-inspection/fold.ts",
+      "initial": "45a2cbc6fbad9ee8f25a4d04cf57be2a907e46cbe30084daf27a0c9ac0b208a2",
+      "actual": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "commands/stream-inspection/numeric-options.ts",
+      "actual": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+    },
+    {
+      "path": "commands/stream-inspection/strings.ts",
+      "initial": "7d18b9e91d8c447e1103cdf48fe7efd7af766655c05e059f2c59270daa3ede51",
+      "actual": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    }
+  ],
+  "sourceCount": 173,
+  "runtimeBefore": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "runtimeAfter": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "boundary": "Runtime executable hashed before/after; system runtime/dylibs not copied, OS immutable lifetime not assumed. Installed dependencies and source/config copied with before/copied/after hashes and internal relative symlink assertions. Config explicit TSX_TSCONFIG_PATH, cache disabled, isolated CWD and whitelist environment; no root dist lookup."
+}

@@ -5,14 +5,16 @@ import { spawnSync } from 'node:child_process';
 
 const privateRoot = '/tmp/safe-bash-stream-verifier-20260827-A';
 const target = readFileSync(join(privateRoot, 'latest-snapshot.txt'), 'utf8').trim();
-const gate = readFileSync('/tmp/safe-bash-stream-batch-review.ready', 'utf8');
+const gatePath = process.argv[3] ?? '/tmp/safe-bash-stream-batch-review.ready';
+const gate = readFileSync(gatePath, 'utf8');
 if (!gate.includes('CLOSED')) throw Error('Author not closed');
 const manifest = JSON.parse(readFileSync(join(target, 'SNAPSHOT.json'), 'utf8'));
 if (manifest.gate !== gate) throw Error('Review gate changed');
 const mode = process.argv[2];
 if (!['original', 'native', 'contracts'].includes(mode)) throw Error('Specify original/native/contracts');
 if (mode === 'native') {
-  if (!gate.includes('Authorize TWO DISTINCT comparisons') || !gate.includes('8082fe55e6f426d6ea76107abe27321aadd30046ad429c734c9123bc3c25e3ae')) throw Error('Distinct native profile needs root authorization');
+  const originalApproval = readFileSync('/tmp/safe-bash-stream-batch-review.ready', 'utf8');
+  if (!originalApproval.includes('Authorize TWO DISTINCT comparisons') || !originalApproval.includes('8082fe55e6f426d6ea76107abe27321aadd30046ad429c734c9123bc3c25e3ae')) throw Error('Distinct native profile needs root authorization');
 }
 const output = join(target, `run-${mode}`);
 mkdirSync(output);

@@ -1462,6 +1462,95 @@ describe("harness command", () => {
     });
   });
 
+  it.each(["resolve", "reject"])(
+    "awaits harness cleanup before handling SIGINT (%s)",
+    async (outcome) => {
+      const listenersBefore = process.listeners("SIGINT");
+      const exitCodeBefore = process.exitCode;
+      const started = createDeferred<AbortSignal | undefined>();
+      const cleanup = createDeferred();
+      const logs: string[] = [];
+      harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+        started.resolve(options.signal);
+        await cleanup.promise;
+        if (outcome === "reject") {
+          throw options.signal?.reason ?? new Error("Missing cancellation signal");
+        }
+        return { ok: true, returnValue: "done" };
+      });
+      let settled = false;
+      const running = runHarnessCommand(["harness", "run", "harness.md"], logs);
+      void running.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        }
+      );
+      try {
+        const signal = await started.promise;
+        expect(signal).toBeInstanceOf(AbortSignal);
+        expect(signal!.aborted).toBe(false);
+        const handlers = process
+          .listeners("SIGINT")
+          .filter((listener) => !listenersBefore.includes(listener));
+        expect(handlers).toHaveLength(1);
+        handlers[0]!("SIGINT");
+        handlers[0]!("SIGINT");
+        expect(signal!.aborted).toBe(true);
+        await Promise.resolve();
+        expect(settled).toBe(false);
+        cleanup.resolve();
+        await running;
+        expect(process.exitCode).toBe(130);
+        expect(logs.filter((line) => line.includes("Harness interrupted."))).toHaveLength(1);
+        expect(logs.some((line) => line.includes("Harness passed"))).toBe(false);
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      } finally {
+        cleanup.resolve();
+        await running.catch(() => undefined);
+        process.exitCode = exitCodeBefore;
+      }
+    }
+  );
+
+  it.each(["resolve", "reject"])("removes the SIGINT listener after %s", async (outcome) => {
+    const listenersBefore = process.listeners("SIGINT");
+    const failure = new Error("Harness execution failed");
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(process.listenerCount("SIGINT")).toBe(listenersBefore.length + 1);
+      if (outcome === "reject") throw failure;
+      return { ok: true, returnValue: "done" };
+    });
+    const running = runHarnessCommand(["harness", "run", "harness.md"]);
+    if (outcome === "reject") await expect(running).rejects.toBe(failure);
+    else await running;
+    expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+  });
+
+  it("does not start a harness after cancellation during worktree setup", async () => {
+    const listenersBefore = process.listeners("SIGINT");
+    const exitCodeBefore = process.exitCode;
+    harnessMocks.runWithOptionalWorktreeMock.mockImplementation(async (input) => {
+      const handler = process
+        .listeners("SIGINT")
+        .find((listener) => !listenersBefore.includes(listener));
+      expect(handler).toBeDefined();
+      handler!("SIGINT");
+      return { value: await input.run({ worktreeCwd: cwd }) };
+    });
+    try {
+      await runHarnessCommand(["harness", "run", "harness.md"]);
+      expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(130);
+      expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+    } finally {
+      process.exitCode = exitCodeBefore;
+    }
+  });
+
   it("registers fs rooted at the harness directory when --fs is given", async () => {
     vol.fromJSON({
       "/repo/nested/harness.md": "---\nkind: test\nversion: 1\n---\n",

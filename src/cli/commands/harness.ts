@@ -184,7 +184,12 @@ async function executeHarnessRun(
   const lintDiagnostics: Diagnostic[] = [];
   const frontmatterOverrides = buildAgentFrontmatterOverrides(options);
   const reportedSpawnFailures = new Set<string>();
+  const abortController = new AbortController();
+  const onSigint = () => {
+    abortController.abort(new DOMException("Harness interrupted by SIGINT.", "AbortError"));
+  };
   let result: Awaited<ReturnType<typeof runHarnessPair>>;
+  process.on("SIGINT", onSigint);
   try {
     const wrapped = await withSpinner({
       message: () => formatRunMessage(baseMessage, progress.current()),
@@ -194,6 +199,7 @@ async function executeHarnessRun(
           selectedAgent,
           worktree: worktreeOptions,
           run: async ({ worktreeCwd }) => {
+            abortController.signal.throwIfAborted();
             const runSelectedPath = mapSourcePathIntoWorktree(
               container.env.cwd,
               selectedPath,
@@ -211,6 +217,7 @@ async function executeHarnessRun(
                     root: mapSourcePathIntoWorktree(container.env.cwd, fsOptions.root, worktreeCwd)
                   };
             return await runHarnessPair(runSelectedPath, {
+              signal: abortController.signal,
               modulesFor: (frontmatter, meta) =>
                 createHarnessModules(
                   container,
@@ -236,13 +243,21 @@ async function executeHarnessRun(
         }),
       stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
     });
+    abortController.signal.throwIfAborted();
     result = wrapped.value;
   } catch (error) {
+    if (abortController.signal.aborted) {
+      resources.logger.info("Harness interrupted.");
+      process.exitCode = 130;
+      return;
+    }
     const message = formatUnknownError(error);
     if (isAlreadyReportedSpawnFailure(error, reportedSpawnFailures)) {
       throw new ReportedError(message);
     }
     throw error;
+  } finally {
+    process.off("SIGINT", onSigint);
   }
 
   logNonErrorLintDiagnostics(resources.logger, lintDiagnostics);

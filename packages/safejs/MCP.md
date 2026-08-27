@@ -74,6 +74,11 @@ users register `makeMcpModule(options)` through `modules`. Configuration comes
 from the explicit host option/file, never script frontmatter. CLI dry runs do
 not start transports.
 
+Both CLIs forward SIGINT to the running harness and await managed transport
+cleanup before exiting with status 130. Repeated SIGINT during cleanup does not
+skip termination. SIGKILL cannot run cleanup; uncertain external effects still
+require reconciliation rather than automatic reissue.
+
 ## Methods and ownership
 
 - `tools()` follows pagination and returns `{ name, description?, schema? }`.

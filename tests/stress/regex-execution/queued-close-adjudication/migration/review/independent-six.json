@@ -1,0 +1,27 @@
+{
+  "label": "independent-six",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/migration/review/.replay/probe.mjs"
+  ],
+  "pid": 64146,
+  "started": "2026-08-27T08:14:33.543Z",
+  "stdout": "TAP version 13\n# Subtest: retained idle ordering: CLOSED queue, shared close awaits exact retirement, no replacement\nok 1 - retained idle ordering: CLOSED queue, shared close awaits exact retirement, no replacement\n  ---\n  duration_ms: 3.776625\n  type: 'test'\n  ...\n# Subtest: positive unclosed queue: capacity held until retirement, replacement returns exact ranges\nok 2 - positive unclosed queue: capacity held until retirement, replacement returns exact ranges\n  ---\n  duration_ms: 1.489625\n  type: 'test'\n  ...\n# Subtest: queued close preserves and does not wait for active sibling lease\nok 3 - queued close preserves and does not wait for active sibling lease\n  ---\n  duration_ms: 0.846584\n  type: 'test'\n  ...\n# Subtest: prior caller abort preserves exact errno-shaped and falsy reasons\nok 4 - prior caller abort preserves exact errno-shaped and falsy reasons\n  ---\n  duration_ms: 0.961584\n  type: 'test'\n  ...\n{\"finishedFixtures\":8,\"fakeTransports\":8,\"nativeWorkers\":0,\"remainingFakeWorkers\":0,\"listenerChecks\":\"caller and combined abort signals; all four transport events\"}\n# Subtest: selected internal PROTOCOL stays primary internally; outer later caller abort wins identity\nok 5 - selected internal PROTOCOL stays primary internally; outer later caller abort wins identity\n  ---\n  duration_ms: 1.726708\n  type: 'test'\n  ...\n# Subtest: synchronous callback closure rejects late session acquisition\nok 6 - synchronous callback closure rejects late session acquisition\n  ---\n  duration_ms: 0.154458\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 12.091292\n",
+  "stderr": "",
+  "events": [
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "safetyTermination": false,
+  "code": 0,
+  "signal": null,
+  "pidAbsent": true,
+  "ipcConnected": false,
+  "finished": "2026-08-27T08:14:33.595Z"
+}

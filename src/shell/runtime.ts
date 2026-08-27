@@ -1089,7 +1089,7 @@ export class Runtime {
       if (source.startsWith("#!")) {
         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
         if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
-      } else if (direct) throw new CommandFailure(`${target}: direct execution requires a supported Bash shebang`, 126);
+      }
     } catch (error) {
       this.signal.throwIfAborted();
       if (error instanceof ShellLimitError || error instanceof CommandFailure) throw error;
@@ -1112,6 +1112,7 @@ export class Runtime {
       return error.exitCode;
     }
     const child = this.processState(context, state, target, args);
+    if (direct && !source.startsWith("#!")) child.profile = state.profile;
     const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
     for (const unit of units) {

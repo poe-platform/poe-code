@@ -1387,6 +1387,24 @@ that any implementation, command, fixture, or test currently exists.
   preserved. The full backend/tool/kernel,72-hour and “much better” goals remain
   active and unproven; no new tool batch or shared lifecycle API was added.
 
+### August27,2026 bounded independent-review handoff
+
+- `benchmarks/reports/core-fixes-20260827/REVIEW_HANDOFF.md` supplies exact
+  production commit IDs, source paths and bounded core/bytes/sort review tasks.
+  `six-d49d9e5.json` replays the original six rows at committed
+  `d49d9e523b99b3464b71b06ffbdfe297e0a3cf0f` with original0294afb harness and
+  immutable corrected native expectations:4 pass,2 fail, zero omitted rows.
+  Realpath-relative, both wc rows and cksum-algorithm pass; env-order and real
+  nested env clearing still fail. No new full224 score is inferred.
+- `SAGAN_ENV_HANDOFF.md` records exact expected/actual bytes and the additive
+  optional replaceEnv proposal, parent export/local invariants, compatibility,
+  actual-shell acceptance and serialized ownership. Curie contract/core env;
+  Sagan runtime/types. No implementation or agreement is asserted by the handoff.
+  Unit callback success does not close the actual inherited-variable leak.
+- Provider-binding documentation remains committed in `cd8b5c8`; backend
+  implementation/independent acceptance are distinct. No new feature or broad
+  benchmark expansion was made. The50 baseline-only names remain unmeasured.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

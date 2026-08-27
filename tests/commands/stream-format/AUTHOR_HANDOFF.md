@@ -152,7 +152,10 @@ live documentation version assumptions, determine these native controls.
 ## Coordination
 
 The independent verifier's hidden fixtures/corpus were not inspected. This source
-freeze is separate from Plato's prior e36dab2 fullgate. Await root verifier/close
-gate before final closure. No full completion,72-hour duration, superiority,
+freeze is separate from Plato's prior e36dab2 fullgate. Root subsequently
+authorized normal author closure in `/tmp/safe-bash-stream-next-author-close-order.txt`
+and `/tmp/safe-bash-stream-next-format-close.ready`: independent product execution
+must wait until root observes both authors actually exited. This author closes
+after completed validation/evidence, not after independent review. No full completion,72-hour duration, superiority,
 default65 integration or next-tool claim is made. Concurrent owners' staged,
 dirty and temporary native files remain untouched.

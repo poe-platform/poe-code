@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "reason": "Exact two historical prototype regression replays, preserved separately. The 28-case freeze also includes a distinct repeated-alternation observation under the short id alternation-longest; do not conflate that pattern with this historical nonrepeated one.",
+  "source": "tests/commands/expr-stress/nullable-design-review/capture-final/summary.json",
+  "rows": [
+    {
+      "id": "alternation-longest",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a\\|aa\\)a*"
+      ],
+      "original": false,
+      "native": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "timedOut": false,
+        "stdout": "a\n",
+        "stderr": "",
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "registers": {
+        "length": 3,
+        "registers": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            -1,
+            -1
+          ]
+        ]
+      },
+      "variants": {
+        "candidate": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 0,
+            "end": 1
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 416,
+          "nodes": 21,
+          "states": 7,
+          "allocated": 323,
+          "elapsedMs": 0.0657920000003287
+        },
+        "unguarded": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 0,
+            "end": 1
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 403,
+          "nodes": 21,
+          "states": 7,
+          "allocated": 321,
+          "elapsedMs": 0.09120899999970788
+        },
+        "exactMandatoryOnly": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 0,
+            "end": 1
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 416,
+          "nodes": 21,
+          "states": 7,
+          "allocated": 323,
+          "elapsedMs": 0.026792000000114058
+        },
+        "repeatFrames": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 0,
+            "end": 2
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 379,
+          "nodes": 21,
+          "states": 7,
+          "allocated": 329,
+          "elapsedMs": 0.030249999999796273
+        }
+      }
+    },
+    {
+      "id": "mandatory-no-reference",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{2\\}"
+      ],
+      "original": false,
+      "native": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "timedOut": false,
+        "stdout": "\n",
+        "stderr": "",
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "registers": {
+        "length": 3,
+        "registers": [
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            -1,
+            -1
+          ]
+        ]
+      },
+      "variants": {
+        "candidate": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 3,
+            "end": 3
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 677,
+          "nodes": 17,
+          "states": 15,
+          "allocated": 414,
+          "elapsedMs": 0.028000000000247383
+        },
+        "unguarded": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 3,
+            "end": 3
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 661,
+          "nodes": 17,
+          "states": 15,
+          "allocated": 407,
+          "elapsedMs": 0.03445800000008603
+        },
+        "exactMandatoryOnly": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 3,
+            "end": 3
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 670,
+          "nodes": 17,
+          "states": 15,
+          "allocated": 409,
+          "elapsedMs": 0.05437500000016371
+        },
+        "repeatFrames": {
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 0,
+            "end": 3
+          },
+          "matched": true,
+          "hasCapture": true,
+          "steps": 566,
+          "nodes": 14,
+          "states": 15,
+          "allocated": 441,
+          "elapsedMs": 0.09845799999993687
+        }
+      }
+    }
+  ]
+}

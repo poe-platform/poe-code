@@ -86,7 +86,9 @@ export function textCommands(): CommandDefinition[] {
       if (separatorText !== undefined && encoder.encode(separatorText).length !== 1) throw new UsageError("field separator must be one byte");
       const separator = separatorText === undefined ? undefined : encoder.encode(separatorText)[0];
       const keys = (parsed.values.get("k") ?? []).map(sortKey);
-      const keyCompare = (left: Uint8Array, right: Uint8Array) => {
+      const simple = !keys.length && !["b", "f", "n"].some(flag => parsed.flags.has(flag));
+      const direction = parsed.flags.has("r") ? -1 : 1;
+      const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
         for (const key of keys.length ? keys : [undefined]) {
           const flags = key?.flags.size ? key.flags : parsed.flags;
           let first = key ? keyBytes(left, key, separator, flags.has("b")) : left;
@@ -102,7 +104,7 @@ export function textCommands(): CommandDefinition[] {
         }
         return 0;
       };
-      const compare = (left: Uint8Array, right: Uint8Array) => keyCompare(left, right)
+      const compare = simple ? keyCompare : (left: Uint8Array, right: Uint8Array) => keyCompare(left, right)
         || (parsed.flags.has("s") || parsed.flags.has("u") ? 0 : compareBytes(left, right) * (parsed.flags.has("r") ? -1 : 1));
       const records: Uint8Array[] = [];
       let size = 0;
@@ -126,11 +128,23 @@ export function textCommands(): CommandDefinition[] {
       records.sort(compare);
       const sorted = (async function* (): ByteSource {
         let previous: Uint8Array | undefined;
+        let buffer = new Uint8Array(64 * 1024);
+        let used = 0;
         for (const record of records) {
+          context.signal.throwIfAborted();
           if (parsed.flags.has("u") && previous !== undefined && keyCompare(previous, record) === 0) continue;
-          yield concatenate([record, Uint8Array.of(delimiter)]);
+          let offset = 0;
+          while (offset < record.length) {
+            const length = Math.min(record.length - offset, buffer.length - used);
+            buffer.set(record.subarray(offset, offset + length), used);
+            offset += length; used += length;
+            if (used === buffer.length) { yield buffer; buffer = new Uint8Array(64 * 1024); used = 0; }
+          }
+          buffer[used++] = delimiter;
+          if (used === buffer.length) { yield buffer; buffer = new Uint8Array(64 * 1024); used = 0; }
           previous = record;
         }
+        if (used) yield buffer.subarray(0, used);
       })();
       await emitRecords(context, sorted, value(parsed, "o"));
       return { exitCode };

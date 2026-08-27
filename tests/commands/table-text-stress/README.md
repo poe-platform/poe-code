@@ -49,7 +49,7 @@ retained ignored snapshot path. No production or author table-text file changed.
 Actual memory-VFS pipelines cover repeated stdin, delimiter cycling/empty fields,
 CR/incomplete lines, NUL/invalid UTF-8, C-byte ordering, order modes, duplicate
 multiplicity,35x31 Cartesian products, headers and outer joins. Contract checks
-cover all11 quota keys, producer failure, cooperative blocked VFS stat, exact
+cover all10 quota keys, producer failure, cooperative blocked VFS stat, exact
 errno-shaped cancellation during blocked output, no reads while writes remain
 blocked, and producer-reused Buffer fragments. ByteSource does not guarantee
 indefinite ownership; mutations occur only when next() resumes the producer.

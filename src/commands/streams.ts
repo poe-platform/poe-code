@@ -1,4 +1,4 @@
-import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import {
   bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
   lines, options, output, pathOf, UsageError, value,
@@ -193,42 +193,52 @@ export function streamCommands(): CommandDefinition[] {
       if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
       if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
       if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
-      const state = { exitCode: 0 };
-      const source = combinedInput(context, parsed.operands, state);
-      if (![...parsed.flags].some(flag => flag !== "u")) {
-        for await (const chunk of source) await output(context, chunk);
-        return state;
-      }
-      let lineStart = true;
-      let blankCount = 0;
-      let number = 1;
-      for await (const chunk of source) {
-        const transformed: number[] = [];
-        const append = (text: string) => { for (const byte of encoder.encode(text)) transformed.push(byte); };
-        for (const byte of chunk) {
-          if (lineStart && byte === 10 && parsed.flags.has("s") && blankCount > 0) continue;
-          if (lineStart && (parsed.flags.has("b") ? byte !== 10 : parsed.flags.has("n"))) append(`${String(number++).padStart(6)}\t`);
-          if (byte === 10) {
-            if (parsed.flags.has("E")) transformed.push(36);
-            transformed.push(10);
-            blankCount = lineStart ? blankCount + 1 : 0;
-            lineStart = true;
-          } else {
-            lineStart = false; blankCount = 0;
-            if (byte === 9) parsed.flags.has("T") ? append("^I") : transformed.push(byte);
-            else if (parsed.flags.has("v")) {
-              let visible = byte;
-              if (visible >= 128) { append("M-"); visible -= 128; }
-              if (visible < 32) append(`^${String.fromCharCode(visible + 64)}`);
-              else if (visible === 127) append("^?");
-              else transformed.push(visible);
-            } else transformed.push(byte);
-          }
-          if (transformed.length >= 8192) { await output(context, Uint8Array.from(transformed)); transformed.length = 0; }
+      const caller = context;
+      const operation = parsed.operands.length && !parsed.operands.includes("-") ? createOutputOperation(context, context.stdout) : undefined;
+      if (operation) context = { ...context, signal: operation.signal, stdout: operation.output };
+      try {
+        const state = { exitCode: 0 };
+        const source = combinedInput(context, parsed.operands, state);
+        operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
+        if (![...parsed.flags].some(flag => flag !== "u")) {
+          for await (const chunk of source) await output(context, chunk);
+          return state;
         }
-        if (transformed.length) await output(context, Uint8Array.from(transformed));
-      }
-      return state;
+        let lineStart = true;
+        let blankCount = 0;
+        let number = 1;
+        for await (const chunk of source) {
+          const transformed: number[] = [];
+          const append = (text: string) => { for (const byte of encoder.encode(text)) transformed.push(byte); };
+          for (const byte of chunk) {
+            if (lineStart && byte === 10 && parsed.flags.has("s") && blankCount > 0) continue;
+            if (lineStart && (parsed.flags.has("b") ? byte !== 10 : parsed.flags.has("n"))) append(`${String(number++).padStart(6)}\t`);
+            if (byte === 10) {
+              if (parsed.flags.has("E")) transformed.push(36);
+              transformed.push(10);
+              blankCount = lineStart ? blankCount + 1 : 0;
+              lineStart = true;
+            } else {
+              lineStart = false; blankCount = 0;
+              if (byte === 9) parsed.flags.has("T") ? append("^I") : transformed.push(byte);
+              else if (parsed.flags.has("v")) {
+                let visible = byte;
+                if (visible >= 128) { append("M-"); visible -= 128; }
+                if (visible < 32) append(`^${String.fromCharCode(visible + 64)}`);
+                else if (visible === 127) append("^?");
+                else transformed.push(visible);
+              } else transformed.push(byte);
+            }
+            if (transformed.length >= 8192) { await output(context, Uint8Array.from(transformed)); transformed.length = 0; }
+          }
+          if (transformed.length) await output(context, Uint8Array.from(transformed));
+        }
+        return state;
+      } catch (error) {
+        caller.signal.throwIfAborted();
+        if (operation?.signal.aborted && operation.signal.reason instanceof FsError && operation.signal.reason.code === "EPIPE") return { exitCode: 141 };
+        throw error;
+      } finally { await operation?.close(); }
     }),
     headTail("head"), headTail("tail"),
     define("wc", async context => {

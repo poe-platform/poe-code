@@ -86,6 +86,16 @@ export class Budget {
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
     const output: ByteSink = {
+      ...(sink.ownedOutput ? { ownedOutput: {
+        consumerClosed: sink.ownedOutput.consumerClosed,
+        write: async (chunk: Uint8Array) => {
+          signal.throwIfAborted();
+          if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+          if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+          this.bytes += chunk.byteLength;
+          await interruptible(sink.ownedOutput!.write(chunk), signal);
+        },
+      } } : {}),
       write: async (chunk) => {
         signal.throwIfAborted();
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -232,7 +242,13 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
-  const output: ByteSink = { async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); } };
+  const output: ByteSink = {
+    ...(sink.ownedOutput ? { ownedOutput: {
+      consumerClosed: sink.ownedOutput.consumerClosed,
+      async write(chunk: Uint8Array) { signal.throwIfAborted(); await interruptible(sink.ownedOutput!.write(chunk), signal); },
+    } } : {}),
+    async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); },
+  };
   if (owned) budgetedSinks.set(output, { budget: owned.budget, write: output.write });
   return output;
 }
@@ -332,7 +348,7 @@ export class Runtime {
         const commandSignal = AbortSignal.any([this.commandSignal, controllers[index]!.signal]);
         const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, commandSignal);
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
-        const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {
+        const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
           try {
             await outgoing.writable.write(chunk);
             if (chunk.byteLength) written.add(index);
@@ -377,7 +393,7 @@ export class Runtime {
         status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
       } finally {
         for (const close of closing) clearImmediate(close);
-        for (const controller of controllers) controller.abort(new PipelineClosed());
+        for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
         await Promise.all(pipes.map((pipe) => pipe.abort()));
       }
     }

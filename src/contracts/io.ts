@@ -5,6 +5,10 @@ export type ByteSource = AsyncIterable<Uint8Array>;
 
 export interface ByteSink {
   write(chunk: Uint8Array): Promise<void>;
+  readonly ownedOutput?: {
+    readonly consumerClosed: AbortSignal;
+    write(chunk: Uint8Array): Promise<void>;
+  };
 }
 
 export interface BytePipe {
@@ -43,12 +47,14 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   let closePromise: Promise<void> | undefined;
   let abortPromise: Promise<void> | undefined;
   let finished = false;
+  const consumer = new AbortController();
   const abort = (reason: unknown = new FsError("EPIPE", { syscall: "pipe" })): Promise<void> => {
     if (abortPromise) return abortPromise;
     if (finished) return Promise.resolve();
     failed = true;
     failure = reason;
     ended = true;
+    consumer.abort(reason);
     abortPromise = Promise.allSettled([reader.cancel(reason), writer.abort(reason)]).then(() => {});
     return abortPromise;
   };
@@ -95,15 +101,17 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       }
     },
   };
+  const write = async (chunk: Uint8Array): Promise<void> => {
+    if (failed) throw failure;
+    if (ended) throw new FsError("EPIPE", { syscall: "write" });
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
+    if (chunk.byteLength > 0) await writer.write(new Uint8Array(chunk));
+  };
   return {
     readable,
     writable: {
-      async write(chunk) {
-        if (failed) throw failure;
-        if (ended) throw new FsError("EPIPE", { syscall: "write" });
-        if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
-        if (chunk.byteLength > 0) await writer.write(new Uint8Array(chunk));
-      },
+      write,
+      ownedOutput: { consumerClosed: consumer.signal, write },
     },
     close() {
       if (failed) return Promise.reject(failure);

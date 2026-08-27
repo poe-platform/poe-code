@@ -113,6 +113,13 @@ export class Shell implements PluginHost {
     const stdout = new Capture();
     const stderr = new Capture();
     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
+      ...(external?.ownedOutput ? { ownedOutput: {
+        consumerClosed: external.ownedOutput.consumerClosed,
+        write: async (chunk: Uint8Array) => {
+          await capture.write(chunk);
+          await external.ownedOutput!.write(chunk);
+        },
+      } } : {}),
       write: async (chunk) => {
         await capture.write(chunk);
         if (external) await external.write(chunk);

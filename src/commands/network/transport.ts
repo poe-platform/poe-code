@@ -1,4 +1,4 @@
-import { request as httpRequest, validateHeaderName, validateHeaderValue } from "node:http";
+import { request as httpRequest, validateHeaderName, validateHeaderValue, type ClientRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { CurlError, type HttpTransport } from "./types.js";
@@ -26,7 +26,19 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
     return new Promise((resolve, reject) => {
-      const request = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, {
+      let request: ClientRequest | undefined;
+      let finish: (() => void) | undefined;
+      const closed = new Promise<void>(resolve => { finish = resolve; });
+      let cleanup: Promise<void> | undefined;
+      const dispose = (): Promise<void> => {
+        cleanup ??= Promise.resolve().then(async () => {
+          stopped.abort();
+          if (request) { request.destroy(); await closed; }
+        });
+        return cleanup;
+      };
+      input.registerCleanup?.(dispose);
+      request = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, {
         method: input.method, headers, signal, maxHeaderSize, agent: false,
         ...(ca === undefined ? {} : { ca: ca as string | Buffer | (string | Buffer)[] }),
       }, response => {
@@ -40,25 +52,25 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
               input.signal.throwIfAborted();
               yield new Uint8Array(chunk as Buffer);
             }
-          } finally { response.destroy(); request.destroy(); stopped.abort(); }
+          } finally { response.destroy(); await dispose(); }
         })();
         resolve({
           status: response.statusCode ?? 0, statusText: response.statusMessage ?? "",
           httpVersion: response.httpVersion, headers: responseHeaders, body,
-          async dispose() { response.destroy(); request.destroy(); stopped.abort(); },
+          async dispose() { response.destroy(); await dispose(); },
         });
       });
       request.on("error", reject);
-      request.on("close", () => stopped.abort());
+      request.on("close", () => { stopped.abort(); finish?.(); });
       const upload = async (): Promise<void> => {
         if (input.body) for await (const chunk of readBytes(input.body, signal)) {
           await withSignal(() => new Promise<void>((done, failed) => {
-            request.write(chunk, error => error ? failed(error) : done());
+            request!.write(chunk, error => error ? failed(error) : done());
           }), signal);
         }
-        request.end();
+        request!.end();
       };
-      void upload().catch(error => request.destroy(error instanceof Error ? error : new Error("Upload canceled")));
+      void upload().catch(error => request!.destroy(error instanceof Error ? error : new Error("Upload canceled")));
     });
   };
 }

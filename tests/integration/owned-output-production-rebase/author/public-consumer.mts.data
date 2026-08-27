@@ -1,0 +1,59 @@
+import assert from "node:assert/strict";
+import {
+  createOutputOperation, MemoryFileSystem, Shell, agentCommands,
+  type ByteSink, type OutputOperation, type InvocationCleanup,
+} from "virtual-bash";
+import { createOutputOperation as contractsCreate } from "virtual-bash/contracts";
+import { createOutputOperation as moduleCreate } from "virtual-bash/contracts/output";
+import { networkCommands, type HttpRequest } from "virtual-bash/commands/network";
+
+type Same<Actual, Expected> =
+  (<Value>() => Value extends Actual ? 1 : 2) extends
+  (<Value>() => Value extends Expected ? 1 : 2) ? true : false;
+
+const exactKeys: Same<keyof OutputOperation, "signal" | "output" | "registerCleanup" | "acquire" | "child" | "close"> = true;
+const exactCapability: Same<NonNullable<ByteSink["ownedOutput"]>, {
+  readonly consumerClosed: AbortSignal;
+  write(chunk: Uint8Array): Promise<void>;
+}> = true;
+const exactCleanup: Same<HttpRequest["registerCleanup"], ((cleanup: InvocationCleanup) => void) | undefined> = true;
+assert.equal(exactKeys && exactCapability && exactCleanup, true);
+assert.equal(createOutputOperation, contractsCreate);
+assert.equal(createOutputOperation, moduleCreate);
+
+let registered!: InvocationCleanup;
+let acquired!: (value: object) => void;
+const acquisition = new Promise<object>(resolve => { acquired = resolve; });
+let cleaned = 0;
+const operation = createOutputOperation({ signal: new AbortController().signal, registerCleanup(cleanup) { registered = cleanup; } }, { async write() {} });
+const child = operation.child({ async write() {} });
+const waiting = assert.rejects(child.acquire(() => acquisition, () => { cleaned++; }), /closed/);
+const closing = operation.close();
+assert.equal(registered(), closing);
+let closed = false;
+void closing.then(() => { closed = true; });
+await new Promise<void>(resolve => setImmediate(resolve));
+assert.equal(closed, false);
+acquired({});
+await Promise.all([closing, waiting]);
+assert.equal(cleaned, 1);
+
+const fs = new MemoryFileSystem();
+const shell = new Shell({ fs }).use(agentCommands());
+let requests = 0;
+let disposals = 0;
+shell.use(networkCommands({ authorize: request => request.url === "http://consumer.invalid/", async transport() {
+  requests++;
+  return { status: 200, statusText: "OK", headers: [],
+    body: (async function* () { const chunk = Uint8Array.from([0, 255]); yield chunk; chunk[0] = 128; yield chunk; chunk.fill(42); })(),
+    async dispose() { disposals++; },
+  };
+} }));
+try {
+  const result = await shell.exec("curl http://consumer.invalid/ | cat");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.from([0, 255, 128, 255]));
+  assert.equal(requests, 1);
+  assert.equal(disposals, 1);
+} finally { await shell.dispose(); }
+console.log(JSON.stringify({ passed: true, exactKeys, exactCapability, exactCleanup, cleaned, requests, disposals }));

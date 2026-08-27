@@ -1,4 +1,4 @@
-import type { ByteSource } from "../../contracts/index.js";
+import type { ByteSource, InvocationCleanup } from "../../contracts/index.js";
 
 export type HttpHeaders = readonly (readonly [string, string])[];
 
@@ -8,6 +8,7 @@ export interface HttpRequest {
   readonly headers: HttpHeaders;
   readonly body?: ByteSource;
   readonly signal: AbortSignal;
+  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
 }
 
 export interface HttpResponse {

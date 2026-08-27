@@ -16,6 +16,7 @@
   "exclude": [
     "dist",
     "node_modules",
-    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts"
+    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native"
   ]
 }

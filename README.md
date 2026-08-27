@@ -139,7 +139,10 @@ stages it at both archive fixtures' hardcoded location, and runs build-first
 current standalone public consumers. `GNU_TAR` alone does not configure those
 fixtures. Current provider-only programs receive strict public type checks,
 not an invented deployed-service pass; frozen `.mts` evidence stays historical.
-The root cold config is unchanged and does **not** include all TypeScript files.
+The root config now excludes only the classified native-glob data subtree in
+addition to its pre-existing exclusions; it still does **not** include all
+TypeScript files. Classification, current type/discovery counts and negative
+controls are recorded in `tests/plugins/qualified-current-release-native-data/REPORT.md`.
 The recorded current candidate's mandatory job remains **failed** because the
 unchanged WebDAV consumer reports12/13; see
 `tests/plugins/qualified-current-release/REPORT.md`. Native/packed successes do
@@ -374,6 +377,15 @@ npm run build
 npm test
 SAFEJS_LOCAL_ROOT=/path/to/poe-code/packages/safejs npm test
 ```
+
+Typechecking and default test discovery both omit exactly
+`tests/commands/regex-execution/continuation/artifacts/native`, whose `.ts`
+names are native glob inputs, not maintained TypeScript. Other artifact trees,
+tests and helpers are not broadly excluded. The August 27 native-data correction
+removes six raw-payload diagnostics, but the recorded global typecheck still
+fails with eight foreign filesystem-inspection fixture diagnostics; it is not
+a whole-product pass. Historical standalone `.mts` omissions and the separate
+build-first consumer gate remain unchanged.
 
 The last form enables actual local SafeJS integration rather than skipping it;
 no published private SafeJS dependency is required. Optional comparison tooling

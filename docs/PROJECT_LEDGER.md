@@ -1749,6 +1749,46 @@ that any implementation, command, fixture, or test currently exists.
   and its linked evidence. Archived source/consumer/oracle bytes and rootdist
   remain unchanged during the recorded run; concurrent live work is not certified.
 
+### Exact native-data source separation (August 27, 2026)
+
+- Explicit narrow authorization adds only
+  `tests/commands/regex-execution/continuation/artifacts/native` to root
+  `tsconfig.json` exclusions and prunes that exact directory in the existing
+  package test glob. No compiler option, source, producer, other configuration,
+  dependency, root export or immutable fixture changes. The full inspected
+  subtree is 22 raw `hit\n` glob payloads across ten producer cases plus 50
+  generated tsx JSON caches; no maintained test/helper is present. All six raw
+  `.ts` SHA-256 values remain
+  `74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8`.
+- Current author `npm run typecheck` genuinely reproduces six TS2304 native-data
+  errors **plus eight new foreign filesystem-inspection sealed-input errors**.
+  Two pre-fix captures race concurrent test/source edits and are preserved, not
+  represented as frozen matched-source evidence. Stable post-fix working-tree
+  capture at HEAD `9f7fed68077a68ef3decb114ace83ad47b75ae14` retains exactly those
+  eight foreign errors and no native-data diagnostic. Global status stays failed.
+- Current post-fix compiler census is 3,882 files: 176 production source inputs,
+  3,533 test-tree inputs and 173 remaining library/type inputs. The actual
+  discovery glob selects 540/540 compiler-included files: 533 already tracked
+  canonical tests, this author's new control, and six pre-existing ignored
+  copied tests elsewhere. That distinction is not a new maintained-test count.
+  All 533 tracked canonical tests and explicit main helper/source controls remain
+  included; no broader copied-artifact exclusion is authorized.
+- Five scoped controls pass with no skips. In isolated copies, six real outside
+  undefined-symbol errors still fail compilation, identical payloads inside the
+  exact subtree are excluded, and actual current `npm test` runs all five
+  canonical/neighbor tests while not selecting two native-data canaries. The
+  old script runs seven and fails on both canaries. Production build-config
+  `--noEmit` passes; no rootdist output or full product test suite is run.
+- Full manifest, per-file source/test/config hashes, raw failed captures,
+  current gate output, discovery limits and handoff are in
+  `tests/plugins/qualified-current-release-native-data/REPORT.md`.
+  Dirac `aac345a0` canonical470/470+485/485 and original standalone omissions11/30
+  remain historical; current build-first22inputs/13groups, `966cfac`/`5456730`
+  release-helper work and prior source-public65 `b7ae`/`66b079a` remain separate.
+  The frozen current-qualified02 WebDAV12/13 failure is not closed, nor are
+  Arch's five public-boundary cleanup replays. Sagan's closed runtime work does
+  not change these limits; independent verification follows actual author exit.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

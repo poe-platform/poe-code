@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-27T09:03:15.261Z",
+  "independence": "No new author fix source read; fixture/expectation generation uses prior APIs and independent finite input recipes only",
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "count": 6,
+  "caps": {
+    "childWallMs": 5000,
+    "heapMiB": 128,
+    "observedRssBytes": 268435456,
+    "captureBytes": 65536,
+    "wholeWallMs": 30000,
+    "telemetryEntries": 1024,
+    "ipcBytes": 524288,
+    "maxChildren": 1,
+    "retries": 0
+  },
+  "files": [
+    {
+      "path": "cases.mjs",
+      "bytes": 6786,
+      "sha256": "2761cb3b037e2e1f3b42abe8f159b854f926be4982dc93b56ae3619a855f32ab"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 2199,
+      "sha256": "544b82e7d1a62c19af02b38b4d27f65f8cd3e8a941aba7154fc11fe5e9bb3c5a"
+    },
+    {
+      "path": "sealed-cases.json",
+      "bytes": 1044390,
+      "sha256": "0e7d70e3026e2cc716c28725c529bfc98655224b01f4b2b7ce340fd65f42e6a1"
+    }
+  ]
+}

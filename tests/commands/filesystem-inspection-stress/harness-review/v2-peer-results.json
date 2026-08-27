@@ -1,0 +1,114 @@
+{
+  "at": "2026-08-27T09:22:05.112Z",
+  "boundary": "Builtin/hash checks, harness-only helper imports and exact extracted F29 callbacks with mocks; zero product/native calls",
+  "tree": {
+    "verdict": "GO-scoped-finite-single-diagnostic-profile",
+    "positives": 8,
+    "negativeControls": 23,
+    "v1FalseAcceptancesPreserved": 2
+  },
+  "file": {
+    "verdict": "GO-scoped-F29-entry-time-predicate",
+    "controls": [
+      {
+        "variant": "active",
+        "accepted": true,
+        "snapshots": [
+          {
+            "method": "lstat",
+            "activeAtEntry": true,
+            "maxBytesAtEntry": 65536
+          },
+          {
+            "method": "readFile",
+            "activeAtEntry": true,
+            "maxBytesAtEntry": 65536
+          }
+        ]
+      },
+      {
+        "variant": "cleanup-after-entry",
+        "accepted": true,
+        "snapshots": [
+          {
+            "method": "lstat",
+            "activeAtEntry": true,
+            "maxBytesAtEntry": 65536
+          },
+          {
+            "method": "readFile",
+            "activeAtEntry": true,
+            "maxBytesAtEntry": 65536
+          }
+        ]
+      },
+      {
+        "variant": "preaborted",
+        "accepted": false
+      },
+      {
+        "variant": "missing-signal",
+        "accepted": false
+      },
+      {
+        "variant": "duck-signal",
+        "accepted": false
+      },
+      {
+        "variant": "too-small-maxBytes",
+        "accepted": false
+      },
+      {
+        "variant": "wrong-PNG",
+        "accepted": false
+      },
+      {
+        "variant": "wrong-status",
+        "accepted": false
+      },
+      {
+        "variant": "wrong-stderr",
+        "accepted": false
+      },
+      {
+        "variant": "no-readFile",
+        "accepted": false
+      }
+    ],
+    "F33F34OutsideTextUnchanged": true
+  },
+  "manifests": [
+    {
+      "path": "tree/EVIDENCE-MANIFEST.json",
+      "entries": 316,
+      "sha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01"
+    },
+    {
+      "path": "tree/corrections/n18-positive-depth/CORRECTION-MANIFEST.json",
+      "entries": 35,
+      "sha256": "18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6"
+    },
+    {
+      "path": "tree/corrections/n18-positive-depth-v2/V2-MANIFEST.json",
+      "entries": 37,
+      "sha256": "211a071d5e78a66791b37790804bbe6fa5cb737fafc052c00529a8d4d282602d"
+    },
+    {
+      "path": "file/PUBLICATION.json",
+      "entries": 285,
+      "sha256": "b2c310a6079f3aa59bebbae711e27f227882b61afb74706629e18a762553c2f6"
+    },
+    {
+      "path": "file/corrections/HARN-SIGNAL-001/PUBLICATION.json",
+      "entries": 37,
+      "sha256": "d761137ad4909bdfc23714d7317ea57974ee6d6e14d134fbfe14db471823110f"
+    },
+    {
+      "path": "file/corrections/HARN-SIGNAL-001-v2/PUBLICATION.json",
+      "entries": 26,
+      "sha256": "c3c8a17f2f0cf2dc138d93d9214909b31e8cbe0d33842e1200436e59cd7a680f"
+    }
+  ],
+  "treeV2Sha256": "c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c",
+  "fileV2Sha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756"
+}

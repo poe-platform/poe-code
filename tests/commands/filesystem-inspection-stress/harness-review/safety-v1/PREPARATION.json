@@ -1,0 +1,108 @@
+{
+  "cases": [
+    {
+      "id": "T-empty-many",
+      "sha256": "4866bc199a0d3bcff914bb64e307b5b0d0a895e6e087a5f4202b1ad37c9b03be",
+      "proof": "emptyNormalization",
+      "fixtureEntries": 66,
+      "fileBytes": 0,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    },
+    {
+      "id": "T-DP-cumulative",
+      "sha256": "23d8158b9d24bb9b784f05267768cca66926da966b1d7a84fe15215cbaac0d15",
+      "proof": "dpNonEliminated",
+      "fixtureEntries": 66,
+      "fileBytes": 0,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    },
+    {
+      "id": "T-sort-many",
+      "sha256": "38e6dc5054b20b5e824e22c3b4a3f204d29a0b37327a277eadc75105f75e6684",
+      "proof": "sortByteCost",
+      "fixtureEntries": 66,
+      "fileBytes": 0,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    },
+    {
+      "id": "F-JSON-cumulative",
+      "sha256": "5608ff842be15508cfdde2de8c4c359e9cc14fc142237e0b2f3d479507c69701",
+      "proof": "jsonCumulative",
+      "fixtureEntries": 9,
+      "fileBytes": 65520,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    },
+    {
+      "id": "F-header-many",
+      "sha256": "6fea6d9af3426a2048d21fc2e25568daffffa1ce19f021563d42334475aebfb7",
+      "proof": "headerBounds",
+      "fixtureEntries": 33,
+      "fileBytes": 16384,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 29
+    },
+    {
+      "id": "F-metadata-many",
+      "sha256": "c4a1163be94e309d2cecfa7b8fbc356386299d1fbdb1ec89277ce6a9da45787f",
+      "proof": "textPreAdmission",
+      "fixtureEntries": 33,
+      "fileBytes": 0,
+      "targetCodeUnits": 131072,
+      "distinctFilePayloads": 0
+    }
+  ],
+  "presealSha256": "b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb",
+  "harness": {
+    "files": [
+      {
+        "path": "cases.mjs",
+        "sha256": "2761cb3b037e2e1f3b42abe8f159b854f926be4982dc93b56ae3619a855f32ab"
+      },
+      {
+        "path": "seal.mjs",
+        "sha256": "544b82e7d1a62c19af02b38b4d27f65f8cd3e8a941aba7154fc11fe5e9bb3c5a"
+      },
+      {
+        "path": "oracle.mjs",
+        "sha256": "c4f5c5fbd73777ccbb9654ac8d86ef00372c7276800f25c02034a9c49111f64e"
+      },
+      {
+        "path": "vfs.mjs",
+        "sha256": "9ff36eb4a2656e265d7473f90b6852533eef6b773ecbcd68a3916882db2ead2a"
+      },
+      {
+        "path": "authorization.mjs",
+        "sha256": "4b562e819b431004ba94e1f28f78a1a1a968aa33a1b183590258bf8c757a8369"
+      },
+      {
+        "path": "child.mjs",
+        "sha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1"
+      },
+      {
+        "path": "loader.mjs",
+        "sha256": "e82d22fa5341f76519033cb8bd7976e584bf86d118776150e7a50b380efe7eb3"
+      },
+      {
+        "path": "run.mjs",
+        "sha256": "b2593e5b57315356e2df47a2912804aa6636da4820db779c8f39db7419286f2c"
+      }
+    ],
+    "sha256": "428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905"
+  },
+  "caps": {
+    "childWallMs": 5000,
+    "heapMiB": 128,
+    "observedRssBytes": 268435456,
+    "captureBytes": 65536,
+    "wholeWallMs": 30000,
+    "telemetryEntries": 1024,
+    "ipcBytes": 524288,
+    "maxChildren": 1,
+    "retries": 0
+  },
+  "productExecutions": 0
+}

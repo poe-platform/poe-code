@@ -1,0 +1,232 @@
+{
+  "schema": 1,
+  "role": "MODEL ONLY; finite hand-authored histories, not matcher/native acceptance",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "freezeCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "freezeManifestSha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+  "witnessFreezeCommit": "a6ce736d",
+  "witnessSha256": "c86c457ba6a4a6d995ba757c23bf2024f7327411dd19dfb5d531a23d7e4c71a5",
+  "sourceHashes": {
+    "model": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+    "runner": "2d8a7d40f2a16e76dfc86a0728072b4871510474f0c14909e30bd187d7f1ee9d"
+  },
+  "counts": {
+    "selectedInputs": 10,
+    "fixtureAttempts": 22,
+    "validFixtureHistories": 19,
+    "rejectedFixtureHistories": 3,
+    "additionalPermissiveTailHistories": 1,
+    "permutationRanks": 62,
+    "relationChecks": 422,
+    "namedControls": 20,
+    "nativeCalls": 0,
+    "engineExecutions": 0,
+    "workersCreated": 0,
+    "historical137Rerun": 0
+  },
+  "rows": [
+    {
+      "id": "P-aaa",
+      "pattern": "\\(a*\\)*\\1",
+      "subjectHex": "616161",
+      "supplied": 4,
+      "eligible": 3,
+      "winners": {
+        "AGGREGATE-v1": "narrow-a",
+        "ITERATION-v1": "narrow-a"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 23905,
+        "allocation": 12754
+      }
+    },
+    {
+      "id": "P-aaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "subjectHex": "61616161",
+      "supplied": 4,
+      "eligible": 3,
+      "winners": {
+        "AGGREGATE-v1": "long-repeat",
+        "ITERATION-v1": "short-repeat"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 36941,
+        "allocation": 15949
+      }
+    },
+    {
+      "id": "Q-empty",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "subjectHex": "",
+      "supplied": 2,
+      "eligible": 1,
+      "winners": {
+        "AGGREGATE-v1": "two-required",
+        "ITERATION-v1": "two-required"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 7585,
+        "allocation": 5583
+      }
+    },
+    {
+      "id": "Q-aaa",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "subjectHex": "616161",
+      "supplied": 2,
+      "eligible": 2,
+      "winners": {
+        "AGGREGATE-v1": "required-empty",
+        "ITERATION-v1": "required-empty"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 15979,
+        "allocation": 7718
+      }
+    },
+    {
+      "id": "prefix-star",
+      "pattern": "a*\\(a*\\)",
+      "subjectHex": "616161",
+      "supplied": 3,
+      "eligible": 3,
+      "winners": {
+        "AGGREGATE-v1": "prefix-long",
+        "ITERATION-v1": "capture-long"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 26330,
+        "allocation": 11245
+      }
+    },
+    {
+      "id": "prefix-two-captures",
+      "pattern": "a*\\(a*\\)\\(a*\\)",
+      "subjectHex": "616161",
+      "supplied": 3,
+      "eligible": 3,
+      "winners": {
+        "AGGREGATE-v1": "prefix-long",
+        "ITERATION-v1": "capture-long"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 30083,
+        "allocation": 12493
+      }
+    },
+    {
+      "id": "D-abab",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "subjectHex": "61626162",
+      "supplied": 1,
+      "eligible": 1,
+      "winners": {
+        "AGGREGATE-v1": "retained-b",
+        "ITERATION-v1": "retained-b"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 7741,
+        "allocation": 4274
+      }
+    },
+    {
+      "id": "descendant-reentered-empty",
+      "pattern": "\\(a\\(b*\\)\\)*\\2",
+      "subjectHex": "616261",
+      "supplied": 1,
+      "eligible": 1,
+      "winners": {
+        "AGGREGATE-v1": "reentered-empty",
+        "ITERATION-v1": "reentered-empty"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 8132,
+        "allocation": 4430
+      }
+    },
+    {
+      "id": "required-child-empty",
+      "pattern": "\\(a\\(b*\\)\\{2\\}\\)*\\2",
+      "subjectHex": "6161",
+      "supplied": 1,
+      "eligible": 1,
+      "winners": {
+        "AGGREGATE-v1": "local-required",
+        "ITERATION-v1": "local-required"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 10148,
+        "allocation": 5186
+      }
+    },
+    {
+      "id": "completed-empty-reference",
+      "pattern": "\\(a*\\)\\(b*\\)\\2",
+      "subjectHex": "61",
+      "supplied": 1,
+      "eligible": 1,
+      "winners": {
+        "AGGREGATE-v1": "empty-reference",
+        "ITERATION-v1": "empty-reference"
+      },
+      "meterAfterFixtureOrdering": {
+        "work": 5475,
+        "allocation": 3488
+      }
+    }
+  ],
+  "predictionFailures": [
+    {
+      "case": "prefix-star",
+      "policy": "ITERATION-v1",
+      "predicted": "prefix-long",
+      "actual": "capture-long"
+    },
+    {
+      "case": "prefix-two-captures",
+      "policy": "ITERATION-v1",
+      "predicted": "prefix-long",
+      "actual": "capture-long"
+    }
+  ],
+  "controls": [
+    "frozen-policy-prediction-failures-preserved",
+    "uncaptured-prefix-beats-final-capture-sort",
+    "firstDFS-enumeration-counterexample",
+    "same-accept-pc-position-final-env-different-history",
+    "tail-admission-conflicts-with-narrow-root-under-both-policies",
+    "descendant-skip-retains",
+    "open-invalidates-reference",
+    "absent-does-not-mean-empty",
+    "reentry-completes-empty-without-mutating-old-branch",
+    "same-pc-position-distinct-env-distinct-continuation",
+    "required-count-and-activation-not-equivalent-cycles",
+    "optional-empty-cycle-refused",
+    "required-empty-local-iterations-retained",
+    "five-malformed-byte-spans-refused",
+    "incorrect-expected-span-refused",
+    "unvalidated-history-refused",
+    "allocation-work-input-ascii-depth-event-candidate-limits",
+    "exhaustion-after-incumbent-never-returns",
+    "comparison-stack-allocation-charged",
+    "exact-abort-reason-before-work-and-ranking"
+  ],
+  "decisions": [
+    "ITERATION-v1 frozen prefix predictions refuted; not repaired",
+    "AGGREGATE-v1 remains provisional under stronger optional-tail hypothesis",
+    "P-aaaa ambiguity and P-aaa admission conflict unresolved",
+    "D-abab deliberately departs from Issue8 under project retention"
+  ],
+  "limits": [
+    "No exhaustive parse forest",
+    "No actual worker lifecycle validation",
+    "No regular path theorem extended to backrefs",
+    "Cycle signature is necessary bookkeeping, not a dominance proof"
+  ],
+  "harnessMeterBeforeSerialization": {
+    "work": 13997589,
+    "allocation": 13997750
+  }
+}

@@ -38,3 +38,14 @@ Original outer stdout and raw author result are preserved under
 `evidence/release-attempt-1/`; the full original verifier report remains in its
 immutable temporary attempt directory. This failed attempt is not a positive
 qualified-release pass.
+
+## Packed attempt 3: emitted builtin type aliases
+
+The AST scanner correctly found TypeScript-emitted `import("util").TextEncoder`
+and TextDecoder declarations in dist/commands/internal.d.ts, plus bare `path`
+in the POSIX path declaration. These are legitimate Node builtin aliases, not
+external packages. It had required the `node:` spelling even for declarations.
+The correction recognizes Node's isBuiltin and still requires the canonical
+name in the same inspected allowlist. Build/pack passed; no packed runtime
+fixture or type check ran before this harness rejection. Failure details and
+full original-report hash/path are retained in `evidence/packed-attempt-3/`.

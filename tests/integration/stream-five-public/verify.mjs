@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { release } from 'node:os';
+import { isBuiltin } from 'node:module';
 
 const repository = '/Users/kjopek/Workspace/safe-bash';
 const owned = dirname(fileURLToPath(import.meta.url));
@@ -156,7 +157,7 @@ try {
     };
     visit(parsed);
     for (const specifier of specifiers) {
-      if (specifier.startsWith('node:')) assert.ok(allowedBuiltins.has(specifier), `uninspected builtin ${specifier}`);
+      if (isBuiltin(specifier)) assert.ok(allowedBuiltins.has(specifier.startsWith('node:') ? specifier : `node:${specifier}`), `uninspected builtin ${specifier}`);
       else {
         assert.ok(specifier.startsWith('.'), `external runtime/declaration import ${specifier}`);
         const target = resolve(dirname(join(productRoot, entry.path)), specifier);

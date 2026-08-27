@@ -1,3 +1,5 @@
+import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
+
 export interface SearchOptions {
   readonly replace?: boolean;
   readonly defaultInput?: "auto" | "stdin" | "cwd";
@@ -5,6 +7,7 @@ export interface SearchOptions {
   readonly maxLineBytes?: number;
   readonly maxFileBytes?: number;
   readonly maxFiles?: number;
+  readonly regex?: RegexExecutionOptions;
 }
 
 export class SearchError extends Error {}

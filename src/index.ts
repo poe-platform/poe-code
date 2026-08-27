@@ -2,6 +2,7 @@ export * from "./contracts/index.js";
 export * from "./plugins/index.js";
 export * from "./shell/index.js";
 export * from "./commands/index.js";
+export type { RegexExecutionOptions } from "./commands/regex-execution/protocol.js";
 export * from "./commands/text-programs/index.js";
 export * from "./commands/structured/index.js";
 export * from "./commands/search/index.js";

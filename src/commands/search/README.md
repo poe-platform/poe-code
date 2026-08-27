@@ -14,9 +14,10 @@ plus Node builtins. It does not invoke native rg, a shell, host filesystem APIs,
   a `CommandRegistry`.
 - `SearchOptions`: configuration shared by both factories.
 
-Use `shell.use(searchCommands())` alongside `standardCommands()`. No root
-exports, package manifests, contracts, or parent command registries are changed
-by this subtree. Registration rejects an existing `rg` unless `replace: true`.
+Use `shell.use(searchCommands())` alongside `standardCommands()`. These factories
+and the shared `RegexExecutionOptions` type are available from `virtual-bash`.
+Registration rejects an existing `rg` unless `replace: true`; the matcher does
+not require a new registry or plugin lifecycle contract.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
@@ -26,9 +27,11 @@ by this subtree. Registration rejects an existing `rg` unless `replace: true`.
 | `maxLineBytes` | 1 MiB | Maximum record content bytes. |
 | `maxFileBytes` | 64 MiB | Maximum bytes read from each data source, also the retained before-context byte limit. |
 | `maxFiles` | 100,000 | Maximum visited roots and directory entries, including entries later filtered out. |
+| `regex` | See `../regex-execution/README.md` | Content-matcher policy: active request 1000ms, startup 3000ms, two workers, bounded FIFO queue, automatic retirement. |
 
 Numeric limits must be positive safe integers. They limit individual buffers and
-operations, not total process memory, adapter allocations, or regex CPU time.
+operations, not total process memory or adapter allocations. The separate
+`regex` policy bounds active content-matcher requests, not whole invocations.
 
 ### Choosing stdin or a directory
 
@@ -177,20 +180,30 @@ Ordinary alternation, groups, quantifiers, character classes, anchors, and
 JavaScript-compatible Unicode property expressions work. `-w` uses Unicode
 letters/numbers/marks/connector punctuation/join controls for word boundaries.
 Rust inline mode groups, Rust-specific Unicode property spellings, character
-class set operations, POSIX classes, PCRE2, backreferences, and user lookaround
-are unsupported. JavaScript `\w`, `\d`, `\b`, case folding, dot/anchor behavior
+class set operations, POSIX classes, PCRE2, numeric backreferences, and user
+lookaround are unsupported. A pre-existing named-backreference loophole
+(`(?<letter>a)\k<letter>`) remains accepted with JavaScript semantics in this
+isolation change; native default-engine ripgrep rejects it. Named captures
+without backreferences are a separate supported JavaScript feature. No dialect
+migration or native backreference compatibility is implied. JavaScript `\w`,
+`\d`, `\b`, case folding, dot/anchor behavior
 around CR and Unicode line separators can
 differ from native Rust regex. UTF-16/other input encodings, BOM transcoding,
 multiline mode, replacement output, compressed search, file-type databases, and
 native mmap/threading controls are not implemented.
 
-**No catastrophic-regex safety guarantee is made.** JavaScript matching is
-synchronous and may backtrack catastrophically. A signal or timer cannot stop an
-individual blocked regex call. The supplied line/pattern limits do not make
-untrusted regexes safe; callers requiring a hard deadline must isolate execution
-outside this command. Generated glob regexes use JavaScript matching as well.
-Cancellation-aware byte helpers stop blocked stream waits, and traversal/record
-loops yield periodically, but these guarantees do not extend into RegExp.
+Content-pattern compilation, matching and invalid-UTF8 fragment variants now run
+in static compiled Node workers. `SearchOptions.regex` exposes explicit request/
+startup/queue/memory policy; details and cleanup limitations are documented in
+`../regex-execution/README.md`. Cancellation and active-request expiry terminate
+the exact worker and await cleanup. No shared cumulative invocation allowance or
+historical prototype caps replace the existing pattern/record/result limits.
+**Broad untrusted-regex/default acceptance remains blocked:** generated CLI and
+ignore-file glob regexes still construct and match on the host in `glob.ts` via
+`walk.ts`, outside this authorized content-matcher batch. Do not infer a complete
+rg catastrophic-regex guarantee, hard RSS containment or a wall-clock SLA.
+Cancellation-aware byte helpers stop blocked stream waits; traversal/record
+loops yield periodically, but host glob calls remain non-preemptible.
 Selection itself performs no stream operations. Once nondefault stdin is
 selected, empty-chunk processing yields so timer cancellation is not starved.
 Closed stdout (`EPIPE`) terminates successfully without scanning later files or

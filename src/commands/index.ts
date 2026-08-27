@@ -8,10 +8,12 @@ import { predicateCommands } from "./predicates.js";
 import { directExecutor, executionCommands } from "./execution.js";
 import { findCommands } from "./find.js";
 import { diagnostic } from "./internal.js";
+import type { RegexExecutionOptions } from "./regex-execution/protocol.js";
 
 export interface StandardCommandsOptions {
   readonly execute?: CommandHandler;
   readonly replace?: boolean;
+  readonly regex?: RegexExecutionOptions;
 }
 
 export function createStandardCommands(options: StandardCommandsOptions = {}): readonly CommandDefinition[] {
@@ -22,7 +24,7 @@ export function createStandardCommands(options: StandardCommandsOptions = {}): r
     await diagnostic(context, new Error("command not found"));
     return { exitCode: 127 };
   }));
-  commands.push(...basicCommands(), ...filesystemCommands(), ...streamCommands(), ...textCommands(), ...grepCommands(), ...predicateCommands(), ...executionCommands(execute), ...findCommands(execute));
+  commands.push(...basicCommands(), ...filesystemCommands(), ...streamCommands(), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute), ...findCommands(execute));
   return commands;
 }
 

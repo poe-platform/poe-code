@@ -4,6 +4,7 @@ import { parse, SearchError, type Arguments, type SearchOptions } from "./option
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, fileInput, Limits, lines, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
+import { AvailableRecords, RegexExecutor, RegexExecutionError } from "../regex-execution/client.js";
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
 
@@ -50,43 +51,50 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   };
   const selectedOutput = !args.quiet && (args.mode === "lines" || args.mode === "json");
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
-  for await (const line of lines(source, limits, state, binary, args.nullData)) {
-    await limits.tick();
-    if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0) {
-      await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break;
-    }
-    const content = args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content;
-    const matches = matcher.matches(content, args.onlyMatching || args.mode === "json" || args.mode === "matches", line.bytes.length !== line.content.length);
-    const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.bytes.length === line.content.length;
-    const selected = (matches.length > 0) !== args.invert || limitedInvertedTail;
-    if (selected) lastSelectedEnd = line.offset + line.bytes.length;
-    if (selected && totals.matched_lines < args.maxCount) {
-      totals.matched_lines++; totals.matches += args.invert ? 0 : matches.length;
-      if (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without") break;
-      if (selectedOutput) {
-        await begin();
-        if (state.binaryOffset !== null && args.mode !== "json") {
-          if (!binaryPrinted) { await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; }
-          break;
-        }
-        for (const previous of before) if (previous.line.number > lastPrinted) {
-          await printer.record(target.label, previous.line, previous.matches, false, filename); lastPrinted = previous.line.number;
-        }
-        await printer.record(target.label, line, args.invert ? [] : matches, true, filename); lastPrinted = line.number;
-        after = args.after;
+  const available = new AvailableRecords(args.nullData ? 0 : 10, limits.maxLineBytes, binary === "binary" ? 0 : -1);
+  const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
+  records: for await (const batch of available.batches(lines(available.source(source), limits, state, binary, args.nullData), line => line.content.length, batchSize)) {
+    const rows = batch.map(line => ({ bytes: args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content, all: args.onlyMatching || args.mode === "json" || args.mode === "matches", terminated: line.bytes.length !== line.content.length }));
+    const results = await matcher.batch(rows);
+    for (let index = 0; index < batch.length; index++) {
+      const line = batch[index]!;
+      state.bytesSearched = line.offset + line.bytes.length;
+      await limits.tick();
+      if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0) {
+        await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break records;
       }
-    } else if (after && selectedOutput) {
-      if (selected) { totals.matched_lines++; totals.matches += args.invert && !limitedInvertedTail ? 0 : matches.length; }
-      await printer.record(target.label, line, matches, selected, filename); lastPrinted = line.number; after--;
+      const matches = results[index]!;
+      const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.bytes.length === line.content.length;
+      const selected = (matches.length > 0) !== args.invert || limitedInvertedTail;
+      if (selected) lastSelectedEnd = line.offset + line.bytes.length;
+      if (selected && totals.matched_lines < args.maxCount) {
+        totals.matched_lines++; totals.matches += args.invert ? 0 : matches.length;
+        if (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without") break records;
+        if (selectedOutput) {
+          await begin();
+          if (state.binaryOffset !== null && args.mode !== "json") {
+            if (!binaryPrinted) { await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; }
+            break records;
+          }
+          for (const previous of before) if (previous.line.number > lastPrinted) {
+            await printer.record(target.label, previous.line, previous.matches, false, filename); lastPrinted = previous.line.number;
+          }
+          await printer.record(target.label, line, args.invert ? [] : matches, true, filename); lastPrinted = line.number;
+          after = args.after;
+        }
+      } else if (after && selectedOutput) {
+        if (selected) { totals.matched_lines++; totals.matches += args.invert && !limitedInvertedTail ? 0 : matches.length; }
+        await printer.record(target.label, line, matches, selected, filename); lastPrinted = line.number; after--;
+      }
+      if (binaryOutput && args.before > 0 && state.binaryOffset !== null) break records;
+      if (totals.matched_lines >= args.maxCount && (!selectedOutput || after === 0)) {
+        state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.bytes.length === line.content.length ? line.offset : 0);
+        break records;
+      }
+      before.push({ line, matches }); beforeBytes += line.bytes.length;
+      while (before.length > args.before) beforeBytes -= before.shift()!.line.bytes.length;
+      if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
     }
-    if (binaryOutput && args.before > 0 && state.binaryOffset !== null) break;
-    if (totals.matched_lines >= args.maxCount && (!selectedOutput || after === 0)) {
-      state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.bytes.length === line.content.length ? line.offset : 0);
-      break;
-    }
-    before.push({ line, matches }); beforeBytes += line.bytes.length;
-    while (before.length > args.before) beforeBytes -= before.shift()!.line.bytes.length;
-    if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
   }
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
     await printer.binary(target.label, state.binaryOffset, filename);
@@ -110,6 +118,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
 }
 
 export function rgCommand(options: SearchOptions = {}): CommandDefinition {
+  const executor = new RegexExecutor(options.regex);
   return {
     name: "rg",
     description: "Search virtual files or stdin with recursive filtering and structured results",
@@ -118,6 +127,7 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
       let args: Arguments | undefined;
       let failed = false;
       let found = false;
+      const session = executor.open(context.signal);
       try {
         const limits = new Limits(context, options);
         args = parse(context.args);
@@ -129,7 +139,8 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
           if (args!.messages) await diagnostic(context, error);
         };
         const walker = new Walker(context, args, limits, report);
-        const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args);
+        const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args, session);
+        if (args.mode !== "files") await matcher.batch([]);
         if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
         const selection = selectInput(context, args, options);
         const printer = new Printer(args, limits);
@@ -141,7 +152,7 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
             found ||= result.found;
             for (const field of ["searches", "searches_with_match", "bytes_searched", "bytes_printed", "matched_lines", "matches"] as const) totals[field] += result.stats[field];
             if (args.quiet && found && args.mode !== "json") break;
-          } catch (error) { if (error instanceof SearchError) throw error; await report(error); }
+          } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
         }
         if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
         return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
@@ -150,6 +161,8 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
         if (error instanceof OutputClosed) return { exitCode: 0 };
         if (args?.messages !== false) await diagnostic(context, error);
         return { exitCode: 2 };
+      } finally {
+        await session.close();
       }
     },
   };

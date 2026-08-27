@@ -97,12 +97,17 @@ options. Invalid options and malformed operands produce diagnostics and status
   Line-oriented operations have a 32 MiB line limit; sort buffers up to 32 MiB;
   suffix operations retain up to 32 MiB. Filesystem providers without streaming
   read support fall back to `readFile`. Provider methods may internally buffer.
-  Sort/check phases and regular-expression execution are synchronous, so they
-  cannot provide hard preemption of an individual JavaScript computation.
+  Sort/check phases remain synchronous. Grep content regexes use the static
+  worker executor described in `regex-execution/README.md`; other commands are
+  not covered by that executor.
 - `grep` uses a documented basic/extended-pattern translation onto JavaScript
   RegExp, not a complete POSIX leftmost-longest engine. Lookaround/special groups
   are rejected. Full locale/collation classes, binary-file heuristics, recursive
-  search, context lines, and hard regex execution budgets are not implemented.
+  search and context lines are not implemented. `StandardCommandsOptions.regex`
+  configures content-regex worker resource policy: default active request 1000ms,
+  startup 3000ms, two workers per configured grep definition, bounded FIFO queue
+  and automatic retirement. This is not a cumulative Shell deadline or an RSS
+  bound; expensive ordinary patterns can fail with a status-2 resource error.
   Matching uses a one-byte string view; literal argv patterns are UTF-8 encoded,
   pattern files retain their raw bytes, and selected output retains original
   bytes. `-a` explicitly selects the default without binary-file heuristics.

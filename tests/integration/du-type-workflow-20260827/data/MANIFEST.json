@@ -1,0 +1,332 @@
+{
+  "schema": 1,
+  "encoding": "gzip-base64 JSON array of unchanged UTF-8 evidence files",
+  "payloadSha256": "25b1eb0836c8fc3c2660fac3ddb9d96dabad44ec190928c73096d8ac45bc45cb",
+  "files": [
+    {
+      "path": "du-type-workflow-A5Csga/REPORT.json",
+      "bytes": 1934,
+      "sha256": "29ae521e2aa0f0eb60b0dc61faf3f4e31552f4de5a9cb0022c80bd50ad234340"
+    },
+    {
+      "path": "du-type-workflow-A5Csga/runtime-0.json",
+      "bytes": 570,
+      "sha256": "34ce0248824cacec431a7624c2d35bdcf03ffed5c4b6de0392fc977966d7dec3"
+    },
+    {
+      "path": "du-type-workflow-A5Csga/runtime-1.json",
+      "bytes": 570,
+      "sha256": "8d6590fbc25675e79983d512e1cf2213c2eaf19aeec392de42d5b88e3ecd9af4"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/REPORT.json",
+      "bytes": 26856410,
+      "sha256": "4deed81c497c45f6bb5973740b87b142cb75998af6b24e105ff3da4072e9856f"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/alternate-leaf-compiles-without-binding.json",
+      "bytes": 1024881,
+      "sha256": "6f46ddf1696fef17518f25ff8ea240022d19cee676c9a2a05a99b1a42d2002fe"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/canonical-config-fixture.json",
+      "bytes": 5484,
+      "sha256": "bd18c773b614eaee938e2e303ad93f92357545676e57003b39e2965be3c8d0f4"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/current-consumer-permission-admission.json",
+      "bytes": 4711,
+      "sha256": "b479c6882898ea9d2a0a8003608c9c1f819d606c72c642702f79d49757cae9be"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/negative-du-options.json",
+      "bytes": 756,
+      "sha256": "e9a5c5992500a2f7785325f6651ac1b43afc4c6884d8fb51356595b68e68ff91"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/node22-permission/current-consumer-permission-admission.json",
+      "bytes": 4920,
+      "sha256": "1d7476216cd9834f39e43b08ecfad572da014d75411350547c39b4a4aa07611f"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/old-classification.json",
+      "bytes": 1537,
+      "sha256": "2c7c28e77b892ee5e7af009023439c0771431ff10f0fda79609f5f4d984f6f2a"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/original-classification-diagnostics.json",
+      "bytes": 747,
+      "sha256": "0d99bda4998ed30752557899b2fb0d2c265a00cfe63f1210d96fe5c36f99d019"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/pack.json",
+      "bytes": 104736,
+      "sha256": "6ad72d54866e31ae2be163fb46fd62e1bfe14d4f945d77bfb51a48a16446d7ec"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/packed-du-runtime-node22.json",
+      "bytes": 1226,
+      "sha256": "c58e859ff2385f3d31d1910fc4d4aedba1a171322f4dc90edfe076170ee40ff6"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/packed-du-runtime.json",
+      "bytes": 1215,
+      "sha256": "8b085f72f8acb0ceac5d15dd0a6087bfda2e9a5b57be9f812c21cc6100b0ac6b"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/packed-du-types.json",
+      "bytes": 1024841,
+      "sha256": "f99cf5252e83cd40e9e5fd3e9623a2d60fc2a709607bd041f148dc1014d4059d"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/packed-source-denial.json",
+      "bytes": 1557,
+      "sha256": "e48498684a6b9f5a5a52e95bc08560ec299a0745137b1aaaf66f08613b158967"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/runtime-0.json",
+      "bytes": 570,
+      "sha256": "d66e3b21fb3df12389cf036f62543a3393932d9ff77b2cb9cbb6c7dc93b05016"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/runtime-1.json",
+      "bytes": 570,
+      "sha256": "fde027bf1938793fdaf99b5b4b2bbc2e6f00e1917acda77a1fa8d69dc88b66e9"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/source-and-template-neighbor-errors.json",
+      "bytes": 1642,
+      "sha256": "52972e326e299e55fa27187be666de7f62cb735f033a5dfb0138fff997063f74"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/staged-original-template-0.json",
+      "bytes": 1024349,
+      "sha256": "fde46c1a16b68a4bbb0557b3871f428e7b60fef8bd7f049c8f656c16f96eafb9"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/staged-original-template-1.json",
+      "bytes": 1024349,
+      "sha256": "959fdb5bcc34b30917c6c95e66a87ae89b12c129eec929c2d7b00eb669528f12"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/typecheck-all/report.json",
+      "bytes": 26361567,
+      "sha256": "df22f499196cb0809ee870069758a0debd5bcbaae26484ca87f50b84d2390778"
+    },
+    {
+      "path": "du-type-workflow-dR5fYq/typecheck-all.json",
+      "bytes": 2105,
+      "sha256": "435b14e879b271a172d6e12e0a2d80418cf1f59f0d812a35b9f64170fcc0f111"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/REPORT.json",
+      "bytes": 26858706,
+      "sha256": "c2d23cbdd5003035db31bf4062dabe5349701264de8784a96a6429eb914ff0cf"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/alternate-leaf-compiles-without-binding.json",
+      "bytes": 1045964,
+      "sha256": "1d8f97f42b089eb051028f3b19517d194342c799edad58e39f1fc8b48983112b"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/canonical-config-fixture.json",
+      "bytes": 2595,
+      "sha256": "87b83941b32da511d251290a8b790afc4123d14cb39b58f33261bab010d3e53b"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/current-consumer-permission-admission.json",
+      "bytes": 4767,
+      "sha256": "c45603610d767f42e6cee731b4e0335cb0280f3265f76268a40963dcba5854d7"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/negative-du-options.json",
+      "bytes": 687,
+      "sha256": "60666585b8ceec7b4826dd6a7ae264c2439f951c98f9a9d410336a316f1f2e99"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/node22-permission/current-consumer-permission-admission.json",
+      "bytes": 4976,
+      "sha256": "92fefbe0662bcc9ee05d7ba64bd04f8fd59c799fddedbbf6295a38a31fd2d02e"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/old-classification.json",
+      "bytes": 1789,
+      "sha256": "13abfa05fc35f398e188db4a26fd9a7ba57229d44d8e88873e46541981e21236"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/original-classification-diagnostics.json",
+      "bytes": 4215,
+      "sha256": "de0a563acb9f68406af77fee90b9ec59848d5171416b0a0c2fcc564bdd1410b4"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/pack.json",
+      "bytes": 104752,
+      "sha256": "1c5ad8fdf8259985789b034182a1cb28e485f44a15496c82bb0323f37c004cf8"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/packed-du-runtime-node22.json",
+      "bytes": 1051,
+      "sha256": "6902f839f74661c3c6c7aa0b5885dae1879273da47458f1b81279edc23bfb27a"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/packed-du-runtime.json",
+      "bytes": 1044,
+      "sha256": "ba96e99a6ff3061f62b78a63eea21afe798d34205748fcae94d4c8bbafd43573"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/packed-du-types.json",
+      "bytes": 1045924,
+      "sha256": "b4e645d687ee80ad3e9dab6b9c86d2baafc4310447a68722f904ec07d6f4fe61"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/packed-source-denial.json",
+      "bytes": 1589,
+      "sha256": "37072280d17fd0c818de91e2c60e34fa91b0cc7513c101a028b41fe7ed080fb6"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/runtime-0.json",
+      "bytes": 578,
+      "sha256": "2cbf5c395bf006290a4ced4a152a2c37ee0f714530380b5a11128de3a7f440e4"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/runtime-1.json",
+      "bytes": 578,
+      "sha256": "125b58848abfc7c932949db414913035e83add276df2d5d2b6e2072f8d674835"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/source-and-template-neighbor-errors.json",
+      "bytes": 875,
+      "sha256": "d3d9b94f30e83a726445f3627a8382f07d68589b5de72b29b33cc143537b0c68"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/staged-original-template-0.json",
+      "bytes": 1045424,
+      "sha256": "d103bf9ac39b4f68bbddfa25fab9afa8e6dd62c91f603a57d266970fa06a29ee"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/staged-original-template-1.json",
+      "bytes": 1045424,
+      "sha256": "5cbd3d73a67e757e777c67ba5dca63b47a4e6428d19873f39201b66f9aae1a6a"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/typecheck-all/report.json",
+      "bytes": 26361567,
+      "sha256": "5016c8b27e0a13ffd2a1eb281c7bcb07c7ab0169d751cfe5672e7882d34af8af"
+    },
+    {
+      "path": "du-type-workflow-9E08CB/typecheck-all.json",
+      "bytes": 2121,
+      "sha256": "be74ade6e1f8899652ef57f77797be1cb09d97cace46d30b7bb88ebcd8d918ae"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/REPORT.json",
+      "bytes": 26859206,
+      "sha256": "9b563286fb706aa644160695ebb138800c286f6554827297eb9b547b5bbc6d87"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/alternate-leaf-compiles-without-binding.json",
+      "bytes": 1045964,
+      "sha256": "66ddc1357692fff1eebc5cbdeaa6e08b3b9192d7e3d2bab605d8557b9c423237"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/canonical-config-fixture.json",
+      "bytes": 2596,
+      "sha256": "c478029cd3e6e0cb5245f33e905f1b6e5c48611500592b583001fbe19ed7c3f4"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/current-consumer-permission-admission.json",
+      "bytes": 4765,
+      "sha256": "3324528ec95f3e9f94a815eb5fda589f0e9429bca5abaa8670bc08e47fd8026e"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/missing-installed-leaf-runtime.json",
+      "bytes": 1757,
+      "sha256": "c8cb8fda6777802791fb3b7b170e2eadf45481e87c935c8bed8fe26032960060"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/missing-installed-leaf-types.json",
+      "bytes": 762,
+      "sha256": "dd9ad0bf0a5fa4619acb13c131fce17769be3ac8a3ed984d00ca0df583680640"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/negative-du-options.json",
+      "bytes": 687,
+      "sha256": "32da7cffad50981431e21ea4d08d4219e663f0d959849ada9ba6e4cfd9aba737"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/node22-permission/current-consumer-permission-admission.json",
+      "bytes": 4974,
+      "sha256": "3db1e193ddbe98b0fbf0620fb4d06092ff7b81323c335432b98bd19589053d3f"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/old-classification.json",
+      "bytes": 1789,
+      "sha256": "956c68e9274ed98e1d76d328ff94958ddb64e7cbe1c8979f1e10f5960165eaf8"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/original-classification-diagnostics.json",
+      "bytes": 4215,
+      "sha256": "1fdd6d8ee66a00281fc793dbda8360f34a95dc0404c782c9a8de9191180a77c4"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/pack.json",
+      "bytes": 104752,
+      "sha256": "178e44bea46ea60667071a7368baeba29644d0d9946229022cc990db38a0046d"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/packed-du-runtime-node22.json",
+      "bytes": 587,
+      "sha256": "dd91d99db57dcc0365c7a8486cb7a7a0ef74f2ef75dedac7edc5ac7d2e5e7b1c"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/packed-du-runtime.json",
+      "bytes": 580,
+      "sha256": "236b7294f35603bda425edebe5298f4c27f3da7c8fe7e6597a877c365254a966"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/packed-du-types.json",
+      "bytes": 1045924,
+      "sha256": "512f46ef6b5678d8ee2a82cf2802126362b663d4e0b14eabfb83d120bb64203e"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/packed-source-denial.json",
+      "bytes": 1589,
+      "sha256": "378a51e310c21faace0e0a8f48f43c8b9205562ef52d7a9afface3b80792c5ea"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/runtime-0.json",
+      "bytes": 578,
+      "sha256": "a89bd2b2ba7bc54388d8661480336b668edac8403888131c9f2b3e3fcadfef70"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/runtime-1.json",
+      "bytes": 578,
+      "sha256": "93b11b480626c97d6f23455935281f3346fd1121837b7a7ce217a292e5b75a74"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/source-and-template-neighbor-errors.json",
+      "bytes": 875,
+      "sha256": "9c30cc52bd34d811cdc7d906114fbede80624af110d2c352f6ffdbac7f3df45b"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/staged-original-template-0.json",
+      "bytes": 1045424,
+      "sha256": "1127fe4440f70ef06d7fcdf74885c3bdbfc307f08ad507ffbc57ba7311e82068"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/staged-original-template-1.json",
+      "bytes": 1045424,
+      "sha256": "59361357487e52bca191b8bbf1ad38741205602acbc6933f93d02592a1b2ffc0"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/typecheck-all/report.json",
+      "bytes": 26361567,
+      "sha256": "3c42a7681a7c4b939e2e1eeb1160b374afa8c697825aa5cde86ebb6860dd0e5a"
+    },
+    {
+      "path": "du-type-workflow-bLLHQf/typecheck-all.json",
+      "bytes": 2121,
+      "sha256": "b01526421067424af779b7367925c3f39a9d469273cb4131e6167eac0df173f6"
+    }
+  ]
+}

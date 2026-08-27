@@ -54,6 +54,7 @@ export function preservation(phase) {
 }
 if (process.argv[1]?.endsWith('/preservation.mjs')) {
   const [phase, label] = process.argv.slice(2);
-  artifact(`${label}.json`, preservation(phase));
-  console.log(phase, 'exact approved deltas; all other inventoried bytes unchanged');
+  const result = preservation(phase);
+  artifact(`${label}.json`, result);
+  console.log(phase, 'exact approved test deltas; other structured evidence unchanged; separately observed derived changes:', result.derivedChanges.length);
 }

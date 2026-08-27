@@ -1,0 +1,445 @@
+{
+  "recordedAt": "2026-08-27T09:55:49.221Z",
+  "fixtureCommit": "e312860960f1534c2c77545fcf0fb20b3bd6f029",
+  "sourceHead": "a31b7c36eef00c41763875c863a559594049f13f",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tooling": {
+    "tsx": "4.23.12",
+    "typescript": "5.9.3"
+  },
+  "command": "node --unhandled-rejections=strict --import ./tests/stress/byte-ownership-20260827/binding.mjs --import tsx --test --test-concurrency=1 --test-reporter=tap tests/stress/byte-ownership-20260827/ownership.test.ts",
+  "exitCode": 1,
+  "counts": {
+    "tests": 20,
+    "pass": 17,
+    "fail": 3,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "sourceHashesCheckedBeforeAndAfter": 222,
+  "all212ProductHashesMatchEarlierFreeze": true,
+  "rawTapSha256": "704ccb2e9a5a9e6e4c73b7c084b80a486e90a0e5ee597e4a4f94f7564393284a",
+  "rows": [
+    {
+      "id": "01",
+      "actual": "00ffc3a9410a",
+      "expected": "00ffc3a9410a",
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "02",
+      "actual": "000000000000",
+      "expected": "00ffc3a9410a",
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "fail"
+    },
+    {
+      "id": "03",
+      "actual": "00ffc3a9410a",
+      "expected": "00ffc3a9410a",
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "04",
+      "actual": {
+        "stdout": "a9410aa9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "fail"
+    },
+    {
+      "id": "05",
+      "actual": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "06",
+      "actual": {
+        "stdout": "00000000",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "c3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "fail"
+    },
+    {
+      "id": "07",
+      "actual": {
+        "stdout": "c3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "c3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "08",
+      "actual": {
+        "stdout": "c3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "c3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "09",
+      "actual": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "external-accept:0",
+        "write-complete:0",
+        "external-accept:1",
+        "write-complete:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "10",
+      "actual": "00ffc3a9410a",
+      "expected": "00ffc3a9410a",
+      "events": [
+        "first-write-complete",
+        "first-read:00ffc3",
+        "second-write-complete",
+        "after-write:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "11",
+      "actual": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "12",
+      "actual": {
+        "stdout": "00ff",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ff",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "13",
+      "actual": {
+        "stdout": "41502f447155454b",
+        "stderr": "",
+        "exitCode": 0,
+        "file": "00ffc3a9410a"
+      },
+      "expected": {
+        "stdout": "41502f447155454b",
+        "stderr": "",
+        "exitCode": 0,
+        "file": "00ffc3a9410a"
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "14",
+      "actual": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "expected": {
+        "stdout": "00ffc3a9410a",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "15",
+      "actual": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a"
+      ],
+      "expected": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a"
+      ],
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero",
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "16",
+      "actual": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        126,
+        126
+      ],
+      "expected": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        126,
+        126
+      ],
+      "events": [],
+      "status": "pass"
+    },
+    {
+      "id": "17",
+      "actual": [
+        "00ffc3",
+        "a9410a",
+        "consumer-did-not-mutate-storage",
+        "finally:zero"
+      ],
+      "expected": [
+        "00ffc3",
+        "a9410a",
+        "consumer-did-not-mutate-storage",
+        "finally:zero"
+      ],
+      "events": [],
+      "status": "pass"
+    },
+    {
+      "id": "18",
+      "actual": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a"
+      ],
+      "expected": [
+        "00ffc3a9410a",
+        "00ffc3a9410a",
+        "00ffc3a9410a"
+      ],
+      "events": [
+        "yield:0:00ffc3",
+        "next:0",
+        "yield:1:a9410a",
+        "next:1",
+        "finally:zero"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "19",
+      "actual": [
+        [
+          "yield:0:00ffc3",
+          "finally:zero"
+        ],
+        [
+          "yield:0:00ffc3",
+          "finally:zero"
+        ]
+      ],
+      "expected": [
+        [
+          "yield:0:00ffc3",
+          "finally:zero"
+        ],
+        [
+          "yield:0:00ffc3",
+          "finally:zero"
+        ]
+      ],
+      "events": [],
+      "status": "pass"
+    },
+    {
+      "id": "20",
+      "actual": [
+        "yield:0:00ffc3",
+        "finally:zero"
+      ],
+      "expected": [
+        "yield:0:00ffc3",
+        "finally:zero"
+      ],
+      "events": [],
+      "status": "pass"
+    }
+  ],
+  "sourceChanges": [],
+  "categories": [
+    {
+      "id": "02",
+      "category": "shared-helper/internal-only",
+      "file": "src/commands/internal.ts",
+      "line": 158,
+      "reason": "retained Buffer.slice alias survives next reads and finalizer zero"
+    },
+    {
+      "id": "04",
+      "category": "shared-helper/public-command",
+      "file": "src/commands/internal.ts",
+      "line": 182,
+      "reason": "partial Buffer line aliases source storage across next read"
+    },
+    {
+      "id": "06",
+      "category": "command-owned/public-command",
+      "file": "src/commands/streams.ts",
+      "line": 43,
+      "reason": "byte-tail queue aliases Buffer storage until after source finalization"
+    }
+  ],
+  "unmeasured": [
+    "WebDAV dynamic behavior (static inspection only)",
+    "deployed S3/WebDAV providers",
+    "jq/rg/tar workflows",
+    "arbitrary concurrent host mutation",
+    "broad fuzz/regex stress",
+    "full-suite/build/release gate",
+    "performance"
+  ]
+}

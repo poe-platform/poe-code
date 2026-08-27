@@ -60,4 +60,7 @@ Twenty rows isolate contract collection, shared collection, named-VFS lines and
 byte-tail, public stdin/capture/pipes, cat/head/tee/base64, Memory, readonly and
 S3Mock. WebDAV's bodyChunks copy and readStream slice are inspected only; no
 deployed adapter claim. jq/rg/tar and larger corpora are not needed initially.
-Results, counts, exact observed bytes and limitations are recorded separately.
+Results, counts, exact observed bytes and limitations are recorded in REPORT.md
+and evidence/results.json. Current binding uses source-public-before.json;
+source-before.json preserves the original pre-seeding fixture, and
+scaffold-source-before.json preserves the initial compile-only scaffold.

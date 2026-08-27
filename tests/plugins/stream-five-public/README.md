@@ -6,6 +6,14 @@ filesystem implementation, regex code, root TypeScript configuration or
 independent reviewer cases. The package remains `virtual-bash`, with zero
 runtime dependencies. It is not independent acceptance or a full-project gate.
 
+The qualified stream/native profile and scoped 65-command consumer success do
+not establish overall package lifecycle acceptance or release readiness. Per
+the user's August 27, 2026 update, **five public premature-cleanup failures
+remain OPEN**, routed to Sagan/Arch pending independent closure. Optional
+`InvocationCleanup` contract `07acb1a4` alone does not establish that closure;
+runtime/regex integration remains in progress in that update. This documentation
+qualification does not rerun or independently verify those failures.
+
 ## Public surface and original observations
 
 - `333c7bb`: root exports from the actual stream-format and split modules.

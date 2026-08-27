@@ -1703,6 +1703,15 @@ that any implementation, command, fixture, or test currently exists.
   author README/evidence. No full gate, superiority, 72-hour completion or
   independent public acceptance is claimed; a different verifier follows closure.
 
+- Documentation qualification only (August 27, 2026): the qualified stream/native
+  profile and scoped 65-command consumer success do not establish overall
+  package lifecycle acceptance or release readiness. Per the user's update,
+  **five public premature-cleanup failures remain OPEN**, routed to Sagan/Arch
+  pending independent closure. Optional `InvocationCleanup` contract `07acb1a4`
+  alone does not establish closure; runtime/regex integration remains in progress
+  in that update. No rerun or new failure verification is claimed here; the
+  author's tested source, hashes, results and historical evidence remain unchanged.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

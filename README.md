@@ -136,6 +136,13 @@ replacement. The retained native cohort has **124/164 strict** executions
 and **164/164 diagnostic-meaning-v2** executions: **40 exact stderr differences
 remain**, so these results are not full parity or a full-project gate.
 
+The qualified stream/native profile and scoped 65-command consumer success do
+not establish overall package lifecycle acceptance or release readiness. Per
+the user's August 27, 2026 update, **five public premature-cleanup failures
+remain OPEN**, routed to Sagan/Arch pending independent closure. Optional
+`InvocationCleanup` contract `07acb1a4` alone does not establish that closure;
+runtime/regex integration remains in progress in that update.
+
 ## Stream Inspection Commands
 
 The package root and `virtual-bash/commands/stream-inspection` export

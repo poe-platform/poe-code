@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: exact-copy
+ok 1 - exact-copy
+  ---
+  duration_ms: 11.836708
+  type: 'test'
+  ...
+# Subtest: missing
+ok 2 - missing
+  ---
+  duration_ms: 2.7525
+  type: 'test'
+  ...
+# Subtest: wrong-bytes
+ok 3 - wrong-bytes
+  ---
+  duration_ms: 3.730834
+  type: 'test'
+  ...
+# Subtest: changed-same-version
+ok 4 - changed-same-version
+  ---
+  duration_ms: 4.571
+  type: 'test'
+  ...
+# Subtest: symlink-source
+ok 5 - symlink-source
+  ---
+  duration_ms: 3.30975
+  type: 'test'
+  ...
+# Subtest: existing-destination
+ok 6 - existing-destination
+  ---
+  duration_ms: 5.267792
+  type: 'test'
+  ...
+# Subtest: symlink-destination
+ok 7 - symlink-destination
+  ---
+  duration_ms: 5.534417
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 79.597

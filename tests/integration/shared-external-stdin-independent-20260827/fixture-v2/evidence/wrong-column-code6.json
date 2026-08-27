@@ -1,0 +1,116 @@
+{
+  "label": "post-inspection targeted column supplement, NOT frozen holdouts",
+  "rows": [
+    {
+      "boundary": "direct",
+      "style": "sync",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    },
+    {
+      "boundary": "direct",
+      "style": "reject",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    },
+    {
+      "boundary": "direct",
+      "style": "zero",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    },
+    {
+      "boundary": "Shell",
+      "style": "sync",
+      "observed": {
+        "ok": false,
+        "reason": "Error: column-Shell-sync-return",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    },
+    {
+      "boundary": "Shell",
+      "style": "reject",
+      "observed": {
+        "ok": false,
+        "reason": "Error: column-Shell-reject-return",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    },
+    {
+      "boundary": "Shell",
+      "style": "zero",
+      "observed": {
+        "ok": false,
+        "reason": "0",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+      }
+    }
+  ]
+}

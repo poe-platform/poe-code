@@ -1,0 +1,19 @@
+{
+  "id": "shell-opaque-generator-abort",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "generator-started:release",
+    "generator-return-request",
+    "rejected:0",
+    "public-settled-before-generator-retired",
+    "generator-next:release",
+    "generator-finalizing:release",
+    "generator-finish:release",
+    "generator-retired:release"
+  ],
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

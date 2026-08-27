@@ -1,0 +1,25 @@
+{
+  "id": "shell-primary-read-zero",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "fulfilled:{\"stdout\":\"\",\"stderr\":\"shell: line 1: 0\\n\",\"stdoutBytes\":{},\"stderrBytes\":{\"0\":115,\"1\":104,\"2\":101,\"3\":108,\"4\":108,\"5\":58,\"6\":32,\"7\":108,\"8\":105,\"9\":110,\"10\":101,\"11\":32,\"12\":49,\"13\":58,\"14\":32,\"15\":48,\"16\":10},\"exitCode\":1}"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [],
+  "stderr": [
+    "shell: line 1: 0\n"
+  ],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

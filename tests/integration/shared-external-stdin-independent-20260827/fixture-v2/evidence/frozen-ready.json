@@ -1,0 +1,23 @@
+{
+  "fixtureCommit": "8e5fec07ec9a39582987736269bbed51caeb795e",
+  "freezeSha256": "f154fb6aad15cfdfbdc6ffe6fb956218f45087eda9fb58a9186b6b43ea619ac8",
+  "deltaSha256": "e30f05bc98707b8c6ba02cf25d89d5be3e3d5167f248e58690bc24cf9d5e86f2",
+  "negativeDiffSha256": "e70989addaa5d7fc47d52b993436a1ed2427fe9f15b1c6af412f07888f59d154",
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "inputTsSha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+  "inputJsSha256": "f8b984b6fc338ff3d1ca60e10283ab100d8e62a697f4b7f8e691819c28ea7c4a",
+  "actualReplay": "NOT YET EXECUTED",
+  "plannedCohorts": [
+    "35 cases",
+    "column6"
+  ],
+  "plannedNegativeAssertionExecutions": 3,
+  "plannedNegativeRows": 8,
+  "historicalNegativeExecutions": 4,
+  "historicalCohorts": "original18/32 -> 24/32; provisional25/35 -> 33/35; column0/6; author34/nine fixed; separate falsy5/5",
+  "sourceChangedByAuthor": false,
+  "activeProcesses": 0,
+  "reviewer": "WAITING",
+  "publicIntegration": "HOLD"
+}

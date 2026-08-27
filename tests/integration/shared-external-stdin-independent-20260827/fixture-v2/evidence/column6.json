@@ -1,0 +1,92 @@
+{
+  "label": "post-inspection targeted column supplement, NOT frozen holdouts",
+  "rows": [
+    {
+      "boundary": "direct",
+      "style": "sync",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    },
+    {
+      "boundary": "direct",
+      "style": "reject",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    },
+    {
+      "boundary": "direct",
+      "style": "zero",
+      "observed": {
+        "ok": true,
+        "exitCode": 1,
+        "reason": "undefined",
+        "sameReturnReason": false,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    },
+    {
+      "boundary": "Shell",
+      "style": "sync",
+      "observed": {
+        "ok": false,
+        "reason": "Error: column-Shell-sync-return",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    },
+    {
+      "boundary": "Shell",
+      "style": "reject",
+      "observed": {
+        "ok": false,
+        "reason": "Error: column-Shell-reject-return",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    },
+    {
+      "boundary": "Shell",
+      "style": "zero",
+      "observed": {
+        "ok": false,
+        "reason": "0",
+        "sameReturnReason": true,
+        "reads": 1,
+        "returns": 1,
+        "stderr": "column: EFBIG: column input limit exceeded\n",
+        "stdoutHex": ""
+      },
+      "pass": true
+    }
+  ]
+}

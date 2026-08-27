@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "role": "frozen-control-specification-only",
+  "executed": false,
+  "controls": [
+    {"id":"S01","phase":"static-only","kind":"positive","input":"Untouched preparation and complete pinned Git inputs","expect":"Authenticated preparation; admitted=false; all29 HELD. Exit zero is not semantic success."},
+    {"id":"A01","phase":"future-admission","kind":"negative","input":"Exact74 author names without authenticated root HTML74 acceptance, or the unaccepted streaming repair","expect":"HOLD; no DU invocation, even if pack reproduction succeeds."},
+    {"id":"A02","phase":"future-admission","kind":"negative","input":"Old mode committed-archive, transient mode relabel, or full-history claim","expect":"Reject this addendum's binding; never dispatch the original validator using a forged mode."},
+    {"id":"A03","phase":"future-admission","kind":"negative","input":"Changed, removed, extra, duplicate, traversal, symlink or other nonregular selected input; changed mode/blob/hash; later source/helper","expect":"Reject before materialization/execution; do not repair using live source. Each mutation is an isolated control."},
+    {"id":"A04","phase":"future-admission","kind":"negative","input":"Absent pinned pack, partial census, one changed nonloaded member, matching emitted JS but differing tar bytes, or failed reproduction","expect":"No admission; require direct whole-pack byte equality, exact SHA-256 and complete package census."},
+    {"id":"A05","phase":"future-admission","kind":"negative","input":"Missing original required binding/root approval, unauthorized supervisor/tool, changed helper/dependency, unspecified write isolation or new protected-tree entry","expect":"Reject; preserve original common requirements and pre/post authentication, including new entries."},
+    {"id":"A06","phase":"future-admission","kind":"positive","input":"Accepted HTML74, all authentic root bindings, complete pinned inputs/tools and exact independently reproduced full pack","expect":"Eligible for a separately reviewed future admission implementation only; v1 still refuses admission. No DU29 result follows from eligibility."},
+    {"id":"A07","phase":"future-admission","kind":"positive","input":"Unrelated live worktree edits or foreign staging while pinned committed inputs remain identical","expect":"Do not veto scoped input authentication or consume those live bytes; do not require global index equality."},
+    {"id":"P01","phase":"future-public-replay","kind":"negative","input":"Missing explicit root/subpath export; source fallback; absent/tampered load proof; mismatched consumer/helper; symlink install; old move location remains","expect":"Reject before semantic credit; original P03-P06/R03 guards remain required."},
+    {"id":"P02","phase":"future-public-replay","kind":"negative","input":"Count74, count76, duplicate75 or substituted75, even if names look plausible","expect":"Reject exact root-approved75 comparison; keep getopts builtin, HTML present and curl/SafeJS/expr excluded."},
+    {"id":"P03","phase":"future-public-replay","kind":"positive","input":"Admitted exact pack physically installed/moved, authenticated complete actual-load evidence and strict declaration controls, then all29 separately executable cases","expect":"Report each actual result against original frozen assertions, without converting blocked cases or expected guard failures into semantic passes."}
+  ]
+}

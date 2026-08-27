@@ -254,6 +254,13 @@
   capability evidence and native semantic parity are separate. Performance is
   measured only after output/effect equality with repeats/order/load caveats;
   no aggregate superiority claim follows from selected passing workloads.
+- Expanded-comparison native validity must include launcher/byte/path controls,
+  not merely the final exit status. Preserve the initial oracle defects and raw
+  scores alongside corrected evidence; do not edit recipes to hide failures.
+  The224-case cohort has223 unique inputs, two historical script overlaps and
+  incomplete baseline-only command coverage. Keep terminal byte-API mismatches
+  distinct from internal pipe/file corruption, and performance TS-source versus
+  bundled-package/setup differences explicit. Distinct fairness review is pending.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

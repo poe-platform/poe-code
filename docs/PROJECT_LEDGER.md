@@ -1230,8 +1230,6 @@ that any implementation, command, fixture, or test currently exists.
   The exact user “much better” requirement and72-hour/full-product goals remain
   unproven; a selected green subset cannot redefine them.
 
-### Remaining product validation
-
 ### August 27, 2026: jq checkpoint and native-first expanded corpus
 
 - Fresh routed jq evidence supersedes the earlier pending42-fix note only for
@@ -1258,7 +1256,61 @@ that any implementation, command, fixture, or test currently exists.
   the baseline public terminal-output metadata boundary from correct internal
   byte pipes/VFS effects; do not infer internal corruption from public encoding.
 
-### Remaining product validation (continued)
+### August 27, 2026: corrected expanded comparison and routed failures
+
+- Corpus/protocol3462e3e precedes product scoring; jq-ledgerbd2cacb remains the
+  frozen production revision bd2cacb3a20403302fd0a49441932d5522793e56. Corrected
+  harness0294afb6e690433aed994868e5ed437ecf58ae48 changes no product source.
+  The main cohort has224 cases,223 unique input workloads and two exact-script
+  overlaps with the historical115 recipes+3 probes. Do not sum the cohorts as
+  entirely distinct coverage. Actual execution reaches53/53 unshadowed default
+  plugins plus optional curl; true/false/pwd remain kernel-shadowed registrations.
+- Corrected exact native comparison: virtual206 pass/18 fail; just-bash3.4.2
+  155 pass/69 fail; each denominator224, with zero skipped, pending, timeouts,
+  invalid-oracle rows or engine/harness errors. Both pass148; both fail11;
+  baseline alone passes seven kernel recipes. Functional groups are commands
+  158/168 versus109/168, kernel29/36 versus36/36, composition11/12 versus8/12,
+  and optional local-network8/8 versus2/8. No full-product acceptance follows.
+- Preserve initial191/224 versus146/224 as non-accepted historical scores:
+  macOS canonical temporary-root projection and GNU gunzip/zcat launcher selection
+  were oracle defects. Native controls now verify actual decompression bytes,
+  replacement effects and canonical paths; unchanged recipes were recaptured.
+  Across both runs, all448 product stdout/stderr/status/tree observations and
+  source hashes match exactly. The15/9 score changes are oracle corrections,
+  not product fixes. ORACLE_CORRECTIONS.md retains causes and raw history.
+- Frozen18-failure routing: core/Curie five (realpath relative option, wc padding
+  and C-locale character count, env order and nested clean-env propagation);
+  bytes/root one (cksum -a); diff-patch/Faraday four (patch -s and downstream
+  hash effects); metadata/Faraday one (stat fractional timestamp rendering);
+  shell/Sagan seven (type classification, no-shebang/env-shebang scripts,
+  source/dot/eval and parameter expansion). Exact paths, scripts, expected and
+  actual bytes/effects are in ANALYSIS.json. Formatting/profile differences
+  are not automatically data-loss bugs. No production edits were made and later
+  concurrent owner fixes have not been certified by this frozen report.
+- Inventories distinguish56 plugin registrations,18 kernel names and two script
+  entrypoints (union73) from baseline83 registrations/40 kernel names (union120).
+  Baseline53 union names absent from this product remain explicit gaps, not free
+  passes. Eighteen baseline failed cases target six missing declared names;
+  all remain in the denominator. Eleven failures carry exact public byte-boundary
+  encoding evidence; internal pipe/VFS controls prevent misattributing those to
+  command corruption. Optional SafeJS/Python/JS and backend protocols are separate.
+- Seven harness checks plus the native control test pass; instrumentation matches
+  plain execution24/24. Three of four performance candidates match both engines;
+  the binary candidate remains excluded with its failed output assertion.
+  Five alternating-order trials per engine yield30/30 matching observations.
+  Median ms: sed51.086 versus113.102, sort38.022 versus5.680 (product slower),
+  awk20.899 versus36.840. No combined speed score. Raw sampled memory/maxRSS,
+  hashes, Node22.22.2/Darwin25.4.0 and shared-host load are retained; TS source
+  under tsx versus installed bundled JS and startup/warmup memory are caveats.
+- Evidence: benchmarks/reports/expanded-20260827/ANALYSIS.md and
+  corrected-bd2cacb/*.json. Root runtime dependency metadata remains empty and
+  no package/lock/dependency or production API changes were needed. There was
+  no new global product test/build/typecheck run in this benchmark checkpoint.
+  Other owners' moving changes remain untouched. Distinct benchmark fairness
+  review, broad required workflows, the72-hour goal and the exact “much better”
+  requirement remain open.
+
+### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
   workers deliver code; keep foundation checkpoint evidence separate from

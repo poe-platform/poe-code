@@ -43,6 +43,18 @@ and absolute patch-target fixes: virtual passes 118/118, while just-bash retains
 `benchmarks/reports/post-integration-comparison.json`. This does not replace the
 earlier full-suite result, prove all its failures fixed, or establish superiority.
 
+A broader, separate 224-case comparison freezes product source at
+`bd2cacb3a20403302fd0a49441932d5522793e56`: **206 pass / 18 fail** versus
+just-bash 3.4.2's **155 pass / 69 fail**, with zero skips/timeouts/errors.
+It executes all 53 unshadowed default plugins and explicitly measures shell
+gaps: the kernel cohort is 29/36 versus 36/36. These are 223 unique input
+workloads, not full option coverage. Two initial oracle defects and their old
+scores remain preserved; no production code changed to improve these results.
+See `benchmarks/reports/expanded-20260827/ANALYSIS.md` for failure ownership,
+missing baseline tools, byte-API controls, matched performance wins **and losses**,
+and the still-pending independent fairness review. This is not a global suite or
+superiority claim; `benchmarks/expanded/README.md` gives reproduction commands.
+
 ## Use the command bundle
 
 After `npm ci` and `npm run build`, package-root imports expose the aggregate:
@@ -67,7 +79,7 @@ The result contains `world` followed by a newline.
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), and table-text
 (`paste`, `comm`, `join`), totaling 56 registered plugin names. Table-text is an
-author delivery awaiting independent review; archive review is also in progress;
+delivery with a bounded 104/104 independent checkpoint; archive review is in progress;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;

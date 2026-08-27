@@ -1,0 +1,3180 @@
+{
+  "schema": "env-gate-source-loader-clarification-v1",
+  "date": "2026-08-27",
+  "commits": {
+    "freeze": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+    "gateSource": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "featureSource": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+    "gateEvidence": "954406871fae381b1c69441b34946a224201d7ad",
+    "acceptedEvidence": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+    "acceptedFixture": "8b6bcf83745727a45232c96de79a030fe98fb388",
+    "reviewFreeze": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+    "priorClassification": "106e2951da6c8a0ea033eb7626e167400c5b19da"
+  },
+  "parents": {
+    "freeze": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "parents": [
+        "862fdc544a0daa663735bfbe1dc965c495e17a67"
+      ],
+      "tree": "1e9752522d8fc36e11f6452d173c51cc8477255c"
+    },
+    "gateSource": {
+      "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "parents": [
+        "5356008419940cf5b3a1e67a0812df803ef32e6c"
+      ],
+      "tree": "255f73930e15494debae519001b2609b9af0de1d"
+    },
+    "featureSource": {
+      "commit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "parents": [
+        "b494675c34dc289f4ad4b10a9201e1211eb0a7d8"
+      ],
+      "tree": "223a56d93e4abd5a7ff149b3d95536a0129731f7"
+    },
+    "gateEvidence": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "parents": [
+        "cddbde09386fb8a92c64a5df1c1cedb8cc58fd18"
+      ],
+      "tree": "412f3f2a17a04984f7a8e57c5803c95970f1df91"
+    },
+    "acceptedEvidence": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "parents": [
+        "1a18cb1858f9453f41a20caff0988c578aa9c7e2"
+      ],
+      "tree": "d56facde70d02e8b2f9ea4e9886f3424ecc286f1"
+    },
+    "acceptedFixture": {
+      "commit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "parents": [
+        "f2906a064d2558c634cdc1b71a7b74fd2f6d022a"
+      ],
+      "tree": "0051f4829c32c78ff80b1aff4439b8b4f865018a"
+    },
+    "reviewFreeze": {
+      "commit": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+      "parents": [
+        "385c6af8f6face6d09b9ee3f93875d1b47742a40"
+      ],
+      "tree": "cb96fa687dbe3237f0872695fff8038b5e9f88ff"
+    },
+    "priorClassification": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "parents": [
+        "96146732cc7e17a67797389de5b83d14b29b41bf"
+      ],
+      "tree": "7234c9f3fcb7b502bc7f1b7c98bfaf8a0276f7b6"
+    }
+  },
+  "ancestry": {
+    "featureIsAncestorOfGate": false,
+    "gateIsAncestorOfFeature": true,
+    "freezeIsAncestorOfGate": true
+  },
+  "conclusion": "Gate source selection, not fixture overlay or hidden helper pin: b494 is the feature commit's immediate parent and already contains all seven committed prospective env inputs; the actual cohort resolves b494 TypeScript source",
+  "priorClassificationUnchanged": {
+    "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+    "protectedFiles": [
+      "tests/shell-stress/env-split-gate-routing/README.md",
+      "tests/shell-stress/env-split-gate-routing/canonical-replay.json",
+      "tests/shell-stress/env-split-gate-routing/classify.mjs",
+      "tests/shell-stress/env-split-gate-routing/replay.mjs",
+      "tests/shell-stress/env-split-gate-routing/rows.json",
+      "tests/shell-stress/env-split-gate-routing/summary.json"
+    ],
+    "counts": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 84,
+      "unknown": 0
+    },
+    "proposedMigrationPaths": []
+  },
+  "sourceArchive": {
+    "recordedRevision": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "recordedArchiveSha256": "a86aa83232e4693ca91410042520bcad9f97197486adedf8a46a263aee93a78c",
+    "sourceRoot": "/private/tmp/full-gate-execution-BtyW8C/source",
+    "allTrackedFiles": 20264,
+    "binding": "Runner archives the whole named commit and verifies each extracted byte count/Git blob before recording sourceHashes. The old scratch archive is not re-created in this clarification",
+    "actualCanonicalIncludesBothTests": true,
+    "liveHeadAtExecution": "bb0647619e73085f1c9bfe5dccefcdba6522e81c",
+    "liveStatusSha256": "d9e8fb3edd92ddd3c36f5aa0630f92be14860159ea0224d0f858b27b7cc1a374",
+    "liveDirtyStateIsNotCopiedSource": true,
+    "harnessHashes": {
+      "consumer.mts.fixture": "e047233b7fa41675821fc92d49a14cb59d8f8e9c9f5bd759c5b9793ea06fdfa5",
+      "import-guard.mjs": "742fdeb9926b32da25e65d4b86b1c8b054a2080cb1ccf614b69f21e11924dffc",
+      "inspect.mjs": "1669457da2280de3c769ec5e516f65c7bbb0d635b2249afc13a06e8f68a14d1e",
+      "prerequisites.mjs": "973f0e3421181326e783634ec985ff3e9f308de2fb561bf29cd9df5b060240bb",
+      "public.mjs": "851c3733050c3948e1e06c75300f0016d6070a4d3ba1fd78d4b9cc2c34e4aa97",
+      "run.mjs": "73f87d1451ee8e85bfe67e0e4d198b9a27d2c168f127e1f5a3da28152eb7348e"
+    }
+  },
+  "fileBindings": {
+    "tests/shell/env-split-native.test.ts": {
+      "freeze": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4",
+        "bytes": 1636
+      },
+      "gateSource": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4",
+        "bytes": 1636
+      },
+      "featureSource": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4",
+        "bytes": 1636
+      },
+      "actualCopiedInput": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "mode": 420,
+        "bytes": 1636,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell/env-split-native.test.ts",
+        "mode": "100644",
+        "blob": "3a165493af996314bef27f0b3b857ef1d3e946e4",
+        "bytes": 1636
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell/env-split-host.test.ts": {
+      "freeze": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738",
+        "bytes": 2493
+      },
+      "gateSource": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738",
+        "bytes": 2493
+      },
+      "featureSource": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738",
+        "bytes": 2493
+      },
+      "actualCopiedInput": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "mode": 420,
+        "bytes": 2493,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell/env-split-host.test.ts",
+        "mode": "100644",
+        "blob": "4aeeb2960c00a5954b11722943478832e0fea738",
+        "bytes": 2493
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": {
+      "freeze": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526",
+        "bytes": 2928
+      },
+      "gateSource": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526",
+        "bytes": 2928
+      },
+      "featureSource": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526",
+        "bytes": 2928
+      },
+      "actualCopiedInput": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "mode": 420,
+        "bytes": 2928,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell-stress/env-split-author/resume-fixtures.ts",
+        "mode": "100644",
+        "blob": "7ee005d9394a7543b01c2f2df8c9da095d45e526",
+        "bytes": 2928
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell-stress/env-split-author/resume-host.ts": {
+      "freeze": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e",
+        "bytes": 13035
+      },
+      "gateSource": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e",
+        "bytes": 13035
+      },
+      "featureSource": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e",
+        "bytes": 13035
+      },
+      "actualCopiedInput": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "mode": 420,
+        "bytes": 13035,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell-stress/env-split-author/resume-host.ts",
+        "mode": "100644",
+        "blob": "e645123f91e1c9034d26eb80afe2072a42348a6e",
+        "bytes": 13035
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell-stress/env-split-author/native-frozen.json": {
+      "freeze": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5",
+        "bytes": 113169
+      },
+      "gateSource": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5",
+        "bytes": 113169
+      },
+      "featureSource": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5",
+        "bytes": 113169
+      },
+      "actualCopiedInput": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "mode": 420,
+        "bytes": 113169,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell-stress/env-split-author/native-frozen.json",
+        "mode": "100644",
+        "blob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5",
+        "bytes": 113169
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell-stress/env-split-author/resume-native.json": {
+      "freeze": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573",
+        "bytes": 48095
+      },
+      "gateSource": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573",
+        "bytes": 48095
+      },
+      "featureSource": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573",
+        "bytes": 48095
+      },
+      "actualCopiedInput": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "mode": 420,
+        "bytes": 48095,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell-stress/env-split-author/resume-native.json",
+        "mode": "100644",
+        "blob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573",
+        "bytes": 48095
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "tests/shell-stress/env-split-author/resume-cases.json": {
+      "freeze": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba",
+        "bytes": 1741
+      },
+      "gateSource": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba",
+        "bytes": 1741
+      },
+      "featureSource": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba",
+        "bytes": 1741
+      },
+      "actualCopiedInput": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "mode": 420,
+        "bytes": 1741,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "tests/shell-stress/env-split-author/resume-cases.json",
+        "mode": "100644",
+        "blob": "8e6d32795813a16d3c085dbc50437b94f5151aba",
+        "bytes": 1741
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/index.ts": {
+      "freeze": {
+        "sha256": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+        "gitBlob": "10a680a2cb669fb31354db24462a5bef2a0930e5",
+        "bytes": 1236
+      },
+      "gateSource": {
+        "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+        "gitBlob": "f22006574a46d127ea52e1209168fc147c57b690",
+        "bytes": 1320
+      },
+      "featureSource": {
+        "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+        "gitBlob": "f22006574a46d127ea52e1209168fc147c57b690",
+        "bytes": 1320
+      },
+      "actualCopiedInput": {
+        "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+        "mode": 420,
+        "bytes": 1320,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/index.ts",
+        "mode": "100644",
+        "blob": "f22006574a46d127ea52e1209168fc147c57b690",
+        "bytes": 1320
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/plugins/index.ts": {
+      "freeze": {
+        "sha256": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36",
+        "gitBlob": "93c8e3ae478881a538c8e8da5e5014ddac618ed6",
+        "bytes": 4190
+      },
+      "gateSource": {
+        "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+        "gitBlob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+        "bytes": 4578
+      },
+      "featureSource": {
+        "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+        "gitBlob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+        "bytes": 4578
+      },
+      "actualCopiedInput": {
+        "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+        "mode": 420,
+        "bytes": 4578,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/plugins/index.ts",
+        "mode": "100644",
+        "blob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+        "bytes": 4578
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/commands/index.ts": {
+      "freeze": {
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+        "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+        "bytes": 2292
+      },
+      "gateSource": {
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+        "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+        "bytes": 2292
+      },
+      "featureSource": {
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+        "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+        "bytes": 2292
+      },
+      "actualCopiedInput": {
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+        "mode": 420,
+        "bytes": 2292,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/commands/index.ts",
+        "mode": "100644",
+        "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+        "bytes": 2292
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/shell/index.ts": {
+      "freeze": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+        "bytes": 275
+      },
+      "gateSource": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+        "bytes": 275
+      },
+      "featureSource": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+        "bytes": 275
+      },
+      "actualCopiedInput": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "mode": 420,
+        "bytes": 275,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/shell/index.ts",
+        "mode": "100644",
+        "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+        "bytes": 275
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/shell/shell.ts": {
+      "freeze": {
+        "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+        "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+        "bytes": 10368
+      },
+      "gateSource": {
+        "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+        "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+        "bytes": 10368
+      },
+      "featureSource": {
+        "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+        "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+        "bytes": 10368
+      },
+      "actualCopiedInput": {
+        "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+        "mode": 420,
+        "bytes": 10368,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/shell/shell.ts",
+        "mode": "100644",
+        "blob": "9d535825bce412d86c4dee587c59142bcf86944d",
+        "bytes": 10368
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/shell/runtime.ts": {
+      "freeze": {
+        "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "gitBlob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+        "bytes": 100410
+      },
+      "gateSource": {
+        "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "gitBlob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+        "bytes": 100410
+      },
+      "featureSource": {
+        "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "gitBlob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+        "bytes": 100410
+      },
+      "actualCopiedInput": {
+        "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "mode": 420,
+        "bytes": 100410,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/shell/runtime.ts",
+        "mode": "100644",
+        "blob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+        "bytes": 100410
+      },
+      "unchangedThroughTestPhase": true
+    },
+    "src/commands/execution.ts": {
+      "freeze": {
+        "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+        "gitBlob": "69e897bef13d5b3ca8fcacc3be948ae695fa547a",
+        "bytes": 8967
+      },
+      "gateSource": {
+        "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+        "gitBlob": "69e897bef13d5b3ca8fcacc3be948ae695fa547a",
+        "bytes": 8967
+      },
+      "featureSource": {
+        "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "gitBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+        "bytes": 9269
+      },
+      "actualCopiedInput": {
+        "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+        "mode": 420,
+        "bytes": 8967,
+        "symlink": false
+      },
+      "discoveryGitEntry": {
+        "path": "src/commands/execution.ts",
+        "mode": "100644",
+        "blob": "69e897bef13d5b3ca8fcacc3be948ae695fa547a",
+        "bytes": 8967
+      },
+      "unchangedThroughTestPhase": true
+    }
+  },
+  "parserPresence": {
+    "freeze": {
+      "present": false,
+      "sha256": null
+    },
+    "gateSource": {
+      "present": false,
+      "sha256": null
+    },
+    "featureSource": {
+      "present": true,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+    }
+  },
+  "sourceDelta": {
+    "changedPaths": [
+      "A\tsrc/commands/env-split.ts",
+      "M\tsrc/commands/execution.ts"
+    ],
+    "patchSha256": "f3814218d1b86368eeca1a5006a600eb2a2b5e91ec7fe52a84a1db4ad31aea33",
+    "targetFixtureDelta": ""
+  },
+  "loader": {
+    "execution": {
+      "executable": "npm",
+      "args": [
+        "test"
+      ],
+      "cwd": "/private/tmp/full-gate-execution-BtyW8C/source"
+    },
+    "nativeTestPid": 6593,
+    "hostParentPid": 6588,
+    "hostChildren": 25,
+    "cohortProcesses": 27,
+    "totalScannedImportLogs": 716,
+    "totalScannedResolutionRecords": 50230,
+    "importScanDigest": "c115e503c246e1c463ed11626c1747cbe0c037bca4cb37786accad770b884e29",
+    "moduleProcesses": [
+      {
+        "pid": 10169,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 10169,
+          "parent": 6588,
+          "group": 10169,
+          "born": "Thu Aug 27 06:15:45 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts shared-output-budget"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10169.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "d2b6992231bad5cec26c1d0444d43ca5b6be1b035ea552e48942e86374043a63",
+          "decodedSha256": "d2b6992231bad5cec26c1d0444d43ca5b6be1b035ea552e48942e86374043a63",
+          "decodedBytes": 35644,
+          "gitBlob": "fab199de7e5b97c37c2fa7ac708209a5585fa060"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "518f8316c0c3aa4f34532c7464edec103bbbdaad9a0d8d47e4a222cf0f0e3b6d",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 10169,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 10169,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 10169,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 10169,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 10402,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 10402,
+          "parent": 6588,
+          "group": 10402,
+          "born": "Thu Aug 27 06:15:45 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts shared-depth-budget"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10402.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "bc8cfb280588b57a32a21e844e34040002048062e5af5fda4d82fe8e01a2e4f2",
+          "decodedSha256": "bc8cfb280588b57a32a21e844e34040002048062e5af5fda4d82fe8e01a2e4f2",
+          "decodedBytes": 35644,
+          "gitBlob": "1bbb7b74d1262878625a2049e4d919a0c4e6a231"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "151f791f5a933a768c2d4c2ceddd09a7ee8d14041365f2c25d1a4876b59db401",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 10402,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 10402,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 10402,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 10402,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 10728,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 10728,
+          "parent": 6588,
+          "group": 10728,
+          "born": "Thu Aug 27 06:15:46 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts shared-source-budget"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10728.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "0d8a71cbda636fe489109ec78ac3c32a564dae52d7ff636aa9a234e4efdfa142",
+          "decodedSha256": "0d8a71cbda636fe489109ec78ac3c32a564dae52d7ff636aa9a234e4efdfa142",
+          "decodedBytes": 35644,
+          "gitBlob": "e2e4bdbe18dcd0f75952ec3a1bf5090e22db84bf"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "8d57d8caaf31a987ad4cbc7fdfd946a2219c7c5114bc37c1b78b53ef9fe61145",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 10728,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 10728,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 10728,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 10728,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 10973,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 10973,
+          "parent": 6588,
+          "group": 10973,
+          "born": "Thu Aug 27 06:15:47 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts shared-loop-budget"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10973.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "cff77a216d825864f0fb1bf8949ada07dcf446af2c24efb83ceecf212391d832",
+          "decodedSha256": "cff77a216d825864f0fb1bf8949ada07dcf446af2c24efb83ceecf212391d832",
+          "decodedBytes": 35644,
+          "gitBlob": "7f3229e2cd101d1e2b2583b7117e97935971a068"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "a75e8aff63d6cf890c86928ed5d0da37cba9735b08f0c84f47fe22c5fac04cec",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 10973,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 10973,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 10973,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 10973,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 11228,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 11228,
+          "parent": 6588,
+          "group": 11228,
+          "born": "Thu Aug 27 06:15:48 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts split-byte-cap"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11228.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "8410ab6c95280268295f5f7d49ad084421ea04e512829b31b730b666791c668d",
+          "decodedSha256": "8410ab6c95280268295f5f7d49ad084421ea04e512829b31b730b666791c668d",
+          "decodedBytes": 35644,
+          "gitBlob": "a6cc65cd58397696d2dc30f1828b1edc7b89a65d"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "ffcbcd92cb6ebb28687e6dea6d48c768a1ca2ebf7dbd6d6527cc10fdc19e8f4c",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 11228,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 11228,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 11228,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 11228,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 11496,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 11496,
+          "parent": 6588,
+          "group": 11496,
+          "born": "Thu Aug 27 06:15:49 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts split-argument-cap"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11496.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "bd9feb9d1179ce2ee1494f05a75d9538775cb903a6941b1a7078bb87846a0cb3",
+          "decodedSha256": "bd9feb9d1179ce2ee1494f05a75d9538775cb903a6941b1a7078bb87846a0cb3",
+          "decodedBytes": 35644,
+          "gitBlob": "d72ce24f0cdc2efe89520c719809f602b71e1a64"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "ec688d6d596696e08f881a7f2b7624858ac0312fcb3e38a3c5b6d71c0401b2c2",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 11496,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 11496,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 11496,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 11496,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 11740,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 11740,
+          "parent": 6588,
+          "group": 11740,
+          "born": "Thu Aug 27 06:15:50 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts split-recursion-cap"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11740.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "a189073fb528fd1077769e507fd48ebb04c94e245746dd371e11fe33ec0dfa2a",
+          "decodedSha256": "a189073fb528fd1077769e507fd48ebb04c94e245746dd371e11fe33ec0dfa2a",
+          "decodedBytes": 35644,
+          "gitBlob": "1256f3464d95a865ddbc8f49a3e59a14f6ba168e"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "5e905e9073a9573068ca495741d7b9f35351cff05e678ffa453125b6b0bf9c93",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 11740,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 11740,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 11740,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 11740,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 11976,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 11976,
+          "parent": 6588,
+          "group": 11976,
+          "born": "Thu Aug 27 06:15:51 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts typed-cancel-cleanup-late-reject"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11976.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "deee06e86216c9c8c760e18f4d9750f123b8e979f8204ba21371ed1c2e4f64ba",
+          "decodedSha256": "deee06e86216c9c8c760e18f4d9750f123b8e979f8204ba21371ed1c2e4f64ba",
+          "decodedBytes": 35644,
+          "gitBlob": "0fe91e501a50e01310705dd8fb3ba74835073b4a"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "818e8a9b13d3d213a42d5e9ef8d077d4d5702ba193bce3aeffab523ee54db8e1",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 11976,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 11976,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 11976,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 11976,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 12213,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 12213,
+          "parent": 6588,
+          "group": 12213,
+          "born": "Thu Aug 27 06:15:52 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts cleanup-failure-identity"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12213.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "5f7d8dd010f9675563f209aa4de2b4d760ae4d2ffc19d5753e5c69874cba4d92",
+          "decodedSha256": "5f7d8dd010f9675563f209aa4de2b4d760ae4d2ffc19d5753e5c69874cba4d92",
+          "decodedBytes": 35644,
+          "gitBlob": "63bfe5e64df3f851eb25250a25bb93e78807818b"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "3ab166903750ace68bedb116120fa5adda0cf1e57331abbb0223817bbff0275e",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 12213,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 12213,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 12213,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 12213,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 12434,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 12434,
+          "parent": 6588,
+          "group": 12434,
+          "born": "Thu Aug 27 06:15:53 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts preabort-no-dispatch"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12434.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "bfe3433112f1a948dc83504e763c375a47fc1943bf4477e8f2e5f1284e79235f",
+          "decodedSha256": "bfe3433112f1a948dc83504e763c375a47fc1943bf4477e8f2e5f1284e79235f",
+          "decodedBytes": 35644,
+          "gitBlob": "63848434fd3ffed8490871a971e0969fe7d8cf95"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "1670944a98fc0ed7a45860c6621406ed21dbdb0a829c022750fdc39dda9ed09c",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 12434,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 12434,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 12434,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 12434,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 12669,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 12669,
+          "parent": 6588,
+          "group": 12669,
+          "born": "Thu Aug 27 06:15:54 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts blocked-input-cancel"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12669.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "628fac08a494c735faec99e2f73bc16289dc4a6a42202080ff1789a725f9bdd7",
+          "decodedSha256": "628fac08a494c735faec99e2f73bc16289dc4a6a42202080ff1789a725f9bdd7",
+          "decodedBytes": 35644,
+          "gitBlob": "77473989d5560d55e20dc7ded2cab5beaa3a04bd"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "0ea7cb9dfcfcbf9d33baa4e01a1bd19b1da455adccc9a3fecb8381cb18864126",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 12669,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 12669,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 12669,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 12669,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 12884,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 12884,
+          "parent": 6588,
+          "group": 12884,
+          "born": "Thu Aug 27 06:15:54 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts fallback-keeps-context"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12884.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "003385d87f841f35e9b39c2bad797d8d2321e7bcb6d4b16b688db17e023ca62b",
+          "decodedSha256": "003385d87f841f35e9b39c2bad797d8d2321e7bcb6d4b16b688db17e023ca62b",
+          "decodedBytes": 35644,
+          "gitBlob": "195f64ff688a8959aa2ad8712869364da8ff5015"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "75798f60faf6eb243cadfb30b9eb2ce300e6886278c37b608db6ec6e1f5bf834",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 12884,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 12884,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 12884,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 12884,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 13111,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 13111,
+          "parent": 6588,
+          "group": 13111,
+          "born": "Thu Aug 27 06:15:55 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts sink-cancel-precedence"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/13111.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "abad102c3e63134df8a3e510ffaf4f2b24ae05d1a6982e6be5e8e46f7718a1fa",
+          "decodedSha256": "abad102c3e63134df8a3e510ffaf4f2b24ae05d1a6982e6be5e8e46f7718a1fa",
+          "decodedBytes": 35644,
+          "gitBlob": "5e6c8e8b1a7d70ef32ebc2da6d95817cade3f488"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "a2818dc9c4cac5ef23b8fadf3cd70f6f0e8f1ea7732bf8dc4a3a21f971c16235",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 13111,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 13111,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 13111,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 13111,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 13309,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 13309,
+          "parent": 6588,
+          "group": 13309,
+          "born": "Thu Aug 27 06:15:55 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts same-stream-split-does-not-consume"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/13309.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "7d0737a70b6e7c57da704f40d4375c2f888889a0f90201ca1d853a9543dcdc7f",
+          "decodedSha256": "7d0737a70b6e7c57da704f40d4375c2f888889a0f90201ca1d853a9543dcdc7f",
+          "decodedBytes": 35644,
+          "gitBlob": "70b389f1a394985fdde0fa105083a2a0d4022d5e"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "efe2a952286ae98aaae0d82e3fb2b78ea17c19a576dc0310c6f100e6170ecf64",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 13309,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 13309,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 13309,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 13309,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 6588,
+        "role": "host-parent",
+        "processObservation": {
+          "pid": 6588,
+          "parent": 89558,
+          "group": 89544,
+          "born": "Thu Aug 27 06:15:32 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/shell/env-split-host.test.ts"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6588.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "5394db6059b4b34206ddeb2fad9d6f02fd54083fe80c6aaab2cb268066318bc8",
+          "decodedSha256": "5394db6059b4b34206ddeb2fad9d6f02fd54083fe80c6aaab2cb268066318bc8",
+          "decodedBytes": 4411,
+          "gitBlob": "ab6abbd56a7a307da4ed7d8f6e42973b0b68d06b"
+        },
+        "sourceResolutionCount": 0,
+        "sourceResolutionDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 6588,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell/env-split-host.test.ts",
+            "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a"
+          }
+        ]
+      },
+      {
+        "pid": 6593,
+        "role": "native-test",
+        "processObservation": {
+          "pid": 6593,
+          "parent": 89558,
+          "group": 89544,
+          "born": "Thu Aug 27 06:15:32 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/shell/env-split-native.test.ts"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6593.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "45fc8e4de567f1cd4e72c6f70b650060b10de634b21090442d0e0fc7792fd717",
+          "decodedSha256": "45fc8e4de567f1cd4e72c6f70b650060b10de634b21090442d0e0fc7792fd717",
+          "decodedBytes": 35638,
+          "gitBlob": "249a7141aaf52f9cd423c5fd3ed02b000d894f31"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "767028aaacec51813abe5d8ba9d836e153080431ea8b3456b91d25d464e221bd",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 6593,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell/env-split-native.test.ts",
+            "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433"
+          },
+          {
+            "pid": 6593,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-fixtures.ts",
+            "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c"
+          },
+          {
+            "pid": 6593,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 6593,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 6593,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 6639,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 6639,
+          "parent": 6588,
+          "group": 6639,
+          "born": "Thu Aug 27 06:15:33 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts real-nested-pipeline"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6639.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "a6630e192e53a6dabbdc6551657a4e9f10e468f44e5552a3921c0a2e23c77fd1",
+          "decodedSha256": "a6630e192e53a6dabbdc6551657a4e9f10e468f44e5552a3921c0a2e23c77fd1",
+          "decodedBytes": 35448,
+          "gitBlob": "a6f0d80905b6d72ecb3f6a4624b6131f90f29940"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "35d57baa1eb30f83363d2195702dc74dcaed3a6511153838547538e6e6843579",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 6639,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 6639,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 6639,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 6639,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 6878,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 6878,
+          "parent": 6588,
+          "group": 6878,
+          "born": "Thu Aug 27 06:15:34 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts export-local-cwd-parent"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6878.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "f19ca7dc9aeda69a142587f917bf57282cf189f0abeacfb1c4e82b7227136c7f",
+          "decodedSha256": "f19ca7dc9aeda69a142587f917bf57282cf189f0abeacfb1c4e82b7227136c7f",
+          "decodedBytes": 35448,
+          "gitBlob": "66a8fd7059e3a2da7687a3a89944ee070e2527e8"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "2a2c13c9461e27b366e18d942148dfd729407351b5df003e0c8a17fe9e3f4612",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 6878,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 6878,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 6878,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 6878,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 7107,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 7107,
+          "parent": 6588,
+          "group": 7107,
+          "born": "Thu Aug 27 06:15:35 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts prefix-assignment-before-clear"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7107.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "e7ceff03b9b870216fbdf50e4b458197b6e092c6c528b265abec164391764b5c",
+          "decodedSha256": "e7ceff03b9b870216fbdf50e4b458197b6e092c6c528b265abec164391764b5c",
+          "decodedBytes": 35448,
+          "gitBlob": "f81ede36139503a1354a59bf19b8aecc225d0e6d"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "ad95a5cff94d1c3bdf20314ba293062816ea8a899186dcc311b130a562988731",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 7107,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 7107,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 7107,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 7107,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 7371,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 7371,
+          "parent": 6588,
+          "group": 7371,
+          "born": "Thu Aug 27 06:15:36 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts binary-cursor-origin"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7371.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "2aeb1f065ddf4c49f15fb93993bb6320257c09679a97bb03efc1e6e60150cae5",
+          "decodedSha256": "2aeb1f065ddf4c49f15fb93993bb6320257c09679a97bb03efc1e6e60150cae5",
+          "decodedBytes": 35448,
+          "gitBlob": "4284cb61ab92ee5387a1bf071466115fe4b58da1"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "3e5b53ded8297d89d8b294594762a81fcdb07cb3a4a1128b5b6b6befb6c0d43d",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 7371,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 7371,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 7371,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 7371,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 7696,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 7696,
+          "parent": 6588,
+          "group": 7696,
+          "born": "Thu Aug 27 06:15:37 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts supplied-empty-origin"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7696.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "0d6865b3f5493d54533be12b1a1e1b8e085ded8ed2924ea8cc3616a2a04681a4",
+          "decodedSha256": "0d6865b3f5493d54533be12b1a1e1b8e085ded8ed2924ea8cc3616a2a04681a4",
+          "decodedBytes": 35448,
+          "gitBlob": "cfc62bc1567d0c6fa05d635c042c3e7ca354ded8"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "aef462ec81ebc5e26846e6969e9dc7cbbfb5d4fabef37d7d3c0e28a35eac3e1b",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 7696,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 7696,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 7696,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 7696,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 8180,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 8180,
+          "parent": 6588,
+          "group": 8180,
+          "born": "Thu Aug 27 06:15:39 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts bom-stderr-stdout"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8180.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "486f299ffa166bc27d814d9d4fdc53ae69998dbdedb1464dc8cb66d2231c2ac0",
+          "decodedSha256": "486f299ffa166bc27d814d9d4fdc53ae69998dbdedb1464dc8cb66d2231c2ac0",
+          "decodedBytes": 35448,
+          "gitBlob": "06601a105bcab85d6ee01ecf969569f5a6f98d89"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "a057fb47ca2d3736ed58f82f1a55431870ce064014744031c433a50488901084",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 8180,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 8180,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 8180,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 8180,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 8571,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 8571,
+          "parent": 6588,
+          "group": 8571,
+          "born": "Thu Aug 27 06:15:40 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts parse-before-chdir-effects"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8571.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "a568f5870b786d81f3372a5e84a41f1e3a3d83d7c61b4fc5e2cbaab3be1600a8",
+          "decodedSha256": "a568f5870b786d81f3372a5e84a41f1e3a3d83d7c61b4fc5e2cbaab3be1600a8",
+          "decodedBytes": 35448,
+          "gitBlob": "1916472cb2d1ab6aa4e2d95e280340ecbbae8d14"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "e6900433b53a2a5b81e7c0b8ea8f040f8cc066947b0d7bf940628fe5f725b745",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 8571,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 8571,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 8571,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 8571,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 8838,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 8838,
+          "parent": 6588,
+          "group": 8838,
+          "born": "Thu Aug 27 06:15:41 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts unsupported-before-chdir"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8838.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "e7428a73c735a1fe757f60f01fa0627071aae866b0a436e13e913e20dd075ff8",
+          "decodedSha256": "e7428a73c735a1fe757f60f01fa0627071aae866b0a436e13e913e20dd075ff8",
+          "decodedBytes": 35448,
+          "gitBlob": "09dd2678dec6edd4a01cf79f53f8442eea4c5bb1"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "86cf94825f4aef2ce5e6e5ec97b81235848a1417f1cc24c21d5d223aa065244e",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 8838,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 8838,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 8838,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 8838,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 9317,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 9317,
+          "parent": 6588,
+          "group": 9317,
+          "born": "Thu Aug 27 06:15:42 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts literal-single-optional-argument"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9317.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "8d0b728cbff785274f5554c1c07a70541deb9af977033a79c19cf21c55ad0a97",
+          "decodedSha256": "8d0b728cbff785274f5554c1c07a70541deb9af977033a79c19cf21c55ad0a97",
+          "decodedBytes": 35448,
+          "gitBlob": "69c8f1cf13ca438c6368ade2c595551b0fbfce4c"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "0f51ad9e399294632313d7dd6a5d51b130c857e7a80057981257b0292fac791f",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 9317,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 9317,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 9317,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 9317,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 9667,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 9667,
+          "parent": 6588,
+          "group": 9667,
+          "born": "Thu Aug 27 06:15:43 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts literal-injection-host-boundary"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9667.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "400c36e4a23e01ecdbacbdc17789953544aecad464a40962e01bf841cb24a2e4",
+          "decodedSha256": "400c36e4a23e01ecdbacbdc17789953544aecad464a40962e01bf841cb24a2e4",
+          "decodedBytes": 35448,
+          "gitBlob": "3d3336df4ce7fcc87452d66e44d94742f2ff5263"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "e91758c8bcfa613f76a294c2d5f9b246f1af4e3ebeafc8c541e5e82e50f8086c",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 9667,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 9667,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 9667,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 9667,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      },
+      {
+        "pid": 9945,
+        "role": "host-child",
+        "processObservation": {
+          "pid": 9945,
+          "parent": 6588,
+          "group": 9945,
+          "born": "Thu Aug 27 06:15:44 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts shared-command-budget"
+        },
+        "capture": {
+          "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9945.ndjson.data",
+          "encoding": "identity",
+          "storedSha256": "a39b0f7540b010473622dd8f6a9d2a4e4570bb1ac0159d9d40ede07bfbd8bc7b",
+          "decodedSha256": "a39b0f7540b010473622dd8f6a9d2a4e4570bb1ac0159d9d40ede07bfbd8bc7b",
+          "decodedBytes": 35448,
+          "gitBlob": "aa11cdef0c83eb631c8665d9a74cff7a86b766a8"
+        },
+        "sourceResolutionCount": 173,
+        "sourceResolutionDigest": "945227af0b839f37d184b071aac05e1c318b8f77dddfbe817f29cb355bbe5065",
+        "selectedActualResolutionRecords": [
+          {
+            "pid": 9945,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/env-split-author/resume-host.ts",
+            "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce"
+          },
+          {
+            "pid": 9945,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/index.ts",
+            "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+          },
+          {
+            "pid": 9945,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/commands/execution.ts",
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          {
+            "pid": 9945,
+            "resolved": "/private/tmp/full-gate-execution-BtyW8C/source/src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          }
+        ]
+      }
+    ],
+    "hostHelperProcessEnvReads": false,
+    "fixtureProcessEnvReads": false,
+    "nativeJsonRole": "Expected raw data, never an alternate product loader",
+    "actualProductFormat": "Candidate-relative .js specifiers resolve through tsx to scratch .ts; no dist/product parser records in these27 logs",
+    "proofLimit": "Broad guard is a resolve hook: it records actual resolved realpaths and file hashes, not parentURL/specifier edges, a load-hook trace, transformed JS bytes, or evaluation attestation. Input manifests plus per-process resolution/process/TAP evidence bind this cohort; they do not qualify the whole gate"
+  },
+  "gateLimits": {
+    "status": "infrastructure-failed",
+    "historicalCounts": {
+      "tests": 16840,
+      "pass": 16520,
+      "fail": 307,
+      "skip": 13
+    },
+    "sourceChangesDuringTest": [
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json"
+    ],
+    "originalError": "Frozen tracked inputs changed during test; later gates must not use mutated inputs\n+ actual - expected\n\n+ [\n+   'tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json'\n+ ]\n- []\n",
+    "nativePrerequisiteMissingIsNotProductFailure": true,
+    "rawCountsUnchanged": true
+  },
+  "acceptedCore": {
+    "verdictCommit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+    "disposition": "ACCEPT bounded core integration on exact84ab with versioned valid fixtures; NOT full native/protocol parity or broad gate",
+    "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+    "fixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+    "reviewFreeze": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+    "reviewerThreadId": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+    "authorThreadId": "01a042ee-bfce-7b80-b667-af14bd426f64",
+    "independentExecution": {
+      "started": "2026-08-27T11:53:45.811Z",
+      "finished": "2026-08-27T11:54:30.838Z",
+      "completed": true,
+      "productProcesses": 191,
+      "allChildProcesses": 195,
+      "actualCompiledLoads": 33234,
+      "loadedFilesPerProduct": 174,
+      "freshNativeRuns": 0
+    },
+    "sourcePackage": {
+      "sourceManifest": "d383c4562449f611469b6b2edff16d9bcbc6f0373ba1b3115b287f162c37e651",
+      "sourceManifestFilesRecheckedAgainstGit": 220,
+      "sourceArchiveSha256": "f17461ad17ddf23b1c194b2a422a3d41e229b1becf999faa2897c82cabb14f1f",
+      "tarball": {
+        "sha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+        "size": 630766,
+        "shasum": "09a3036291301ce501ec458ff4ca5bf29008e984",
+        "integrity": "sha512-1EzrjZuMG90ArnHsXuT6Mr7SljLgy7vdc03rXyZZ4ANkObs64lTkyQ3OpEmjDjrY578MIsK516fcK3Ecl4ec4Q==",
+        "files": 710,
+        "reusedOriginalPack": true,
+        "newPack": false
+      },
+      "move": {
+        "from": "/private/tmp/safe-bash-env-validity-review-v2-Wc52ue/installation",
+        "to": "/private/tmp/safe-bash-env-validity-review-v2-Wc52ue/moved-consumer",
+        "oldPathAbsent": true,
+        "packageRoot": "/private/tmp/safe-bash-env-validity-review-v2-Wc52ue/moved-consumer/node_modules/virtual-bash",
+        "packageIsRealDirectory": true
+      },
+      "packageName": "virtual-bash",
+      "runtimeDependencies": {},
+      "keyCompiled": {
+        "dist/index.js": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+        "dist/shell/runtime.js": "ee3e045a1770cc43591a19936ec153e9a29c959c9de5886d2112427a9d20e97a",
+        "dist/commands/execution.js": "9217f18fbef5bb00a08550630269b5e5b825d1c306d271a73f442d48e7e93348",
+        "dist/commands/env-split.js": "dd37211e4c5029d34aef51b96d709d253aa5f12e24836dfc3e39ee34c11b7d3e"
+      },
+      "sourceAfter": "d383c4562449f611469b6b2edff16d9bcbc6f0373ba1b3115b287f162c37e651",
+      "installedBefore": "61fbcdad83d945b55e1749d63e37d6dcf1e322724c476ac556a67312f2b5eb7a",
+      "installedAfter": "61fbcdad83d945b55e1749d63e37d6dcf1e322724c476ac556a67312f2b5eb7a",
+      "emittedManifest": "7c449f57e9e44fcda35910987221bbb64e814f9ed5120e9458821434b17ddce5",
+      "emittedFiles": 708,
+      "packageFiles": 710,
+      "sampleActualPublicResolution": {
+        "root": "file:///private/tmp/safe-bash-env-validity-review-v2-Wc52ue/moved-consumer/node_modules/virtual-bash/dist/index.js",
+        "contracts": "file:///private/tmp/safe-bash-env-validity-review-v2-Wc52ue/moved-consumer/node_modules/virtual-bash/dist/contracts/index.js"
+      },
+      "guardKind": "Frozen consumer/hidden load hooks admit only moved package dist/*.js and hash disk bytes before nextLoad; all191 per-process loaded hashes match installed, packed and emitted manifests. Not a trusted-JavaScript sandbox"
+    },
+    "currentHiddenProfiles": [
+      {
+        "profile": "gnu97-darwin-primary",
+        "total": 48,
+        "strictExact": 40,
+        "command": {
+          "total": 42,
+          "strictExact": 39
+        },
+        "protocol": {
+          "total": 6,
+          "strictExact": 1,
+          "supportedCoreCredit": 0
+        },
+        "additionalVirtualDiagnosticChecks": 3
+      },
+      {
+        "profile": "apple-env-bash32-historical",
+        "total": 48,
+        "strictExact": 23,
+        "command": {
+          "total": 42,
+          "strictExact": 22
+        },
+        "protocol": {
+          "total": 6,
+          "strictExact": 1,
+          "supportedCoreCredit": 0
+        },
+        "additionalVirtualDiagnosticChecks": 0
+      }
+    ],
+    "currentHiddenHostIds": [
+      "literal-invoke-replace-env-parent",
+      "exported-not-local-lookup",
+      "empty-input-provenance",
+      "nested-shared-command-budget",
+      "cancel-and-late-rejection",
+      "awaited-sink-shared-output-budget",
+      "split-expansion-growth-budget"
+    ],
+    "currentPackedProfiles": [
+      {
+        "profile": "primary",
+        "total": 10,
+        "strictExact": 7,
+        "supportedCore": 7,
+        "unsupportedShebang": 3
+      },
+      {
+        "profile": "historical",
+        "total": 10,
+        "strictExact": 7,
+        "supportedCore": 7,
+        "unsupportedShebang": 3
+      }
+    ],
+    "currentPackedHosts": [
+      {
+        "id": "transparent-input-presence",
+        "executions": 3,
+        "observations": [
+          {
+            "variant": "default",
+            "error": null,
+            "sameReason": false,
+            "disposed": true
+          },
+          {
+            "variant": "explicit-empty",
+            "error": null,
+            "sameReason": false,
+            "disposed": true
+          },
+          {
+            "variant": "binary",
+            "error": null,
+            "sameReason": false,
+            "disposed": true
+          }
+        ]
+      },
+      {
+        "id": "shared-command-budget",
+        "executions": 1,
+        "observations": [
+          {
+            "variant": null,
+            "error": {
+              "name": "ShellLimitError",
+              "message": "Shell limit exceeded: maxCommands",
+              "limit": "maxCommands"
+            },
+            "sameReason": false,
+            "disposed": true
+          }
+        ]
+      },
+      {
+        "id": "typed-cancellation",
+        "executions": 1,
+        "observations": [
+          {
+            "variant": null,
+            "error": {
+              "name": "FsError",
+              "message": "ENOENT: no such file or directory '/packed-cancel'",
+              "code": "ENOENT"
+            },
+            "sameReason": true,
+            "disposed": true
+          }
+        ]
+      }
+    ],
+    "additionalAuthorDefinedPolicyControls": {
+      "total": 12,
+      "passed": 12,
+      "executedByIndependentReviewer": true
+    },
+    "independentControls": [
+      {
+        "group": "C1",
+        "passed": true,
+        "runtimeVariants": 2
+      },
+      {
+        "group": "C2",
+        "passed": true,
+        "runtimeVariants": 3
+      },
+      {
+        "group": "C3",
+        "passed": true,
+        "runtimeVariants": 4
+      },
+      {
+        "group": "C4",
+        "passed": true,
+        "runtimeVariants": 2
+      },
+      {
+        "group": "C5",
+        "passed": true,
+        "runtimeVariants": 1
+      },
+      {
+        "group": "C6",
+        "passed": true,
+        "runtimeVariants": 2
+      }
+    ],
+    "nativeProfiles": {
+      "hidden": [
+        {
+          "id": "gnu97-darwin-primary",
+          "env": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "envHash": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+          "bash": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "bashHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "rows": 48,
+          "reusedImmutableCapture": true
+        },
+        {
+          "id": "apple-env-bash32-historical",
+          "env": "/usr/bin/env",
+          "envHash": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+          "bash": "/bin/bash",
+          "bashHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "rows": 48,
+          "reusedImmutableCapture": true
+        }
+      ],
+      "packed": {
+        "env": {
+          "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "hash": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+        },
+        "bashParents": [
+          {
+            "role": "primary",
+            "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+            "rows": 10,
+            "originalControlsRetained": 3,
+            "reusedImmutableCapture": true
+          },
+          {
+            "role": "historical",
+            "binary": "/bin/bash",
+            "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+            "rows": 10,
+            "originalControlsRetained": 3,
+            "reusedImmutableCapture": true
+          }
+        ],
+        "protocol": "Original packed native references include actual Darwin-kernel invocation; explicit single-optional controls remain separate. Packed historical means GNU env9.7 with Apple Bash3.2, NOT Apple env. No per-case profile merging"
+      }
+    },
+    "retainedDiagnosticLosses": [
+      {
+        "id": "packed-non-s-single-operand",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "478a64550d4e2581e2e3b3407cacec65a7141b793ed5f3f570e9dbeeaa0842a0",
+        "literalArgv": [
+          "env",
+          "argvprobe two words"
+        ],
+        "shellSource": "'env' 'argvprobe two words'",
+        "native": {
+          "status": 127,
+          "stdout": "",
+          "stderr": "ZW52OiAnYXJndnByb2JlIHR3byB3b3Jkcyc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "env: 'argvprobe two words': No such file or directory\nenv: use -[v]S to pass options in shebang lines\n"
+        },
+        "virtual": {
+          "status": 127,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogYXJndnByb2JlIHR3byB3b3JkczogY29tbWFuZCBub3QgZm91bmQK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: argvprobe two words: command not found\n"
+        },
+        "strictNativeExact": false,
+        "additionalVirtualDiagnosticCheck": true,
+        "effectsClassification": "Exact unchanged seeded files/modes; no successful target dispatch. Status/stdout/effects match; only diagnostic bytes differ"
+      },
+      {
+        "id": "missing-command-negative",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "9de163fc57cc315235b10f252d94daa2dd7bf3d087e34cdc86bc132090d2a552",
+        "literalArgv": [
+          "env",
+          "-S",
+          "env-split-never-a-real-command argument"
+        ],
+        "shellSource": "'env' '-S' 'env-split-never-a-real-command argument'",
+        "native": {
+          "status": 127,
+          "stdout": "",
+          "stderr": "ZW52OiAnZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kJzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "env: 'env-split-never-a-real-command': No such file or directory\n"
+        },
+        "virtual": {
+          "status": 127,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: env-split-never-a-real-command: command not found\n"
+        },
+        "strictNativeExact": false,
+        "additionalVirtualDiagnosticCheck": true,
+        "effectsClassification": "Exact unchanged seeded files/modes; no successful target dispatch. Status/stdout/effects match; only diagnostic bytes differ"
+      },
+      {
+        "id": "nonexecutable-command-negative",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "88d4fae56d188c5b57fcf6ae6043808a7adbb7f6bac2d817d0a806726cb2e199",
+        "literalArgv": [
+          "env",
+          "-S",
+          "./nonexec argument"
+        ],
+        "shellSource": "'env' '-S' './nonexec argument'",
+        "native": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "ZW52OiAnLi9ub25leGVjJzogUGVybWlzc2lvbiBkZW5pZWQK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            },
+            "nonexec": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6e6f742065786563757461626c650a"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "env: './nonexec': Permission denied\n"
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLi9ub25leGVjOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            },
+            "nonexec": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6e6f742065786563757461626c650a"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: ./nonexec: Permission denied\n"
+        },
+        "strictNativeExact": false,
+        "additionalVirtualDiagnosticCheck": true,
+        "effectsClassification": "Exact unchanged seeded files/modes; no successful target dispatch. Status/stdout/effects match; only diagnostic bytes differ"
+      }
+    ],
+    "hiddenProtocolRows": [
+      {
+        "id": "plain-bash",
+        "header": "#!/usr/bin/env bash",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "1e3765aa8f69ffe9e47f002d9111f60e0d92a78a9c5110a71be1491b23f4cda0",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-plain-bash/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 0,
+          "stdout": "ZT1vZmYKYXJnYz0yCjxhcmd1bWVudCB3aXRoIHNwYWNlcz4KPD4Kc3Vydml2ZWQK",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "756e736574"
+            }
+          },
+          "stdoutText": "e=off\nargc=2\n<argument with spaces>\n<>\nsurvived\n",
+          "stderrText": ""
+        },
+        "virtual": {
+          "status": 0,
+          "stdout": "ZT1vZmYKYXJnYz0yCjxhcmd1bWVudCB3aXRoIHNwYWNlcz4KPD4Kc3Vydml2ZWQK",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "756e736574"
+            }
+          },
+          "stdoutText": "e=off\nargc=2\n<argument with spaces>\n<>\nsurvived\n",
+          "stderrText": ""
+        },
+        "strictExact": true,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "non-s-packed-bash-option",
+        "header": "#!/usr/bin/env bash -e",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "16686aaf6c6cd686ef93e97eae80057bc825f81155576bbf8305ea8c0f22df87",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-non-s-packed-bash-option/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 127,
+          "stdout": "",
+          "stderr": "ZW52OiAnYmFzaCAtZSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "env: 'bash -e': No such file or directory\nenv: use -[v]S to pass options in shebang lines\n"
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1ub24tcy1wYWNrZWQtYmFzaC1vcHRpb24vZW50cnkuc2g6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-non-s-packed-bash-option/entry.sh: unsupported interpreter: /usr/bin/env bash -e\n"
+        },
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-errexit",
+        "header": "#!/usr/bin/env -S bash -e",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "eab52e3fcc4f2ddb7c9218aec3dda5f1037f9bdc0a6646e0070c2daf03f6217c",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-errexit/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 1,
+          "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "756e736574"
+            }
+          },
+          "stdoutText": "e=on\nargc=2\n<argument with spaces>\n<>\n",
+          "stderrText": ""
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1lcnJleGl0L2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIGJhc2ggLWUK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-errexit/entry.sh: unsupported interpreter: /usr/bin/env -S bash -e\n"
+        },
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-assignment-and-clear",
+        "header": "#!/usr/bin/env -S -i MARK=kept bash -e",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "12a81e9e32ecd44d02df3d0bfc8af6b8b7d41689bb041e118a50b7d5c03da4f7",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-assignment-and-clear/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 1,
+          "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6b657074"
+            }
+          },
+          "stdoutText": "e=on\nargc=2\n<argument with spaces>\n<>\n",
+          "stderrText": ""
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1hc3NpZ25tZW50LWFuZC1jbGVhci9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtUyAtaSBQQVRIPSR7UEFUSH0gTUFSSz1rZXB0IGJhc2ggLWUK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-assignment-and-clear/entry.sh: unsupported interpreter: /usr/bin/env -S -i PATH=${PATH} MARK=kept bash -e\n"
+        },
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-long-plus-option",
+        "header": "#!/usr/bin/env --split-string=bash +e",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "a0c63ef55972bb2a6980f0a285a69dd6ba12c49aba903190c731547e7301382d",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-long-plus-option/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 0,
+          "stdout": "ZT1vZmYKYXJnYz0yCjxhcmd1bWVudCB3aXRoIHNwYWNlcz4KPD4Kc3Vydml2ZWQK",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "756e736574"
+            }
+          },
+          "stdoutText": "e=off\nargc=2\n<argument with spaces>\n<>\nsurvived\n",
+          "stderrText": ""
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1sb25nLXBsdXMtb3B0aW9uL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC0tc3BsaXQtc3RyaW5nPWJhc2ggK2UK",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-long-plus-option/entry.sh: unsupported interpreter: /usr/bin/env --split-string=bash +e\n"
+        },
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-quoted-marker",
+        "header": "#!/usr/bin/env -S MARK=\"two words\" bash -e",
+        "profile": "gnu97-darwin-primary",
+        "inputSha256": "68cbb53e6cc458a620811da0629d2ddfe95f34fe0ba12cd32b41c98041062b10",
+        "shellSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-quoted-marker/entry.sh' 'argument with spaces' ''",
+        "native": {
+          "status": 1,
+          "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+          "stderr": "",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "74776f20776f726473"
+            }
+          },
+          "stdoutText": "e=on\nargc=2\n<argument with spaces>\n<>\n",
+          "stderrText": ""
+        },
+        "virtual": {
+          "status": 126,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1xdW90ZWQtbWFya2VyL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIE1BUks9InR3byB3b3JkcyIgYmFzaCAtZQo=",
+          "effects": {
+            "effect": {
+              "type": "file",
+              "mode": 420,
+              "hex": "6f726967696e616c"
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-quoted-marker/entry.sh: unsupported interpreter: /usr/bin/env -S MARK=\"two words\" bash -e\n"
+        },
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      }
+    ],
+    "packedProtocolRows": [
+      {
+        "id": "shebang-split-bash-errexit",
+        "header": "#!/usr/bin/env -S bash -e",
+        "originalShellSource": "./script \"a b\"",
+        "revisedShellSource": "SECRET=parent-local; export PUBLIC=parent-public; parentbefore \"$SECRET\" \"$PUBLIC\"; ./script \"a b\"; parentafter \"$SECRET\" \"$PUBLIC\" \"$?\"",
+        "virtual": {
+          "status": 126,
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d650a",
+          "effects": {
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env -S bash -e\n"
+        },
+        "nativeProfiles": [
+          {
+            "role": "primary",
+            "expected": {
+              "status": 1,
+              "stdoutHex": "",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "6265666f7265",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": true,
+              "stderrHex": false,
+              "effects": false
+            }
+          },
+          {
+            "role": "historical",
+            "expected": {
+              "status": 1,
+              "stdoutHex": "",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "6265666f7265",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": true,
+              "stderrHex": false,
+              "effects": false
+            }
+          }
+        ],
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "shebang-long-split-sh-argv",
+        "header": "#!/usr/bin/env --split-string=sh -e",
+        "originalShellSource": "./script \"a b\"",
+        "revisedShellSource": "SECRET=parent-local; export PUBLIC=parent-public; parentbefore \"$SECRET\" \"$PUBLIC\"; ./script \"a b\"; parentafter \"$SECRET\" \"$PUBLIC\" \"$?\"",
+        "virtual": {
+          "status": 126,
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d2d73706c69742d737472696e673d7368202d650a",
+          "effects": {
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env --split-string=sh -e\n"
+        },
+        "nativeProfiles": [
+          {
+            "role": "primary",
+            "expected": {
+              "status": 0,
+              "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "6b657074",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "<./script>|<1>|<a b>\n",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": false,
+              "stderrHex": false,
+              "effects": false
+            }
+          },
+          {
+            "role": "historical",
+            "expected": {
+              "status": 0,
+              "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "6b657074",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "<./script>|<1>|<a b>\n",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": false,
+              "stderrHex": false,
+              "effects": false
+            }
+          }
+        ],
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "non-split-header-one-argument",
+        "header": "#!/usr/bin/env bash -e",
+        "originalShellSource": "./script",
+        "revisedShellSource": "SECRET=parent-local; export PUBLIC=parent-public; parentbefore \"$SECRET\" \"$PUBLIC\"; ./script; parentafter \"$SECRET\" \"$PUBLIC\" \"$?\"",
+        "virtual": {
+          "status": 126,
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+          "effects": {
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "stdoutText": "",
+          "stderrText": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env bash -e\n"
+        },
+        "nativeProfiles": [
+          {
+            "role": "primary",
+            "expected": {
+              "status": 0,
+              "stdoutHex": "",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "72656163686564",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": true,
+              "stderrHex": false,
+              "effects": false
+            }
+          },
+          {
+            "role": "historical",
+            "expected": {
+              "status": 0,
+              "stdoutHex": "",
+              "stderrHex": "",
+              "effects": {
+                "phase": {
+                  "hex": "72656163686564",
+                  "mode": 420
+                }
+              },
+              "stdoutText": "",
+              "stderrText": ""
+            },
+            "exact": false,
+            "fields": {
+              "status": false,
+              "stdoutHex": true,
+              "stderrHex": false,
+              "effects": false
+            }
+          }
+        ],
+        "supportedCoreCredit": 0
+      }
+    ],
+    "separateAuthorRevision": {
+      "role": "AUTHOR evidence synthesis and read-only record audit, NOT independent acceptance",
+      "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "fixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "productProcesses": 117,
+      "childProcesses": 121,
+      "summary": {
+        "hidden": [
+          {
+            "profile": "gnu97-darwin-primary",
+            "total": 48,
+            "strictExact": 40,
+            "command": {
+              "total": 42,
+              "strictExact": 39
+            },
+            "protocol": {
+              "total": 6,
+              "strictExact": 1,
+              "supportedCoreCredit": 0
+            },
+            "additionalVirtualDiagnosticChecks": 3
+          },
+          {
+            "profile": "apple-env-bash32-historical",
+            "total": 48,
+            "strictExact": 23,
+            "command": {
+              "total": 42,
+              "strictExact": 22
+            },
+            "protocol": {
+              "total": 6,
+              "strictExact": 1,
+              "supportedCoreCredit": 0
+            },
+            "additionalVirtualDiagnosticChecks": 0
+          }
+        ],
+        "hiddenHosts": {
+          "total": 7,
+          "passed": 7
+        },
+        "consumer": [
+          {
+            "profile": "primary",
+            "total": 10,
+            "strictExact": 7,
+            "supportedCore": 7,
+            "unsupportedShebang": 3
+          },
+          {
+            "profile": "historical",
+            "total": 10,
+            "strictExact": 7,
+            "supportedCore": 7,
+            "unsupportedShebang": 3
+          }
+        ],
+        "consumerHosts": {
+          "cases": 3,
+          "executions": 5,
+          "passed": 5
+        },
+        "additionalPolicyControls": {
+          "total": 12,
+          "passed": 12
+        },
+        "childProcesses": 121
+      },
+      "authorCountsUsedAsIndependentOracle": false
+    },
+    "preservedOriginalInvalidFixtures": {
+      "hidden": {
+        "total": 48,
+        "strictExact": 40
+      },
+      "hiddenHosts": {
+        "total": 7,
+        "passed": 6
+      },
+      "packed": [
+        {
+          "profile": "primary",
+          "total": 10,
+          "assertionsPassed": 0,
+          "rawExact": 7
+        },
+        {
+          "profile": "historical",
+          "total": 10,
+          "assertionsPassed": 0,
+          "rawExact": 7
+        }
+      ],
+      "packedHosts": {
+        "cases": 3,
+        "executions": 5,
+        "passed": 0
+      },
+      "contributesToCurrentAcceptedDenominator": false
+    },
+    "preservedV1Refusal": {
+      "disposition": "REFUSE bounded core integration: invalid revised fixture, first unexpected failure retained; no retry or semantic repair",
+      "attempt": {
+        "path": "tests/shell-stress/env-split-validity-review/acceptance-1.json",
+        "sha256": "e444533f6eca373015b92b980032e876516552c591a568b922cdff3c863d8b36",
+        "bytes": 19693407,
+        "started": "2026-08-27T11:39:07.346Z",
+        "finished": "2026-08-27T11:39:49.184Z"
+      },
+      "summary": {
+        "originalHidden": {
+          "total": 48,
+          "strictExact": 40
+        },
+        "originalHiddenHosts": {
+          "total": 7,
+          "passed": 6
+        },
+        "originalPacked": [
+          {
+            "profile": "primary",
+            "nativeRows": 10,
+            "assertionsPassed": 0,
+            "rawExact": 7
+          },
+          {
+            "profile": "historical",
+            "nativeRows": 10,
+            "assertionsPassed": 0,
+            "rawExact": 7
+          }
+        ],
+        "originalPackedHosts": {
+          "cases": 3,
+          "executions": 5,
+          "passed": 0
+        },
+        "revisedHidden": [
+          {
+            "profile": "gnu97-darwin-primary",
+            "total": 48,
+            "strictExact": 40,
+            "commands": {
+              "total": 42,
+              "strictExact": 39
+            },
+            "protocol": {
+              "total": 6,
+              "strictExact": 1
+            },
+            "virtualDiagnostics": 3
+          },
+          {
+            "profile": "apple-env-bash32-historical",
+            "total": 48,
+            "strictExact": 23,
+            "commands": {
+              "total": 42,
+              "strictExact": 22
+            },
+            "protocol": {
+              "total": 6,
+              "strictExact": 1
+            },
+            "virtualDiagnostics": 0
+          }
+        ],
+        "revisedHiddenHosts": {
+          "total": 7,
+          "passed": 7
+        },
+        "revisedPacked": {
+          "nativeAttempted": 1,
+          "nativePlanned": 10,
+          "strictExact": 0,
+          "unexecutedCoreRows": 6,
+          "unexecutedProtocolRows": 3,
+          "hostExecutionsAttempted": 0,
+          "hostExecutionsPlanned": 5
+        },
+        "authorPolicyControls": {
+          "attempted": 0,
+          "planned": 12
+        },
+        "independentGroups": {
+          "attempted": 0,
+          "planned": 6,
+          "plannedRuntimeVariants": 14
+        }
+      },
+      "productProcesses": 172,
+      "contributesToCurrentAcceptedDenominator": false
+    },
+    "acceptedCleanup": {
+      "scratchAbsent": true,
+      "allAbsentAtPostAudit": true,
+      "watchdogs": 0,
+      "timeouts": 0,
+      "overflows": 0
+    }
+  },
+  "repeatAvoidanceProposal": [
+    "Before execution, assert requested feature commit is an ancestor of the exact candidate (git merge-base --is-ancestor), and assert expected feature file/hash at that commit. b494 fails both guards",
+    "Bind full candidate Git archive and required source/test/helper/native-input hashes before discovery; copy no live test/source overlay. Preserve diagnostics for any changed tracked input",
+    "Bind the executed harness and inherited NODE_OPTIONS guard. Require per-cohort resolved paths/hashes against that exact archive; if a complete load trace is required, use a harness load hook, not a new shared product API",
+    "Declare TS-source versus moved-package compiled-JS profiles separately; forbid fallback imports/overrides outside that profile. Retain whole native reference profiles and original failures",
+    "Check native prerequisites and artifact immutability before any separately authorized broad gate. This addendum executes none"
+  ],
+  "excerpts": {
+    "tests/integration/full-gate-20260827/combined-b494675c/run.mjs": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "73f87d1451ee8e85bfe67e0e4d198b9a27d2c168f127e1f5a3da28152eb7348e",
+      "firstLine": 83,
+      "lastLine": 110,
+      "text": "async function phase(label, executable, args, cwd = source, timeoutMs = 180000) {\n  const env = { ...environment, FULL_GATE_IMPORTS: join(output, \"imports\", label), NODE_OPTIONS: \"--import=\" + pathToFileURL(join(temporary, \"harness/import-guard.mjs\")).href };\n  const result = await supervise(executable, args, { cwd, env, timeoutMs, stdout: join(output, label + \".stdout.log\"), stderr: join(output, label + \".stderr.log\"), observeSockets: true });\n  result.label = label; result.sourceChanges = verifySource(); report.phases.push(result); save(label + \".result.json\", result);\n  if (label === \"test\" || label === \"contracts\") { result.accounting = account(readFileSync(join(output, label + \".stdout.log\"), \"utf8\")); save(label + \".accounting.json\", result.accounting); }\n  save(\"report.json\", report);\n  assert.deepEqual(result.sourceChanges, [], `Frozen tracked inputs changed during ${label}; later gates must not use mutated inputs`);\n  return result;\n}\ntry {\n  const expected = { test: \"node --input-type=module -e \\\"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\\\" --\", \"test:contracts\": 'node --import tsx --test \"tests/contracts/**/*.test.ts\"', typecheck: \"tsc --noEmit\", build: \"tsc -p tsconfig.build.json\" };\n  for (const [name, value] of Object.entries(expected)) assert.equal(discovery.configuration[\"package.json\"].value.scripts[name], value, `Declared command changed: ${name}`);\n  assert.equal(discovery.configuration[\"benchmarks/package.json\"].value.scripts.typecheck, \"tsc --noEmit -p tsconfig.json\");\n  assert.deepEqual(discovery.configuration[\"package.json\"].value.dependencies ?? {}, {});\n  report.liveBefore = { head: git(\"rev-parse\", \"HEAD\").trim(), status: git(\"status\", \"--porcelain=v1\") };\n  const archive = join(temporary, \"source.tar\"); execFileSync(\"git\", [\"archive\", \"-o\", archive, discovery.revision], { cwd: repository, timeout: 180000 });\n  const archiveHash = createHash(\"sha256\"); for await (const chunk of createReadStream(archive)) archiveHash.update(chunk);\n  report.archiveSha256 = archiveHash.digest(\"hex\"); execFileSync(\"tar\", [\"-xf\", archive, \"-C\", source], { timeout: 180000 });\n  for (const entry of discovery.tree) {\n    const path = join(source, entry.path), stat = lstatSync(path), symlink = entry.mode === \"120000\";\n    assert.equal(stat.isSymbolicLink(), symlink);\n    assert.ok(symlink || (stat.isFile() && stat.nlink === 1));\n    const bytes = symlink ? Buffer.from(readlinkSync(path)) : readFileSync(path); assert.equal(bytes.length, entry.bytes);\n    assert.equal(createHash(\"sha1\").update(`blob ${bytes.length}\\0`).update(bytes).digest(\"hex\"), entry.blob, entry.path);\n    sourceHashes[entry.path] = { sha256: hash(bytes), mode: stat.mode & 0o777, bytes: bytes.length, symlink };\n  }\n  report.sourceHashes = sourceHashes;\n  report.history = await isolatedHistory(repository, source, discovery.revision, join(temporary, \"history.pack\"), environment);"
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/import-guard.mjs": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "742fdeb9926b32da25e65d4b86b1c8b054a2080cb1ccf614b69f21e11924dffc",
+      "firstLine": 8,
+      "lastLine": 23,
+      "text": "const root = realpathSync(process.env.FULL_GATE_ROOT);\nconst allowedTools = JSON.parse(process.env.FULL_GATE_TOOL_ROOTS ?? \"[]\").map(path => realpathSync(path));\nconst logs = process.env.FULL_GATE_IMPORTS; mkdirSync(logs, { recursive: true });\nconst seen = new Set();\nconst check = url => {\n  if (url.startsWith(\"node:\")) return;\n  assert.ok(url.startsWith(\"file:\"), `Unsupported module protocol: ${url}`);\n  const path = realpathSync(fileURLToPath(url));\n  assert.ok(path.startsWith(root + \"/\") || allowedTools.some(tool => path.startsWith(tool + \"/\")), `FROZEN_IMPORT_OUTSIDE: ${path}`);\n  return path;\n};\nregisterHooks({ resolve(specifier, context, next) {\n  const result = next(specifier, context), path = check(result.url);\n  if (path && !seen.has(path)) { seen.add(path); appendFileSync(join(logs, process.pid + \".ndjson\"), JSON.stringify({ pid: process.pid, resolved: path, sha256: createHash(\"sha256\").update(readFileSync(path)).digest(\"hex\") }) + \"\\n\"); }\n  return result;\n} });"
+    },
+    "tests/shell/env-split-host.test.ts": {
+      "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+      "firstLine": 18,
+      "lastLine": 22,
+      "text": "for (const scenario of scenarios) test(`env split bounded host: ${scenario}`, { timeout: 6000 }, async () => {\n  await new Promise<void>((resolve, reject) => {\n    const child = spawn(process.execPath, [\"--unhandled-rejections=strict\", \"--import\", \"tsx\", fileURLToPath(new URL(\"../shell-stress/env-split-author/resume-host.ts\", import.meta.url)), scenario], {\n      detached: true, stdio: [\"ignore\", \"pipe\", \"pipe\"],\n    });"
+    },
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": {
+      "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+      "firstLine": 1,
+      "lastLine": 3,
+      "text": "import { readFileSync } from \"node:fs\";\nimport { Shell, agentCommands, createMemoryFileSystem, writeText } from \"../../../src/index.js\";\n"
+    },
+    "tests/shell-stress/env-split-validity/consumer-v2.mjs": {
+      "commit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "sha256": "b602a4448fa03684034fbf87bc869af3734be1cbf2b7a239bcc92813ada53260",
+      "firstLine": 12,
+      "lastLine": 29,
+      "text": "const packageRoot = realpathSync(process.env.CONSUMER_PACKAGE_ROOT);\nconst loaded = {}; const forbidden = [];\nfor (const name of ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']) childProcess[name] = () => { forbidden.push(name); throw new Error('Native product process forbidden'); };\nglobalThis.fetch = async () => { forbidden.push('fetch'); throw new Error('Product network disabled'); };\nsyncBuiltinESMExports();\nregisterHooks({ load(url, context, nextLoad) {\n  if (url.startsWith('file:')) {\n    const path = realpathSync(fileURLToPath(url.split('?')[0]));\n    assert.ok(path.startsWith(resolve(packageRoot, 'dist') + '/') && path.endsWith('.js'), 'Product import must be installed packed JavaScript: ' + path);\n    loaded[relative(packageRoot, path)] = createHash('sha256').update(readFileSync(path)).digest('hex');\n  }\n  return nextLoad(url, context);\n} });\nconst resolved = { root: import.meta.resolve('virtual-bash'), contracts: import.meta.resolve('virtual-bash/contracts') };\nassert.equal(resolved.root, pathToFileURL(resolve(packageRoot, 'dist/index.js')).href);\nassert.equal(resolved.contracts, pathToFileURL(resolve(packageRoot, 'dist/contracts/index.js')).href);\nconst api = await import('virtual-bash');\nconst contracts = await import('virtual-bash/contracts');"
+    },
+    "tests/shell-stress/env-split-validity/hidden-v1.mjs": {
+      "commit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "sha256": "fc9e3232744d4fbc0f044a097bbf65f4f6b470ea6beb1586b20bdc29aba85dc8",
+      "firstLine": 12,
+      "lastLine": 29,
+      "text": "const packageRoot = realpathSync(process.env.CONSUMER_PACKAGE_ROOT);\nconst loaded = {}; const forbidden = [];\nfor (const name of ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']) childProcess[name] = () => { forbidden.push(name); throw new Error('Product host process forbidden'); };\nglobalThis.fetch = async () => { forbidden.push('fetch'); throw new Error('Product network forbidden'); };\nsyncBuiltinESMExports();\nregisterHooks({ load(url, context, nextLoad) {\n  if (url.startsWith('file:')) {\n    const path = realpathSync(fileURLToPath(url));\n    assert.ok(path.startsWith(resolve(packageRoot, 'dist') + '/') && path.endsWith('.js'), 'Installed JavaScript only: ' + path);\n    loaded[relative(packageRoot, path)] = createHash('sha256').update(readFileSync(path)).digest('hex');\n  }\n  return nextLoad(url, context);\n} });\nconst resolved = { root: import.meta.resolve('virtual-bash'), contracts: import.meta.resolve('virtual-bash/contracts') };\nassert.equal(resolved.root, pathToFileURL(resolve(packageRoot, 'dist/index.js')).href);\nassert.equal(resolved.contracts, pathToFileURL(resolve(packageRoot, 'dist/contracts/index.js')).href);\nconst api = await import('virtual-bash');\nconst contracts = await import('virtual-bash/contracts');"
+    }
+  },
+  "artifactBindings": {
+    "tests/shell-stress/env-split-gate-routing/README.md": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "95573af64ec49ccd04596d046b098c09fabf66edb123a0411616ebdfa4b4d687",
+      "gitBlob": "04be9f5f4eb920a6133f0dd9910cc3edb1b72864",
+      "bytes": 11971
+    },
+    "tests/shell-stress/env-split-gate-routing/canonical-replay.json": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "dc93784043876ce3e371a80857dd07da6e2903a801bc3dd2a5ff5f5f93a91153",
+      "gitBlob": "40a416aab186d263b9faf4165daf795601058e43",
+      "bytes": 46795
+    },
+    "tests/shell-stress/env-split-gate-routing/classify.mjs": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "f5186dfbb102156be52876ccfe7287c06ea92995f4a61a64155092ddfebccbbc",
+      "gitBlob": "7286b89aac3f078869faa20c139415868cf85cf4",
+      "bytes": 28417
+    },
+    "tests/shell-stress/env-split-gate-routing/replay.mjs": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "8d3bb9aa12dd5a6bc121d47e47d1995c13946bf0bceac947a9d79206045e4af4",
+      "gitBlob": "5d59e8a7a5140aa8e71357613489eec4043def75",
+      "bytes": 7723
+    },
+    "tests/shell-stress/env-split-gate-routing/rows.json": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "46802340be07a6c4f43f9f3c84d0165a8cb4b4d6dc385845afa82760d8b2efa2",
+      "gitBlob": "2526888fce97c8c6533f039d8f0dd878a65c36e8",
+      "bytes": 404340
+    },
+    "tests/shell-stress/env-split-gate-routing/summary.json": {
+      "commit": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "sha256": "fb29462fa4d6f737534a5b83e7f82e1e5b9c8427dbb3443a966e7f8c60c724b2",
+      "gitBlob": "75a03e5abd9e81e1eb489b96c890d456875d4b20",
+      "bytes": 35984
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/EVIDENCE_MANIFEST.json": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "7c51be90526be8724e503c5dc58f65f038311c0e1d78990dda48d1a3ebf11107",
+      "gitBlob": "368a70312aadd9914ecf57aadcfb55e3ce2bd2f5",
+      "bytes": 304453
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/FAILURE_ROUTING.json": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "661480e44691b0636b8a1dcba84b92271165b7fd361bb8c88822746ce811a260",
+      "gitBlob": "bba0657d770a3be4e19ba8568bd4f3c1d15fadc6",
+      "bytes": 822552
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/run.mjs": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "73f87d1451ee8e85bfe67e0e4d198b9a27d2c168f127e1f5a3da28152eb7348e",
+      "gitBlob": "77c167f9bc8fed0fad5fbbf55d513c2bdcedf2d5",
+      "bytes": 19134
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/inspect.mjs": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "1669457da2280de3c769ec5e516f65c7bbb0d635b2249afc13a06e8f68a14d1e",
+      "gitBlob": "a7c90de9224fc26f55b07b4ecb537bce764ae372",
+      "bytes": 3798
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/import-guard.mjs": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "742fdeb9926b32da25e65d4b86b1c8b054a2080cb1ccf614b69f21e11924dffc",
+      "gitBlob": "a75f5c86ae404283ceba41cc3fe8d6a13f3980d1",
+      "bytes": 1274
+    },
+    "tests/shell-stress/env-split-validity-review/post-v2-audit.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "daf63e8a87dda749eff6bc9e954143decd20a5b0bb9363a22b03e906cda41f62",
+      "gitBlob": "27478441605ac272881202c6df082652f32672c9",
+      "bytes": 60867
+    },
+    "tests/shell-stress/env-split-validity-review/acceptance-v2-1.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "c3d8d510ccddfd0457b506e0741507000b1fe4bdb49f80c5edebe955667ce81d",
+      "gitBlob": "067793b6568983b34b4470f102a38f0bb339fa07",
+      "bytes": 21604569
+    },
+    "tests/shell-stress/env-split-validity-review/V2_REVIEW.md": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "9fdc723e3fa751d026ac220359ac127c807627df01658fd6470f34ccdbd2de1a",
+      "gitBlob": "38c4125075e6d3d81214c48834509cbcddc77931",
+      "bytes": 8342
+    },
+    "tests/shell-stress/env-split-holdout/cases.mjs": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "3b937f671e6dd9230b9be96936dbea7c2026169e26260abda0046e9b7caa3bda",
+      "gitBlob": "d2913cd5568510e1e51cbe3e341b3d6bb515bde7",
+      "bytes": 4490
+    },
+    "tests/shell-stress/env-split-validity/cases.mjs": {
+      "commit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "sha256": "7daabdcde0a3f8c1bf8d8bee069465736d702c437b7d68d5191804df457d60b5",
+      "gitBlob": "640508d297bcac91b65a4d0700185365ec2b94d8",
+      "bytes": 4434
+    },
+    "tests/shell-stress/env-split-validity/author-seal-v2.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "88d8f22c71533885541f9b203fa3b69c04d102d830d54521018eb42a7bacb03c",
+      "gitBlob": "03743249274f309e23e63e98def2959897968f65",
+      "bytes": 23597
+    },
+    "tests/shell-stress/env-split-validity-review/post-attempt-audit.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "93501f67af0a27018366853737f25c9b516e0dae513ba003de7cd9697827b667",
+      "gitBlob": "a7b84a06bc3979bd67aee1cba89dae3b33eb0a45",
+      "bytes": 52106
+    }
+  },
+  "captureBindings": {
+    "canonical/report.json": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/report.json.data.gzbase64",
+      "encoding": "gzip-base64",
+      "storedSha256": "0310da92fe6b98761c01aea7e3518416ec453bb932a51eaba45d18c2c1495e8f",
+      "decodedSha256": "b1fb6a9dcb62698f9fd56fa409d9924764900977904a6d43995e80587f44ccc2",
+      "decodedBytes": 20659871,
+      "gitBlob": "c36c30e37749510f5a2f74f5602c713fff1bf512"
+    },
+    "canonical/imports/test/10169.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10169.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "d2b6992231bad5cec26c1d0444d43ca5b6be1b035ea552e48942e86374043a63",
+      "decodedSha256": "d2b6992231bad5cec26c1d0444d43ca5b6be1b035ea552e48942e86374043a63",
+      "decodedBytes": 35644,
+      "gitBlob": "fab199de7e5b97c37c2fa7ac708209a5585fa060"
+    },
+    "canonical/imports/test/10402.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10402.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "bc8cfb280588b57a32a21e844e34040002048062e5af5fda4d82fe8e01a2e4f2",
+      "decodedSha256": "bc8cfb280588b57a32a21e844e34040002048062e5af5fda4d82fe8e01a2e4f2",
+      "decodedBytes": 35644,
+      "gitBlob": "1bbb7b74d1262878625a2049e4d919a0c4e6a231"
+    },
+    "canonical/imports/test/10728.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10728.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "0d8a71cbda636fe489109ec78ac3c32a564dae52d7ff636aa9a234e4efdfa142",
+      "decodedSha256": "0d8a71cbda636fe489109ec78ac3c32a564dae52d7ff636aa9a234e4efdfa142",
+      "decodedBytes": 35644,
+      "gitBlob": "e2e4bdbe18dcd0f75952ec3a1bf5090e22db84bf"
+    },
+    "canonical/imports/test/10973.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/10973.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "cff77a216d825864f0fb1bf8949ada07dcf446af2c24efb83ceecf212391d832",
+      "decodedSha256": "cff77a216d825864f0fb1bf8949ada07dcf446af2c24efb83ceecf212391d832",
+      "decodedBytes": 35644,
+      "gitBlob": "7f3229e2cd101d1e2b2583b7117e97935971a068"
+    },
+    "canonical/imports/test/11228.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11228.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "8410ab6c95280268295f5f7d49ad084421ea04e512829b31b730b666791c668d",
+      "decodedSha256": "8410ab6c95280268295f5f7d49ad084421ea04e512829b31b730b666791c668d",
+      "decodedBytes": 35644,
+      "gitBlob": "a6cc65cd58397696d2dc30f1828b1edc7b89a65d"
+    },
+    "canonical/imports/test/11496.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11496.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "bd9feb9d1179ce2ee1494f05a75d9538775cb903a6941b1a7078bb87846a0cb3",
+      "decodedSha256": "bd9feb9d1179ce2ee1494f05a75d9538775cb903a6941b1a7078bb87846a0cb3",
+      "decodedBytes": 35644,
+      "gitBlob": "d72ce24f0cdc2efe89520c719809f602b71e1a64"
+    },
+    "canonical/imports/test/11740.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11740.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "a189073fb528fd1077769e507fd48ebb04c94e245746dd371e11fe33ec0dfa2a",
+      "decodedSha256": "a189073fb528fd1077769e507fd48ebb04c94e245746dd371e11fe33ec0dfa2a",
+      "decodedBytes": 35644,
+      "gitBlob": "1256f3464d95a865ddbc8f49a3e59a14f6ba168e"
+    },
+    "canonical/imports/test/11976.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/11976.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "deee06e86216c9c8c760e18f4d9750f123b8e979f8204ba21371ed1c2e4f64ba",
+      "decodedSha256": "deee06e86216c9c8c760e18f4d9750f123b8e979f8204ba21371ed1c2e4f64ba",
+      "decodedBytes": 35644,
+      "gitBlob": "0fe91e501a50e01310705dd8fb3ba74835073b4a"
+    },
+    "canonical/imports/test/12213.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12213.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "5f7d8dd010f9675563f209aa4de2b4d760ae4d2ffc19d5753e5c69874cba4d92",
+      "decodedSha256": "5f7d8dd010f9675563f209aa4de2b4d760ae4d2ffc19d5753e5c69874cba4d92",
+      "decodedBytes": 35644,
+      "gitBlob": "63bfe5e64df3f851eb25250a25bb93e78807818b"
+    },
+    "canonical/imports/test/12434.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12434.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "bfe3433112f1a948dc83504e763c375a47fc1943bf4477e8f2e5f1284e79235f",
+      "decodedSha256": "bfe3433112f1a948dc83504e763c375a47fc1943bf4477e8f2e5f1284e79235f",
+      "decodedBytes": 35644,
+      "gitBlob": "63848434fd3ffed8490871a971e0969fe7d8cf95"
+    },
+    "canonical/imports/test/12669.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12669.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "628fac08a494c735faec99e2f73bc16289dc4a6a42202080ff1789a725f9bdd7",
+      "decodedSha256": "628fac08a494c735faec99e2f73bc16289dc4a6a42202080ff1789a725f9bdd7",
+      "decodedBytes": 35644,
+      "gitBlob": "77473989d5560d55e20dc7ded2cab5beaa3a04bd"
+    },
+    "canonical/imports/test/12884.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/12884.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "003385d87f841f35e9b39c2bad797d8d2321e7bcb6d4b16b688db17e023ca62b",
+      "decodedSha256": "003385d87f841f35e9b39c2bad797d8d2321e7bcb6d4b16b688db17e023ca62b",
+      "decodedBytes": 35644,
+      "gitBlob": "195f64ff688a8959aa2ad8712869364da8ff5015"
+    },
+    "canonical/imports/test/13111.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/13111.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "abad102c3e63134df8a3e510ffaf4f2b24ae05d1a6982e6be5e8e46f7718a1fa",
+      "decodedSha256": "abad102c3e63134df8a3e510ffaf4f2b24ae05d1a6982e6be5e8e46f7718a1fa",
+      "decodedBytes": 35644,
+      "gitBlob": "5e6c8e8b1a7d70ef32ebc2da6d95817cade3f488"
+    },
+    "canonical/imports/test/13309.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/13309.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "7d0737a70b6e7c57da704f40d4375c2f888889a0f90201ca1d853a9543dcdc7f",
+      "decodedSha256": "7d0737a70b6e7c57da704f40d4375c2f888889a0f90201ca1d853a9543dcdc7f",
+      "decodedBytes": 35644,
+      "gitBlob": "70b389f1a394985fdde0fa105083a2a0d4022d5e"
+    },
+    "canonical/imports/test/6588.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6588.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "5394db6059b4b34206ddeb2fad9d6f02fd54083fe80c6aaab2cb268066318bc8",
+      "decodedSha256": "5394db6059b4b34206ddeb2fad9d6f02fd54083fe80c6aaab2cb268066318bc8",
+      "decodedBytes": 4411,
+      "gitBlob": "ab6abbd56a7a307da4ed7d8f6e42973b0b68d06b"
+    },
+    "canonical/imports/test/6593.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6593.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "45fc8e4de567f1cd4e72c6f70b650060b10de634b21090442d0e0fc7792fd717",
+      "decodedSha256": "45fc8e4de567f1cd4e72c6f70b650060b10de634b21090442d0e0fc7792fd717",
+      "decodedBytes": 35638,
+      "gitBlob": "249a7141aaf52f9cd423c5fd3ed02b000d894f31"
+    },
+    "canonical/imports/test/6639.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6639.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "a6630e192e53a6dabbdc6551657a4e9f10e468f44e5552a3921c0a2e23c77fd1",
+      "decodedSha256": "a6630e192e53a6dabbdc6551657a4e9f10e468f44e5552a3921c0a2e23c77fd1",
+      "decodedBytes": 35448,
+      "gitBlob": "a6f0d80905b6d72ecb3f6a4624b6131f90f29940"
+    },
+    "canonical/imports/test/6878.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/6878.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "f19ca7dc9aeda69a142587f917bf57282cf189f0abeacfb1c4e82b7227136c7f",
+      "decodedSha256": "f19ca7dc9aeda69a142587f917bf57282cf189f0abeacfb1c4e82b7227136c7f",
+      "decodedBytes": 35448,
+      "gitBlob": "66a8fd7059e3a2da7687a3a89944ee070e2527e8"
+    },
+    "canonical/imports/test/7107.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7107.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "e7ceff03b9b870216fbdf50e4b458197b6e092c6c528b265abec164391764b5c",
+      "decodedSha256": "e7ceff03b9b870216fbdf50e4b458197b6e092c6c528b265abec164391764b5c",
+      "decodedBytes": 35448,
+      "gitBlob": "f81ede36139503a1354a59bf19b8aecc225d0e6d"
+    },
+    "canonical/imports/test/7371.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7371.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "2aeb1f065ddf4c49f15fb93993bb6320257c09679a97bb03efc1e6e60150cae5",
+      "decodedSha256": "2aeb1f065ddf4c49f15fb93993bb6320257c09679a97bb03efc1e6e60150cae5",
+      "decodedBytes": 35448,
+      "gitBlob": "4284cb61ab92ee5387a1bf071466115fe4b58da1"
+    },
+    "canonical/imports/test/7696.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/7696.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "0d6865b3f5493d54533be12b1a1e1b8e085ded8ed2924ea8cc3616a2a04681a4",
+      "decodedSha256": "0d6865b3f5493d54533be12b1a1e1b8e085ded8ed2924ea8cc3616a2a04681a4",
+      "decodedBytes": 35448,
+      "gitBlob": "cfc62bc1567d0c6fa05d635c042c3e7ca354ded8"
+    },
+    "canonical/imports/test/8180.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8180.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "486f299ffa166bc27d814d9d4fdc53ae69998dbdedb1464dc8cb66d2231c2ac0",
+      "decodedSha256": "486f299ffa166bc27d814d9d4fdc53ae69998dbdedb1464dc8cb66d2231c2ac0",
+      "decodedBytes": 35448,
+      "gitBlob": "06601a105bcab85d6ee01ecf969569f5a6f98d89"
+    },
+    "canonical/imports/test/8571.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8571.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "a568f5870b786d81f3372a5e84a41f1e3a3d83d7c61b4fc5e2cbaab3be1600a8",
+      "decodedSha256": "a568f5870b786d81f3372a5e84a41f1e3a3d83d7c61b4fc5e2cbaab3be1600a8",
+      "decodedBytes": 35448,
+      "gitBlob": "1916472cb2d1ab6aa4e2d95e280340ecbbae8d14"
+    },
+    "canonical/imports/test/8838.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/8838.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "e7428a73c735a1fe757f60f01fa0627071aae866b0a436e13e913e20dd075ff8",
+      "decodedSha256": "e7428a73c735a1fe757f60f01fa0627071aae866b0a436e13e913e20dd075ff8",
+      "decodedBytes": 35448,
+      "gitBlob": "09dd2678dec6edd4a01cf79f53f8442eea4c5bb1"
+    },
+    "canonical/imports/test/9317.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9317.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "8d0b728cbff785274f5554c1c07a70541deb9af977033a79c19cf21c55ad0a97",
+      "decodedSha256": "8d0b728cbff785274f5554c1c07a70541deb9af977033a79c19cf21c55ad0a97",
+      "decodedBytes": 35448,
+      "gitBlob": "69c8f1cf13ca438c6368ade2c595551b0fbfce4c"
+    },
+    "canonical/imports/test/9667.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9667.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "400c36e4a23e01ecdbacbdc17789953544aecad464a40962e01bf841cb24a2e4",
+      "decodedSha256": "400c36e4a23e01ecdbacbdc17789953544aecad464a40962e01bf841cb24a2e4",
+      "decodedBytes": 35448,
+      "gitBlob": "3d3336df4ce7fcc87452d66e44d94742f2ff5263"
+    },
+    "canonical/imports/test/9945.ndjson": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/imports/test/9945.ndjson.data",
+      "encoding": "identity",
+      "storedSha256": "a39b0f7540b010473622dd8f6a9d2a4e4570bb1ac0159d9d40ede07bfbd8bc7b",
+      "decodedSha256": "a39b0f7540b010473622dd8f6a9d2a4e4570bb1ac0159d9d40ede07bfbd8bc7b",
+      "decodedBytes": 35448,
+      "gitBlob": "aa11cdef0c83eb631c8665d9a74cff7a86b766a8"
+    },
+    "canonical/test.stdout.log": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.stdout.log.data.gzbase64",
+      "encoding": "gzip-base64",
+      "storedSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3",
+      "decodedSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+      "decodedBytes": 4246176,
+      "gitBlob": "58079b1e4cf77e53a51f6b4ed6c4b7b0e6bd203a"
+    }
+  },
+  "activity": {
+    "productExecutions": 0,
+    "nativeOracleExecutions": 0,
+    "dependencyInstalls": 0,
+    "scratchCreated": false,
+    "productOrOriginalFixtureEdits": false,
+    "originalEvidenceFilesUnchanged": true,
+    "onlyBoundedReadonlyGitChildren": true
+  }
+}

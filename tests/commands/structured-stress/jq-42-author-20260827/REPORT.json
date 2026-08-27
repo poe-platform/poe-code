@@ -1,0 +1,1190 @@
+{
+  "sourceCommit": "d1f78d43880c94300c0019b07a88110e9b3e8f08",
+  "authorEvidenceCommit": "b962d4bdeed41ba53946cf6229a7a61a3485f4e9",
+  "original42": [
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-lone-continuation",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0a8061667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-lone-continuation:bytewise",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0a8061667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-truncated",
+      "argv": [
+        "-Rj",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-truncated:bytewise",
+      "argv": [
+        "-Rj",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-surrogate",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0aeda0800a61667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-surrogate:bytewise",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0aeda0800a61667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-overlong-slurp",
+      "argv": [
+        "-Rsc",
+        "--",
+        "."
+      ],
+      "inputHex": "61c080620a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-overlong-slurp:bytewise",
+      "argv": [
+        "-Rsc",
+        "--",
+        "."
+      ],
+      "inputHex": "61c080620a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-bad-continuation",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "e282410a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-bad-continuation:bytewise",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "e282410a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-bad-string",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "226f6b220a2280220a226166746572220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-bad-string:bytewise",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "226f6b220a2280220a226166746572220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-truncated-string",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "2261f09f220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-truncated-string:bytewise",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "2261f09f220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-low-surrogate-escape",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "225c7564656164220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "json-low-surrogate-escape:bytewise",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "225c7564656164220a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Unicode decoding / low-surrogate replacement",
+      "id": "raw-file-utf8-boundary",
+      "argv": [
+        "-Rc",
+        "--",
+        ".",
+        "first.txt",
+        "second.txt"
+      ],
+      "inputHex": "",
+      "files": {
+        "first.txt": "41f09f",
+        "second.txt": "98800a42"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2241efbfbdefbfbdefbfbd220a2242220a",
+        "stderrHex": ""
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "2241efbfbdefbfbdefbfbd220a2242220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "group": "Literal filter controls followed by malformed NUL JSON",
+      "id": "join-mixed",
+      "argv": [
+        "-j",
+        "--",
+        "join((\"\n\",\"|\"))"
+      ],
+      "inputHex": "5b22f09f9880222c6e756c6c2c747275652c31322e352c2200225d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      },
+      "before": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c696420737472696e67206174206f666673657420360a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      }
+    },
+    {
+      "group": "Literal filter controls followed by malformed NUL JSON",
+      "id": "join-mixed:bytewise",
+      "argv": [
+        "-j",
+        "--",
+        "join((\"\n\",\"|\"))"
+      ],
+      "inputHex": "5b22f09f9880222c6e756c6c2c747275652c31322e352c2200225d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      },
+      "before": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c696420737472696e67206174206f666673657420360a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-json",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a5b226166746572225d0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-json:bytewise",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a5b226166746572225d0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-json-exit",
+      "argv": [
+        "-je",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a5b226166746572225d0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-json-exit:bytewise",
+      "argv": [
+        "-je",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a5b226166746572225d0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-raw",
+      "argv": [
+        "-Rj",
+        "--",
+        "if . == \"bad\" then 1/0 else [.]|join(\"|\") end"
+      ],
+      "inputHex": "6f6b0a6261640a61667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-following-raw:bytewise",
+      "argv": [
+        "-Rj",
+        "--",
+        "if . == \"bad\" then 1/0 else [.]|join(\"|\") end"
+      ],
+      "inputHex": "6f6b0a6261640a61667465720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-internal-generator",
+      "argv": [
+        "-j",
+        "--",
+        "join((\"/\",1/0,\"!\"))"
+      ],
+      "inputHex": "5b2270222c2271225d0a5b2272222c2273225d0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "recover-internal-generator:bytewise",
+      "argv": [
+        "-j",
+        "--",
+        "join((\"/\",1/0,\"!\"))"
+      ],
+      "inputHex": "5b2270222c2271225d0a5b2272222c2273225d0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "pipe-error-recovery",
+      "inputHex": "5b226265666f7265225d0a5b7b7d5d0a5b226166746572225d",
+      "stages": [
+        {
+          "argv": [
+            "-c",
+            "--",
+            "join(\"/\")"
+          ],
+          "inputHex": "5b226265666f7265225d0a5b7b7d5d0a5b226166746572225d",
+          "inputSha256": "a976f820b8cb81d927c7e1d41a3e82994f64e83fca13409ac8f44b660af15283",
+          "expected": {
+            "status": 0,
+            "signal": null,
+            "stdoutHex": "226265666f7265220a226166746572220a",
+            "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a",
+            "stdoutSha256": "5c336fb6386fee0dbfd9a2749b12a9805c423c275d50d860c9b6013ec1ad43e4",
+            "stderrSha256": "85ab6ec4f0e17815db3a162950c90016e7c8f69332bd1888035dfaedad6f7105"
+          }
+        },
+        {
+          "argv": [
+            "-sj",
+            "--",
+            "join(\"|\")"
+          ],
+          "inputHex": "226265666f7265220a226166746572220a",
+          "inputSha256": "5c336fb6386fee0dbfd9a2749b12a9805c423c275d50d860c9b6013ec1ad43e4",
+          "expected": {
+            "status": 0,
+            "signal": null,
+            "stdoutHex": "6265666f72657c6166746572",
+            "stderrHex": "",
+            "stdoutSha256": "6a2a3e02717de43b6f53e41f0ed132c26ee32cb9d9971b0b8b9140855f8d88d5",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6265666f72657c6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 0,
+        "stdoutHex": "6265666f7265",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 0,
+        "stdoutHex": "6265666f72657c6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "runtime-error-last-false",
+      "argv": [
+        "-ce",
+        "--",
+        "if . == false then false else join(\"/\") end"
+      ],
+      "inputHex": "5b7b7d5d0a66616c7365",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 1,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Per-input recovery / generator / final status",
+      "id": "runtime-error-last-empty",
+      "argv": [
+        "-ce",
+        "--",
+        "if . == [] then empty else join(\"/\") end"
+      ],
+      "inputHex": "5b7b7d5d0a5b5d",
+      "expected": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "compare-mixed-double",
+      "argv": [
+        "-c",
+        "--",
+        "[.==(.+0),.>(.+0),[.,.+0]|unique]"
+      ],
+      "inputHex": "39303037313939323534373430393933",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f742069746572617465206f76657220626f6f6c65616e202874727565290a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e6971756520726571756972657320616e2061727261790a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f742069746572617465206f76657220626f6f6c65616e202874727565290a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "scalar-types",
+      "argv": [
+        "-c",
+        "--",
+        "[type,numbers,scalars,(objects|type),(iterables|type),[.,\"s\",{},[],null,false]|sort]"
+      ],
+      "inputHex": "31322e33343030",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20737472696e672028226e756d62657222292063616e6e6f7420626520736f727465642c206173206974206973206e6f7420616e2061727261790a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20736f727420726571756972657320616e2061727261790a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20737472696e672028226e756d62657222292063616e6e6f7420626520736f727465642c206173206974206973206e6f7420616e2061727261790a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "preserve-through-copy",
+      "argv": [
+        "-c",
+        "--",
+        "[map_values(.),to_entries|from_entries,.a=0,.b|numbers]"
+      ],
+      "inputHex": "7b2261223a31322e333430302c2262223a393030373139393235343734303939337d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226b6579220a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a2066726f6d5f656e747269657320726571756972657320616e2061727261790a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226b6579220a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "conversion-large-token",
+      "argv": [
+        "-c",
+        "--",
+        "[\"1e9999\"|tonumber,\"[1e9999]\"|fromjson]"
+      ],
+      "inputHex": "6e756c6c",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d626572202831452b3939393929206f6e6c7920737472696e67732063616e206265207061727365640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a2066726f6d6a736f6e207265717569726573206120737472696e670a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d626572202831452b3939393929206f6e6c7920737472696e67732063616e206265207061727365640a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "fromjson",
+      "argv": [
+        "-c",
+        "--",
+        "fromjson"
+      ],
+      "inputHex": "227b226e223a393030373139393235343734303939337d22",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720277b27290a6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20350a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420310a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720277b27290a6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20350a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "separator-error-after-prefix",
+      "argv": [
+        "-j",
+        "--",
+        "join((\"/\",1/0,\"!\"))"
+      ],
+      "inputHex": "5b2270222c2271225d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "recover-final-error",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "recover-final-error:bytewise",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b226f6b225d0a5b7b7d5d0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "parse-error-after-prefix",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"/\")"
+      ],
+      "inputHex": "5b2270222c2271225d0a7b2262726f6b656e223a0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "parse-error-after-prefix:bytewise",
+      "argv": [
+        "-j",
+        "--",
+        "join(\"/\")"
+      ],
+      "inputHex": "5b2270222c2271225d0a7b2262726f6b656e223a0a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "json-high-surrogate-escape",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "225c7564383030220a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      }
+    },
+    {
+      "group": "Diagnostic-only in original audit",
+      "id": "json-high-surrogate-escape:bytewise",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "225c7564383030220a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "before": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      },
+      "after": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      }
+    }
+  ],
+  "remainingMeasuredGaps": [
+    {
+      "cohort": "split 69",
+      "id": "generator-error-after-output",
+      "argv": [
+        "-c",
+        "split((\",\", .missing))"
+      ],
+      "inputHex": "22612c62220a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "5b2261222c2262225d0a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e64657820737472696e67207769746820737472696e6720226d697373696e67220a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "5b2261222c2262225d0a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2063616e6e6f7420696e64657820737472696e67207769746820737472696e670a"
+      }
+    },
+    {
+      "cohort": "split 69",
+      "id": "generator-error-before-typecheck",
+      "argv": [
+        "-c",
+        "split(.missing)"
+      ],
+      "inputHex": "310a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226d697373696e67220a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2063616e6e6f7420696e646578206e756d626572207769746820737472696e670a"
+      }
+    },
+    {
+      "cohort": "join-native.json",
+      "id": "join-zero-arity",
+      "argv": [
+        "-c",
+        "--",
+        "join"
+      ],
+      "inputHex": "5b5d",
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e206a6f696e2f30206174206f666673657420340a"
+      }
+    },
+    {
+      "cohort": "join-native.json",
+      "id": "join-two-arity",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\";\":\")"
+      ],
+      "inputHex": "5b5d",
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e206a6f696e2f32206174206f66667365742031330a"
+      }
+    }
+  ],
+  "structuredDigest": "6783a44db8b06e86b91010824893f0afd7ea0d6ff0fa985aeea77277f6fd8d23",
+  "sourceHashes": {
+    "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+    "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "src/commands/structured/input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+    "src/commands/structured/interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+    "src/commands/structured/jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+    "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+    "src/commands/structured/parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+    "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "src/commands/structured/values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222"
+  },
+  "fullValidationRuntimeStable": false,
+  "handoffRecheckRuntimeStable": true,
+  "handoffRuntimeDigest": "abc33f4fe923f7bee9d3d83a73b3b485448f11f401e24716d951c8edaf1cbe25",
+  "independentReview": "Required from a different leaf; author validation only"
+}

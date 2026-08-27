@@ -7,6 +7,7 @@ const directory = "tests/commands/structured-stress/jq-42-author-20260827";
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const filesUnder = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? filesUnder(`${directory}/${entry.name}`) : [`${directory}/${entry.name}`]);
 const save = (name, content) => {
+  if (process.argv.includes("--verify")) return;
   const path = `${directory}/${name}`;
   assert.equal(existsSync(path), false, path);
   const patch = `*** Begin Patch\n*** Add File: ${path}\n${content.trimEnd().split("\n").map(line => `+${line}`).join("\n")}\n*** End Patch\n`;

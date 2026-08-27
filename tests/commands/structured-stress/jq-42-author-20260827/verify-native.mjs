@@ -19,6 +19,7 @@ const captureLegacyFiles = vector => {
   } finally { rmSync(temporary, { recursive: true }); }
 };
 const save = (filename, data) => {
+  if (process.argv.includes("--verify")) return;
   const path = `${directory}/${filename}`;
   assert.equal(existsSync(path), false);
   const content = JSON.stringify(data, null, 2);

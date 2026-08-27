@@ -1,0 +1,89 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+const repository = '/Users/kjopek/Workspace/safe-bash';
+const parentRelative = 'tests/shell-stress/first-read-contract-review/owned-output-direction-review';
+const parent = path.join(repository, parentRelative);
+const owned = path.join(parent, 'execution-v2');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const digest = async filename => {
+  const bytes = await readFile(filename);
+  return { bytes: bytes.length, sha256: hash(bytes) };
+};
+const json = async filename => JSON.parse(await readFile(filename, 'utf8'));
+const freeze = await json(path.join(parent, 'freeze.json'));
+const preparation = await json(path.join(parent, 'preparation-seal.json'));
+assert.equal((await digest(path.join(parent, 'freeze.json'))).sha256, 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae');
+assert.equal((await digest(path.join(parent, 'preparation-seal.json'))).sha256, 'c0efba18e44d625ebd690937992a8ba6ae942f9167ae14610d9a7274f831eddb');
+const checks = [];
+for (const entry of freeze.files) {
+  assert.deepEqual(await digest(path.join(repository, entry.path)), { bytes: entry.bytes, sha256: entry.sha256 });
+  checks.push({ profile: 'frozen-input', ...entry });
+}
+for (const entry of preparation.files) {
+  assert.deepEqual(await digest(path.join(parent, entry.path)), { bytes: entry.bytes, sha256: entry.sha256 });
+  checks.push({ profile: 'parent-preparation', ...entry });
+}
+for (const entry of freeze.priorIndependent.files) {
+  assert.deepEqual(await digest(path.join(repository, entry.path)), { bytes: entry.bytes, sha256: entry.sha256 });
+  checks.push({ profile: 'old-independent-read-hash-only', ...entry });
+}
+const commitChecks = [];
+for (const [commit, filenames] of [
+  ['eb78897cb276e29637ebae30c10aa0e448e31bc6', ['INTENT.md', 'cases.json', 'inputs.json', 'freeze.json']],
+  ['de81ae8574f9b3df63460ba28f8c8926fdd14301', preparation.files.map(entry => entry.path).concat('preparation-seal.json')],
+  ['cb92f1b13a310c47190c79424fb9df536e8d0463', ['CLOSURE.md', 'postseal-checks.json']]
+]) {
+  for (const filename of filenames) {
+    const committed = execFileSync('git', ['show', `${commit}:${parentRelative}/${filename}`], { cwd: repository, maxBuffer: 1024 * 1024 });
+    const current = await readFile(path.join(parent, filename));
+    assert.deepEqual(current, committed);
+    commitChecks.push({ commit, path: filename, sha256: hash(current) });
+  }
+}
+await mkdir(owned, { recursive: true });
+const parentInventory = [];
+for (const entry of await readdir(parent, { withFileTypes: true })) {
+  if (entry.isFile()) parentInventory.push({ path: entry.name, ...await digest(path.join(parent, entry.name)) });
+}
+parentInventory.sort((left, right) => left.path.localeCompare(right.path));
+const declarations = [];
+for (const [source, destination] of [
+  ['/tmp/safe-bash-owned-output-direction-prototype-api.txt', 'api-declarations.txt.data'],
+  ['/tmp/safe-bash-owned-output-direction-prototype-status.txt', 'author-status.txt.data'],
+  ['/tmp/safe-bash-owned-output-direction-prototype-needs-root.txt', 'author-needs-root.txt.data']
+]) {
+  const bytes = await readFile(source);
+  await writeFile(path.join(owned, destination), bytes, { flag: 'wx' });
+  declarations.push({ source, capturedPath: destination, bytes: bytes.length, sha256: hash(bytes) });
+}
+for (const filename of ['cases.json', 'inputs.json']) {
+  await writeFile(path.join(owned, `${filename}.data`), await readFile(path.join(parent, filename)), { flag: 'wx' });
+}
+const inputs = await json(path.join(parent, 'inputs.json'));
+const cases = await json(path.join(parent, 'cases.json'));
+assert.deepEqual(cases.cases.map(entry => entry.id), ['D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07']);
+assert.equal(cases.logicalCaseCount, 7);
+const contentLength = Number(inputs.mixedCurl.responseWireHeaders.match(/Content-Length: (\d+)/)[1]);
+assert.equal(Buffer.byteLength(inputs.mixedCurl.responseBody), contentLength);
+const result = {
+  schema: 1,
+  capturedAt: new Date().toISOString(),
+  classification: 'declaration-only-independent-preparation-not-product-proof',
+  candidateAccess: false,
+  productExecutions: 0,
+  logicalCases: 7,
+  node: { version: process.version, executable: process.execPath, ...await digest(process.execPath) },
+  declarations,
+  parentInventory,
+  checks,
+  commitChecks,
+  fixtureAudit: { mixedBodyBytes: Buffer.byteLength(inputs.mixedCurl.responseBody), contentLength, exactHeaderUnchanged: true, corrections: [] },
+  historicalWhitespaceWarnings: ['INTENT.md', 'BINDING.md', 'REPORT.md', 'probes.mjs'],
+  old16Seal: 'aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972'
+};
+await writeFile(path.join(owned, 'authentication.json'), `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
+console.log(JSON.stringify({ authenticatedRecords: checks.length, committedRecords: commitChecks.length, parentFiles: parentInventory.length, declarations, fixtureAudit: result.fixtureAudit, productExecutions: 0 }, null, 2));

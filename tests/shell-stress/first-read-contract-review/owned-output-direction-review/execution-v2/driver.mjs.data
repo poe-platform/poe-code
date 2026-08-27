@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { parseArgs } from 'node:util';
+import { selfCheck } from './fixtures.mjs';
+
+const { values } = parseArgs({ options: {
+  command: { type: 'string', default: 'prepare' },
+  'evidence-dir': { type: 'string' },
+  'compiled-import': { type: 'string' }
+} });
+assert.ok(values['evidence-dir'], '--evidence-dir required');
+const evidence = path.resolve(values['evidence-dir']);
+const readJson = async filename => JSON.parse(await readFile(path.join(evidence, filename), 'utf8'));
+const binding = await readJson('binding.json');
+const inputs = await readJson('inputs.json.data');
+const cases = await readJson('cases.json.data');
+const authentication = await readJson('authentication.json');
+assert.equal(binding.parentFreezeSha256, 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae');
+assert.equal(binding.apiSha256, createHash('sha256').update(await readFile(path.join(evidence, 'api-declarations.txt.data'))).digest('hex'));
+assert.deepEqual(cases.cases.map(entry => entry.id), ['D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07']);
+assert.deepEqual(binding.d07Subruns, inputs.failureReasons.subruns);
+assert.equal(binding.selectedBorrowedReadBranch, 'opaque-nonpreemptible-sequencing');
+assert.equal(binding.hostFrameAdaptationAuthorizedForFrozenD01, false);
+for (const filename of ['cases.json', 'inputs.json']) {
+  const expected = authentication.parentInventory.find(entry => entry.path === filename);
+  const bytes = await readFile(path.join(evidence, `${filename}.data`));
+  assert.equal(bytes.length, expected.bytes);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), expected.sha256);
+}
+const report = {
+  command: values.command,
+  classification: 'partial-preparation-only-not-a-seven-case-product-driver',
+  compiledImportParameter: values['compiled-import'] ?? null,
+  candidateImported: false,
+  candidateSourceInspected: false,
+  completeProductDriver: false,
+  logicalCases: 7,
+  executed: 0,
+  passed: null,
+  cases: binding.caseStatus,
+  blockers: Object.entries(binding).filter(([, value]) => value === null).map(([key]) => key)
+};
+if (values.command === 'self-check') report.fixtureCheck = await selfCheck(inputs);
+else if (values.command === 'run') {
+  report.refusal = 'Missing root-authenticated v2 CLOSED readiness and complete frozen product bindings; no import attempted';
+  process.exitCode = 2;
+} else assert.equal(values.command, 'prepare', 'Unknown command');
+console.log(JSON.stringify(report, null, 2));

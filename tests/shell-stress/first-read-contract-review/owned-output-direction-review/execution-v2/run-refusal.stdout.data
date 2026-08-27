@@ -1,0 +1,33 @@
+{
+  "command": "run",
+  "classification": "partial-preparation-only-not-a-seven-case-product-driver",
+  "compiledImportParameter": "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/NOT-RESTORED/dist/index.js",
+  "candidateImported": false,
+  "candidateSourceInspected": false,
+  "completeProductDriver": false,
+  "logicalCases": 7,
+  "executed": 0,
+  "passed": null,
+  "cases": {
+    "D01": "pending-binding-incompatibility",
+    "D02": "pending-binding",
+    "D03": "pending-binding",
+    "D04": "pending-binding",
+    "D05": "pending-binding",
+    "D06": "pending-binding",
+    "D07": "pending-binding"
+  },
+  "blockers": [
+    "compiledImport",
+    "shellConstructor",
+    "shellRegistration",
+    "shellExec",
+    "curlRegistrationAndLoopbackAuthorization",
+    "vfsConstructionAndByteIo",
+    "operationAcquireSignature",
+    "operationCleanupSignature",
+    "operationOutputCloseObservation",
+    "exactPublicStatusAndErrorBindings"
+  ],
+  "refusal": "Missing root-authenticated v2 CLOSED readiness and complete frozen product bindings; no import attempted"
+}

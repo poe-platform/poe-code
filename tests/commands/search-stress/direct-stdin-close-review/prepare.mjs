@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { prepareFixture } from './prepare-fixture.mjs';
+import { prepareFixture } from './prepare-fixture-v2.mjs';
 
 const own = dirname(fileURLToPath(import.meta.url));
 const root = resolve(own, '../../../..');

@@ -7,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const own = dirname(fileURLToPath(import.meta.url));
 const root = resolve(own, '../../../..');
-const report = join(own, 'runs/baseline-02');
+const label = process.argv[2] ?? 'baseline-02';
+if (!/^baseline-[0-9]{2}$/.test(label)) throw new Error('baseline-NN label required');
+const report = join(own, 'runs', label);
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const preparation = read(join(report, 'preparation.json'));
@@ -91,6 +93,7 @@ const git = argv => {
 };
 const data = { baseline: preparation.baseline, freezeCommit: preparation.freezeCommit,
   preparationFixCommit: git(['log', '-1', '--format=%H', '--', relative(root, join(own, 'prepare-fixture.mjs'))]),
+  preparationV2Commit: git(['log', '-1', '--format=%H', '--', relative(root, join(own, 'prepare-fixture-v2.mjs'))]),
   observedHeadNotCandidate: git(['rev-parse', 'HEAD']), candidate: null, candidateSourceAfter: 'not routed or inspected',
   totalCases: summary.total, passed: summary.passed, failed: summary.failed, assertionCount, failedAssertions,
   workerCount, workerCases, checks, workerStaticGraph: workerGraph, sourceAfter,

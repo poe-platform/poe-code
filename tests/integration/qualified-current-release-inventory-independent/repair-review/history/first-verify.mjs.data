@@ -1,0 +1,130 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const [qualifiedDirectory, destination] = process.argv.slice(2);
+assert.ok(qualifiedDirectory && destination, "usage: verify.mjs EXACT_REPAIRED_RUN NEW_OUTPUT");
+const input = realpathSync(qualifiedDirectory), output = resolve(destination);
+assert.equal(existsSync(output), false); mkdirSync(output, { recursive: true });
+const original = JSON.parse(readFileSync(join(input, "result.json")));
+const candidate = "c3fbda6279028fd2bde9f6d967970870ff7546aa";
+assert.equal(original.sourceCommit, candidate); assert.equal(original.exitCode, 0);
+const work = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-release-repair-independent-")));
+const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+const save = (name, value) => writeFileSync(join(output, name), JSON.stringify(value, null, 2) + "\n");
+const report = { candidate, node: process.version, startedAt: new Date().toISOString(), status: "failed",
+  work, controls: [], runtime: [], sourceHashes: [], scope: "independent repair review; no whole gate" };
+
+function patch(path, before, after) {
+  const source = readFileSync(path, "utf8"); assert.equal(source.split(before).length, 2);
+  const result = spawnSync("apply_patch", [], { encoding: "utf8", timeout: 10000,
+    input: `*** Begin Patch\n*** Update File: ${path}\n@@\n${before.split("\n").map(line => "-" + line).join("\n")}\n${after.split("\n").filter(Boolean).map(line => "+" + line).join("\n")}\n*** End Patch\n` });
+  assert.equal(result.status, 0, result.stderr);
+}
+
+function check(name, action) {
+  action(); report.controls.push({ name, passed: true });
+}
+
+try {
+  for (const entry of original.harness) {
+    assert.equal(sha(readFileSync(join(original.root, entry.path))), entry.sha256, entry.path);
+    report.sourceHashes.push(entry);
+  }
+  const helpers = join(original.root, "tests/plugins/qualified-current-release");
+  const { validateRuntimeCoverage, validateRuntimeResults } = await import(pathToFileURL(join(helpers, "runtime-coverage.mjs")).href);
+  const { consumerGroups } = await import(pathToFileURL(join(helpers, "consumers.mjs")).href);
+  const { verifyInventory } = await import(pathToFileURL(join(helpers, "inventory-check.mjs")).href);
+  const canonical = { name: "independent", files: ["tests/a.test.mts"], runtime: ["a.test.mjs"] };
+  const counts = { tests: 2, pass: 2, fail: 0, cancelled: 0, skipped: 0, todo: 0 };
+  const result = () => [{ name: canonical.name, compile: "pass", runtimeResults: [{ runtime: "a.test.mjs", status: 0, counts: { ...counts } }] }];
+  check("all actual groups and execution records match", () => validateRuntimeResults(consumerGroups, original.currentConsumers.groups));
+  check("canonical no explicit count still accepts measured positive runtime", () => validateRuntimeResults([canonical], result()));
+  check("canonical no explicit count rejects zero runtime", () => assert.throws(() => validateRuntimeCoverage([{ ...canonical, runtime: [] }]), /mandatory canonical runtime missing/));
+  check("renamed canonical companion must execute its emitted name", () => {
+    const group = { name: "renamed", files: ["helper.mts"], companions: ["tests/other.test.mts"], companionNames: ["selected.test.mts"], runtime: ["selected.test.mjs"] };
+    validateRuntimeCoverage([group]); assert.throws(() => validateRuntimeCoverage([{ ...group, runtime: ["other.test.mjs"] }]), /mandatory canonical runtime missing/);
+  });
+  check("service compile-only with no test input stays legal", () => {
+    const group = { name: "service", files: ["workflow.mts"], runtime: [] };
+    validateRuntimeResults([group], [{ name: "service", compile: "pass", runtimeResults: [] }]);
+  });
+  for (const key of ["fail", "cancelled", "skipped", "todo"]) check(`postcheck rejects ${key} despite successful process`, () => {
+    const altered = result(); altered[0].runtimeResults[0].counts[key] = 1;
+    assert.throws(() => validateRuntimeResults([canonical], altered), new RegExp(`runtime ${key}`));
+  });
+  check("postcheck rejects undefined runtime counts", () => {
+    const altered = result(); delete altered[0].runtimeResults[0].counts;
+    assert.throws(() => validateRuntimeResults([canonical], altered), /missing runtime test count/);
+  });
+  check("postcheck rejects phantom duplicated records", () => {
+    const altered = result(); altered[0].runtimeResults.push({ ...altered[0].runtimeResults[0] });
+    assert.throws(() => validateRuntimeResults([canonical], altered), /declared runtime not executed/);
+  });
+  check("postcheck rejects additional result group", () => assert.throws(() => validateRuntimeResults([canonical], [...result(), ...result()]), /consumer result groups differ/));
+  check("identity-marked atomic program cannot become compile-only", () => {
+    const group = consumerGroups.find(entry => entry.name === "webdav-atomic-independent");
+    assert.equal(group.consumerIdentity, true);
+    assert.throws(() => validateRuntimeCoverage([{ ...group, runtime: [] }]), /consumer identity requires execution/);
+  });
+  check("new canonical path under old excluded prefix is no longer omitted", () => {
+    const fresh = "tests/plugins/stream-five-public-independent/not-authorized.test.mts";
+    assert.throws(() => verifyInventory(original.inventory, [...original.inventory.entries.map(entry => entry.path), fresh],
+      [], [], () => { throw new Error("must fail census before reading bodies"); }), /standalone inventory changed/);
+  });
+
+  const modes = ["declared-original-sentinel", "omitted-without-count", "missing-result", "atomic-missing-identity", "mutant-remove-precheck", "mutant-remove-postcheck"];
+  for (const mode of modes) {
+    const directory = join(work, mode), root = join(directory, "snapshot"); mkdirSync(directory);
+    cpSync(original.root, root, { recursive: true, dereference: true,
+      filter: path => path !== join(original.root, "dist") && !path.includes("/.oracle/") });
+    const runner = join(root, "scripts/verify-current-consumers.mjs");
+    const fixture = join(root, "tests/fs/webdav/release-timestamp-independent/independent.test.mts");
+    const originalRunner = sha(readFileSync(runner)), originalFixture = sha(readFileSync(fixture));
+    const sentinel = "INDEPENDENT_RUNTIME_SENTINEL";
+    if (["declared-original-sentinel", "omitted-without-count"].includes(mode)) {
+      patch(fixture, 'import assert from "node:assert/strict";', `throw new Error("${sentinel}");\nimport assert from "node:assert/strict";`);
+    }
+    if (["missing-result", "mutant-remove-postcheck"].includes(mode)) {
+      patch(runner, "        result.runtimeResults.push({ runtime, status: execution.status, counts, scope: usesNodeTest ? \"unchanged node:test assertions\" : group.qualification });", "        void counts;");
+    }
+    if (mode === "mutant-remove-precheck") patch(runner, "  validateRuntimeCoverage(consumerGroups);", "");
+    if (mode === "mutant-remove-postcheck") patch(runner, "  validateRuntimeResults(consumerGroups, report.currentConsumers.groups);", "");
+    const { consumerGroups: selectedGroups, negativeGroups } = await import(pathToFileURL(join(root, "tests/plugins/qualified-current-release/consumers.mjs")).href);
+    const selected = selectedGroups.find(group => group.name === (mode === "atomic-missing-identity" ? "webdav-atomic-independent" : "webdav-timestamp-independent"));
+    assert.ok(selected); selectedGroups.splice(0, selectedGroups.length, selected); negativeGroups.splice(0);
+    if (["omitted-without-count", "mutant-remove-precheck"].includes(mode)) { selected.runtime = []; delete selected.nodeTests; }
+    if (mode === "atomic-missing-identity") selected.consumerIdentity = false;
+    const { currentConsumers } = await import(pathToFileURL(runner).href);
+    const { manifest } = await import(pathToFileURL(join(root, "tests/plugins/stream-five-public/harness.mjs")).href);
+    const state = { sourceCommit: candidate, directory, root, tests: manifest(root, "tests"), steps: [] };
+    let error;
+    try { currentConsumers(state); } catch (failure) { error = failure.stack; }
+    const group = state.currentConsumers?.groups[0];
+    const observation = { mode, error, rejected: error !== undefined, beforeWork: state.steps.length === 0,
+      originalRunner, originalFixture, runnerSha256: sha(readFileSync(runner)), fixtureSha256: sha(readFileSync(fixture)),
+      group, steps: state.steps, qualification: "actual frozen runner restricted to one group in scratch; original18-group execution separately preserved" };
+    save(`${mode}.json`, observation);
+    if (mode === "declared-original-sentinel") { assert.ok(error); assert.equal(group.compile, "pass"); assert.match(group.error, new RegExp(sentinel)); }
+    if (mode === "omitted-without-count") { assert.match(error, /mandatory canonical runtime missing/); assert.equal(observation.beforeWork, true); }
+    if (mode === "missing-result") { assert.match(error, /declared runtime not executed/); assert.equal(group.compile, "pass"); assert.equal(group.error, undefined); assert.deepEqual(group.runtimeResults, []); }
+    if (mode === "atomic-missing-identity") { assert.ok(error); assert.equal(group.compile, "pass"); assert.match(group.error, /ENOENT/); }
+    if (mode === "mutant-remove-precheck") { assert.ok(error); assert.equal(observation.beforeWork, false); assert.equal(group.compile, "pass"); }
+    if (mode === "mutant-remove-postcheck") { assert.equal(error, undefined); assert.equal(group.compile, "pass"); assert.deepEqual(group.runtimeResults, []); }
+    report.runtime.push({ mode, expectedBehaviorObserved: true, rejected: observation.rejected,
+      beforeWork: observation.beforeWork, mutantDetected: mode.startsWith("mutant-"), evidence: `${mode}.json` });
+    rmSync(directory, { recursive: true });
+  }
+  for (const entry of original.harness) assert.equal(sha(readFileSync(join(original.root, entry.path))), entry.sha256, entry.path);
+  report.status = "passed-independent-two-hole-repair-review";
+} catch (error) { report.error = error.stack; process.exitCode = 1; }
+finally {
+  rmSync(work, { recursive: true, force: true }); report.cleaned = !existsSync(work);
+  report.finishedAt = new Date().toISOString(); save("report.json", report);
+  console.log(JSON.stringify({ status: report.status, controls: report.controls.length,
+    runtime: report.runtime.length, cleaned: report.cleaned, error: report.error }));
+}

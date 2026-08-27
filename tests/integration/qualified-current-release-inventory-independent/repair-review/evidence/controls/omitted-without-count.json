@@ -1,0 +1,12 @@
+{
+  "mode": "omitted-without-count",
+  "error": "AssertionError [ERR_ASSERTION]: mandatory canonical runtime missing: tests/fs/webdav/release-timestamp-independent/independent.test.mts\n    at validateRuntimeCoverage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-repair-independent-fkDLPJ/omitted-without-count/snapshot/tests/plugins/qualified-current-release/runtime-coverage.mjs:14:14)\n    at currentConsumers (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-repair-independent-fkDLPJ/omitted-without-count/snapshot/scripts/verify-current-consumers.mjs:12:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-inventory-independent/repair-review/verify.mjs:106:11",
+  "rejected": true,
+  "beforeWork": true,
+  "originalRunner": "e70df901920bf461801f523a701572910aa72a5f91f25c9b13cb09f7d39d22c9",
+  "originalFixture": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+  "runnerSha256": "e70df901920bf461801f523a701572910aa72a5f91f25c9b13cb09f7d39d22c9",
+  "fixtureSha256": "c376db89f4c993f5d91a5da303573aa579810fd0385fc1f82fa1dcf64560313a",
+  "steps": [],
+  "qualification": "actual frozen runner restricted to one group in scratch; original18-group execution separately preserved"
+}

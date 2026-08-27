@@ -7,6 +7,7 @@ export interface ShellInvokeOptions {
   readonly stderr?: ByteSink;
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
+  readonly replaceEnv?: boolean;
 }
 
 export interface ShellCommandContext extends CommandContext {

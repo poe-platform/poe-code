@@ -1256,7 +1256,7 @@ export class Runtime {
     const child = cloneState(state);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     for (const key of child.exported) delete child.variables[key];
-    const env = { ...context.env, ...options.env, PWD: child.cwd };
+    const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
     for (const [key, value] of Object.entries(env)) {
       if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
       child.variables[key] = value;

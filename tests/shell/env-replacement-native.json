@@ -1,0 +1,457 @@
+{
+  "capturedAt": "2026-08-27T02:45:18.951Z",
+  "head": "1d931865638895aff6dec0b8c72e08f8a90c4379",
+  "node": "v22.22.2",
+  "importedRuntime": "file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+  "environment": {
+    "PATH": "",
+    "PUBLIC": "parent",
+    "A": "ancestor",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "HOME": "/private/tmp/safe-bash-env-replacement-native-Udr9sO/work",
+    "TZ": "UTC"
+  },
+  "cwd": "/private/tmp/safe-bash-env-replacement-native-Udr9sO/work",
+  "before": {
+    "src/shell/runtime.ts": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "tests/shell/env-replacement-native.ts": "676768b018749a327b27cc2c58953bb34665c69693ad82f0ea81e687540c33c3"
+  },
+  "after": {
+    "src/shell/runtime.ts": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "tests/shell/env-replacement-native.ts": "676768b018749a327b27cc2c58953bb34665c69693ad82f0ea81e687540c33c3"
+  },
+  "provenance": [
+    {
+      "name": "GNU-5.3-primary",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "childSh": {
+        "path": "/private/tmp/safe-bash-env-replacement-native-Udr9sO/GNU-5.3-primary/sh",
+        "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "mode": "actual sh basename symlink to this profile executable"
+      }
+    },
+    {
+      "name": "Bash-3.2-historical",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "childSh": {
+        "path": "/private/tmp/safe-bash-env-replacement-native-Udr9sO/Bash-3.2-historical/sh",
+        "target": "/bin/bash",
+        "mode": "actual sh basename symlink to this profile executable"
+      }
+    }
+  ],
+  "env": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+    "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+    "version": {
+      "stdout": "ZW52IChHTlUgY29yZXV0aWxzKSA5LjcKQ29weXJpZ2h0IChDKSAyMDI1IEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbiwgSW5jLgpMaWNlbnNlIEdQTHYzKzogR05VIEdQTCB2ZXJzaW9uIDMgb3IgbGF0ZXIgPGh0dHBzOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4uClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTogeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3LgoKV3JpdHRlbiBieSBSaWNoYXJkIE1seW5hcmlrLCBEYXZpZCBNYWNLZW56aWUsIGFuZCBBc3NhZiBHb3Jkb24uCg==",
+      "stderr": "",
+      "status": 0
+    }
+  },
+  "cat": {
+    "path": "/bin/cat",
+    "sha256": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6"
+  },
+  "observations": [
+    {
+      "name": "nested-unset",
+      "virtualSource": "env -i A=1 B=2 env -u A",
+      "virtual": {
+        "stdout": "Qj0yCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "nested-pipeline",
+      "virtualSource": "env -i A=1 B=2 env -u A | cat",
+      "virtual": {
+        "stdout": "Qj0yCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A | /bin/cat",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A | /bin/cat",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "third-generation",
+      "virtualSource": "env -i A=1 B=2 env -u A env",
+      "virtual": {
+        "stdout": "Qj0yCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u A '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "Qj0yCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "virtualSource": "env -i env",
+      "virtual": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "prefix-cleared",
+      "virtualSource": "TEMP=prefix env -i env",
+      "virtual": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "TEMP=prefix '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "TEMP=prefix '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "unset-inherited",
+      "virtualSource": "env -u PUBLIC bash -c 'printf \"<%s>|<%s>\\n\" \"$PUBLIC\" \"$A\"'",
+      "virtual": {
+        "stdout": "PD58PGFuY2VzdG9yPgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u PUBLIC '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' -c 'printf \"<%s>|<%s>\\n\" \"$PUBLIC\" \"$A\"'",
+          "stdout": "PD58PGFuY2VzdG9yPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -u PUBLIC '/bin/bash' -c 'printf \"<%s>|<%s>\\n\" \"$PUBLIC\" \"$A\"'",
+          "stdout": "PD58PGFuY2VzdG9yPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "bash-private",
+      "virtualSource": "SECRET=private; env -i KEEP=value bash -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+      "virtual": {
+        "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i KEEP=value '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+          "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i KEEP=value '/bin/bash' -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+          "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "sh-private",
+      "virtualSource": "SECRET=private; env -i KEEP=value sh -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+      "virtual": {
+        "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i KEEP=value '/private/tmp/safe-bash-env-replacement-native-Udr9sO/GNU-5.3-primary/sh' -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+          "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i KEEP=value '/private/tmp/safe-bash-env-replacement-native-Udr9sO/Bash-3.2-historical/sh' -c 'printf \"<%s>|<%s>|<%s>|<%s>\\n\" \"$PUBLIC\" \"$SECRET\" \"$KEEP\" \"$PWD\"'",
+          "stdout": "PD58PD58PHZhbHVlPnw8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrPgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "cwd-PWD-data",
+      "virtualSource": "env -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller env",
+      "virtual": {
+        "stdout": "UFdEPWNhbGxlcgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "UFdEPWNhbGxlcgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "UFdEPWNhbGxlcgo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "cwd-empty",
+      "virtualSource": "env -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' env",
+      "virtual": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "startup-PWD",
+      "virtualSource": "env -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller bash -c 'printf \"%s\\n\" \"$PWD\"'",
+      "virtual": {
+        "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrL290aGVyCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' -c 'printf \"%s\\n\" \"$PWD\"'",
+          "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrL290aGVyCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i -C '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other' PWD=caller '/bin/bash' -c 'printf \"%s\\n\" \"$PWD\"'",
+          "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrL290aGVyCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "empty-and-equals",
+      "virtualSource": "env -i EMPTY= VALUE=a=b env",
+      "virtual": {
+        "stdout": "VkFMVUU9YT1iCkVNUFRZPQo=",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i EMPTY= VALUE=a=b '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "VkFMVUU9YT1iCkVNUFRZPQo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i EMPTY= VALUE=a=b '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "VkFMVUU9YT1iCkVNUFRZPQo=",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "raw-order",
+      "virtualSource": "env -i A=1 B=2 C=3 env",
+      "virtual": {
+        "stdout": "Qz0zCkI9MgpBPTEK",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 C=3 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "Qz0zCkI9MgpBPTEK",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "'/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i A=1 B=2 C=3 '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env'",
+          "stdout": "Qz0zCkI9MgpBPTEK",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "parent-current-state",
+      "virtualSource": "SECRET=private; env -i bash -c 'cd '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other'; export PUBLIC=changed'; eval 'printf \"%s|%s|%s\\n\" \"$PUBLIC\" \"$SECRET\" \"$PWD\"'",
+      "virtual": {
+        "stdout": "cGFyZW50fHByaXZhdGV8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "native": [
+        {
+          "profile": "GNU-5.3-primary",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' -c 'cd '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other'; export PUBLIC=changed'; eval 'printf \"%s|%s|%s\\n\" \"$PUBLIC\" \"$SECRET\" \"$PWD\"'",
+          "stdout": "cGFyZW50fHByaXZhdGV8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        },
+        {
+          "profile": "Bash-3.2-historical",
+          "source": "SECRET=private; '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env' -i '/bin/bash' -c 'cd '/private/tmp/safe-bash-env-replacement-native-Udr9sO/work/other'; export PUBLIC=changed'; eval 'printf \"%s|%s|%s\\n\" \"$PUBLIC\" \"$SECRET\" \"$PWD\"'",
+          "stdout": "cGFyZW50fHByaXZhdGV8L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1lbnYtcmVwbGFjZW1lbnQtbmF0aXZlLVVkcjlzTy93b3JrCg==",
+          "stderr": "",
+          "status": 0,
+          "exact": true
+        }
+      ]
+    }
+  ]
+}

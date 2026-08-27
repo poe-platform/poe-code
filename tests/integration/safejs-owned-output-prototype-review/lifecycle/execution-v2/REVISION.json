@@ -1,0 +1,57 @@
+{
+  "profileId": "lifecycle-execution-v2",
+  "noPromotion": true,
+  "originalEvidenceCommit": "19da254941847de60e80ea18407332bbe10b5265",
+  "proposalCommit": "37b89260c16e51dbf3f825f111d5f5b3c5ea32e8",
+  "signedPhase1": "65a887ac7aa0e361216b827f9fedee20389bc609",
+  "signedPhase2": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "release": "ROOT explicit user approval: one revised whole eleven-row author cohort; no retries, source fixes or promotion",
+  "variants": {
+    "L05-execution-error": {
+      "variantId": "L05-S1-selected-after-command",
+      "publicSource": "owned-guest\n)",
+      "selectorDiagnostic": "shell: Expected command at offset 12\n",
+      "selectorDiagnosticBytes": 37,
+      "expectedDiagnosticAttempts": [
+        "safejs: execution:L05-execution-error\n",
+        "shell: line 1: execution:L05-execution-error\n",
+        "shell: line 1: cleanup:L05-execution-error\n",
+        "shell: Expected command at offset 12\n"
+      ]
+    },
+    "L06-curl-open": {
+      "variantId": "L06-C1-curl-open",
+      "publicSource": "owned-guest",
+      "hostProfile": "positive-host-caps-single-request"
+    },
+    "L06-curl-consumer-closed": {
+      "variantId": "L06-C1-curl-consumer-closed",
+      "publicSource": "owned-guest",
+      "hostProfile": "positive-host-caps-single-request"
+    }
+  },
+  "curlAdmission": {
+    "authorizationCalls": 1,
+    "transportCalls": 1,
+    "authorizationAttempt": 0,
+    "redirectFromPresent": false,
+    "requestMethod": "PUT",
+    "requestUrl": "https://owned.invalid/upload",
+    "responseStatus": 200,
+    "responseLocationPresent": false,
+    "extraAdmissionPolicy": "deny and fail final exact journal assertions"
+  },
+  "originalRawCounts": {
+    "pass": 8,
+    "failed": 1,
+    "invalid": 1,
+    "blocked": 1
+  },
+  "cohort": {
+    "rows": 11,
+    "workflows": 6,
+    "unchangedControls": 8,
+    "revisedBindings": 3
+  },
+  "policy": "Original row IDs select original branches and Error objects. Only separate variant IDs/public source and approved higher curl caps differ. Original zero-cap binding/question remains unresolved; no unchanged-eleven or zero-cap support claim."
+}

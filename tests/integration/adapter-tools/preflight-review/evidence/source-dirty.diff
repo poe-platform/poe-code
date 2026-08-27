@@ -1,0 +1,26 @@
+diff --git a/src/commands/filesystem.ts b/src/commands/filesystem.ts
+index 6899a52..77773e0 100644
+--- a/src/commands/filesystem.ts
++++ b/src/commands/filesystem.ts
+@@ -4,6 +4,7 @@ import {
+ } from "../contracts/index.js";
+ import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+ import { compareCopyIdentity } from "./copy-identity.js";
++import { moveAcrossDevices } from "./move.js";
+ 
+ async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
+   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
+@@ -152,7 +153,12 @@ export function filesystemCommands(): CommandDefinition[] {
+         const source = pathOf(context, operand);
+         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
+         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
+-        await context.fs.rename(source, target, { signal: context.signal });
++        try { await context.fs.rename(source, target, { signal: context.signal }); }
++        catch (error) {
++          context.signal.throwIfAborted();
++          if (codeOf(error) !== "EXDEV") throw error;
++          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"))) return;
++        }
+         if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
+       });
+     }),

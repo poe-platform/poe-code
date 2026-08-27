@@ -3,15 +3,14 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import {
-  agentCommands, createByteCommands, createDiffPatchCommands,
+  agentCommands, createAgentCommands, createByteCommands, createDiffPatchCommands,
   createSearchCommands, createStandardCommands, createStructuredCommands,
   createTextProgramCommands, createRealFileSystem, MemoryFileSystem, MockS3Client,
   FsError, MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem, S3FileSystem, Shell,
   WebDavFileSystem,
-  type FileSystem, type ShellExecOptions, type ShellResult, type VirtualShellPlugin,
+  type FileSystem, type ShellExecOptions, type ShellResult,
 } from "../../../src/index.js";
 import { MockDav } from "../../fs/webdav/mock.js";
-import { assertWorkflowCommands } from "./preflight-review/preflight.js";
 
 export const writableAdapters = ["memory", "real", "s3", "webdav", "mount", "overlay"] as const;
 export type AdapterName = typeof writableAdapters[number] | "readonly";
@@ -133,11 +132,7 @@ async function davFixture(cleanups: Cleanup[]): Promise<{ fs: WebDavFileSystem; 
   return { fs, dav };
 }
 
-export async function withFixture(
-  name: AdapterName,
-  run: (fixture: Fixture) => Promise<void>,
-  plugin: VirtualShellPlugin = agentCommands(),
-): Promise<void> {
+export async function withFixture(name: AdapterName, run: (fixture: Fixture) => Promise<void>): Promise<void> {
   const cleanups: Cleanup[] = [];
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new Error(`fixture deadline: ${name}`)), 15_000);
@@ -170,7 +165,7 @@ export async function withFixture(
     const shell = new Shell({ fs, cwd: "/work", limits: {
       maxOutputBytes: 1024 * 1024, maxCommands: 150, maxLoopIterations: 100,
       maxSourceBytes: 32 * 1024, pipeHighWaterMark: 1024,
-    } }).use(plugin).use(async (context, next) => {
+    } }).use(agentCommands()).use(async (context, next) => {
       if (shell.commands.has(context.command)) dispatched.push(context.command);
       return next();
     });
@@ -178,8 +173,11 @@ export async function withFixture(
     const exec = (source: string, options: ShellExecOptions = {}) => shell.exec(source, {
       ...options, signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
     });
-    success(await exec(":"), "");
-    assertWorkflowCommands(shell.commands);
+    await exec(":");
+    const expected = Object.values(families).flatMap(factory => factory().map(command => command.name)).sort();
+    assert.equal(new Set(expected).size, expected.length, "six families have no colliding names");
+    assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
+    assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected);
     await run({ fs, shell, dispatched, exec,
       ...(lower ? { lower } : {}), ...(s3 ? { s3 } : {}), ...(dav ? { dav } : {}),
     });

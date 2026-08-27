@@ -1,0 +1,33 @@
+{
+  "name": "required-preflight-matrix",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/preflight-review/.frozen-gNSNcz",
+  "startedAt": "2026-08-27T00:21:59.075Z",
+  "elapsedMs": 1835.793375,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "inputHash": "582258aec47e433eddf51d44037f9d8f0b75f4915a174c32b3bb490da5d1a8f4",
+  "sourceHash": "bb7d5784a69dbf44e4aaf967bc19e4579966ea69e95705a338ccb71dc2aeef4d",
+  "counts": {
+    "tests": 79,
+    "pass": 77,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "s3: create, copy, append, inspect and remove files",
+    "webdav: create, copy, append, inspect and remove files"
+  ],
+  "unchangedInputsAfter": true
+}

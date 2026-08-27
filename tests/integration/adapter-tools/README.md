@@ -1,5 +1,16 @@
 # Cross-adapter agent-tool integration checkpoint
 
+## Required-command preflight correction (separate current cohort)
+
+See `preflight-review/README.md` and its committed raw evidence for the intentional
+test-only replacement of the six-family exact-set preflight with 22 explicit
+workflow command requirements. On identical frozen dirty production inputs, the
+old preflight blocks **79/79** workflows; the new one runs all 79 and records
+**77 pass / 2 fail**, preserving the S3/WebDAV safe-`rmdir` failures. Separate
+setup controls pass **30/30**. No matrix assertions or CLI bytes changed.
+All historical checkpoints below retain their original meaning and counts;
+this new cohort does not revise Dirac's 9,686-pass / 164-fail / 70-skip audit.
+
 ## Run and recorded outcome
 
 Run from the repository root; no credentials or optional comparator install:

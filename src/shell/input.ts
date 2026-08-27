@@ -6,6 +6,7 @@ class InputCursor {
   remainder: Uint8Array | undefined;
   #read: Promise<IteratorResult<Uint8Array>> | undefined;
   #readSettled = false;
+  #readFailed = false;
   #turn = Promise.resolve();
   #returned: Promise<void> | undefined;
   #ended = false;
@@ -52,7 +53,7 @@ class InputCursor {
       if (result.done) this.#ended = true;
       return result;
     } catch (error) {
-      if (!signal.aborted) { this.#read = undefined; this.#closed = true; }
+      if (!signal.aborted) { this.#read = undefined; this.#readFailed = true; this.#closed = true; }
       throw error;
     }
   }
@@ -64,7 +65,10 @@ class InputCursor {
     const pendingRead = this.#read !== undefined && !this.#readSettled;
     this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined);
     void this.#returned.catch(() => undefined);
-    if (!pendingRead) await interruptible(this.#returned, signal);
+    if (!pendingRead) {
+      try { await interruptible(this.#returned, signal); }
+      catch (error) { if (!this.#readFailed) throw error; }
+    }
     signal.throwIfAborted();
   }
 }

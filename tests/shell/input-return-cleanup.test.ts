@@ -116,6 +116,22 @@ test("selected execution rejection outranks an external close rejection", { time
   } finally { await shell.dispose(); }
 });
 
+test("a reported primary read failure is not replaced by a secondary return failure", { timeout: 2000 }, async () => {
+  const { shell } = setup();
+  let returns = 0;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+    async next() { throw new Error("primary source read"); },
+    async return() { returns++; throw new Error("secondary source return"); },
+  }; } };
+  try {
+    const result = await shell.exec("pass", { stdin });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /primary source read/u);
+    assert.doesNotMatch(result.stderr, /secondary source return/u);
+    assert.equal(returns, 1);
+  } finally { await shell.dispose(); }
+});
+
 test("caller abort during an awaited return wins and observes its late rejection", { timeout: 2000 }, async () => {
   const { shell } = setup();
   const controller = new AbortController(), entered = deferred(), returned = deferred<IteratorResult<Uint8Array>>();

@@ -1,0 +1,130 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { MemoryFileSystem, Shell, standardCommands } from "../../../src/index.js";
+import { createStandardCommands } from "../../../src/commands/index.js";
+import { FsError, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
+import { chunks, fixture, run } from "../helpers.js";
+
+test("unkeyed numeric sort preserves exact decimals, prefix grammar and stable zeros", async () => {
+  const ordered = [
+    "-9007199254740993", "-9007199254740992", "-0.00000000000000000002", "-0.00000000000000000001",
+    "+7", "-0", "000.000", "", "word", ".00000000000000000001", ".00000000000000000002",
+    "1e3", "0001.000", "1 suffix", "9007199254740992", "9007199254740993",
+  ];
+  const stdin = [...ordered.slice(14), ...ordered.slice(9, 11), ...ordered.slice(4, 9), ...ordered.slice(11, 14), ...ordered.slice(0, 4)].join("\n") + "\n";
+  for (const width of [1, 1024]) {
+    const result = await run("sort", ["-ns"], { stdin: chunks(stdin, width) });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, ordered.join("\n") + "\n");
+  }
+});
+
+for (const [flags, expected] of [
+  ["-n", "-1\n01 a\n1 a\n1 z\n2\n"],
+  ["-nr", "2\n1 z\n1 a\n01 a\n-1\n"],
+  ["-ns", "-1\n1 z\n01 a\n1 a\n2\n"],
+  ["-nrs", "2\n1 z\n01 a\n1 a\n-1\n"],
+  ["-nu", "-1\n1 z\n2\n"],
+  ["-nru", "2\n1 z\n-1\n"],
+] as const) test(`public sort ${flags} preserves numeric tie handling`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    const result = await shell.exec(`sort ${flags}`, { stdin: "1 z\n2\n01 a\n-1\n1 a\n" });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+});
+
+for (const args of [["-nb"], ["-nf"], ["-n", "-k1,1"], ["-n", "-k1,1n"], ["-n", "-k1,1n", "-k2,2r"]]) {
+  test(`numeric cache guard preserves ${args.join(" ")}`, async () => {
+    const result = await run("sort", args, { stdin: " 2 z\n\t1 a\n1 Z\n" });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, "\t1 a\n1 Z\n 2 z\n");
+  });
+}
+
+test("explicit key-local flags still replace global numeric mode", async () => {
+  const result = await run("sort", ["-n", "-k1,1r"], { stdin: "2\n10\n1\n" });
+  assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, "2\n10\n1\n");
+});
+
+test("numeric check mode keeps exact duplicate diagnostic", async () => {
+  const result = await run("sort", ["-cnu"], { stdin: "01\n1\n" });
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.equal(result.stderr, "sort: disorder at record 2\n");
+});
+
+test("entry saturation includes empty records without changing unique or stable ties", async () => {
+  const stdin = "\n".repeat(16_390) + "1\n-1\n0\n";
+  for (const args of [["-ns"], ["-nu"]]) {
+    const result = await run("sort", args, { stdin });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, args[0] === "-nu" ? "-1\n\n1\n" : "-1\n" + "\n".repeat(16_390) + "0\n1\n");
+  }
+});
+
+test("character saturation and oversized normalized backing preserve exact fallback", async () => {
+  const large = "9".repeat(180_000);
+  const zeroPrefix = "0".repeat(180_000) + "2";
+  const fractions = Array.from({ length: 8 }, (_, index) => `0.${"1".repeat(24_000)}${index + 1}`);
+  const ordered = ["0", ...fractions, zeroPrefix, large, large + "0"];
+  const result = await run("sort", ["-ns"], { stdin: [...ordered].reverse().join("\n") });
+  assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, ordered.join("\n") + "\n");
+});
+
+for (const delimiter of [10, 0]) test(`numeric cache owns reused Buffer input, delimiter=${delimiter}`, async () => {
+  const fs = new MemoryFileSystem();
+  const bytes = Buffer.from([50, 255, delimiter, 49, 128, delimiter]);
+  await fs.writeFile("/input", bytes);
+  const original = fs.readStream.bind(fs);
+  fs.readStream = (path, options) => path !== "/input" ? original(path, options) : (async function* () {
+    const allocation = Buffer.alloc(12, 255);
+    const view = allocation.subarray(5, 7);
+    for (let offset = 0; offset < bytes.length; offset += view.length) { view.set(bytes.subarray(offset, offset + view.length)); yield view; }
+    allocation.fill(0);
+  })();
+  const shell = new Shell({ fs }).use(standardCommands());
+  try {
+    const result = await shell.exec(`sort ${delimiter === 0 ? "-nz" : "-n"} -o /output /input`);
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, "");
+    assert.deepEqual(Buffer.from(await fs.readFile("/output")), Buffer.from([49, 128, delimiter, 50, 255, delimiter]));
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), bytes);
+  } finally { await shell.dispose(); }
+});
+
+test("numeric sort input failures preserve destination and exact status", async () => {
+  const fs = await fixture({ kept: "unchanged" });
+  const result = await run("sort", ["-n", "-o", "kept", "missing"], { fs });
+  assert.equal(result.exitCode, 2); assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "sort: ENOENT: no such file or directory, readStream '/work/missing'\n");
+  assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
+  const failed = await run("sort", ["-n", "-o", "kept"], { fs, stdin: (async function* () {
+    yield Buffer.from("2\n1\n"); throw new FsError("EIO", { message: "source failed" });
+  })() });
+  assert.equal(failed.exitCode, 2); assert.equal(failed.stdout, ""); assert.equal(failed.stderr, "sort: EIO: source failed\n");
+  assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
+});
+
+test("numeric sort respects cancellation during backpressured output", async () => {
+  const controller = new AbortController();
+  let writes = 0;
+  let first!: () => void;
+  const started = new Promise<void>(resolve => { first = resolve; });
+  const context: CommandContext = {
+    command: "sort", args: ["-n"], cwd: "/work", env: {}, fs: await fixture(), signal: controller.signal,
+    stdin: toByteSource("2\n1\n"), stderr: { async write() {} },
+    stdout: { async write() { writes++; first(); await new Promise<void>(() => {}); } },
+  };
+  const sort = createStandardCommands().find(command => command.name === "sort")!;
+  const pending = Promise.resolve(sort.execute(context));
+  const rejection = assert.rejects(pending, /stop numeric output/);
+  await started; controller.abort(new Error("stop numeric output")); await rejection;
+  assert.equal(writes, 1);
+});
+
+test("numeric cache has no cross-invocation values", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    for (const stdin of ["2\n1\n", "4\n3\n", "2\n1\n"]) {
+      const result = await shell.exec("sort -n", { stdin });
+      assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdin.split("\n").filter(Boolean).reverse().join("\n") + "\n");
+    }
+  } finally { await shell.dispose(); }
+});

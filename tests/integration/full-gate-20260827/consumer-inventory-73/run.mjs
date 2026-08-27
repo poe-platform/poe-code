@@ -65,6 +65,15 @@ try {
     command(group.name+'-runtime',['--permission','--allow-fs-read='+consumer,'--allow-worker','--unhandled-rejections=strict',join(directory,'emitted/consumer.mjs')],consumer);
     report.groups.push({name:group.name,input:group.files[0],sha256:hash(original),types:'pass',runtime:'pass'});
   }
+  const publicTemplate=readFileSync(new URL('../candidate-profile-73/public.mjs',import.meta.url));
+  const typeTemplate=readFileSync(new URL('../candidate-profile-73/consumer.mts.fixture',import.meta.url));
+  writeFileSync(join(consumer,'public.mjs'),publicTemplate);writeFileSync(join(consumer,'public-types.mts'),typeTemplate);
+  const smoke=command('profile-public',['--permission','--allow-fs-read='+consumer,'--allow-worker','--unhandled-rejections=strict',join(consumer,'public.mjs')],consumer);
+  report.publicSmoke={...JSON.parse(smoke.stdout),templateSha256:hash(publicTemplate)};
+  assert.equal(report.publicSmoke.count,73);assert.equal(report.publicSmoke.workflows.length,6);
+  const publicTypes=command('profile-public-types',[compiler,'--noEmit','--target','ES2023','--module','NodeNext','--moduleResolution','NodeNext','--strict','--noUncheckedIndexedAccess','--exactOptionalPropertyTypes','--typeRoots',join(source,'node_modules/@types'),'--traceResolution',join(consumer,'public-types.mts')],consumer);
+  assertBuiltConsumerResolution(publicTypes.stdout,consumer,installed,binding);
+  report.publicSmoke.types='pass';report.publicSmoke.typeTemplateSha256=hash(typeTemplate);
   for(const [name,code] of [['alias-option',`import {grepAliasCommands} from 'virtual-bash/commands/grep-aliases';grepAliasCommands({regex:{maxWorkers:'no'}});`],['column-option',`import {columnCommands} from 'virtual-bash/commands/column';columnCommands({limits:{maxCells:'no'}});`],['network-option',`import {networkCommands} from 'virtual-bash/commands/network';networkCommands({limits:{maxRetries:'no'}});`]]){
     const file=join(consumer,name+'.mts');writeFileSync(file,code);
     const result=command(name,[compiler,'--noEmit','--module','NodeNext','--moduleResolution','NodeNext','--strict','--typeRoots',join(source,'node_modules/@types'),file],consumer,2);

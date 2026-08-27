@@ -1,33 +1,29 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { environment, finish as finishOriginal, json, manifest, requireSuccess, run, selectedPaths } from "../stream-five-public/harness.mjs";
 import { sha256 } from "../stream-five-public/current-profile.mjs";
-import { archiveInputs, consumerGroups, ownerPath } from "./consumers.mjs";
+import { archiveInputs, currentConsumerPaths, negativeGroups, ownerPath } from "./consumers.mjs";
+import { verifyInventory } from "./inventory-check.mjs";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 export function snapshot(sourceRef = "HEAD") {
   const sourceCommit = requireSuccess(run("git", ["--no-replace-objects", "rev-parse", "--verify", `${sourceRef}^{commit}`], repository)).stdout.trim();
   const tracked = requireSuccess(run("git", ["--no-replace-objects", "ls-tree", "-r", "--name-only", sourceCommit, "tests", "scripts"], repository)).stdout.trim().split("\n").filter(path => !path.startsWith("tests/integration/stream-five-public/"));
   const inventory = JSON.parse(readFileSync(join(repository, ownerPath, "inventory.json")));
-  assert.deepEqual(tracked.filter(path => path.endsWith(".mts")).sort(), inventory.entries.map(entry => entry.path).sort(), "standalone inventory changed; classify new paths explicitly before qualification");
-  for (const entry of inventory.entries.filter(entry => entry.classification !== "current")) {
-    const bytes = requireSuccess(run("git", ["--no-replace-objects", "show", `${sourceCommit}:${entry.path}`], repository, { encoding: "buffer" })).stdout;
-    assert.equal(sha256(bytes), entry.sha256, `historical/declaration inventory changed: ${entry.path}`);
-  }
-  const currentPaths = consumerGroups.flatMap(group => group.files);
-  assert.deepEqual([...currentPaths].sort(), inventory.entries.filter(entry => entry.classification === "current").map(entry => entry.path).sort());
+  const currentPaths = currentConsumerPaths();
+  verifyInventory(inventory, tracked, currentPaths, negativeGroups.map(group => group.path), path => requireSuccess(run("git", ["--no-replace-objects", "show", `${sourceCommit}:${path}`], repository, { encoding: "buffer" })).stdout);
   mkdirSync(join(repository, ownerPath, ".runs"), { recursive: true });
   const directory = mkdtempSync(join(repository, ownerPath, ".runs/qualified-"));
   const root = join(directory, "snapshot");
   mkdirSync(root);
   const harness = [...tracked.filter(path => path.startsWith(`${ownerPath}/`) && !path.includes("/evidence/")), "scripts/verify-qualified-release.mjs", "scripts/verify-current-consumers.mjs", ...tracked.filter(path => path.startsWith("tests/plugins/stream-five-public/") && !path.includes("/evidence/") && /\.(?:mjs|fixture)$/u.test(path))];
-  const paths = [...new Set([...selectedPaths, ownerPath, "scripts/verify-current-consumers.mjs", ...archiveInputs, ...currentPaths])];
+  const paths = [...new Set([...selectedPaths, ownerPath, "scripts/verify-current-consumers.mjs", ...archiveInputs, ...currentPaths, ...negativeGroups.flatMap(group => [group.path, group.expected])])];
   requireSuccess(run("git", ["--no-replace-objects", "archive", "--format=tar", `--output=${join(directory, "source.tar")}`, sourceCommit, ...paths], repository));
   requireSuccess(run("/usr/bin/tar", ["-xf", join(directory, "source.tar"), "-C", root], repository));
   for (const path of harness) assert.equal(sha256(readFileSync(join(root, path))), sha256(readFileSync(join(repository, path))), `runner differs from committed candidate: ${path}`);
-  symlinkSync(join(repository, "node_modules"), join(root, "node_modules"), "dir");
+  cpSync(join(repository, "node_modules"), join(root, "node_modules"), { recursive: true, dereference: true });
   const sources = [...manifest(root), ...["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"].map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) }))];
   const tests = manifest(root, "tests").filter(entry => !entry.path.startsWith(`${ownerPath}/evidence/`));
   const report = { sourceCommit, directory, root, startedAt: new Date().toISOString(), node: process.version, platform: process.platform, arch: process.arch, environment, sources, tests, sourceTreeSha256: sha256(JSON.stringify(sources)), testTreeSha256: sha256(JSON.stringify(tests)), archiveSha256: sha256(readFileSync(join(directory, "source.tar"))), harness: harness.map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) })), tooling: [process.execPath, "node_modules/typescript/lib/_tsc.js", "node_modules/typescript/package.json", "node_modules/tsx/package.json", "node_modules/@types/node/package.json"].map(path => ({ path, sha256: sha256(readFileSync(resolve(repository, path))) })), indexBefore: requireSuccess(run("git", ["diff", "--cached", "--name-only"], repository)).stdout, steps: [], inventory };

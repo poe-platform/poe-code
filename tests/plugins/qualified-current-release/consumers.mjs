@@ -20,8 +20,18 @@ export const consumerGroups = [
   },
   group("stream-inspection", "tests/integration/stream-inspection-public-author", ["consumer.mts"], ["consumer.mjs"], "tests/integration/stream-inspection-public-author/verify.mjs"),
   group("stream-five", "tests/plugins/stream-five-fixture-migration", ["public-options.mts"], ["public-options.mjs"], "tests/plugins/stream-five-fixture-migration/capture.mjs final"),
+  group("time-env-public", "tests/commands/time-env-stress/fraction-independent/packed", ["public-positive.mts"], ["public-positive.mjs"], "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs"),
+  { ...group("time-env-leaf", "tests/commands/time-env-stress/fraction-independent/packed", ["leaf-positive.mts"], ["leaf-positive.mjs"], "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs", "maintained internal packed leaf types and factory construction; not export-map acceptance"), localPackage: true },
+  { ...group("webdav-atomic", "tests/fs/webdav/atomic-extension", ["consumer.mts", "example.mts", "https.mts"], [], "tests/fs/webdav/atomic-extension/run.mjs", "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"), companions: ["tests/fs/webdav/atomic-extension-independent/consumer.mts"], companionNames: ["independent.mts"] },
+  { ...group("webdav-timestamp-independent", "tests/fs/webdav/release-timestamp-independent", ["independent.test.mts"], ["independent.test.mjs"], "tests/fs/webdav/release-timestamp-independent/run.mjs", "current loopback runtime:20 controls plus3 mutant kills, not23 provider successes"), companions: ["tests/fs/webdav/consumer/provider.mts"], nodeTests: 23 },
 ];
 
+export const negativeGroups = [
+  { name: "time-env-public-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/public-negative-types.stdout", positive: "time-env-public", diagnostics: 2 },
+  { name: "time-env-leaf-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/internal-leaf-negative-types.stdout", positive: "time-env-leaf", diagnostics: 5 },
+];
+
+export const currentConsumerPaths = () => [...new Set(consumerGroups.flatMap(group => [...group.files, ...group.companions ?? []]))];
 export const archiveTests = ["tests/commands/archive/native.test.ts", "tests/commands/archive-stress/pax-independent/controls.test.ts"];
 export const archiveInputs = [...archiveTests, "tests/commands/archive/helpers.ts", "tests/commands/archive-stress/pax-independent/fixtures.ts"];
 export const ownerPath = "tests/plugins/qualified-current-release";

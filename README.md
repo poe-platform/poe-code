@@ -359,7 +359,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 65 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 68 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -416,7 +416,12 @@ tests and helpers are not broadly excluded. The August 27 native-data correction
 removes six raw-payload diagnostics, but the recorded global typecheck still
 fails with eight foreign filesystem-inspection fixture diagnostics; it is not
 a whole-product pass. Historical standalone `.mts` omissions and the separate
-build-first consumer gate remain unchanged.
+build-first consumer gate remain separate. The qualified release inventory now
+explicitly routes maintained `.mts` consumers, intentional negative-type cases,
+and hash-sealed historical captures; new paths still fail closed. Its maintained
+`.test.mts` programs execute through that dedicated runner, not `npm test`'s
+`.test.ts` discovery. See `tests/plugins/qualified-current-release/README.md` for
+the exact census and compile-only external-service limitations.
 
 The last form enables actual local SafeJS integration rather than skipping it;
 no published private SafeJS dependency is required. Optional comparison tooling

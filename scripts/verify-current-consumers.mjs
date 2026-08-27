@@ -4,7 +4,7 @@ import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { environment, json, manifest, run, step } from "../tests/plugins/stream-five-public/harness.mjs";
 import { sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs";
-import { consumerGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
+import { consumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { finish, snapshot, unchangedTests } from "../tests/plugins/qualified-current-release/snapshot.mjs";
 
 export function currentConsumers(report) {
@@ -24,8 +24,11 @@ export function currentConsumers(report) {
   for (const group of consumerGroups) {
     const workspace = join(consumer, group.name);
     mkdirSync(workspace);
-    const inputs = group.files.map(path => {
-      const target = join(workspace, basename(path));
+    const groupInstalled = group.localPackage ? join(workspace, "node_modules/virtual-bash") : installed;
+    if (group.localPackage) cpSync(installed, groupInstalled, { recursive: true });
+    const inputs = [...group.files, ...group.companions ?? []].map((path, index) => {
+      const name = index < group.files.length ? basename(path) : group.companionNames?.[index - group.files.length] ?? basename(path);
+      const target = join(workspace, name);
       assert.equal(existsSync(target), false, "consumer basename collision");
       copyFileSync(join(report.root, path), target);
       const sha = sha256(readFileSync(join(report.root, path)));
@@ -35,7 +38,7 @@ export function currentConsumers(report) {
     const config = JSON.parse(readFileSync(join(report.root, ownerPath, "tsconfig.consumer.json")));
     config.compilerOptions.typeRoots = [join(report.root, "node_modules/@types")];
     config.compilerOptions.rootDir = workspace;
-    config.compilerOptions.outDir = join(workspace, "emitted");
+    config.compilerOptions.outDir = group.localPackage ? workspace : join(workspace, "emitted");
     config.files = inputs.map(input => input.target);
     json(join(workspace, "tsconfig.json"), config);
     const result = { ...group, inputs, compile: "pending", runtimeResults: [] };
@@ -45,11 +48,11 @@ export function currentConsumers(report) {
       result.compile = "pass";
       const listing = step(report, `consumer-${group.name}-resolution`, process.execPath, [compiler, "-p", join(workspace, "tsconfig.json"), "--listFilesOnly"], consumer);
       const compilerFiles = listing.stdout.trim().split("\n");
-      assert.ok(compilerFiles.includes(join(installed, "dist/index.d.ts")));
+      assert.ok(compilerFiles.includes(join(groupInstalled, "dist/index.d.ts")));
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
       for (const runtime of group.runtime) {
-        const execution = step(report, `consumer-${group.name}-${runtime}`, process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--allow-worker", "--unhandled-rejections=strict", join(workspace, "emitted", runtime)], consumer, { env: environment });
-        const usesNodeTest = ["s3-constructor", "webdav-loopback"].includes(group.name);
+        const execution = step(report, `consumer-${group.name}-${runtime}`, process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--allow-worker", "--unhandled-rejections=strict", join(config.compilerOptions.outDir, runtime)], consumer, { env: environment });
+        const usesNodeTest = group.nodeTests !== undefined || ["s3-constructor", "webdav-loopback"].includes(group.name);
         let counts;
         if (usesNodeTest) {
           counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(execution.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));
@@ -57,10 +60,35 @@ export function currentConsumers(report) {
           assert.equal(counts.pass, counts.tests);
           for (const name of ["fail", "cancelled", "skipped", "todo"]) assert.equal(counts[name], 0);
           if (group.name === "webdav-loopback") assert.equal(counts.tests, 13);
+          if (group.nodeTests !== undefined) assert.equal(counts.tests, group.nodeTests);
         }
         result.runtimeResults.push({ runtime, status: execution.status, counts, scope: usesNodeTest ? "unchanged node:test assertions" : group.qualification });
       }
+      assert.deepEqual(manifest(groupInstalled, "dist"), built);
     } catch (error) { result.error = error.stack; }
+  }
+  report.currentConsumers.negativeTypes = [];
+  for (const group of negativeGroups) {
+    const record = { ...group, status: "pending" };
+    report.currentConsumers.negativeTypes.push(record);
+    try {
+      assert.ok(report.currentConsumers.groups.some(positive => positive.name === group.positive && !positive.error), "positive control must pass before negative types");
+      const workspace = join(consumer, group.positive);
+      const input = join(workspace, basename(group.path));
+      copyFileSync(join(report.root, group.path), input);
+      const config = JSON.parse(readFileSync(join(workspace, "tsconfig.json")));
+      config.compilerOptions.noEmit = true;
+      config.files = [input];
+      const filename = join(workspace, "negative.json"); json(filename, config);
+      const result = run(process.execPath, [compiler, "-p", filename], consumer);
+      json(join(report.directory, `consumer-${group.name}.json`), result);
+      assert.equal(result.error, undefined); assert.equal(result.signal, null); assert.equal(result.status, 2);
+      assert.equal(result.stderr, "");
+      const normalized = result.stdout.replaceAll(/^.*?((?:leaf|public)-negative\.mts\()/gmu, "$1");
+      assert.equal(normalized, readFileSync(join(report.root, group.expected), "utf8"), "exact negative diagnostics differ; no generic nonzero acceptance");
+      assert.equal([...normalized.matchAll(/error TS\d+:/gu)].length, group.diagnostics);
+      record.status = "pass";
+    } catch (error) { record.status = "fail"; record.error = error.stack; }
   }
   const denied = run(process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--input-type=module", "-e", `import { readFileSync } from "node:fs"; readFileSync(${JSON.stringify(join(report.root, "src/index.ts"))});`], consumer);
   json(join(report.directory, "current-consumer-source-denied.json"), denied);
@@ -70,6 +98,7 @@ export function currentConsumers(report) {
   assert.equal(unchangedTests(report), true, "candidate test inputs changed");
   json(join(report.directory, "current-consumers.json"), report.currentConsumers);
   assert.ok(report.currentConsumers.groups.every(group => !group.error), "current consumer failures; see current-consumers.json (no waiver)");
+  assert.ok(report.currentConsumers.negativeTypes.every(group => group.status === "pass"), "negative consumer diagnostic failures (no waiver)");
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

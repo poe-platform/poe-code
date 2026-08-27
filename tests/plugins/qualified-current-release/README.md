@@ -49,6 +49,33 @@ are hash-inventoried, not mutated or rescored. Four imported `.d.mts` support
 declarations are not standalone runtime programs. No root `.ts` inclusion or
 canonical test configuration changes occur.
 
+### August 27 inventory reconciliation
+
+The original20 unclassified paths at6ffe4f4 are explicitly routed: six current
+inputs (two time-env positive consumers and four WebDAV atomic-extension
+inputs), two intentional negative-type fixtures, and twelve frozen captures
+(three pre-public time-env programs and nine captured WebDAV inputs). None is
+raw data. Historical programs retain their literal65/absent-export/native
+failure profiles; frozen package identities and evidence hashes are verified.
+The negative fixtures require their positive paired consumer first, then exact
+diagnostic text, positions and counts (two public and five internal-leaf errors).
+No generic nonzero exit or missing-module error counts as successful type checking.
+
+One later tracked `release-timestamp-independent/independent.test.mts` is also
+current: strict compilation and actual emitted node:test execution,23 tests
+split into20 controls and3 mutant-kill assertions. It is not frozen data or23
+provider-success workflows. The original13-test WebDAV consumer remains
+unchanged and mandatory, using the candidate's current provider fixture.
+Neither deployed WebDAV atomic-extension workflow is run here; their four
+maintained inputs receive strict current declarations only. External service
+acceptance and configured-rmdir evidence remain separate.
+
+This census has177 entries:29 current,2 negative,4 declarations,141 frozen
+evidence and1 frozen oracle. New paths still fail closed. Development tooling
+is copied as regular files into the frozen candidate, not linked to a mutable
+dependency tree. `tests/integration/qualified-current-release-inventory/verify.mjs`
+checks the census and eight guard mutations; it is not a runtime release gate.
+
 Dirac's accepted `aac345a0` review retains canonical **470/470 + 485/485**, and
 pre-existing standalone omissions **11/30** at its two historical commits.
 Those are not the current inventory denominator. The existing historical

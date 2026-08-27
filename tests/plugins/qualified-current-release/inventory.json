@@ -1,13 +1,14 @@
 {
   "schema": 1,
-  "inventoriedCommit": "71515770018077c1ae511f41f49e3a39c615cce5",
-  "scope": "All tracked .mts except forbidden independent stream-five-public holdouts (not inspected). .d.mts and frozen evidence explicitly separate. Not a claim that root TypeScript includes .mts. New paths fail closed pending classification.",
+  "inventoriedCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "scope": "Explicit tracked .mts census outside separately owned independent stream-five-public holdouts. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts.",
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
-    "current": 22,
+    "current": 29,
     "declaration": 4,
-    "frozen-evidence": 129,
-    "frozen-oracle": 1
+    "frozen-oracle": 1,
+    "frozen-evidence": 141,
+    "negative-types": 2
   },
   "entries": [
     {
@@ -70,6 +71,108 @@
       "qualifiedCoverage": "hash-authenticated historical inventory only; unchanged frozen oracle must not be silently run against current exports or rescored"
     },
     {
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Sealed before/after native holdout includes literal65 defaults, absent public export assertions and raw native format mismatches. Not a maintained current test. Current public integration separately executed.",
+      "existingCoverage": "tests/commands/time-env-stress/fix-review/packed.mjs",
+      "freeze": {
+        "sourceCommit": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+        "packageSha256": "841faa4e09e4ffaa973b69f54d1a2f8165a04e944dddec2b4b5c051d86ff944b",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fix-review/README.md",
+            "sha256": "e5c80d3eb3b901b3115269db2b5f4edbf86d9fb543441fec4bd5c9f865b04cfb"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fix-review/evidence/packed-compiled-after/manifest.json",
+            "sha256": "0d4478b472be1bab7caeda6ed678e9286ca6043397cdc7dd54a029913c86d1e4"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Frozen65-default/private-leaf capture includes absence-of-export assertions. Retain original gap profile; current public integration separately executed.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "freeze": {
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageSha256": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+            "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+            "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0",
+      "classification": "negative-types",
+      "group": "time-env-leaf-negative",
+      "reason": "Intentional invalid API uses. Positive paired consumer must compile/run first; exact diagnostic text/line/column/count checked against original capture. Never a source compilation pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: time-env-leaf-negative, 5 exact diagnostics"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+      "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac",
+      "classification": "current",
+      "group": "time-env-leaf",
+      "reason": "maintained internal packed leaf types and factory construction; not export-map acceptance",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict time-env-leaf; emitted runtime leaf-positive.mjs"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af",
+      "classification": "negative-types",
+      "group": "time-env-public-negative",
+      "reason": "Intentional invalid API uses. Positive paired consumer must compile/run first; exact diagnostic text/line/column/count checked against original capture. Never a source compilation pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: time-env-public-negative, 2 exact diagnostics"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+      "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4",
+      "classification": "current",
+      "group": "time-env-public",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict time-env-public; emitted runtime public-positive.mjs"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Historical missing-export negative probe expects TS2724/TS2305 before integration. Current root legitimately exports APIs. Retain sealed gap evidence, not current negative or pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "freeze": {
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageSha256": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+            "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+            "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a"
+          }
+        ]
+      }
+    },
+    {
       "path": "tests/fs/s3/constructor-comparison/consumer.mts",
       "sha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383",
       "classification": "current",
@@ -104,6 +207,321 @@
       "reason": "strict public types and constructor smoke only; not independent rmdir or MinIO acceptance",
       "existingCoverage": "tests/fs/s3/rmdir-independent/run.mjs",
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict s3-rmdir; runtime public-consumer.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
     },
     {
       "path": "tests/fs/webdav/consumer/consumer.test.mts",
@@ -1068,6 +1486,15 @@
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
     },
     {
+      "path": "tests/fs/webdav/release-timestamp-independent/independent.test.mts",
+      "sha256": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+      "classification": "current",
+      "group": "webdav-timestamp-independent",
+      "reason": "current loopback runtime:20 controls plus3 mutant kills, not23 provider successes",
+      "existingCoverage": "tests/fs/webdav/release-timestamp-independent/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-timestamp-independent; emitted runtime independent.test.mjs"
+    },
+    {
       "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/consumer.mts",
       "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
       "classification": "frozen-evidence",
@@ -1281,5 +1708,5 @@
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-production; runtime package-consumer.mjs"
     }
   ],
-  "inventoryFollowup": "966cfac detected concurrently committed75d4e0c time-env frozen oracle; first fail-closed output preserved separately."
+  "inventoryFollowup": "Original20 at6ffe4f4:6 current,2 negative-types,12 frozen evidence. Later WebDAV independent.test.mts gets current23-test runtime route (20 controls+3mutant kills), not raw data. Earlier11/30 omissions remain separate historical evidence."
 }

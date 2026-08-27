@@ -1,0 +1,91 @@
+TAP version 13
+# Subtest: dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+not ok 1 - dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+  ---
+  duration_ms: 594.281583
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/dangling-native.test.ts:1:3384'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'relative/memory: AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n' +
+    +     '\n' +
+    +     '1 !== 0\n'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: |-
+      relative/memory: AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+      
+      1 !== 0
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/dangling-native.test.ts:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-capture-OwZ6hE/dangling-native.json
+# Subtest: GNU size spellings and empty-input output-directory controls
+not ok 2 - GNU size spellings and empty-input output-directory controls
+  ---
+  duration_ms: 396.9575
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/edge.test.ts:1:537'
+  failureType: 'testCodeFailure'
+  error: |-
+    size/empty controls failed; evidence retained in /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-capture-wOmmZa/edge.json
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/edge.test.ts:48:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-capture-wOmmZa/edge.json
+# Subtest: GNU boundary stress: complete effects under large chunks and reused windows
+not ok 3 - GNU boundary stress: complete effects under large chunks and reused windows
+  ---
+  duration_ms: 371.200459
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/stress.test.ts:1:476'
+  failureType: 'testCodeFailure'
+  error: |-
+    native boundary stress mismatch; evidence retained in /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-capture-02ytIe/stress.json
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/reporting-control/tests/commands/split/stress.test.ts:48:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-capture-02ytIe/stress.json
+# split native scratch retained: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-author-6vNKza/negative-capture/virtual-bash-split-native-BNxFu6
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 837.941292

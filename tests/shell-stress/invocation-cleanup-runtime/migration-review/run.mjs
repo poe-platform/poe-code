@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -13,8 +13,8 @@ const probePath = `${base}/public-worker.mjs`;
 const helperPath = `${base}/migration/binding.ts`;
 const expected = JSON.parse(readFileSync(join(here, 'expected-inputs.json')));
 const initial = JSON.parse(readFileSync(join(here, 'initial.json')));
-const output = join(here, 'evidence');
-const work = join(here, '.work');
+const output = join(here, 'evidence-attempt-02');
+const work = join(here, '.work-attempt-02');
 const source = join(work, 'candidate');
 const mutantSource = join(work, 'mutant');
 const nested = join(work, 'nested');
@@ -37,6 +37,23 @@ function tree(directory, baseDirectory = directory) {
 }
 function inputs(directory) {
   return Object.fromEntries(Object.keys(expected.files).map(path => [path, digest(readFileSync(join(directory, path)))]));
+}
+function materialize(origin, destination) {
+  const allowed = realpathSync(origin);
+  function copy(input, outputPath) {
+    const actual = realpathSync(input);
+    assert.ok(actual === allowed || actual.startsWith(`${allowed}/`), `Copied tool escaped its explicit tree: ${actual}`);
+    const stat = lstatSync(actual);
+    if (stat.isDirectory()) {
+      mkdirSync(outputPath);
+      for (const name of readdirSync(actual)) copy(join(actual, name), join(outputPath, name));
+    } else {
+      assert.ok(stat.isFile());
+      writeFileSync(outputPath, readFileSync(actual), { flag: 'wx', mode: stat.mode & 0o777 });
+    }
+    assert.equal(lstatSync(outputPath).isSymbolicLink(), false);
+  }
+  copy(allowed, destination);
 }
 function git(args) {
   const result = spawnSync('git', ['--no-replace-objects', ...args], { cwd: repository, timeout: 30000, maxBuffer: 16 * 1024 * 1024 });
@@ -138,7 +155,7 @@ process.env.TEMP = nested;
 process.env.NODE_OPTIONS = '--unhandled-rejections=strict';
 try {
   assert.equal(digest(readFileSync(process.execPath)), initial.executableSha256);
-  const controlCommit = git(['log', '-1', '--format=%H', '--', relative(repository, join(here, 'FREEZE.md'))]).toString().trim();
+  const controlCommit = git(['log', '-1', '--format=%H', '--', relative(repository, join(here, 'run.mjs'))]).toString().trim();
   for (const path of ['FREEZE.md', 'freeze.mjs', 'run.mjs', 'expected-inputs.json', 'initial.json', 'tools-before.json', 'readonly-before.json', 'semantic-comparison.json']) {
     assert.deepEqual(readFileSync(join(here, path)), git(['show', `${controlCommit}:${relative(repository, join(here, path))}`]));
   }
@@ -150,7 +167,7 @@ try {
     mkdirSync(dirname(join(source, path)), { recursive: true });
     writeFileSync(join(source, path), bytes, { flag: 'wx' });
   }
-  cpSync(join(repository, 'node_modules'), join(source, 'node_modules'), { recursive: true, dereference: true, errorOnExist: true, force: false });
+  materialize(join(repository, 'node_modules'), join(source, 'node_modules'));
   assert.deepEqual(tree(join(source, 'node_modules')), JSON.parse(readFileSync(join(here, 'tools-before.json'))));
   save('candidate-before.json', inputs(source));
   assert.deepEqual(inputs(source), expected.files);
@@ -238,7 +255,7 @@ try {
   await prepared.dispose();
   prepared = undefined;
   console.log('Five invalid envelopes, four binding tampers, two actual-loader tampers rejected.');
-  cpSync(source, mutantSource, { recursive: true, dereference: true, errorOnExist: true, force: false });
+  materialize(source, mutantSource);
   const mutationPath = 'src/commands/regex-execution/client.ts';
   const original = readFileSync(join(mutantSource, mutationPath), 'utf8');
   const needle = 'if (!this.exited) await this.worker.terminate();';

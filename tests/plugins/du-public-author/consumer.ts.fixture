@@ -35,7 +35,7 @@ const shell = new root.Shell({ fs }).use(root.agentCommands(aggregate));
 try {
   const result = await shell.exec("du -abs /usage");
   assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "du: cannot both summarize and show all entries\n");
+  assert.equal(result.stderr, "du: cannot combine --all and --summarize\n");
   const apparent = await shell.exec("du -bs /usage | cat > /report; cat /report");
   assert.equal(apparent.exitCode, 0, apparent.stderr); assert.equal(apparent.stdout, "8\t/usage\n"); assert.equal(apparent.stderr, "");
   assert.equal(Buffer.from(await fs.readFile("/report")).toString(), "8\t/usage\n");

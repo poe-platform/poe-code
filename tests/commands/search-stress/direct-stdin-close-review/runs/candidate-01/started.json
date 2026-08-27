@@ -1,0 +1,8 @@
+{
+  "candidate": "c27249c8f6085d6d8366ae348b2b93aa0e377369",
+  "authorEvidence": "8a08ecc026a2d0884508d4115acb909b22251199",
+  "baseline": "c5d44262ecca11009df6ce32a180005d3f3cb574",
+  "started": "2026-08-27T14:01:59.556Z",
+  "ownership": "tests/commands/search-stress/direct-stdin-close-review",
+  "work": "/tmp/rg-direct-close-candidate-independent-01"
+}

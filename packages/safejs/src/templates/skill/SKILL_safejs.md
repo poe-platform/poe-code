@@ -10,7 +10,7 @@ and the same-basename `.ajs` file, validates Markdown frontmatter against the
 `.ajs` `schema` export, lints the `.ajs` source, then executes the default export
 with real agent spawns.
 
-`npx poe-safejs <path>` is only a stub dry-runner. It uses canned agent
+`npx --package poe-code poe-safejs <path>` is only a stub dry-runner. It uses canned agent
 responses and is good for syntax, lint, schema, frontmatter, and control-flow
 checks before paying for real spawns. It does not prove real model behavior.
 
@@ -100,7 +100,7 @@ Dry-run with the stub before real spawns, then use the real runner when agent
 responses and side effects matter:
 
 ```bash
-npx poe-safejs path/to/harness.md
+npx --package poe-code poe-safejs path/to/harness.md
 poe-code harness run path/to/harness.md
 ```
 

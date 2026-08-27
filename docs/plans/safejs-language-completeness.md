@@ -1053,7 +1053,14 @@ Released in poe-code 7.0.2:
   The Release workflow separately passed its fresh-install build, tests, and
   package smoke checks.
 
-## Agent result policy — release candidate
+## Agent result policy — poe-code 8.0.0; packaging follow-up pending
+
+- Released commit `fcd82b6ed190f75ba36251200d628635c4137a6e` through successful
+  Release run `33042143960`. Verified npm `8.0.0`, its gitHead, and GitHub tag
+  `v8.0.0`; publication was August 27, 2026 at 05:27:43.767 UTC.
+- Normal pre-push hooks passed: 20,978 tests, 41 skipped; 922 passing test files.
+  Additional syntax, Promise-constructor, and fatal-budget matrices pass 160/320,
+  2,916/5,832, and 360 cases/restores respectively, with no mismatches or escapes.
 
 - SafeJS returns complete nonzero agent results by default. `check: true`
   explicitly requests `AgentSpawnError.result`; retry policies run before result
@@ -1116,6 +1123,32 @@ Released in poe-code 7.0.2:
 6. Audit npm package contents for regenerated stale files, then repeat the result
    and CLI matrices against the actual published archive. Verify release workflow,
    GitHub tag, and npm gitHead before marking this item shipped.
+
+### Clean-consumer packaging follow-up
+
+- Installing the actual published `8.0.0` as a consumer dependency reproduces
+  missing private workspace imports in the shipped standalone SafeJS files.
+  The bundled root CLI still passes its zero-agent syntax fixture. Previous
+  archive probes using repository node_modules did not establish independence
+  from workspace dependencies; final verification now requires a fresh consumer
+  install with no repository node_modules links.
+- Bundle `index`, `core`, and `cli` as shared ESM entrypoints. Shared chunks are
+  required so SDK-created error payloads retain their registry when passed to
+  the CLI runtime. Expose `poe-code/safejs`, `/core`, and `/cli`, plus the
+  `poe-safejs` binary. Replace the existing README/skill usage commands and sync
+  installed skills. Extend the existing installed SDK/CLI smoke test in CI.
+- A newly packed, independently installed consumer passes three public imports,
+  shared runtime identity, checked-error copying, and completed replay. The
+  same consumer passes 480 native/960 restored result cases, 480 cancellation
+  cases, 12 observer cases, 54 CLI cases/90 restores, and 120 entrypoint cases
+  across 402 processes. Its installed binary screenshot was inspected and its
+  public TypeScript APIs pass a strict consumer typecheck with Node ambient types.
+- Rebundling removes only its generated chunk directory first. A deliberately
+  stale generated marker disappears, and repeated bundling succeeds. All 17
+  package-lint rules, workspace builds, typechecks, ESLint, and workflow lint pass.
+- The unhandled CLI failure snapshot from visual testing was archived at
+  `/tmp/safejs-agent-cli-state.djWI5i/state.tar.gz` before removal. The unrelated
+  terminal-pilot font assets remain untouched.
 
 ## Stale artifact cleanup
 

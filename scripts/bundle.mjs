@@ -1,11 +1,12 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs } from "./guard-package-dist.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { setBinExecutable } from "./set-bin-executable.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -170,6 +171,26 @@ if (providerEntryPoints.length > 0) {
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   });
 }
+
+await rm(path.join(rootDir, "packages/safejs/dist/chunks"), { recursive: true, force: true });
+await esbuild.build({
+  entryPoints: {
+    index: path.join(rootDir, "packages/safejs/src/index.ts"),
+    core: path.join(rootDir, "packages/safejs/src/core.ts"),
+    cli: path.join(rootDir, "packages/safejs/src/cli.ts")
+  },
+  bundle: true,
+  splitting: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outdir: path.join(rootDir, "packages/safejs/dist"),
+  chunkNames: "chunks/[name]-[hash]",
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true
+});
+await setBinExecutable(path.join(rootDir, "packages/safejs"));
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

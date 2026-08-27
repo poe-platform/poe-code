@@ -1,5 +1,10 @@
 # Agent results and failures
 
+Installed consumers import these APIs from `poe-code/safejs`; the lightweight
+runtime is available at `poe-code/safejs/core`, and `runCli` at
+`poe-code/safejs/cli`. These entrypoints share one runtime and do not require
+private workspace dependencies. `poe-safejs` is the installed stub-runner binary.
+
 `makeAgentModule(spawnAgent, options?)` exposes the same result policy to SDK
 callers and SafeJS scripts. `spawn(definition, options)` returns the validated
 `{ exitCode, stdout, stderr, summary, durationMs, usage? }` result, including

@@ -91,7 +91,7 @@ See:
 Run any of them with the bundled CLI:
 
 ```bash
-npx poe-safejs examples/pipeline.md
+npx --package poe-code poe-safejs examples/pipeline.md
 ```
 
 `poe-safejs` is a zero-cost local runner for markdown harness files. It
@@ -184,7 +184,7 @@ Registered by the caller via the factory functions exported from the package. No
 ## Quick start
 
 ```ts
-import { lint, run } from "@poe-code/safejs";
+import { lint, run } from "poe-code/safejs";
 
 const source = `
   import { greet } from "custom";
@@ -220,7 +220,7 @@ That prints `"hello Ada [admin] Ada"`.
 - `.md` files: YAML frontmatter is parsed; executable fenced blocks form one script in document order. If there is no executable fenced block, the entire markdown body is treated as script source.
 
 ```ts
-import { makeHarnessModule, runHarness } from "@poe-code/safejs";
+import { makeHarnessModule, runHarness } from "poe-code/safejs";
 
 const result = await runHarness("docs/plans/example.md", {
   modulesFor: (frontmatter, meta) => ({

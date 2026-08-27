@@ -1,0 +1,484 @@
+{
+  "names": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "comm",
+    "cp",
+    "cut",
+    "diff",
+    "dirname",
+    "echo",
+    "env",
+    "expand",
+    "false",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "od",
+    "paste",
+    "patch",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "sha1sum",
+    "sha256sum",
+    "sort",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "true",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "count": 60,
+  "imports": [
+    {
+      "specifier": "virtual-bash",
+      "path": "dist/index.js",
+      "sha256": "27a19e8e4f5505e3aad5395d13e0a4c17e54d4096aac872261580220b28f2c1a",
+      "exports": [
+        "ACCESS_MODES",
+        "CommandRegistry",
+        "CurlError",
+        "DEFAULT_ARCHIVE_LIMITS",
+        "FsError",
+        "MemoryFileSystem",
+        "MockS3Client",
+        "MountFileSystem",
+        "OverlayFileSystem",
+        "ReadOnlyFileSystem",
+        "RealFileSystem",
+        "S3FileSystem",
+        "S3RenameError",
+        "S3ServiceError",
+        "SafeJsCommandLimitError",
+        "Shell",
+        "ShellLimitError",
+        "ShellSyntaxError",
+        "WebDavFileSystem",
+        "agentCommands",
+        "archiveCommands",
+        "assertPathWithin",
+        "basename",
+        "byteCommands",
+        "collectBytes",
+        "collectText",
+        "composeMiddleware",
+        "createAgentCommands",
+        "createArchiveCommands",
+        "createByteCommands",
+        "createBytePipe",
+        "createCurlCommand",
+        "createCurlCommands",
+        "createDiffPatchCommands",
+        "createMemoryFileSystem",
+        "createMetadataCommands",
+        "createMountFileSystem",
+        "createNetworkCommands",
+        "createNodeFsBridge",
+        "createNodeHttpTransport",
+        "createOverlayFileSystem",
+        "createReadOnlyFileSystem",
+        "createRealFileSystem",
+        "createS3HttpTransport",
+        "createS3Transport",
+        "createSafeJsCommands",
+        "createSearchCommands",
+        "createStandardCommands",
+        "createStreamInspectionCommands",
+        "createStructuredCommands",
+        "createTableTextCommands",
+        "createTarCommand",
+        "createTextProgramCommands",
+        "curlCommands",
+        "defaultJqLimits",
+        "defaultNetworkLimits",
+        "defaultSafeJsLimits",
+        "diffPatchCommands",
+        "dirname",
+        "encodeCopySource",
+        "extname",
+        "isAbsolutePath",
+        "isErrnoCode",
+        "isFsError",
+        "isPathWithin",
+        "joinPath",
+        "makeSafeJsFsModule",
+        "makeSafeJsShellModule",
+        "metadataCommands",
+        "networkCommands",
+        "normalizePath",
+        "parseShell",
+        "pipeBytes",
+        "posixPath",
+        "readBytes",
+        "relativePath",
+        "resolvePath",
+        "safeJsCommands",
+        "searchCommands",
+        "standardCommands",
+        "streamInspectionCommands",
+        "structuredCommands",
+        "tableTextCommands",
+        "textProgramCommands",
+        "toByteSource",
+        "toFsError",
+        "validateExitCode",
+        "validatePath",
+        "writeBytes",
+        "writeText"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts",
+      "path": "dist/contracts/index.js",
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27",
+      "exports": [
+        "ACCESS_MODES",
+        "CommandRegistry",
+        "FsError",
+        "assertPathWithin",
+        "basename",
+        "collectBytes",
+        "collectText",
+        "composeMiddleware",
+        "createBytePipe",
+        "dirname",
+        "extname",
+        "isAbsolutePath",
+        "isErrnoCode",
+        "isFsError",
+        "isPathWithin",
+        "joinPath",
+        "normalizePath",
+        "pipeBytes",
+        "posixPath",
+        "readBytes",
+        "relativePath",
+        "resolvePath",
+        "toByteSource",
+        "toFsError",
+        "validateExitCode",
+        "validatePath",
+        "writeBytes",
+        "writeText"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/command",
+      "path": "dist/contracts/command.js",
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f",
+      "exports": [
+        "CommandRegistry",
+        "validateExitCode"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/errors",
+      "path": "dist/contracts/errors.js",
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f",
+      "exports": [
+        "FsError",
+        "isErrnoCode",
+        "isFsError",
+        "toFsError"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/filesystem",
+      "path": "dist/contracts/filesystem.js",
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25",
+      "exports": [
+        "ACCESS_MODES"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/index",
+      "path": "dist/contracts/index.js",
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27",
+      "exports": [
+        "ACCESS_MODES",
+        "CommandRegistry",
+        "FsError",
+        "assertPathWithin",
+        "basename",
+        "collectBytes",
+        "collectText",
+        "composeMiddleware",
+        "createBytePipe",
+        "dirname",
+        "extname",
+        "isAbsolutePath",
+        "isErrnoCode",
+        "isFsError",
+        "isPathWithin",
+        "joinPath",
+        "normalizePath",
+        "pipeBytes",
+        "posixPath",
+        "readBytes",
+        "relativePath",
+        "resolvePath",
+        "toByteSource",
+        "toFsError",
+        "validateExitCode",
+        "validatePath",
+        "writeBytes",
+        "writeText"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/io",
+      "path": "dist/contracts/io.js",
+      "sha256": "866af6e5a93e9779453d3cc08507a96a94a3f7e82b201048e7ae5fc6203c2c3f",
+      "exports": [
+        "collectBytes",
+        "collectText",
+        "createBytePipe",
+        "pipeBytes",
+        "readBytes",
+        "toByteSource",
+        "writeBytes",
+        "writeText"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/path",
+      "path": "dist/contracts/path.js",
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7",
+      "exports": [
+        "assertPathWithin",
+        "basename",
+        "dirname",
+        "extname",
+        "isAbsolutePath",
+        "isPathWithin",
+        "joinPath",
+        "normalizePath",
+        "posixPath",
+        "relativePath",
+        "resolvePath",
+        "validatePath"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/contracts/plugin",
+      "path": "dist/contracts/plugin.js",
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937",
+      "exports": [
+        "composeMiddleware"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/commands/network",
+      "path": "dist/commands/network/index.js",
+      "sha256": "44658fec914d7568f14db5c14037dac6ef02d7ea48c1c261d9fcdb6044d6fa2b",
+      "exports": [
+        "CurlError",
+        "createCurlCommand",
+        "createCurlCommands",
+        "createNetworkCommands",
+        "createNodeHttpTransport",
+        "curlCommands",
+        "defaultNetworkLimits",
+        "networkCommands"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/commands/metadata",
+      "path": "dist/commands/metadata/index.js",
+      "sha256": "d4a85ffa7aecb41030f006e0339739663946bf453cbe2a38aca4a126398f35e7",
+      "exports": [
+        "createMetadataCommands",
+        "metadataCommands"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/commands/archive",
+      "path": "dist/commands/archive/index.js",
+      "sha256": "e747fff64a5566c31a5ab6d7fed7fe252fbb02dcf61990c981e55c53b5487418",
+      "exports": [
+        "DEFAULT_ARCHIVE_LIMITS",
+        "archiveCommands",
+        "createArchiveCommands",
+        "createTarCommand"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/commands/table-text",
+      "path": "dist/commands/table-text/index.js",
+      "sha256": "b5b81dfabe0b7930c4aebe27bcb8ab8d18dcf9781726fc9f20ec3748f9f31c78",
+      "exports": [
+        "createTableTextCommands",
+        "tableTextCommands"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/commands/stream-inspection",
+      "path": "dist/commands/stream-inspection/index.js",
+      "sha256": "010d948d623ba2dc9409552164355c2367311b61868d3acf32587eae868a3c1e",
+      "exports": [
+        "createStreamInspectionCommands",
+        "streamInspectionCommands"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/s3",
+      "path": "dist/fs/s3/index.js",
+      "sha256": "1c174c48e88516790e1776bf32b87597a29a79b029dd06aa972acf061c3d647f",
+      "exports": [
+        "MockS3Client",
+        "S3FileSystem",
+        "S3RenameError",
+        "S3ServiceError",
+        "createS3Transport",
+        "encodeCopySource"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/s3/http",
+      "path": "dist/fs/s3/http/index.js",
+      "sha256": "7e356b1ee365ce29d6c66d4f08f1447e7d79f551fd9fb79c0076e3924f679479",
+      "exports": [
+        "createS3HttpTransport"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/webdav",
+      "path": "dist/fs/webdav/index.js",
+      "sha256": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1",
+      "exports": [
+        "WebDavFileSystem"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/readonly",
+      "path": "dist/fs/readonly/index.js",
+      "sha256": "e9a155116c7ba93605ab1be43fb1c5c4618e164398f5bfb25d6659f41eb28289",
+      "exports": [
+        "ReadOnlyFileSystem",
+        "createReadOnlyFileSystem"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/mount",
+      "path": "dist/fs/mount/index.js",
+      "sha256": "32ebd1ed9746f1425a65d889b1272f9e99fbf38f9f872b60b5f4a2a83be7ddd5",
+      "exports": [
+        "MountFileSystem",
+        "createMountFileSystem"
+      ]
+    },
+    {
+      "specifier": "virtual-bash/fs/overlay",
+      "path": "dist/fs/overlay/index.js",
+      "sha256": "b40029ff925cbcb112ccd634595c220c620e77e1e2e047ca2e93344f89a633b5",
+      "exports": [
+        "OverlayFileSystem",
+        "createOverlayFileSystem"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "source": "printf 'a\\nb\\n' | tac",
+      "stdout": "b\na\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 98,
+        "1": 10,
+        "2": 97,
+        "3": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    {
+      "source": "printf 'a\\tb\\n' | expand",
+      "stdout": "a       b\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 97,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32,
+        "5": 32,
+        "6": 32,
+        "7": 32,
+        "8": 98,
+        "9": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    {
+      "source": "printf 'abcdef\\n' | fold -w 3",
+      "stdout": "abc\ndef\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 97,
+        "1": 98,
+        "2": 99,
+        "3": 10,
+        "4": 100,
+        "5": 101,
+        "6": 102,
+        "7": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    {
+      "source": "printf 'abc\\000de\\000fghi' | strings -n 3",
+      "stdout": "abc\nfghi\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 97,
+        "1": 98,
+        "2": 99,
+        "3": 10,
+        "4": 102,
+        "5": 103,
+        "6": 104,
+        "7": 105,
+        "8": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    }
+  ],
+  "runtimeDependencies": {},
+  "scope": "Mechanical exports/registry plus four basic public workflows, not broad tool parity"
+}

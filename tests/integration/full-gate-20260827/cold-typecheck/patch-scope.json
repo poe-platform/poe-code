@@ -1,0 +1,14 @@
+{
+  "revision": "0c8cf157971e8e8e6aa8bb0e70f97240c41bc609",
+  "changedPaths": [
+    "package.json",
+    "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
+    "tsconfig.json"
+  ],
+  "consumerScript": "npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
+  "onlyOneExactExclusion": true,
+  "existingManifestFieldsAndScriptsUnchanged": true,
+  "originalHistoricalFixtureUnchanged": true,
+  "currentColdStillFailsTS7053": true,
+  "wholeSuiteRerun": false
+}

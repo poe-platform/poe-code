@@ -46,15 +46,21 @@ for (const name of ['native.test.ts', 'native-errors.test.ts']) {
   function extract(revision) {
     const source = git('show', `${revision}:${suite}/${name}`).toString();
     const parsed = ts.createSourceFile(name, source, ts.ScriptTarget.Latest, true);
-    const assertions = [], vectors = [];
+    const assertions = [], vectors = [], rawVectors = [];
     function visit(node) {
       if (ts.isCallExpression(node) && node.expression.getText(parsed).startsWith('assert.')) assertions.push({ callee: node.expression.getText(parsed), arguments: node.arguments.map(argument => argument.getText(parsed)) });
-      if (ts.isVariableDeclaration(node) && ['gnu', 'profiles', 'executable', 'scenarios'].includes(node.name.getText(parsed))) vectors.push(node.getText(parsed));
+      if (ts.isVariableDeclaration(node) && ['gnu', 'profiles', 'executable', 'scenarios'].includes(node.name.getText(parsed))) {
+        rawVectors.push(node.getText(parsed));
+        if (node.name.getText(parsed) === 'profiles' && ts.isAsExpression(node.initializer)) {
+          assert.equal(node.initializer.type.getText(parsed), 'const');
+          vectors.push('profiles = ' + node.initializer.expression.getText(parsed));
+        } else vectors.push(node.getText(parsed));
+      }
       if (ts.isForOfStatement(node) && ts.isArrayLiteralExpression(node.expression)) vectors.push(node.expression.getText(parsed));
       ts.forEachChild(node, visit);
     }
     visit(parsed);
-    return { sha256: hash(source), assertions, vectors };
+    return { sha256: hash(source), assertions, vectors, rawVectors };
   }
   const before = extract(candidate + '^');
   const after = extract(candidate);

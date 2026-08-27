@@ -5,9 +5,11 @@ import { fileURLToPath } from "node:url";
 import { environment, json, manifest, run, step } from "../tests/plugins/stream-five-public/harness.mjs";
 import { sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs";
 import { consumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
+import { validateRuntimeCoverage, validateRuntimeResults } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { finish, snapshot, unchangedTests } from "../tests/plugins/qualified-current-release/snapshot.mjs";
 
 export function currentConsumers(report) {
+  validateRuntimeCoverage(consumerGroups);
   const compiler = join(report.root, "node_modules/typescript/bin/tsc");
   assert.equal(existsSync(join(report.root, "dist")), false, "current consumer gate requires a cold isolated candidate");
   step(report, "current-consumers-build", process.execPath, [compiler, "-p", "tsconfig.build.json"]);
@@ -39,6 +41,10 @@ export function currentConsumers(report) {
     config.compilerOptions.typeRoots = [join(report.root, "node_modules/@types")];
     config.compilerOptions.rootDir = workspace;
     config.compilerOptions.outDir = group.localPackage ? workspace : join(workspace, "emitted");
+    if (group.consumerIdentity) {
+      mkdirSync(config.compilerOptions.outDir, { recursive: true });
+      json(join(config.compilerOptions.outDir, "package.json"), { name: `qualified-${group.name}`, private: true, type: "module" });
+    }
     config.files = inputs.map(input => input.target);
     json(join(workspace, "tsconfig.json"), config);
     const result = { ...group, inputs, compile: "pending", runtimeResults: [] };
@@ -52,7 +58,7 @@ export function currentConsumers(report) {
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
       for (const runtime of group.runtime) {
         const execution = step(report, `consumer-${group.name}-${runtime}`, process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--allow-worker", "--unhandled-rejections=strict", join(config.compilerOptions.outDir, runtime)], consumer, { env: environment });
-        const usesNodeTest = group.nodeTests !== undefined || ["s3-constructor", "webdav-loopback"].includes(group.name);
+        const usesNodeTest = group.nodeTests !== undefined || runtime.endsWith(".test.mjs") || ["s3-constructor", "webdav-loopback"].includes(group.name);
         let counts;
         if (usesNodeTest) {
           counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(execution.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));
@@ -97,6 +103,7 @@ export function currentConsumers(report) {
   assert.deepEqual(manifest(installed, "dist"), built);
   assert.equal(unchangedTests(report), true, "candidate test inputs changed");
   json(join(report.directory, "current-consumers.json"), report.currentConsumers);
+  validateRuntimeResults(consumerGroups, report.currentConsumers.groups);
   assert.ok(report.currentConsumers.groups.every(group => !group.error), "current consumer failures; see current-consumers.json (no waiver)");
   assert.ok(report.currentConsumers.negativeTypes.every(group => group.status === "pass"), "negative consumer diagnostic failures (no waiver)");
 }

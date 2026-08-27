@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "inventoriedCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
-  "scope": "Explicit tracked .mts census outside separately owned independent stream-five-public holdouts. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts.",
+  "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts.",
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
     "current": 29,
@@ -212,10 +212,10 @@
       "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
       "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
       "classification": "current",
-      "group": "webdav-atomic",
-      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
-      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
-      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+      "group": "webdav-atomic-independent",
+      "reason": "self-contained injected-fetch consumer; requires no service or certificate; strict current declarations and emitted execution with its own package identity",
+      "existingCoverage": "tests/fs/webdav/atomic-extension-independent/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic-independent and emitted consumer.mjs; configured removal plus stock refusal, not deployed-provider proof"
     },
     {
       "path": "tests/fs/webdav/atomic-extension/consumer.mts",

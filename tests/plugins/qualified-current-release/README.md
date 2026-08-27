@@ -66,9 +66,12 @@ current: strict compilation and actual emitted node:test execution,23 tests
 split into20 controls and3 mutant-kill assertions. It is not frozen data or23
 provider-success workflows. The original13-test WebDAV consumer remains
 unchanged and mandatory, using the candidate's current provider fixture.
-Neither deployed WebDAV atomic-extension workflow is run here; their four
-maintained inputs receive strict current declarations only. External service
-acceptance and configured-rmdir evidence remain separate.
+The three TLS-dependent author inputs receive strict current declarations only.
+The independent atomic consumer is service-free: its own group strictly compiles
+and executes unchanged `consumer.mjs`, with an identifying package.json beside
+the emitted file. Its injected fetch/configured removal and stock refusal do
+not establish deployed-provider acceptance. External service acceptance and
+configured-rmdir evidence remain separate.
 
 This census has177 entries:29 current,2 negative,4 declarations,141 frozen
 evidence and1 frozen oracle. New paths still fail closed. Development tooling
@@ -76,10 +79,24 @@ is copied as regular files into the frozen candidate, not linked to a mutable
 dependency tree. `tests/integration/qualified-current-release-inventory/verify.mjs`
 checks the census and eight guard mutations; it is not a runtime release gate.
 The census reads all tracked paths (including future examples outside tests or
-scripts), retaining only the prior explicit independent-holdout exclusion.
+scripts), with no prefix exclusions. The former independent-holdout prefix
+contained zero .mts files; it can no longer silently hide a future executable.
 The frozen archive includes the actual candidate README so npm's automatically
 included README is not silently missing from the qualified package. Earlier
 selected-tree packages without that README remain separate captured artifacts.
+
+### Independent review corrections
+
+Independent862fdc54 accepted the original20 classifications, but identified the
+service-free consumer omission and an empty-runtime coverage hole. Preserve
+847dfd7's exit0 as an incomplete-coverage checkpoint, not current complete
+coverage. The repaired runner checks mandatory `.test.mts` to emitted-runtime
+mapping and nonempty `nodeTests` execution before building, then checks exact
+declared-versus-actual results/counts after execution. A compiler pass with zero
+runtime tests is not accepted. Canonical regressions and live-runner sentinel
+mutations are in `tests/integration/qualified-current-release-repair`.
+The fixed configuration needs a different verifier; metadata classification
+remains reviewed trusted configuration, not a hostile-JavaScript sandbox.
 
 Dirac's accepted `aac345a0` review retains canonical **470/470 + 485/485**, and
 pre-existing standalone omissions **11/30** at its two historical commits.

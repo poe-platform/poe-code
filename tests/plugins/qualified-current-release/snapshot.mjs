@@ -10,7 +10,7 @@ import { verifyInventory } from "./inventory-check.mjs";
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 export function snapshot(sourceRef = "HEAD") {
   const sourceCommit = requireSuccess(run("git", ["--no-replace-objects", "rev-parse", "--verify", `${sourceRef}^{commit}`], repository)).stdout.trim();
-  const tracked = requireSuccess(run("git", ["--no-replace-objects", "ls-tree", "-r", "--name-only", sourceCommit], repository)).stdout.trim().split("\n").filter(path => !path.startsWith("tests/integration/stream-five-public/"));
+  const tracked = requireSuccess(run("git", ["--no-replace-objects", "ls-tree", "-r", "--name-only", sourceCommit], repository)).stdout.trim().split("\n");
   const inventory = JSON.parse(readFileSync(join(repository, ownerPath, "inventory.json")));
   const currentPaths = currentConsumerPaths();
   verifyInventory(inventory, tracked, currentPaths, negativeGroups.map(group => group.path), path => requireSuccess(run("git", ["--no-replace-objects", "show", `${sourceCommit}:${path}`], repository, { encoding: "buffer" })).stdout);

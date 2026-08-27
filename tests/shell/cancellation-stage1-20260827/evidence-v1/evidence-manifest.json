@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-27",
+  "candidateCommit": "6747227230cd770379148552d471621717b766d7",
+  "candidateSourceSha256": "cde614b830e11f2040db65d2347c5f430df4b353324684585b2dc242ac733960",
+  "files": {
+    "RESULTS.md": "52b4248700a177ddba2bf21ec24d1010d198db6282ae9a1801a14c217eee82dc",
+    "checks.json": "db814607a874ed17cd018cf462f06b114ac51fde9a8e91c1e0b922515fb6bfb8",
+    "candidate-attempts.md": "0709363a977d1ae9058efe6752dfe6c324f9eaef31a1f99faef3e1b5a5d2508a",
+    "final-runtime.txt": "b96f45f667b42817c2a44dfb2a67559ff3f82def6d3dfdb29202f82e98f3e67d"
+  }
+}

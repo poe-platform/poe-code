@@ -1,0 +1,75 @@
+{
+  "capturedAt": "2026-08-27",
+  "environment": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "typescript": "5.9.3",
+    "tsx": "4.23.12"
+  },
+  "freeze": {
+    "commit": "7023c28229ecb7939aee5eb7ca0f52ac57c795bb",
+    "tree": "ad23882725eb3240965a106c1e695f8d8c651afa",
+    "parent": "9f313959b89ca30764007b310fa0a72da40bddf3",
+    "files": 9,
+    "fixtureManifestEntriesVerified": 8,
+    "helperSourceAbsent": true,
+    "baselineExitStatus": 1,
+    "baselineReason": "ERR_MODULE_NOT_FOUND"
+  },
+  "candidate": {
+    "commit": "6747227230cd770379148552d471621717b766d7",
+    "tree": "dbbe6732ddc4f383166876903d9a564039f5c4fe",
+    "parent": "2dcefd4f26588f6dc662148e3713e41b09537333",
+    "path": "src/shell/cancellation.ts",
+    "gitBlob": "d5ceafef56a9351bd77630db66d9acfdc19a38ee",
+    "sha256": "cde614b830e11f2040db65d2347c5f430df4b353324684585b2dc242ac733960",
+    "lines": 558,
+    "imports": 0,
+    "publicExportsOrPackageEntries": 0,
+    "runtimeIntegrated": false
+  },
+  "commands": [
+    {
+      "command": "node --import tsx --test --test-reporter=spec tests/shell/cancellation-stage1-20260827/cancellation.test.ts",
+      "exitStatus": 0,
+      "tests": 22,
+      "passed": 22,
+      "failed": 0
+    },
+    {
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.strict.json",
+      "exitStatus": 0
+    },
+    {
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.type-negative.json",
+      "exitStatus": 0
+    },
+    {
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.build.json",
+      "exitStatus": 0,
+      "outDir": "tests/shell/cancellation-stage1-20260827/scratch/build"
+    },
+    {
+      "command": "node --input-type=module -e <emitted ESM exact-reason/listener-closure probe>",
+      "exitStatus": 0,
+      "result": {
+        "selected": "throw",
+        "exactReason": true,
+        "reportRole": "invoke-option",
+        "before": { "caller": 1, "local": 0 },
+        "after": { "caller": 0, "local": 0 },
+        "childFailures": 0,
+        "rootFailures": 0
+      }
+    }
+  ],
+  "buildArtifacts": {
+    "shell/cancellation.js": "a77d885824a0cfa4f454d9c574cc361aa9ea5507c7f62bd52f2ecc8a98254a28",
+    "shell/cancellation.d.ts": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65",
+    "committed": false
+  },
+  "reservedSourcesMatchDesignCommit": true,
+  "nativeOrDuCohortsRun": false,
+  "wholeRepositoryGateRun": false
+}

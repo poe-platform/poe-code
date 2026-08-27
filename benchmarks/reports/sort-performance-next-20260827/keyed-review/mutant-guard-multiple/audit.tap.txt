@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: guard-multiple-keys
+not ok 1 - guard-multiple-keys
+  ---
+  duration_ms: 10.21225
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-guard-multiple/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    guard-multiple-keys: stdout
+    + actual - expected
+    
+      {
+        bytes: 12,
+    +   sha256: '9ee1a61195345f8fd0edceda4c978e180a781613db643db0a67e361ea5005f29'
+    -   sha256: '9cbee9ee9f1beff5b0323451566cef389a0e3b1b2ad2d46753eddee5519f887e'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 12
+    sha256: '9cbee9ee9f1beff5b0323451566cef389a0e3b1b2ad2d46753eddee5519f887e'
+  actual:
+    bytes: 12
+    sha256: '9ee1a61195345f8fd0edceda4c978e180a781613db643db0a67e361ea5005f29'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-guard-multiple/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.787083

@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: inherited-numeric
+ok 1 - inherited-numeric
+  ---
+  duration_ms: 6.232083
+  type: 'test'
+  ...
+# Subtest: local-replaces-global-numeric
+ok 2 - local-replaces-global-numeric
+  ---
+  duration_ms: 1.220625
+  type: 'test'
+  ...
+# Subtest: local-numeric-replaces-global-reverse
+ok 3 - local-numeric-replaces-global-reverse
+  ---
+  duration_ms: 0.871917
+  type: 'test'
+  ...
+# Subtest: local-reverse-end-flags
+ok 4 - local-reverse-end-flags
+  ---
+  duration_ms: 0.573917
+  type: 'test'
+  ...
+# Subtest: whitespace-included-character
+ok 5 - whitespace-included-character
+  ---
+  duration_ms: 0.883583
+  type: 'test'
+  ...
+# Subtest: whitespace-blanks-transform
+ok 6 - whitespace-blanks-transform
+  ---
+  duration_ms: 0.517291
+  type: 'test'
+  ...
+# Subtest: delimited-empty-and-missing
+ok 7 - delimited-empty-and-missing
+  ---
+  duration_ms: 0.615875
+  type: 'test'
+  ...
+# Subtest: open-ended-key
+ok 8 - open-ended-key
+  ---
+  duration_ms: 0.643625
+  type: 'test'
+  ...
+# Subtest: end-field-and-char-boundary
+ok 9 - end-field-and-char-boundary
+  ---
+  duration_ms: 1.629417
+  type: 'test'
+  ...
+# Subtest: out-of-range-character
+ok 10 - out-of-range-character
+  ---
+  duration_ms: 0.943625
+  type: 'test'
+  ...
+# Subtest: start-after-end
+ok 11 - start-after-end
+  ---
+  duration_ms: 0.415208
+  type: 'test'
+  ...
+# Subtest: utf8-byte-offset
+ok 12 - utf8-byte-offset
+  ---
+  duration_ms: 0.401166
+  type: 'test'
+  ...
+# Subtest: invalid-byte-key-and-fallback
+ok 13 - invalid-byte-key-and-fallback
+  ---
+  duration_ms: 0.921417
+  type: 'test'
+  ...
+# Subtest: exact-integers-above-double
+ok 14 - exact-integers-above-double
+  ---
+  duration_ms: 0.800667
+  type: 'test'
+  ...
+# Subtest: exact-fractions-and-prefix-grammar
+ok 15 - exact-fractions-and-prefix-grammar
+  ---
+  duration_ms: 0.557709
+  type: 'test'
+  ...
+# Subtest: ties-stable
+ok 16 - ties-stable
+  ---
+  duration_ms: 0.363875
+  type: 'test'
+  ...
+# Subtest: ties-reverse-byte-fallback
+ok 17 - ties-reverse-byte-fallback
+  ---
+  duration_ms: 0.348125
+  type: 'test'
+  ...
+# Subtest: unique-first-signed-zero
+ok 18 - unique-first-signed-zero
+  ---
+  duration_ms: 0.378583
+  type: 'test'
+  ...
+# Subtest: reverse-unique-first
+ok 19 - reverse-unique-first
+  ---
+  duration_ms: 0.662125
+  type: 'test'
+  ...
+# Subtest: guard-multiple-keys
+ok 20 - guard-multiple-keys
+  ---
+  duration_ms: 0.354583
+  type: 'test'
+  ...
+# Subtest: guard-nonnumeric-local
+ok 21 - guard-nonnumeric-local
+  ---
+  duration_ms: 0.410125
+  type: 'test'
+  ...
+# Subtest: guard-numeric-fold-transform
+ok 22 - guard-numeric-fold-transform
+  ---
+  duration_ms: 0.357083
+  type: 'test'
+  ...
+# Subtest: guard-check-disorder
+ok 23 - guard-check-disorder
+  ---
+  duration_ms: 0.720125
+  type: 'test'
+  ...
+# Subtest: borrowed-offset-finalizer-newline
+ok 24 - borrowed-offset-finalizer-newline
+  ---
+  duration_ms: 1.207291
+  type: 'test'
+  ...
+# Subtest: borrowed-offset-finalizer-nul
+ok 25 - borrowed-offset-finalizer-nul
+  ---
+  duration_ms: 0.788375
+  type: 'test'
+  ...
+# Subtest: input-error-keeps-destination
+ok 26 - input-error-keeps-destination
+  ---
+  duration_ms: 1.819959
+  type: 'test'
+  ...
+# Subtest: cancel-input-keeps-destination
+ok 27 - cancel-input-keeps-destination
+  ---
+  duration_ms: 2.382542
+  type: 'test'
+  ...
+# Subtest: output-budget-rejection
+ok 28 - output-budget-rejection
+  ---
+  duration_ms: 0.986458
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.555834

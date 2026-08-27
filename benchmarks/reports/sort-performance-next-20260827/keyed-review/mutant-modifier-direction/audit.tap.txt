@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: local-numeric-replaces-global-reverse
+not ok 1 - local-numeric-replaces-global-reverse
+  ---
+  duration_ms: 7.066459
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-direction/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    local-numeric-replaces-global-reverse: stdout
+    + actual - expected
+    
+      {
+        bytes: 14,
+    +   sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+    -   sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 14
+    sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+  actual:
+    bytes: 14
+    sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-direction/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: local-reverse-end-flags
+not ok 2 - local-reverse-end-flags
+  ---
+  duration_ms: 1.542417
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-direction/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    local-reverse-end-flags: stdout
+    + actual - expected
+    
+      {
+        bytes: 14,
+    +   sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+    -   sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 14
+    sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+  actual:
+    bytes: 14
+    sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-direction/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.270625

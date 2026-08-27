@@ -1,0 +1,976 @@
+[
+  {
+    "id": "inherited-numeric",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "local-replaces-global-numeric",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 3,
+      "extractions": 6,
+      "fieldObjects": 12
+    },
+    "candidate": {
+      "sortComparisons": 3,
+      "extractions": 6,
+      "fieldObjects": 12
+    }
+  },
+  {
+    "id": "local-numeric-replaces-global-reverse",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "local-reverse-end-flags",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "whitespace-included-character",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 42,
+      "independentBackingCharge": 42,
+      "existingRecordBytes": 12,
+      "entriesPeak": 3,
+      "retainedPeak": 42,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  },
+  {
+    "id": "whitespace-blanks-transform",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    },
+    "candidate": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    }
+  },
+  {
+    "id": "delimited-empty-and-missing",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 7,
+      "extractions": 14,
+      "fieldObjects": 26,
+      "parses": 14,
+      "numericComparisons": 7
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 7,
+      "keyedRequests": 14,
+      "extractions": 5,
+      "fieldObjects": 10,
+      "parses": 5,
+      "keyedAdmissions": 5,
+      "charged": 28,
+      "independentBackingCharge": 28,
+      "existingRecordBytes": 14,
+      "entriesPeak": 5,
+      "retainedPeak": 28,
+      "numericComparisons": 7,
+      "keyedHits": 9
+    }
+  },
+  {
+    "id": "open-ended-key",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 12,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 9,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 78,
+      "independentBackingCharge": 78,
+      "existingRecordBytes": 18,
+      "entriesPeak": 3,
+      "retainedPeak": 78,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "end-field-and-char-boundary",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 42,
+      "independentBackingCharge": 42,
+      "existingRecordBytes": 18,
+      "entriesPeak": 3,
+      "retainedPeak": 42,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  },
+  {
+    "id": "out-of-range-character",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 6,
+      "independentBackingCharge": 6,
+      "existingRecordBytes": 9,
+      "entriesPeak": 3,
+      "retainedPeak": 6,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "start-after-end",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 12,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 9,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 6,
+      "independentBackingCharge": 6,
+      "existingRecordBytes": 15,
+      "entriesPeak": 3,
+      "retainedPeak": 6,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "utf8-byte-offset",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 17,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "invalid-byte-key-and-fallback",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "exact-integers-above-double",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 3,
+      "extractions": 6,
+      "fieldObjects": 12,
+      "parses": 6,
+      "numericComparisons": 3
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 3,
+      "keyedRequests": 6,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "keyedAdmissions": 4,
+      "charged": 404,
+      "independentBackingCharge": 404,
+      "existingRecordBytes": 74,
+      "entriesPeak": 4,
+      "retainedPeak": 404,
+      "numericComparisons": 3,
+      "keyedHits": 2
+    }
+  },
+  {
+    "id": "exact-fractions-and-prefix-grammar",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 12,
+      "extractions": 24,
+      "fieldObjects": 48,
+      "parses": 24,
+      "numericComparisons": 12
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 12,
+      "keyedRequests": 24,
+      "extractions": 7,
+      "fieldObjects": 14,
+      "parses": 7,
+      "keyedAdmissions": 7,
+      "charged": 410,
+      "independentBackingCharge": 410,
+      "existingRecordBytes": 80,
+      "entriesPeak": 7,
+      "retainedPeak": 410,
+      "numericComparisons": 12,
+      "keyedHits": 17
+    }
+  },
+  {
+    "id": "ties-stable",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 60,
+      "independentBackingCharge": 60,
+      "existingRecordBytes": 15,
+      "entriesPeak": 3,
+      "retainedPeak": 60,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "ties-reverse-byte-fallback",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 3,
+      "extractions": 6,
+      "fieldObjects": 12,
+      "parses": 6,
+      "numericComparisons": 3
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 3,
+      "keyedRequests": 6,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 60,
+      "independentBackingCharge": 60,
+      "existingRecordBytes": 15,
+      "entriesPeak": 3,
+      "retainedPeak": 60,
+      "numericComparisons": 3,
+      "keyedHits": 3
+    }
+  },
+  {
+    "id": "unique-first-signed-zero",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 16,
+      "fieldObjects": 32,
+      "parses": 16,
+      "numericComparisons": 8
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 16,
+      "extractions": 5,
+      "fieldObjects": 10,
+      "parses": 5,
+      "keyedAdmissions": 5,
+      "charged": 94,
+      "independentBackingCharge": 94,
+      "existingRecordBytes": 24,
+      "entriesPeak": 5,
+      "retainedPeak": 94,
+      "numericComparisons": 8,
+      "keyedHits": 11
+    }
+  },
+  {
+    "id": "reverse-unique-first",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 8,
+      "extractions": 24,
+      "fieldObjects": 48,
+      "parses": 24,
+      "numericComparisons": 12
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 8,
+      "keyedRequests": 24,
+      "extractions": 5,
+      "fieldObjects": 10,
+      "parses": 5,
+      "keyedAdmissions": 5,
+      "charged": 58,
+      "independentBackingCharge": 58,
+      "existingRecordBytes": 18,
+      "entriesPeak": 5,
+      "retainedPeak": 58,
+      "numericComparisons": 12,
+      "keyedHits": 19
+    }
+  },
+  {
+    "id": "guard-multiple-keys",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 6,
+      "fieldObjects": 12,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "sortComparisons": 2,
+      "extractions": 6,
+      "fieldObjects": 12,
+      "parses": 4,
+      "numericComparisons": 2
+    }
+  },
+  {
+    "id": "guard-nonnumeric-local",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16
+    },
+    "candidate": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16
+    }
+  },
+  {
+    "id": "guard-numeric-fold-transform",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    }
+  },
+  {
+    "id": "guard-check-disorder",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    },
+    "candidate": {
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16,
+      "parses": 8,
+      "numericComparisons": 4
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  },
+  {
+    "id": "input-error-keeps-destination",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {},
+    "candidate": {
+      "keyedConstructions": 1
+    }
+  },
+  {
+    "id": "cancel-input-keeps-destination",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {},
+    "candidate": {
+      "keyedConstructions": 1
+    }
+  },
+  {
+    "id": "output-budget-rejection",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 1,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 1,
+      "keyedRequests": 2,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "keyedAdmissions": 2,
+      "charged": 16,
+      "independentBackingCharge": 16,
+      "existingRecordBytes": 6,
+      "entriesPeak": 2,
+      "retainedPeak": 16,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "entry-below",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 16382,
+      "extractions": 32764,
+      "fieldObjects": 65528,
+      "parses": 32764,
+      "numericComparisons": 16382
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16382,
+      "keyedRequests": 32764,
+      "extractions": 16383,
+      "fieldObjects": 32766,
+      "parses": 16383,
+      "keyedAdmissions": 16383,
+      "charged": 457620,
+      "independentBackingCharge": 457620,
+      "existingRecordBytes": 169107,
+      "entriesPeak": 16383,
+      "retainedPeak": 457620,
+      "numericComparisons": 16382,
+      "keyedHits": 16381
+    }
+  },
+  {
+    "id": "entry-at",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 16383,
+      "extractions": 32766,
+      "fieldObjects": 65532,
+      "parses": 32766,
+      "numericComparisons": 16383
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16383,
+      "keyedRequests": 32766,
+      "extractions": 16384,
+      "fieldObjects": 32768,
+      "parses": 16384,
+      "keyedAdmissions": 16384,
+      "charged": 457652,
+      "independentBackingCharge": 457652,
+      "existingRecordBytes": 169118,
+      "entriesPeak": 16384,
+      "retainedPeak": 457652,
+      "numericComparisons": 16383,
+      "keyedHits": 16382
+    }
+  },
+  {
+    "id": "entry-above",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 16384,
+      "extractions": 32768,
+      "fieldObjects": 65536,
+      "parses": 32768,
+      "numericComparisons": 16384
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16384,
+      "keyedRequests": 32768,
+      "extractions": 16385,
+      "fieldObjects": 32770,
+      "parses": 16385,
+      "keyedAdmissions": 16384,
+      "charged": 457676,
+      "independentBackingCharge": 457676,
+      "existingRecordBytes": 169122,
+      "entriesPeak": 16384,
+      "retainedPeak": 457676,
+      "numericComparisons": 16384,
+      "keyedHits": 16383,
+      "fallback": 1,
+      "entryFallback": 1
+    }
+  },
+  {
+    "id": "retained-below",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 1,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 1,
+      "keyedRequests": 2,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "keyedAdmissions": 2,
+      "charged": 1048570,
+      "independentBackingCharge": 1048570,
+      "existingRecordBytes": 174765,
+      "entriesPeak": 2,
+      "retainedPeak": 1048570,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "retained-at",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 1,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 1,
+      "keyedRequests": 2,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "keyedAdmissions": 2,
+      "charged": 1048576,
+      "independentBackingCharge": 1048576,
+      "existingRecordBytes": 174766,
+      "entriesPeak": 2,
+      "retainedPeak": 1048576,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "retained-above",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 1,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "numericComparisons": 1
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 1,
+      "keyedRequests": 2,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "keyedAdmissions": 1,
+      "charged": 524294,
+      "independentBackingCharge": 524294,
+      "existingRecordBytes": 87384,
+      "entriesPeak": 1,
+      "retainedPeak": 524294,
+      "fallback": 1,
+      "byteFallback": 1,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "oversized-extracted-small-prefix",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "fallback": 2,
+      "byteFallback": 2,
+      "parses": 4,
+      "keyedAdmissions": 2,
+      "charged": 16,
+      "independentBackingCharge": 16,
+      "existingRecordBytes": 6,
+      "entriesPeak": 2,
+      "retainedPeak": 16,
+      "numericComparisons": 2
+    }
+  },
+  {
+    "id": "oversized-record-small-key",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 2,
+      "extractions": 4,
+      "fieldObjects": 10,
+      "parses": 4,
+      "numericComparisons": 2
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 7,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 24,
+      "independentBackingCharge": 24,
+      "existingRecordBytes": 174804,
+      "entriesPeak": 3,
+      "retainedPeak": 24,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "fallback-mid-sort-stable-ties",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 16386,
+      "extractions": 32772,
+      "fieldObjects": 65544,
+      "parses": 32772,
+      "numericComparisons": 16386
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16386,
+      "keyedRequests": 32772,
+      "extractions": 16389,
+      "fieldObjects": 32778,
+      "parses": 16389,
+      "keyedAdmissions": 16384,
+      "charged": 475136,
+      "independentBackingCharge": 475136,
+      "existingRecordBytes": 259226,
+      "entriesPeak": 16384,
+      "retainedPeak": 475136,
+      "numericComparisons": 16386,
+      "keyedHits": 16383,
+      "fallback": 5,
+      "entryFallback": 5
+    }
+  },
+  {
+    "id": "empty-keys-entry-cap",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 16384,
+      "extractions": 32768,
+      "fieldObjects": 32768,
+      "parses": 32768,
+      "numericComparisons": 16384
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16384,
+      "keyedRequests": 32768,
+      "extractions": 16385,
+      "fieldObjects": 16385,
+      "parses": 16385,
+      "keyedAdmissions": 16384,
+      "charged": 32768,
+      "independentBackingCharge": 32768,
+      "existingRecordBytes": 169114,
+      "entriesPeak": 16384,
+      "retainedPeak": 32768,
+      "numericComparisons": 16384,
+      "keyedHits": 16383,
+      "fallback": 1,
+      "entryFallback": 1
+    }
+  },
+  {
+    "id": "numeric-stable-8000",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "unkeyedConstructions": 1,
+      "sortComparisons": 92882,
+      "parses": 8000,
+      "unkeyedAdmissions": 8000,
+      "numericComparisons": 92882
+    },
+    "candidate": {
+      "unkeyedConstructions": 1,
+      "sortComparisons": 92882,
+      "parses": 8000,
+      "unkeyedAdmissions": 8000,
+      "numericComparisons": 92882
+    }
+  },
+  {
+    "id": "numeric-key-8000",
+    "sameBytesEffectsAndComparisons": true,
+    "baseline": {
+      "sortComparisons": 82450,
+      "extractions": 164900,
+      "fieldObjects": 494700,
+      "parses": 164900,
+      "numericComparisons": 82450
+    },
+    "candidate": {
+      "keyedConstructions": 1,
+      "sortComparisons": 82450,
+      "keyedRequests": 164900,
+      "extractions": 8000,
+      "fieldObjects": 24000,
+      "parses": 8000,
+      "keyedAdmissions": 8000,
+      "charged": 194680,
+      "independentBackingCharge": 194680,
+      "existingRecordBytes": 156670,
+      "entriesPeak": 8000,
+      "retainedPeak": 194680,
+      "numericComparisons": 82450,
+      "keyedHits": 156900
+    }
+  }
+]

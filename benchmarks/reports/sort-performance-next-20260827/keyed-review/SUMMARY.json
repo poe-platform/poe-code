@@ -1,0 +1,66 @@
+{
+  "verdict": "PASS_FOR_ROOT_REVIEW",
+  "baselineCommit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "candidateCommit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceHashes": {
+    "baseline": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+    "candidate": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895"
+  },
+  "originalFreeze": {
+    "passed": 26,
+    "total": 28,
+    "preserved": true
+  },
+  "perSnapshot": {
+    "keyV2": {
+      "passed": 28,
+      "total": 28
+    },
+    "keyCaps": {
+      "passed": 10,
+      "total": 10
+    },
+    "acceptedPrior": {
+      "acceptance": 21,
+      "revisedIndependent": 34,
+      "caps": 11
+    },
+    "directSameInputs": {
+      "passed": 2,
+      "total": 2
+    },
+    "scratchControls": {
+      "passed": 40,
+      "total": 40
+    }
+  },
+  "mutants": {
+    "original": {
+      "killed": 12,
+      "total": 14
+    },
+    "supplementalDirect": {
+      "killed": 2,
+      "total": 2
+    }
+  },
+  "timingAuthorized": false,
+  "nativeOracleRuns": 0,
+  "cleanup": {
+    "roots": [
+      {
+        "root": "/private/tmp/sort-key-review-baseline-0SmidY",
+        "removed": true
+      },
+      {
+        "root": "/private/tmp/sort-key-review-candidate-8vQChD",
+        "removed": true
+      }
+    ],
+    "childHandlesClosed": 29,
+    "globalKillUsed": false,
+    "nativeOracleRuns": 0,
+    "markerRetention": "Root coordination, frozen-ready, findings and final-ready handoff files intentionally remain; no product or foreign paths removed."
+  },
+  "finalAcceptanceOwner": "root"
+}

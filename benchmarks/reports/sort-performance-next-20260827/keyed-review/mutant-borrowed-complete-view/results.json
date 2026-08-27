@@ -1,0 +1,36 @@
+[
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "actual": {
+      "status": 0,
+      "stdout": "YjotMQBjOjMAYToyMAA=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "81e6b0c65c337469453bec8550a71666b8399de994b8c0073a7237cef448a0fe"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "d98bf3c1c0408273f8c8017abf3e43fa92fb05e807689214828b214fcb58e272"
+    },
+    "finalized": true,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  }
+]

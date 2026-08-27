@@ -1,0 +1,16 @@
+{
+  "args": [
+    "--test",
+    "--test-reporter=tap",
+    "loaded-worker.mjs"
+  ],
+  "pid": 34961,
+  "code": 1,
+  "signal": null,
+  "killed": null,
+  "exactChildClosed": true,
+  "outputBytes": 1382,
+  "passed": 1,
+  "failed": 1,
+  "skipped": 0
+}

@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: inherited-numeric
+not ok 1 - inherited-numeric
+  ---
+  duration_ms: 7.097291
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-wrong-key/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    inherited-numeric: stdout
+    + actual - expected
+    
+      {
+        bytes: 14,
+    +   sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+    -   sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 14
+    sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+  actual:
+    bytes: 14
+    sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-wrong-key/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: exact-integers-above-double
+not ok 2 - exact-integers-above-double
+  ---
+  duration_ms: 1.264042
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-wrong-key/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    exact-integers-above-double: stdout
+    + actual - expected
+    
+      {
+        bytes: 78,
+    +   sha256: 'c00df75ba5035c55102e78b78b7c45550b9dce40630d19eb99c86050654270ba'
+    -   sha256: 'fc8465643019b11c0f308b9b4f097caf33ba8c0b0621388e6fc19e0f19d5a717'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 78
+    sha256: 'fc8465643019b11c0f308b9b4f097caf33ba8c0b0621388e6fc19e0f19d5a717'
+  actual:
+    bytes: 78
+    sha256: 'c00df75ba5035c55102e78b78b7c45550b9dce40630d19eb99c86050654270ba'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-wrong-key/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.408375

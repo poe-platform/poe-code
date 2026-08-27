@@ -1,0 +1,14 @@
+import { copyFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { baselineCommit, holdouts } from './holdouts.mjs';
+import { authenticate, childRun, directory, inventory, json, prepare } from './harness.mjs';
+const prepared = prepare(baselineCommit, 'baseline');
+const evidence = join(directory, 'baseline-attempt1'); mkdirSync(evidence);
+json(join(evidence, 'prepared.json'), prepared);
+json(join(prepared.consumer, 'cases.json'), holdouts());
+for (const file of ['public-worker.mjs', 'loaded-worker.mjs']) copyFileSync(join(directory, file), join(prepared.consumer, file));
+json(join(prepared.consumer, 'module-manifest.json'), inventory(prepared.consumer));
+const result = await childRun(prepared.consumer, ['--test', '--test-reporter=tap', 'loaded-worker.mjs'], join(evidence, 'holdouts'));
+for (const file of ['cases.json', 'results.json', 'loaded-proof.json']) copyFileSync(join(prepared.consumer, file), join(evidence, file));
+json(join(evidence, 'integrity.json'), authenticate(prepared));
+console.log(JSON.stringify({ root: prepared.root, ...result }));

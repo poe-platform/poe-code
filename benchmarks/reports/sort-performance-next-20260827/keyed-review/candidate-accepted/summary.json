@@ -1,0 +1,88 @@
+{
+  "inputs": [
+    {
+      "name": "accepted-worker.mjs",
+      "path": "benchmarks/reports/sort-performance-next-20260827/unkeyed-review/public-worker.mjs",
+      "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+      "sha256": "91c35456688be7d826e6a39096cb63690899669b20052536d3a0be522ee4a621"
+    },
+    {
+      "name": "acceptance.json",
+      "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+      "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+      "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+    },
+    {
+      "name": "independent.json",
+      "path": "benchmarks/reports/sort-performance-next-20260827/unkeyed-review/expected-v2.json",
+      "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+      "sha256": "591e0a23cbf8c4a4acbc385e3bacd8bbb6fcff5315d9caa3b72debd2f67be776"
+    },
+    {
+      "name": "caps.json",
+      "path": "benchmarks/reports/sort-performance-next-20260827/unkeyed-review/caps-expected.json",
+      "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+      "sha256": "d567186830e18a7edebf6f945e780ad056afa94c2ca8a84fc6fb643ee969e58a"
+    }
+  ],
+  "results": [
+    {
+      "cohort": "accepted21-revised34",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/acceptance.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/independent.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/package-manifest.json"
+      ],
+      "pid": 31403,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 46812,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "counts": {
+        "acceptance21": {
+          "pass": 21,
+          "fail": 0
+        },
+        "independent34": {
+          "pass": 34,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "cohort": "accepted-caps11",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/empty.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/caps.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/package-manifest.json"
+      ],
+      "pid": 31421,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 37225,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "counts": {
+        "independent11": {
+          "pass": 11,
+          "fail": 0
+        }
+      }
+    }
+  ],
+  "sourceBuildAndMovedPackageUnchanged": true,
+  "detectsAddedEntries": true,
+  "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+  "unchangedPriorWorkerAndInputs": true
+}

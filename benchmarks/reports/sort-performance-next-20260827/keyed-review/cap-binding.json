@@ -1,0 +1,90 @@
+{
+  "entryCap": 16384,
+  "retainedByteCap": 1048576,
+  "charge": "6 * extracted selected key bytes + 2",
+  "characterParameter": 174762,
+  "quantization": "two descriptors: 6 * combined key length + 4; below/at/above differ by 6 bytes",
+  "inputRecordStorage": "existing owned records independently bounded; do not duplicate their charge as newly retained strings",
+  "baselineCommit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "candidateCommit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "casesSha256": "f7b5e41afc4f13c5cfd0320f89f0ace0ba35d132561ba381c05f4b9ba0ca123b",
+  "recipes": [
+    {
+      "id": "entry-below",
+      "inputBytes": 185490,
+      "account": {
+        "kind": "entry",
+        "count": 16383
+      }
+    },
+    {
+      "id": "entry-at",
+      "inputBytes": 185502,
+      "account": {
+        "kind": "entry",
+        "count": 16384
+      }
+    },
+    {
+      "id": "entry-above",
+      "inputBytes": 185514,
+      "account": {
+        "kind": "entry",
+        "count": 16385
+      }
+    },
+    {
+      "id": "retained-below",
+      "inputBytes": 174767,
+      "account": {
+        "kind": "retained",
+        "aggregateCharge": 1048570
+      }
+    },
+    {
+      "id": "retained-at",
+      "inputBytes": 174768,
+      "account": {
+        "kind": "retained",
+        "aggregateCharge": 1048576
+      }
+    },
+    {
+      "id": "retained-above",
+      "inputBytes": 174769,
+      "account": {
+        "kind": "retained",
+        "aggregateCharge": 1048582
+      }
+    },
+    {
+      "id": "oversized-extracted-small-prefix",
+      "inputBytes": 174806,
+      "account": {
+        "kind": "huge-key"
+      }
+    },
+    {
+      "id": "oversized-record-small-key",
+      "inputBytes": 174807,
+      "account": {
+        "kind": "huge-record"
+      }
+    },
+    {
+      "id": "fallback-mid-sort-stable-ties",
+      "inputBytes": 275662,
+      "account": {
+        "kind": "saturation"
+      }
+    },
+    {
+      "id": "empty-keys-entry-cap",
+      "inputBytes": 185510,
+      "account": {
+        "kind": "empty"
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "commit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "instrumentedSha256": "80ca0001c2b4f52cd6ab60f6b8b1cd09cef3c0c201f28eea14cc7de9815ec0b1",
+  "emittedSha256": "896f677eaac55610ea3362dff2728b149c650088d924d3e4c46063671e4cbef5",
+  "recipeSource": {
+    "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+    "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+    "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+  },
+  "casesSha256": "7fe51c99a0211e2ff53bf2d1477fa6a6d5ae816fd8320ee4c3bb28474ef9073d",
+  "child": {
+    "args": [
+      "--test",
+      "--test-reporter=tap",
+      "loaded-worker.mjs"
+    ],
+    "pid": 34986,
+    "code": 0,
+    "signal": null,
+    "killed": null,
+    "exactChildClosed": true,
+    "outputBytes": 230,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counterFailures": [
+    {
+      "id": "guard-check-disorder",
+      "rule": "exact guard construction"
+    },
+    {
+      "id": "guard-check-disorder",
+      "rule": "excluded guard admission"
+    }
+  ],
+  "sourceBuildAndMovedPackageUnchanged": true,
+  "detectsAddedEntries": true,
+  "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+  "instrumentationOnly": true,
+  "timingClaims": false
+}

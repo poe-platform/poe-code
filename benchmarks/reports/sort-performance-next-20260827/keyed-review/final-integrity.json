@@ -1,0 +1,1222 @@
+{
+  "proofs": [
+    {
+      "commit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+      "root": "/private/tmp/sort-key-review-baseline-0SmidY",
+      "sourceBuildAndMovedPackageUnchanged": true,
+      "detectsAddedEntries": true,
+      "rejectsUnexpectedSymlinks": true,
+      "archiveSha256After": "58699a79c813bdc91b41d1609699e889d5ec64767c8d98bc86639b473e951028",
+      "tarballSha256After": "044399eb6baecef1d4660b012e1b2e68c03295edf22aeb2c2ec668d7c14d73f2",
+      "workspaces": [
+        {
+          "name": "baseline-audit",
+          "manifestSha256": "ce947677d18c1c4f020315e1c9c40b4a3ac6cb6689f9711cef2fa7e0f54c496f",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "fbd723245361780991df0e3c925315ce54402810475c17781b59f2cbfd99b12f"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "8474ba55fe9a702053174aad1e891ed1e1c4ac893c369950a76be82bf4939b5b"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "baseline-caps",
+          "manifestSha256": "35aa3afca334ef02a14053cbc536431619cd3dd7789acf2157efb968aa1ae2d0",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "88b5cae83202321529e38b5c0629d70280b45c4bfcb10b2ab0e57fb8c729daa1"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "baseline-direct-ownership",
+          "manifestSha256": "be6a1d3319de8337b29f71a556cad3c28c4a4e9d171b128b9f1b632d4a129ea5",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "c473fb128c15dc6fc5926c5e76a527b8b3d3ad369b3f7ce87693a171b5fb817a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd",
+              "saved": "used-tools/56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "baseline-v2",
+          "manifestSha256": "9d46886faf0e4bf8dbac81129121abfc554c96d4f72700186195b38abc6f4893",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "3aa198973b5b15e6345df590cf3863840d6c91e5e1c21b8ac099bdc5375c706a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "consumer",
+          "manifestSha256": "26a8f1e72086c9a4a8c81071586b9deb6172b11c7fadfa8de6ea16180d151489",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "a1feeebf0c2f660f8d2efe376fd71a1da48542a1b80b90d7d291c5ed8dbf12be"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "fb713357fb52a88adf40880737d4309cab550ecbe17d53a30d10d842c13e4cc3",
+              "saved": "used-tools/fb713357fb52a88adf40880737d4309cab550ecbe17d53a30d10d842c13e4cc3.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        }
+      ]
+    },
+    {
+      "commit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+      "root": "/private/tmp/sort-key-review-candidate-8vQChD",
+      "sourceBuildAndMovedPackageUnchanged": true,
+      "detectsAddedEntries": true,
+      "rejectsUnexpectedSymlinks": true,
+      "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+      "tarballSha256After": "5fdb294d35abe5d09897263d5c1b4a3d87ccaac4107d485bed73251a587a3161",
+      "workspaces": [
+        {
+          "name": "candidate-audit",
+          "manifestSha256": "c2c4fc9e4e35892e3eb9c3084b7a52f46076c1f44135fee4e2f4f9c2bb375226",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "821dfa667ac18c88b7d83599a72ff0726b4dafae1df7b812f6e186adefeb7d14"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "8474ba55fe9a702053174aad1e891ed1e1c4ac893c369950a76be82bf4939b5b"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "candidate-caps",
+          "manifestSha256": "a39d534888ee4a2403c5390c8c4ee823cc41ccbb6950c960aba3b544c87ed645",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "88b5cae83202321529e38b5c0629d70280b45c4bfcb10b2ab0e57fb8c729daa1"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "candidate-direct-ownership",
+          "manifestSha256": "8423f4d201da1cfbb9ea671ecbf5c67d771027ed935b54d0c662b595b5fb431b",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "c473fb128c15dc6fc5926c5e76a527b8b3d3ad369b3f7ce87693a171b5fb817a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd",
+              "saved": "used-tools/56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "candidate-v2",
+          "manifestSha256": "8da1b38abb75596816429d070ba66e7c2fac3e8cfb28f485a3f194e37a207892",
+          "packageFiles": 733,
+          "packageDelta": [],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "3aa198973b5b15e6345df590cf3863840d6c91e5e1c21b8ac099bdc5375c706a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-borrowed-complete-view",
+          "manifestSha256": "9f88be1d6fd0f453da802559d1aa0c30a185c9a0c4bed6e612a4e4904f3b396f",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "82bf4827eac31dd7b0a814b62809f93d71b3b2ed609c76559c30c6a06af72ca9"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "8da5e08a3d983ab379d7e1dd21f05e2f916abc27419f8e9d385c57d28189c6a2"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-borrowed-pending-view",
+          "manifestSha256": "5e499a7ac95fa2e6c0c4d2d47f5c71be2fc0211b1f7fd2d2750f84abd32501b8",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "87a376d82c4b68b300da2df2d53e2f83ee294917145c50622d9b1f9663742405"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "31b7fdcd9ecd8822917ee1c9563bdb46329c199d070cb7f784e9478a6d42623d"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-direct-complete",
+          "manifestSha256": "35b87640c3618aaa932196723bfab858285cdce9e15375e7b45f90b7816b13e4",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "82bf4827eac31dd7b0a814b62809f93d71b3b2ed609c76559c30c6a06af72ca9"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "c473fb128c15dc6fc5926c5e76a527b8b3d3ad369b3f7ce87693a171b5fb817a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd",
+              "saved": "used-tools/56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-direct-pending",
+          "manifestSha256": "fd2101e62b135a04ed08337718aaa221a27afcbc2507c38e3e84ae1ffee5b895",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "87a376d82c4b68b300da2df2d53e2f83ee294917145c50622d9b1f9663742405"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "c473fb128c15dc6fc5926c5e76a527b8b3d3ad369b3f7ce87693a171b5fb817a"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd",
+              "saved": "used-tools/56a10f84116b133c749a35a891f7b9e380ad6c9c33d02d5791c8c6de61e296dd.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-double-precision",
+          "manifestSha256": "85c5cfb759baf8adeddb637fdc044cc086c5ae58dbbd6723a9bce8ad0244d5b9",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "793ee4ab1c307fb5465c58f5cff83641b098b334e515298e8101e039ad6b05d0"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "74a3497f4cfba40ee468bb5b6905e6f4fdc8768222b41854e9edc027ab7274aa"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-entry-cap",
+          "manifestSha256": "0b4efe1009a763db4b5a3aaacefed62374d48422d389e27c1c7ccdc3af388f0c",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "a70637efb9a5b2d31863a58704f18b116d2d37134bfcdbaf13f728ab0d8e3f97"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "0166a13c6fc13fee2fb714ea1f7eed29681b96abf6f6dbc34c3c322fb3133bc1"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-fallback-value",
+          "manifestSha256": "4a77ecb21e65785759661aca9e0120421c667ed360c175d95e2843ec0cfb2cd9",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "f44c108c240e2cf80fcd0e0443789b8e7dda6b8f80652dd1925d6c11fe5edc20"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "43f0fd5c150e6da68e56bf47546228376c3b637576c157f6d587174e0219e68d"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-guard-check",
+          "manifestSha256": "0e656a1d7d456673cff50c53c5910684cbde5d1c5a00c61dd285bca94084184e",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "896f677eaac55610ea3362dff2728b149c650088d924d3e4c46063671e4cbef5"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "f8e99cad0f135c86eeef1301b19e01a5428c1b84cf4b8cdcbe430a06dcaed4f0"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-guard-multiple",
+          "manifestSha256": "36ad87969f558a99d2e4b614ac9cf5b1d8d693464d3f0ecf96a317425123f9a6",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "bb827c16b115865804e78b6081fa0df38652037a939fbee599e01e541b25989b"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "b9f4f6ca84aac45218fe09d0594c2b4862c133c170ec9ccc8d5ae2b9a6ea00c3"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-guard-nonnumeric",
+          "manifestSha256": "8db444eb2b6e798f4416e6693469e08dbf467b46cdca38e7aa7bd147846eeab4",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "d876ae22e4daa8a8b862b79dcd68f47e39bf49a38d3a7b84dd99721e250335e9"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "70b05edeae7642d88a1d58ce5b4537ed3b36346242c96df3b89708812c9de2bd"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-guard-transforms",
+          "manifestSha256": "7bd7df9350cdc386180cba2fb67725489326dd8ab8eb2038a0b55a617d6570d6",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "8ee2be31489f684b48d5948b199e504f7e6349d5e4c0fa95f95376e9404faa3e"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "f01207fe486136174f5881b549d20712aa32cf3952e703733b37f88542aa91d4"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-modifier-direction",
+          "manifestSha256": "3175222722e8f72a51b9669d814c3517421cf12ce7fcc77e06a8fce29e7c25b3",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "612ccded6c84d5789030efa0495151a29c4120db1df2b282081c33ea43c7900b"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "b49d680cc696347f00a234428c1785ea809f50394fa8590f1d9a4341e2f44523"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-modifier-merge",
+          "manifestSha256": "f091d835ec3c05cc84c33fc2da852f708c53d9fe518be7fd48b84992e3b7d2ce",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "0033d8064d5329fceef2f5c9c807802b4ea7f801c607474d2dc8897de290d255"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "168ef82b88aea1abaeab8381734208516d5cbd76499e9983221f772f5ca5ba12"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-normalized-prefix-charge",
+          "manifestSha256": "543389119241368af4a2dc4fa18858e736c579df712b125d330827a37032ab3a",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "04370c27085a6e428c3de6c0235e44bd3e51c5fe5476f3758bdd4856ac3cbb4a"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "e29922c00b282086f7d2838b7e472f690e78f76f56a5af4f21598d77ab42d3a9"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-retained-cap",
+          "manifestSha256": "989ae08d4866388ac54c4bb335adb85f06b70cd6f03ba7011a1073a41b0ed593",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "ce6af92ff8f33700d4987140919ae6639f65efad0dabf4bfbf231ec0ff6e396c"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "0252ca40c27d96951cb09222bb7608c387ab3efdc48efd323cdd9b963e9bd0cf"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        },
+        {
+          "name": "mutant-wrong-key",
+          "manifestSha256": "408f47e5419cbd8e36a38811894796205326a0f17f13088980d7547511ee1970",
+          "packageFiles": 733,
+          "packageDelta": [
+            {
+              "path": "dist/commands/text.js",
+              "sha256": "ec8a0c8f5c826caf3c975abb7696daa2b8a8aef76ac5824c6bd282425b43ec42"
+            }
+          ],
+          "assets": [
+            {
+              "path": "cases.json",
+              "sha256": "e9834459935ccce3e7e3b3f4ea2c3ecac1c82b1bbc9a731612378afdc2be5029"
+            },
+            {
+              "path": "loaded-worker.mjs",
+              "sha256": "b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b",
+              "saved": "used-tools/b9b37674c3acab7778027100dfceff14b9f839443b896dea43956f35b81d889b.mjs.txt"
+            },
+            {
+              "path": "public-worker.mjs",
+              "sha256": "d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022",
+              "saved": "used-tools/d120bb3d5776b8e1929a0541d56c0126f59f8db4f84b79b4adf62349464f2022.mjs.txt"
+            }
+          ],
+          "allFilesAndNamesVerified": true,
+          "unexpectedSymlinksRejected": true
+        }
+      ]
+    }
+  ],
+  "compilerVersion": "5.9.3",
+  "allOwnedTestChildrenClosed": 29,
+  "children": [
+    {
+      "evidence": "baseline-accepted/accepted-caps11.child.json",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/empty.json",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/caps.json",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/package-manifest.json"
+      ],
+      "pid": 22218,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 37217,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-accepted/accepted21-revised34.child.json",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/acceptance.json",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/independent.json",
+        "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/package-manifest.json"
+      ],
+      "pid": 22208,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 46804,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-attempt1/holdouts.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 8109,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 4952,
+      "passed": 26,
+      "failed": 2,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-audit/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 33997,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 4788,
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-caps/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 31355,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1186,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-direct-ownership/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38690,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 384,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "baseline-v2/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 22180,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 3503,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-accepted/accepted-caps11.child.json",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/empty.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/caps.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/package-manifest.json"
+      ],
+      "pid": 31421,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 37225,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-accepted/accepted21-revised34.child.json",
+      "args": [
+        "accepted-worker.mjs",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/node_modules/virtual-bash",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/acceptance.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/independent.json",
+        "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/package-manifest.json"
+      ],
+      "pid": 31403,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 46812,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-audit/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34027,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 4788,
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-caps/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 31374,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1189,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-direct-ownership/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38692,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 383,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "candidate-v2/public.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 31330,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 3494,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-borrowed-complete-view/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 35023,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 248,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-borrowed-pending-view/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 35025,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 254,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-direct-complete/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38702,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1303,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-direct-pending/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38723,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 2219,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-double-precision/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34961,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1382,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-entry-cap/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34990,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 325,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-fallback-value/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 35019,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1359,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-guard-check/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34986,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 230,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-guard-multiple/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34970,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1216,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-guard-nonnumeric/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34979,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1365,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-guard-transforms/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34983,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 1368,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-modifier-direction/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34951,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 2393,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-modifier-merge/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34955,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 2395,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-normalized-prefix-charge/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 35017,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 347,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-retained-cap/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34994,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 354,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "evidence": "mutant-wrong-key/audit.child.json",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 34934,
+      "code": 1,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 2309,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0
+    }
+  ],
+  "inventoryQualification": "Full final file-name/hash comparison detects added regular files and rejects unexpected symlinks. Earlier inventory helper ignored symlinks; this final stronger check covers still-present snapshots. Intentional build node_modules toolchain link is the only permitted exception."
+}

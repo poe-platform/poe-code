@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: entry-below
+ok 1 - entry-below
+  ---
+  duration_ms: 44.622833
+  type: 'test'
+  ...
+# Subtest: entry-at
+ok 2 - entry-at
+  ---
+  duration_ms: 24.119708
+  type: 'test'
+  ...
+# Subtest: entry-above
+ok 3 - entry-above
+  ---
+  duration_ms: 22.261541
+  type: 'test'
+  ...
+# Subtest: retained-below
+ok 4 - retained-below
+  ---
+  duration_ms: 3.268333
+  type: 'test'
+  ...
+# Subtest: retained-at
+ok 5 - retained-at
+  ---
+  duration_ms: 3.177833
+  type: 'test'
+  ...
+# Subtest: retained-above
+ok 6 - retained-above
+  ---
+  duration_ms: 3.424792
+  type: 'test'
+  ...
+# Subtest: oversized-extracted-small-prefix
+ok 7 - oversized-extracted-small-prefix
+  ---
+  duration_ms: 3.629708
+  type: 'test'
+  ...
+# Subtest: oversized-record-small-key
+ok 8 - oversized-record-small-key
+  ---
+  duration_ms: 3.80075
+  type: 'test'
+  ...
+# Subtest: fallback-mid-sort-stable-ties
+ok 9 - fallback-mid-sort-stable-ties
+  ---
+  duration_ms: 26.357541
+  type: 'test'
+  ...
+# Subtest: empty-keys-entry-cap
+ok 10 - empty-keys-entry-cap
+  ---
+  duration_ms: 20.352584
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 553.190083

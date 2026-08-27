@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: whitespace-blanks-transform
+not ok 1 - whitespace-blanks-transform
+  ---
+  duration_ms: 6.906
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-guard-transforms/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    whitespace-blanks-transform: stdout
+    + actual - expected
+    
+      {
+        bytes: 16,
+    +   sha256: '0ba821118b8e082bf5e2043e4cb59005e4a7a3e95765a420e6529a1b9c221ffa'
+    -   sha256: 'c8552e6b57c947365d1f5cc3ea76a225cf52eead7beeb02e95a58fad82196926'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 16
+    sha256: 'c8552e6b57c947365d1f5cc3ea76a225cf52eead7beeb02e95a58fad82196926'
+  actual:
+    bytes: 16
+    sha256: '0ba821118b8e082bf5e2043e4cb59005e4a7a3e95765a420e6529a1b9c221ffa'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-guard-transforms/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: guard-numeric-fold-transform
+ok 2 - guard-numeric-fold-transform
+  ---
+  duration_ms: 1.186291
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 160.475875

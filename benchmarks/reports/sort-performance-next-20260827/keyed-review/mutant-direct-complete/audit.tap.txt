@@ -1,0 +1,53 @@
+TAP version 13
+# Subtest: borrowed-offset-finalizer-newline
+ok 1 - borrowed-offset-finalizer-newline
+  ---
+  duration_ms: 1.540458
+  type: 'test'
+  ...
+# Subtest: borrowed-offset-finalizer-nul
+not ok 2 - borrowed-offset-finalizer-nul
+  ---
+  duration_ms: 1.027084
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-direct-complete/public-worker.mjs:14:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        files: {},
+        status: 0,
+        stderr: '',
+    +   stdout: 'UVFRUQBRUVFRAGM6MwA='
+    -   stdout: 'YjotMQBjOjMAYToyMAA='
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdout: 'YjotMQBjOjMAYToyMAA='
+    stderr: ''
+    files:
+  actual:
+    status: 0
+    stdout: 'UVFRUQBRUVFRAGM6MwA='
+    stderr: ''
+    files:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-direct-complete/public-worker.mjs:39:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 156.559708

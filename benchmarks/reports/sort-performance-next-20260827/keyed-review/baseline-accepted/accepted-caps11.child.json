@@ -1,0 +1,18 @@
+{
+  "args": [
+    "accepted-worker.mjs",
+    "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/node_modules/virtual-bash",
+    "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/empty.json",
+    "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/caps.json",
+    "/private/tmp/sort-key-review-baseline-0SmidY/baseline-accepted/package-manifest.json"
+  ],
+  "pid": 22218,
+  "code": 0,
+  "signal": null,
+  "killed": null,
+  "exactChildClosed": true,
+  "outputBytes": 37217,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0
+}

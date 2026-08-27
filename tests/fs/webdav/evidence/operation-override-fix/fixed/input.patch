@@ -1,0 +1,766 @@
+diff --git a/src/fs/webdav/README.md b/src/fs/webdav/README.md
+index 9d124c7..2fdaa5c 100644
+--- a/src/fs/webdav/README.md
++++ b/src/fs/webdav/README.md
+@@ -349,6 +349,66 @@ as `cause`. Earlier server-side changes may already have happened; there is no
+ rollback. A mutation multistatus without a reported failure is also rejected
+ rather than guessing that the operation completed.
+ 
++## Optional resource comparison authority
++
++`compareEntry(path, peer, peerPath, options?)` uses the approved metadata-only
++comparison contract and the shared internal wrapper resolver. For two recognized
++WebDAV adapter views it explicitly requests `DAV:resource-id` with Depth-0
++PROPFIND. Both requested resources must return a valid successful property.
++Missing properties return `unknown`; missing resources, authorization, malformed
++or conflicting metadata, transport errors and cancellation do not become proof.
++The existing XML/depth/entry/byte limits and rooted response-URL validation apply.
++Only the requested resource's correctly namespaced, single successful property
++is accepted. HTTP207 alone is insufficient. IDs are not dereferenced or fetched.
++
++RFC5842 resource IDs identify backing resources across bindings and endpoint
++aliases; endpoint strings, credentials and ETags do not. Full identifiers are
++compared, not numeric hashes; UUID hexadecimal case is normalized. The guarantee
++depends on a compliant provider preserving resource IDs across its actual
++operations, not merely returning arbitrary property text. Base WebDAV/LOCK/COPY
++support does not imply RFC5842 support. This Experimental extension is not server
++authentication, a lease, an ABA defense or a pathname snapshot. Comparison sends
++no GET, PUT, COPY, MOVE, DELETE or LOCK and cannot authorize an unknown existing
++target, an unknown final symlink unlink, or a later overlay copy-up target.
++
++Protocol resource IDs do **not** prove disjointness from local Memory/Real storage
++or other protocols. The internal `getOwnedWebDavEntry` helper exposes closed-store
++provenance only for the actual owned mock provider's registered whole fetch
++function or its `MockDav.createFetch()` forwarding factory. It binds the actual
++files Map/resource record, validates unchanged map-operation and adapter-method
++references, and associates only validated metadata observations with that store.
++Nothing is published as a FileStat inode/scope or a public registry/trust flag.
++Other backend owners still must recognize their own actual closed storage before
++using this descriptor; its presence does not automatically authorize mixed copies.
++
++A genuine mock PROPFIND Response is **not enough**: a custom fetch can forward
++that Response while directing GET/PUT into an aliased local file. Such arbitrary
++manual wrappers remain unqualified even if their metadata is genuine. HTTP and
++Response cloning do not transmit private closed-store provenance; real HTTP uses
++only the separate protocol comparison path. The approved provider factory captures
++the qualified complete fetch mapping rather than guessing bound functions or
++trusting client/URL names. Unrecognized custom transports stay unknown.
++
++The owned `tests/fs/webdav/mock.ts` intentionally gains resource-id capability.
++Its files remain an ordinary Map with existing byte/namespace behavior. Resource
++records survive PUT and MOVE; COPY to a new target creates a distinct record,
++COPY updating an existing target preserves that target's record, and deletion
++retires it. Old mock source/raw evidence and new hashes are retained separately
++in the resource-authority evidence directory; this is a provider capability delta,
++not silently weakening the independent original compatibility assertions.
++
++The original compatibility fixture manually forwards `service.fetch`. Its two
++mixed-memory existing-target cases therefore still need root approval for an
++explicit input capability delta to `service.createFetch()` and a qualified
++Memory-owner callback. This leaf does not edit that independent fixture. The
++resource-id feature improves its WebDAV-only existing-copy/move cases without
++claiming original mixed acceptance or universal provider interoperability.
++
++Primary basis: RFC5842 sections2.7 and3.1 (immutable unique resource IDs and
++explicit property discovery), and RFC4918 propstat/status processing. References:
++`https://www.rfc-editor.org/rfc/rfc5842.html` and
++`https://www.rfc-editor.org/rfc/rfc4918.html`.
++
+ ## Safe cleanup workflows and the empty-collection gap
+ 
+ Safe empty-only `rmdir` remains unsupported for an empty remote collection, under
+diff --git a/src/fs/webdav/resource-id.ts b/src/fs/webdav/resource-id.ts
+new file mode 100644
+index 0000000..e4ee396
+--- /dev/null
++++ b/src/fs/webdav/resource-id.ts
+@@ -0,0 +1,102 @@
++import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
++import type { EntryAuthority, EntryView } from "../mount/comparison.js";
++import { FsError } from "../../contracts/errors.js";
++import type { WebDavFetch } from "./webdav.js";
++
++export interface OwnedWebDavEntry {
++  readonly storage: object;
++  readonly resource: object;
++}
++
++export interface OwnedWebDavResource extends OwnedWebDavEntry {
++  readonly identifier: string;
++}
++
++const responses = new WeakMap<Response, ReadonlyMap<string, OwnedWebDavResource>>();
++const observations = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedWebDavResource }>();
++const unchanged = new WeakMap<FileSystem, () => boolean>();
++const providers = new WeakMap<WebDavFetch, { storage: object; unchanged: () => boolean }>();
++const transports = new WeakMap<FileSystem, WebDavFetch>();
++
++export function registerMockWebDavFetch(fetch: WebDavFetch, storage: object, valid: () => boolean): void {
++  if (providers.has(fetch)) throw new TypeError("fetch already registered");
++  providers.set(fetch, { storage, unchanged: valid });
++}
++
++export function forwardOwnedWebDavFetch(fetch: WebDavFetch): WebDavFetch {
++  const forward: WebDavFetch = (url, init) => fetch(url, init);
++  const provider = providers.get(fetch);
++  if (provider) providers.set(forward, provider);
++  return forward;
++}
++
++export function registerOwnedResourceResponse(response: Response, entries: ReadonlyMap<string, OwnedWebDavResource>): void {
++  if (responses.has(response)) throw new TypeError("resource response already registered");
++  responses.set(response, new Map(entries));
++}
++
++export function recordOwnedResourceStat(response: Response, filesystem: FileSystem, path: string, stat: FileStat): void {
++  const entry = responses.get(response)?.get(path);
++  if (entry) observations.set(stat, { filesystem, path, entry });
++}
++
++export function getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined {
++  const observation = observations.get(view.stat);
++  const fetch = transports.get(view.filesystem);
++  const provider = fetch && providers.get(fetch);
++  return observation?.filesystem === view.filesystem && observation.path === view.path && unchanged.get(view.filesystem)?.()
++    && provider?.storage === observation.entry.storage && provider.unchanged()
++    ? observation.entry : undefined;
++}
++
++export function ownedResponseIdentifier(response: Response, path: string): string | undefined {
++  return responses.get(response)?.get(path)?.identifier;
++}
++
++type ResourceQuery = (path: string, options: FsOptions) => Promise<string | undefined>;
++const queries = new WeakMap<FileSystem, ResourceQuery>();
++
++export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery, transport: WebDavFetch, valid: () => boolean): void {
++  unchanged.set(filesystem, valid);
++  transports.set(filesystem, transport);
++  queries.set(filesystem, async (path, options) => {
++    if (!valid()) return undefined;
++    const identifier = await query(path, options);
++    options.signal?.throwIfAborted();
++    return valid() ? identifier : undefined;
++  });
++}
++
++export function resourceIdentifier(value: string): string {
++  if (!/^[A-Za-z][A-Za-z0-9+.-]*:[^\s<>"{}|\\^`]+$/.test(value) || /%(?![0-9A-Fa-f]{2})/.test(value)
++    || /[^\x21-\x7e]/.test(value)) throw new Error("invalid DAV:resource-id URI");
++  new URL(value);
++  if (/^urn:uuid:/i.test(value)) {
++    if (!/^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
++      throw new Error("invalid DAV:resource-id UUID");
++    }
++    return value.toLowerCase();
++  }
++  return value;
++}
++
++export const compareWebDavResources: EntryAuthority = async (own, peer, options): Promise<EntryComparison> => {
++  options.signal?.throwIfAborted();
++  const left = getOwnedWebDavEntry(own);
++  const right = getOwnedWebDavEntry(peer);
++  const ownQuery = queries.get(own.filesystem);
++  const peerQuery = queries.get(peer.filesystem);
++  if (!ownQuery || !peerQuery) return "unknown";
++  options.signal?.throwIfAborted();
++  const ownId = await ownQuery(own.path, options);
++  options.signal?.throwIfAborted();
++  const peerId = await peerQuery(peer.path, options);
++  options.signal?.throwIfAborted();
++  if (!unchanged.get(own.filesystem)?.() || !unchanged.get(peer.filesystem)?.()) return "unknown";
++  if (ownId === undefined || peerId === undefined) return "unknown";
++  if (left && right) {
++    const same = left.storage === right.storage && left.resource === right.resource;
++    if (same !== (ownId === peerId)) throw new FsError("EIO", { path: own.path, dest: peer.path, message: "conflicting owned and protocol WebDAV identities" });
++  }
++  return ownId === peerId ? "same" : "distinct";
++};
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index f2e79f2..892834a 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -3,11 +3,13 @@ import type { ErrnoCode } from "../../contracts/errors.js";
+ import { readBytes } from "../../contracts/io.js";
+ import type { ByteSource } from "../../contracts/io.js";
+ import type {
+-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
++  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
+   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+ } from "../../contracts/filesystem.js";
+ import { davChild, davChildren, parseXml, scalar } from "./xml.js";
+ import type { XmlElement } from "./xml.js";
++import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
++import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
+ 
+ export type WebDavFetch = (url: string, init: RequestInit) => Promise<Response>;
+ 
+@@ -30,6 +32,9 @@ const propfindBody = '<?xml version="1.0" encoding="utf-8"?>'
+ const lockBody = '<d:lockinfo xmlns:d="DAV:"><d:lockscope><d:exclusive/></d:lockscope>'
+   + '<d:locktype><d:write/></d:locktype></d:lockinfo>';
+ 
++const resourceIdBody = '<?xml version="1.0" encoding="utf-8"?>'
++  + '<d:propfind xmlns:d="DAV:"><d:prop><d:resource-id/></d:prop></d:propfind>';
++
+ function fail(code: ErrnoCode, syscall: string, path: string, message?: string): never {
+   throw new FsError(code, { syscall, path, ...(message === undefined ? {} : { message }) });
+ }
+@@ -140,6 +145,57 @@ export class WebDavFileSystem implements FileSystem {
+     this.overwritePolicy = options.overwritePolicy ?? "lock";
+     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
+     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
++    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), this.transport,
++      () => originalWebDavMethods.every(([name, descriptor]) => Reflect.get(this, name) === descriptor.value));
++    registerEntryAuthority(this, compareWebDavResources);
++  }
++
++  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
++    return compareEntries(this, path, peer, peerPath, options);
++  }
++
++  private async resourceId(input: string, options: FsOptions): Promise<string | undefined> {
++    const path = normalize(input);
++    return this.request("PROPFIND", path, options, {
++      headers: { Depth: "0", "Content-Type": "application/xml; charset=utf-8" }, body: resourceIdBody,
++    }, async (response, signal) => {
++      if (response.status !== 207) this.httpError(response.status, "PROPFIND", path);
++      const responses = await this.multistatus(response, signal, "PROPFIND", path);
++      if (responses.length !== 1) throw new Error("resource identity requires exactly one DAV:response");
++      const entry = responses[0]!;
++      const href = davChild(entry, "href");
++      if (!href) throw new Error("missing resource identity response href");
++      if (this.hrefPath(scalar(href)) !== path) fail("EACCES", "PROPFIND", path, "resource identity response addresses another resource");
++      const wholeStatus = davChild(entry, "status");
++      const propstats = davChildren(entry, "propstat");
++      if (wholeStatus) {
++        if (propstats.length) throw new Error("conflicting response status and propstat");
++        this.httpError(statusCode(wholeStatus), "PROPFIND", path);
++      }
++      if (propstats.length === 0) throw new Error("missing resource identity propstat");
++      let seen = false;
++      let identifier: string | undefined;
++      for (const propstat of propstats) {
++        const status = davChild(propstat, "status");
++        const prop = davChild(propstat, "prop");
++        if (!status || !prop) throw new Error("incomplete resource identity propstat");
++        const code = statusCode(status);
++        if (code !== 200 && code !== 404) this.httpError(code, "PROPFIND", path);
++        for (const property of davChildren(prop, "resource-id")) {
++          if (seen) throw new Error("duplicate or conflicting resource identity property");
++          seen = true;
++          if (code === 404) continue;
++          const value = davChild(property, "href");
++          if (!value || property.children.length !== 1 || property.text.trim()) throw new Error("invalid resource identity property");
++          identifier = resourceIdentifier(scalar(value));
++        }
++      }
++      const owned = ownedResponseIdentifier(response, path);
++      if (owned !== undefined && identifier !== undefined && resourceIdentifier(owned) !== identifier) {
++        throw new Error("resource identity contradicts provider provenance");
++      }
++      return identifier;
++    });
+   }
+ 
+   private url(path: string, collection = false): string {
+@@ -445,7 +501,9 @@ export class WebDavFileSystem implements FileSystem {
+           fail("EACCES", "PROPFIND", path, "response member is outside requested depth");
+         }
+         if (result.has(member)) throw new Error("duplicate response href");
+-        result.set(member, this.entryStat(element, member));
++        const stat = this.entryStat(element, member);
++        recordOwnedResourceStat(response, this, member, stat);
++        result.set(member, stat);
+       }
+       if (!result.has(path)) throw new Error("response omitted requested resource");
+       return result;
+@@ -859,3 +917,6 @@ export class WebDavFileSystem implements FileSystem {
+   }
+   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
+ }
++
++const originalWebDavMethods = Object.entries(Object.getOwnPropertyDescriptors(WebDavFileSystem.prototype))
++  .filter(([name]) => name !== "constructor");
+diff --git a/tests/fs/webdav/mock.ts b/tests/fs/webdav/mock.ts
+index cccbd82..66899a4 100644
+--- a/tests/fs/webdav/mock.ts
++++ b/tests/fs/webdav/mock.ts
+@@ -1,5 +1,34 @@
+ import { createHash, randomUUID } from "node:crypto";
+ import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
++import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
++
++function resourceMap() {
++  const files = new Map<string, Uint8Array | null>();
++  const identities = new Map<string, { readonly identifier: string }>();
++  Object.defineProperties(files, {
++    set: { configurable: true, writable: true, value(path: string, value: Uint8Array | null) {
++      if (!files.has(path)) identities.set(path, Object.freeze({ identifier: `urn:uuid:${randomUUID()}` }));
++      Map.prototype.set.call(files, path, value);
++      return files;
++    } },
++    delete: { configurable: true, writable: true, value(path: string) {
++      identities.delete(path);
++      return Map.prototype.delete.call(files, path);
++    } },
++    clear: { configurable: true, writable: true, value() { identities.clear(); Map.prototype.clear.call(files); } },
++  });
++  return {
++    files,
++    identity(path: string) { return identities.get(path); },
++    restoreIdentity(path: string, identity: { readonly identifier: string }): void {
++      identities.set(path, identity);
++    },
++    preserveIdentity(source: string, destination: string) {
++      const identity = identities.get(source);
++      if (identity) identities.set(destination, identity);
++    },
++  };
++}
+ 
+ export function escapeXml(text: string): string {
+   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+@@ -30,9 +59,20 @@ export interface MockRequest {
+ }
+ 
+ export class MockDav {
+-  readonly files = new Map<string, Uint8Array | null>([["/", null]]);
++  private readonly resources = resourceMap();
++  readonly files = this.resources.files.set("/", null);
+   readonly requests: MockRequest[] = [];
+   readonly locks = new Map<string, { token: string; expires: number }>();
++  constructor() {
++    const files = this.files;
++    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
++    const methods = names.map(name => files[name]);
++    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
++  }
++
++  createFetch(): WebDavFetch {
++    return forwardOwnedWebDavFetch(this.fetch);
++  }
+   etag(path: string): string | undefined {
+     const data = this.files.get(path);
+     return data === undefined ? undefined : `"${createHash("sha256").update(data === null ? "directory" : "file").update(data ?? "").digest("hex")}"`;
+@@ -100,10 +140,17 @@ export class MockDav {
+       if (!exists) return new Response(null, { status: 404 });
+       const entries = [...this.files].filter(([name]) => name === path || (headers.get("Depth") === "1"
+         && (name.slice(0, name.lastIndexOf("/")) || "/") === path && name !== "/"));
+-      return xmlResponse(multistatus(...entries.map(([name, data]) => resource(
++      const resourceIds = (init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body)).includes("resource-id");
++      const result = xmlResponse(multistatus(...entries.map(([name, data]) => resource(
+         `/dav${name === "/" ? "/" : name.split("/").map(encodeURIComponent).join("/")}${data === null && name !== "/" ? "/" : ""}`,
+-        data === null, data?.byteLength ?? 0, "", this.etag(name),
++        data === null, data?.byteLength ?? 0, resourceIds
++          ? `<z:propstat><z:prop><z:resource-id><z:href>${this.resources.identity(name)!.identifier}</z:href></z:resource-id></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>`
++          : "", this.etag(name),
+       ))));
++      registerOwnedResourceResponse(result, new Map(entries.map(([name]) => [name, {
++        storage: this.files, resource: this.resources.identity(name)!, identifier: this.resources.identity(name)!.identifier,
++      }])));
++      return result;
+     }
+     if (method === "GET") {
+       if (!exists) return new Response(null, { status: 404 });
+@@ -135,11 +182,18 @@ export class MockDav {
+       const destinationExists = this.files.has(target);
+       if (destinationExists && headers.get("Overwrite") === "F") return new Response(null, { status: 412 });
+       if (this.files.get(target.slice(0, target.lastIndexOf("/")) || "/") !== null) return new Response(null, { status: 409 });
++      const destinationIdentities = new Map([...this.files.keys()].filter(name => name === target || name.startsWith(`${target}/`))
++        .map(name => [name, this.resources.identity(name)!]));
+       for (const name of this.files.keys()) if (name === target || name.startsWith(`${target}/`)) this.files.delete(name);
+       for (const [name, data] of [...this.files]) {
+         if (name === path || name.startsWith(`${path}/`)) {
+           this.files.set(target + name.slice(path.length), data === null ? null : new Uint8Array(data));
+-          if (method === "MOVE") this.files.delete(name);
++          const priorIdentity = destinationIdentities.get(target + name.slice(path.length));
++          if (method === "COPY" && priorIdentity) this.resources.restoreIdentity(target + name.slice(path.length), priorIdentity);
++          if (method === "MOVE") {
++            this.resources.preserveIdentity(name, target + name.slice(path.length));
++            this.files.delete(name);
++          }
+         }
+       }
+       return new Response(null, { status: destinationExists ? 204 : 201 });
+diff --git a/tests/fs/webdav/operation-authority.test.ts b/tests/fs/webdav/operation-authority.test.ts
+new file mode 100644
+index 0000000..7f96ae7
+--- /dev/null
++++ b/tests/fs/webdav/operation-authority.test.ts
+@@ -0,0 +1,118 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import type { FileSystem } from "../../../src/contracts/filesystem.js";
++import { FsError } from "../../../src/contracts/errors.js";
++import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
++import { compareEntries, resolveEntryView } from "../../../src/fs/mount/comparison.js";
++import { createMountFileSystem } from "../../../src/fs/mount/index.js";
++import { getOwnedWebDavEntry } from "../../../src/fs/webdav/resource-id.js";
++import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
++import { MockDav } from "./mock.js";
++
++const baseUrl = "https://operations.example/dav/";
++const sourceBytes = new Uint8Array([0, 255, 13, 10, 71]);
++const targetBytes = new Uint8Array([79, 76, 68]);
++const originals = Object.entries(Object.getOwnPropertyDescriptors(WebDavFileSystem.prototype))
++  .filter(([name]) => name !== "constructor" && name !== "compareEntry");
++
++function provider() {
++  const mock = new MockDav();
++  mock.files.set("/source", sourceBytes.slice());
++  mock.files.set("/target", targetBytes.slice());
++  return mock;
++}
++
++function unsupported(error: unknown): boolean {
++  assert.ok(error instanceof FsError);
++  assert.equal(error.code, "ENOTSUP");
++  return true;
++}
++
++for (const timing of ["subclass-before", "base-before", "instance-after", "base-after"] as const) {
++  for (const [name, descriptor] of originals) {
++    test(`resource authority declines ${timing} override of ${name}`, async () => {
++      const mock = provider();
++      const before = structuredClone(mock.files);
++      class ForwardingView extends WebDavFileSystem {}
++      const forward = function(this: WebDavFileSystem, ...args: unknown[]) {
++        return Reflect.apply(descriptor.value, this, args);
++      };
++      const replacement = { ...descriptor, value: forward };
++      const normal = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
++      let view: WebDavFileSystem;
++      try {
++        if (timing === "subclass-before") Object.defineProperty(ForwardingView.prototype, name, replacement);
++        if (timing === "base-before") Object.defineProperty(WebDavFileSystem.prototype, name, replacement);
++        view = new ForwardingView({ baseUrl, fetch: mock.fetch });
++        const earlier = timing === "instance-after" || timing === "base-after"
++          ? await resolveEntryView(view, "/source") : undefined;
++        if (earlier) assert.ok(getOwnedWebDavEntry(earlier));
++        if (timing === "instance-after") Object.defineProperty(view, name, replacement);
++        if (timing === "base-after") Object.defineProperty(WebDavFileSystem.prototype, name, replacement);
++        if (earlier) assert.equal(getOwnedWebDavEntry(earlier), undefined);
++        assert.equal(getOwnedWebDavEntry(await resolveEntryView(view, "/source")), undefined);
++        assert.equal(await view.compareEntry("/source", normal, "/target"), "unknown");
++        assert.equal(await normal.compareEntry("/target", view, "/source"), "unknown");
++        const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/view": view, "/normal": normal } });
++        await assert.rejects(mounted.copyFile("/view/source", "/normal/target"), unsupported);
++        await assert.rejects(mounted.copyFile("/normal/source", "/view/target"), unsupported);
++        assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++        assert.deepEqual(mock.files, before);
++      } finally {
++        if (timing === "base-before" || timing === "base-after") Object.defineProperty(WebDavFileSystem.prototype, name, descriptor);
++      }
++    });
++  }
++}
++
++test("subclass with unchanged original behavior retains protocol and private provider authority", async () => {
++  class UnmodifiedView extends WebDavFileSystem {}
++  const mock = provider();
++  const view = new UnmodifiedView({ baseUrl, fetch: mock.createFetch() });
++  assert.ok(getOwnedWebDavEntry(await resolveEntryView(view, "/source")));
++  assert.equal(await view.compareEntry("/source", view, "/target"), "distinct");
++  assert.equal(await view.compareEntry("/source", view, "/source"), "same");
++});
++
++test("method replacement during peer metadata invalidates earlier protocol authority", async () => {
++  const mock = provider();
++  let queries = 0;
++  const view = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const body = init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body);
++    const response = await mock.fetch(url, init);
++    if (body.includes("resource-id") && ++queries === 2) {
++      Object.defineProperty(view, "writeStream", { value: async () => { throw new Error("must not acquire destination"); } });
++    }
++    return response;
++  } });
++  const peer = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const response = await mock.fetch(url, init);
++    Object.defineProperty(view, "writeStream", { value: async () => { throw new Error("must not acquire destination"); } });
++    return response;
++  } });
++  assert.equal(await view.compareEntry("/source", peer, "/target"), "unknown");
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  assert.deepEqual(mock.files.get("/source"), sourceBytes);
++  assert.deepEqual(mock.files.get("/target"), targetBytes);
++});
++
++test("declining inherited authority does not suppress an explicit external peer authority", async () => {
++  const mock = provider();
++  class ChangedView extends WebDavFileSystem {
++    override async readFile(path: string) { return super.readFile(path); }
++  }
++  const view = new ChangedView({ baseUrl, fetch: mock.fetch });
++  const peer = createMemoryFileSystem();
++  await peer.writeFile("/target", targetBytes);
++  let calls = 0;
++  const external: FileSystem = new Proxy(peer, {
++    get(target, key) {
++      if (key === "compareEntry") return async () => { calls++; return "same"; };
++      const value: unknown = Reflect.get(target, key);
++      return typeof value === "function" ? value.bind(target) : value;
++    },
++  });
++  assert.equal(await compareEntries(view, "/source", external, "/target"), "same");
++  assert.equal(calls, 1);
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
+diff --git a/tests/fs/webdav/resource-id.test.ts b/tests/fs/webdav/resource-id.test.ts
+new file mode 100644
+index 0000000..ac13f92
+--- /dev/null
++++ b/tests/fs/webdav/resource-id.test.ts
+@@ -0,0 +1,251 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { FsError } from "../../../src/contracts/errors.js";
++import type { ErrnoCode } from "../../../src/contracts/errors.js";
++import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
++import { createMountFileSystem } from "../../../src/fs/mount/index.js";
++import { resolveEntryView } from "../../../src/fs/mount/comparison.js";
++import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
++import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
++import { getOwnedWebDavEntry, resourceIdentifier } from "../../../src/fs/webdav/resource-id.js";
++import { escapeXml, MockDav, multistatus, xmlResponse } from "./mock.js";
++import { withLoopbackDav } from "./property-fixture.js";
++
++const bytes = new Uint8Array([0, 255, 128, 13, 10, 7]);
++const old = new Uint8Array([79, 76, 68]);
++const identifier = "urn:uuid:2f816de0-c84b-43c8-8650-d3e92bfe6d8d";
++const baseUrl = "https://example.test/dav/";
++const bodyText = (init: RequestInit) => init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body);
++const identityRequest = (init: RequestInit) => init.method === "PROPFIND" && bodyText(init).includes("resource-id");
++const propstat = (value: string, status = 200) => `<z:propstat><z:prop>${value}</z:prop><z:status>HTTP/1.1 ${status} Status</z:status></z:propstat>`;
++const property = (value = identifier) => `<z:resource-id><z:href>${escapeXml(value)}</z:href></z:resource-id>`;
++const response = (value: string, href = "/dav/source") => `<z:response><z:href>${href}</z:href>${value}</z:response>`;
++
++function rejected(code: ErrnoCode) {
++  return (error: unknown) => { assert.ok(error instanceof FsError); assert.equal(error.code, code); return true; };
++}
++
++function seed() {
++  const mock = new MockDav();
++  mock.files.set("/source", bytes.slice());
++  mock.files.set("/target", bytes.slice());
++  return mock;
++}
++
++test("resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority", async () => {
++  const mock = seed();
++  const left = new WebDavFileSystem({ baseUrl, fetch: (url, init) => mock.fetch(url, init) });
++  const right = new WebDavFileSystem({ baseUrl: "https://endpoint-alias.test/dav/", fetch: (url, init) => mock.fetch(url, init) });
++  assert.equal(mock.etag("/source"), mock.etag("/target"));
++  const before = structuredClone(mock.files);
++  assert.equal(await left.compareEntry("/source", right, "/target"), "distinct");
++  assert.equal(mock.requests.filter(request => identityRequest(request.init)).length, 2);
++  assert.equal(await left.compareEntry("/source", right, "/source"), "same");
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND" && request.headers.get("Depth") === "0"));
++  assert.deepEqual(mock.files, before);
++  assert.equal((await left.stat("/source")).identityScope, undefined);
++});
++
++test("resource IDs survive overwrite and MOVE, change on COPY and delete/recreate", async () => {
++  const mock = seed();
++  const fs = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
++  const original = getOwnedWebDavEntry(await resolveEntryView(fs, "/source"))!;
++  await fs.writeFile("/source", old);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/source"))!.resource, original.resource);
++  await fs.rename("/source", "/moved");
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/moved"))!.resource, original.resource);
++  await fs.copyFile("/moved", "/copy");
++  assert.notEqual(getOwnedWebDavEntry(await resolveEntryView(fs, "/copy"))!.resource, original.resource);
++  const destination = getOwnedWebDavEntry(await resolveEntryView(fs, "/target"))!;
++  await fs.copyFile("/moved", "/target");
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/target"))!.resource, destination.resource);
++  await fs.rm("/moved");
++  await fs.writeFile("/moved", old);
++  assert.notEqual(getOwnedWebDavEntry(await resolveEntryView(fs, "/moved"))!.resource, original.resource);
++  assert.deepEqual(await fs.readFile("/copy"), old);
++});
++
++test("actual HTTP negotiates resource identity without receiving private-store provenance", async () => {
++  const mock = seed();
++  await withLoopbackDav(mock.fetch, async endpoint => {
++    const left = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    const right = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    assert.equal(await left.compareEntry("/source", right, "/target"), "distinct");
++    assert.equal(await left.compareEntry("/source", right, "/source"), "same");
++    assert.equal(getOwnedWebDavEntry(await resolveEntryView(left, "/source")), undefined);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++});
++
++test("provider-owned factories retain the actual store; manual fetch wrappers do not", async () => {
++  const mock = seed();
++  const firstFetch = mock.createFetch(), secondFetch = mock.createFetch();
++  assert.notEqual(firstFetch, secondFetch);
++  const first = new WebDavFileSystem({ baseUrl, fetch: firstFetch });
++  const second = new WebDavFileSystem({ baseUrl, fetch: secondFetch });
++  const wrapped = new WebDavFileSystem({ baseUrl, fetch: (url, init) => mock.fetch(url, init) });
++  const firstEntry = getOwnedWebDavEntry(await resolveEntryView(first, "/source"))!;
++  const secondEntry = getOwnedWebDavEntry(await resolveEntryView(second, "/source"))!;
++  assert.equal(firstEntry.storage, mock.files);
++  assert.equal(firstEntry.resource, secondEntry.resource);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(wrapped, "/source")), undefined);
++  const changed = mock.files.get.bind(mock.files);
++  mock.files.get = path => changed(path);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(first, "/source")), undefined);
++});
++
++for (const direction of ["to-remote", "from-remote"] as const) {
++  test(`mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown ${direction}`, async () => {
++    const memory = createMemoryFileSystem();
++    await memory.writeFile("/source", bytes);
++    const mock = seed();
++    let dataCalls = 0;
++    const fetch: WebDavFetch = async (url, init) => {
++      if (init.method === "GET") { dataCalls++; return new Response(await memory.readFile("/source")); }
++      if (init.method === "PUT") { dataCalls++; await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer())); return new Response(null, { status: 204 }); }
++      return mock.fetch(url, init);
++    };
++    const remote = new WebDavFileSystem({ baseUrl, fetch });
++    assert.equal(getOwnedWebDavEntry(await resolveEntryView(remote, "/source")), undefined);
++    assert.equal(await remote.compareEntry("/source", memory, "/source"), "unknown");
++    const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
++    const paths = direction === "to-remote" ? ["/local/source", "/remote/source"] : ["/remote/source", "/local/source"];
++    await assert.rejects(mount.copyFile(paths[0]!, paths[1]!), rejected("ENOTSUP"));
++    assert.equal(dataCalls, 0);
++    assert.deepEqual(await memory.readFile("/source"), bytes);
++    assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
++    assert.deepEqual(mock.files.get("/source"), bytes);
++  });
++}
++
++const malformed: readonly [string, string, ErrnoCode | "unknown"][] = [
++  ["absent property", response(propstat("<z:getetag/>")), "unknown"],
++  ["property404", response(propstat("<z:resource-id/>", 404)), "unknown"],
++  ["wrong property namespace", response(propstat('<v:resource-id xmlns:v="urn:other"><z:href>urn:uuid:other</z:href></v:resource-id>')), "unknown"],
++  ["duplicate property", response(propstat(property() + property())), "EIO"],
++  ["conflicting statuses", response(propstat(property()) + propstat("<z:resource-id/>", 404)), "EIO"],
++  ["missing property href", response(propstat("<z:resource-id/>")), "EIO"],
++  ["duplicate property href", response(propstat(`<z:resource-id><z:href>${identifier}</z:href><z:href>${identifier}</z:href></z:resource-id>`)), "EIO"],
++  ["nested property href", response(propstat("<z:resource-id><z:href><z:href/></z:href></z:resource-id>")), "EIO"],
++  ["mixed property text", response(propstat(`<z:resource-id>bad<z:href>${identifier}</z:href></z:resource-id>`)), "EIO"],
++  ["relative identifier", response(propstat(property("relative/resource"))), "EIO"],
++  ["bad percent escape", response(propstat(property("urn:example:bad%GG"))), "EIO"],
++  ["invalid UUID", response(propstat(property("urn:uuid:bad"))), "EIO"],
++  ["wrong requested href", response(propstat(property()), "/dav/target"), "EACCES"],
++  ["escaped root", response(propstat(property()), "/other/source"), "EACCES"],
++  ["case-changed requested href", response(propstat(property()), "/dav/SOURCE"), "EACCES"],
++  ["extra response", response(propstat(property())) + response(propstat(property()), "/dav/target"), "EIO"],
++  ["whole resource404", response("<z:status>HTTP/1.1 404 Missing</z:status>"), "ENOENT"],
++  ["denied property", response(propstat(property(), 403)), "EACCES"],
++  ["locked property", response(propstat(property(), 423)), "EBUSY"],
++  ["invalid success status", response(propstat(property(), 201)), "EIO"],
++];
++
++for (const [name, xml, code] of malformed) {
++  test(`resource-id ${name} never authorizes data effects`, async () => {
++    const mock = seed();
++    const before = structuredClone(mock.files);
++    const fs = new WebDavFileSystem({ baseUrl, fetch: (url, init) => identityRequest(init)
++      ? Promise.resolve(xmlResponse(multistatus(xml))) : mock.fetch(url, init) });
++    if (code === "unknown") assert.equal(await fs.compareEntry("/source", fs, "/source"), "unknown");
++    else await assert.rejects(fs.compareEntry("/source", fs, "/source"), rejected(code));
++    assert.deepEqual(mock.files, before);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++}
++
++test("full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded", () => {
++  assert.equal(resourceIdentifier(identifier.toUpperCase()), identifier);
++  assert.equal(resourceIdentifier("https://identity.example/Resource/A"), "https://identity.example/Resource/A");
++  assert.notEqual(resourceIdentifier("urn:example:Entry-A"), resourceIdentifier("urn:example:entry-a"));
++});
++
++test("property-missing HTTP provider stays unknown and mounted existing target stays untouched", async () => {
++  const mock = seed();
++  const before = structuredClone(mock.files);
++  await withLoopbackDav((url, init) => identityRequest(init)
++    ? Promise.resolve(xmlResponse(multistatus(response(propstat("<z:resource-id/>", 404), new URL(url).pathname))))
++    : mock.fetch(url, init), async endpoint => {
++    const fs = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    const mount = createMountFileSystem({ root: fs });
++    await assert.rejects(mount.copyFile("/source", "/target"), rejected("ENOTSUP"));
++    assert.deepEqual(mock.files, before);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++});
++
++test("mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate", async () => {
++  const mock = seed();
++  mock.files.set("/target", old.slice());
++  const remote = new WebDavFileSystem({ baseUrl, fetch: mock.createFetch() });
++  const mount = createMountFileSystem({ root: remote });
++  await mount.copyFile("/source", "/target");
++  assert.deepEqual(mock.files.get("/source"), bytes);
++  assert.deepEqual(mock.files.get("/target"), bytes);
++  const before = structuredClone(mock.files), count = mock.requests.length;
++  await assert.rejects(mount.copyFile("/source", "/source"), rejected("EINVAL"));
++  await assert.rejects(mount.copyFile("/source", "/target", { exclusive: true }), rejected("EEXIST"));
++  assert.deepEqual(mock.files, before);
++  assert.ok(mock.requests.slice(count).every(request => request.init.method === "PROPFIND"));
++});
++
++test("comparison checks cancellation between ID queries and does not issue the peer request", async () => {
++  const mock = seed(), controller = new AbortController();
++  let identities = 0;
++  const reason = new FsError("ENOENT", { message: "caller abort" });
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const result = await mock.fetch(url, init);
++    if (identityRequest(init)) { identities++; controller.abort(reason); }
++    return result;
++  } });
++  await assert.rejects(fs.compareEntry("/source", fs, "/target", { signal: controller.signal }), error => error === reason);
++  assert.equal(identities, 1);
++  const count = mock.requests.length;
++  await assert.rejects(fs.compareEntry("/source", fs, "/target", { signal: controller.signal }), error => error === reason);
++  assert.equal(mock.requests.length, count);
++});
++
++test("resource-id XML budget and missing-path errors remain typed", async () => {
++  const mock = seed();
++  const fs = new WebDavFileSystem({ baseUrl, fetch: (url, init) => identityRequest(init)
++    ? Promise.resolve(xmlResponse(multistatus(response(propstat(property("urn:example:" + "x".repeat(5000))))))) : mock.fetch(url, init), maxXmlBytes: 2048 });
++  await assert.rejects(fs.compareEntry("/source", fs, "/target"), rejected("EFBIG"));
++  await assert.rejects(fs.compareEntry("/absent", fs, "/source"), rejected("ENOENT"));
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++test("case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs", async () => {
++  const mock = seed();
++  const before = structuredClone(mock.files);
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const requested = new URL(url);
++    const alias = requested.pathname === "/dav/SOURCE";
++    if (alias) requested.pathname = "/dav/source";
++    const result = await mock.fetch(requested.href, init);
++    if (!alias || init.method !== "PROPFIND") return result;
++    return new Response((await result.text()).replaceAll("/dav/source", "/dav/SOURCE"), { status: result.status, headers: result.headers });
++  } });
++  assert.equal(await fs.compareEntry("/source", fs, "/SOURCE"), "same");
++  const mount = createMountFileSystem({ root: fs });
++  await assert.rejects(mount.copyFile("/source", "/SOURCE"), rejected("EINVAL"));
++  assert.deepEqual(mock.files, before);
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++test("comparison never weakens missing-target exclusive COPY against a concurrent winner", async () => {
++  const mock = seed();
++  mock.files.delete("/target");
++  let raced = false;
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    if (init.method === "COPY") {
++      assert.equal(new Headers(init.headers).get("Overwrite"), "F");
++      raced = true;
++      mock.files.set("/target", old.slice());
++    }
++    return mock.fetch(url, init);
++  } });
++  await assert.rejects(createMountFileSystem({ root: fs }).copyFile("/source", "/target"), rejected("EEXIST"));
++  assert.equal(raced, true);
++  assert.deepEqual(mock.files.get("/source"), bytes);
++  assert.deepEqual(mock.files.get("/target"), old);
++});

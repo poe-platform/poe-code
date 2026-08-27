@@ -1,0 +1,62 @@
+[
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/capture.mjs.txt",
+    "sha256": "050521c8db3c79bf53584bf3f078a6d8c3d89d8a5877445a1f2fe7b960220ab9"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/comparison-internal-handoff.txt",
+    "sha256": "e382a949763525fffcea43396211c584f6145ce7fdb354825071b9e83a365468"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/manifest.json",
+    "sha256": "c9b6bc39a9932a95551fa4dc955a444c7226a94333b3a346b693eb72bb061390"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/observations.json",
+    "sha256": "0901b6013c7cd723ae10b310beeb3639e6d4d6a1b6a3d04c158a011ea2877b28"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/public-comparison.test.ts.txt",
+    "sha256": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/remote-comparison.test.ts.txt",
+    "sha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/s3-authority-handoff.txt",
+    "sha256": "f4ea8b9ac1f867788c0072b5db5d83ffe723745050b48528efb232ad33cc2534"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/source.tar.gz",
+    "sha256": "2c3383c19fbbc8db11e39c3f35f391546c1e886b469698949dcf1c70e35d2528"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/support.ts.txt",
+    "sha256": "46a07a38dcc11f99fd37fc2a4986bbbac8ae7241872f460b1a7ccf76a4b8de1b"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tests.stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tests.stdout.tap",
+    "sha256": "bf461f94b221e9cfb086b99aa8c3d8981420574aaee6ebfbd9dd80b96d8a3a2b"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tsconfig.json",
+    "sha256": "364d48c629003cbb9ba6acf8c25c55fd121360e33077a8e10333c7ff7c102666"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/types.stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/types.stdout.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/webdav-authority-handoff.txt",
+    "sha256": "8dd9cf9d02ab62107d38f631298518406c3bf7700947d9a3709f67171d7b8529"
+  }
+]

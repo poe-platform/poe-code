@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=WebDAV",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-override-1lISLE/final/archive",
+  "start": "2026-08-27T01:24:48.262Z",
+  "end": "2026-08-27T01:24:48.492Z",
+  "status": 0,
+  "signal": null
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "pinned",
+  "pin": "3cf57d3c0f9642475c811249f34f6968f9dd5f4a",
+  "movingSnapshot": false,
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "9e9965d6d029649fcc91493ce188c8a1b5f007b0b72b9e1b815ced58e87dbee4",
+  "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/filesystem.ts\n M src/fs/webdav/README.md\n M src/fs/webdav/webdav.ts\n M src/shell/input.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/table-text-stress/support.ts\n M tests/fs/webdav/mock.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n M tests/shell/invocation-closure.md\n?? benchmarks/reports/current-integration/registry-unblock/\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-authority-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/identity-authority-review/implementation/\n?? tests/fs/real/metadata-review/\n?? tests/fs/webdav/resource-id.test.ts\n?? tests/shell/invocation-closure-checkpoint.json\n?? tests/shell/invocation-closure-import-proof.json\n?? tests/shell/invocation-closure-imports.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-checkpoint.json\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts\n"
+}

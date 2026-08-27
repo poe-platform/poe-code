@@ -349,6 +349,78 @@ as `cause`. Earlier server-side changes may already have happened; there is no
 rollback. A mutation multistatus without a reported failure is also rejected
 rather than guessing that the operation completed.
 
+## Optional resource comparison authority
+
+`compareEntry(path, peer, peerPath, options?)` uses the approved metadata-only
+comparison contract and the shared internal wrapper resolver. For two recognized
+WebDAV adapter views it explicitly requests `DAV:resource-id` with Depth-0
+PROPFIND. Both requested resources must return a valid successful property.
+Missing properties return `unknown`; missing resources, authorization, malformed
+or conflicting metadata, transport errors and cancellation do not become proof.
+The existing XML/depth/entry/byte limits and rooted response-URL validation apply.
+Only the requested resource's correctly namespaced, single successful property
+is accepted. HTTP207 alone is insufficient. IDs are not dereferenced or fetched.
+
+RFC5842 resource IDs identify backing resources across bindings and endpoint
+aliases; endpoint strings, credentials and ETags do not. Full identifiers are
+compared, not numeric hashes; UUID hexadecimal case is normalized. The guarantee
+depends on a compliant provider preserving resource IDs across its actual
+operations, not merely returning arbitrary property text. Base WebDAV/LOCK/COPY
+support does not imply RFC5842 support. This Experimental extension is not server
+authentication, a lease, an ABA defense or a pathname snapshot. Comparison sends
+no GET, PUT, COPY, MOVE, DELETE or LOCK and cannot authorize an unknown existing
+target, an unknown final symlink unlink, or a later overlay copy-up target.
+
+Protocol resource IDs do **not** prove disjointness from local Memory/Real storage
+or other protocols. The internal `getOwnedWebDavEntry` helper exposes closed-store
+provenance only for the actual owned mock provider's registered whole fetch
+function or its `MockDav.createFetch()` forwarding factory. It binds the actual
+files Map/resource record, validates unchanged map-operation references, the
+original transport, and every original adapter prototype method (including
+buffered/streaming data operations and private metadata/request paths). Original
+base method references are captured once at module initialization, not from an
+instance after subclass overrides. Checks run before and after metadata queries;
+both operands are rechecked before returning protocol proof. Unmodified subclasses
+retain support; method overrides do not inherit base authority. Only validated
+metadata observations are associated with the provider store.
+Nothing is published as a FileStat inode/scope or a public registry/trust flag.
+Other backend owners still must recognize their own actual closed storage before
+using this descriptor; its presence does not automatically authorize mixed copies.
+
+A genuine mock PROPFIND Response is **not enough**: a custom fetch can forward
+that Response while directing GET/PUT into an aliased local file. Such arbitrary
+manual wrappers remain unqualified even if their metadata is genuine. HTTP and
+Response cloning do not transmit private closed-store provenance; real HTTP uses
+only the separate protocol comparison path. The approved provider factory captures
+the qualified complete fetch mapping rather than guessing bound functions or
+trusting client/URL names. Unrecognized custom transports stay unknown.
+
+The owned `tests/fs/webdav/mock.ts` intentionally gains resource-id capability.
+Its files remain an ordinary Map with existing byte/namespace behavior. Resource
+records survive PUT and MOVE; COPY to a new target creates a distinct record,
+COPY updating an existing target preserves that target's record, and deletion
+retires it. Old mock source/raw evidence and new hashes are retained separately
+in the resource-authority evidence directory; this is a provider capability delta,
+not silently weakening the independent original compatibility assertions.
+
+The earlier uncommitted resource-authority draft was unsafe for pre-construction
+data-method overrides: constructor-time snapshots treated subclass methods as
+original. Independent unchanged reproduction demonstrated source damage. Its raw
+evidence is retained and explicitly superseded by the operation-override fix
+evidence, not treated as a safe release or full positive acceptance.
+
+The original compatibility fixture manually forwards `service.fetch`. Its two
+mixed-memory existing-target cases therefore still need root approval for an
+explicit input capability delta to `service.createFetch()` and a qualified
+Memory-owner callback. This leaf does not edit that independent fixture. The
+resource-id feature improves its WebDAV-only existing-copy/move cases without
+claiming original mixed acceptance or universal provider interoperability.
+
+Primary basis: RFC5842 sections2.7 and3.1 (immutable unique resource IDs and
+explicit property discovery), and RFC4918 propstat/status processing. References:
+`https://www.rfc-editor.org/rfc/rfc5842.html` and
+`https://www.rfc-editor.org/rfc/rfc4918.html`.
+
 ## Safe cleanup workflows and the empty-collection gap
 
 Safe empty-only `rmdir` remains unsupported for an empty remote collection, under

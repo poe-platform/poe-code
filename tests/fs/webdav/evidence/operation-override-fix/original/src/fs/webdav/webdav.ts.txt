@@ -145,10 +145,7 @@ export class WebDavFileSystem implements FileSystem {
     this.overwritePolicy = options.overwritePolicy ?? "lock";
     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
-    const transport = this.transport;
-    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), transport,
-      () => this.transport === transport
-        && originalWebDavMethods.every(([name, descriptor]) => Reflect.get(this, name) === descriptor.value));
+    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), this.transport);
     registerEntryAuthority(this, compareWebDavResources);
   }
 
@@ -919,6 +916,3 @@ export class WebDavFileSystem implements FileSystem {
   }
   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
 }
-
-const originalWebDavMethods = Object.entries(Object.getOwnPropertyDescriptors(WebDavFileSystem.prototype))
-  .filter(([name]) => name !== "constructor");

@@ -1,0 +1,157 @@
+{
+  "accessedAt": "2026-08-27T03:27:54.328Z",
+  "researchMethod": "web.run open/search first; Git read-only ls-remote and HTTPS GET of primary pinned sources as fallback. No third-party recommendations used.",
+  "officialRepository": "https://github.com/vercel-labs/just-bash",
+  "tag": "just-bash@3.4.2",
+  "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+  "mainObserved": "de3c2f368ee1c11bab4d7250aaf43306e052a008",
+  "mainPolicy": "Current main is monorepo; only pinned package sources determine this setup.",
+  "docs": [
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md",
+      "accessedAt": "2026-08-27T03:27:52.955Z",
+      "status": 200,
+      "bytes": 28914,
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Pinned package README matches installed bytes; documents opt-in JS/Python, default SQLite, local VFS and network policy.",
+      "installedIdentical": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json",
+      "accessedAt": "2026-08-27T03:27:53.130Z",
+      "status": 200,
+      "bytes": 7798,
+      "sha256": "91efbc19d567bd5269fef4eeab0be63221cdabf4ff31df0d8f2eeaadbc975b95",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Pinned package manifest and runtime dependency declarations.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts",
+      "accessedAt": "2026-08-27T03:27:53.360Z",
+      "status": 200,
+      "bytes": 43213,
+      "sha256": "3cb4b0b65833c39fe8650a0f539e8e628ea6f042336bebdbf238084e8e20d617",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Constructor supports python:boolean, javascript:boolean/config, network, injected SecureFetch, sleep and named execution profiles.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+      "accessedAt": "2026-08-27T03:27:53.464Z",
+      "status": 200,
+      "bytes": 15541,
+      "sha256": "593eb7d65e49c27f7eb97b077d7798741a2d5ade5d4d421c09715fccdc76a591",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Concrete lazy registry distinguishes defaults, network, Python, and JS; node routes to nodeStubCommand.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/README.md",
+      "accessedAt": "2026-08-27T03:27:53.568Z",
+      "status": 200,
+      "bytes": 7611,
+      "sha256": "087966a0b7a5f0e47cc5570edd819407d5f870bdfab94b986d50cb87ba9fb51a",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "JavaScript/TypeScript QuickJS CLI uses -c or file, not guessed node flags.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts",
+      "accessedAt": "2026-08-27T03:27:53.735Z",
+      "status": 200,
+      "bytes": 23255,
+      "sha256": "6db79a4e01ccc816e94bcf07c7e7c47964e608d49783f284d89c5f451e173b42",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Node alias is diagnostic-only; JS worker loaded adjacent to bundled command.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/python3/worker.ts",
+      "accessedAt": "2026-08-27T03:27:53.880Z",
+      "status": 200,
+      "bytes": 47477,
+      "sha256": "5175adb4ecb47ea71fd4313187f0cd831d51b919fd9fd4d2d999d3279b69fd70",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Vendored CPython Emscripten loader and stdlib ZIP resolved locally.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sqlite3/worker.ts",
+      "accessedAt": "2026-08-27T03:27:53.984Z",
+      "status": 200,
+      "bytes": 13640,
+      "sha256": "06dc312cb3fb0ff5aff4c89bc495af874974ee99607b9c2fcf5451e58c5676d6",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Worker initializes sql.js locally; no constructor sqlite boolean exists.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/html-to-markdown/html-to-markdown.ts",
+      "accessedAt": "2026-08-27T03:27:54.101Z",
+      "status": 200,
+      "bytes": 8577,
+      "sha256": "ac2cccb22033fb9d42520b4e05afb24f89fb433b1b0be7f190088035fd4c305c",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Local file/stdin conversion does not require networking. Direct URL operands are not fetched; use explicitly configured curl piped to this command for URL workflows.",
+      "installedIdentical": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/fetch.ts",
+      "accessedAt": "2026-08-27T03:27:54.207Z",
+      "status": 200,
+      "bytes": 19401,
+      "sha256": "ec96ff0622830df175b12553dc8774ef43a58cd0c154dc6c5881618021683d69",
+      "version": "3.4.2",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "paraphrase": "Injected SecureFetch returns body Uint8Array and takes per-request options including signal.",
+      "installedIdentical": null
+    }
+  ],
+  "publisher": {
+    "url": "https://registry.npmjs.org/just-bash/3.4.2",
+    "accessedAt": "2026-08-27T03:27:54.328Z",
+    "status": 200,
+    "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+    "version": "3.4.2",
+    "dist": {
+      "shasum": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+      "tarball": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "fileCount": 955,
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "signatures": [
+        {
+          "sig": "MEUCIQDpmnLN8KxNpkXugskT8RGCkBsIbr8YyzYz9vDF2ZHSkgIgc8v78qtaidyPqAZqeRH3DQWFyPgZYmjHx6bMvDqNHRk=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIB2ZwxuEFZzljg3+mH5ehJtZn7/S5nSBwR+r800wqitDAiEA794qgDB87LnmyaPVpcDd/DWoK5yDcE/mROmh8PFIHEU=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 22583023
+    },
+    "integrityEqualsLock": true
+  },
+  "docConflicts": [
+    "Installed dist/AGENTS.md says no binaries/WASM but separately lists optional WASM runtimes; precise README/types/worker assets override this overbroad summary.",
+    "README groups html-to-markdown with network, but local file/stdin conversion is default and needs no fetch.",
+    "README optional runtime list omits node diagnostic alias; registry/source expose it, so retain without claiming execution."
+  ]
+}

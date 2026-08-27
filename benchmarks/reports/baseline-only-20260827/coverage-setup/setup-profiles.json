@@ -1,0 +1,75 @@
+{
+  "status": "PLAN_NOT_EXECUTED",
+  "security": "Keep pinned default defense-in-depth enabled; no security-disable workaround.",
+  "base-node-memory": {
+    "entrypoint": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+    "constructor": "Bash",
+    "options": {
+      "cwd": "/fixture",
+      "env": { "HOME": "/fixture", "TMPDIR": "/fixture/tmp", "LC_ALL": "C", "TZ": "UTC", "PATH": "/usr/bin:/bin" },
+      "executionLimitProfile": "normal",
+      "executionLimits": { "maxExecutionTimeMs": 5000, "maxOutputSize": 65536, "maxInputBytes": 65536, "maxCommandCount": 100, "maxLoopIterations": 100 }
+    },
+    "filesystem": "Fresh public InMemoryFs or Bash files map; setup /fixture/tmp explicitly. Do not mount host paths.",
+    "commands": "Omit commands filter so the target and real public dependencies are not accidentally disabled.",
+    "exec": "Single Bash.exec per stateful plan; explicit env with replaceEnv:true, rawScript:true, stdinKind:bytes and Latin-1 byte-string encoding only for byte stdin.",
+    "output": "Capture public stdoutAsBytes and latin1FromBytes for stdout, UTF-8 stderr text separately; don't treat text API corruption as internal pipe/file corruption."
+  },
+  "sqlite-node-local": {
+    "extends": "base-node-memory",
+    "options": { "executionLimits": { "maxExecutionTimeMs": 15000, "maxSqliteTimeoutMs": 10000 } },
+    "merge": "Merge nested executionLimits, retaining base byte/command bounds.",
+    "requires": ["sql.js 1.14.2", "sql.js/dist/sql-wasm.wasm", "just-bash/dist/bundle/chunks/sqlite3-worker.js"],
+    "readiness": "assets-present-not-started",
+    "notOptions": ["sqlite", "sqlite3"]
+  },
+  "javascript-node-local": {
+    "extends": "base-node-memory",
+    "options": { "javascript": true, "executionLimits": { "maxExecutionTimeMs": 15000, "maxJsTimeoutMs": 10000 } },
+    "merge": "Merge nested executionLimits; no tool hook needed for planned local VFS case.",
+    "requires": ["quickjs-emscripten 0.32.0", "@jitl local WASM variants", "just-bash/dist/bundle/chunks/js-exec-worker.js"],
+    "readiness": "assets-present-not-started",
+    "memory": "Pinned JS worker sets a 64 MiB QuickJS memory limit. Host worker RSS is different and must be observed separately.",
+    "optionalPublicHooks": ["javascript.bootstrap", "javascript.invokeTool(path,argsJson):Promise<string>"],
+    "nodeAlias": "Diagnostic-only nodeStubCommand, not a Node interpreter."
+  },
+  "python-node-local": {
+    "extends": "base-node-memory",
+    "options": { "python": true, "executionLimits": { "maxExecutionTimeMs": 15000, "maxPythonTimeoutMs": 10000 } },
+    "merge": "Merge nested executionLimits; no undocumented runtime URL override.",
+    "requires": ["just-bash/vendor/cpython-emscripten/python.cjs", "just-bash/vendor/cpython-emscripten/python.wasm", "just-bash/vendor/cpython-emscripten/python313.zip", "just-bash/dist/bundle/chunks/worker.js"],
+    "readiness": "assets-present-not-started",
+    "network": "None required by inspected vendored loader; no CDN download authorized."
+  },
+  "optional-shared-network-not-in-54": {
+    "baselineOptions": { "network": { "allowedUrlPrefixes": ["http://127.0.0.1:PORT/fixture"], "allowedMethods": ["GET", "HEAD"], "denyPrivateRanges": false, "timeoutMs": 3000, "maxResponseSize": 65536, "maxRedirects": 0 } },
+    "port": "PORT is a future executor-controlled ephemeral numeric port; this is a template, not a constructor call.",
+    "alternative": "BashOptions.fetch is a SecureFetch host capability. Return FetchResult with Uint8Array body; own strict policy rather than assuming network is applied around it.",
+    "ours": "Shell.use(networkCommands({authorize,transport?})); authorize exact controlled origin/path/method and use supplied signal. Existing public Node transport requires no dependency.",
+    "effects": "Only synthetic local data later; no external requests, writes or user data."
+  },
+  "ours-base": {
+    "entrypoint": "src/index.ts via existing tsx loader; distinguish from bundled baseline for any future timing",
+    "constructor": "Shell",
+    "filesystem": "createMemoryFileSystem()",
+    "plugins": ["agentCommands()"],
+    "limits": { "maxOutputBytes": 65536, "maxCommands": 100, "maxLoopIterations": 100, "pipeHighWaterMark": 4096 },
+    "signal": "Per-exec AbortSignal.timeout(5000), or 15000 for explicit optional-runtime profile",
+    "cleanup": "await shell.dispose()"
+  },
+  "ours-safejs": {
+    "publicPlugin": "safeJsCommands",
+    "requiredRuntimeHooks": ["run", "createBudget", "makeFsModule", "declareHostOperation"],
+    "available": false,
+    "reason": "No package under allowed local node_modules roots; no actual runtime injected. Private checkout discovery/installation/vendor/adapters are outside scope.",
+    "withoutRuntime": "Plugin can register but execution returns 127; do not score this as a configured SafeJS engine failure.",
+    "nameCompatibility": "safejs is not js-exec, node, python or python3; no alias substitution allowed."
+  },
+  "commonBoundaries": [
+    "No product or corpus execution authorized by this file.",
+    "Presence of assets/modules does not prove worker startup.",
+    "A setup-unavailable outcome remains unmeasured, not a baseline loss or ours win.",
+    "No install/update/build, native product fallback or private package loading.",
+    "Runtime timeout/output/worker limits must be recorded as exact settings and kept separate from native launcher budgets."
+  ]
+}

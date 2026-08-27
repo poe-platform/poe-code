@@ -1,0 +1,821 @@
+{
+  "verifiedAt": "2026-08-27T03:39:06.844Z",
+  "checks": "PASS: evidence schema, exact 54-name equality, 50 default names, input hashes, current public registry/kernel set equality, pinned docs/lock agreement, unchanged baseline/helpers/dependency entrypoints/assets/native files",
+  "casesExecuted": 0,
+  "nativeCasesExecuted": 0,
+  "runtimeWorkersStarted": 0,
+  "currentHead": "9b72400ae2a5d1c876e8c9ab25bfa35bb03c8a97",
+  "beforeHead": "3b832d94d41b5a67fb3d9f9948ce6587a743cc1f",
+  "afterHead": "9b72400ae2a5d1c876e8c9ab25bfa35bb03c8a97",
+  "currentRegistryCount": 56,
+  "historicalCounts": "53/3/50",
+  "defaultUnmeasuredCount": 50,
+  "optionalInclusiveUnmeasuredCount": 54,
+  "nodePositiveBlocked": true,
+  "drift": [
+    {
+      "path": "src/fs/s3/http/README.md",
+      "beforeSha256": null,
+      "afterSha256": "e4d84d63641c4f59655cab296c9f49a0951d23774546655699e802bedf61832d"
+    },
+    {
+      "path": "src/fs/s3/http/transport.ts",
+      "beforeSha256": "481bcd949e28f3779d581f223573bfc2be52703e2e3bb352fe42c089b301eb86",
+      "afterSha256": "ce19e4a347d50d84fb87b993c862717fc57fed183b584bc4b0ca04bcecb3a728"
+    },
+    {
+      "path": "src/fs/s3/http/types.ts",
+      "beforeSha256": "9b6208fbdbce733bc676bef386026ce29fae09e74bd8efeb8bd93aab798fbc74",
+      "afterSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e"
+    },
+    {
+      "path": "src/fs/s3/http/xml.ts",
+      "beforeSha256": "fccb867dde41ed1869c5a9e8fd084145f6c0468fd33072b9d3a15e4f749a1ee9",
+      "afterSha256": "8d1a20c393b193ba9b9d3e06e4348d191a2f950d0b63a99a5d1bd57eefe350a8"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "beforeSha256": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+      "afterSha256": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449"
+    }
+  ],
+  "baselineDrift": [],
+  "helperDrift": [],
+  "dependencyAssets": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/diff/libcjs/index.js",
+      "expectedSha256": "ed9fa05cfc3115e1f4a599641ba05bc1fbdffb1f3a12629dafd09ac6b6d84c64",
+      "observedSha256": "ed9fa05cfc3115e1f4a599641ba05bc1fbdffb1f3a12629dafd09ac6b6d84c64"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/diff/package.json",
+      "expectedSha256": "372a1ad33bcaded0234d5d327d1164c18968ee3f2e9f362ddd22e4489e91e369",
+      "observedSha256": "372a1ad33bcaded0234d5d327d1164c18968ee3f2e9f362ddd22e4489e91e369"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/fast-xml-parser/lib/fxp.cjs",
+      "expectedSha256": "d3d4c4d274fabdd6a4596e1c464ff73151bf75edbfbb5e83274262d7ef5edde2",
+      "observedSha256": "d3d4c4d274fabdd6a4596e1c464ff73151bf75edbfbb5e83274262d7ef5edde2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/fast-xml-parser/package.json",
+      "expectedSha256": "c61593381ea333fce34ff4e5bf2e3062f83cf31c7474920fe73a5771aac69b75",
+      "observedSha256": "c61593381ea333fce34ff4e5bf2e3062f83cf31c7474920fe73a5771aac69b75"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/file-type/index.js",
+      "expectedSha256": "0fc881f41231a6e387e6dedfc4a0aff2ac07589888d4ffb011e17ad77f90f2e2",
+      "observedSha256": "0fc881f41231a6e387e6dedfc4a0aff2ac07589888d4ffb011e17ad77f90f2e2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/file-type/package.json",
+      "expectedSha256": "1f3a56f9acc26acb7aa40d79e23d7489bdbb795e41d5baed24d104ab49fe6e65",
+      "observedSha256": "1f3a56f9acc26acb7aa40d79e23d7489bdbb795e41d5baed24d104ab49fe6e65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/ini/lib/ini.js",
+      "expectedSha256": "007123836ffec243f41c8b35584fb3db0498aa12a440a9e0efc675d0000f4c32",
+      "observedSha256": "007123836ffec243f41c8b35584fb3db0498aa12a440a9e0efc675d0000f4c32"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/ini/package.json",
+      "expectedSha256": "194169a21afe2614accc960627c62621704ccfbe64ecbde4d7a65847fbaa4d56",
+      "observedSha256": "194169a21afe2614accc960627c62621704ccfbe64ecbde4d7a65847fbaa4d56"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/minimatch/dist/commonjs/index.js",
+      "expectedSha256": "d224f71f20d7c206fcc5b7e9f747324c7698345a0b2c28d717dd9cf698306783",
+      "observedSha256": "d224f71f20d7c206fcc5b7e9f747324c7698345a0b2c28d717dd9cf698306783"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/minimatch/package.json",
+      "expectedSha256": "bb847ba240909c9a36d4eaeb4e0efdc3e31182aeef208c1611259a48f282ea75",
+      "observedSha256": "bb847ba240909c9a36d4eaeb4e0efdc3e31182aeef208c1611259a48f282ea75"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/modern-tar/dist/web/index.js",
+      "expectedSha256": "33858096e2cf3bfa9f06822ceb3b5c7ee14742af2850a0ab4de9802238fc0dea",
+      "observedSha256": "33858096e2cf3bfa9f06822ceb3b5c7ee14742af2850a0ab4de9802238fc0dea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/modern-tar/package.json",
+      "expectedSha256": "1630dfdeca687f4feb7bd4e663ae933ae4e100602833917c9a8c471c15da9f7d",
+      "observedSha256": "1630dfdeca687f4feb7bd4e663ae933ae4e100602833917c9a8c471c15da9f7d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/papaparse/papaparse.js",
+      "expectedSha256": "01d32cdc0b8ceced438f078c6859e16c8aefc0d3eb5fb06992df0d3f63666ba0",
+      "observedSha256": "01d32cdc0b8ceced438f078c6859e16c8aefc0d3eb5fb06992df0d3f63666ba0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/papaparse/package.json",
+      "expectedSha256": "9277b27ee67eb8314909560b6cca5a7850d044618a5fa62c6bf67781f90aa218",
+      "observedSha256": "9277b27ee67eb8314909560b6cca5a7850d044618a5fa62c6bf67781f90aa218"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/quickjs-emscripten/dist/index.js",
+      "expectedSha256": "20df8520dfd41a66644aff7c6011ef531b8a600624422a07bb8e837e72b47b6b",
+      "observedSha256": "20df8520dfd41a66644aff7c6011ef531b8a600624422a07bb8e837e72b47b6b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/quickjs-emscripten/package.json",
+      "expectedSha256": "0feb2558c02e41fc9b8ab20c674edfa84af70d21d1189b55ec6455fe133ad9f6",
+      "observedSha256": "0feb2558c02e41fc9b8ab20c674edfa84af70d21d1189b55ec6455fe133ad9f6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/re2js/build/index.cjs.cjs",
+      "expectedSha256": "24f6daf0b4490a2f241798dcffc7ace74698c02bb80d9d35527c79871f95fd44",
+      "observedSha256": "24f6daf0b4490a2f241798dcffc7ace74698c02bb80d9d35527c79871f95fd44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/re2js/package.json",
+      "expectedSha256": "9bd7968b370962d366cf8a5c239332019f606f7d71d7b264d4132b306cc8b34f",
+      "observedSha256": "9bd7968b370962d366cf8a5c239332019f606f7d71d7b264d4132b306cc8b34f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/lib/index.js",
+      "expectedSha256": "71e9584b89c6468f5b65b78498e3d37793eff429051820a724bf3a09f87c605e",
+      "observedSha256": "71e9584b89c6468f5b65b78498e3d37793eff429051820a724bf3a09f87c605e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/package.json",
+      "expectedSha256": "225bd158f4af2dfce074a14d1890ec6d24be0e0926ee9443b0c19ac0fa95ded5",
+      "observedSha256": "225bd158f4af2dfce074a14d1890ec6d24be0e0926ee9443b0c19ac0fa95ded5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/smol-toml/dist/index.cjs",
+      "expectedSha256": "195ca51fc784617d361af3697756a896518e45bec4e35976baec2dffd656cb8f",
+      "observedSha256": "195ca51fc784617d361af3697756a896518e45bec4e35976baec2dffd656cb8f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/smol-toml/package.json",
+      "expectedSha256": "fa2995d429c856669968d6281c14e6be93a40cd404dad43aa2e4599608f20bdc",
+      "observedSha256": "fa2995d429c856669968d6281c14e6be93a40cd404dad43aa2e4599608f20bdc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sprintf-js/src/sprintf.js",
+      "expectedSha256": "95add43f116385be221745307fae02d06751b01d4f939df1debb17dbe2ebf4eb",
+      "observedSha256": "95add43f116385be221745307fae02d06751b01d4f939df1debb17dbe2ebf4eb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sprintf-js/package.json",
+      "expectedSha256": "c97349295cae4e40a6f16a26096330997257c00be67bd8fd0ac3391719e4ee5f",
+      "observedSha256": "c97349295cae4e40a6f16a26096330997257c00be67bd8fd0ac3391719e4ee5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.js",
+      "expectedSha256": "f1c84000dbc856c9d87f4f3aabc4d3654bd436165db4be3da13751db3a9c20d7",
+      "observedSha256": "f1c84000dbc856c9d87f4f3aabc4d3654bd436165db4be3da13751db3a9c20d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/package.json",
+      "expectedSha256": "d05999c98ba0a89b01775be9c647dd787429d1c07bc8cec3b159d06736fa4c4c",
+      "observedSha256": "d05999c98ba0a89b01775be9c647dd787429d1c07bc8cec3b159d06736fa4c4c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/turndown/lib/turndown.cjs.js",
+      "expectedSha256": "6c6cd6f7c7093a80c016429f3b5635bec677aba687e09e817ec387ec4cf888ee",
+      "observedSha256": "6c6cd6f7c7093a80c016429f3b5635bec677aba687e09e817ec387ec4cf888ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/turndown/package.json",
+      "expectedSha256": "333b1738ad3079742aaf7be7d8b0f0bec2661c44fb49cfeff80b66ce4cb3e040",
+      "observedSha256": "333b1738ad3079742aaf7be7d8b0f0bec2661c44fb49cfeff80b66ce4cb3e040"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/undici/index.js",
+      "expectedSha256": "dca95e2bbf4bae18325a4e5d9c887427a8a63a1345ed92a46f1067360dec0ffa",
+      "observedSha256": "dca95e2bbf4bae18325a4e5d9c887427a8a63a1345ed92a46f1067360dec0ffa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/undici/package.json",
+      "expectedSha256": "d2fb5736b5adad6a74c3fba9345d756258e1e953a3a2a13c03fca1bd6c9f6c52",
+      "observedSha256": "d2fb5736b5adad6a74c3fba9345d756258e1e953a3a2a13c03fca1bd6c9f6c52"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/yaml/dist/index.js",
+      "expectedSha256": "2d58984e0ae80de4acbd8f009fab332f5ce77d9e1a5f138a3058a0ada6567fb9",
+      "observedSha256": "2d58984e0ae80de4acbd8f009fab332f5ce77d9e1a5f138a3058a0ada6567fb9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/yaml/package.json",
+      "expectedSha256": "20b8b197cbd10dad245d45e463dfe58e4c8c25a47e24bc4256ad9ab58bf35683",
+      "observedSha256": "20b8b197cbd10dad245d45e463dfe58e4c8c25a47e24bc4256ad9ab58bf35683"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@mongodb-js/zstd/lib/index.js",
+      "expectedSha256": "3f7d81861201e87e3e22270d07d3ee499544d0057661e18e2056aac9a319bfb3",
+      "observedSha256": "3f7d81861201e87e3e22270d07d3ee499544d0057661e18e2056aac9a319bfb3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@mongodb-js/zstd/package.json",
+      "expectedSha256": "5e6462fda1190ddfdd2deb266d56ebbd27cd0c4fe781c204cff5631bedf88db0",
+      "observedSha256": "5e6462fda1190ddfdd2deb266d56ebbd27cd0c4fe781c204cff5631bedf88db0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-liblzma/lib/lzma.js",
+      "expectedSha256": "abef6fc0955a94882bdff24f6319f1a457d1902c131e1b368e294262df81ee9c",
+      "observedSha256": "abef6fc0955a94882bdff24f6319f1a457d1902c131e1b368e294262df81ee9c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-liblzma/package.json",
+      "expectedSha256": "dfc6fb92535e48f7a4e9cb1f3ae6ce4e4f9c1946815f26da834a19800428a0fd",
+      "observedSha256": "dfc6fb92535e48f7a4e9cb1f3ae6ce4e4f9c1946815f26da834a19800428a0fd"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bin/chunks/js-exec-worker.js",
+      "expectedSha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973",
+      "observedSha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bin/chunks/sqlite3-worker.js",
+      "expectedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f",
+      "observedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bin/chunks/worker.js",
+      "expectedSha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173",
+      "observedSha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "expectedSha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973",
+      "observedSha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "expectedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f",
+      "observedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "expectedSha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173",
+      "observedSha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/commands/sqlite3/worker.js",
+      "expectedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f",
+      "observedSha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "expectedSha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42",
+      "observedSha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "expectedSha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee",
+      "observedSha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "expectedSha256": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915",
+      "observedSha256": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm-browser-debug.wasm",
+      "expectedSha256": "030681d1e17941e1acda5a6bf46bf163bebc12efeb2a9d4832b99b0bd3d404b6",
+      "observedSha256": "030681d1e17941e1acda5a6bf46bf163bebc12efeb2a9d4832b99b0bd3d404b6"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm-browser.wasm",
+      "expectedSha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a",
+      "observedSha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm-debug.wasm",
+      "expectedSha256": "030681d1e17941e1acda5a6bf46bf163bebc12efeb2a9d4832b99b0bd3d404b6",
+      "observedSha256": "030681d1e17941e1acda5a6bf46bf163bebc12efeb2a9d4832b99b0bd3d404b6"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "expectedSha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a",
+      "observedSha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "expectedSha256": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c",
+      "observedSha256": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "expectedSha256": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3",
+      "observedSha256": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "expectedSha256": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba",
+      "observedSha256": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "expectedSha256": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232",
+      "observedSha256": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232"
+    }
+  ],
+  "nativeFiles": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+      "expectedSha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6",
+      "observedSha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+      "expectedSha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab",
+      "observedSha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+      "expectedSha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511",
+      "observedSha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+      "expectedSha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2",
+      "observedSha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+      "expectedSha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b",
+      "observedSha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+      "expectedSha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c",
+      "observedSha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+      "expectedSha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a",
+      "observedSha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+      "expectedSha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0",
+      "observedSha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+      "expectedSha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc",
+      "observedSha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+      "expectedSha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5",
+      "observedSha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+      "expectedSha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500",
+      "observedSha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+      "expectedSha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e",
+      "observedSha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+      "expectedSha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d",
+      "observedSha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+      "expectedSha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef",
+      "observedSha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+      "expectedSha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9",
+      "observedSha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+      "expectedSha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+      "observedSha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+      "expectedSha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3",
+      "observedSha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+      "expectedSha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96",
+      "observedSha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+      "expectedSha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62",
+      "observedSha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+      "expectedSha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956",
+      "observedSha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "expectedSha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+      "observedSha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+      "expectedSha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242",
+      "observedSha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+      "expectedSha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c",
+      "observedSha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+      "expectedSha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+      "observedSha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+      "expectedSha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184",
+      "observedSha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+      "expectedSha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d",
+      "observedSha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d"
+    },
+    {
+      "path": "/usr/bin/grep",
+      "expectedSha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "observedSha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+      "expectedSha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53",
+      "observedSha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+      "expectedSha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c",
+      "observedSha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "expectedSha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "observedSha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+    },
+    {
+      "path": "/usr/bin/xargs",
+      "expectedSha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "observedSha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213"
+    },
+    {
+      "path": "/usr/bin/find",
+      "expectedSha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4",
+      "observedSha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+      "expectedSha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+      "observedSha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1"
+    },
+    {
+      "path": "/usr/bin/awk",
+      "expectedSha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "observedSha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+    },
+    {
+      "path": "/usr/bin/jq",
+      "expectedSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "observedSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "expectedSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "observedSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+      "expectedSha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "observedSha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+      "expectedSha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "observedSha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710"
+    },
+    {
+      "path": "/usr/bin/xxd",
+      "expectedSha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161",
+      "observedSha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+      "expectedSha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8",
+      "observedSha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "expectedSha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "observedSha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+      "expectedSha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "observedSha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+      "expectedSha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "observedSha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+      "expectedSha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+      "observedSha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+      "expectedSha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "observedSha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+      "expectedSha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df",
+      "observedSha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+      "expectedSha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef",
+      "observedSha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "expectedSha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "observedSha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "expectedSha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "observedSha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+      "expectedSha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0",
+      "observedSha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "expectedSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "observedSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+      "expectedSha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322",
+      "observedSha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "expectedSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "observedSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+      "expectedSha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc",
+      "observedSha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+      "expectedSha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718",
+      "observedSha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+      "expectedSha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e",
+      "observedSha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "expectedSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "observedSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "expectedSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "observedSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/usr/bin/curl",
+      "expectedSha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "observedSha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+      "expectedSha256": "8d7c339a192d04e3de9768ebe4330d68bb541a4ed6c82f2bc3a807a270b156ff",
+      "observedSha256": "8d7c339a192d04e3de9768ebe4330d68bb541a4ed6c82f2bc3a807a270b156ff"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/du",
+      "expectedSha256": "d5b770f4d4f859ce82aabe73c979f9c7b47f88fd5d42b15ec4b5406d540fd220",
+      "observedSha256": "d5b770f4d4f859ce82aabe73c979f9c7b47f88fd5d42b15ec4b5406d540fd220"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+      "expectedSha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+      "observedSha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expr",
+      "expectedSha256": "aa486411e21451f494c346b60557dfd77b5efd5c2bc4f09b4eeb46ac93ffe8d2",
+      "observedSha256": "aa486411e21451f494c346b60557dfd77b5efd5c2bc4f09b4eeb46ac93ffe8d2"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+      "expectedSha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+      "observedSha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/nl",
+      "expectedSha256": "e19fbc5869e2c80d0a38eb2dff97476ed86c3aaa90a85a9596c98d51f0db8314",
+      "observedSha256": "e19fbc5869e2c80d0a38eb2dff97476ed86c3aaa90a85a9596c98d51f0db8314"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printenv",
+      "expectedSha256": "32d4555106b6f9d0127892a4d60fe7612186712519097592090ff4a6dd9fc92a",
+      "observedSha256": "32d4555106b6f9d0127892a4d60fe7612186712519097592090ff4a6dd9fc92a"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/seq",
+      "expectedSha256": "c6983fd667e824018ac773696230e52552827b5a41db331e8f83f0ef1c9af95b",
+      "observedSha256": "c6983fd667e824018ac773696230e52552827b5a41db331e8f83f0ef1c9af95b"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sleep",
+      "expectedSha256": "ecf54817b59f054db59afb1ae303f19b1e280d070a838b91a902e55c7a7aa852",
+      "observedSha256": "ecf54817b59f054db59afb1ae303f19b1e280d070a838b91a902e55c7a7aa852"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/split",
+      "expectedSha256": "33640a819b135912bc0c79c82d23d3dccf1ad71df64370e0ef2b5b10e49fa37e",
+      "observedSha256": "33640a819b135912bc0c79c82d23d3dccf1ad71df64370e0ef2b5b10e49fa37e"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+      "expectedSha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+      "observedSha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/timeout",
+      "expectedSha256": "558c469d9e4288fa3d6fa31a590aa5ca401f24bfa7c30c80c0b70c2ee96fefda",
+      "observedSha256": "558c469d9e4288fa3d6fa31a590aa5ca401f24bfa7c30c80c0b70c2ee96fefda"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/unexpand",
+      "expectedSha256": "3d08be3d280f284a3117482233bf71d9dc6bd23914990242bff62b3bb3ee5a9f",
+      "observedSha256": "3d08be3d280f284a3117482233bf71d9dc6bd23914990242bff62b3bb3ee5a9f"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/whoami",
+      "expectedSha256": "9f0e412c9e1326ee503236fa25f640cb2840ebfa35d09f55ed5f00cb0c376e62",
+      "observedSha256": "9f0e412c9e1326ee503236fa25f640cb2840ebfa35d09f55ed5f00cb0c376e62"
+    }
+  ],
+  "currentDispatch": {
+    "path": "src/shell/runtime.ts",
+    "sha256": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+    "references": [
+      {
+        "needle": "shellBuiltinNames",
+        "line": 28
+      },
+      {
+        "needle": "implementedBuiltins",
+        "line": 33
+      },
+      {
+        "needle": "context.command === \".\"",
+        "line": 817
+      },
+      {
+        "needle": "context.command === \"eval\"",
+        "line": 818
+      },
+      {
+        "needle": "const definition = this.commands.get(context.command)",
+        "line": 825
+      },
+      {
+        "needle": "async evalBuiltin(",
+        "line": 1169
+      },
+      {
+        "needle": "async sourceBuiltin(",
+        "line": 1189
+      }
+    ],
+    "kernelNames": [
+      ".",
+      ":",
+      "break",
+      "cd",
+      "command",
+      "continue",
+      "eval",
+      "exit",
+      "export",
+      "false",
+      "local",
+      "pwd",
+      "read",
+      "readonly",
+      "return",
+      "set",
+      "shift",
+      "source",
+      "true",
+      "type",
+      "unset"
+    ],
+    "availabilityChanged": false
+  },
+  "indexBeforeOwnedStaging": "",
+  "worktreeBeforeOwnedStaging": "?? benchmarks/reports/baseline-only-20260827/coverage-setup/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/authority-trust-review/helper-control/\n",
+  "evidenceFiles": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/SETUP.md",
+      "bytes": 9714,
+      "sha256": "9242f9a1fc4c4c814519eaa873e9b76249feaf9ddb163db819406f8ee8137303"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/after.json",
+      "bytes": 226895,
+      "sha256": "70f21321abd38d2056819c6497aca5ad497533b726ea6bcb7ed19330ea044bd2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/before.json",
+      "bytes": 227048,
+      "sha256": "e59a815ca8c497ae57378a660d20aa06aa7285eeba56552662ffb555e5b18a06"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/capture.mjs",
+      "bytes": 12558,
+      "sha256": "4499219c02058492e0e82ca0fdaaaaa80fe1ec248c558bb06c69a330f602df8d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/case-plans.json",
+      "bytes": 162671,
+      "sha256": "7cafb582cd269b81edea155eefc19807deb44cb0fa9eada1801b458ca0315afc"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/freeze.mjs",
+      "bytes": 2102,
+      "sha256": "ad617f00066ed2bb965de4783e2746744939b907bf3f86c52c548ddb16cbe6f0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json",
+      "bytes": 85367,
+      "sha256": "4496aedf610d3f0a6e79f099849af5a1becc0bb66652a770bea5b3d33943fff9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json",
+      "bytes": 62117,
+      "sha256": "7c31c2028bdf2ee3b6fc92db59378554035650df8ca077c659be5ac89c1deaa6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/plan-cases.mjs",
+      "bytes": 24225,
+      "sha256": "aee11a568bfa6b6492b93eb4ae822717ecf37412f288b967740709b3bbf82438"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/primary-sources.json",
+      "bytes": 8089,
+      "sha256": "d13060468195ee3f398089667ce98fe12ad1e6d8ebda8f18553c61a803060f89"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/refine.mjs",
+      "bytes": 4404,
+      "sha256": "cef82a431fe480b3e79b94505a031f4be000e1475e0d9e5cd67c75624d789944"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-local.json",
+      "bytes": 26233,
+      "sha256": "cfddcc7d0d5c5728fdcee007230561ad437a8f5b0abb639a7050566ee9e11f0c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json",
+      "bytes": 5438,
+      "sha256": "5fb5659fe666b9638b3d399fa4066b3ea064f344fa8d467dda0e32930ead1ab2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/verify.mjs",
+      "bytes": 6678,
+      "sha256": "88ebb883bb111469c562ea31bb942554a27840fbca71abcd4ade937f37c16cda"
+    }
+  ],
+  "limits": [
+    "Worktree inspection is not an atomic snapshot or clean committed-HEAD validation; hashes bracket live changes.",
+    "Old per-name line references belong to the inventory read; current dispatch line references and hash are recorded here.",
+    "Native tools were hashed/read only; no benchmark fixture/oracle execution.",
+    "All invoked metadata/evidence child processes returned normally; no retained child sessions, runtime workers or servers."
+  ]
+}

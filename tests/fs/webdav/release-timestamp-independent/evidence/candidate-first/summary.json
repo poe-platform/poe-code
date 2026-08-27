@@ -1,0 +1,21 @@
+{
+  "source": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "requested": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "profile": "candidate",
+  "helperCommit": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "started": "2026-08-27T09:33:54.857Z",
+  "finished": "2026-08-27T09:33:59.210Z",
+  "failure": {
+    "message": "Error: strict-consumer-types: independent.test.mts(54,68): error TS2379: Argument of type '{ method: string; body: string | undefined; headers: Record<string, string>; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'body' are incompatible.\n    Type 'string | undefined' is not assignable to type 'BodyInit'.\n      Type 'undefined' is not assignable to type 'BodyInit'.\n",
+    "stack": "Error: strict-consumer-types: independent.test.mts(54,68): error TS2379: Argument of type '{ method: string; body: string | undefined; headers: Record<string, string>; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'body' are incompatible.\n    Type 'string | undefined' is not assignable to type 'BodyInit'.\n      Type 'undefined' is not assignable to type 'BodyInit'.\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/run.mjs:38:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/run.mjs:97:3"
+  },
+  "results": [],
+  "mutantKills": [],
+  "loadedModuleCounts": {},
+  "protectedFiles": 1900,
+  "historicalRawFiles": 31,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/.work-EgOsWV",
+    "removed": true
+  }
+}

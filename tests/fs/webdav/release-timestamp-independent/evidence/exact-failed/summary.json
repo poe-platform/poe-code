@@ -1,0 +1,32 @@
+{
+  "source": "02a78bf64c29dedcd69071551ed5848b0765c107",
+  "requested": "02a78bf64c29dedcd69071551ed5848b0765c107",
+  "profile": "original",
+  "helperCommit": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "started": "2026-08-27T09:35:23.903Z",
+  "finished": "2026-08-27T09:35:28.640Z",
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 1,
+      "counts": {
+        "tests": 13,
+        "pass": 12,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "mutantKills": [],
+  "loadedModuleCounts": {
+    "original-consumer13": 157
+  },
+  "protectedFiles": 1900,
+  "historicalRawFiles": 31,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/.work-hSc03q",
+    "removed": true
+  }
+}

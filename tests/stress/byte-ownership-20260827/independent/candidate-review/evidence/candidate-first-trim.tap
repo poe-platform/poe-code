@@ -1,0 +1,799 @@
+TAP version 13
+# (node:67445) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: isolated copy-meter calibration
+ok 1 - isolated copy-meter calibration
+  ---
+  duration_ms: 0.751334
+  type: 'test'
+  ...
+# Subtest: geometry tail immutable-Buffer 1024/8/1024
+not ok 2 - geometry tail immutable-Buffer 1024/8/1024
+  ---
+  duration_ms: 2.365916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry head immutable-Buffer 1024/8/1024
+not ok 3 - geometry head immutable-Buffer 1024/8/1024
+  ---
+  duration_ms: 0.538833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry tail borrowed-Buffer 1024/8/1024
+not ok 4 - geometry tail borrowed-Buffer 1024/8/1024
+  ---
+  duration_ms: 0.981541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry head borrowed-Buffer 1024/8/1024
+not ok 5 - geometry head borrowed-Buffer 1024/8/1024
+  ---
+  duration_ms: 0.380375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry tail borrowed-Uint8Array 1024/8/1024
+not ok 6 - geometry tail borrowed-Uint8Array 1024/8/1024
+  ---
+  duration_ms: 0.296834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry head borrowed-Uint8Array 1024/8/1024
+not ok 7 - geometry head borrowed-Uint8Array 1024/8/1024
+  ---
+  duration_ms: 0.35425
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":1032,"count":1024,"copied":9188,"allocated":9188,"constructorBytes":1032,"sliceBytes":8156,"setBytes":0,"maxRetained":1024,"checkpoints":9}
+# Subtest: geometry tail immutable-Buffer 2048/16/2048
+not ok 8 - geometry tail immutable-Buffer 2048/16/2048
+  ---
+  duration_ms: 0.647334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry head immutable-Buffer 2048/16/2048
+not ok 9 - geometry head immutable-Buffer 2048/16/2048
+  ---
+  duration_ms: 0.8175
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry tail borrowed-Buffer 2048/16/2048
+not ok 10 - geometry tail borrowed-Buffer 2048/16/2048
+  ---
+  duration_ms: 0.95575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry head borrowed-Buffer 2048/16/2048
+not ok 11 - geometry head borrowed-Buffer 2048/16/2048
+  ---
+  duration_ms: 0.580291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry tail borrowed-Uint8Array 2048/16/2048
+not ok 12 - geometry tail borrowed-Uint8Array 2048/16/2048
+  ---
+  duration_ms: 0.605125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry head borrowed-Uint8Array 2048/16/2048
+not ok 13 - geometry head borrowed-Uint8Array 2048/16/2048
+  ---
+  duration_ms: 0.375208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":2064,"count":2048,"copied":34696,"allocated":34696,"constructorBytes":2064,"sliceBytes":32632,"setBytes":0,"maxRetained":2048,"checkpoints":17}
+# Subtest: geometry tail immutable-Buffer 4096/32/4096
+not ok 14 - geometry tail immutable-Buffer 4096/32/4096
+  ---
+  duration_ms: 2.112417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry head immutable-Buffer 4096/32/4096
+not ok 15 - geometry head immutable-Buffer 4096/32/4096
+  ---
+  duration_ms: 1.058666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry tail borrowed-Buffer 4096/32/4096
+not ok 16 - geometry tail borrowed-Buffer 4096/32/4096
+  ---
+  duration_ms: 0.582958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry head borrowed-Buffer 4096/32/4096
+not ok 17 - geometry head borrowed-Buffer 4096/32/4096
+  ---
+  duration_ms: 0.600459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry tail borrowed-Uint8Array 4096/32/4096
+not ok 18 - geometry tail borrowed-Uint8Array 4096/32/4096
+  ---
+  duration_ms: 0.455334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry head borrowed-Uint8Array 4096/32/4096
+not ok 19 - geometry head borrowed-Uint8Array 4096/32/4096
+  ---
+  duration_ms: 0.638583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":4128,"count":4096,"copied":134672,"allocated":134672,"constructorBytes":4128,"sliceBytes":130544,"setBytes":0,"maxRetained":4096,"checkpoints":33}
+# Subtest: geometry tail immutable-Buffer 8192/64/8192
+not ok 20 - geometry tail immutable-Buffer 8192/64/8192
+  ---
+  duration_ms: 0.923958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry head immutable-Buffer 8192/64/8192
+not ok 21 - geometry head immutable-Buffer 8192/64/8192
+  ---
+  duration_ms: 0.903292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry tail borrowed-Buffer 8192/64/8192
+not ok 22 - geometry tail borrowed-Buffer 8192/64/8192
+  ---
+  duration_ms: 0.859042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry head borrowed-Buffer 8192/64/8192
+not ok 23 - geometry head borrowed-Buffer 8192/64/8192
+  ---
+  duration_ms: 1.681917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry tail borrowed-Uint8Array 8192/64/8192
+not ok 24 - geometry tail borrowed-Uint8Array 8192/64/8192
+  ---
+  duration_ms: 5.287417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry head borrowed-Uint8Array 8192/64/8192
+not ok 25 - geometry head borrowed-Uint8Array 8192/64/8192
+  ---
+  duration_ms: 1.741666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":8256,"count":8192,"copied":530464,"allocated":530464,"constructorBytes":8256,"sliceBytes":522208,"setBytes":0,"maxRetained":8192,"checkpoints":65}
+# Subtest: geometry tail immutable-Buffer 16384/128/16384
+not ok 26 - geometry tail immutable-Buffer 16384/128/16384
+  ---
+  duration_ms: 1.867375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: geometry head immutable-Buffer 16384/128/16384
+not ok 27 - geometry head immutable-Buffer 16384/128/16384
+  ---
+  duration_ms: 1.763833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: geometry tail borrowed-Buffer 16384/128/16384
+not ok 28 - geometry tail borrowed-Buffer 16384/128/16384
+  ---
+  duration_ms: 2.055666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: geometry head borrowed-Buffer 16384/128/16384
+not ok 29 - geometry head borrowed-Buffer 16384/128/16384
+  ---
+  duration_ms: 2.795791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: geometry tail borrowed-Uint8Array 16384/128/16384
+not ok 30 - geometry tail borrowed-Uint8Array 16384/128/16384
+  ---
+  duration_ms: 1.651541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: geometry head borrowed-Uint8Array 16384/128/16384
+not ok 31 - geometry head borrowed-Uint8Array 16384/128/16384
+  ---
+  duration_ms: 1.936459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:144:7'
+  failureType: 'testCodeFailure'
+  error: 'copy bytes exceed frozen linear envelope'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:160:20
+    Object.outside (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:63:20)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/candidate-review/.work/candidate-first/unrelated-consumer/trim.mjs:152:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"input":16512,"count":16384,"copied":2105408,"allocated":2105408,"constructorBytes":16512,"sliceBytes":2088896,"setBytes":0,"maxRetained":16384,"checkpoints":129}
+# Subtest: retention tail immutable-Buffer 4096/16/7
+ok 32 - retention tail immutable-Buffer 4096/16/7
+  ---
+  duration_ms: 0.431333
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head immutable-Buffer 4096/16/7
+ok 33 - retention head immutable-Buffer 4096/16/7
+  ---
+  duration_ms: 0.267542
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Buffer 4096/16/7
+ok 34 - retention tail borrowed-Buffer 4096/16/7
+  ---
+  duration_ms: 0.21775
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Buffer 4096/16/7
+ok 35 - retention head borrowed-Buffer 4096/16/7
+  ---
+  duration_ms: 0.446375
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Uint8Array 4096/16/7
+ok 36 - retention tail borrowed-Uint8Array 4096/16/7
+  ---
+  duration_ms: 0.210833
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Uint8Array 4096/16/7
+ok 37 - retention head borrowed-Uint8Array 4096/16/7
+  ---
+  duration_ms: 0.200125
+  type: 'test'
+  ...
+# {"input":4112,"count":7,"copied":4140,"allocated":4140,"constructorBytes":4112,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail immutable-Buffer 16384/16/7
+ok 38 - retention tail immutable-Buffer 16384/16/7
+  ---
+  duration_ms: 0.203791
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head immutable-Buffer 16384/16/7
+ok 39 - retention head immutable-Buffer 16384/16/7
+  ---
+  duration_ms: 2.544625
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Buffer 16384/16/7
+ok 40 - retention tail borrowed-Buffer 16384/16/7
+  ---
+  duration_ms: 0.23125
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Buffer 16384/16/7
+ok 41 - retention head borrowed-Buffer 16384/16/7
+  ---
+  duration_ms: 0.258
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Uint8Array 16384/16/7
+ok 42 - retention tail borrowed-Uint8Array 16384/16/7
+  ---
+  duration_ms: 0.204834
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Uint8Array 16384/16/7
+ok 43 - retention head borrowed-Uint8Array 16384/16/7
+  ---
+  duration_ms: 0.2055
+  type: 'test'
+  ...
+# {"input":16400,"count":7,"copied":16428,"allocated":16428,"constructorBytes":16400,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail immutable-Buffer 65536/16/7
+ok 44 - retention tail immutable-Buffer 65536/16/7
+  ---
+  duration_ms: 0.278125
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head immutable-Buffer 65536/16/7
+ok 45 - retention head immutable-Buffer 65536/16/7
+  ---
+  duration_ms: 0.262041
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Buffer 65536/16/7
+ok 46 - retention tail borrowed-Buffer 65536/16/7
+  ---
+  duration_ms: 0.251
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Buffer 65536/16/7
+ok 47 - retention head borrowed-Buffer 65536/16/7
+  ---
+  duration_ms: 0.396542
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention tail borrowed-Uint8Array 65536/16/7
+ok 48 - retention tail borrowed-Uint8Array 65536/16/7
+  ---
+  duration_ms: 0.307166
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: retention head borrowed-Uint8Array 65536/16/7
+ok 49 - retention head borrowed-Uint8Array 65536/16/7
+  ---
+  duration_ms: 0.332291
+  type: 'test'
+  ...
+# {"input":65552,"count":7,"copied":65580,"allocated":65580,"constructorBytes":65552,"sliceBytes":28,"setBytes":0,"maxRetained":17,"checkpoints":17}
+# Subtest: head exclusion backpressure preserves lease and cleanup
+ok 50 - head exclusion backpressure preserves lease and cleanup
+  ---
+  duration_ms: 8.2105
+  type: 'test'
+  ...
+# Subtest: head exclusion source-error preserves lease and cleanup
+ok 51 - head exclusion source-error preserves lease and cleanup
+  ---
+  duration_ms: 0.744334
+  type: 'test'
+  ...
+# Subtest: head exclusion sink-error preserves lease and cleanup
+ok 52 - head exclusion sink-error preserves lease and cleanup
+  ---
+  duration_ms: 1.204
+  type: 'test'
+  ...
+# Subtest: head exclusion abort preserves lease and cleanup
+ok 53 - head exclusion abort preserves lease and cleanup
+  ---
+  duration_ms: 1.463125
+  type: 'test'
+  ...
+1..53
+# tests 53
+# suites 0
+# pass 23
+# fail 30
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.6215

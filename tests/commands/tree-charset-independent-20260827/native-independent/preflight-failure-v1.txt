@@ -1,0 +1,11 @@
+Invocation:
+/usr/bin/env -i PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node capture-native.mjs
+
+Exit status: 1
+Native cases started: 0
+
+Error: oracle authentication failed: /private/tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+
+Classification: capture-driver preflight mismatch. The lexical /tmp path resolves
+to /private/tmp on this host. Version 2 authenticates both that exact realpath and
+the already pinned SHA-256. This is not a native tree behavior observation.

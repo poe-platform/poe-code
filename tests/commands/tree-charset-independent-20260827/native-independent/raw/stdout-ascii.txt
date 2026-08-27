@@ -1,0 +1,9 @@
+.
+|-- alpha.txt
+|-- empty
+`-- nest
+    |-- beta.txt
+    `-- deep
+        `-- gamma.txt
+
+4 directories, 3 files

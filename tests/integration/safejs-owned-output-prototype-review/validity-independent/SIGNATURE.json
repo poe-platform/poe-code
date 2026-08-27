@@ -1,0 +1,55 @@
+{
+  "schema": "independent-owned-output-validity-phase1-attestation-v1",
+  "signedBy": "Codex independent leaf verifier",
+  "threadId": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "attestationKind": "Explicit agent/thread signature with SHA-256 content binding; not GPG or personal cryptographic signing",
+  "sessionFirstRecordedAt": "2026-08-27T15:37:04Z",
+  "independentFindingsFrozenAt": "2026-08-27T15:50:12.482992+00:00",
+  "scope": "PHASE1 static independent validity review of original frozen artifacts only",
+  "status": "NO_PROMOTION_CONTRACT_QUESTIONS_REMAIN",
+  "ownedWriteScope": "tests/integration/safejs-owned-output-prototype-review/validity-independent/** plus owned regular /tmp artifacts",
+  "sourceManifest": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "assertions": {
+    "authorProposalReads": 0,
+    "privateCheckoutQueries": 0,
+    "privateWrites": 0,
+    "guestExecutions": 0,
+    "productRuntimeExecutions": 0,
+    "privateEngineExecutions": 0,
+    "networkProbes": 0,
+    "nativeOracleProbes": 0,
+    "builds": 0,
+    "installs": 0,
+    "sourceFixes": 0,
+    "fixtureMigrations": 0,
+    "originalCaptureUpdates": 0,
+    "semanticAssertionChangesApplied": 0,
+    "newPasses": 0
+  },
+  "independentConclusions": {
+    "surface08": "Missing engine rejection observer; public fulfilled status1; original FAIL retained",
+    "surface07": "Exact dialect profile only; no general membrane proof",
+    "L05": "Status-only nested completion followed by cleanup rejection conforms to explicit public settlement contract; intended selector unestablished; original FAIL retained",
+    "L06": "Implemented zero-host-cap rejection precedes guest/transport; public lower-bound documentation absent; fixture-invalid attribution not contract-proven; possible pre-existing API/design/documentation issue",
+    "L06ConstructorCorrection": "WITHHELD pending root/user host-cap contract decision and later exact-proposal review"
+  },
+  "staticValidation": "Both complete candidate routes, entire regular engine copy, 230 frozen bindings, original raw projections, exact diagnostic byte lengths and scoped metadata/directory-name closure checked; no runtime acceptance",
+  "files": [
+    {
+      "path": "PHASE1.md",
+      "bytes": 22362,
+      "sha256": "52367ea9a4ecebce8bd02f24e0061fcecb87653e5c18154958a9b999989ceeab"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 89507,
+      "sha256": "76b0f1249692ae13ec939d7c5129aaf64e9601d571580218d69447068a9f4d68"
+    },
+    {
+      "path": "OBSERVATIONS.json",
+      "bytes": 49446,
+      "sha256": "717c4d714320d4c7bd73e22ca8108d31aa89b31e5bae6ca1f3867b193056ff79"
+    }
+  ],
+  "stop": "After exact owned-path commit and /tmp/safe-bash-owned-output-validity-independent-phase1-ready.txt; no proposal reads or waiters in phase1"
+}

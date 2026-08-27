@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "placement": "Write each family as an isolated .mts file at an authenticated built candidate root; imports refer to its actual dist declarations, never live source or hypothetical root exports",
+  "compilerOptions": ["--strict", "--exactOptionalPropertyTypes", "--noUncheckedIndexedAccess", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--lib", "ES2023", "--types", "node", "--noEmit", "--skipLibCheck"],
+  "families": [
+    {
+      "id": "T01",
+      "source": "import { createWhichCommand, createWhichCommands } from './dist/commands/which/index.js';\nimport type { CommandContext, CommandDefinition, CommandResult } from './dist/contracts/index.js';\nconst singular: CommandDefinition = createWhichCommand();\nconst definitions: readonly CommandDefinition[] = createWhichCommands();\ndeclare const context: CommandContext;\nconst result: CommandResult | Promise<CommandResult> = singular.execute(context);\nvoid definitions; void result;\n// @ts-expect-error declared singleton collection is readonly\ncreateWhichCommands().push(singular);\n"
+    },
+    {
+      "id": "T02",
+      "source": "import { whichCommands, createWhichCommand, type WhichCommandsOptions } from './dist/commands/which/index.js';\nimport type { VirtualShellPlugin } from './dist/contracts/index.js';\nconst options: WhichCommandsOptions = { replace: true, limits: { maxProbes: 1 } };\nconst plugin: VirtualShellPlugin = whichCommands(options);\ncreateWhichCommand(options); void plugin;\n// @ts-expect-error readonly option\noptions.replace = false;\n// @ts-expect-error no invented profile/host fallback option\nwhichCommands({ hostFallback: true });\n// @ts-expect-error boolean replacement policy\nwhichCommands({ replace: 'yes' });\n"
+    },
+    {
+      "id": "T03",
+      "source": "import { createWhichCommand, type WhichCommandsOptions, type WhichLimits } from './dist/commands/which/index.js';\nconst limits: WhichLimits = { maxArguments: 4096, maxArgumentBytes: 65536, maxPathEnvBytes: 65536, maxPathComponents: 4096, maxPathBytes: 16384, maxProbes: 65536, maxOutputBytes: 8388608 };\nconst options: WhichCommandsOptions = { limits };\ncreateWhichCommand(options); createWhichCommand({ limits: { maxOutputBytes: 1 } });\n// @ts-expect-error readonly limits\nlimits.maxProbes = 2;\n// @ts-expect-error numeric limit\ncreateWhichCommand({ limits: { maxProbes: '2' } });\n// @ts-expect-error closed known limit names\ncreateWhichCommand({ limits: { maxCommands: 1 } });\n// @ts-expect-error full limits declaration requires all seven keys\nconst incomplete: WhichLimits = { maxProbes: 1 };\nvoid incomplete;\n"
+    },
+    {
+      "id": "T04",
+      "source": "import { createWhichCommand } from './dist/commands/which/index.js';\nimport type { CommandContext, CommandHandler, CommandResult, ByteSink, ByteSource, FileSystem } from './dist/contracts/index.js';\ndeclare const fs: FileSystem; declare const stdin: ByteSource; declare const stdout: ByteSink; declare const stderr: ByteSink; declare const signal: AbortSignal;\nconst context: CommandContext = { command: 'which', args: ['tool'], cwd: '/', env: { PATH: '/a' }, fs, stdin, stdout, stderr, signal };\nconst handler: CommandHandler = createWhichCommand().execute;\nconst result: CommandResult | Promise<CommandResult> = handler(context); void result;\n// @ts-expect-error command cancellation signal remains readonly\ncontext.signal = new AbortController().signal;\n// @ts-expect-error byte sink does not accept strings\nstdout.write('not bytes');\n"
+    }
+  ]
+}

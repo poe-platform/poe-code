@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "classification": "independent normative preimplementation WHICH fixture; no execution acceptance",
+  "sealedAt": "2026-08-27T23:51:22.713Z",
+  "revision": "5687fe0afe36749a9ec6527357acbb2eec518e4f",
+  "rootApprovedBase": "5c34372be6aedd179123ceab2663c7d52f207ed1",
+  "rootApprovedAccessDelta": "c82a7fc9eac4aecd764ffb91d0b7f91f0e452dbd",
+  "draftCommit": "65d198cfd1f4df9f9687e05017986c6815b67eb6",
+  "upstreamRevision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+  "timing": "after approved policy inspection; before tracked or live WHICH code",
+  "familyCount": 28,
+  "runtimeGroups": 26,
+  "typeFamilies": 4,
+  "overlappingTypeRuntimeFamilies": [
+    "T02",
+    "T03"
+  ],
+  "candidateExecutions": 0,
+  "typeCompilations": 0,
+  "nativeOracleExecutions": 0,
+  "mutationExecutions": 0,
+  "nativeQualification": "FreeBSD binary unprovisioned; Darwin not exercised; pinned primary manual/source only",
+  "fixtureHashes": {
+    "cases-v1.json": "a088879a1d0958971b178c9ef66f5e698eb455fc3b845b7bc89812afcd5f9123",
+    "cohort-v1.mjs": "1d1e2adcb9504b7d26426c8d98ad4021a1f30920b9f5846d72c48883856c3fc9",
+    "types-v1.json": "a4e3c35e2f0b989b15baa9669b8b0d49a65ddaf39f50c53d8bb61512810dccaa",
+    "FREEZE-v1.md": "e0fa4f057eb59fbb3ea97cd84069d6dd36b6834531a92e4f44f471c9e39cbc1b",
+    "seal-v1.mjs": "e9d9f2a198a50c88df9f23ce848bf67667447a2b9da8965b2514a6ba1892ef56",
+    "verify-v1.mjs": "460bb11ed02a98ff1e2a102ee9630fd463d60442b71d6723cd3e26d2defb4735"
+  },
+  "historicalHashes": {
+    "README.md": "690443603a2d45f92e5f100ba61f300f44d2a839274fe232df2edb3693aa4510",
+    "draft-cases.json": "9411b062a2a051466476be7a638544c1d1f91622c351ea27f739786bb853a2de",
+    "observe-type-path.mjs": "02ff8e14f89ccfb6c7c7bb8049528d4b87b5ce43de33bff74fe4672fd3dbd869",
+    "type-path-observations.json": "9f57072c1ff66763073b3bffd8b98a2aa8de0237960992e43915ced37496351c",
+    "verify-draft.mjs": "402632c741e249022802e78cc518878da90b1b97c61173f468d0c45e59c1a61b"
+  },
+  "sourceHashes": {
+    "src/commands/which/DESIGN.md": "fc8984c7a6858709ee9341c5e2b17f3f01c4a4b2306571229229d54584ada15c",
+    "src/commands/which/ACCESS-POLICY-v2.md": "a70422274aca08f251fa6154b90dcff93405a220189b6ba9cbaa35e09da9f8a1",
+    "src/commands/which/design-evidence/access-provenance-v2.json": "7f8f1758964a9c6eb942f0c9677df105c5e436beae96dfc8d1ee3877064e4c71",
+    "src/commands/which/design-evidence/getopt-source.data": "a911e3dcd3cdfed04cc1192e7668feabe5452435c58304c53870a3d7a26f0fce",
+    "src/commands/which/design-evidence/provenance.json": "4e7641429f299054e45c54cd82421757c475145547d849e5c782db1183178a90",
+    "src/commands/which/design-evidence/which-manual.data": "904c4c1e74bbbbb1b6c0114cdea88b0609282cb6f7ed39513cfb4a912f151cdb",
+    "src/commands/which/design-evidence/which-source.data": "dce7ea97b948b1ba0248a1a699248b8ab63c36f4887d8b95a8ae2b8cbe6bae25",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/filesystem.ts": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "src/contracts/filesystem.md": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/io.ts": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/readonly/index.ts": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+    "src/shell/shell.ts": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/plugins/index.ts": "6a7eed948ef4ad66d4292060119e216a08c2e09d79f75170e79202fd5bd2821b"
+  }
+}

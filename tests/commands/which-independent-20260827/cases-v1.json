@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "status": "Normative preimplementation fixture: root-approved base plus delegated-access v2; not executed acceptance",
+  "profile": "virtual delegated-execute-access discovery v2",
+  "families": { "behavior": 18, "limits": 4, "cancellationCleanup": 2, "types": 4, "total": 28 },
+  "defaults": { "maxArguments": 4096, "maxArgumentBytes": 65536, "maxPathEnvBytes": 65536, "maxPathComponents": 4096, "maxPathBytes": 16384, "maxProbes": 65536, "maxOutputBytes": 8388608 },
+  "usage": "usage: which [-as] program ...\n",
+  "missCodes": ["ENOENT", "ENOTDIR", "EACCES", "EPERM", "ELOOP", "ENAMETOOLONG"],
+  "fatalCodes": { "ENOTSUP": "operation not supported", "EROFS": "read-only file system", "EIO": "input/output error", "ECANCELED": "operation canceled", "ENOSYS": "function not implemented", "EPIPE": "broken pipe" },
+  "fixture": {
+    "cwd": "/work",
+    "PATH": "/a:/b",
+    "directories": ["/a", "/b", "/work", "/work/bin", "/different", "/a/directory"],
+    "files": [
+      ["/a/tool", 493], ["/b/tool", 493], ["/work/tool", 493], ["/work/bin/tool", 493], ["/tool", 493],
+      ["/a/noexec", 420], ["/b/noexec", 493], ["/a/owner-denied", 1],
+      ["/a/-dash", 493], ["/a/-", 493], ["/a/--", 493], ["/a/-a", 493], ["/a/-s", 493], ["/a/-z", 493],
+      ["/a/a b", 493], ["/a/λ😀", 493], ["/a/é", 493], ["/a/�", 493], ["/a/$(touch injected)", 493], ["/a/*", 493], ["/a/;", 493]
+    ],
+    "symlinks": [["/a/link", "/b/tool"], ["/a/dangling", "/missing"], ["/a/cycle", "cycle"]]
+  },
+  "cases": [
+    { "id": "B01", "name": "first hit short circuits", "variants": [
+      { "args": ["tool"], "stdout": "/a/tool\n", "exitCode": 0, "calls": [["stat", "/a/tool"], ["access", "/a/tool"]] }
+    ] },
+    { "id": "B02", "name": "all hits preserve PATH order", "variants": [
+      { "args": ["-a", "tool"], "PATH": "/b:/a", "stdout": "/b/tool\n/a/tool\n", "exitCode": 0, "calls": [["stat", "/b/tool"], ["access", "/b/tool"], ["stat", "/a/tool"], ["access", "/a/tool"]] }
+    ] },
+    { "id": "B03", "name": "silent bundles retain complete traversal", "variants": [
+      { "args": ["-s", "tool"], "stdout": "", "exitCode": 0, "callCount": 2 },
+      { "args": ["-as", "tool"], "stdout": "", "exitCode": 0, "callCount": 4 },
+      { "args": ["-sa", "-a", "tool"], "stdout": "", "exitCode": 0, "callCount": 4 },
+      { "args": ["-s", "missing"], "stdout": "", "exitCode": 1 },
+      { "args": ["-as", "tool"], "fault": ["access", "/b/tool", "EIO"], "stdout": "", "stderr": "which: /b/tool: input/output error\n", "exitCode": 1, "callCount": 4 }
+    ] },
+    { "id": "B04", "name": "all operands must match with no output rollback", "variants": [
+      { "args": ["tool", "missing"], "stdout": "/a/tool\n", "exitCode": 1 },
+      { "args": ["missing", "tool"], "stdout": "/a/tool\n", "exitCode": 1 },
+      { "args": ["missing", "absent"], "stdout": "", "exitCode": 1 },
+      { "args": ["tool", "missing", "tool"], "stdout": "/a/tool\n/a/tool\n", "exitCode": 1 },
+      { "args": ["-a", "tool", "noexec"], "stdout": "/a/tool\n/b/tool\n/b/noexec\n", "exitCode": 0 }
+    ] },
+    { "id": "B05", "name": "leading getopt grammar and literal dash names", "variants": [
+      { "args": ["--", "-dash"], "stdout": "/a/-dash\n", "exitCode": 0 },
+      { "args": ["-a", "--", "-dash"], "stdout": "/a/-dash\n", "exitCode": 0 },
+      { "args": ["-", "-s"], "stdout": "/a/-\n/a/-s\n", "exitCode": 0 },
+      { "args": ["tool", "-a", "--", "-z"], "stdout": "/a/tool\n/a/-a\n/a/--\n/a/-z\n", "exitCode": 0 }
+    ] },
+    { "id": "B06", "name": "slash operands are tested once without display normalization", "variants": [
+      { "args": ["-a", "/a/tool"], "PATH": "/unused:/unused", "stdout": "/a/tool\n", "exitCode": 0, "callCount": 2 },
+      { "args": ["./tool", "bin/tool", "/a/../b/tool", "/a//tool"], "PATH": "/unused", "stdout": "./tool\nbin/tool\n/a/../b/tool\n/a//tool\n", "exitCode": 0, "calls": [["stat", "/work/./tool"], ["access", "/work/./tool"], ["stat", "/work/bin/tool"], ["access", "/work/bin/tool"], ["stat", "/a/../b/tool"], ["access", "/a/../b/tool"], ["stat", "/a//tool"], ["access", "/a//tool"]] },
+      { "args": ["/a/tool/", "/a/.", "/a/.."], "stdout": "", "exitCode": 1, "calls": [] }
+    ] },
+    { "id": "B07", "name": "absent versus empty PATH", "variants": [
+      { "args": ["tool", "./tool", "/a/tool"], "PATH": null, "stdout": "", "exitCode": 1, "calls": [] },
+      { "args": ["tool"], "PATH": "", "stdout": "./tool\n", "exitCode": 0 },
+      { "args": ["-a", "tool"], "PATH": ":/a::", "stdout": "./tool\n/a/tool\n./tool\n./tool\n", "exitCode": 0 },
+      { "args": ["-a", "tool"], "PATH": "/a:", "stdout": "/a/tool\n./tool\n", "exitCode": 0 }
+    ] },
+    { "id": "B08", "name": "virtual cwd and relative spelling", "variants": [
+      { "args": ["-a", "tool"], "PATH": "bin:.", "stdout": "bin/tool\n./tool\n", "exitCode": 0 },
+      { "args": ["tool"], "PATH": "bin:.", "cwd": "/different", "stdout": "", "exitCode": 1 },
+      { "args": ["tool"], "PATH": "/", "cwd": "/", "stdout": "//tool\n", "exitCode": 0, "calls": [["stat", "//tool"], ["access", "//tool"]] }
+    ] },
+    { "id": "B09", "name": "duplicates aliases and repeated operands are not deduplicated", "variants": [
+      { "args": ["-a", "tool", "tool"], "PATH": "/a:/a/:/a/../a:/b", "stdout": "/a/tool\n/a//tool\n/a/../a/tool\n/b/tool\n/a/tool\n/a//tool\n/a/../a/tool\n/b/tool\n", "exitCode": 0, "callCount": 16 }
+    ] },
+    { "id": "B10", "name": "no invented registry builtin function or host paths", "variants": [
+      { "args": ["true", "registered-only", "function-only", "tool"], "stdout": "/a/tool\n", "exitCode": 1 }
+    ], "controls": ["B18 registers command/function names and still requires actual VFS entries", "host PATH is never imported"] },
+    { "id": "B11", "name": "followed regular file then provider X_OK", "variants": [
+      { "args": ["noexec", "directory", "link", "dangling", "cycle", "owner-denied"], "stdout": "/b/noexec\n/a/link\n", "exitCode": 1 },
+      { "args": ["directory"], "PATH": "/a", "stdout": "", "exitCode": 1, "calls": [["stat", "/a/directory"]] }
+    ], "controls": ["nonfollowed symlink stat misses without access", "mode 0001 on Memory is denied by owner-execute access", "no lstat/readlink/manual following"] },
+    { "id": "B12", "name": "typed errors at either provider boundary", "controls": ["each missCode at stat and access continues to /b/tool", "each fatalCode stops with exact diagnostic and previous output retained", "code-shaped errors are not FsError", "raw undefined/null/falsy failures are fatal provider errors", "without -a first hit avoids later fatal access", "no provider message/host path leakage"] },
+    { "id": "B13", "name": "literal UTF-8 names and replacement encoding", "variants": [
+      { "args": ["a b", "λ😀", "$(touch injected)", "*", ";", "\ud800"], "stdout": "/a/a b\n/a/λ😀\n/a/$(touch injected)\n/a/*\n/a/;\n/a/�\n", "exitCode": 0, "replacementStat": true }
+    ] },
+    { "id": "B14", "name": "unknown options diagnose before provider effects", "variants": [
+      { "args": ["-z", "tool"], "illegal": "z" }, { "args": ["-aZ", "tool"], "illegal": "Z" },
+      { "args": ["--unknown"], "illegal": "-" }, { "args": ["--help"], "illegal": "-" },
+      { "args": ["--version"], "illegal": "-" }, { "args": ["-a😀z", "tool"], "illegal": "😀" }
+    ] },
+    { "id": "B15", "name": "no operands versus empty operand", "variants": [
+      { "args": [], "usage": true }, { "args": ["-a"], "usage": true }, { "args": ["--"], "usage": true }, { "args": ["-as"], "usage": true },
+      { "args": [""], "stdout": "", "exitCode": 1, "calls": [] },
+      { "args": ["-s", ""], "stdout": "", "exitCode": 1, "calls": [] },
+      { "args": ["", "tool"], "stdout": "/a/tool\n", "exitCode": 1 }
+    ] },
+    { "id": "B16", "name": "metadata-only operation and borrowed resource ownership", "controls": ["only stat and access may be called", "stdin getter/iterator/next/return untouched", "no stdinIsDefault/invoke/registerCleanup/ownedOutput inspection", "no content reads/mutations/copy-up/child invocation/sink close", "args/env/cwd unchanged", "virtual file bytes and directory entries unchanged", "native/provider incidental metadata atime is not forbidden"] },
+    { "id": "B17", "name": "delegated permission policy across provider and readonly profiles", "controls": ["Memory owner-execute policy", "ReadOnly(Memory) permissions=false still succeeds at X_OK", "permissions absent/false with successful access are hits", "reported mode 0000 with delegated access success is a hit", "nonregular stat never accesses", "S3-like typed EACCES misses", "WebDAV-like typed ENOTSUP diagnoses even -s", "malformed provider lacking required access yields bounded generic error, no fallback"] },
+    { "id": "B18", "name": "real Shell pipeline prefix redirect and literal invoke", "controls": ["explicit module plugin only, no default registry-count expectation", "PATH prefix and invoke cwd/env affect child only", "pipeline head-n1 yields first line; following command/caller remain live", "redirect preserves exact which output bytes", "builtin/registered/function names remain misses without actual VFS files", "Shell owns unread-input finalization; which creates no new ownership hooks"] },
+    { "id": "L01", "name": "argv PATH component admission and validation", "controls": ["all seven exact defaults", "maxArguments includes flags and empty strings", "UTF-8 argv and PATH budgets separate and inclusive", "present PATH checked even slash-only input", "components count colon+1 including empties; absent zero", "count/byte caps precede NUL, grammar then PATH/cwd validation", "argument admission order maxArguments then maxArgumentBytes", "no encoding/copy/split before admission; scan checks each arg and every4096codeunits"] },
+    { "id": "L02", "name": "logical candidate attempts not provider calls", "controls": ["one admitted probe permits stat+access", "duplicates/misses/errors/suffix-directory attempts charged", "empty operand creates no probe", "quiet -as still charges all attempts", "limit precedes oversized candidate path", "no parallel provider calls or third stat", "provider-internal RPC count is not bounded by two"] },
+    { "id": "L03", "name": "literal constructed path UTF-8 admission", "controls": ["cwd/display/absolute lookup are separately bounded", "exact-boundary accepted, one-over fatal", "do not normalize before limit", "cwd root avoids extra separator only for absolute lookup", "UTF-8 bytes including replacement encoding", "check before concatenation/encoding"] },
+    { "id": "L04", "name": "line-atomic output admission and backpressure", "controls": ["include LF, no partial line for remaining budget", "retain earlier complete output before later overflow", "silent charges zero stdout", "stderr separate maxPathBytes+256 allowance", "one diagnostic even unknown-option-plus-usage", "await every write, no overlap or mutation of submitted bytes", "no output rollback/transaction/RSS claim"] },
+    { "id": "C01", "name": "exact cancellation at admission and provider boundaries", "controls": ["preabort means no provider or sink effects", "same signal before/after each stat/access and each FS catch", "object/null/false/0/-0/empty/NaN identity", "native live undefined means native AbortError; raw undefined only custom preaborted throwIfAborted", "abort reason wins over typed errno failures", "no access after canceled stat and no output after canceled access", "cooperative provider listeners settle/detach; no opaque preemption promise"] },
+    { "id": "C02", "name": "sink rejection abort and lifecycle controls", "controls": ["sync/async stdout and stderr failure exact rejection", "sink EIO is not FS diagnostic", "no retry/later writes/probes", "abort at checkpoint wins over sink failure", "late ignored-signal rejection handled by existing writeBytes", "no caller sink close or fake ownedOutput/cleanup registration"] },
+    { "id": "T01", "name": "module factory and readonly singleton definitions", "typeFixture": "T01" },
+    { "id": "T02", "name": "plugin factory collision and replacement policy", "typeFixture": "T02", "controls": ["name which-commands", "duplicate preflight preserves incumbent", "replace=true swaps only which", "singular replace has no execute semantic effect"] },
+    { "id": "T03", "name": "strict limits and runtime configuration validation", "typeFixture": "T03", "controls": ["positive safe integers only", "NaN/Infinity/fraction/negative/zero/unsafe rejected for each key", "maxPathBytes <= MAX_SAFE_INTEGER-256", "unknown key RangeError exact text", "no registration before bad settings rejected"] },
+    { "id": "T04", "name": "existing byte signal context and built module closure", "typeFixture": "T04", "controls": ["no new invocation/FS/runtime interface", "no product child_process/host filesystem/environment/principal lookup", "zero runtime dependencies", "future emitted imports authenticated with no live source fallback", "root public integration not yet authorized; module-only type fixture"] }
+  ]
+}

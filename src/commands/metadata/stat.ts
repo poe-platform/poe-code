@@ -68,6 +68,24 @@ function epoch(milliseconds: number, precision: number): string {
   return `${scaled < 0 ? "-" : ""}${Math.floor(absolute / scale)}${precision ? "." + (absolute % scale).toString().padStart(precision, "0") : ""}`;
 }
 
+function formatField(text: string, code: string, flags: string, width: number, precision: number | undefined, numeric: boolean, epoch: boolean): Uint8Array {
+  if (numeric) {
+    const nonzero = !/^0+$/u.test(text);
+    if (!epoch && precision !== undefined) text = precision === 0 && !nonzero ? "" : text.padStart(precision, "0");
+    if (flags.includes("#")) text = code === "a" ? (text.startsWith("0") ? text : `0${text}`) : (code === "f" || code === "D") && nonzero ? `0x${text}` : text;
+    if (epoch && !text.startsWith("-") && (flags.includes("+") || flags.includes(" "))) text = `${flags.includes("+") ? "+" : " "}${text}`;
+  }
+  const encoded = Buffer.from(text);
+  const bytes = !numeric && precision !== undefined ? encoded.subarray(0, precision) : encoded;
+  const padding = Math.max(0, width - bytes.length);
+  if (flags.includes("-")) return Buffer.concat([bytes, Buffer.alloc(padding, 32)]);
+  if (numeric && flags.includes("0") && (epoch || precision === undefined) && padding) {
+    const prefix = /^[+ -]|^0x/u.exec(text)?.[0] ?? "";
+    return Buffer.from(prefix + "0".repeat(padding) + text.slice(prefix.length));
+  }
+  return Buffer.concat([Buffer.alloc(padding, 32), bytes]);
+}
+
 async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
@@ -97,9 +115,13 @@ async function render(context: CommandContext, path: string, name: string, stat:
     const flags = match[1]!;
     const width = Number(match[2] || 0);
     if (!Number.isSafeInteger(width) || width > limit) throw new FsError("EFBIG", { message: "stat format width limit exceeded" });
-    const precision = match[3] === undefined ? undefined : Number(match[3] || 9);
     const code = match[4]!;
+    const epochCode = ["X", "Y", "Z", "W"].includes(code);
+    const precision = match[3] === undefined ? undefined : Number(match[3] || (epochCode ? 9 : 0));
+    if (precision !== undefined && (!Number.isSafeInteger(precision) || precision > limit)) throw new FsError("EFBIG", { message: "stat format precision limit exceeded" });
+    if (code === "%" && match[0] !== "%%") throw new UsageError("invalid stat format directive");
     let text: string;
+    let linkText: string | undefined;
     let numeric = false;
     if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
     const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
@@ -109,7 +131,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
       text = quoted(name, context.env.QUOTING_STYLE);
       if (stat.type === "symlink") {
         if (!context.fs.readlink) throw new FsError("ENOTSUP", { syscall: "readlink", path });
-        text += ` -> ${quoted(await context.fs.readlink(path, { signal: context.signal }), context.env.QUOTING_STYLE)}`;
+        linkText = quoted(await context.fs.readlink(path, { signal: context.signal }), context.env.QUOTING_STYLE);
       }
     } else if (code === "%") text = "%";
     else if (code === "A") text = permissionString(stat.mode, stat.type);
@@ -124,16 +146,11 @@ async function render(context: CommandContext, path: string, name: string, stat:
       text = value.toString(code === "a" ? 8 : code === "f" || code === "D" ? 16 : 10);
       numeric = true;
     }
-    if (precision !== undefined && !Object.hasOwn(times, code)) throw new FsError("ENOTSUP", { message: "stat precision is only supported for epoch timestamps" });
-    if (numeric && flags.includes("#")) text = code === "a" ? (text.startsWith("0") ? text : `0${text}`) : code === "f" || code === "D" ? `0x${text}` : text;
-    if (Object.hasOwn(times, code) && !text.startsWith("-") && (flags.includes("+") || flags.includes(" "))) text = `${flags.includes("+") ? "+" : " "}${text}`;
-    const padding = Math.max(0, width - text.length);
-    if (flags.includes("-")) text += " ".repeat(padding);
-    else if (numeric && flags.includes("0") && padding) {
-      const prefix = /^[+ -]|^0x/u.exec(text)?.[0] ?? "";
-      text = prefix + "0".repeat(padding) + text.slice(prefix.length);
-    } else text = " ".repeat(padding) + text;
-    append(text);
+    append(formatField(text, code, flags, width, precision, numeric, epochCode));
+    if (linkText !== undefined) {
+      append(" -> ");
+      append(formatField(linkText, code, flags, width, precision, false, false));
+    }
   }
   return Buffer.concat(chunks);
 }

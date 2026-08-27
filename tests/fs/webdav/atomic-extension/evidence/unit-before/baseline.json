@@ -1,0 +1,9 @@
+{
+  "head": "75d4e0c47f1061df2f5381d9185837057ca8386a",
+  "inputs": {
+    "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "tests/fs/webdav/atomic-extension/capability.test.ts": "887d3c198ab8bba338604a436a5884720ca0a8e0f574e79199fda1f6c5a7e157",
+    "tests/fs/webdav/mock.ts": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  }
+}

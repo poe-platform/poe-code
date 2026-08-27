@@ -1,4 +1,4 @@
-import { FsError, isFsError } from "../../contracts/errors.js";
+import { FsError, isErrnoCode, isFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -13,6 +13,25 @@ import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceSta
 
 export type WebDavFetch = (url: string, init: RequestInit) => Promise<Response>;
 
+export interface WebDavAtomicEmptyDirectoryRequest {
+  readonly operation: "atomic-empty-rmdir/v1";
+  readonly namespaceUrl: string;
+  readonly path: string;
+  readonly signal?: AbortSignal;
+}
+
+export interface WebDavAtomicEmptyDirectoryResult {
+  readonly operation: "atomic-empty-rmdir/v1";
+  readonly namespaceUrl: string;
+  readonly path: string;
+  readonly outcome: "removed";
+}
+
+export interface WebDavAtomicEmptyDirectoryBinding {
+  readonly namespaceUrl: string;
+  readonly removeEmptyDirectory: (request: WebDavAtomicEmptyDirectoryRequest) => Promise<WebDavAtomicEmptyDirectoryResult>;
+}
+
 export interface WebDavFileSystemOptions {
   readonly baseUrl: string;
   readonly fetch: WebDavFetch;
@@ -22,6 +41,7 @@ export interface WebDavFileSystemOptions {
   readonly maxEntries?: number;
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
+  readonly atomicEmptyDirectory?: WebDavAtomicEmptyDirectoryBinding;
   readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
     => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
 }
@@ -116,6 +136,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly timeoutMs: number;
   private readonly overwritePolicy: "lock" | "etag";
   private readonly configuredComparison: boolean;
+  private readonly atomicEmptyDirectory: WebDavAtomicEmptyDirectoryBinding | undefined;
   private readonly etags = new WeakMap<FileStat, string>();
 
   constructor(options: WebDavFileSystemOptions) {
@@ -142,6 +163,14 @@ export class WebDavFileSystem implements FileSystem {
       }
     } catch (cause) {
       throw new FsError("EINVAL", { message: "invalid WebDAV base URL or headers", cause });
+    }
+    const binding = options.atomicEmptyDirectory;
+    if (binding !== undefined) {
+      if (!binding || typeof binding !== "object" || binding.namespaceUrl !== this.base.href
+        || typeof binding.removeEmptyDirectory !== "function") {
+        throw new FsError("EINVAL", { message: "atomicEmptyDirectory must bind the canonical WebDAV namespace and a callback" });
+      }
+      this.atomicEmptyDirectory = Object.freeze({ namespaceUrl: this.base.href, removeEmptyDirectory: binding.removeEmptyDirectory });
     }
     this.transport = options.fetch;
     this.maxResponseBytes = positive(options.maxResponseBytes ?? 64 * 1024 * 1024, "maxResponseBytes");
@@ -745,6 +774,10 @@ export class WebDavFileSystem implements FileSystem {
       const stat = await this.stat(path, options);
       if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
       if (stat.type !== "directory") fail("ENOTDIR", "rmdir", path);
+      if (this.atomicEmptyDirectory) {
+        await this.atomicRmdir(normalized, path, options);
+        return;
+      }
       const entries = await this.readdir(path, options);
       if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
       if (entries.length) fail("ENOTEMPTY", "rmdir", path);
@@ -754,6 +787,46 @@ export class WebDavFileSystem implements FileSystem {
         throw new FsError(error.code, { syscall: "rmdir", path, cause: error });
       }
       throw error;
+    }
+  }
+
+  private async atomicRmdir(normalized: string, path: string, options: FsOptions): Promise<void> {
+    const timeout = AbortSignal.timeout(this.timeoutMs);
+    const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
+    try {
+      signal.throwIfAborted();
+      const receipt = await new Promise<WebDavAtomicEmptyDirectoryResult>((resolve, reject) => {
+        const abort = (): void => {
+          signal.removeEventListener("abort", abort);
+          reject(signal.reason);
+        };
+        signal.addEventListener("abort", abort, { once: true });
+        try {
+          Promise.resolve(this.atomicEmptyDirectory!.removeEmptyDirectory(Object.freeze({
+            operation: "atomic-empty-rmdir/v1", namespaceUrl: this.base.href, path: normalized, signal,
+          }))).then((result) => {
+            signal.removeEventListener("abort", abort);
+            resolve(result);
+          }, (error: unknown) => {
+            signal.removeEventListener("abort", abort);
+            reject(error);
+          });
+        } catch (error) {
+          signal.removeEventListener("abort", abort);
+          reject(error);
+        }
+      });
+      signal.throwIfAborted();
+      if (!receipt || receipt.operation !== "atomic-empty-rmdir/v1" || receipt.namespaceUrl !== this.base.href
+        || receipt.path !== normalized || receipt.outcome !== "removed") {
+        fail("EIO", "rmdir", path, "atomic empty-directory receipt mismatch; removal outcome is uncertain");
+      }
+    } catch (cause) {
+      if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "rmdir", path, cause });
+      if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "rmdir", path, cause });
+      if (isFsError(cause)) throw cause;
+      const code = cause && typeof cause === "object" && "code" in cause && isErrnoCode(cause.code) ? cause.code : "EIO";
+      throw new FsError(code, { syscall: "rmdir", path, cause });
     }
   }
 

@@ -7,6 +7,30 @@ root re-exports, manifests, dependencies, or plugin registration.
 
 ## Configuration and transport boundary
 
+`atomicEmptyDirectory` optionally supplies a trusted host's strict empty-only
+removal operation. Its `namespaceUrl` must equal the canonical configured base URL
+(including the trailing slash) at construction, and `removeEmptyDirectory` must be
+a function. The adapter captures both values. The named public types are
+`WebDavAtomicEmptyDirectoryBinding`, `WebDavAtomicEmptyDirectoryRequest` and
+`WebDavAtomicEmptyDirectoryResult`.
+
+After root, cancellation and observed directory-type checks, configured `rmdir`
+calls the binding with frozen `{ operation: "atomic-empty-rmdir/v1", namespaceUrl,
+path, signal }`; `path` is canonical and namespace-relative. The host must enforce
+actual removal-time emptiness, final-symlink protection, backing namespace and
+caller authorization, including real provider locks. Metadata observations and
+callback receipts are not cryptographic proof against a dishonest host. Ordinary
+recursive WebDAV DELETE is not a valid implementation of this callback.
+
+Success requires a receipt matching operation, namespace and path exactly, with
+`outcome: "removed"`. Receipt mismatch is EIO with an uncertain removal outcome.
+Native errno-shaped failures become typed filesystem errors; caller cancellation
+and the adapter timeout bound the wait, including callbacks that ignore signals.
+Late rejections are observed. No retry, rollback or absence guarantee follows a
+failure after dispatch. Host code must handle its own late work and lock cleanup.
+Omission preserves the existing ENOTSUP empty-directory default. This strict
+operation does not advertise `snapshotRmdir`; `atomicRename` remains false.
+
 Required options are `baseUrl` and `fetch`. The transport signature is
 `(url: string, init: RequestInit) => Promise<Response>`; passing Node's `fetch`
 explicitly enables real HTTP. Constructing an adapter makes no requests. There
@@ -204,7 +228,7 @@ by an empty check followed by recursive DELETE. Both streaming capabilities
 are true. These remaining gaps are explicit backend
 limitations, not claims of full POSIX or full WebDAV compliance.
 
-Additive `rmdir(path, options?)` distinguishes observed files (`ENOTDIR`), missing
+Without `atomicEmptyDirectory`, `rmdir(path, options?)` distinguishes observed files (`ENOTDIR`), missing
 paths (`ENOENT`), and nonempty collections (`ENOTEMPTY`). An observed-empty
 collection returns `ENOTSUP`; the root returns `EBUSY`. Inspection is read-only:
 no DELETE, LOCK, or other mutation is sent. Cancellation remains `ECANCELED`,
@@ -215,7 +239,7 @@ is unchanged.
 RFC 4918 section 9.6.1 requires collection DELETE to operate recursively, even
 without a Depth header. Neither an empty PROPFIND result nor a collection ETag
 establishes an atomic empty-collection deletion guarantee in this adapter.
-No provider-specific guarantee is configured, so `rmdir` never follows an empty
+In that default profile no provider-specific guarantee is configured, so `rmdir` never follows an empty
 listing with DELETE or invents a capability. A child created after the listing
 is preserved. Listings are not snapshots, and existing non-atomic MOVE and
 identity/overwrite caveats remain unchanged. Reference, consulted August 26, 2026:
@@ -504,8 +528,9 @@ explicit property discovery), and RFC4918 propstat/status processing. References
 
 ## Safe cleanup workflows and the empty-collection gap
 
-Safe empty-only `rmdir` remains unsupported for an empty remote collection, under
-both existing overwrite policies. This is an honest required-workflow gap: the
+Without an explicit `atomicEmptyDirectory` binding, safe empty-only `rmdir` remains
+unsupported for an empty remote collection under both overwrite policies. This is
+an honest required-workflow gap in the stock-provider profile: the
 unchanged aggregate adapter-tools checkpoint `421ce3f` records 77/79, with WebDAV
 and S3 failing `/work/scratch/nested` cleanup. Neither this section nor the new
 targeted tests turns that matrix green or claims alias closure.

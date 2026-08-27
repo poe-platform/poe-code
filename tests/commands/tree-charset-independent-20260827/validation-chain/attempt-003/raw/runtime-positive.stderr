@@ -1,0 +1,12 @@
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error: VALIDATION_GUARD_OUTSIDE_PACKAGE: specifier=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs url=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs
+    at reject (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:21:9)
+    at resolveHook (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:65:3)
+    at async nextResolve (node:internal/modules/esm/hooks:748:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)
+    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)
+
+Node.js v22.22.2

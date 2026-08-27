@@ -1,0 +1,8 @@
+{
+  "pass": true,
+  "registryCount": 70,
+  "treeCount": 1,
+  "rootUrl": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-sfUdHG/consumerB-moved/node_modules/virtual-bash/dist/index.js",
+  "treeUrl": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-sfUdHG/consumerB-moved/node_modules/virtual-bash/dist/commands/tree/index.js",
+  "treeStdout": ".\n└── file\n"
+}

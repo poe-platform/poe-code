@@ -1,0 +1,23 @@
+import {
+  Shell,
+  agentCommands,
+  createAgentCommands,
+  createMemoryFileSystem,
+  type TreeLimits,
+} from "virtual-bash";
+import {
+  createTreeCommand,
+  createTreeCommands,
+  treeCommands,
+  type TreeCommandsOptions,
+} from "virtual-bash/commands/tree";
+
+const limits: Partial<TreeLimits> = { maxOutputBytes: 1024, maxSteps: 4096 };
+const options: TreeCommandsOptions = { limits };
+createTreeCommand(options);
+createTreeCommands(options);
+treeCommands(options);
+createAgentCommands({ tree: options });
+const fs = createMemoryFileSystem();
+const shell = new Shell({ fs, env: Object.create(null) as Record<string, string> }).use(agentCommands({ tree: options }));
+await shell.dispose();

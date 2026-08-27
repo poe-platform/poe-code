@@ -1,0 +1,85 @@
+{
+  "platform": "darwin",
+  "release": "25.4.0",
+  "arch": "arm64",
+  "node": "v22.22.2",
+  "native": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "expectedVersion": "expr (GNU coreutils) 9.7",
+    "expectedPlatform": "darwin",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "PATH": "/usr/bin:/bin"
+    }
+  },
+  "version": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "expr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, James Youngman, and Paul Eggert.\n",
+    "stderr": ""
+  },
+  "nativeControls": [
+    {
+      "args": [
+        "41",
+        "+",
+        "1"
+      ],
+      "expected": {
+        "status": 0,
+        "stdout": "42\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "42\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "args": [
+        "0"
+      ],
+      "expected": {
+        "status": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "args": [
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    }
+  ],
+  "scope": "pinned official GNU 9.7 fixture on Darwin; not Linux and not system BSD expr"
+}

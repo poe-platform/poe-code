@@ -1,0 +1,172 @@
+{
+  "capturedAt": "2026-08-27T19:13:27.887Z",
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "archiveSha256": "b2de2b86a834f1b5c3ba7a98c347d3aa9668632ff3af2a073cf2c45c6b6bfef5",
+  "native": {
+    "pass": 44,
+    "total": 44
+  },
+  "product": {
+    "pass": 40,
+    "total": 61,
+    "failed": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "skip-no-prefix-locale-evaluation",
+        "failures": [
+          "exitCode",
+          "stdout",
+          "stderr",
+          "inactive operand evaluated"
+        ]
+      },
+      {
+        "id": "skip-no-substr-number-evaluation",
+        "failures": [
+          "exitCode",
+          "stdout",
+          "stderr",
+          "inactive operand evaluated"
+        ]
+      }
+    ]
+  },
+  "shell": {
+    "pass": 3,
+    "total": 5
+  },
+  "oldCapSeparate": {
+    "passed": false,
+    "observed": {
+      "exitCode": 3,
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    }
+  },
+  "integrity": {
+    "archiveBeforeAfter": true,
+    "frozenInputsBeforeAfter": true,
+    "nativeBinaryBeforeAfter": true,
+    "appendAwareSourceTestsBeforeAfter": true,
+    "activeWorkersAtCompletion": 0
+  },
+  "noCandidateSourceChanges": true
+}

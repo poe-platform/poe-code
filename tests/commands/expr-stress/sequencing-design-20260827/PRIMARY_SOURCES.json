@@ -1,0 +1,16 @@
+{
+  "consultedDate": "2026-08-27",
+  "discovery": "web.run primary-source lookup; no secondary technical source relied upon",
+  "pinnedSource": {
+    "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/expr.c",
+    "project": "official coreutils/coreutils repository, tag v9.7",
+    "fetchedAt": "2026-08-27T19:14:09.624Z",
+    "httpStatus": 200,
+    "bytes": 22920,
+    "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+    "localFixtureSource": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr.c",
+    "localFixtureSourceSha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+    "functionsInspected": ["main", "eval7", "eval6", "eval5", "eval4", "eval3", "eval2", "eval1", "eval"],
+    "qualification": "Source byte equality is not a fresh binary rebuild attestation. The separately pinned binary/version and executable controls establish the measured GNU 9.7 on Darwin profile. No Linux execution occurred. Nullable regex/capture normative research is out of scope."
+  }
+}

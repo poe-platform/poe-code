@@ -1,0 +1,109 @@
+{
+  "family": "GNU",
+  "direction": "in",
+  "executable": "/private/tmp/safe-bash-archive-final-5OQwpu/snapshot-1/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "version": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.",
+  "executableSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "outcome": "passed",
+  "fixtureSeed": "xorshift32; explicit seeds in fixtures/native tests",
+  "artifacts": {
+    "independentPaxSha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3",
+    "independentMtime:report-segmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegment-雪.bin": "{\"actual\":1700123401125,\"expected\":1700123401125}",
+    "independentMtime:following": "{\"actual\":1700123400000,\"expected\":1700123400000}",
+    "nativePlainSha256": "cab5119a0ff1c305c9e4dff74d93c1e44a5e6edec8ddf0634ae5b5037d5d4d1c",
+    "virtualPlainListing": "{\"exitCode\":0,\"stderr\":\"\",\"stdoutSha256\":\"576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92\"}",
+    "virtualPlainExtraction": "{\"exitCode\":0,\"stderr\":\"\",\"outputEntries\":[{\"name\":\"cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\",\"type\":\"file\"},{\"name\":\"deep\",\"type\":\"directory\"},{\"name\":\"space name\",\"type\":\"file\"},{\"name\":\"symbol\",\"type\":\"symlink\"}]}",
+    "nativeGzipSha256": "0492143b0d4dc8baa021fa29c499948a4f8be0ad49867cc2c5d63432cf974a59",
+    "virtualGzipListing": "{\"exitCode\":0,\"stderr\":\"\",\"stdoutSha256\":\"576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92\"}",
+    "virtualGzipExtraction": "{\"exitCode\":0,\"stderr\":\"\",\"outputEntries\":[{\"name\":\"cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\",\"type\":\"file\"},{\"name\":\"deep\",\"type\":\"directory\"},{\"name\":\"space name\",\"type\":\"file\"},{\"name\":\"symbol\",\"type\":\"symlink\"}]}"
+  },
+  "observations": [
+    {
+      "args": [
+        "-tf",
+        "independent.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "d1584435182b2366c0204c8ffdc117c15aad87609d57efa1a366aa8a9fc54b0b",
+      "stdoutBytes": 161,
+      "stdoutText": "report-segmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegmentsegment-\\351\\233\\252.bin\nfollowing\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xf",
+        "independent.tar",
+        "-C",
+        "fixture-output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--format=pax",
+        "-cf",
+        "native.tar",
+        "-C",
+        "input",
+        "deep/leaf",
+        "space name",
+        "cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin",
+        "symbol"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xf",
+        "native.tar",
+        "-C",
+        "self-plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--format=pax",
+        "-czf",
+        "native.tar",
+        "-C",
+        "input",
+        "deep/leaf",
+        "space name",
+        "cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin",
+        "symbol"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xzf",
+        "native.tar",
+        "-C",
+        "self-gzip"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ]
+}

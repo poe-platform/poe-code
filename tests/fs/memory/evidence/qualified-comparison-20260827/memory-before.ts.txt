@@ -7,7 +7,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
-import type { EntryAuthority } from "../mount/comparison.js";
+import type { EntryAuthority, EntryView } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/authority.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 
@@ -53,13 +53,10 @@ interface ResolveOptions {
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
-const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; intact: () => boolean }>();
+const ownedStores = new WeakMap<FileSystem, (view: EntryView) => boolean>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
-  const owner = ownedStores.get(own.filesystem);
-  const observation = ownedStats.get(own.stat);
-  if (!owner?.intact() || observation?.filesystem !== own.filesystem || observation.path !== own.path
-    || observation.root !== owner.root) return "unknown";
+  if (!ownedStores.get(own.filesystem)?.(own)) return "unknown";
   const qualified = getOwnedS3Entry(peer) ?? getOwnedWebDavEntry(peer);
   options.signal?.throwIfAborted();
   return qualified ? "distinct" : "unknown";
@@ -83,12 +80,13 @@ export class MemoryFileSystem implements FileSystem {
 
   constructor() {
     const root = this.root;
-    ownedStores.set(this, {
-      root,
-      intact: () => this.root === root && Object.entries(memoryImplementation).every(([name, descriptor]) =>
-        name === "constructor" || name === "compareEntry" || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value),
+    ownedStores.set(this, view => {
+      const observation = ownedStats.get(view.stat);
+      return observation?.filesystem === this && observation.path === view.path && observation.root === root
+        && this.root === root && Object.entries(memoryImplementation).every(([name, descriptor]) =>
+          descriptor.value === undefined || Reflect.get(this, name) === descriptor.value);
     });
-    if (this.compareEntry === memoryImplementation.compareEntry?.value) registerEntryAuthority(this, compareOwnedMemory);
+    registerEntryAuthority(this, compareOwnedMemory);
   }
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
@@ -205,8 +203,7 @@ export class MemoryFileSystem implements FileSystem {
       type: node.type,
       size: node.type === "file" ? node.data.byteLength
         : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
-      mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
-      ino: node.ino, dev: 0, uid: 0, gid: 0,
+      mode: node.mode, identityScope: this.identityScope, ino: node.ino, dev: 0, uid: 0, gid: 0,
       nlink: node.type === "directory"
         ? 2 + [...node.entries.values()].filter((entry) => entry.type === "directory").length : node.nlink,
       atimeMs: node.atimeMs, mtimeMs: node.mtimeMs, ctimeMs: node.ctimeMs, birthtimeMs: node.birthtimeMs,

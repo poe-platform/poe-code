@@ -14,24 +14,24 @@ import { wrapped } from "../overlay/helpers.js";
 const bytes = new TextEncoder().encode("source sentinel");
 const previous = new TextEncoder().encode("previous target");
 
-function unscoped(backing: FileSystem): FileSystem {
+function unscoped(backing: FileSystem, overrides: Partial<FileSystem> = {}): FileSystem {
   const stat: FileSystem["stat"] = async (path, options) => {
     const { identityScope: _scope, ...metadata } = await backing.stat(path, options);
     return metadata;
   };
-  return wrapped(backing, { stat, lstat: async (path, options) => {
+  return wrapped(backing, { ...overrides, stat, lstat: async (path, options) => {
     const { identityScope: _scope, ...metadata } = await backing.lstat(path, options);
     return metadata;
   } });
 }
 
-async function fixture(shared = false) {
+async function fixture(shared = false, leftOverrides: Partial<FileSystem> = {}, rightOverrides: Partial<FileSystem> = {}) {
   const leftStore = createMemoryFileSystem();
   const rightStore = shared ? leftStore : createMemoryFileSystem();
   await leftStore.writeFile("/source", bytes);
   await rightStore.writeFile("/target", previous);
-  const left = unscoped(leftStore);
-  const right = unscoped(rightStore);
+  const left = unscoped(leftStore, leftOverrides);
+  const right = unscoped(rightStore, rightOverrides);
   const backing = new Map<FileSystem, FileSystem>([[left, leftStore], [right, rightStore]]);
   const calls: string[] = [];
   const authority: EntryAuthority = async (own, peer, options) => {
@@ -48,8 +48,9 @@ test("known complete tuples win without querying an advertised authority", async
   const store = createMemoryFileSystem();
   await store.writeFile("/file", bytes);
   await store.link("/file", "/alias");
-  registerEntryAuthority(store, async () => { assert.fail("known tuple must not query"); });
-  assert.equal(await compareEntries(store, "/file", store, "/alias"), "same");
+  const advertised = wrapped(store, {});
+  registerEntryAuthority(advertised, async () => { assert.fail("known tuple must not query"); });
+  assert.equal(await compareEntries(advertised, "/file", advertised, "/alias"), "same");
 });
 
 for (const shared of [false, true]) {
@@ -75,13 +76,12 @@ test("same-mount unknown stat can use its recognized metadata authority", async 
 });
 
 test("authority-proven alias fails before source acquisition or writes", async () => {
-  const state = await fixture(true);
+  const calls: string[] = [];
+  const state = await fixture(true, { readStream: () => { calls.push("read"); throw new FsError("EIO"); } },
+    { writeStream: async () => { calls.push("write"); throw new FsError("ENOSPC"); } });
   await state.leftStore.link("/source", "/alias");
   registerEntryAuthority(state.left, state.authority);
   registerEntryAuthority(state.right, state.authority);
-  const calls: string[] = [];
-  Object.defineProperty(state.left, "readStream", { configurable: true, value: () => { calls.push("read"); throw new FsError("EIO"); } });
-  Object.defineProperty(state.right, "writeStream", { configurable: true, value: async () => { calls.push("write"); throw new FsError("ENOSPC"); } });
   const mount = createMountFileSystem({ root: state.left, mounts: { "/other": state.right } });
   await assert.rejects(mount.copyFile("/source", "/other/alias"), { code: "EINVAL", path: "/source", dest: "/other/alias" });
   assert.deepEqual(state.calls, ["/source:/alias"]);

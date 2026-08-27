@@ -51,13 +51,30 @@ negotiating public method is therefore unsupported, not an invalid answer.
 Opaque adapters that forward a negotiating method without trustworthy view
 registration do not acquire authority through their shape or constructor.
 
-Memory already publishes per-store complete identity; real publishes actual safe
-native IDs in the agreed global native scope. They need no new authority token
-or fallback method. Remote callbacks must use native/provider-owned or mutually
-recognized authority. Distinct clients, protocols, URLs, keys, ETags and tokens
+Memory publishes per-store complete identity; real publishes actual safe native
+IDs in the agreed global native scope. Memory also registers a terminal authority
+for its constructor-owned store, requiring an original implementation and a fresh
+filesystem/path/root-bound observation. It accepts only the internal S3/WebDAV
+owners' full-operation-qualified closed mock descriptors, not response provenance
+alone. Those stores are distinct from its own private storage. Manual forwarding
+clients, native peers and other unknown remote mappings remain unknown. No new
+identity token or public registry is involved. Remote callbacks must use
+native/provider-owned or mutually recognized authority. Distinct clients,
+protocols, URLs, keys, ETags and tokens
 alone are not disjointness proof; a custom remote transport can access local
 storage. Provider-specific metadata maps may support recognition but must not
 duplicate the wrapper-view registry or relabel backing entries.
+
+Memory also withholds `identityScope` when the original backing implementation
+or root no longer matches. Otherwise an inherited stat tuple could bypass all
+callbacks even though a subclass or patched streaming operation accesses another
+store. Original method references are captured at module initialization, not from
+an already-overridden instance in its constructor. This is a current binding
+check, not protection against later arbitrary host monkeypatching or a lease.
+An unchanged inherited implementation is eligible; constructor/class names do
+not establish backing ownership. An explicit comparison override present during
+construction is left to the normal one-shot external authority path rather than
+silently shadowed by Memory's default callback registration.
 
 Resolution and callbacks are metadata-only: no source body, destructive open,
 copy-up, cleanup, lock-null resource or publication. Overlay resolution describes

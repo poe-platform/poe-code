@@ -1,0 +1,121 @@
+TAP version 13
+# Subtest: Memory subclass data overrides cannot certify an alias to memory
+not ok 1 - Memory subclass data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 2.695125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:11947'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:274:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"kind":"memory","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to memory
+not ok 2 - Memory instance data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.396583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:11947'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:274:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"memory","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to memory
+not ok 3 - Memory prototype-before-construction data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.325625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:11947'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:274:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"memory","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to s3
+ok 4 - Memory subclass data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 7.392583
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"subclass","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to s3
+ok 5 - Memory instance data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 2.066833
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"instance","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to s3
+ok 6 - Memory prototype-before-construction data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 1.929208
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"prototype-before-construction","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to webdav
+ok 7 - Memory subclass data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 16.886541
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"subclass","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to webdav
+ok 8 - Memory instance data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 3.883125
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"instance","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to webdav
+ok 9 - Memory prototype-before-construction data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 3.648375
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"prototype-before-construction","code":"ENOTSUP","effects":0,"source":[0,255,128,13,10,65],"target":[4,0,253]}
+1..9
+# tests 9
+# suites 0
+# pass 6
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 200.152875

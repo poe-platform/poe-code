@@ -7,13 +7,13 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const temporary = await mkdtemp(join(root, "tests/fs/mount/.identity-mutation-"));
-const sources = [...["memory", "real", "mount", "readonly", "overlay"].map((name) => `src/fs/${name}/index.ts`), "src/fs/mount/identity.ts", "src/fs/mount/comparison.ts"];
+const sources = [...["memory", "real", "mount", "readonly", "overlay"].map((name) => `src/fs/${name}/index.ts`), "src/fs/mount/identity.ts", "src/fs/mount/comparison.ts", "src/fs/s3/authority.ts", "src/fs/webdav/resource-id.ts"];
 const originals = new Map(await Promise.all(sources.map(async (path) => [path, await readFile(join(root, path), "utf8")] as const)));
 const hashes = Object.fromEntries([...originals].map(([path, text]) => [path, createHash("sha256").update(text).digest("hex")]));
 const results: { name: string; exit: number | null; killed: boolean; stdout: string; stderr: string }[] = [];
 
 try {
-  for (const path of ["src/contracts", "package.json", ...sources.map(dirname), "tests/fs/real/helpers.ts",
+  for (const path of ["src", "package.json", "tests/fs/real/helpers.ts", "tests/fs/memory/comparison.test.ts", "tests/fs/webdav/mock.ts",
     "tests/fs/real/copy-identity.test.ts", "tests/fs/mount/copy-identity.test.ts", "tests/fs/mount/copy-identity-guards.test.ts",
     "tests/fs/overlay/helpers.ts", "tests/fs/overlay/copy-identity.test.ts", "tests/fs/mount/identity-scope.test.ts"]) {
     await mkdir(dirname(join(temporary, path)), { recursive: true });
@@ -63,6 +63,22 @@ try {
       after: '...options, flag: options.exclusive ? "wx" : "w",',
       tests: ["tests/fs/mount/copy-identity-guards.test.ts"],
       pattern: "destination races from missing",
+    },
+    {
+      name: "Memory identity survives changed data operation mapping",
+      path: "src/fs/memory/index.ts",
+      before: '...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {})',
+      after: 'identityScope: this.identityScope',
+      tests: ["tests/fs/memory/comparison.test.ts"],
+      pattern: "Memory .*data overrides",
+    },
+    {
+      name: "Memory accepts unqualified remote descriptors",
+      path: "src/fs/memory/index.ts",
+      before: 'const qualified = getOwnedS3Entry(peer) ?? getOwnedWebDavEntry(peer);',
+      after: 'const qualified = true;',
+      tests: ["tests/fs/memory/comparison.test.ts"],
+      pattern: "genuine .*metadata with Memory-alias content mapping",
     },
   ];
   for (const mutation of mutations) {

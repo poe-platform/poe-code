@@ -1,0 +1,23 @@
+{
+  "head": "319299e7d24be17bed990242d605a4fc37d0d305",
+  "captured": "2026-08-27T01:24:07.565Z",
+  "classification": "pre-fix Memory complete tuple override guard; concurrent remote source NOT accepted",
+  "coreAncestor": "0bee8e7",
+  "hashes": {
+    "src/fs/memory/index.ts": "e94247b32d53a5f85a082aaad7494dda86e5ec80db3ea26c86766978df31696c",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/s3/authority.ts": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+    "src/fs/s3/filesystem.ts": "7544d066ea75125279b6e29f82110c326d75fd04b44648a80a358603d2296f88",
+    "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+    "src/fs/webdav/resource-id.ts": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+    "src/fs/webdav/webdav.ts": "0da48c7088d4f76595221e4eb358a71ad3356122b932eeabb780788c8f9cabef",
+    "tests/fs/webdav/mock.ts": "e4f8a6806c1dd6f0622cce9f3b487f530011c39b7ca95cc2543002ce4da95266",
+    "src/commands/filesystem.ts": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+    "tests/fs/memory/comparison.test.ts": "686a4561ecc4efae44bbb772d0c689c15d183f61c034a59994375e5b6dffe817",
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+    "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734"
+  }
+}

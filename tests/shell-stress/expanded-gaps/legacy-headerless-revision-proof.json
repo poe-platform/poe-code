@@ -1,0 +1,132 @@
+{
+  "status": "BLOCKED narrow authorization excludes full-file integrity guard update; NO ROW CHANGE APPLIED",
+  "path": "tests/shell-stress/invocation-modes/cases.ts",
+  "originalHash": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+  "nativeCohortHash": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+  "originalLine": "  { id: \"path-headerless-policy\", source: \"PATH=tools; invtool\", fixtures: [{ path: \"tools/invtool\", body: \"printf 'native-fallback\\\\n'\\n\", mode: 0o755 }], scope: \"policy\", policyStatus: 126 },",
+  "proposedLine": "  { id: \"path-headerless-policy\", source: \"PATH=tools; invtool\", fixtures: [{ path: \"tools/invtool\", body: \"printf 'native-fallback\\\\n'\\n\", mode: 0o755 }] },",
+  "proposedHash": "fdc22c27541f4f29334274e35238c22fa4645730dbe5239134a585ee8e03f83c",
+  "fixtureBytesHex": "7072696e746620276e61746976652d66616c6c6261636b5c6e270a",
+  "fixtureHash": "b7441278de4509d4fe9cf4dad592fb2ce8edb5887fae485ea10fe66980c40630",
+  "source": "PATH=tools; invtool",
+  "actual": {
+    "id": "path-headerless-policy",
+    "exitCode": 0,
+    "stdoutHex": "6e61746976652d66616c6c6261636b0a",
+    "stderrHex": "",
+    "stdout": "native-fallback\n",
+    "stderr": "",
+    "effects": {},
+    "renderedFixtures": [
+      {
+        "path": "/work/tools/invtool",
+        "hex": "7072696e746620276e61746976652d66616c6c6261636b5c6e270a",
+        "mode": 493
+      }
+    ]
+  },
+  "nativeProfiles": [
+    {
+      "id": "gnu-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "interpreterHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "row": {
+        "id": "path-headerless-policy",
+        "source": "bash() { ( exec -a bash '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' --noprofile --norc \"$@\" ); }; sh() { ( exec -a sh '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' --noprofile --norc \"$@\" ); };\nPATH=tools; invtool",
+        "sourceHash": "8c33fa115deeeb244826d33d5b5ac8c236ee7f6113305aee0c60068cef2115a7",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/invtool",
+            "hex": "7072696e746620276e61746976652d66616c6c6261636b5c6e270a",
+            "sha256": "b7441278de4509d4fe9cf4dad592fb2ce8edb5887fae485ea10fe66980c40630",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "bash() { ( exec -a bash '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' --noprofile --norc \"$@\" ); }; sh() { ( exec -a sh '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash' --noprofile --norc \"$@\" ); };\nPATH=tools; invtool",
+            "outer"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.native-2DMino",
+          "env": {
+            "PATH": "base",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 76149,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "6e61746976652d66616c6c6261636b0a",
+          "stderrHex": "",
+          "stdout": "native-fallback\n",
+          "stderr": "",
+          "elapsedMs": 15.089124999999967
+        },
+        "effects": {}
+      }
+    },
+    {
+      "id": "historical-3.2",
+      "executable": "/bin/bash",
+      "interpreterHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "row": {
+        "id": "path-headerless-policy",
+        "source": "bash() { ( exec -a bash '/bin/bash' --noprofile --norc \"$@\" ); }; sh() { ( exec -a sh '/bin/bash' --noprofile --norc \"$@\" ); };\nPATH=tools; invtool",
+        "sourceHash": "6e3bcd3e2461b16edbda3d0e0be0aff9712e7f7c25bd07ff963518f5a920f099",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/invtool",
+            "hex": "7072696e746620276e61746976652d66616c6c6261636b5c6e270a",
+            "sha256": "b7441278de4509d4fe9cf4dad592fb2ce8edb5887fae485ea10fe66980c40630",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "bash() { ( exec -a bash '/bin/bash' --noprofile --norc \"$@\" ); }; sh() { ( exec -a sh '/bin/bash' --noprofile --norc \"$@\" ); };\nPATH=tools; invtool",
+            "outer"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.native-kiM83v",
+          "env": {
+            "PATH": "base",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 76282,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "6e61746976652d66616c6c6261636b0a",
+          "stderrHex": "",
+          "stdout": "native-fallback\n",
+          "stderr": "",
+          "elapsedMs": 9.136583999999857
+        },
+        "effects": {}
+      }
+    }
+  ],
+  "guardFile": "tests/shell-stress/invocation-modes/holdout.test.ts",
+  "guardHash": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+  "guard": "assert.equal(native.cohortHash, sha256(await readFile(`${owned}/cases.ts`)), \"Frozen native cohort/source mismatch\");",
+  "strongerAssertionsAlreadyPresent": "Removing policy classification selects existing exact stdoutHex/stderrHex/status/effects branch for BOTH profiles, but entire-file integrity assertion rejects any changed cases.ts before tests execute."
+}

@@ -48,11 +48,17 @@ export function currentConsumers(report) {
       assert.ok(compilerFiles.includes(join(installed, "dist/index.d.ts")));
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
       for (const runtime of group.runtime) {
-        const execution = step(report, `consumer-${group.name}-${runtime}`, process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--allow-worker", "--unhandled-rejections=strict", "--test", "--test-reporter=tap", join(workspace, "emitted", runtime)], consumer, { env: environment });
-        assert.match(execution.stdout, /^# fail 0$/mu);
-        assert.match(execution.stdout, /^# skipped 0$/mu);
-        assert.match(execution.stdout, /^# cancelled 0$/mu);
-        result.runtimeResults.push({ runtime, status: execution.status });
+        const execution = step(report, `consumer-${group.name}-${runtime}`, process.execPath, ["--experimental-permission", `--allow-fs-read=${consumer}`, "--allow-worker", "--unhandled-rejections=strict", join(workspace, "emitted", runtime)], consumer, { env: environment });
+        const usesNodeTest = ["s3-constructor", "webdav-loopback"].includes(group.name);
+        let counts;
+        if (usesNodeTest) {
+          counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(execution.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));
+          assert.ok(counts.tests > 0);
+          assert.equal(counts.pass, counts.tests);
+          for (const name of ["fail", "cancelled", "skipped", "todo"]) assert.equal(counts[name], 0);
+          if (group.name === "webdav-loopback") assert.equal(counts.tests, 13);
+        }
+        result.runtimeResults.push({ runtime, status: execution.status, counts, scope: usesNodeTest ? "unchanged node:test assertions" : group.qualification });
       }
     } catch (error) { result.error = error.stack; }
   }

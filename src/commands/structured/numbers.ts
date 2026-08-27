@@ -8,6 +8,19 @@ export class Decimal {
 export type Numeric = number | Decimal;
 export function isNumber(value: unknown): value is Numeric { return typeof value === "number" || value instanceof Decimal; }
 export function numberValue(value: Numeric): number { return typeof value === "number" ? value : value.double; }
+export function numericToken(token: string, budget: Budget): Numeric | undefined {
+  budget.step(Math.ceil(token.length / 32));
+  const end = token.indexOf("\0");
+  const text = end < 0 ? token : token.slice(0, end);
+  if (/^[+-]?s?nan[0-9]*$/iu.test(text)) return new Decimal("0", NaN, false, "null", NaN);
+  if (/^[+-]?inf(?:inity)?$/iu.test(text)) {
+    const negative = text[0] === "-";
+    const value = negative ? -Infinity : Infinity;
+    return new Decimal("1", Infinity, negative, numberText(value), value);
+  }
+  if (!/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/u.test(text)) return undefined;
+  return decimalNumber(text[0] === "+" ? text.slice(1) : text, budget);
+}
 
 function increment(digits: string): string {
   let position = digits.length - 1;
@@ -61,6 +74,8 @@ export function decimalNumber(token: string, budget: Budget): Numeric {
   return new Decimal(digits, exponent, negative, text, decimalDouble(digits, exponent, negative));
 }
 export function compareNumbers(left: Numeric, right: Numeric, budget: Budget): number {
+  if (Number.isNaN(numberValue(left))) return -1;
+  if (Number.isNaN(numberValue(right))) return 1;
   if (!(left instanceof Decimal) || !(right instanceof Decimal)) {
     const first = numberValue(left);
     const second = numberValue(right);

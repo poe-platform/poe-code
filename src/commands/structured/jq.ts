@@ -111,7 +111,12 @@ async function* inputSources(context: CommandContext, options: Options, budget: 
 async function* inputs(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<Json> {
   if (options.rawInput) {
     yield* rawValues(inputSources(context, options, budget), budget, options.slurp);
-  } else for await (const source of inputSources(context, options, budget)) yield* jsonValues(source, budget);
+  } else {
+    async function* joined(): ByteSource {
+      for await (const source of inputSources(context, options, budget)) yield* readBytes(source, context.signal);
+    }
+    yield* jsonValues(joined(), budget);
+  }
 }
 async function execute(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> {
   const budget = new Budget(limits, context.signal);
@@ -119,12 +124,14 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
   const diagnostics: { location: InputLocation; message: string }[] = [];
   let diagnosticBytes = 0;
   let diagnosticWriteFailed = false;
+  let stdoutWriteFailed = false;
   const flush = async (force = false): Promise<void> => {
     let written = 0;
     try {
       while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
         const { location, message } = diagnostics[written++]!;
-        await writeBytes(context.stderr, Buffer.from(`jq: error (at ${location.name}:${location.line}): ${message}\n`), context.signal);
+        const place = location.name === "<unknown>" ? location.name : `${location.name}:${location.line}`;
+        await writeBytes(context.stderr, Buffer.from(`jq: error (at ${place}): ${message}\n`), context.signal);
       }
     } catch (error) {
       diagnosticWriteFailed = true;
@@ -169,7 +176,8 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
           const bytes = Buffer.from(`${text}${suffix}`);
           if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
           budget.outputBytes += bytes.byteLength;
-          await writeBytes(context.stdout, bytes, context.signal);
+          try { await writeBytes(context.stdout, bytes, context.signal); }
+          catch (error) { stdoutWriteFailed = true; throw error; }
           invocationLast = result;
           status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
         }
@@ -194,6 +202,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
   } catch (error) {
     if (diagnosticWriteFailed) throw error;
     context.signal.throwIfAborted();
+    if (stdoutWriteFailed) throw error;
     if (!(error instanceof JqError) && !(error instanceof FsError)) throw error;
     if (error instanceof FsError && error.code === "EPIPE") throw error;
     await flush(true);

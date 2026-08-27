@@ -28,6 +28,7 @@ export const functions: Readonly<Record<string, readonly number[]>> = Object.fre
   tostring: [0], tonumber: [0], tojson: [0], fromjson: [0], to_entries: [0], from_entries: [0], with_entries: [1],
   min: [0], max: [0], min_by: [1], max_by: [1], any: [0, 1, 2], all: [0, 1, 2],
   strings: [0], numbers: [0], booleans: [0], arrays: [0], objects: [0], nulls: [0], scalars: [0], iterables: [0],
+  nan: [0], infinite: [0], isnan: [0], isinfinite: [0],
 });
 function tokenize(source: string): Token[] {
   const tokens: Token[] = [];
@@ -51,7 +52,7 @@ function tokenize(source: string): Token[] {
       tokens.push({ text, offset: start, kind: "string" });
       continue;
     }
-    const number = /^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/u.exec(source.slice(offset));
+    const number = /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/u.exec(source.slice(offset));
     if (number) {
       tokens.push({ text: number[0], offset, kind: "number" }); offset += number[0].length; continue;
     }
@@ -81,10 +82,24 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   const tokens = tokenize(source);
   let position = 0;
   let nesting = 0;
+  const unresolved = new Map<Ast, Token>();
   const peek = (): Token => tokens[Math.min(position, tokens.length - 1)]!;
   const take = (): Token => { const token = peek(); if (token.kind !== "end") position++; return token; };
   const accept = (text: string): boolean => { if (peek().text !== text) return false; take(); return true; };
   const fail = (message: string): never => { throw new JqError(`${message} at offset ${peek().offset}`, 3); };
+  const diagnostic = (token: Token, message: string): string => {
+    const prefix = source.slice(0, token.offset);
+    const line = prefix.split("\n").length;
+    const start = prefix.lastIndexOf("\n") + 1;
+    const end = source.indexOf("\n", start);
+    const context = source.slice(start, end < 0 ? source.length : end);
+    return `error: ${message} at <top-level>, line ${line}:\n${context}${" ".repeat(Buffer.byteLength(prefix.slice(start)))}`;
+  };
+  const syntaxError = (token: Token, expectEnd = false): never => {
+    const name = token.kind === "end" ? "end of file" : token.kind === "name" ? "IDENT" : token.kind === "number" || token.kind === "string" ? "LITERAL" : `'${token.text}'`;
+    const location = token.kind === "end" ? tokens[Math.max(0, position - 1)]! : token;
+    throw new JqError(`${diagnostic(location, `syntax error, unexpected ${name}${expectEnd ? ", expecting end of file" : ""} (Unix shell quoting issues?)`)}\njq: 1 compile error`, 3);
+  };
   const expect = (text: string): void => { if (!accept(text)) fail(`expected '${text}'`); };
   const literal = (value: Json): Ast => ({ kind: "literal", value });
   const conditional = (): Ast => {
@@ -151,9 +166,10 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (token.kind === "name") {
       const args: Ast[] = [];
       if (accept("(")) { if (peek().text !== ")") do { args.push(expression()); } while (accept(";")); expect(")"); }
-      if (!Object.hasOwn(functions, token.text) || !functions[token.text]!.includes(args.length)) fail(`unsupported function ${token.text}/${args.length}`);
+      if (token.text === "split" && args.length === 2) fail("unsupported function split/2");
       result = { kind: "call", name: token.text, args };
-    } else fail("expected filter");
+      if (!Object.hasOwn(functions, token.text) || !functions[token.text]!.includes(args.length)) unresolved.set(result, token);
+    } else syntaxError(token, nesting === 1);
     while (true) {
       if (accept("?")) result = { kind: "optional", operand: result! };
       else if (accept(".")) {
@@ -173,11 +189,21 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     return result!;
   };
   const ast = expression();
-  if (peek().kind !== "end") fail("unexpected token");
+  if (peek().kind !== "end") syntaxError(peek(), true);
   const pending: { node: Ast; depth: number }[] = [{ node: ast, depth: 1 }];
+  const errors: string[] = [];
+  let errorBytes = 0;
   while (pending.length) {
     const { node, depth } = pending.pop()!;
     if (depth > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+    const token = unresolved.get(node);
+    if (token && node.kind === "call") {
+      const message = diagnostic(token, `${node.name}/${node.args.length} is not defined`);
+      errorBytes += Buffer.byteLength(message) + 5;
+      if (errorBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+      errors.push(message);
+      continue;
+    }
     const children: Ast[] = [];
     if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);
@@ -188,7 +214,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (node.kind === "object") for (const field of node.fields) children.push(field.key, field.value);
     else if (node.kind === "call") children.push(...node.args);
     else if (node.kind === "if") children.push(node.condition, node.yes, node.no);
-    for (const child of children) pending.push({ node: child, depth: depth + 1 });
+    for (const child of children.reverse()) pending.push({ node: child, depth: depth + 1 });
   }
+  if (errors.length) throw new JqError(`${errors.join("\njq: ")}\njq: ${errors.length} compile error${errors.length === 1 ? "" : "s"}`, 3);
   return ast;
 }

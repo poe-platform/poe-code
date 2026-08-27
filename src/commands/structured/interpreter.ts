@@ -3,7 +3,7 @@ import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
 import { splitString } from "./split.js";
-import { binary, compare, contains, describe, entries, indexValue, sliceValue, stringCompare, type } from "./values.js";
+import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, stringCompare, type } from "./values.js";
 
 type Path = (string | number)[];
 const deleted = Symbol("deleted");
@@ -199,6 +199,12 @@ export class Interpreter {
       if ((isObject(input) || Array.isArray(input)) === (name === "iterables")) yield input; return;
     }
     if (name === "type") { yield type(input); return; }
+    if (name === "nan" || name === "infinite") { yield name === "nan" ? NaN : Infinity; return; }
+    if (name === "isnan" || name === "isinfinite") {
+      const value = isNumber(input) ? numberValue(input) : undefined;
+      yield name === "isnan" ? value !== undefined && Number.isNaN(value) : value === Infinity || value === -Infinity;
+      return;
+    }
     if (name === "not") { yield !truth(input); return; }
     if (name === "length") {
       if (input === null) yield 0;
@@ -311,16 +317,14 @@ export class Interpreter {
     if (name === "tostring" || name === "tojson") { const result = typeof input === "string" && name === "tostring" ? input : stringify(input, budget); budget.text(result); yield result; return; }
     if (name === "tonumber" || name === "fromjson") {
       if (name === "tonumber" && isNumber(input)) { yield input; return; }
-      if (typeof input !== "string") throw new JqError(name === "fromjson" ? `${describe(input, budget)} only strings can be parsed` : `${name} requires a string`);
+      if (typeof input !== "string") throw new JqError(name === "fromjson" ? `${describe(input, budget)} only strings can be parsed` : `${describe(input, budget)} cannot be parsed as a number`);
       let result: Json;
       try { result = parseJson(input, budget); }
       catch (error) {
         if (!(error instanceof JqParseError)) throw error;
-        const prefix = Buffer.from(input).subarray(0, error.offset).toString();
-        const lines = prefix.split("\n");
-        throw new JqError(`${error.detail} at line ${lines.length}, column ${Buffer.byteLength(lines.at(-1)!)} (while parsing '${input}')`);
+        throw new JqError(`${error.diagnostic()} (while parsing '${input.split("\0", 1)[0]}')`);
       }
-      if (name === "tonumber" && !isNumber(result)) throw new JqError("tonumber requires a numeric string");
+      if (name === "tonumber" && !isNumber(result)) throw new JqError(`${describe(input, budget)} cannot be parsed as a number`);
       yield result; return;
     }
     if (name === "to_entries") { yield entries(input, budget).map(([key, value]) => copyObject({ key, value })); return; }
@@ -379,12 +383,12 @@ export class Interpreter {
     keyed.sort((left, right) => compare(left.key, right.key, budget));
     if (name === "min" || name === "min_by" || name === "max" || name === "max_by") { yield keyed[name.startsWith("min") ? 0 : keyed.length - 1]?.value ?? null; return; }
     if (name === "sort" || name === "sort_by") { yield keyed.map(item => item.value); return; }
-    if (name === "unique" || name === "unique_by") { yield keyed.filter((item, index) => index === 0 || compare(item.key, keyed[index - 1]!.key, budget) !== 0).map(item => item.value); return; }
+    if (name === "unique" || name === "unique_by") { yield keyed.filter((item, index) => index === 0 || !equal(item.key, keyed[index - 1]!.key, budget)).map(item => item.value); return; }
     if (name === "group_by") {
       const groups: Json[][] = [];
       let previous: Json | undefined;
       for (const item of keyed) {
-        if (previous === undefined || compare(previous, item.key, budget) !== 0) groups.push([]);
+        if (previous === undefined || !equal(previous, item.key, budget)) groups.push([]);
         groups[groups.length - 1]!.push(item.value); previous = item.key;
       }
       budget.value(groups); yield groups; return;

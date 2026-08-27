@@ -23,9 +23,9 @@ export function compare(left: Json, right: Json, budget: Budget): number {
   const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : isNumber(value) ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
   const difference = rank(left) - rank(right);
   if (difference) return Math.sign(difference);
+  if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
   if (left === right) return 0;
   if (typeof left === "string" && typeof right === "string") return stringCompare(left, right);
-  if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
   if (Array.isArray(left) && Array.isArray(right)) {
     for (let index = 0; index < Math.min(left.length, right.length); index++) {
       const result = compare(left[index]!, right[index]!, budget); if (result) return result;
@@ -41,6 +41,17 @@ export function compare(left: Json, right: Json, budget: Budget): number {
   }
   return 0;
 }
+export function equal(left: Json, right: Json, budget: Budget): boolean {
+  budget.step();
+  if (left === right) return true;
+  if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget) === 0;
+  if (Array.isArray(left) && Array.isArray(right)) return left.length === right.length && left.every((value, index) => equal(value, right[index]!, budget));
+  if (isObject(left) && isObject(right)) {
+    const keys = objectKeys(left);
+    return keys.length === objectKeys(right).length && keys.every(key => Object.hasOwn(right, key) && equal(left[key]!, right[key]!, budget));
+  }
+  return false;
+}
 export function entries(value: Json, budget: Budget): [string | number, Json][] {
   if (Array.isArray(value)) { budget.collection(value.length); return value.map((item, index) => [index, item]); }
   if (isObject(value)) { const keys = objectKeys(value); budget.collection(keys.length); return keys.map(key => [key, value[key]!]); }
@@ -55,7 +66,7 @@ export function indexValue(value: Json, index: Json): Json {
     const integer = Math.trunc(numberValue(index));
     if (Array.isArray(value)) return value[integer < 0 ? value.length + integer : integer] ?? null;
   }
-  throw new JqError(`cannot index ${type(value)} with ${type(index)}`);
+  throw new JqError(`Cannot index ${type(value)} with ${type(index)}${typeof index === "string" && Buffer.byteLength(index) < 30 ? ` ${JSON.stringify(index)}` : ""}`);
 }
 export function sliceValue(value: Json, start: Json, end: Json): Json {
   if (start !== null && (!isNumber(start) || !Number.isSafeInteger(numberValue(start)))) throw new JqError("slice start must be an integer or null");
@@ -72,15 +83,15 @@ export function contains(value: Json, sought: Json, budget: Budget): boolean {
   if (typeof value === "string" && typeof sought === "string") return value.includes(sought);
   if (Array.isArray(value) && Array.isArray(sought)) return sought.every(item => value.some(candidate => contains(candidate, item, budget)));
   if (isObject(value) && isObject(sought)) return objectKeys(sought).every(key => Object.hasOwn(value, key) && contains(value[key]!, sought[key]!, budget));
-  return type(value) === type(sought) && compare(value, sought, budget) === 0;
+  return type(value) === type(sought) && equal(value, sought, budget);
 }
 export function binary(operator: string, left: Json, right: Json, budget: Budget): Json {
   budget.step();
   if (["==", "!=", "<", "<=", ">", ">="].includes(operator)) {
+    if (operator === "==") return equal(left, right, budget);
+    if (operator === "!=") return !equal(left, right, budget);
     const order = compare(left, right, budget);
     switch (operator) {
-      case "==": return order === 0;
-      case "!=": return order !== 0;
       case "<": return order < 0;
       case "<=": return order <= 0;
       case ">": return order > 0;
@@ -95,7 +106,7 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
     if (Array.isArray(left) && Array.isArray(right)) { budget.collection(left.length + right.length); return [...left, ...right]; }
     if (isObject(left) && isObject(right)) { const result = copyObject(left, right); budget.collection(objectKeys(result).length); return result; }
   }
-  if (operator === "-" && Array.isArray(left) && Array.isArray(right)) return left.filter(item => !right.some(other => compare(item, other, budget) === 0));
+  if (operator === "-" && Array.isArray(left) && Array.isArray(right)) return left.filter(item => !right.some(other => equal(item, other, budget)));
   if (operator === "*" && isObject(left) && isObject(right)) {
     const result = copyObject(left);
     for (const key of objectKeys(right)) {
@@ -118,12 +129,17 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
   if (isNumber(left) && isNumber(right)) {
     const first = numberValue(left);
     const second = numberValue(right);
-    if ((operator === "/" && second === 0) || (operator === "%" && Math.trunc(second) === 0)) throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be divided because the divisor is zero`);
+    if (operator === "%" && (Number.isNaN(first) || Number.isNaN(second))) return NaN;
+    if ((operator === "/" && second === 0) || (operator === "%" && Math.trunc(second) === 0)) throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be divided${operator === "%" ? " (remainder)" : ""} because the divisor is zero`);
     if (operator === "-") return first - second;
     if (operator === "*") return first * second;
     if (operator === "/") return first / second;
-    if (operator === "%") return Math.trunc(first) % Math.trunc(second);
+    if (operator === "%") {
+      const integer = (value: number): bigint => value >= 2 ** 63 ? 9223372036854775807n : value <= -(2 ** 63) ? -9223372036854775808n : BigInt(Math.trunc(value));
+      return Number(integer(first) % integer(second));
+    }
   }
   if (operator === "+") throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be added`);
+  if (operator === "-") throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be subtracted`);
   throw new JqError(`cannot apply ${operator} to ${type(left)} and ${type(right)}`);
 }

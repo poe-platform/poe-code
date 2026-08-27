@@ -1,9 +1,10 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { Budget, JqError, JqLimitError, object, objectKeys, objectSize, put, scalarJson, type Json } from "./limits.js";
-import { decimalNumber, isNumber } from "./numbers.js";
+import { numericToken, isNumber } from "./numbers.js";
 
 export class JqParseError extends JqError {
-  constructor(readonly detail: string, readonly offset: number) { super(detail); }
+  constructor(readonly detail: string, readonly offset: number, readonly line = 1, readonly column = offset, readonly located = true) { super(detail); }
+  diagnostic(): string { return this.located ? `${this.detail} at line ${this.line}, column ${this.column}` : this.detail; }
 }
 export function decodeUtf8(bytes: string, budget: Budget): string {
   const points: string[] = [];
@@ -29,84 +30,189 @@ export function decodeUtf8(bytes: string, budget: Budget): string {
   }
   return points.join("") + block;
 }
+class JsonParser {
+  private readonly stack: (Json[] | Record<string, Json> | string)[] = [];
+  private next: Json | undefined;
+  private token = "";
+  private quoted = false;
+  private escaped = false;
+  private bom = 0;
+  private bytes = 0;
+  private depth = 0;
+  private offset = 0;
+  private line = 1;
+  private column = 0;
+  constructor(private readonly budget: Budget) {}
+  private fail(detail: string, located = true): never {
+    throw new JqParseError(detail, this.offset, this.line, this.column, located);
+  }
+  private accept(value: Json): void {
+    this.budget.step();
+    if (this.next !== undefined) this.fail("Expected separator between values");
+    this.next = value;
+  }
+  private literal(eof = false): void {
+    if (!this.token) return;
+    const text = this.token;
+    const pattern = text[0] === "t" ? "true" : text[0] === "f" ? "false" : text.startsWith("nu") ? "null" : undefined;
+    let value: Json | undefined;
+    if (pattern) {
+      if (text !== pattern) this.fail("Invalid literal" + (eof ? " at EOF" : ""));
+      value = pattern === "true" ? true : pattern === "false" ? false : null;
+    } else {
+      value = numericToken(text, this.budget);
+      if (value === undefined) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
+    }
+    this.accept(value);
+    this.token = "";
+  }
+  private string(): string {
+    let result = "";
+    let start = 0;
+    for (let index = 0; index < this.token.length; index++) {
+      if (index % 1024 === 0) this.budget.step();
+      const character = this.token[index]!;
+      if (character === "\\") {
+        result += decodeUtf8(this.token.slice(start, index), this.budget);
+        const escaped = this.token[++index];
+        if (escaped === "u") {
+          const digits = this.token.slice(index + 1, index + 5);
+          if (digits.length < 4) this.fail("Invalid \\uXXXX escape");
+          if (!/^[0-9a-f]{4}$/iu.test(digits)) this.fail("Invalid characters in \\uXXXX escape");
+          let point = parseInt(digits, 16);
+          index += 4;
+          if (point >= 0xd800 && point <= 0xdbff) {
+            const tail = this.token.slice(index + 1, index + 7);
+            const low = /^\\u[0-9a-f]{4}$/iu.test(tail) ? parseInt(tail.slice(2), 16) : 0;
+            if (low < 0xdc00 || low > 0xdfff) this.fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
+            point = 0x10000 + ((point - 0xd800) << 10) + low - 0xdc00;
+            index += 6;
+          }
+          result += String.fromCodePoint(point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
+        } else {
+          const escapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
+          if (escaped === undefined || !Object.hasOwn(escapes, escaped)) this.fail("Invalid escape");
+          result += escapes[escaped];
+        }
+        start = index + 1;
+      } else if (character.charCodeAt(0) < 0x20) this.fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
+    }
+    result += decodeUtf8(this.token.slice(start), this.budget);
+    this.budget.text(result);
+    return result;
+  }
+  private done(): Json | undefined {
+    if (this.stack.length || this.next === undefined) return undefined;
+    const value = this.next;
+    this.next = undefined;
+    this.budget.value(value);
+    this.bytes = 0;
+    return value;
+  }
+  private append(): void {
+    const parent = this.stack.at(-1);
+    if (Array.isArray(parent)) {
+      this.budget.collection(parent.length + 1);
+      parent.push(this.next!);
+    } else if (typeof parent === "string") {
+      const container = this.stack.at(-2) as Record<string, Json>;
+      if (!Object.hasOwn(container, parent)) this.budget.collection(objectSize(container) + 1);
+      put(container, parent, this.next!);
+      this.stack.pop();
+    } else this.fail("Objects must consist of key:value pairs");
+    this.next = undefined;
+  }
+  private structure(character: string): void {
+    const parent = this.stack.at(-1);
+    if (character === "[" || character === "{") {
+      if (this.next !== undefined) this.fail("Expected separator between values");
+      if (++this.depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      this.stack.push(character === "[" ? [] : object());
+    } else if (character === ":") {
+      if (this.next === undefined) this.fail("Expected string key before ':'");
+      if (!parent || Array.isArray(parent) || typeof parent === "string") this.fail("':' not as part of an object");
+      if (typeof this.next !== "string") this.fail("Object keys must be strings");
+      this.stack.push(this.next);
+      this.next = undefined;
+    } else if (character === ",") {
+      if (this.next === undefined) this.fail("Expected value before ','");
+      if (!this.stack.length) this.fail("',' not as part of an object or array");
+      this.append();
+    } else if (character === "]") {
+      if (!Array.isArray(parent)) this.fail("Unmatched ']'");
+      if (this.next !== undefined) this.append();
+      else if (parent.length) this.fail("Expected another array element");
+      this.next = this.stack.pop() as Json;
+      this.depth--;
+    } else if (character === "}") {
+      if (!this.stack.length) this.fail("Unmatched '}'");
+      if (this.next !== undefined) {
+        if (typeof parent !== "string") this.fail("Objects must consist of key:value pairs");
+        this.append();
+      } else {
+        if (typeof parent === "string" || Array.isArray(parent)) this.fail("Unmatched '}'");
+        if (objectSize(parent!)) this.fail("Expected another key-value pair");
+      }
+      this.next = this.stack.pop() as Json;
+      this.depth--;
+    }
+  }
+  feed(character: string): Json | undefined {
+    this.offset++;
+    if (this.bom < 3) {
+      if (character.charCodeAt(0) === [0xef, 0xbb, 0xbf][this.bom]) { this.bom++; return undefined; }
+      if (this.bom) this.fail("Malformed BOM", false);
+      this.bom = 3;
+    }
+    if (character === "\n") { this.line++; this.column = 0; } else this.column++;
+    const space = character === " " || character === "\t" || character === "\r" || character === "\n";
+    const structure = "[]{}:,".includes(character);
+    const endsScalar = !this.quoted && !this.stack.length && this.token !== "" && (space || structure || character === '"');
+    if (!endsScalar && (this.bytes || !space)) {
+      if (++this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    }
+    if (this.quoted) {
+      if (character === '"' && !this.escaped) {
+        this.accept(this.string());
+        this.token = "";
+        this.quoted = false;
+        return this.done();
+      }
+      this.token += character;
+      this.escaped = character === "\\" && !this.escaped;
+      return undefined;
+    }
+    if (!space && !structure && character !== '"') { this.token += character; return undefined; }
+    this.literal();
+    const output = this.done();
+    if (character === '"') this.quoted = true;
+    else if (structure) this.structure(character);
+    if (output !== undefined && (this.quoted || this.stack.length)) this.bytes = 1;
+    return this.done() ?? output;
+  }
+  finish(): Json | undefined {
+    if (this.quoted) this.fail("Unfinished string at EOF");
+    this.literal(true);
+    if (this.stack.length) this.fail("Unfinished JSON term at EOF");
+    return this.done();
+  }
+}
 export function parseJson(input: string, budget: Budget, byteEncoded = false): Json {
   const text = byteEncoded ? input : Buffer.from(input).toString("latin1");
   if (text.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-  let offset = 0;
-  const fail = (detail = offset >= text.length ? "Unfinished JSON term at EOF" : "Invalid numeric literal"): never => { throw new JqParseError(detail, offset); };
-  const rejectClose = (detail?: string): void => {
-    const character = text[offset];
-    if (character === "]" || character === "}") {
-      offset++;
-      fail(detail ?? `Unmatched '${character}'`);
-    }
+  const parser = new JsonParser(budget);
+  let value: Json | undefined;
+  const accept = (next: Json | undefined): void => {
+    if (next === undefined) return;
+    if (value !== undefined) throw new JqParseError("Unexpected extra JSON values", 0, 1, 0, false);
+    value = next;
   };
-  const space = (): void => { while (offset < text.length && /[\x20\t\r\n]/u.test(text[offset]!)) offset++; };
-  const string = (): string => {
-    const start = offset++;
-    let escaped = false;
-    while (offset < text.length) {
-      const character = text[offset++]!;
-      if (!escaped && character === '"') {
-        let result: string;
-        const encoded = text.slice(start, offset);
-        if (/[\x00-\x1f]/u.test(encoded)) return fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
-        try { result = JSON.parse(`"${decodeUtf8(encoded.slice(1, -1), budget)}"`) as string; } catch (error) { if (error instanceof JqLimitError) throw error; return fail("Invalid escape"); }
-        for (let index = 0; index < result.length; index++) {
-          const point = result.charCodeAt(index);
-          if (point >= 0xd800 && point <= 0xdbff) {
-            const next = result.charCodeAt(++index);
-            if (!(next >= 0xdc00 && next <= 0xdfff)) return fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
-          }
-        }
-        return Array.from(result, character => {
-          const point = character.codePointAt(0)!;
-          return point >= 0xdc00 && point <= 0xdfff ? "\ufffd" : character;
-        }).join("");
-      }
-      if (!escaped && character === "\\") escaped = true;
-      else escaped = false;
-    }
-    return fail("Unfinished string at EOF");
-  };
-  const parseValue = (depth: number): Json => {
-    budget.step(); space();
-    const character = text[offset];
-    if (character === '"') return string();
-    if (character === "[" || character === "{") {
-      if (depth + 1 > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-      offset++; space();
-      const result = character === "[" ? [] as Json[] : object();
-      const close = character === "[" ? "]" : "}";
-      if (text[offset] === close) { offset++; return result; }
-      while (true) {
-        rejectClose(text[offset] === close ? Array.isArray(result) ? "Expected another array element" : "Expected another key-value pair" : undefined);
-        if (Array.isArray(result)) { budget.collection(result.length + 1); result.push(parseValue(depth + 1)); }
-        else {
-          if (text[offset] !== '"') return fail();
-          const key = string(); space();
-          rejectClose(text[offset] === "}" ? "Objects must consist of key:value pairs" : undefined);
-          if (text[offset++] !== ":") return fail();
-          if (!Object.hasOwn(result, key)) budget.collection(objectSize(result) + 1);
-          put(result, key, parseValue(depth + 1));
-        }
-        space();
-        if (text[offset] === close) { offset++; return result; }
-        rejectClose();
-        if (text[offset++] !== ",") return fail();
-        space();
-      }
-    }
-    rejectClose();
-    const literal = /^(?:null|true|false|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/u.exec(text.slice(offset));
-    if (!literal) return fail();
-    offset += literal[0].length;
-    return /^[-0-9]/u.test(literal[0]) ? decimalNumber(literal[0], budget) : JSON.parse(literal[0]) as Json;
-  };
-  const value = parseValue(0); space();
-  rejectClose();
-  if (offset !== text.length) fail(value === null || typeof value === "boolean" ? "Invalid literal" : "Invalid numeric literal");
-  budget.value(value);
+  for (let index = 0; index < text.length; index++) {
+    if (index % 1024 === 0) budget.step();
+    accept(parser.feed(text[index]!));
+  }
+  accept(parser.finish());
+  if (value === undefined) throw new JqParseError("Expected JSON value", 0, 1, 0, false);
   return value;
 }
 export async function* readChunks(source: ByteSource, budget: Budget): AsyncGenerator<Uint8Array> {
@@ -129,16 +235,9 @@ export async function* readChunks(source: ByteSource, budget: Budget): AsyncGene
   budget.inputLocation.complete = true;
 }
 export async function* jsonValues(source: ByteSource, budget: Budget): AsyncGenerator<Json> {
-  let buffer = "";
-  let quoted = false;
-  let escaped = false;
-  let rootString = false;
-  const stack: string[] = [];
+  const parser = new JsonParser(budget);
   let scanned = 0;
-  let line = 1;
-  let column = 0;
   let nulTail: string | undefined;
-  const value = (): Json => parseJson(buffer, budget, true);
   async function* scan(text: string, completeLine = false): AsyncGenerator<Json> {
     for (const character of text) {
       if (++scanned % 1024 === 0) await budget.tick();
@@ -149,38 +248,17 @@ export async function* jsonValues(source: ByteSource, budget: Budget): AsyncGene
         if (character === "\n") { const tail = nulTail; nulTail = undefined; yield* scan(tail, true); }
         continue;
       }
-      if (character === "\n") { line++; column = 0; } else column++;
-      if (!buffer && /[\x20\t\r\n]/u.test(character)) continue;
-      if (!quoted && stack.length === 0 && buffer && /[\x20\t\r\n\[{"]/u.test(character)) {
-        const parsed = value(); buffer = ""; yield parsed;
-        if (/[\x20\t\r\n]/u.test(character)) continue;
-      }
-      if (!buffer) rootString = character === '"';
-      buffer += character;
-      if (buffer.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-      if (quoted) {
-        if (escaped) escaped = false;
-        else if (character === "\\") escaped = true;
-        else if (character === '"') {
-          quoted = false;
-          if (rootString && stack.length === 0) { const parsed = value(); buffer = ""; yield parsed; }
-        }
-      } else if (character === '"') quoted = true;
-      else if (character === "[" || character === "{") {
-        stack.push(character);
-        if (stack.length > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-      } else if (character === "]" || character === "}") {
-        if (stack.pop() !== (character === "]" ? "[" : "{")) throw new JqError("mismatched JSON delimiter");
-        if (!stack.length) { const parsed = value(); buffer = ""; yield parsed; }
-      }
+      const value = parser.feed(character);
+      if (value !== undefined) yield value;
     }
   }
   try {
     for await (const chunk of readChunks(source, budget)) yield* scan(Buffer.from(chunk).toString("latin1"));
-    if (buffer) yield value();
+    const value = parser.finish();
+    if (value !== undefined) yield value;
   } catch (error) {
     if (!(error instanceof JqParseError)) throw error;
-    throw new JqError(`parse error: ${error.detail} at line ${line}, column ${column}`);
+    throw new JqError(`parse error: ${error.diagnostic()}`);
   }
 }
 

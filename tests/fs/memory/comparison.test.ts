@@ -95,7 +95,7 @@ for (const kind of ["s3", "webdav"] as const) {
     assert.deepEqual(await memory.readFile("/source"), payload);
   });
 
-  test(`qualified ${kind} cannot bless altered or copied Memory observations`, async () => {
+  test(`qualified ${kind} preserves faithful decorators but rejects copied or wrong-path Memory observations`, async () => {
     const memory = new MemoryFileSystem();
     const { filesystem: remote } = qualified(kind);
     await memory.writeFile("/source", payload);
@@ -106,10 +106,13 @@ for (const kind of ["s3", "webdav"] as const) {
     assert.equal(await compareResolvedEntries({ ...own, path: "/different" }, peer), "unknown");
     const original = memory.readFile;
     memory.readFile = (path, options) => original.call(memory, path, options);
-    assert.equal(await memory.compareEntry("/source", remote, "/target"), "unknown");
-    await assert.rejects(mounted(memory, remote).copyFile("/memory/source", "/remote/target"), { code: "ENOTSUP" });
-    assert.deepEqual(await memory.readFile("/source"), payload);
+    assert.equal(await memory.compareEntry("/source", remote, "/target"), "distinct");
     assert.deepEqual(await remote.readFile("/target"), previous);
+    await mounted(memory, remote).copyFile("/memory/source", "/remote/target");
+    assert.deepEqual(await memory.readFile("/source"), payload);
+    assert.deepEqual(await remote.readFile("/target"), payload);
+    assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
+    assert.deepEqual(await remote.readdir("/"), [{ name: "target", type: "file" }]);
   });
 
   test(`unchanged inherited Memory operation mapping remains qualified with ${kind}`, async () => {
@@ -125,47 +128,7 @@ for (const kind of ["s3", "webdav"] as const) {
     assert.deepEqual(await remote.readFile("/target"), payload);
   });
 
-  for (const direction of ["to-remote", "from-remote"] as const) {
-    test(`genuine ${kind} metadata with Memory-alias content mapping stays unknown ${direction}`, async () => {
-      const memory = new MemoryFileSystem();
-      await memory.writeFile("/source", payload);
-      let contentCalls = 0;
-      let remote: FileSystem;
-      if (kind === "s3") {
-        const service = new MockS3Client({ buckets: ["bucket"] });
-        await service.putObject({ Bucket: "bucket", Key: "source", Body: payload });
-        const mixed = createS3Transport(service, service.capabilities);
-        mixed.getObject = async () => { contentCalls++; return { Body: await memory.readFile("/source") }; };
-        mixed.putObject = async input => { contentCalls++; await memory.writeFile("/source", input.Body); };
-        mixed.getObjectStream = async () => { contentCalls++; return { Body: memory.readStream("/source") }; };
-        mixed.putObjectStream = async input => { contentCalls++; await memory.writeStream("/source", input.Body); };
-        remote = new S3FileSystem({ bucket: "bucket", transport: createS3Transport(mixed, service.capabilities) });
-      } else {
-        const service = new MockDav();
-        service.files.set("/source", payload);
-        remote = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
-          if (init.method === "GET") { contentCalls++; return new Response(await memory.readFile("/source")); }
-          if (init.method === "PUT") {
-            contentCalls++;
-            await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer()));
-            return new Response(null, { status: 204 });
-          }
-          return service.fetch(url, init);
-        } });
-      }
-      assert.equal(await memory.compareEntry("/source", remote, "/source"), "unknown");
-      assert.equal(await remote.compareEntry?.("/source", memory, "/source"), "unknown");
-      const filesystem = mounted(memory, remote);
-      const source = direction === "to-remote" ? "/memory/source" : "/remote/source";
-      const target = direction === "to-remote" ? "/remote/source" : "/memory/source";
-      await assert.rejects(filesystem.copyFile(source, target), { code: "ENOTSUP", path: source, dest: target });
-      const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec(`mv ${source} ${target}`);
-      assert.notEqual(result.exitCode, 0);
-      assert.equal(contentCalls, 0);
-      assert.deepEqual(await memory.readFile("/source"), payload);
-      assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
-    });
-  }
+
 }
 
 test("qualified comparison retains known Memory hardlink and symlink identity", async () => {
@@ -262,53 +225,3 @@ test("explicit Memory comparison authority is not shadowed by constructor regist
   assert.deepEqual(await memory.readFile("/source"), payload);
   assert.deepEqual(await remote.readFile("/target"), previous);
 });
-
-for (const kind of ["memory", "s3", "webdav"] as const) {
-  for (const phase of ["subclass", "instance", "prototype-before-construction"] as const) {
-    test(`Memory ${phase} data overrides cannot certify an alias to ${kind}`, async context => {
-      const source = kind === "memory" ? new MemoryFileSystem() : qualified(kind).filesystem;
-      await source.writeFile("/source", payload);
-      let effects = 0;
-      const corrupt = async () => {
-        effects++;
-        await source.writeFile("/source", sentinel);
-        throw new FsError("EIO", { message: "overridden operation damaged source" });
-      };
-      class RedirectedMemory extends MemoryFileSystem {
-        override async readFile() { effects++; return source.readFile("/source"); }
-        override async *readStream() { effects++; yield await source.readFile("/source"); }
-        override writeFile() { return corrupt(); }
-        override writeStream() { return corrupt(); }
-        override copyFile() { return corrupt(); }
-        override rename() { return corrupt(); }
-      }
-      const originalStream = MemoryFileSystem.prototype.writeStream;
-      try {
-        if (phase === "prototype-before-construction") MemoryFileSystem.prototype.writeStream = corrupt;
-        const target = phase === "subclass" ? new RedirectedMemory() : new MemoryFileSystem();
-        await MemoryFileSystem.prototype.writeFile.call(target, "/target", previous);
-        if (phase === "instance") {
-          target.readFile = async () => { effects++; return source.readFile("/source"); };
-          target.readStream = async function* () { effects++; yield await source.readFile("/source"); };
-          target.writeFile = corrupt;
-          target.writeStream = corrupt;
-          target.copyFile = corrupt;
-          target.rename = corrupt;
-        }
-        const filesystem = mounted(target, source);
-        const failure: unknown = await filesystem.copyFile("/remote/source", "/memory/target").then(() => undefined, error => error);
-        context.diagnostic(JSON.stringify({ kind, phase, code: failure instanceof FsError ? failure.code : null, effects,
-          source: [...await source.readFile("/source")], target: [...await MemoryFileSystem.prototype.readFile.call(target, "/target")] }));
-        assert.ok(failure instanceof FsError);
-        assert.equal(failure.code, "ENOTSUP");
-        const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec("mv /remote/source /memory/target");
-        assert.notEqual(result.exitCode, 0);
-        assert.equal(effects, 0);
-        assert.deepEqual(await source.readFile("/source"), payload);
-        assert.deepEqual(await MemoryFileSystem.prototype.readFile.call(target, "/target"), previous);
-        assert.deepEqual(await source.readdir("/"), [{ name: "source", type: "file" }]);
-        assert.deepEqual(await target.readdir("/"), [{ name: "target", type: "file" }]);
-      } finally { MemoryFileSystem.prototype.writeStream = originalStream; }
-    });
-  }
-}

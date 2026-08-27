@@ -1,0 +1,158 @@
+TAP version 13
+# Subtest: CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping to-remote
+not ok 1 - CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping to-remote
+  ---
+  duration_ms: 10.881042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:1:1652'
+  failureType: 'testCodeFailure'
+  error: |-
+    mv: EBUSY: move source changed before removal '/memory/source'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:76:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"kind":"s3","direction":"to-remote","action":"copyFile","contentCalls":1,"memory":[],"namespace":[{"name":"source","type":"file"}]}
+# {"kind":"s3","direction":"to-remote","action":"mv","exitCode":1,"stderr":"mv: EBUSY: move source changed before removal '/memory/source'\\n","contentCalls":2,"namespace":[{"name":"source","type":"file"}],"memory":[]}
+# Subtest: CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping from-remote
+not ok 2 - CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping from-remote
+  ---
+  duration_ms: 1.630583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:1:1652'
+  failureType: 'testCodeFailure'
+  error: "EIO: input/output error, copyFile '/remote/source' -> '/memory/source'"
+  code: 'EIO'
+  name: 'FsError'
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:68:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping to-remote
+not ok 3 - CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping to-remote
+  ---
+  duration_ms: 22.008584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:1:1652'
+  failureType: 'testCodeFailure'
+  error: |-
+    mv: cannot preserve timestamps for '/remote/source': operation not supported; retaining copied data
+    mv: EBUSY: move source changed before removal '/memory/source'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/binding-violations.characterization.ts:76:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"webdav","direction":"to-remote","action":"copyFile","contentCalls":1,"memory":[0,255,128,13,10,65],"namespace":[{"name":"source","type":"file"}]}
+# {"kind":"webdav","direction":"to-remote","action":"mv","exitCode":1,"stderr":"mv: cannot preserve timestamps for '/remote/source': operation not supported; retaining copied data\\nmv: EBUSY: move source changed before removal '/memory/source'\\n","contentCalls":2,"namespace":[{"name":"source","type":"file"}],"memory":[0,255,128,13,10,65]}
+# Subtest: CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping from-remote
+ok 4 - CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping from-remote
+  ---
+  duration_ms: 6.000375
+  type: 'test'
+  ...
+# {"kind":"webdav","direction":"from-remote","action":"copyFile","contentCalls":1,"memory":[],"namespace":[{"name":"source","type":"file"}]}
+# {"kind":"webdav","direction":"from-remote","action":"mv","exitCode":0,"stderr":"","contentCalls":2,"namespace":[{"name":"source","type":"file"}],"memory":[]}
+# Subtest: CONTRACT VIOLATION: Memory subclass data overrides damage memory
+ok 5 - CONTRACT VIOLATION: Memory subclass data overrides damage memory
+  ---
+  duration_ms: 1.120375
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"memory","phase":"subclass","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory instance data overrides damage memory
+ok 6 - CONTRACT VIOLATION: Memory instance data overrides damage memory
+  ---
+  duration_ms: 0.723292
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"memory","phase":"instance","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage memory
+ok 7 - CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage memory
+  ---
+  duration_ms: 0.61475
+  type: 'test'
+  ...
+# {"kind":"memory","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"memory","phase":"prototype-before-construction","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory subclass data overrides damage s3
+ok 8 - CONTRACT VIOLATION: Memory subclass data overrides damage s3
+  ---
+  duration_ms: 2.241541
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"s3","phase":"subclass","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory instance data overrides damage s3
+ok 9 - CONTRACT VIOLATION: Memory instance data overrides damage s3
+  ---
+  duration_ms: 3.019542
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"s3","phase":"instance","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage s3
+ok 10 - CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage s3
+  ---
+  duration_ms: 4.540375
+  type: 'test'
+  ...
+# {"kind":"s3","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"s3","phase":"prototype-before-construction","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory subclass data overrides damage webdav
+ok 11 - CONTRACT VIOLATION: Memory subclass data overrides damage webdav
+  ---
+  duration_ms: 5.204042
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"webdav","phase":"subclass","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory instance data overrides damage webdav
+ok 12 - CONTRACT VIOLATION: Memory instance data overrides damage webdav
+  ---
+  duration_ms: 6.942625
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"webdav","phase":"instance","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage webdav
+ok 13 - CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage webdav
+  ---
+  duration_ms: 4.568
+  type: 'test'
+  ...
+# {"kind":"webdav","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# {"kind":"webdav","phase":"prototype-before-construction","action":"mv","exitCode":1,"stderr":"mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n","effects":2,"source":[17,18,19],"target":[4,0,253]}
+1..13
+# tests 13
+# suites 0
+# pass 10
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.838833

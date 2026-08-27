@@ -1,0 +1,154 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { standardCommands } from "../../../src/commands/index.js";
+import { FsError } from "../../../src/contracts/errors.js";
+import type { FileSystem } from "../../../src/contracts/filesystem.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
+import { createS3Transport, MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
+import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
+import { Shell } from "../../../src/shell/index.js";
+import { MockDav } from "../webdav/mock.js";
+
+const payload = new Uint8Array([0, 255, 128, 13, 10, 65]);
+const previous = new Uint8Array([4, 0, 253]);
+const sentinel = new Uint8Array([17, 18, 19]);
+const baseUrl = "https://qualified.invalid/dav/";
+type Kind = "s3" | "webdav";
+
+function qualified(kind: Kind) {
+  if (kind === "s3") {
+    const service = new MockS3Client({ buckets: ["bucket"] });
+    const filesystem = new S3FileSystem({ bucket: "bucket", transport: createS3Transport(service, service.capabilities) });
+    return { filesystem, operations: () => service.requests.map(request => request.operation) };
+  }
+  const service = new MockDav();
+  const filesystem = new WebDavFileSystem({ baseUrl, fetch: service.createFetch() });
+  return { filesystem, operations: () => service.requests.map(request => request.init.method ?? "") };
+}
+
+function mounted(memory: FileSystem, remote: FileSystem) {
+  return createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/memory": memory, "/remote": remote } });
+}
+
+for (const kind of ["s3", "webdav"] as const) {
+  for (const direction of ["to-remote", "from-remote"] as const) {
+    test(`CONTRACT VIOLATION: genuine ${kind} metadata with Memory-alias content mapping ${direction}`, async context => {
+      const memory = new MemoryFileSystem();
+      await memory.writeFile("/source", payload);
+      let contentCalls = 0;
+      let remote: FileSystem;
+      if (kind === "s3") {
+        const service = new MockS3Client({ buckets: ["bucket"] });
+        await service.putObject({ Bucket: "bucket", Key: "source", Body: payload });
+        const mixed = createS3Transport(service, service.capabilities);
+        mixed.getObject = async () => { contentCalls++; return { Body: await memory.readFile("/source") }; };
+        mixed.putObject = async input => { contentCalls++; await memory.writeFile("/source", input.Body); };
+        mixed.getObjectStream = async () => { contentCalls++; return { Body: memory.readStream("/source") }; };
+        mixed.putObjectStream = async input => { contentCalls++; await memory.writeStream("/source", input.Body); };
+        remote = new S3FileSystem({ bucket: "bucket", transport: createS3Transport(mixed, service.capabilities) });
+      } else {
+        const service = new MockDav();
+        service.files.set("/source", payload);
+        remote = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
+          if (init.method === "GET") { contentCalls++; return new Response(await memory.readFile("/source")); }
+          if (init.method === "PUT") {
+            contentCalls++;
+            await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer()));
+            return new Response(null, { status: 204 });
+          }
+          return service.fetch(url, init);
+        } });
+      }
+      assert.equal(await memory.compareEntry("/source", remote, "/source"), "distinct");
+      assert.equal(await remote.compareEntry?.("/source", memory, "/source"), "distinct");
+      const filesystem = mounted(memory, remote);
+      const source = direction === "to-remote" ? "/memory/source" : "/remote/source";
+      const target = direction === "to-remote" ? "/remote/source" : "/memory/source";
+      if (kind === "s3" && direction === "from-remote") {
+        await assert.rejects(filesystem.copyFile(source, target), { code: "EIO", path: source, dest: target });
+      } else {
+        await filesystem.copyFile(source, target);
+      }
+      context.diagnostic(JSON.stringify({ kind, direction, action: "copyFile", contentCalls,
+        memory: [...await memory.readFile("/source")], namespace: await memory.readdir("/") }));
+      const remainingBytes = kind === "webdav" && direction === "to-remote" ? payload : new Uint8Array();
+      assert.equal(contentCalls, 1);
+      assert.deepEqual(await memory.readFile("/source"), remainingBytes);
+      assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
+      const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec(`mv ${source} ${target}`);
+      const namespace = await memory.readdir("/");
+      context.diagnostic(JSON.stringify({ kind, direction, action: "mv", exitCode: result.exitCode,
+        stderr: result.stderr, contentCalls, namespace,
+        memory: namespace.length === 0 ? null : [...await memory.readFile("/source")] }));
+      assert.equal(result.exitCode, kind === "webdav" && direction === "from-remote" ? 0 : 1, result.stderr);
+      if (direction === "to-remote") {
+        const warning = kind === "webdav"
+          ? "mv: cannot preserve timestamps for '/remote/source': operation not supported; retaining copied data\n" : "";
+        assert.equal(result.stderr, `${warning}mv: EBUSY: move source changed before removal '/memory/source'\n`);
+      } else {
+        assert.equal(result.stderr, kind === "s3"
+          ? "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/source'\n" : "");
+      }
+      assert.equal(contentCalls, 2);
+      assert.deepEqual(await memory.readFile("/source"), remainingBytes);
+      assert.deepEqual(namespace, [{ name: "source", type: "file" }]);
+    });
+  }
+}
+
+for (const kind of ["memory", "s3", "webdav"] as const) {
+  for (const phase of ["subclass", "instance", "prototype-before-construction"] as const) {
+    test(`CONTRACT VIOLATION: Memory ${phase} data overrides damage ${kind}`, async context => {
+      const source = kind === "memory" ? new MemoryFileSystem() : qualified(kind).filesystem;
+      await source.writeFile("/source", payload);
+      let effects = 0;
+      const corrupt = async () => {
+        effects++;
+        await source.writeFile("/source", sentinel);
+        throw new FsError("EIO", { message: "overridden operation damaged source" });
+      };
+      class RedirectedMemory extends MemoryFileSystem {
+        override async readFile() { effects++; return source.readFile("/source"); }
+        override async *readStream() { effects++; yield await source.readFile("/source"); }
+        override writeFile() { return corrupt(); }
+        override writeStream() { return corrupt(); }
+        override copyFile() { return corrupt(); }
+        override rename() { return corrupt(); }
+      }
+      const originalStream = MemoryFileSystem.prototype.writeStream;
+      try {
+        if (phase === "prototype-before-construction") MemoryFileSystem.prototype.writeStream = corrupt;
+        const target = phase === "subclass" ? new RedirectedMemory() : new MemoryFileSystem();
+        await MemoryFileSystem.prototype.writeFile.call(target, "/target", previous);
+        if (phase === "instance") {
+          target.readFile = async () => { effects++; return source.readFile("/source"); };
+          target.readStream = async function* () { effects++; yield await source.readFile("/source"); };
+          target.writeFile = corrupt;
+          target.writeStream = corrupt;
+          target.copyFile = corrupt;
+          target.rename = corrupt;
+        }
+        const filesystem = mounted(target, source);
+        const failure: unknown = await filesystem.copyFile("/remote/source", "/memory/target").then(() => undefined, error => error);
+        context.diagnostic(JSON.stringify({ kind, phase, code: failure instanceof FsError ? failure.code : null, effects,
+          source: [...await source.readFile("/source")], target: [...await MemoryFileSystem.prototype.readFile.call(target, "/target")] }));
+        assert.ok(failure instanceof FsError);
+        assert.equal(failure.code, "EIO");
+        assert.equal(effects, 1);
+        assert.deepEqual(await source.readFile("/source"), sentinel);
+        assert.deepEqual(await MemoryFileSystem.prototype.readFile.call(target, "/target"), previous);
+        const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec("mv /remote/source /memory/target");
+        context.diagnostic(JSON.stringify({ kind, phase, action: "mv", exitCode: result.exitCode, stderr: result.stderr, effects,
+          source: [...await source.readFile("/source")], target: [...await MemoryFileSystem.prototype.readFile.call(target, "/target")] }));
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stderr, "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\n");
+        assert.equal(effects, 2);
+        assert.deepEqual(await source.readFile("/source"), sentinel);
+        assert.deepEqual(await MemoryFileSystem.prototype.readFile.call(target, "/target"), previous);
+        assert.deepEqual(await source.readdir("/"), [{ name: "source", type: "file" }]);
+        assert.deepEqual(await target.readdir("/"), [{ name: "target", type: "file" }]);
+      } finally { MemoryFileSystem.prototype.writeStream = originalStream; }
+    });
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../../src/commands/metadata/**/*.ts", "./*.ts"],
+  "exclude": [".oracle", "../../../node_modules", "../../../dist"]
+}

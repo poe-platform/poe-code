@@ -5,8 +5,10 @@ import {
   type ActionRuntimeHandles,
   type ActionSource
 } from "./actions.js";
+import { prepareDetailContent } from "./detail-content.js";
 import type { Effect, ExplorerEvent } from "./events.js";
 import { type FilterMatch, filterRows } from "./filter.js";
+import { computeExplorerLayout, paneBodyRect } from "./layout.js";
 import {
   REGION_ALL,
   REGION_DETAIL,
@@ -816,37 +818,20 @@ function maxDetailScroll(state: ExplorerState): number {
   }
 
   if (items.length === 1 && items[0]?.title === undefined) {
-    const visibleHeight = detailBodyHeight(state);
-    if (visibleHeight <= 0) {
+    const body = paneBodyRect(computeExplorerLayout({ ...state.size, focused: state.focused }).detail);
+    const content = items[0]?.renderedContent;
+    if (body.width <= 0 || body.height <= 0 || content === undefined) {
       return 0;
     }
-    return Math.max(0, detailContentLineCount(items[0]!) - visibleHeight);
+    return Math.max(0, prepareDetailContent(content, body.width).lines.length - body.height);
   }
 
   return Math.max(0, items.length - 1);
 }
 
-function detailContentLineCount(item: DetailItem): number {
-  return (item.renderedContent ?? "").split("\n").length;
-}
-
 function detailBodyHeight(state: ExplorerState): number {
-  if (state.layout === "too-narrow" || (state.layout === "narrow-list-only" && state.focused !== "detail")) {
-    return 0;
-  }
-
-  const rows = normalizeSize(state.size.rows);
-  const footerHeight = rows > 0 ? Math.min(1, rows) : 0;
-  const headerHeight = Math.min(3, Math.max(0, rows - footerHeight));
-  const contentHeight = Math.max(0, rows - headerHeight - footerHeight);
-
-  if (state.layout === "narrow-vertical") {
-    const listHeight = Math.ceil(contentHeight / 2);
-    const detailHeight = contentHeight - listHeight;
-    return Math.max(0, detailHeight - 2);
-  }
-
-  return Math.max(0, contentHeight - 2);
+  const body = paneBodyRect(computeExplorerLayout({ ...state.size, focused: state.focused }).detail);
+  return body.width > 0 ? body.height : 0;
 }
 
 function extendSelection(state: ExplorerState, delta: number): StepResult {

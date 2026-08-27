@@ -22,6 +22,35 @@ afterEach(() => {
 });
 
 describe("runExplorer", () => {
+  it("scrolls prepared wrapped content without repeating the user callback", async () => {
+    mockTerminal.driver = new FakeTerminalDriver(70, 14);
+    const words = Array.from({ length: 24 }, (_, index) => `word${String(index + 1).padStart(2, "0")}-${"x".repeat(43)}`);
+    const render = vi.fn(() => words.join(" "));
+    const result = runExplorer(config({ detail: { items: async () => [{ id: "body", render }] } }));
+    try {
+      await waitFor(() => render.mock.calls.length === 1);
+      for (const input of ["\t", "\u001b[6~"]) {
+        const parsed = parseKeypress(Buffer.from(input));
+        if (parsed === undefined) throw new Error("Unparsed key");
+        driver().press(parsed);
+      }
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(screen()).toContain(" 50% ");
+      expect(screen()).toContain(words[8]);
+      driver().press(named("pagedown"));
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(screen()).toContain(" 100% ");
+      expect(screen()).toContain(words[23]);
+      driver().resize(200, 14);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(screen()).toContain(" 100% ");
+      expect(render).toHaveBeenCalledTimes(1);
+    } finally {
+      driver().press(ctrl("c"));
+      await result;
+    }
+  });
+
   it("paints immediately, coalesces navigation, and Ctrl+C quits", async () => {
     const result = runExplorer(config());
     await waitFor(() => screen().includes("One"));

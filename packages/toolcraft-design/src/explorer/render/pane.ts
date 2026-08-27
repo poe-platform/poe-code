@@ -43,11 +43,4 @@ export function drawPaneFrame(
   }
 }
 
-export function paneBodyRect(rect: Rect): Rect {
-  return {
-    x: rect.x + 2,
-    y: rect.y + 1,
-    width: Math.max(0, rect.width - 4),
-    height: Math.max(0, rect.height - 2)
-  };
-}
+export { paneBodyRect } from "../layout.js";

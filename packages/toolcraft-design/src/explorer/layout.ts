@@ -101,6 +101,15 @@ export function computeExplorerLayout(opts: ExplorerLayoutOptions): ExplorerLayo
   };
 }
 
+export function paneBodyRect(rect: Rect): Rect {
+  return {
+    x: rect.x + 2,
+    y: rect.y + 1,
+    width: Math.max(0, rect.width - 4),
+    height: Math.max(0, rect.height - 2)
+  };
+}
+
 function resolveMode(cols: number, rows: number): ExplorerLayoutMode {
   if (cols < 60 || rows < 8) {
     return "too-narrow";

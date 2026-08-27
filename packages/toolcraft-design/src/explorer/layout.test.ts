@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeExplorerLayout, type ExplorerLayout } from "./layout.js";
+import { computeExplorerLayout, paneBodyRect, type ExplorerLayout } from "./layout.js";
+import { paneBodyRect as legacyPaneBodyRect } from "./render/pane.js";
 
 function expectFullWidthBands(layout: ExplorerLayout, cols: number, rows: number): void {
   expect(layout.header).toMatchObject({ x: 0, y: 0, width: cols });
@@ -25,6 +26,13 @@ function expectAreaCoversViewport(
 }
 
 describe("computeExplorerLayout", () => {
+  it("owns body insets and preserves the pane re-export", () => {
+    expect(legacyPaneBodyRect).toBe(paneBodyRect);
+    expect(paneBodyRect({ x: 0, y: 3, width: 70, height: 10 })).toEqual({ x: 2, y: 4, width: 66, height: 8 });
+    expect(paneBodyRect({ x: 10, y: 5, width: 3, height: 1 })).toEqual({ x: 12, y: 6, width: 0, height: 0 });
+    expect(paneBodyRect({ x: 70, y: 3, width: 0, height: 10 })).toEqual({ x: 72, y: 4, width: 0, height: 8 });
+  });
+
   it("uses too-narrow mode below 60 columns", () => {
     const layout = computeExplorerLayout({ cols: 59, rows: 12 });
 

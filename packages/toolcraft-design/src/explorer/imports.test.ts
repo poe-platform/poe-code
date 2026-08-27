@@ -14,8 +14,9 @@ const leafModules = new Set([
   "layout.ts",
   "theme.ts"
 ]);
-const reducerAllowed = new Set(["actions.ts", "events.ts", "filter.ts", "keymap.ts", "state.ts", "dashboard/terminal-width.ts"]);
+const reducerAllowed = new Set(["actions.ts", "detail-content.ts", "events.ts", "filter.ts", "keymap.ts", "layout.ts", "state.ts", "dashboard/terminal-width.ts"]);
 const renderAllowed = new Set([
+  "detail-content.ts",
   "layout.ts",
   "state.ts",
   "theme.ts",
@@ -79,6 +80,28 @@ describe("explorer import boundaries", () => {
     expect(validateEdge({ source: "jobs.ts", target: "dashboard/terminal-width.ts", typeOnly: false })).not.toEqual([]);
     expect(validateEdge({ source: "filter.ts", target: "dashboard/terminal.ts", typeOnly: false })).not.toEqual([]);
   });
+
+  it("permits shared detail preparation and geometry without renderer dependencies in the reducer", () => {
+    for (const edge of [
+      { source: "reducer.ts", target: "detail-content.ts" },
+      { source: "reducer.ts", target: "layout.ts" },
+      { source: "render/detail.ts", target: "detail-content.ts" },
+      { source: "detail-content.ts", target: "screen/ansi-text.ts" },
+      { source: "detail-content.ts", target: "terminal-markdown/index.ts" }
+    ]) {
+      expect(validateEdge({ ...edge, typeOnly: false })).toEqual([]);
+    }
+    for (const edge of [
+      { source: "reducer.ts", target: "render/detail.ts" },
+      { source: "reducer.ts", target: "terminal-markdown/index.ts" },
+      { source: "detail-content.ts", target: "render/detail.ts" },
+      { source: "detail-content.ts", target: "runtime.ts" },
+      { source: "detail-content.ts", target: "dashboard/terminal.ts" },
+      { source: "layout.ts", target: "detail-content.ts" }
+    ]) {
+      expect(validateEdge({ ...edge, typeOnly: false })).not.toEqual([]);
+    }
+  });
 });
 
 async function listSourceFiles(directory: string): Promise<string[]> {
@@ -133,6 +156,12 @@ function validateEdge(edge: ImportEdge): string[] {
     return [];
   }
 
+  if (edge.source === "detail-content.ts") {
+    return edge.target === "screen/ansi-text.ts" || edge.target === "terminal-markdown/index.ts"
+      ? []
+      : [formatViolation(edge, "detail preparation may only import ANSI cells and Markdown rendering")];
+  }
+
   if (edge.source.startsWith("render/")) {
     if (edge.target.startsWith("render/") || renderAllowed.has(edge.target)) {
       return [];
@@ -150,7 +179,7 @@ function validateEdge(edge: ImportEdge): string[] {
     return reducerAllowed.has(edge.target)
       ? []
       : [
-          formatViolation(edge, "reducer may only import state, events, actions, keymap, or filter")
+          formatViolation(edge, "reducer may only import state, events, actions, keymap, filter, layout, detail preparation, or graphemes")
         ];
   }
 

@@ -1,13 +1,10 @@
 import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
-import { ansiToCells } from "../../screen/ansi-text.js";
-import { renderMarkdown } from "../../terminal-markdown/index.js";
-import type { ExplorerLayout, Rect } from "../layout.js";
+import { prepareDetailContent, type PreparedDetailContent } from "../detail-content.js";
+import { paneBodyRect, type ExplorerLayout, type Rect } from "../layout.js";
 import type { DetailItem, ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
-import { drawPaneFrame, paneBodyRect } from "./pane.js";
+import { drawPaneFrame } from "./pane.js";
 import { fitToWidth } from "./text.js";
-
-const markdownCache = new Map<string, string>();
 
 export function renderDetail(
   state: ExplorerState,
@@ -61,7 +58,8 @@ function renderDetailBody(
   }
 
   if (items.length === 1 && items[0]?.title === undefined) {
-    return renderBlob(screen, rect, renderItemMarkdown(items[0]!, rect, row), state.detail.scroll);
+    const content = prepareDetailContent(renderItem(items[0]!, rect, row), rect.width);
+    return renderBlob(screen, rect, content.lines, state.detail.scroll);
   }
 
   return renderListMode(state, screen, rect, items, row);
@@ -100,7 +98,8 @@ function renderListMode(
       y += 1;
     }
 
-    for (const line of renderItemMarkdown(item, rect, row).split("\n")) {
+    const content = prepareDetailContent(renderItem(item, rect, row), rect.width);
+    for (const line of content.text.split("\n")) {
       if (y >= rect.height) {
         break;
       }
@@ -115,12 +114,7 @@ function renderListMode(
   return { start, max };
 }
 
-function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: number): { start: number; max: number } {
-  const allLines: ReturnType<typeof ansiToCells>[] = [[]];
-  for (const cell of ansiToCells(text)) {
-    if (cell.ch === "\n") allLines.push([]);
-    else allLines.at(-1)!.push(cell);
-  }
+function renderBlob(screen: ScreenBuffer, rect: Rect, allLines: PreparedDetailContent["lines"], scroll: number): { start: number; max: number } {
   const max = Math.max(0, allLines.length - rect.height);
   const start = clamp(scroll, 0, max);
   const lines = allLines.slice(start);
@@ -133,21 +127,6 @@ function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: numb
     }
   }
   return { start, max };
-}
-
-function renderItemMarkdown(item: DetailItem, rect: Rect, row: Row | null): string {
-  const content = renderItem(item, rect, row);
-  if (content.trim().length === 0) {
-    return "";
-  }
-
-  const width = Math.max(1, rect.width);
-  const key = `${contentHash(content)}:${width}`;
-  const cached = markdownCache.get(key);
-  if (cached !== undefined) return cached;
-  const rendered = renderMarkdown(content, { width }).trimEnd();
-  markdownCache.set(key, rendered);
-  return rendered;
 }
 
 function renderItem(item: DetailItem, rect: Rect, row: Row | null): string {
@@ -182,13 +161,4 @@ function clamp(value: number, min: number, max: number): number {
 function scrollIndicator(state: ExplorerState, start: number, max: number): string {
   if (state.detail.loading) return "⠋";
   return `${max === 0 ? 0 : Math.round((start / max) * 100)}%`;
-}
-
-function contentHash(content: string): number {
-  let hash = 2166136261;
-  for (let index = 0; index < content.length; index += 1) {
-    hash ^= content.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
 }

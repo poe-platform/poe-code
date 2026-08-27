@@ -1,0 +1,80 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E01",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E01/boundary-1",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {
+            "maxOutputBytes": 40
+          },
+          "inputHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 40,
+          "stdoutSha256": "137808211cebe91e47aea556094b073219c7db776a655b07c2d4f5220b0fe2af",
+          "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 19,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E01/boundary-2",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {
+            "maxOutputBytes": 39
+          },
+          "inputHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 39,
+          "stdoutSha256": "e2b98b283966625370f8a71a54bdf09a1371bb1a3b450e85417a1a1fe4744edf",
+          "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a6220202020202032322020",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206f7574707574206c696d69742065786365656465640a",
+          "writes": 18,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 153,
+    "units": 215
+  },
+  "counts": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0
+  }
+}

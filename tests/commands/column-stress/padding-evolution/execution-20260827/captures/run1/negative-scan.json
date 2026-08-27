@@ -1,0 +1,69 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/scan-mutant",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/scan-mutant/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/scan-mutant/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E04",
+  "mutation": "scan-mutant",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E04/sparse-20000x1024",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {
+            "maxSteps": 1000000,
+            "maxOutputBytes": 40000
+          },
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a20496e646570656e64656e7420756e636861726765642d77696474682074726176657273616c2067756172640a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 12,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "allocationObservation": {
+        "tableAllocationSlots": 0,
+        "guardTrips": 0
+      },
+      "work": {
+        "calls": 81036,
+        "units": 82059
+      },
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(result.stderr.toString().includes(\"work\"))\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(result.stderr.toString().includes(\"work\"))\n\n    at sparse (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:109:42)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:132:43"
+      }
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 81036,
+    "units": 82059
+  },
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  }
+}

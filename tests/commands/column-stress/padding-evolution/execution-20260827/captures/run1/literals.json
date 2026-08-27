@@ -1,0 +1,769 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "literals",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "P01",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 40,
+          "stdoutSha256": "137808211cebe91e47aea556094b073219c7db776a655b07c2d4f5220b0fe2af",
+          "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 19,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020390a616c7068612020312020207461696c0a6220202020202032320a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P02",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ",:"
+          ],
+          "limits": {},
+          "inputHex": "612c623a630a643a3a652c0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 20,
+          "stdoutSha256": "dc521eb5884f7eb4d2927d14325238228a97642dc534ee90b57ef3d9ad423e4b",
+          "stdoutHex": "6120206220206320200a6420202020206520200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020622020630a642020650a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6120206220206320200a6420202020206520200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P03",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 52,
+          "stdoutSha256": "800c47329757a71b0da8f18160c2a78331ba018c3460a2ae5275a54905d6435e",
+          "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 17,
+          "maxWriteBytes": 14,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P04",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            "|"
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363633a646464640a7a0a6c6f6e673a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 43,
+          "stdoutSha256": "26b9ac9c538a62859bb130a294820d6fc126a8ab3145c5fec38c210ac06f2251",
+          "stdoutHex": "612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 17,
+          "maxWriteBytes": 11,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P05",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            "界"
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363630a7a0a6c6f6e673a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 42,
+          "stdoutSha256": "a0155036caf61ab1072b1f80be1af86477eab17ec251d96f467a7d401f0fce9b",
+          "stdoutHex": "61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 15,
+          "maxWriteBytes": 11,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P06",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363630a7a0a713a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 15,
+          "stdoutSha256": "a51054b5a6f82fd6d40926a2e3149ada2fb01eae32617249b9d0a0cd64680c91",
+          "stdoutHex": "6162626363630a7a20200a7120200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 10,
+          "maxWriteBytes": 3,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6162626363630a7a20200a7120200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P07",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "3a613a3a0a623a3a633a0a3a3a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 30,
+          "stdoutSha256": "2bda3339314cf21b8ab4ddf666d16343b364b8b6e4945478444d4dae6790e259",
+          "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 21,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "610a622020630a286e756c6c290a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P08",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "613a3a0a620a3a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 18,
+          "stdoutSha256": "7da09d98b517e914403939b33841df0d6b53c7e7481f9164a10d4fa4e36f2ebe",
+          "stdoutHex": "61202020200a62202020200a20202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 11,
+          "maxWriteBytes": 4,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "610a620a286e756c6c290a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61202020200a62202020200a20202020200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P09",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {},
+          "inputHex": "613acc813acc800a620a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 8,
+          "stdoutSha256": "d253dac5919340a6fdb92a6546b739633488fec1436e41b99e96447a8029d964",
+          "stdoutHex": "61cc81cc800a620a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61cc81cc800a620a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P10",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "e7958c3a65cc813af09f98800a610a62623ae4b8ad0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 35,
+          "stdoutSha256": "c3bdd9a8ab16aa173b3e5d14666bce10fb0c5d1f37b747b39c37682409f4beda",
+          "stdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 15,
+          "maxWriteBytes": 7,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "e7958c202065cc81202020f09f98800a610a62622020e4b8ad0a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P11",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "20090a7a20390a616c7068612031207461696c0a62203232",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 40,
+          "stdoutSha256": "137808211cebe91e47aea556094b073219c7db776a655b07c2d4f5220b0fe2af",
+          "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 19,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "7a202020202020390a616c70686120203120207461696c0a",
+          "rawStderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P12",
+      "observations": [
+        {
+          "argv": [],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a640a770a650a760a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 22,
+          "stdoutSha256": "3679a97eef65bc2fd878a62b44573380d2ae01b929b6fe66759475e8f893fb65",
+          "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 22,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P13",
+      "observations": [
+        {
+          "argv": [
+            "-x",
+            "-c",
+            "24"
+          ],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 14,
+          "stdoutSha256": "34aee529fb0645b92b032a3ab58cc596e5b278388c2d257cdd614ff96bead1af",
+          "stdoutHex": "7a096109710a62097909630a780a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096109710a62097909630a780a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096109710a62097909630a780a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P14",
+      "observations": [
+        {
+          "argv": [
+            "-c",
+            "24"
+          ],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 14,
+          "stdoutSha256": "93a277000a0914cd2118dcec53b56b36e794909ee0048b4f678ef7c33d91f9f9",
+          "stdoutHex": "7a096209780a6109790a7109630a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096209780a6109790a7109630a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096209780a6109790a7109630a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P15",
+      "observations": [
+        {
+          "argv": [
+            "-x",
+            "-c",
+            "1"
+          ],
+          "limits": {},
+          "inputHex": "616c7068610a620a630a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 10,
+          "stdoutSha256": "094aa0d67546bf307476d368523c8c5d3381e69ba349aa67f5d54520f8d233f5",
+          "stdoutHex": "616c7068610a620a630a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "616c7068610a620a630a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "616c7068610a620a630a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P16",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-c",
+            "1"
+          ],
+          "limits": {},
+          "inputHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 52,
+          "stdoutSha256": "800c47329757a71b0da8f18160c2a78331ba018c3460a2ae5275a54905d6435e",
+          "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 17,
+          "maxWriteBytes": 14,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P17",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ",界"
+          ],
+          "limits": {},
+          "inputHex": "61e7958c622c630a64e7958ce7958c652c0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 20,
+          "stdoutSha256": "dc521eb5884f7eb4d2927d14325238228a97642dc534ee90b57ef3d9ad423e4b",
+          "stdoutHex": "6120206220206320200a6420202020206520200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020622020630a642020650a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6120206220206320200a6420202020206520200a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 1052,
+    "units": 1328
+  },
+  "counts": {
+    "total": 17,
+    "pass": 17,
+    "fail": 0
+  }
+}

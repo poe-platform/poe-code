@@ -1,0 +1,23 @@
+{
+  "commit": "a809635432f18a235b8fb622a05367bedc54b315",
+  "sourceTree": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "at": "2026-08-27T15:57:28.765Z",
+  "sourceHashes": {
+    "src/commands/column/column.ts": "5422966f69620cf0a60cdbded9c662ad16da09c609e3ce949e52da21be030f7d",
+    "src/commands/column/display.ts": "c79c3570b5e84e0304851ba782e4946f3f340ad3e70414f4aa123b600cbd4117",
+    "src/commands/column/index.ts": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+    "src/commands/column/internal.ts": "2389e73fc1a79e4734a032f5d60d2ad1a6538500f559254fc9b7784c1e8cc5e4",
+    "src/commands/column/options.ts": "e26bdac0703fc65bc481e4ef42b9e7f5d3bccd43fda296463615eef389b613ec",
+    "src/commands/column/table.ts": "7aa3fa6d82d43fe89b3f704c4614838a0db4750421a50367dd6e187e5ce4cf55"
+  },
+  "sourceDigest": "e4f9a8d1690600807d496ae8bc42409cc98344ee7bba10ea702a136d52cd370e",
+  "originalGitBlobsVerified": 26647,
+  "entryCount": 27390,
+  "inventorySha256": "dbd982bd897077fa53e20d9994184a8bb6801323fd903cd887948475ad851ba6",
+  "detectsAdditions": true,
+  "comparedTo": null,
+  "fullInventoryRetainedAt": "/tmp/safe-bash-column-padding-MmS9An/tree-before-runtime.json",
+  "fullInventorySha256": "f4830557aeff3806caee6f0288ea29c6204146f21aef5261c9e717f9de37f54c",
+  "entryMembershipAuthority": "All original entries are enumerated by the immutable Git commit. Generated entries/dev links additionally recorded in final-integrity/auth-before. Full raw inventory retained in isolated tmp, not duplicated three times in Git."
+}

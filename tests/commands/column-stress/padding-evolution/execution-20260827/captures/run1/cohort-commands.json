@@ -1,0 +1,171 @@
+{
+  "commands": [
+    {
+      "name": "negative-hang",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/negative-hang-process.json"
+    },
+    {
+      "name": "negative-output-flood",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/negative-output-flood-process.json"
+    },
+    {
+      "name": "negative-worker-leak",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/negative-worker-leak-process.json"
+    },
+    {
+      "name": "author148",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/author148-process.json"
+    },
+    {
+      "name": "owned-six-regressions",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/owned-six-regressions-process.json"
+    },
+    {
+      "name": "scoped-types",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/scoped-types-process.json"
+    },
+    {
+      "name": "unchanged-old40",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/unchanged-old40-process.json"
+    },
+    {
+      "name": "literals",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/literals-process.json"
+    },
+    {
+      "name": "E01",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E01-process.json"
+    },
+    {
+      "name": "E02",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E02-process.json"
+    },
+    {
+      "name": "E03",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E03-process.json"
+    },
+    {
+      "name": "E04",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E04-process.json"
+    },
+    {
+      "name": "E05",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E05-process.json"
+    },
+    {
+      "name": "E06",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E06-process.json"
+    },
+    {
+      "name": "E07",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E07-process.json"
+    },
+    {
+      "name": "E08",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E08-process.json"
+    },
+    {
+      "name": "E09",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E09-process.json"
+    },
+    {
+      "name": "E10",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E10-process.json"
+    },
+    {
+      "name": "E11",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E11-process.json"
+    },
+    {
+      "name": "E12",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E12-process.json"
+    },
+    {
+      "name": "E13",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E13-process.json"
+    },
+    {
+      "name": "E14",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E14-process.json"
+    },
+    {
+      "name": "E15",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E15-process.json"
+    },
+    {
+      "name": "E16",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/E16-process.json"
+    },
+    {
+      "name": "supplemental",
+      "status": 0,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/supplemental-process.json"
+    },
+    {
+      "name": "negative-wrong-padding",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/negative-wrong-padding-process.json"
+    },
+    {
+      "name": "negative-no-output-admission",
+      "status": 1,
+      "signal": null,
+      "output": "/tmp/safe-bash-column-padding-MmS9An/run1/negative-no-output-admission-process.json"
+    }
+  ],
+  "harnessHashesAfter": {
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/runner.mjs": "32ca0e1ad0425b6084cfd1bd3c4eb8f3c8d06cafee545a6df8ea7bbc0688cf2a",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/run-cohorts.mjs": "3982930a183d7065700f1124e064cda0c9f1150fa81a4b50528dce343be9f210"
+  }
+}

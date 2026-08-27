@@ -1,0 +1,10 @@
+(version 1)
+(allow default)
+(deny network*)
+(deny file-read*
+  (subpath "/Users/kjopek/Workspace/safe-bash")
+  (subpath "/private/tmp/safe-bash-column-padding-MmS9An/candidate")
+  (subpath "/private/tmp/safe-bash-column-padding-MmS9An/pack-staging")
+  (subpath "/private/tmp/safe-bash-column-padding-MmS9An/rectangle-mutant")
+  (subpath "/private/tmp/safe-bash-column-padding-MmS9An/scan-probe-reference")
+  (subpath "/private/tmp/safe-bash-column-padding-MmS9An/scan-mutant"))

@@ -1,0 +1,390 @@
+{
+  "classification": "exact-two-patched-bodies-no-product-import-or-mutant",
+  "negativeControls": 8,
+  "negativeControlsRejected": 8,
+  "positiveControls": 2,
+  "positiveControlsAccepted": 2,
+  "productPasses": 0,
+  "rows": [
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "control": "fulfilled-status-0-swallow",
+      "exactPatchedBodySha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "external-return-sentinel",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "type": "Buffer",
+            "data": [
+              101,
+              120,
+              116,
+              101,
+              114,
+              110,
+              97,
+              108,
+              45,
+              114,
+              101,
+              116,
+              117,
+              114,
+              110,
+              45,
+              115,
+              101,
+              110,
+              116,
+              105,
+              110,
+              101,
+              108
+            ]
+          }
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "control": "fulfilled-status-2",
+      "exactPatchedBodySha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "external-return-sentinel",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "type": "Buffer",
+            "data": [
+              101,
+              120,
+              116,
+              101,
+              114,
+              110,
+              97,
+              108,
+              45,
+              114,
+              101,
+              116,
+              117,
+              114,
+              110,
+              45,
+              115,
+              101,
+              110,
+              116,
+              105,
+              110,
+              101,
+              108
+            ]
+          }
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "control": "wrong-reason",
+      "exactPatchedBodySha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [Error: wrong reason]\n- [Error: external-return-sentinel]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [Error: wrong reason]\n- [Error: external-return-sentinel]\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "wrong reason",
+          "stack": "Error: wrong reason\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:18:19",
+          "identicalSentinel": false
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "control": "equal-message-wrong-object",
+      "exactPatchedBodySha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Values have same structure but are not reference-equal:\n\n[Error: external-return-sentinel]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n[Error: external-return-sentinel]\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "external-return-sentinel",
+          "stack": "Error: external-return-sentinel\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:18:19",
+          "identicalSentinel": false
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "control": "exact-identity-positive",
+      "exactPatchedBodySha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6",
+      "assertionRejected": false,
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "external-return-sentinel",
+          "stack": "Error: external-return-sentinel\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:17:21",
+          "identicalSentinel": true
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "control": "fulfilled-status-0-swallow",
+      "exactPatchedBodySha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "shared-grep-return-sentinel",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "type": "Buffer",
+            "data": [
+              115,
+              104,
+              97,
+              114,
+              101,
+              100,
+              45,
+              103,
+              114,
+              101,
+              112,
+              45,
+              114,
+              101,
+              116,
+              117,
+              114,
+              110,
+              45,
+              115,
+              101,
+              110,
+              116,
+              105,
+              110,
+              101,
+              108
+            ]
+          }
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "control": "fulfilled-status-2",
+      "exactPatchedBodySha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok('error' in outcome)\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "shared-grep-return-sentinel",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "type": "Buffer",
+            "data": [
+              115,
+              104,
+              97,
+              114,
+              101,
+              100,
+              45,
+              103,
+              114,
+              101,
+              112,
+              45,
+              114,
+              101,
+              116,
+              117,
+              114,
+              110,
+              45,
+              115,
+              101,
+              110,
+              116,
+              105,
+              110,
+              101,
+              108
+            ]
+          }
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "control": "wrong-reason",
+      "exactPatchedBodySha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [Error: wrong reason]\n- [Error: shared-grep-return-sentinel]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [Error: wrong reason]\n- [Error: shared-grep-return-sentinel]\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "wrong reason",
+          "stack": "Error: wrong reason\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:18:19",
+          "identicalSentinel": false
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "control": "equal-message-wrong-object",
+      "exactPatchedBodySha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b",
+      "assertionRejected": true,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Values have same structure but are not reference-equal:\n\n[Error: shared-grep-return-sentinel]\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n[Error: shared-grep-return-sentinel]\n\n    at eval (eval at <anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:15:28), <anonymous>:9:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:28:11"
+      },
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "shared-grep-return-sentinel",
+          "stack": "Error: shared-grep-return-sentinel\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:18:19",
+          "identicalSentinel": false
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "control": "exact-identity-positive",
+      "exactPatchedBodySha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b",
+      "assertionRejected": false,
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "shared-grep-return-sentinel",
+          "stack": "Error: shared-grep-return-sentinel\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs:17:21",
+          "identicalSentinel": true
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "execCalls": 1,
+      "disposeCalls": 1,
+      "classification": "assertion-control-with-stub-settlement-not-product-execution"
+    }
+  ]
+}

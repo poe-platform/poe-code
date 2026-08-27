@@ -1,8 +1,7 @@
 {
   "job": "grep-queued-abort",
   "resultSha256": "572f59ca68457ae070a8bba059a14776e28b8446d119a338a831df4868ff94c5",
-  "decision": "PASS_REVIEWED_CONTINUE",
-  "continuationProvenance": "ROOT explicitly resolves the reviewer ownership ambiguity only; see slot-six-resolution-record.json, root-slot-six-resolution.json and independent-queued-abort-adjudication.md. Original inspection and STOP are preserved byte-identically in five-slot-2026-08-27. Historical review text and findings remain unchanged. Only the unused benign rg-queued-abort slot is authorized by the unchanged valid original gate; no retry or additional pathological request.",
+  "decision": "PASS_REVIEWED_STOP_ALREADY_LATCHED",
   "review": "Independent execution leaf inspected all result fields, all three public boundaries, beforeDispose and finalWorkers. Manual ownership ambiguity triggered a stop; bounded read-only contract/client review resolved it without target rerun or changed assertions. No permission to continue is issued.",
   "findings": {
     "queuedExactCallerReasonIdentity": true,

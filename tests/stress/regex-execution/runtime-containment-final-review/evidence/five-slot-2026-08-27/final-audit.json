@@ -1,0 +1,248 @@
+{
+  "phase": "STOPPED_AFTER_FIVE_NO_RESUME",
+  "recordedAt": "2026-08-27T09:29:41.800Z",
+  "auditOnly": "Passive evidence/hash/PID verification; no target launch, worker import, risky matching, fixture replay or benchmark.",
+  "environment": {
+    "node": "v22.22.2",
+    "v8": "12.4.254.21-node.39",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.4.0"
+  },
+  "gate": {
+    "path": "/tmp/regex-containment-six-authorized.txt",
+    "sha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092"
+  },
+  "gateExpiresAt": "2026-08-27T11:20:45.477Z",
+  "prepared": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/prepared.json",
+    "sha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3"
+  },
+  "sourceAndAssetsVerifiedAgain": {
+    "source": 216,
+    "emitted": 704
+  },
+  "frozenPackage": {
+    "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "sourceCount": 216,
+    "emittedCount": 704,
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash",
+    "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified",
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/virtual-bash-0.0.0.tgz",
+      "sha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b"
+    },
+    "freeze": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-freeze.json",
+      "sha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e"
+    },
+    "build": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-build.json",
+      "sha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9"
+    },
+    "assets": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+        "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+        "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+        "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5"
+      }
+    ]
+  },
+  "fixture": {
+    "commit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+    "originalSha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007",
+    "correctedSha256": "f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22",
+    "transformedSha256": "74bafb6993500e0ce60056fcd552744a5049f5a90373bc8d226202c8485c6d2a",
+    "transformation": "exact one import-line replacement to bare public virtual-bash; assertions unchanged",
+    "authorCompiledResult": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/corrected-compiled-r1-result.json",
+      "sha256": "7009c39ab51a2cff3dce60b7dde3167accee306dd644de0204dd8b0fe027d479"
+    },
+    "authorCompiledCounts": "9/9 groups; independent packed not yet run"
+  },
+  "journal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/journal.jsonl",
+    "sha256": "240c7c343623615a3dfd528d785d275abf331fa49fa0d9d07da7008f0e528aa9"
+  },
+  "stop": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/STOP.json",
+    "sha256": "8faf9b1896fa3ae7e4d13d4b9522af53a2cd314469f5f223ae854b2820daf586"
+  },
+  "results": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-default.json",
+      "sha256": "ee88f4a18714aa952f6b2c26fa0e333ca2d81b5afb51a646549311d6981aa712"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-default.json",
+      "sha256": "f540f63bc97375e22cd80c33c5daf38486637ed4185252a24cdecee702f28971"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-abort.json",
+      "sha256": "707c4f99bb0ea54cf1faf2e358391a9f887d292a7ecf778be224e8c0fd38c1fc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-abort.json",
+      "sha256": "461d9ca666b341ef571533a93c49fcf2ddf04b28472a68ad54bbf97572cf2df6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-queued-abort.json",
+      "sha256": "572f59ca68457ae070a8bba059a14776e28b8446d119a338a831df4868ff94c5"
+    }
+  ],
+  "inspections": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-default-inspection.json",
+      "sha256": "5cd34adbd64cf89b417233d6ad37b4b111322ad7afcb237420f7669cd567cb30"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-default-inspection.json",
+      "sha256": "55cd6919601525d4a60c2a00f9fbc8a530e1d9b222a840cc399d93b52e0b4025"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-abort-inspection.json",
+      "sha256": "fc692a156b1f7e86cd4dda54158bb57da35364dbf22178efcf4b5c9854c8fbf0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-abort-inspection.json",
+      "sha256": "aa63c2f932a5c50a8b4c236e0759ea52ead67411328cdc94b5f221cadb961a30"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-queued-abort-inspection.json",
+      "sha256": "1630f8b3dc046ffe12797d90a561fd182a109585a73b351d6209a4c00f439774"
+    }
+  ],
+  "budget": {
+    "totalSlots": 6,
+    "consumedSlots": 5,
+    "unusedSlots": 1,
+    "totalPathologicalRequests": 4,
+    "consumedPathologicalRequests": 4,
+    "retries": 0
+  },
+  "counts": {
+    "rawHarnessPassed": 5,
+    "rawHarnessFailed": 0,
+    "scopedReviewedPassed": 5,
+    "defaultPassed": 2,
+    "activeAbortPassed": 2,
+    "queuedPassed": 1,
+    "queuedUnexecuted": 1,
+    "targetPublicSettlements": 7,
+    "targetWorkers": 6
+  },
+  "unused": [
+    "rg-queued-abort"
+  ],
+  "targetOutputBytes": 0,
+  "targetIpcBytes": 33456,
+  "firstTargetClaimAt": "2026-08-27T09:23:03.704Z",
+  "lastTargetResultAt": "2026-08-27T09:25:58.108Z",
+  "targetForkToCloseSumMs": 2898.666416,
+  "pidChecks": [
+    {
+      "job": "success",
+      "pid": 13037,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "already-aborted",
+      "pid": 13038,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "owned-timeout",
+      "pid": 13039,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "late-rejection",
+      "pid": 13040,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "benign",
+      "pid": 14912,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "grep-default",
+      "pid": 44880,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "rg-default",
+      "pid": 46942,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "grep-abort",
+      "pid": 49106,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "rg-abort",
+      "pid": 50484,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "grep-queued-abort",
+      "pid": 55232,
+      "absent": true,
+      "errorCode": "ESRCH",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    }
+  ],
+  "activeOwnedChildren": 0,
+  "substantiveProductOrFrozenHarnessDefectEstablished": false,
+  "stopClassification": "Reviewer confused constructor-scope labels with current shared-pool ownership; read-only diagnosis resolved ambiguity. Stop was already latched and no sixth launch followed.",
+  "recommendation": "Default and active-abort probes accepted only within frozen measured scope. Complete six-slot acceptance withheld; rg queued control unexecuted.",
+  "limits": [
+    "No direct V8 native-call instrumentation",
+    "Queue control uses benign held real-worker replies, not catastrophic matching",
+    "Creation owner is not current lease ownership",
+    "No full-shell, universal-preemption, RSS, performance-win or superiority claim",
+    "Historical twelve probes, original five, corrected phase1 fixture and benchmark not rerun",
+    "No global data-TS qualification or five-custom-first-read claim"
+  ],
+  "auditScriptSha256": "e51bf35f515b6edfbfd1619cfd9908748c8e6c19636c7895e2c21c5c59d3ef60"
+}

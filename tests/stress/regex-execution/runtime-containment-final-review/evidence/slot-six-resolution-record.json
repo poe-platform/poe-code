@@ -1,0 +1,120 @@
+{
+  "time": "2026-08-27T09:36:12.534Z",
+  "authority": "ROOT_RESOLVES_REVIEWER_OWNERSHIP_AMBIGUITY_ONLY",
+  "previousOwnedCommit": "21a209bd6d9bb85df2fa3b545ed259867bfb2fe9",
+  "decision": "ROOT explicitly resolves reviewer ownership ambiguity; only unused benign rg-queued-abort is authorized",
+  "preservation": [
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/evidence/STOP.json",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/STOP.json",
+      "sha256": "8faf9b1896fa3ae7e4d13d4b9522af53a2cd314469f5f223ae854b2820daf586",
+      "bytes": 1632
+    },
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-queued-abort-inspection.json",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/grep-queued-abort-inspection.json",
+      "sha256": "1630f8b3dc046ffe12797d90a561fd182a109585a73b351d6209a4c00f439774",
+      "bytes": 2249
+    },
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/REPORT.md",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/REPORT.md",
+      "sha256": "128750c771ea892ada4ba1a75b694d0175e9d69543fdb5b963514876195d23f3",
+      "bytes": 17859
+    },
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/evidence/final-audit.json",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/final-audit.json",
+      "sha256": "e7aad362679bd528ff3906044ef6105a9804c73bdfbb256929b98bd215bd6f94",
+      "bytes": 10772
+    },
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/final-audit.mjs",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/final-audit.mjs",
+      "sha256": "e51bf35f515b6edfbfd1619cfd9908748c8e6c19636c7895e2c21c5c59d3ef60",
+      "bytes": 7516
+    },
+    {
+      "original": "tests/stress/regex-execution/runtime-containment-final-review/evidence/journal.jsonl",
+      "archived": "tests/stress/regex-execution/runtime-containment-final-review/evidence/five-slot-2026-08-27/journal.jsonl",
+      "sha256": "240c7c343623615a3dfd528d785d275abf331fa49fa0d9d07da7008f0e528aa9",
+      "bytes": 5908
+    }
+  ],
+  "authorities": [
+    {
+      "source": "/tmp/regex-containment-slot-six-resolution.txt",
+      "recorded": "tests/stress/regex-execution/runtime-containment-final-review/evidence/root-slot-six-resolution.json",
+      "sha256": "a12049910371021b1f2d16aa316e1e2ef153839fed392e716e8eaeb225b14eb5",
+      "bytes": 1697
+    },
+    {
+      "source": "/tmp/regex-queued-abort-independent-adjudication.md",
+      "recorded": "tests/stress/regex-execution/runtime-containment-final-review/evidence/independent-queued-abort-adjudication.md",
+      "sha256": "d3f90bb6403389be6f2d5d8a54b1835afa82ddbfaff5e6c48e40fa16e0d414f4",
+      "bytes": 6575
+    },
+    {
+      "source": "/tmp/regex-containment-six-authorized.txt",
+      "recorded": "tests/stress/regex-execution/runtime-containment-final-review/evidence/original-six-slot-authorization.json",
+      "sha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092",
+      "bytes": 857
+    }
+  ],
+  "protectedFiles": [
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/guard.mjs",
+      "sha256": "8e114a362750b154c58fc149c0777c37ccff7b510d3af3f2b1ef6bb13250ae53"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/child.mjs",
+      "sha256": "2fc8b08f1f94eae07f314d3e8ce1d67aa2e39d7e33686bf31d9d276edce2b1ad"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/observe.mjs",
+      "sha256": "ea4c906432a7aa6f5bbf589bb6ae6b3926f5d6ec72e61f954fc51cbe3a37f1b6"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/supervise.mjs",
+      "sha256": "1c53aa4f536b26ad70e8e6b85141826d6e9b87cf131e67e018bf23e582746afc"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/binding.mjs",
+      "sha256": "80ca81e687e08415565cf284808cbcf346e99d012d0aece1aaa9609ec6d8f094"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/prepare.mjs",
+      "sha256": "2080f38e23c5a57c476197b36acb28e5ca0929a3be14ac77c616484c46c037e4"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/EXPECTATIONS.md",
+      "sha256": "30469e4df682ae1cac6b3c50fb451d82ae44b2a5a6df821010c2935a9ba7fa8d"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/evidence/prepared.json",
+      "sha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/evidence/benign.json",
+      "sha256": "d27d834f2a1b3773ccc8918a95a1b29b838efa48d833c9f3507ad740c233cb99"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/evidence/controls.json",
+      "sha256": "1229baac8c348b8232d12ed0e5187fad3873bd43ca091881a8eba41530ce9931"
+    },
+    {
+      "path": "tests/stress/regex-execution/runtime-containment-final-review/README.md",
+      "sha256": "87c6f0ec84527f04b820258ec600a89c9117da7818a04d78a7137bf528dccf53"
+    }
+  ],
+  "originalGateExpiresAt": "2026-08-27T11:20:45.477Z",
+  "localValidityChecked": true,
+  "budgetBefore": {
+    "targetSlotsConsumed": 5,
+    "pathologicalRequestsConsumed": 4,
+    "remainingTargetLaunches": 1,
+    "additionalPathologicalRequests": 0
+  },
+  "noActualApprovalDenial": true,
+  "scope": "No result, assertion, frozen harness, product, claim or journal changes. Historical STOP is archived byte-identically, not erased as a failure. Only continuation decision and provenance change."
+}

@@ -1,0 +1,358 @@
+[
+  {
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "--show-toplevel"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70363,
+    "stdoutSha256": "da6b983dbf43baf78936b559419a4ec3779fea6f23713729dd82978c79763da6",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70368,
+    "stdoutSha256": "c61bbcc2f987c6b4c4d6331b9b3aed30521824b3fb09f83f18640fa6f37ef658",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "status",
+      "--short",
+      "--untracked-files=all"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70373,
+    "stdoutSha256": "b7e10d18b03ffb395e73bbcf46e665599e08769bc6d9800dc54ef94c80053191",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "diff",
+      "--cached",
+      "--name-status"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70378,
+    "stdoutSha256": "910a444ec860ce93e985eb757efa07c2216baed661f0b3f5e6ffe8cc2086f59b",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70383,
+    "stdoutSha256": "a4a1e4cc6fa93b24b9a638d07129d85c51d7550b32334cabc0912850d60e36d9",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "cat-file",
+      "commit",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70388,
+    "stdoutSha256": "2fceab6fde47a7ebfb0a01fb0bea4e1bc9791eea9536bcd464ef4fe158e43f8c",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "--version"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70393,
+    "stdoutSha256": "0a72a762b37a3800276a1004e2c169aed0610d4a3ba601ba59e70e1c4d9f3200",
+    "stderr": ""
+  },
+  {
+    "executable": "/usr/bin/tar",
+    "args": [
+      "--version"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70394,
+    "stdoutSha256": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241",
+    "stderr": ""
+  },
+  {
+    "executable": "/usr/bin/sw_vers",
+    "args": [],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70395,
+    "stdoutSha256": "2ad5e57776ecb4b37b741f751521e2c77d58bf2d6d64e54c61507eabd39dea31",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "ls-tree",
+      "-r",
+      "-z",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+      "--",
+      "src",
+      "tests/commands/stream-inspection",
+      "package.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70401,
+    "stdoutSha256": "e787726fae4bc9c60e9bad88afb98c2554dfe9bae4e588cebc2a2ecc57d16e9e",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "archive",
+      "--format=tar",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+      "--",
+      "src",
+      "tests/commands/stream-inspection",
+      "package.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70406,
+    "stdoutSha256": "6350569613954bafabef4bb57afe3d7c87d406c20288536649ff0d4ed4b29df1",
+    "stderr": ""
+  },
+  {
+    "executable": "/usr/bin/tar",
+    "args": [
+      "-xf",
+      "/tmp/strings-binding-independent-OjIjtP/candidate.tar",
+      "-C",
+      "/tmp/strings-binding-independent-OjIjtP/initial-location/tree"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70407,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "show",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4^:tests/commands/stream-inspection/evidence/gnu-strings.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70420,
+    "stdoutSha256": "e00ba3920f79dcb4ef58d0a19242e07d1de6bd1698c66c56c0a27bb5eabb1d72",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "show",
+      "4af1b107d4b9449a2c4e7fed467d187448392fd5:tests/commands/stream-inspection/evidence/gnu-strings.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70425,
+    "stdoutSha256": "e00ba3920f79dcb4ef58d0a19242e07d1de6bd1698c66c56c0a27bb5eabb1d72",
+    "stderr": ""
+  },
+  {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/stream-inspection-stress/argv0-binding-review/verify.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/commands/stream-inspection/gnu-strings.test.ts"
+    ],
+    "cwd": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree",
+    "envOverrides": {
+      "TSX_DISABLE_CACHE": "1",
+      "STREAM_NATIVE_LIVE": "1",
+      "STREAM_GNU_STRINGS": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "ARGV0_REVIEW_MODE": "audit",
+      "ARGV0_REVIEW_TREE": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree",
+      "ARGV0_REVIEW_WORK": "/tmp/strings-binding-independent-OjIjtP",
+      "ARGV0_REVIEW_AUDIT_DIRECTORY": "/tmp/strings-binding-independent-OjIjtP/audit"
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70443,
+    "stdoutSha256": "39ae91b463c8593ede6662010bb81db31dc4c7e9e9d9f592922ec45d2cccd731",
+    "stderr": ""
+  },
+  {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/stream-inspection-stress/argv0-binding-review/verify.mjs"
+    ],
+    "cwd": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree",
+    "envOverrides": {
+      "TSX_DISABLE_CACHE": "1",
+      "STREAM_NATIVE_LIVE": "1",
+      "STREAM_GNU_STRINGS": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "ARGV0_REVIEW_MODE": "controls",
+      "ARGV0_REVIEW_TREE": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree",
+      "ARGV0_REVIEW_WORK": "/tmp/strings-binding-independent-OjIjtP",
+      "ARGV0_REVIEW_AUDIT_DIRECTORY": "/tmp/strings-binding-independent-OjIjtP/audit"
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70462,
+    "stdoutSha256": "404055a33726024f3d8a0e0497fbc56a89f22c04a034bd5091cfee6918b242fd",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70492,
+    "stdoutSha256": "c61bbcc2f987c6b4c4d6331b9b3aed30521824b3fb09f83f18640fa6f37ef658",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "status",
+      "--short",
+      "--untracked-files=all"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70499,
+    "stdoutSha256": "b7e10d18b03ffb395e73bbcf46e665599e08769bc6d9800dc54ef94c80053191",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "diff",
+      "--cached",
+      "--name-status"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70505,
+    "stdoutSha256": "910a444ec860ce93e985eb757efa07c2216baed661f0b3f5e6ffe8cc2086f59b",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "cat-file",
+      "commit",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70510,
+    "stdoutSha256": "2fceab6fde47a7ebfb0a01fb0bea4e1bc9791eea9536bcd464ef4fe158e43f8c",
+    "stderr": ""
+  },
+  {
+    "executable": "git",
+    "args": [
+      "archive",
+      "--format=tar",
+      "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+      "--",
+      "src",
+      "tests/commands/stream-inspection",
+      "package.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "envOverrides": {},
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "pid": 70515,
+    "stdoutSha256": "6350569613954bafabef4bb57afe3d7c87d406c20288536649ff0d4ed4b29df1",
+    "stderr": ""
+  }
+]

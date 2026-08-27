@@ -1,0 +1,67 @@
+{
+  "format": "argv0-binding-review-evidence-v1",
+  "created": "2026-08-27T15:56:26.774Z",
+  "scope": "All delivered regular files under this owned directory, excluding SEAL.json itself; captured data uses JSON/TAP, executable verifier uses MJS.",
+  "entries": [
+    {
+      "path": "README.md",
+      "size": 10767,
+      "sha256": "8cfd9728acac2a692fd015a7a5ac4471906b8ef8e6e14b66879b7cbdf3d22467"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/all-native-audit.json",
+      "size": 218483,
+      "sha256": "776603645d5c397afcab617f3ebb410c065ab8e6f8698bfe963e3e83dc4a6ca1"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/commands.json",
+      "size": 9553,
+      "sha256": "b6bbe8cead65ca1db0b79f29a0c54437f97ea99c0993e5c3a18aa6699a2e23fe"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/committed-source-manifest.json",
+      "size": 56500,
+      "sha256": "0ee611dc4795f967ba06a104ed7bd2bc0d987b71f46c119c8e7d4ce311f8f87e"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/controls.json",
+      "size": 25731,
+      "sha256": "404055a33726024f3d8a0e0497fbc56a89f22c04a034bd5091cfee6918b242fd"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/git-inputs.json",
+      "size": 39510,
+      "sha256": "e66a779b3456caa314e7fff50d7139b872c36367c4edc44a2057b4abc9e74c88"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/namespace-after.json",
+      "size": 58488,
+      "sha256": "32d9f6dcb0312a38459607f2ce6fcb2d49fe0aba11de96388392b8372a37e6bb"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/namespace-before.json",
+      "size": 58488,
+      "sha256": "32d9f6dcb0312a38459607f2ce6fcb2d49fe0aba11de96388392b8372a37e6bb"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/original-cohort-native-audit.json",
+      "size": 99172,
+      "sha256": "60ec5890243a7a122288513aeb7080c10377069227006cfba5d495361cdc34f4"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/original-cohort.tap",
+      "size": 2096,
+      "sha256": "39ae91b463c8593ede6662010bb81db31dc4c7e9e9d9f592922ec45d2cccd731"
+    },
+    {
+      "path": "run-2026-08-27T15-53-35-228Z/report.json",
+      "size": 27742,
+      "sha256": "c7a954f1f69d7a3c4366de20802157576f923d50a44ca7209f77b6b5abddb900"
+    },
+    {
+      "path": "verify.mjs",
+      "size": 27048,
+      "sha256": "894f4dcb2a047b310ca03bca7be2d9ff195b2fda0049161f275b280ff26e6575"
+    }
+  ]
+}

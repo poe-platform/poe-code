@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-27T23:58:03.330Z",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "preImplementationHead": "591d2c20d08987bb0829ec91db7cc5cf333842ec",
+  "scope": "author pre-implementation expectation/control freeze, not independent acceptance",
+  "files": [
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "beforeSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705",
+      "afterSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+      "beforeBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+      "replacements": [
+        [
+          "contains 73 including",
+          "contains 76 including"
+        ],
+        [
+          "createAgentCommands().length, 73",
+          "createAgentCommands().length, 76"
+        ],
+        [
+          "shell.commands.list().length, 73",
+          "shell.commands.list().length, 76"
+        ]
+      ]
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "beforeSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1",
+      "afterSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+      "beforeBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+      "replacements": [
+        [
+          "contains73 and standalone",
+          "contains76 and standalone"
+        ],
+        [
+          "createAgentCommands().length, 73",
+          "createAgentCommands().length, 76"
+        ],
+        [
+          "instance.commands.list().length, 73",
+          "instance.commands.list().length, 76"
+        ]
+      ]
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "beforeSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0",
+      "afterSha256": "4bd52b777b4f371c4ce930fd829d8ed934de6c3543ee5011a88c7d8799741917",
+      "beforeBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "replacements": [
+        [
+          "target.commands.list().length, 74",
+          "target.commands.list().length, 77",
+          2
+        ]
+      ]
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "beforeSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6",
+      "afterSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+      "beforeBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe",
+      "replacements": [
+        [
+          "names.length, 70",
+          "names.length, 76"
+        ],
+        [
+          "new Set(names).size, 70",
+          "new Set(names).size, 76"
+        ],
+        [
+          "commands.list().length, 70",
+          "commands.list().length, 76"
+        ]
+      ]
+    }
+  ],
+  "controls": [
+    "exact four-path delta accepted",
+    "missing fixture change rejected",
+    "extra fixture/product path rejected",
+    "wrong default/custom count rejected",
+    "removed assertion rejected",
+    "changed diagnostic/input rejected",
+    "dynamic self-derived expected rejected",
+    "candidate absent reconstructed from reachable base plus four blobs",
+    "wrong raw commit rejected",
+    "wrong parent rejected",
+    "missing reachable fixture blob rejected",
+    "tree mismatch rejected",
+    "unmodified admission accepted without suite",
+    "pending release cannot execute",
+    "unknown/duplicate flags rejected",
+    "wrong candidate or source rejected",
+    "missing input rejected",
+    "unexpected file rejected",
+    "unexpected directory rejected",
+    "modified input rejected",
+    "symlink/type substitution rejected",
+    "mode change rejected",
+    "missing native rejected",
+    "changed native rejected",
+    "wrong runtime rejected",
+    "wrong cleanup membership rejected",
+    "stale cleanup revision rejected",
+    "wrong package input rejected",
+    "unknown mts rejected",
+    "canonical omission rejected",
+    "source fallback rejected",
+    "TAP/concurrency before paths required",
+    "permission positive and exact denial required",
+    "phase order enforced",
+    "post-setup addition rejected",
+    "guard removal mutant detected",
+    "cleanup removal mutant detected",
+    "phase order mutant detected"
+  ],
+  "productExecutions": 0,
+  "wholeGateLaunched": false
+}

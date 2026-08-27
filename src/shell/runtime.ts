@@ -27,11 +27,11 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
-const specialBuiltinNames = new Set([":", "break", "continue", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+const specialBuiltinNames = new Set([":", ".", "break", "continue", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
@@ -131,6 +131,8 @@ export interface State {
   exported: Set<string>;
   functions: Map<string, Command>;
   positional: string[];
+  positionalSetVersion?: number;
+  sourceDepth?: number;
   arg0?: string;
   profile?: "bash" | "sh";
   readonlyVariables?: Set<string>;
@@ -772,6 +774,7 @@ export class Runtime {
         if (body) {
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
+          const positionalSetVersion = state.positionalSetVersion ?? 0;
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
@@ -783,6 +786,7 @@ export class Runtime {
             throw error;
           } finally {
             state.positional = positional;
+            state.positionalSetVersion = positionalSetVersion;
             state.functionDepth--;
             state.depth--;
             state.locals.pop();
@@ -799,6 +803,7 @@ export class Runtime {
           if (context.command === "command" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
           const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
           if (special) assignments.clear();
+          if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
@@ -1119,6 +1124,110 @@ export class Runtime {
     return status;
   }
 
+  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean): Promise<number> {
+    let position = 0;
+    let status = 0;
+    let executed = false;
+    try {
+      do {
+        this.signal.throwIfAborted();
+        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
+        if (unit.script.lists.length) {
+          status = await this.script(unit.script, state, io);
+          executed = true;
+        }
+        position = unit.next;
+      } while (position < source.length);
+      return status;
+    } catch (error) {
+      if (!(error instanceof ShellSyntaxError)) throw error;
+      const status = await this.syntaxFailure(error, source, io, false);
+      if (fatalSyntax && !executed) throw new Flow("exit", status);
+      return status;
+    }
+  }
+
+  async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
+    const args = [...context.args];
+    if (args[0] === "--") args.shift();
+    else if (args[0]?.startsWith("-") && args[0] !== "-") {
+      await this.diagnostic(io, `${context.command}: ${args[0]}: unsupported option`);
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    const filename = args.shift();
+    if (filename === undefined) {
+      await this.diagnostic(io, `${context.command}: filename argument required`);
+      await writeText(io.stderr, `${context.command}: usage: ${context.command} [-p path] filename [arguments]\n`);
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    let target = filename;
+    let source: string;
+    try {
+      const options = { signal: this.signal };
+      if (filename && !filename.includes("/") && state.variables.PATH) {
+        if (Buffer.byteLength(state.variables.PATH) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        const components = state.variables.PATH.split(":");
+        if (components.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+        let found = false;
+        for (const component of components) {
+          this.signal.throwIfAborted();
+          const candidate = `${component || "."}${component.endsWith("/") ? "" : "/"}${filename}`;
+          const path = resolvePath(state.cwd, candidate);
+          try {
+            if ((await interruptible(this.fs.stat(path, options), this.signal)).type !== "file") continue;
+            await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+            target = candidate;
+            found = true;
+            break;
+          } catch (error) {
+            this.signal.throwIfAborted();
+            if (!["ENOENT", "ENOTDIR", "EACCES", "EPERM"].includes(errorCode(error) ?? "")) throw error;
+          }
+        }
+        if (!found && state.profile === "sh") throw new CommandFailure(`${context.command}: ${filename}: file not found`, 1);
+      }
+      if (!filename) throw new CommandFailure(": No such file or directory", 1);
+      const path = resolvePath(state.cwd, target);
+      const stat = await interruptible(this.fs.stat(path, options), this.signal);
+      if (stat.type !== "file") throw new CommandFailure(`${target}: not a regular file`, 1);
+      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+      this.budget.source(bytes.byteLength);
+      source = this.sourceText(bytes, target);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof ShellLimitError) throw error;
+      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+      const diagnostic = error instanceof CommandFailure ? error.message : filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`;
+      if (special) throw new FatalCommandFailure(diagnostic, 1);
+      throw new CommandFailure(diagnostic, error instanceof CommandFailure ? error.status : 1);
+    }
+    const positional = state.positional;
+    const version = state.positionalSetVersion ?? 0;
+    if (args.length) state.positional = args;
+    state.sourceDepth = (state.sourceDepth ?? 0) + 1;
+    state.depth++;
+    try {
+      return await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);
+    } catch (error) {
+      if (error instanceof Flow && error.kind === "return") return error.status;
+      throw error;
+    } finally {
+      state.depth--;
+      state.sourceDepth--;
+      if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
+        state.positional = positional;
+        state.positionalSetVersion = version;
+      }
+    }
+  }
+
   async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
     if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) throw new TypeError("invoke requires a command and literal string arguments without NUL");
@@ -1135,6 +1244,7 @@ export class Runtime {
     child.depth++;
     child.loopDepth = 0;
     child.functionDepth = 0;
+    child.sourceDepth = 0;
     child.locals = [];
     const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
@@ -1184,7 +1294,7 @@ export class Runtime {
       return 0;
     }
     if (command === "set") {
-      if (args[0] === "--") { state.positional = args.slice(1); return 0; }
+      if (args[0] === "--") { state.positional = args.slice(1); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; return 0; }
       if (args.length === 2 && (args[0] === "-o" || args[0] === "+o") && args[1] === "pipefail") {
         state.pipefail = args[0] === "-o";
         return 0;
@@ -1328,7 +1438,7 @@ export class Runtime {
       return line.terminated ? 0 : 1;
     }
     if (command === "exit" || command === "return") {
-      if (command === "return" && state.functionDepth === 0) { await writeText(stderr, "return: not in a function\n"); return 1; }
+      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeText(stderr, "return: not in a function\n"); return 1; }
       if (args.length > 1) { await writeText(stderr, `${command}: too many arguments\n`); return 1; }
       if (args[0] !== undefined && !/^[+-]?\d+$/u.test(args[0])) {
         await writeText(stderr, `${command}: ${args[0]}: numeric argument required\n`);

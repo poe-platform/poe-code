@@ -1,0 +1,94 @@
+{
+  "name": "missing-prerequisite",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/trace-native.mjs",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "--test-timeout=60000",
+    "--test-concurrency=1",
+    "tests/commands/archive/native.test.ts",
+    "tests/commands/archive-stress/pax-independent/controls.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/home",
+    "TMPDIR": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "GNU_TAR": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+    "ARCHIVE_PREREQUISITE_TRACE": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/trace",
+    "ARCHIVE_ACCEPTANCE_EVIDENCE": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/native-fixtures"
+  },
+  "startedAt": "2026-08-27T07:38:12.954Z",
+  "endedAt": "2026-08-27T07:38:13.804Z",
+  "pid": 84009,
+  "code": 1,
+  "signal": null,
+  "captured": 7853,
+  "killed": null,
+  "residualGroup": false,
+  "groupAbsent": true,
+  "accounting": {
+    "cases": [
+      {
+        "name": "I01 opaque optional bytes cannot change effective size, path, type or literal dot-underscore members",
+        "status": "pass"
+      },
+      {
+        "name": "I02 malformed opaque-value framing and checksum mutations fail before publication",
+        "status": "pass"
+      },
+      {
+        "name": "I03 essential layout and effective-path controls remain fail-closed beside ignored metadata",
+        "status": "pass"
+      },
+      {
+        "name": "I04 discarded values still consume PAX, member, archive and effective-size budgets",
+        "status": "pass"
+      },
+      {
+        "name": "I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions",
+        "status": "fail"
+      },
+      {
+        "name": "I06 opaque PAX hardlinks share writes and unsupported publication never copies",
+        "status": "pass"
+      },
+      {
+        "name": "pinned GNU cross-readability BOTH directions plain",
+        "status": "fail"
+      },
+      {
+        "name": "pinned GNU cross-readability BOTH directions gzip",
+        "status": "fail"
+      },
+      {
+        "name": "pinned GNU legacy long-name and long-link records are read without data conversion",
+        "status": "fail"
+      },
+      {
+        "name": "native -C, files-from, excludes, selected strips agree on safe common fixtures",
+        "status": "fail"
+      },
+      {
+        "name": "pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast",
+        "status": "fail"
+      }
+    ],
+    "counters": {
+      "tests": 11,
+      "pass": 5,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  }
+}

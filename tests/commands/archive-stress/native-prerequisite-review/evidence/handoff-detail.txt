@@ -1,0 +1,47 @@
+Independent archive native-prerequisite handoff — 2026-08-27
+
+Owned new scope: tests/commands/archive-stress/native-prerequisite-review/**
+REPORT.md: complete bounded findings; README.md: executable setup/check/replay.
+PLAN.txt mirrors /tmp/safe-bash-archive-prerequisites-plan.txt published pretest.
+
+Historical source/test commit: e36dab2b6abc216ddc89e5786a0eba76f08a1722
+Snapshot manifest SHA256:
+0b5610448c655b85414a5291559bbec2a4ee10e41d107a6abd4a7693833577b2
+Retained frozen tree: /tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree
+240 regular files / 23,573,939 bytes before the single native-binary overlay.
+Not current HEAD: live moved a6a1a44f -> 9ad8165d during preparation/run.
+Exact Git blobs, source/test/dependency hashes and dirty/index captures retained.
+
+Ran ONLY the full two affected unchanged files, 11 cases/profile, no filters:
+- tests/commands/archive/native.test.ts (5 cases)
+- tests/commands/archive-stress/pax-independent/controls.test.ts (6 cases)
+Missing prerequisite: 5 pass / 6 fail; all six original ENOENT names reproduced.
+Configured prerequisite: 11 pass / 0 fail. Both: zero skip/TODO/cancellation.
+The original six full-gate failures remain historical failures, not relabeled.
+No remaining configured semantic failures observed in this bounded historical run.
+
+Actual existing GNU tar1.35 primary:
+tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar
+SHA256 49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+Both tests HARDCODE this relative path; GNU_TAR is new runner input, NOT an
+existing test API. Only the isolated target executable was added; exact env,
+PATH=/usr/bin:/bin, argv, tests, source and config stayed equal across profiles.
+Primary binary untouched; no installs/downloads. Node/BSD/gzip identities pinned.
+Trace proves17 native calls (GNU14/BSD3), zero baseline calls; both plain/gzip
+cross-read directions and positive oracles executed. Expected native forward
+hardlink status2 and separate BSD native profile remain unchanged.
+Parser rejection/namespace/stdio expectations unchanged; other5 controls pass
+both profiles. Original native profile/evidence hashes reverified unchanged.
+
+Three negative setup guards fail clearly: unset/missing/mismatched binary.
+Early runner-only gzip stderr version-capture error is preserved; fixed before
+tests. Total explicit native calls29 including12 version-only probes. Both
+test groups finished without timeout/kill, no native-fixture/TMPDIR leftovers.
+Frozen snapshot and raw native artifacts are deliberately retained.
+
+No stage/commit. No unowned source/tests/config/root-report writes. No fullgate,
+177/196, build, typecheck, WebDAV/auth/private-poe-code or cold-review expansion.
+Separate cold-typecheck11/30 pre-existing.mts gaps remain another owner's issue.
+Raw logs/per-file manifests are in the owned evidence/ directory; final owned
+artifact hashes are SHA256SUMS.json, excluding that inventory itself.
+This is the coherent bounded handoff; no further work is claimed.

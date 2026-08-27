@@ -1,0 +1,19 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/archive-stress/native-prerequisite-review/runner.mjs",
+    "check-tools"
+  ],
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "GNU_TAR": "/usr/bin/bsdtar"
+  },
+  "timeout": 10000,
+  "startedAt": "2026-08-27T07:38:29.600Z",
+  "endedAt": "2026-08-27T07:38:29.629Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "AssertionError [ERR_ASSERTION]: gnu: pinned executable SHA256 mismatch at /usr/bin/bsdtar\n+ actual - expected\n\n+ 'bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9'\n- '49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:34:12\n    at Array.map (<anonymous>)\n    at profile (file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:32:51)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:247:58\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n"
+}

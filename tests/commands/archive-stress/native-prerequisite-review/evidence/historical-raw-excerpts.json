@@ -1,0 +1,38 @@
+[
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 319,
+    "lastLine": 334,
+    "text": "# Subtest: I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions\nnot ok 49 - I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions\n  ---\n  duration_ms: 5.312791\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive-stress/pax-independent/controls.test.ts:1:7633'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive-stress/pax-independent/controls.test.ts:161:46)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+  },
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 647,
+    "lastLine": 663,
+    "text": "# Subtest: pinned GNU cross-readability BOTH directions plain\nnot ok 102 - pinned GNU cross-readability BOTH directions plain\n  ---\n  duration_ms: 2.144958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:8:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+  },
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 664,
+    "lastLine": 680,
+    "text": "# Subtest: pinned GNU cross-readability BOTH directions gzip\nnot ok 103 - pinned GNU cross-readability BOTH directions gzip\n  ---\n  duration_ms: 2.313916\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:8:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+  },
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 681,
+    "lastLine": 697,
+    "text": "# Subtest: pinned GNU legacy long-name and long-link records are read without data conversion\nnot ok 104 - pinned GNU legacy long-name and long-link records are read without data conversion\n  ---\n  duration_ms: 0.481625\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:2669'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:47:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+  },
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 698,
+    "lastLine": 714,
+    "text": "# Subtest: native -C, files-from, excludes, selected strips agree on safe common fixtures\nnot ok 105 - native -C, files-from, excludes, selected strips agree on safe common fixtures\n  ---\n  duration_ms: 0.466291\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:3394'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:65:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+  },
+  {
+    "originalPath": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "firstLine": 715,
+    "lastLine": 731,
+    "text": "# Subtest: pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast\nnot ok 106 - pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast\n  ---\n  duration_ms: 0.427708\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:4902'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:92:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+  }
+]

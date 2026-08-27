@@ -1,0 +1,42 @@
+[
+  {
+    "path": "tests/integration/full-gate-20260827/evidence/classification.json",
+    "sha256": "d6f5559d651c337a386d056b30129faabb11d0cad29d68007bbc5cd3cf911df9"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+    "sha256": "b137294a78605987554a28a1905157411ea3fc8fb292e84bb0e71f066e496643"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/REPORT.md",
+    "sha256": "294dd11ee8776f486bf16be098f7a3f041135958f692589b8222e6c4892ad533"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/evidence/native-prerequisites.json",
+    "sha256": "c34b957cfb5dda1c3e1740636b9b0ea50b87dafa37a6cd59d38263d12e909fea"
+  },
+  {
+    "path": "tests/commands/archive/native-profile.json",
+    "sha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4"
+  },
+  {
+    "path": "tests/commands/archive-stress/final-evidence/ROOTREVIEW.md",
+    "sha256": "1681fc537fa11bf279332ec7349182d2f2f35b1384f3c15e46ff94d8388c0137"
+  },
+  {
+    "path": "tests/commands/archive-stress/pax-independent/REPORT.md",
+    "sha256": "aad80f8f9e48068b29b64877521c7608c3b2e4eda3116db7a60358690bde811a"
+  },
+  {
+    "path": "tests/commands/archive-stress/pax-independent/FINAL-REVIEW.md",
+    "sha256": "65f06144aec10c57e2dac7800c45db921c92cd41a8d26dc6a9f5d592f849448f"
+  },
+  {
+    "path": "tests/commands/archive-stress/pax-deletion-independent/REPORT.md",
+    "sha256": "23d17d3ead5bb79446f5b01f35e2cfb8f72f495a00f1299e8556cf969cd40edc"
+  },
+  {
+    "path": "tests/commands/archive-stress/pax-deletion-independent/FINAL-REVIEW.md",
+    "sha256": "4b1cd1b246c79de02a6a0e2a564d6740934ff3ed8b3142e467016fc8f6c44bf8"
+  }
+]

@@ -1,0 +1,140 @@
+{
+  "checkedAt": "2026-08-27T07:39:57.847Z",
+  "archiveAndSelectedTestFiles": [
+    {
+      "path": "src/commands/archive/README.md",
+      "commitSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "liveCaptureSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "liveAfterSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/create.ts",
+      "commitSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "liveCaptureSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "liveAfterSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/extract.ts",
+      "commitSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "liveCaptureSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "liveAfterSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/format.ts",
+      "commitSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "liveCaptureSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "liveAfterSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/index.ts",
+      "commitSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "liveCaptureSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "liveAfterSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/internal.ts",
+      "commitSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "liveCaptureSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "liveAfterSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/options.ts",
+      "commitSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "liveCaptureSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "liveAfterSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/archive/stream.ts",
+      "commitSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "liveCaptureSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "liveAfterSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/controls.test.ts",
+      "commitSha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+      "liveCaptureSha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+      "liveAfterSha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/fixtures.ts",
+      "commitSha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+      "liveCaptureSha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+      "liveAfterSha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/archive/helpers.ts",
+      "commitSha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0",
+      "liveCaptureSha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0",
+      "liveAfterSha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/archive/native.test.ts",
+      "commitSha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45",
+      "liveCaptureSha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45",
+      "liveAfterSha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/archive/native-profile.json",
+      "commitSha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4",
+      "liveCaptureSha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4",
+      "liveAfterSha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4",
+      "unchanged": true
+    }
+  ],
+  "historicalEvidenceRehashedUnchanged": [
+    {
+      "path": "tests/integration/full-gate-20260827/evidence/classification.json",
+      "sha256": "d6f5559d651c337a386d056b30129faabb11d0cad29d68007bbc5cd3cf911df9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/evidence/first/test.stdout.log",
+      "sha256": "b137294a78605987554a28a1905157411ea3fc8fb292e84bb0e71f066e496643"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/REPORT.md",
+      "sha256": "294dd11ee8776f486bf16be098f7a3f041135958f692589b8222e6c4892ad533"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/evidence/native-prerequisites.json",
+      "sha256": "c34b957cfb5dda1c3e1740636b9b0ea50b87dafa37a6cd59d38263d12e909fea"
+    },
+    {
+      "path": "tests/commands/archive/native-profile.json",
+      "sha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/ROOTREVIEW.md",
+      "sha256": "1681fc537fa11bf279332ec7349182d2f2f35b1384f3c15e46ff94d8388c0137"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/REPORT.md",
+      "sha256": "aad80f8f9e48068b29b64877521c7608c3b2e4eda3116db7a60358690bde811a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/FINAL-REVIEW.md",
+      "sha256": "65f06144aec10c57e2dac7800c45db921c92cd41a8d26dc6a9f5d592f849448f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/REPORT.md",
+      "sha256": "23d17d3ead5bb79446f5b01f35e2cfb8f72f495a00f1299e8556cf969cd40edc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/FINAL-REVIEW.md",
+      "sha256": "4b1cd1b246c79de02a6a0e2a564d6740934ff3ed8b3142e467016fc8f6c44bf8"
+    }
+  ],
+  "baselineNativeCalls": 0,
+  "configuredPairedCalls": 17
+}

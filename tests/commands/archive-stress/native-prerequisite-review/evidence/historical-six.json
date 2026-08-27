@@ -1,0 +1,134 @@
+[
+  {
+    "name": "I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions",
+    "path": "tests/commands/archive-stress/pax-independent/controls.test.ts",
+    "originalSourceLine": 161,
+    "tapLine": 320,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-320",
+      "line": 320,
+      "indent": 0,
+      "ordinal": 49,
+      "name": "I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive-stress/pax-independent/controls.test.ts:1:7633",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 5.312791\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive-stress/pax-independent/controls.test.ts:1:7633'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive-stress/pax-independent/controls.test.ts:161:46)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    }
+  },
+  {
+    "name": "pinned GNU cross-readability BOTH directions plain",
+    "path": "tests/commands/archive/native.test.ts",
+    "originalSourceLine": 8,
+    "tapLine": 648,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-648",
+      "line": 648,
+      "indent": 0,
+      "ordinal": 102,
+      "name": "pinned GNU cross-readability BOTH directions plain",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 2.144958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:8:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+    }
+  },
+  {
+    "name": "pinned GNU cross-readability BOTH directions gzip",
+    "path": "tests/commands/archive/native.test.ts",
+    "originalSourceLine": 8,
+    "tapLine": 665,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-665",
+      "line": 665,
+      "indent": 0,
+      "ordinal": 103,
+      "name": "pinned GNU cross-readability BOTH directions gzip",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 2.313916\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:289'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:8:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    }
+  },
+  {
+    "name": "pinned GNU legacy long-name and long-link records are read without data conversion",
+    "path": "tests/commands/archive/native.test.ts",
+    "originalSourceLine": 47,
+    "tapLine": 682,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-682",
+      "line": 682,
+      "indent": 0,
+      "ordinal": 104,
+      "name": "pinned GNU legacy long-name and long-link records are read without data conversion",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:2669",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 0.481625\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:2669'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:47:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    }
+  },
+  {
+    "name": "native -C, files-from, excludes, selected strips agree on safe common fixtures",
+    "path": "tests/commands/archive/native.test.ts",
+    "originalSourceLine": 65,
+    "tapLine": 699,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-699",
+      "line": 699,
+      "indent": 0,
+      "ordinal": 105,
+      "name": "native -C, files-from, excludes, selected strips agree on safe common fixtures",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:3394",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 0.466291\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:3394'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:65:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    }
+  },
+  {
+    "name": "pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast",
+    "path": "tests/commands/archive/native.test.ts",
+    "originalSourceLine": 92,
+    "tapLine": 716,
+    "classification": "native-prerequisite",
+    "rationale": "Ignored GNU tar/coreutils binaries or source archives absent from committed archive. Execution/provenance prerequisite failures, not native semantic evidence. Keep failures; provision exact dependencies separately through root.",
+    "observed": {
+      "id": "tap-line-716",
+      "line": 716,
+      "indent": 0,
+      "ordinal": 106,
+      "name": "pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast",
+      "status": "fail",
+      "type": "test",
+      "failureType": "testCodeFailure",
+      "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:4902",
+      "code": "ENOENT",
+      "error": "ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'",
+      "detail": "  ---\n  duration_ms: 0.427708\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:1:4902'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open '/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'\"\n  code: 'ENOENT'\n  stack: |-\n    async open (node:internal/fs/promises:639:25)\n    async readFile (node:internal/fs/promises:1249:14)\n    async withNative (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/helpers.ts:40:44)\n    async TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/commands/archive/native.test.ts:92:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    }
+  }
+]

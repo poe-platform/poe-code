@@ -1,0 +1,118 @@
+{
+  "at": "2026-08-27T07:43:04.940Z",
+  "commands": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "tests/commands/archive-stress/native-prerequisite-review/runner.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "tests/commands/archive-stress/native-prerequisite-review/trace-native.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/runner.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/trace-native.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/README.md"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/REPORT.md"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/PLAN.txt"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--check",
+        "/dev/null",
+        "tests/commands/archive-stress/native-prerequisite-review/preparation-attempt-1.log"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "runnerAndTraceStillSealed": true,
+  "publishedPlanUnchanged": true,
+  "readonlyRehashMatches": true,
+  "liveHead": "c63eedc53adc7cd1f30b1e65cfd47b6fe3e31c65",
+  "liveStatus": " M src/commands/grep.ts\n M src/commands/regex-execution/client.ts\n M src/commands/search/rg.ts\n M tests/commands/regex-execution/cleanup-registration/controls.test.ts\n M tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n?? src/shell/cleanup.ts\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/regex-execution/cleanup-registration/after-controls.json\n?? tests/commands/regex-execution/cleanup-registration/after-types.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/evidence/\n?? tests/shell-stress/env-split-author/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration.json\n",
+  "index": "",
+  "notAWholeProductValidation": true
+}

@@ -1,0 +1,76 @@
+Bounded independent archive native-prerequisite replay — pre-execution plan
+Published 2026-08-27 after snapshot preparation, before any test execution.
+Owner: NEW tests/commands/archive-stress/native-prerequisite-review/** and
+dedicated /tmp/safe-bash-archive-prerequisites-* only. No stage/commit.
+
+Frozen historical source revision: e36dab2b6abc216ddc89e5786a0eba76f08a1722
+Git tree: a73200db83a3e9c75d1138480c10c5c5e57bb16d
+Regular-file snapshot: /tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree
+Snapshot manifest SHA256:
+0b5610448c655b85414a5291559bbec2a4ee10e41d107a6abd4a7693833577b2
+Source Git-blob/working-tree qualification manifest SHA256:
+48ee7d930d0e0e4e29d7c2acafe594bde63118209f7f0a1f8d5899d4b33cd1b2
+prepared.json and evidence/live-before.json retain observed live HEAD/dirty
+state. No current/moving HEAD freeze is claimed. Both affected tests, helpers,
+fixtures, full src directory and root config are exact historical Git blobs.
+Only the existing lock-matching tsx/esbuild/platform loader closure is copied
+from installed local packages. No builds, installs or native downloads.
+
+Exact six historical failed names (unchanged; original ENOENT records retained):
+tests/commands/archive/native.test.ts:
+1. pinned GNU cross-readability BOTH directions plain
+2. pinned GNU cross-readability BOTH directions gzip
+3. pinned GNU legacy long-name and long-link records are read without data conversion
+4. native -C, files-from, excludes, selected strips agree on safe common fixtures
+5. pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+tests/commands/archive-stress/pax-independent/controls.test.ts:
+6. I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions
+Original TAP not-ok lines: respectively 648, 665, 682, 699, 716, 320.
+
+Budget: exactly two serial test-runner invocations, both whole affected files
+(11 cases per invocation; six affected plus five independent controls).
+No name filters, silent skips, extra archive features, full gate or 177/196 run.
+Baseline: missing hardcoded GNU executable; expect original six ENOENT failures.
+Configured: copy only the verified existing executable to the frozen hardcoded
+location, then run exactly the same argv, environment and source/test bytes.
+Preserve any unexpected actual semantic failure rather than altering assertions.
+GNU_TAR is explicit runner INPUT, not supported by these existing test bodies.
+Child GNU_TAR points to the frozen target in BOTH profiles; child PATH is
+/usr/bin:/bin. The baseline therefore also proves environment-only setup cannot
+satisfy the hardcoded prerequisite. No live oracle fixture modifications.
+
+Expected native test calls: 17 total (14 GNU, 3 BSD), all configured; zero native
+test calls baseline. Counts include I05's two --version calls. Boundaries:
+120 seconds/test process, 60 seconds/case, original native 8/10 second deadlines,
+16 MiB captured/test process; each process has a dedicated killable group.
+Additional version probes: 4 initial read-only inspection calls already done;
+3 in preserved first preparation attempt (runner incorrectly expected gzip's
+version on stdout; fixed to retain native stderr); 4 corrected preparation
+calls already done; 1 copied-GNU check planned. Total version-only calls outside
+tests: 12; total explicit native calls including tests: at most 29 as planned.
+At most 3 negative setup guard processes (unset GNU_TAR, absent absolute path,
+wrong binary hash), 10-second bound each, no native invocation/install fallback.
+Scoped node --check and git diff --check only; no global typing/build/tests.
+
+Trace preload is identical in both runs and changes no arguments, return
+values, thrown errors, options or test/source bytes. It records actual native
+dispatch, raw output, executable hashes and safe temporary archive artifacts.
+It is observational instrumentation, not a replacement native binary.
+Tar-created gzip helpers/OS dylibs are external; PATH-resolved gzip/gunzip
+identities are pinned, not an independently hermetic OS or syscall trace.
+
+Primary accepted GNU executable SHA256:
+49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+Version: tar (GNU tar) 1.35. Primary remains read-only, no wrapper substitution.
+BSD SHA256: bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9
+Version: bsdtar 3.5.3 / libarchive 3.7.4. Preserve separate mtime/sidecar dialect.
+
+Native tests retain their own mkdtemp suffixes and unchanged dynamic mtimes;
+all native writes stay in this owned snapshot or its explicit TMPDIR. Snapshot
+and evidence remain retained, child native fixture directories clean themselves.
+No removal of other owners' native fixtures. Record process groups and leftovers.
+Reports/raw logs/manifests copied into new owned scope; handoff detail goes to
+/tmp/safe-bash-archive-prerequisites-detail.txt. Original six full-gate failures
+remain historical failures, not retroactively relabeled passes. Parser errors,
+portable expected stdio and native profiles remain exactly as frozen.
+Authentication, WebDAV, private poe-code and cold-typecheck gaps are out of scope.

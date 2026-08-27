@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {capture, candidate, owned, put} from './supervisor.mjs';
+const scope = '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final';
+const initial = readFileSync(`${owned}/driver.mjs`, 'utf8');
+const old = 'async return() {state.returns++; return {done: true};},';
+const replacement = "async return() {state.returns++; log('borrowed.return.callsite', {active: state.active, reads: state.next, callsite: new Error().stack.split('\\n')[2]?.trim().replace(owned, 'OWNED')}); return {done: true};},";
+assert.equal(initial.split(old).length, 2);
+const diagnostic = initial.replace(old, replacement);
+put(`${owned}/driver-callsite.mjs`, diagnostic);
+put(`${scope}/driver-callsite.mjs.data`, diagnostic);
+const seal = {sealedAt: new Date().toISOString(), beforeDiagnosticExecution: true, rounds: 1, classification: 'instrumentation-only-callsite-replay-no-binding-or-expectation-correction', initialSha256: createHash('sha256').update(initial).digest('hex'), diagnosticSha256: createHash('sha256').update(diagnostic).digest('hex'), exactReplacements: [{old, replacement}], cases: ['D02', 'D03', 'D07'], sourceChanged: false, criteriaChanged: false, inputsChanged: false};
+put(`${scope}/callsite-seal.json`, JSON.stringify(seal, null, 2) + '\n');
+for (const id of seal.cases) await capture(`callsite-${id}`, process.execPath, ['--unhandled-rejections=strict', `${owned}/driver-callsite.mjs`, id]);
+await capture('final-copied-build', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '-p', 'tsconfig.build.json'], {timeoutMs: 30000});
+await capture('final-copied-scoped-typecheck', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '--noEmit', '--listFiles', '-p', 'tsconfig.json'], {timeoutMs: 30000});

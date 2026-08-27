@@ -1,0 +1,36 @@
+{
+  "label": "old16-shared-H04-adapted",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/bound/tests/shell/adapted-first-read-probe.ts",
+    "first-read-curl-body"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:02.273Z",
+  "finishedAt": "2026-08-27T10:38:02.449Z",
+  "durationMs": 176.7586669999996,
+  "timeoutMs": 3000,
+  "maxBytes": 262144,
+  "pid": 5729,
+  "initialIdentity": "5729  4804  5729 Thu Aug 27 05:38:02 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/bound/tests/shell/adapted-first-read-probe.ts first-read-curl-body",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "first-read-curl-body: passed\n{\"scenario\":\"first-read-curl-body\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\",\"http.request.aborted:GET\",\"http.socket.close\",\"http.response.close:GET:finished=false\"]}\n",
+  "stderr": ""
+}

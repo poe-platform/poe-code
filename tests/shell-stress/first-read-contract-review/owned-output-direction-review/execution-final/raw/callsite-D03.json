@@ -1,0 +1,17 @@
+{
+  "label": "callsite-D03",
+  "status": 1,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"D03\",\"passed\":false,\"records\":[{\"event\":\"owner-explicitly-transfers-exclusive-source\"},{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"transfer.effects\",\"reads\":1,\"returns\":1,\"active\":0,\"survivor\":\"still-borrowed\\n\",\"file\":\"transfer-survived\\n\",\"result\":{\"name\":\"Error\",\"message\":\"Shell is disposed\"}}],\"failures\":[{\"label\":\"borrowed return/cancel/close\",\"actual\":[1,0,0],\"expected\":[0,0,0]}],\"unhandled\":[]}\n",
+    "bytes": 458,
+    "base64": "eyJpZCI6IkQwMyIsInBhc3NlZCI6ZmFsc2UsInJlY29yZHMiOlt7ImV2ZW50Ijoib3duZXItZXhwbGljaXRseS10cmFuc2ZlcnMtZXhjbHVzaXZlLXNvdXJjZSJ9LHsiZXZlbnQiOiJzdGRvdXQuY2xvc2VkIiwic3RhZ2VBYm9ydGVkIjpmYWxzZSwiY2FsbGVyQWJvcnRlZCI6ZmFsc2UsIndyaXRlcyI6MH0seyJldmVudCI6InRyYW5zZmVyLmVmZmVjdHMiLCJyZWFkcyI6MSwicmV0dXJucyI6MSwiYWN0aXZlIjowLCJzdXJ2aXZvciI6InN0aWxsLWJvcnJvd2VkXG4iLCJmaWxlIjoidHJhbnNmZXItc3Vydml2ZWRcbiIsInJlc3VsdCI6eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoiU2hlbGwgaXMgZGlzcG9zZWQifX1dLCJmYWlsdXJlcyI6W3sibGFiZWwiOiJib3Jyb3dlZCByZXR1cm4vY2FuY2VsL2Nsb3NlIiwiYWN0dWFsIjpbMSwwLDBdLCJleHBlY3RlZCI6WzAsMCwwXX1dLCJ1bmhhbmRsZWQiOltdfQo=",
+    "sha256": "2ed3e0a5d7474c9fed20a30efeeaee332f31107d854784790b857fb5ad18a588"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

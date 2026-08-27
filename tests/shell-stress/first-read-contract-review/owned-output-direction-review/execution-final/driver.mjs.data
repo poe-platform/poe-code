@@ -1,0 +1,280 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createServer} from 'node:http';
+import {once} from 'node:events';
+import {setImmediate as turn} from 'node:timers/promises';
+import {Shell, ShellLimitError, MemoryFileSystem, agentCommands, networkCommands, createOutputOperation, writeBytes} from './candidate/dist/index.js';
+
+const inputs = JSON.parse(readFileSync(new URL('./inputs.json', import.meta.url)));
+const id = process.argv[2];
+const encode = value => new TextEncoder().encode(value);
+const decode = value => new TextDecoder().decode(value);
+const records = [];
+const failures = [];
+const unhandled = [];
+process.on('unhandledRejection', reason => unhandled.push(String(reason)));
+const gate = () => { let resolve, reject; const promise = new Promise((accept, fail) => {resolve = accept; reject = fail;}); return {promise, resolve, reject}; };
+const outcome = promise => Promise.resolve(promise).then(value => ({value}), error => ({error}));
+const shape = value => value instanceof Error ? {name: value.name, message: value.message, code: value.code, errors: value.errors?.map(shape)} : value;
+const log = (event, detail = {}) => { const entry = {event, ...detail}; assert.ok(records.length < inputs.bounds.maxEvents); assert.ok(Buffer.byteLength(JSON.stringify(entry)) <= inputs.bounds.maxEventBytes); records.push(entry); };
+const check = (label, actual, expected = true) => { try {assert.deepEqual(actual, expected);} catch {failures.push({label, actual, expected});} };
+async function within(promise, label) { let timer; try {return await Promise.race([promise, new Promise((_, reject) => {timer = setTimeout(() => reject(new Error(`1200ms guard: ${label}`)), inputs.bounds.cooperativePhaseMs);})]);} finally {clearTimeout(timer);} }
+const closed = signal => signal.aborted ? Promise.resolve() : new Promise(resolve => signal.addEventListener('abort', resolve, {once: true}));
+async function pending(promise, label) {let settled = false; void promise.then(() => {settled = true;}, () => {settled = true;}); await turn(); await turn(); check(label, settled, false);}
+function cursor(chunks, heldIndex = -1) {
+  const entered = gate(), release = gate(); let index = 0;
+  const state = {next: 0, returns: 0, cancel: 0, close: 0, active: 0, maxActive: 0, delivered: []};
+  const source = {
+    [Symbol.asyncIterator]() {return this;},
+    async next() {
+      state.next++; state.active++; state.maxActive = Math.max(state.maxActive, state.active);
+      const current = index++;
+      try {
+        if (current === heldIndex) {entered.resolve(); await release.promise;}
+        if (current >= chunks.length) return {done: true, value: undefined};
+        state.delivered.push(current); return {done: false, value: encode(chunks[current])};
+      } finally {state.active--;}
+    },
+    async return() {state.returns++; return {done: true};},
+    cancel() {state.cancel++;},
+    close() {state.close++;},
+  };
+  return {source, state, entered, release};
+}
+async function base() {
+  const fs = new MemoryFileSystem(); await fs.mkdir('/direction', {recursive: true});
+  const shell = new Shell({fs}); shell.use(agentCommands());
+  shell.register({name: 'direction-take', async execute(context) {const item = await context.stdin[Symbol.asyncIterator]().next(); if (!item.done) await writeBytes(context.stdout, item.value, context.signal); return {exitCode: 0};}});
+  const caller = new AbortController(), start = gate(), outputClosed = gate();
+  const observation = {writes: 0, stages: [], producerStatuses: []};
+  shell.use(async (context, next) => {
+    if (context.command === 'head') await start.promise;
+    if (context.command === 'curl' || context.command.startsWith('direction-') && context.command !== 'direction-take') {
+      observation.stages.push(context.signal);
+      const sink = context.stdout;
+      const write = sink.write.bind(sink); sink.write = async chunk => {observation.writes++; await write(chunk);};
+      if (sink.ownedOutput) {
+        const capability = sink.ownedOutput, ownedWrite = capability.write.bind(capability);
+        capability.write = async chunk => {observation.writes++; await ownedWrite(chunk);};
+        capability.consumerClosed.addEventListener('abort', () => {outputClosed.resolve(capability.consumerClosed.reason); log('stdout.closed', {stageAborted: context.signal.aborted, callerAborted: caller.signal.aborted, writes: observation.writes});}, {once: true});
+      }
+      const result = await next(); observation.producerStatuses.push(result.exitCode); return result;
+    }
+    return next();
+  });
+  return {fs, shell, caller, start, outputClosed, observation};
+}
+async function take(shell, shared) {const result = await within(shell.exec('direction-take', {stdin: shared.source}), 'next owner'); return result.stdout;}
+function borrowedChecks(shared) {check('borrowed return/cancel/close', [shared.state.returns, shared.state.cancel, shared.state.close], [0, 0, 0]); check('no concurrent underlying next', shared.state.maxActive, 1);}
+function resultChecks(result, stderr = '') {check('shell status', result.exitCode, 0); check('shell stdout', result.stdout, ''); check('shell stderr', result.stderr, stderr);}
+async function loopback(body, mixed = false) {
+  const sockets = new Set(), requests = [], wire = [], finished = gate();
+  const server = createServer(async (request, response) => {
+    const parts = []; for await (const chunk of request) parts.push(chunk);
+    requests.push({url: request.url, body: Buffer.concat(parts).toString()});
+    response.sendDate = false; response.setHeader('Content-Length', Buffer.byteLength(body));
+    if (mixed) response.setHeader('X-Direction', 'mixed');
+    response.setHeader('Connection', 'close'); response.end(body);
+    response.once('finish', () => finished.resolve());
+  });
+  server.on('connection', socket => {
+    sockets.add(socket); socket.once('close', () => sockets.delete(socket));
+    const write = socket.write.bind(socket);
+    socket.write = (chunk, ...args) => {wire.push(Buffer.from(chunk)); return write(chunk, ...args);};
+  });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  return {origin, requests, wire, sockets, finished, async cleanup() {const done = new Promise(resolve => server.close(resolve)); server.closeAllConnections(); for (const socket of sockets) socket.destroy(); await done; await turn(); log('server.cleanup', {sockets: sockets.size});}};
+}
+async function networkCase(mixed) {
+  const fixture = await base(), {shell, fs, caller, start, outputClosed, observation} = fixture;
+  const input = mixed ? inputs.mixedCurl : inputs.borrowedCurl;
+  const shared = cursor(mixed ? input.borrowedChunks : input.chunks, input.pendingChunkIndex);
+  const server = await loopback(mixed ? input.responseBody : input.serverBody, mixed);
+  shell.use(networkCommands({authorize: request => request.url === server.origin + (mixed ? '/mixed' : '/borrowed') && request.method === 'POST'}));
+  if (mixed) shell.use(async (context, next) => {if (context.command !== 'curl') return next(); try {return await next();} finally {await fs.writeFile(input.independentFile, encode(input.independentBytes), {signal: context.signal}); await writeBytes(context.stderr, encode(input.independentStderr), context.signal);}});
+  let execution;
+  try {
+    const command = input.argv.map(value => value.replace('${LOOPBACK_ORIGIN}', server.origin)).map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ') + input.pipelineSuffix;
+    execution = outcome(shell.exec(command, {stdin: shared.source, signal: caller.signal}));
+    await within(shared.entered.promise, 'curl active second next');
+    check('exactly prefix and pending read before close', shared.state.next, 2); check('no request before bounded prebuffer completes', server.requests.length, 0);
+    start.resolve(); await within(outputClosed.promise, 'actual downstream closure');
+    check('closure before stdout write', observation.writes, 0); check('stage/caller live at close', [observation.stages[0].aborted, caller.signal.aborted], [false, false]);
+    check('opaque read still active at closure', shared.state.active, 1);
+    log('pending.snapshot', {next: shared.state.next, active: shared.state.active, requests: server.requests.length});
+    shared.release.resolve();
+    const settled = await within(execution, 'curl completion');
+    check('curl public result exists', Object.hasOwn(settled, 'value'));
+    if (settled.value) resultChecks(settled.value, mixed ? input.independentStderr : '');
+    await turn(); await turn();
+    log('curl.result', {result: settled.value ? {exitCode: settled.value.exitCode, stdout: settled.value.stdout, stderr: settled.value.stderr} : shape(settled.error), statuses: observation.producerStatuses, reads: shared.state.next, requests: server.requests.length});
+    if (mixed) {
+      check('one committed mixed request', server.requests.length, 1); check('exact mixed upload', server.requests[0]?.body, input.uploadBytes);
+      const effects = {};
+      for (const [path, expected] of [['/direction/body', input.responseBody], ['/direction/headers', input.responseWireHeaders], [input.independentFile, input.independentBytes]]) {const read = await outcome(fs.readFile(path)); effects[path] = read.value ? decode(read.value) : shape(read.error); check(`exact VFS ${path}`, effects[path], expected);}
+      log('vfs.effects', effects);
+      const actualWire = Buffer.concat(server.wire).toString(); check('exact response wire', actualWire, input.responseWireHeaders + input.responseBody);
+      log('wire', {value: actualWire});
+    } else {
+      const curlDelivered = [...shared.state.delivered];
+      const sibling = await take(shell, shared), owner = await take(shell, shared);
+      check('exact positive sibling remainder', sibling, input.chunks[input.siblingChunkIndex]); check('exact positive owner remainder', owner, input.chunks[input.ownerChunkIndex]);
+      check('no curl theft of suffix', curlDelivered, [0, 1]);
+      const committed = server.requests.map(request => request.body).join('');
+      check('prefix and late committed or public handback', committed, input.chunks[0] + input.chunks[1]);
+      log('cursor.accounting', {delivered: shared.state.delivered, curlDelivered, committed, sibling, owner, handbackApi: false});
+    }
+    borrowedChecks(shared);
+    for (let index = 0; index < 10 && server.sockets.size; index++) await turn();
+    check('owned sockets closed before teardown', server.sockets.size, 0);
+    log('network.before-teardown', {requests: server.requests, sockets: server.sockets.size, borrowed: shared.state});
+  } finally {shared.release.resolve(); start.resolve(); caller.abort(new Error('fixture teardown')); if (execution) await within(execution, 'network teardown'); await within(shell.dispose(), 'shell dispose'); await server.cleanup();}
+}
+async function opaqueCase() {
+  const {shell, fs, caller, start, outputClosed, observation} = await base(); const input = inputs.opaqueRead;
+  const shared = cursor(input.chunks, input.pendingChunkIndex); let actualRead, commit, operation, operationDone = false;
+  shell.register({name: 'direction-opaque', async execute(context) {
+    operation = createOutputOperation(context, context.stdout);
+    actualRead = shared.source.next();
+    commit = actualRead.then(async item => {if (!item.done) await context.fs.writeFile(input.recordPath, item.value, {signal: context.signal});});
+    void commit.catch(() => {});
+    try {await operation.acquire(() => actualRead, async () => {});} catch (error) {if (error !== operation.signal.reason) throw error;} finally {await operation.close(); operationDone = true;}
+    return {exitCode: 0};
+  }});
+  let execution;
+  try {
+    execution = outcome(shell.exec(input.pipeline, {stdin: shared.source, signal: caller.signal}));
+    await within(shared.entered.promise, 'opaque next entry'); start.resolve(); await within(outputClosed.promise, 'opaque output closure');
+    await within(execution, 'opaque public settlement excluding unregistered work');
+    log('opaque.pending', {operationDone, active: shared.state.active, next: shared.state.next});
+    check('opaque actual read remains pending', shared.state.active, 1); check('stage/caller live', [observation.stages[0].aborted, caller.signal.aborted], [false, false]);
+    shared.release.resolve(); await within(commit, 'actual independent late VFS commit');
+    const record = decode(await fs.readFile(input.recordPath)), sibling = await take(shell, shared), owner = await take(shell, shared);
+    check('exact committed late chunk', record, input.chunks[0]); check('opaque sibling bytes', sibling, input.chunks[1]); check('opaque owner bytes', owner, input.chunks[2]);
+    borrowedChecks(shared); resultChecks((await execution).value); log('opaque.effects', {record, sibling, owner, state: shared.state});
+  } finally {shared.release.resolve(); start.resolve(); await commit?.catch(() => {}); caller.abort(new Error('fixture teardown')); await within(shell.dispose(), 'opaque dispose');}
+}
+async function transferredCase() {
+  const {shell, fs, caller, start, outputClosed, observation} = await base(); const input = inputs.transferredRead;
+  const cleanupGate = gate(), entered = gate(); const borrowed = cursor([input.unrelatedBorrowedBytes]);
+  let operation, contextRef, cleanup, returns = 0, active = 0, reads = 0, work;
+  shell.register({name: 'direction-transferred', async execute(context) {
+    contextRef = context; operation = createOutputOperation(context, context.stdout); let completion;
+    cleanup = () => completion ??= (async () => {await cleanupGate.promise; returns++; active = 0;})();
+    operation.registerCleanup(cleanup);
+    log(input.ownershipEvent);
+    try {await operation.acquire(signal => {reads++; active++; entered.resolve(); return closed(signal).then(() => ({bytes: encode(input.ownedPendingBytes)}));}, cleanup);} catch (error) {if (error !== operation.signal.reason) throw error;} finally {await operation.close();}
+    return {exitCode: 0};
+  }});
+  try {
+    work = outcome(shell.exec(input.pipeline, {signal: caller.signal})); await within(entered.promise, 'owned read starts'); start.resolve(); await within(outputClosed.promise, 'transferred close');
+    const closeOne = operation.close(), closeTwo = operation.close(); check('operation close shares promise', closeOne === closeTwo);
+    await pending(work, 'public work waits for cooperative cleanup');
+    await fs.writeFile(input.postCloseFile, encode(input.postCloseBytes), {signal: contextRef.signal});
+    const survivor = await take(shell, borrowed); check('unrelated borrowed survives', survivor, input.unrelatedBorrowedBytes); borrowedChecks(borrowed);
+    check('transfer file effect', decode(await fs.readFile(input.postCloseFile)), input.postCloseBytes);
+    check('stage/caller before disposal', [contextRef.signal.aborted, caller.signal.aborted], [false, false]);
+    const disposeOne = shell.dispose(), disposeTwo = shell.dispose(); check('dispose shares promise', disposeOne === disposeTwo); await pending(disposeOne, 'dispose waits cleanup');
+    cleanupGate.resolve(); await within(Promise.allSettled([work, closeOne, closeTwo, disposeOne, disposeTwo]), 'all owned cleanup completion');
+    check('one owned release', returns, 1); check('one started read', reads, 1); check('no active owned read', active, 0); check('no first write', observation.writes, 0);
+    log('transfer.effects', {reads, returns, active, survivor, file: decode(await fs.readFile(input.postCloseFile)), result: shape((await work).error)});
+  } finally {cleanupGate.resolve(); start.resolve(); caller.abort(new Error('fixture teardown')); await within(shell.dispose(), 'transfer final dispose');}
+}
+async function parentCase() {
+  const {shell, fs, caller, start, outputClosed} = await base(); const input = inputs.parentTree;
+  const ready = gate(), acquisitionGate = gate(), childGate = gate(), grandGate = gate();
+  const releases = {child: 0, grandchild: 0}; let parent, child, grandchild, contextRef, admitted, work; const stderr = [];
+  const destination = {async write() {}};
+  shell.register({name: 'direction-parent', async execute(context) {
+    contextRef = context; parent = createOutputOperation(context, context.stdout); child = parent.child(destination); grandchild = child.child(destination);
+    let childCompletion, grandCompletion;
+    child.registerCleanup(() => childCompletion ??= (async () => {await childGate.promise; releases.child++;})());
+    const releaseResource = async path => {await grandGate.promise; await fs.rm(path, {force: true}); releases.grandchild++;};
+    let resourceRelease; const onceRelease = path => resourceRelease ??= releaseResource(path);
+    grandchild.registerCleanup(() => grandCompletion ??= (async () => {const path = await admitted; await onceRelease(path);})());
+    admitted = acquisitionGate.promise.then(async () => {const path = '/direction/admitted-resource'; await fs.writeFile(path, encode('cooperative-resource\n')); return path;});
+    const acquisition = outcome(grandchild.acquire(() => admitted, onceRelease)); ready.resolve();
+    try {await closed(parent.signal); await acquisition;} finally {await parent.close();}
+    return {exitCode: 0};
+  }});
+  try {
+    work = outcome(shell.exec(input.pipeline, {signal: caller.signal, stderr: {async write(chunk) {stderr.push(decode(chunk));}}})); await within(ready.promise, 'tree admitted'); start.resolve(); await within(outputClosed.promise, 'parent stdout closure');
+    check('three signals aborted transitively', [parent.signal.aborted, child.signal.aborted, grandchild.signal.aborted], [true, true, true]);
+    let lateStarted = 0; const reasons = [];
+    for (const operation of [parent, child, grandchild]) {const result = await outcome(operation.acquire(() => {lateStarted++; return 1;}, async () => {})); reasons.push(result.error === parent.signal.reason);}
+    check('no late admission callback', lateStarted, 0); check('same selected reason at three levels', reasons, [true, true, true]);
+    const closeOne = parent.close(), closeTwo = parent.close(); check('shared parent drain', closeOne === closeTwo); await pending(closeOne, 'parent awaits admitted acquisition');
+    acquisitionGate.resolve(); await within(admitted, 'cooperative acquisition settles'); await pending(closeOne, 'parent still awaits gated grandchild');
+    await fs.writeFile(input.postCloseFile, encode(input.postCloseBytes), {signal: contextRef.signal}); await writeBytes(contextRef.stderr, encode(input.postCloseStderr), contextRef.signal);
+    check('outside-tree exact file', decode(await fs.readFile(input.postCloseFile)), input.postCloseBytes); check('outside stage/caller live', [contextRef.signal.aborted, caller.signal.aborted], [false, false]);
+    const disposeOne = shell.dispose(), disposeTwo = shell.dispose(); await pending(disposeOne, 'public dispose awaits transitive cleanup');
+    childGate.resolve(); await pending(closeOne, 'grandchild remains in parent drain after child done'); grandGate.resolve();
+    await within(Promise.allSettled([closeOne, closeTwo, work, disposeOne, disposeTwo]), 'tree drains'); check('owned releases once each', releases, {child: 1, grandchild: 1});
+    const resource = await outcome(fs.stat('/direction/admitted-resource')); check('owned VFS resource released', resource.error?.code, 'ENOENT');
+    check('outside-tree exact stderr', stderr.join(''), input.postCloseStderr);
+    log('tree.effects', {releases, lateStarted, reasons, file: decode(await fs.readFile(input.postCloseFile)), stderr: stderr.join(''), work: shape((await work).error)});
+  } finally {acquisitionGate.resolve(); childGate.resolve(); grandGate.resolve(); start.resolve(); caller.abort(new Error('fixture teardown')); await within(shell.dispose(), 'tree final dispose');}
+}
+async function childCase() {
+  const {shell, fs, caller, start, outputClosed} = await base(); const input = inputs.childIsolation; const ready = gate();
+  let parent, child, sibling, stage; const destination = {async write() {}};
+  shell.register({name: 'direction-child', async execute(context) {
+    stage = context.signal; parent = createOutputOperation(context, destination); child = parent.child(context.stdout); sibling = parent.child(destination); ready.resolve();
+    try {
+      await closed(child.signal); await child.close();
+      check('child abort isolates parent/sibling/stage/caller', [child.signal.aborted, parent.signal.aborted, sibling.signal.aborted, stage.aborted, caller.signal.aborted], [true, false, false, false, false]);
+      await parent.acquire(async signal => {await fs.writeFile(input.parentFile, encode(input.parentBytes), {signal}); return input.parentFile;}, async () => {});
+      await sibling.acquire(async signal => {await fs.writeFile(input.siblingFile, encode(input.siblingBytes), {signal}); return input.siblingFile;}, async () => {});
+      await writeBytes(context.stderr, encode(input.stderr), context.signal);
+      return {exitCode: 0};
+    } finally {await parent.close();}
+  }});
+  try {const work = outcome(shell.exec(input.pipeline, {signal: caller.signal})); await within(ready.promise, 'child ready'); start.resolve(); await within(outputClosed.promise, 'child output closure'); const result = await within(work, 'child-isolation execution'); resultChecks(result.value, input.stderr); for (const [path, expected] of [[input.parentFile, input.parentBytes], [input.siblingFile, input.siblingBytes]]) check(`exact ${path}`, decode(await fs.readFile(path)), expected); log('child.effects', {parent: decode(await fs.readFile(input.parentFile)), sibling: decode(await fs.readFile(input.siblingFile)), stderr: result.value.stderr});}
+  finally {start.resolve(); caller.abort(new Error('fixture teardown')); await within(shell.dispose(), 'child dispose');}
+}
+function containsIdentity(error, expected) {return error === expected || error instanceof AggregateError && error.errors.some(child => containsIdentity(child, expected));}
+async function failureSubrun(index) {
+  const {shell, caller, start, outputClosed} = await base(); const input = inputs.failureReasons;
+  const shared = cursor(['controlled-pending\n', input.survivorBytes], 0), cleanupGate = gate(), ready = gate();
+  const cleanupErrors = input.cleanupErrorMessages.map(message => new Error(message)), lateError = new Error(input.lateReadErrorMessage);
+  const selected = new ShellLimitError('maxCommands'); selected.message = input.executionErrorMessage;
+  const callerReason = index === 0 ? input.callerObject : input.callerPrimitive;
+  let readOutcome, parent, cleanups = [0, 0];
+  shell.register({name: 'direction-failure', execute() {return {exitCode: 0};}});
+  shell.use(async (context, next) => {
+    if (context.command !== 'direction-failure') return next();
+    parent = createOutputOperation(context, context.stdout);
+    for (const childIndex of [0, 1]) {const child = parent.child({async write() {}}); let completion; child.registerCleanup(() => completion ??= (async () => {await cleanupGate.promise; cleanups[childIndex]++; throw cleanupErrors[childIndex];})());}
+    readOutcome = outcome(shared.source.next()); ready.resolve();
+    try {await closed(parent.signal); if (index === 2) throw selected; return {exitCode: 0};} finally {void parent.close().catch(() => {});}
+  });
+  let execution;
+  try {
+    execution = outcome(shell.exec(input.pipeline, {stdin: shared.source, signal: caller.signal})); await within(ready.promise, 'error case ready'); await within(shared.entered.promise, 'error opaque read entered'); start.resolve(); await within(outputClosed.promise, 'error stdout closure');
+    await pending(execution, 'public settlement awaits registered child cleanup');
+    if (index < 2) {caller.abort(callerReason); shared.release.resolve(); await within(readOutcome, 'caller variant read completion');}
+    cleanupGate.resolve(); const result = await within(execution, 'selected public error');
+    if (index < 2) check(`caller identity ${index}`, result.error === callerReason);
+    else if (index === 2) check('selected ShellLimitError identity', result.error === selected);
+    else {check('public aggregate type', result.error instanceof AggregateError); check('both child identities present', cleanupErrors.map(error => containsIdentity(result.error, error)), [true, true]);}
+    if (index >= 2) {check('opaque still unresolved after public settlement', shared.state.active, 1); shared.release.reject(lateError); const actual = await within(readOutcome, 'late opaque rejection observed'); check('exact late read rejection', actual.error === lateError);}
+    check('each child cleanup awaited once', cleanups, [1, 1]);
+    const survivor = await take(shell, shared); check('owner bytes after failed invocation', survivor, input.survivorBytes); borrowedChecks(shared);
+    log('failure.subrun', {name: input.subruns[index], error: shape(result.error), cleanups, survivor, active: shared.state.active, failuresSoFar: failures.length});
+  } finally {shared.release.resolve(); cleanupGate.resolve(); start.resolve(); await readOutcome; caller.abort(new Error('fixture teardown')); await outcome(within(shell.dispose(), 'error dispose'));}
+}
+async function main() {
+  if (id === 'D01') await networkCase(false);
+  else if (id === 'D02') await opaqueCase();
+  else if (id === 'D03') await transferredCase();
+  else if (id === 'D04') await parentCase();
+  else if (id === 'D05') await childCase();
+  else if (id === 'D06') await networkCase(true);
+  else if (id === 'D07') {for (let index = 0; index < inputs.failureReasons.subruns.length; index++) {const before = failures.length; try {await failureSubrun(index);} catch (error) {failures.push({subrun: inputs.failureReasons.subruns[index], error: shape(error)});} log('subrun.result', {name: inputs.failureReasons.subruns[index], pass: failures.length === before});}}
+  else throw new Error(`unknown case ${id}`);
+}
+try {await main();} catch (error) {failures.push({uncaught: shape(error)});}
+await turn(); await turn(); check('no unhandled rejections', unhandled, []);
+console.log(JSON.stringify({id, passed: failures.length === 0, records, failures, unhandled}));
+process.exitCode = failures.length ? 1 : 0;

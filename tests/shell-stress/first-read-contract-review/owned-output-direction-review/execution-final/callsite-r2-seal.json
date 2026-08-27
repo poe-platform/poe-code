@@ -1,0 +1,14 @@
+{
+  "sealedAt": "2026-08-27T10:40:55.791Z",
+  "beforeExecution": true,
+  "round": 2,
+  "firstSha256": "ba869916f2e77484f0f674521a2c30e2696a0e459870ff25c99c8d72dae75d74",
+  "secondSha256": "aa9207d4d7f50f1f5b2352de431efb9aa3fac034d5430a6a01473f35479e8ae4",
+  "delta": {
+    "old": ".trim().replace(owned, 'OWNED')",
+    "replacement": ".trim()"
+  },
+  "diagnosis": "First instrumentation used an undefined owned identifier inside return. InputCursor intentionally swallows return errors, so counts survived but callsite log was absent. This is a verifier instrumentation error, not a product failure or a correction to frozen criteria. Initial/r1 raw artifacts remain.",
+  "sourceChanges": false,
+  "expectationChanges": false
+}

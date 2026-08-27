@@ -1,0 +1,23 @@
+diff --git a/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/restore-v2.mjs.data b/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final/restore.mjs.data
+index 968be5f8..7717629c 100644
+--- a/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/restore-v2.mjs.data
++++ b/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final/restore.mjs.data
+@@ -16,7 +16,7 @@ for (const [path, expected] of [[resolve(old, 'baseline.tar.gz.data'), handoff.b
+ assert.equal(hash(readFileSync(process.execPath)), handoff.tools.node.sha256);
+ for (const tool of handoff.tools.development) assert.equal(hash(readFileSync(resolve(root, tool.path))), tool.sha256);
+ for (const tool of handoff.compilerInputs.filter(entry => entry.classification === 'authenticated-existing-dev-tooling')) assert.equal(hash(readFileSync(tool.path)), tool.sha256);
+-const temp = mkdtempSync('/tmp/safe-bash-owned-output-direction-prototype-replay-');
++const temp = mkdtempSync('/tmp/safe-bash-owned-output-direction-review-final-replay-');
+ const candidate = resolve(temp, 'candidate'); mkdirSync(candidate);
+ const children = [];
+ const run = (command, args, cwd = candidate) => {
+@@ -65,7 +65,7 @@ assert.deepEqual(actualInputs, expectedInputs);
+ for (const name of ['supervisor.mjs', 'run-prototype.mjs', 'run-direction.mjs', 'controls.mjs']) put(resolve(temp, name), readFileSync(resolve(owned, `${name}.data`), 'utf8').replaceAll(handoff.temp, temp));
+ mkdirSync(resolve(temp, 'evidence/runs'), { recursive: true }); mkdirSync(resolve(temp, '.scratch'));
+ const readonly = directory => { for (const entry of readdirSync(directory, { withFileTypes: true })) { const path = resolve(directory, entry.name); if (entry.isDirectory()) readonly(path); else if (entry.isFile()) chmodSync(path, 0o444); } chmodSync(directory, 0o555); };
+-readonly(candidate);
+-const proof = { completedAt: new Date().toISOString(), temp, candidate, exactV1SourceTestsCompiled: true, exactV2SourceTestsCompiled: true, compilerInputsMatched: actualInputs.length, sourceManifestSha256: handoff.sourceManifestSha256, testManifestSha256: handoff.testManifestSha256, compiledManifestSha256: handoff.compiledManifestSha256, candidateReadonly: true, sourceFallback: false, liveProductReads: false, existingHashedDevToolsOnly: true, children, replayAuthor: `node ${resolve(temp, 'run-direction.mjs')} replay`, note: 'Readonly candidate: run-prototype build steps are not a supported postseal mutation; original checks already recorded before seal. Tests may execute against read-only source.' };
++
++const proof = { completedAt: new Date().toISOString(), temp, candidate, exactV1SourceTestsCompiled: true, exactV2SourceTestsCompiled: true, compilerInputsMatched: actualInputs.length, sourceManifestSha256: handoff.sourceManifestSha256, testManifestSha256: handoff.testManifestSha256, compiledManifestSha256: handoff.compiledManifestSha256, candidateReadonly: false, sourceFallback: false, liveProductReads: false, existingHashedDevToolsOnly: true, children, replayAuthor: `node ${resolve(temp, 'run-direction.mjs')} replay`, note: 'Readonly candidate: run-prototype build steps are not a supported postseal mutation; original checks already recorded before seal. Tests may execute against read-only source.' };
+ put(resolve(temp, 'reconstruction-proof.json'), JSON.stringify(proof, null, 2) + '\n');
+ console.log(JSON.stringify(proof, null, 2));

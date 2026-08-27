@@ -1,0 +1,89 @@
+{
+  "sealedAt": "2026-08-27T10:37:09.691Z",
+  "beforeFirstProductExecution": true,
+  "cases": 7,
+  "d07Subruns": 4,
+  "noExpectationChanges": true,
+  "branch": "opaque-no-lease-no-handback",
+  "sourceManifestSha256": "2896bd6108a90e19abee682db729960cc85f71d0ecd15562e4f9cb93b5f3399c",
+  "testManifestSha256": "f56d1acc3973bd82697d888fa68a9a7f92acffd24ece75351062ee3cba9984c7",
+  "compiledManifestSha256": "c8bfd5130b2317c5dabc321791b08211d9a5d689865fdeb1b90916efd23f5543",
+  "files": [
+    {
+      "path": "driver.mjs",
+      "sha256": "2001ba5ab8a2033d1596eed51632cf0ea56cb58e74f8b45f5d81181f025b5eea"
+    },
+    {
+      "path": "supervisor.mjs",
+      "sha256": "d586cf29ead4638143bb9aa41c33d24e5b09bfdbe9fab0451c66bd8c107e9e84"
+    },
+    {
+      "path": "api-binding.ts",
+      "sha256": "bca690c38bac80c8341eb58697bf2c038216e62ab02958c5cffe489215645679"
+    },
+    {
+      "path": "inputs.json",
+      "sha256": "5272216a9e1cf58782fe7d5bd32a3a93b58f551e395de94b8bc0c8196947ff3e"
+    },
+    {
+      "path": "cases.json",
+      "sha256": "7efe0a97562c21874b6334a5acde6c5bc98c5578e952ba0d76409c2104fee1f6"
+    },
+    {
+      "path": "support.mjs",
+      "sha256": "93628fb0b95124bcfb995121191d7465145629bfa00f2e921cd3d693e28be8f7"
+    },
+    {
+      "path": "binding.mjs",
+      "sha256": "c77c9825e07c178aecb33de4ba99cca62da24525c9a127ea7fa2ba0298e19675"
+    },
+    {
+      "path": "holdouts.mjs",
+      "sha256": "89e7126e946dd8eee07e547891bd83ba5db15a28f22890bbce6fa31e99a1fd98"
+    },
+    {
+      "path": "holdouts-r1.mjs",
+      "sha256": "c8a139b02533c8c964fef8eea829532a528fe85cbfa7d660bc8109e0c17ddd09"
+    },
+    {
+      "path": "controls.mjs",
+      "sha256": "03098a87e9e4345749ba33442b171545abdaf19454088e1b93c1aa544f9568eb"
+    },
+    {
+      "path": "bound/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "bound/tests/fs/webdav/mock.ts",
+      "sha256": "abc518d5624cbfab68c4257c0e9cffd0c339ea4af1d32b2ecbc1110151fffeb7"
+    },
+    {
+      "path": "bound/tests/shell/adapted-first-read-probe.ts",
+      "sha256": "95b6ebd92d7080e5a624bec5e9d5598cc905dec58755832345b65adad6dbe704"
+    },
+    {
+      "path": "bound/tests/shell/diagnostic-first-read-probe.ts",
+      "sha256": "5c700b967ee915f9951b1a04ae0ffbbce04185669eba8ea8b54d5ca1b3fc9c21"
+    },
+    {
+      "path": "bound/tests/stress/remote-cancellation/helpers.ts",
+      "sha256": "da191a9532981eb7ccd0372251268deb2823c447ea66b52e2c22887ea4f8ae1f"
+    },
+    {
+      "path": "bound/tsconfig.json",
+      "sha256": "cd20bda6636adcbbc9f9c6aed022cf7c5c0a60bb766d9c5237736ec8690e995f"
+    },
+    {
+      "path": "api-tsconfig.json",
+      "sha256": "14e6fbc69efe7c26756687b7642df3cbdbeb3a53caeed39df12d18ed3bd7fa03"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "BINDING.md",
+      "sha256": "c671f473d5f3f996772469c29af4b54b2b0c172f0b4a4fe4a40d8af763a63211"
+    }
+  ]
+}

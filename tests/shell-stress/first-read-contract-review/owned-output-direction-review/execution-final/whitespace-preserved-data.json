@@ -1,0 +1,13 @@
+{
+  "allPathsStatus": 2,
+  "stdout": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final/historical/v1-binding-delta.patch-data:13: trailing whitespace.\n+ \n",
+  "stderr": "",
+  "exactDataClassification": {
+    "path": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final/historical/v1-binding-delta.patch-data",
+    "original": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/binding-r0-to-r1.patch-data",
+    "sha256": "e07dcfd2f7cf2d4d3dee9671afeeddf9c8e1a106568d7a23e109661c13b8ef24",
+    "reason": "Immutable historical diff line13 is a context prefix followed by an empty line. Preserve exact patch bytes; this is inert captured data, not canonical source or a blanket test exclusion."
+  },
+  "canonicalPathsStatus": 0,
+  "canonicalCoverage": "Every owned path except that single authenticated historical patch; no source/test/helper exclusions."
+}

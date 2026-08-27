@@ -1,0 +1,17 @@
+{
+  "label": "control-C4",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"scenario\":\"C4\",\"verdict\":\"PASS\",\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"exitCode\":0,\"effect\":\"kept\"},\"cleanup\":1,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"middleware.enter:consume\"},{\"order\":6,\"value\":\"consumer.invoked\"},{\"order\":7,\"value\":\"consumer.return:no-more-reads\"},{\"order\":8,\"value\":\"middleware.finally:consume\"},{\"order\":9,\"value\":\"producer.after-downstream-close\"},{\"order\":10,\"value\":\"effect:kept\"},{\"order\":11,\"value\":\"producer.finally:live\"},{\"order\":12,\"value\":\"middleware.finally:produce\"},{\"order\":13,\"value\":\"public.exec.settled\"}]}\n{\"scenario\":\"C4\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+    "bytes": 772,
+    "base64": "eyJzY2VuYXJpbyI6IkM0IiwidmVyZGljdCI6IlBBU1MiLCJyZXN1bHQiOnsic3Rkb3V0IjoiIiwic3RkZXJyIjoiIiwiZXhpdENvZGUiOjAsImVmZmVjdCI6ImtlcHQifSwiY2xlYW51cCI6MSwicmVhZHMiOjAsImV2ZW50cyI6W3sib3JkZXIiOjEsInZhbHVlIjoibWlkZGxld2FyZS5lbnRlcjpzZXQifSx7Im9yZGVyIjoyLCJ2YWx1ZSI6Im1pZGRsZXdhcmUuZmluYWxseTpzZXQifSx7Im9yZGVyIjozLCJ2YWx1ZSI6Im1pZGRsZXdhcmUuZW50ZXI6cHJvZHVjZSJ9LHsib3JkZXIiOjQsInZhbHVlIjoicHJvZHVjZXIuaW52b2tlZCJ9LHsib3JkZXIiOjUsInZhbHVlIjoibWlkZGxld2FyZS5lbnRlcjpjb25zdW1lIn0seyJvcmRlciI6NiwidmFsdWUiOiJjb25zdW1lci5pbnZva2VkIn0seyJvcmRlciI6NywidmFsdWUiOiJjb25zdW1lci5yZXR1cm46bm8tbW9yZS1yZWFkcyJ9LHsib3JkZXIiOjgsInZhbHVlIjoibWlkZGxld2FyZS5maW5hbGx5OmNvbnN1bWUifSx7Im9yZGVyIjo5LCJ2YWx1ZSI6InByb2R1Y2VyLmFmdGVyLWRvd25zdHJlYW0tY2xvc2UifSx7Im9yZGVyIjoxMCwidmFsdWUiOiJlZmZlY3Q6a2VwdCJ9LHsib3JkZXIiOjExLCJ2YWx1ZSI6InByb2R1Y2VyLmZpbmFsbHk6bGl2ZSJ9LHsib3JkZXIiOjEyLCJ2YWx1ZSI6Im1pZGRsZXdhcmUuZmluYWxseTpwcm9kdWNlIn0seyJvcmRlciI6MTMsInZhbHVlIjoicHVibGljLmV4ZWMuc2V0dGxlZCJ9XX0KeyJzY2VuYXJpbyI6IkM0IiwidGVhcmRvd24iOiJkaXNwb3NlZCIsImNsZWFudXAiOjF9Cg==",
+    "sha256": "52a4229cba92630f6f669c153485376cbd7fc637cf38d94d14d65f47660f7fd0"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

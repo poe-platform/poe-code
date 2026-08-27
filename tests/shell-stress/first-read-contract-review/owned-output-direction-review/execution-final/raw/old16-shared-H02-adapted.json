@@ -1,0 +1,17 @@
+{
+  "label": "old16-shared-H02-adapted",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "first-read-s3: passed\n{\"scenario\":\"first-read-s3\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:S3.listObjectsV2:list\",\"transport.signal.abort:S3.getObjectStream:input\",\"source.finally\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+    "bytes": 707,
+    "base64": "Zmlyc3QtcmVhZC1zMzogcGFzc2VkCnsic2NlbmFyaW8iOiJmaXJzdC1yZWFkLXMzIiwiYWN0aXZlIjowLCJyZWFkcyI6MSwicmV0dXJuZWQiOjEsIndyaXRlcyI6MCwic3RhZ2VBYm9ydGVkIjpmYWxzZSwib3BlcmF0aW9uQWJvcnRlZCI6dHJ1ZSwiYWJvcnRlZEJlZm9yZVRlYXJkb3duIjpmYWxzZSwiZXZlbnRzIjpbIm9wOlMzLmxpc3RPYmplY3RzVjI6bGlzdDpjYWxsZXJBYm9ydGVkPWZhbHNlOnNpZ25hbD1saXZlIiwib3A6UzMuaGVhZE9iamVjdDppbnB1dDpjYWxsZXJBYm9ydGVkPWZhbHNlOnNpZ25hbD1saXZlIiwib3A6UzMuaGVhZE9iamVjdDppbnB1dC86Y2FsbGVyQWJvcnRlZD1mYWxzZTpzaWduYWw9bGl2ZSIsIm9wOlMzLmxpc3RPYmplY3RzVjI6bGlzdDpjYWxsZXJBYm9ydGVkPWZhbHNlOnNpZ25hbD1saXZlIiwib3A6UzMuZ2V0T2JqZWN0U3RyZWFtOmlucHV0OmNhbGxlckFib3J0ZWQ9ZmFsc2U6c2lnbmFsPWxpdmUiLCJzb3VyY2UubmV4dDpwZW5kaW5nLWJlZm9yZS1maXJzdC1ieXRlIiwiY29tbWFuZC5zZXR0bGVkOmhlYWQ6MCIsInRyYW5zcG9ydC5zaWduYWwuYWJvcnQ6UzMubGlzdE9iamVjdHNWMjpsaXN0IiwidHJhbnNwb3J0LnNpZ25hbC5hYm9ydDpTMy5nZXRPYmplY3RTdHJlYW06aW5wdXQiLCJzb3VyY2UuZmluYWxseSIsImNvbW1hbmQuc2V0dGxlZDpjYXQ6MTQxIiwiY29tbWFuZC5zZXR0bGVkOnRydWU6MCJdfQo=",
+    "sha256": "0d761ff31e3fa05ca65c1d1322babc24b7310d0c1f1f05c68f538ec1574a6a7b"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

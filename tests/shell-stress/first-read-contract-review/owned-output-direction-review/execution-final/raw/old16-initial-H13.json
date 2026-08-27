@@ -1,0 +1,17 @@
+{
+  "label": "old16-initial-H13",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"H13\",\"verdict\":\"PASS\",\"records\":[{\"mode\":\"dispose\",\"events\":[\"registered\",\"admitted\"],\"acquired\":1,\"returned\":1,\"lateStarts\":0,\"dispatched\":0,\"actual\":{\"error\":{}},\"opaqueSettledOnlyAfterPublicSettlement\":true},{\"subrun\":\"dispose\",\"passed\":true},{\"mode\":\"caller\",\"events\":[\"registered\",\"admitted\"],\"acquired\":1,\"returned\":1,\"lateStarts\":0,\"dispatched\":0,\"actual\":{\"error\":{\"caller\":\"late-admission\"}},\"opaqueSettledOnlyAfterPublicSettlement\":true},{\"subrun\":\"caller\",\"passed\":true}]}\n",
+    "bytes": 491,
+    "base64": "eyJpZCI6IkgxMyIsInZlcmRpY3QiOiJQQVNTIiwicmVjb3JkcyI6W3sibW9kZSI6ImRpc3Bvc2UiLCJldmVudHMiOlsicmVnaXN0ZXJlZCIsImFkbWl0dGVkIl0sImFjcXVpcmVkIjoxLCJyZXR1cm5lZCI6MSwibGF0ZVN0YXJ0cyI6MCwiZGlzcGF0Y2hlZCI6MCwiYWN0dWFsIjp7ImVycm9yIjp7fX0sIm9wYXF1ZVNldHRsZWRPbmx5QWZ0ZXJQdWJsaWNTZXR0bGVtZW50Ijp0cnVlfSx7InN1YnJ1biI6ImRpc3Bvc2UiLCJwYXNzZWQiOnRydWV9LHsibW9kZSI6ImNhbGxlciIsImV2ZW50cyI6WyJyZWdpc3RlcmVkIiwiYWRtaXR0ZWQiXSwiYWNxdWlyZWQiOjEsInJldHVybmVkIjoxLCJsYXRlU3RhcnRzIjowLCJkaXNwYXRjaGVkIjowLCJhY3R1YWwiOnsiZXJyb3IiOnsiY2FsbGVyIjoibGF0ZS1hZG1pc3Npb24ifX0sIm9wYXF1ZVNldHRsZWRPbmx5QWZ0ZXJQdWJsaWNTZXR0bGVtZW50Ijp0cnVlfSx7InN1YnJ1biI6ImNhbGxlciIsInBhc3NlZCI6dHJ1ZX1dfQo=",
+    "sha256": "4f33d6a9c9bb1aefe9afb2c0d3bf2ce69fdbf72842239e706bf8c79ff772d962"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

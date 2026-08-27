@@ -1,0 +1,34 @@
+{
+  "label": "old16-corrected-H01",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/holdouts-r1.mjs",
+    "H01"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:04.181Z",
+  "finishedAt": "2026-08-27T10:38:04.260Z",
+  "durationMs": 79.09220800000003,
+  "timeoutMs": 15000,
+  "maxBytes": 262144,
+  "pid": 6516,
+  "initialIdentity": "6516  4804  6516 Thu Aug 27 05:38:04 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/holdouts-r1.mjs H01",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H01\",\"verdict\":\"PASS\",\"records\":[{\"kind\":\"separation\",\"firstWrites\":0,\"started\":1,\"returned\":1,\"active\":0,\"events\":[{\"sequence\":0,\"name\":\"operation.enrolled\",\"monotonicMs\":60.022834},{\"sequence\":1,\"name\":\"source.started\",\"monotonicMs\":60.212667},{\"sequence\":2,\"name\":\"downstream.completed\",\"monotonicMs\":60.41},{\"sequence\":3,\"name\":\"operation.aborted\",\"monotonicMs\":60.590667},{\"sequence\":4,\"name\":\"source.returned\",\"monotonicMs\":60.960667},{\"sequence\":5,\"name\":\"independent.effect\",\"monotonicMs\":61.771667},{\"sequence\":6,\"name\":\"cleanup.completed\",\"monotonicMs\":61.775167},{\"sequence\":7,\"name\":\"exec.settled\",\"monotonicMs\":62.244125}],\"operationAborted\":true,\"stageAbortedAtClose\":false,\"callerAbortedAtClose\":false}]}\n",
+  "stderr": ""
+}

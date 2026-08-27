@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {capture, owned, put} from './supervisor.mjs';
+const scope = '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final';
+const first = readFileSync(`${owned}/driver-callsite.mjs`, 'utf8');
+const old = ".trim().replace(owned, 'OWNED')", replacement = '.trim()';
+assert.equal(first.split(old).length, 2);
+const second = first.replace(old, replacement);
+put(`${owned}/driver-callsite-r2.mjs`, second); put(`${scope}/driver-callsite-r2.mjs.data`, second);
+put(`${scope}/callsite-r2-seal.json`, JSON.stringify({sealedAt: new Date().toISOString(), beforeExecution: true, round: 2, firstSha256: createHash('sha256').update(first).digest('hex'), secondSha256: createHash('sha256').update(second).digest('hex'), delta: {old, replacement}, diagnosis: 'First instrumentation used an undefined owned identifier inside return. InputCursor intentionally swallows return errors, so counts survived but callsite log was absent. This is a verifier instrumentation error, not a product failure or a correction to frozen criteria. Initial/r1 raw artifacts remain.', sourceChanges: false, expectationChanges: false}, null, 2) + '\n');
+await capture('callsite-r2-syntax', process.execPath, ['--check', `${owned}/driver-callsite-r2.mjs`]);
+for (const id of ['D02', 'D03', 'D07']) await capture(`callsite-r2-${id}`, process.execPath, ['--unhandled-rejections=strict', `${owned}/driver-callsite-r2.mjs`, id]);

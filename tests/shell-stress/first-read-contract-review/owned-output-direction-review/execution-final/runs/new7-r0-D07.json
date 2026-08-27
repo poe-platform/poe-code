@@ -1,0 +1,34 @@
+{
+  "label": "new7-r0-D07",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs",
+    "D07"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:01.421Z",
+  "finishedAt": "2026-08-27T10:38:01.502Z",
+  "durationMs": 80.55983400000014,
+  "timeoutMs": 5000,
+  "maxBytes": 262144,
+  "pid": 5469,
+  "initialIdentity": "5469  4804  5469 Thu Aug 27 05:38:01 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs D07",
+  "status": 1,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"D07\",\"passed\":false,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"failure.subrun\",\"name\":\"caller-object-with-child-cleanup-failure\",\"error\":{\"code\":\"EPIPE\",\"marker\":\"caller-not-output-close\"},\"cleanups\":[1,1],\"survivor\":\"reason-owner-survived\\n\",\"active\":0,\"failuresSoFar\":1},{\"event\":\"subrun.result\",\"name\":\"caller-object-with-child-cleanup-failure\",\"pass\":false},{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"failure.subrun\",\"name\":\"caller-zero-with-child-cleanup-failure\",\"error\":0,\"cleanups\":[1,1],\"survivor\":\"reason-owner-survived\\n\",\"active\":0,\"failuresSoFar\":2},{\"event\":\"subrun.result\",\"name\":\"caller-zero-with-child-cleanup-failure\",\"pass\":false},{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"failure.subrun\",\"name\":\"execution-rejection-with-late-opaque-rejection\",\"error\":{\"name\":\"ShellLimitError\",\"message\":\"direction-execution-error\"},\"cleanups\":[1,1],\"survivor\":\"reason-owner-survived\\n\",\"active\":0,\"failuresSoFar\":3},{\"event\":\"subrun.result\",\"name\":\"execution-rejection-with-late-opaque-rejection\",\"pass\":false},{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"failure.subrun\",\"name\":\"two-child-cleanup-errors-with-late-opaque-rejection\",\"error\":{\"name\":\"AggregateError\",\"message\":\"Output operation cleanup failed\",\"errors\":[{\"name\":\"Error\",\"message\":\"direction-cleanup-a\"},{\"name\":\"Error\",\"message\":\"direction-cleanup-b\"}]},\"cleanups\":[1,1],\"survivor\":\"reason-owner-survived\\n\",\"active\":0,\"failuresSoFar\":4},{\"event\":\"subrun.result\",\"name\":\"two-child-cleanup-errors-with-late-opaque-rejection\",\"pass\":false}],\"failures\":[{\"label\":\"borrowed return/cancel/close\",\"actual\":[2,0,0],\"expected\":[0,0,0]},{\"label\":\"borrowed return/cancel/close\",\"actual\":[2,0,0],\"expected\":[0,0,0]},{\"label\":\"borrowed return/cancel/close\",\"actual\":[2,0,0],\"expected\":[0,0,0]},{\"label\":\"borrowed return/cancel/close\",\"actual\":[2,0,0],\"expected\":[0,0,0]}],\"unhandled\":[]}\n",
+  "stderr": ""
+}

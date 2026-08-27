@@ -1,0 +1,17 @@
+{
+  "label": "new7-r0-D04",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"D04\",\"passed\":true,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"tree.effects\",\"releases\":{\"child\":1,\"grandchild\":1},\"lateStarted\":0,\"reasons\":[true,true,true],\"file\":\"outside-parent-tree\\n\",\"stderr\":\"parent-tree-drained\\n\",\"work\":{\"name\":\"Error\",\"message\":\"Shell is disposed\"}}],\"failures\":[],\"unhandled\":[]}\n",
+    "bytes": 372,
+    "base64": "eyJpZCI6IkQwNCIsInBhc3NlZCI6dHJ1ZSwicmVjb3JkcyI6W3siZXZlbnQiOiJzdGRvdXQuY2xvc2VkIiwic3RhZ2VBYm9ydGVkIjpmYWxzZSwiY2FsbGVyQWJvcnRlZCI6ZmFsc2UsIndyaXRlcyI6MH0seyJldmVudCI6InRyZWUuZWZmZWN0cyIsInJlbGVhc2VzIjp7ImNoaWxkIjoxLCJncmFuZGNoaWxkIjoxfSwibGF0ZVN0YXJ0ZWQiOjAsInJlYXNvbnMiOlt0cnVlLHRydWUsdHJ1ZV0sImZpbGUiOiJvdXRzaWRlLXBhcmVudC10cmVlXG4iLCJzdGRlcnIiOiJwYXJlbnQtdHJlZS1kcmFpbmVkXG4iLCJ3b3JrIjp7Im5hbWUiOiJFcnJvciIsIm1lc3NhZ2UiOiJTaGVsbCBpcyBkaXNwb3NlZCJ9fV0sImZhaWx1cmVzIjpbXSwidW5oYW5kbGVkIjpbXX0K",
+    "sha256": "ec356175a506d8eb03a542bdcb9d9b917a95ec81147ad7ce323dfbe041a08ac5"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

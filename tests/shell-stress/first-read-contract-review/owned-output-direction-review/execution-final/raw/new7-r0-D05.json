@@ -1,0 +1,17 @@
+{
+  "label": "new7-r0-D05",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"D05\",\"passed\":true,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"child.effects\",\"parent\":\"parent-still-live\\n\",\"sibling\":\"sibling-still-live\\n\",\"stderr\":\"stderr-still-live\\n\"}],\"failures\":[],\"unhandled\":[]}\n",
+    "bytes": 269,
+    "base64": "eyJpZCI6IkQwNSIsInBhc3NlZCI6dHJ1ZSwicmVjb3JkcyI6W3siZXZlbnQiOiJzdGRvdXQuY2xvc2VkIiwic3RhZ2VBYm9ydGVkIjpmYWxzZSwiY2FsbGVyQWJvcnRlZCI6ZmFsc2UsIndyaXRlcyI6MH0seyJldmVudCI6ImNoaWxkLmVmZmVjdHMiLCJwYXJlbnQiOiJwYXJlbnQtc3RpbGwtbGl2ZVxuIiwic2libGluZyI6InNpYmxpbmctc3RpbGwtbGl2ZVxuIiwic3RkZXJyIjoic3RkZXJyLXN0aWxsLWxpdmVcbiJ9XSwiZmFpbHVyZXMiOltdLCJ1bmhhbmRsZWQiOltdfQo=",
+    "sha256": "65f7a43a7078fd4a09cf67761bf08230a9ed2599d61f8eb065ce96df83328977"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

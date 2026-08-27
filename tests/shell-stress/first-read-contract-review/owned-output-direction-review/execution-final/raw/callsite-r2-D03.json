@@ -1,0 +1,17 @@
+{
+  "label": "callsite-r2-D03",
+  "status": 1,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"D03\",\"passed\":false,\"records\":[{\"event\":\"owner-explicitly-transfers-exclusive-source\"},{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"borrowed.return.callsite\",\"active\":0,\"reads\":1,\"callsite\":\"at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80\"},{\"event\":\"transfer.effects\",\"reads\":1,\"returns\":1,\"active\":0,\"survivor\":\"still-borrowed\\n\",\"file\":\"transfer-survived\\n\",\"result\":{\"name\":\"Error\",\"message\":\"Shell is disposed\"}}],\"failures\":[{\"label\":\"borrowed return/cancel/close\",\"actual\":[1,0,0],\"expected\":[0,0,0]}],\"unhandled\":[]}\n",
+    "bytes": 648,
+    "base64": "eyJpZCI6IkQwMyIsInBhc3NlZCI6ZmFsc2UsInJlY29yZHMiOlt7ImV2ZW50Ijoib3duZXItZXhwbGljaXRseS10cmFuc2ZlcnMtZXhjbHVzaXZlLXNvdXJjZSJ9LHsiZXZlbnQiOiJzdGRvdXQuY2xvc2VkIiwic3RhZ2VBYm9ydGVkIjpmYWxzZSwiY2FsbGVyQWJvcnRlZCI6ZmFsc2UsIndyaXRlcyI6MH0seyJldmVudCI6ImJvcnJvd2VkLnJldHVybi5jYWxsc2l0ZSIsImFjdGl2ZSI6MCwicmVhZHMiOjEsImNhbGxzaXRlIjoiYXQgZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtb3duZWQtb3V0cHV0LWRpcmVjdGlvbi1yZXZpZXctZmluYWwtcmVwbGF5LVVxbTZhWC9jYW5kaWRhdGUvZGlzdC9zaGVsbC9pbnB1dC5qczo3Mzo4MCJ9LHsiZXZlbnQiOiJ0cmFuc2Zlci5lZmZlY3RzIiwicmVhZHMiOjEsInJldHVybnMiOjEsImFjdGl2ZSI6MCwic3Vydml2b3IiOiJzdGlsbC1ib3Jyb3dlZFxuIiwiZmlsZSI6InRyYW5zZmVyLXN1cnZpdmVkXG4iLCJyZXN1bHQiOnsibmFtZSI6IkVycm9yIiwibWVzc2FnZSI6IlNoZWxsIGlzIGRpc3Bvc2VkIn19XSwiZmFpbHVyZXMiOlt7ImxhYmVsIjoiYm9ycm93ZWQgcmV0dXJuL2NhbmNlbC9jbG9zZSIsImFjdHVhbCI6WzEsMCwwXSwiZXhwZWN0ZWQiOlswLDAsMF19XSwidW5oYW5kbGVkIjpbXX0K",
+    "sha256": "2bf1a2acf4bb5a919283e3680f05c99a8365aa033da3562cac0827822855ef85"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

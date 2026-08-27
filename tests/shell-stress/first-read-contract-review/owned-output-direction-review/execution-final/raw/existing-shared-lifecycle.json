@@ -1,0 +1,17 @@
+{
+  "label": "existing-shared-lifecycle",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "TAP version 13\n# Subtest: hard-timeout lifecycle regression: shared-delayed-generator\nok 1 - hard-timeout lifecycle regression: shared-delayed-generator\n  ---\n  duration_ms: 170.808375\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-serialized\nok 2 - hard-timeout lifecycle regression: shared-serialized\n  ---\n  duration_ms: 189.450042\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation\nok 3 - hard-timeout lifecycle regression: shared-repeated-cancellation\n  ---\n  duration_ms: 180.046416\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection\nok 4 - hard-timeout lifecycle regression: shared-abandoned-rejection\n  ---\n  duration_ms: 228.117625\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-retained-rejection\nok 5 - hard-timeout lifecycle regression: shared-retained-rejection\n  ---\n  duration_ms: 223.22825\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1120.47775\n",
+    "bytes": 1073,
+    "base64": "VEFQIHZlcnNpb24gMTMKIyBTdWJ0ZXN0OiBoYXJkLXRpbWVvdXQgbGlmZWN5Y2xlIHJlZ3Jlc3Npb246IHNoYXJlZC1kZWxheWVkLWdlbmVyYXRvcgpvayAxIC0gaGFyZC10aW1lb3V0IGxpZmVjeWNsZSByZWdyZXNzaW9uOiBzaGFyZWQtZGVsYXllZC1nZW5lcmF0b3IKICAtLS0KICBkdXJhdGlvbl9tczogMTcwLjgwODM3NQogIHR5cGU6ICd0ZXN0JwogIC4uLgojIFN1YnRlc3Q6IGhhcmQtdGltZW91dCBsaWZlY3ljbGUgcmVncmVzc2lvbjogc2hhcmVkLXNlcmlhbGl6ZWQKb2sgMiAtIGhhcmQtdGltZW91dCBsaWZlY3ljbGUgcmVncmVzc2lvbjogc2hhcmVkLXNlcmlhbGl6ZWQKICAtLS0KICBkdXJhdGlvbl9tczogMTg5LjQ1MDA0MgogIHR5cGU6ICd0ZXN0JwogIC4uLgojIFN1YnRlc3Q6IGhhcmQtdGltZW91dCBsaWZlY3ljbGUgcmVncmVzc2lvbjogc2hhcmVkLXJlcGVhdGVkLWNhbmNlbGxhdGlvbgpvayAzIC0gaGFyZC10aW1lb3V0IGxpZmVjeWNsZSByZWdyZXNzaW9uOiBzaGFyZWQtcmVwZWF0ZWQtY2FuY2VsbGF0aW9uCiAgLS0tCiAgZHVyYXRpb25fbXM6IDE4MC4wNDY0MTYKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiBoYXJkLXRpbWVvdXQgbGlmZWN5Y2xlIHJlZ3Jlc3Npb246IHNoYXJlZC1hYmFuZG9uZWQtcmVqZWN0aW9uCm9rIDQgLSBoYXJkLXRpbWVvdXQgbGlmZWN5Y2xlIHJlZ3Jlc3Npb246IHNoYXJlZC1hYmFuZG9uZWQtcmVqZWN0aW9uCiAgLS0tCiAgZHVyYXRpb25fbXM6IDIyOC4xMTc2MjUKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiBoYXJkLXRpbWVvdXQgbGlmZWN5Y2xlIHJlZ3Jlc3Npb246IHNoYXJlZC1yZXRhaW5lZC1yZWplY3Rpb24Kb2sgNSAtIGhhcmQtdGltZW91dCBsaWZlY3ljbGUgcmVncmVzc2lvbjogc2hhcmVkLXJldGFpbmVkLXJlamVjdGlvbgogIC0tLQogIGR1cmF0aW9uX21zOiAyMjMuMjI4MjUKICB0eXBlOiAndGVzdCcKICAuLi4KMS4uNQojIHRlc3RzIDUKIyBzdWl0ZXMgMAojIHBhc3MgNQojIGZhaWwgMAojIGNhbmNlbGxlZCAwCiMgc2tpcHBlZCAwCiMgdG9kbyAwCiMgZHVyYXRpb25fbXMgMTEyMC40Nzc3NQo=",
+    "sha256": "bcfc67423c62c286c38713f769aa55991cc2abcd3ef3523d5ef168ccdaf11a98"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

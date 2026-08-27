@@ -1,0 +1,22 @@
+{
+  "sealedAt": "2026-08-27T10:40:20.640Z",
+  "beforeDiagnosticExecution": true,
+  "rounds": 1,
+  "classification": "instrumentation-only-callsite-replay-no-binding-or-expectation-correction",
+  "initialSha256": "2001ba5ab8a2033d1596eed51632cf0ea56cb58e74f8b45f5d81181f025b5eea",
+  "diagnosticSha256": "ba869916f2e77484f0f674521a2c30e2696a0e459870ff25c99c8d72dae75d74",
+  "exactReplacements": [
+    {
+      "old": "async return() {state.returns++; return {done: true};},",
+      "replacement": "async return() {state.returns++; log('borrowed.return.callsite', {active: state.active, reads: state.next, callsite: new Error().stack.split('\\n')[2]?.trim().replace(owned, 'OWNED')}); return {done: true};},"
+    }
+  ],
+  "cases": [
+    "D02",
+    "D03",
+    "D07"
+  ],
+  "sourceChanged": false,
+  "criteriaChanged": false,
+  "inputsChanged": false
+}

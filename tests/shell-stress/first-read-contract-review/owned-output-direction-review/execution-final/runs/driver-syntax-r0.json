@@ -1,0 +1,33 @@
+{
+  "label": "driver-syntax-r0",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--check",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:37:59.195Z",
+  "finishedAt": "2026-08-27T10:37:59.224Z",
+  "durationMs": 27.067292000000002,
+  "timeoutMs": 5000,
+  "maxBytes": 262144,
+  "pid": 4817,
+  "initialIdentity": "4817  4804  4817 Thu Aug 27 05:37:59 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --check /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": ""
+}

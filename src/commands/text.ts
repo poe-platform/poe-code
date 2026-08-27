@@ -122,7 +122,7 @@ export function textCommands(): CommandDefinition[] {
             }
             records.push(line.bytes);
           }
-        } catch (error) { await diagnostic(context, error); exitCode = 1; }
+        } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
       if (parsed.flags.has("c")) return { exitCode };
       records.sort(compare);

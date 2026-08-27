@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { cpSync, copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { release } from 'node:os';
 
 const repository = '/Users/kjopek/Workspace/safe-bash';
@@ -133,11 +133,29 @@ try {
   preflight(JSON.parse(readFileSync(join(productRoot, 'package.json'))));
   for (const entry of product.entries) assert.ok(!/^(?:src|tests|node_modules)\//u.test(entry.path));
   const closure = [];
+  const typescript = (await import(pathToFileURL(join(snapshot, 'node_modules/typescript/lib/typescript.js')).href)).default;
   const allowedBuiltins = new Set(['node:async_hooks', 'node:buffer', 'node:crypto', 'node:events', 'node:fs', 'node:fs/promises', 'node:http', 'node:https', 'node:net', 'node:path', 'node:stream', 'node:stream/promises', 'node:stream/web', 'node:timers/promises', 'node:url', 'node:util', 'node:worker_threads', 'node:zlib']);
   for (const entry of product.entries.filter(entry => entry.path.endsWith('.js') || entry.path.endsWith('.d.ts'))) {
     const text = readFileSync(join(productRoot, entry.path), 'utf8');
-    for (const match of text.matchAll(/(?:from\s*|import\s*\(\s*|import\s*)["']([^"']+)["']/gu)) {
-      const specifier = match[1];
+    const parsed = typescript.createSourceFile(entry.path, text, typescript.ScriptTarget.Latest, true);
+    const specifiers = [];
+    const visit = node => {
+      if ((typescript.isImportDeclaration(node) || typescript.isExportDeclaration(node)) && node.moduleSpecifier) {
+        assert.ok(typescript.isStringLiteral(node.moduleSpecifier));
+        specifiers.push(node.moduleSpecifier.text);
+      }
+      if (typescript.isImportTypeNode(node)) {
+        assert.ok(typescript.isLiteralTypeNode(node.argument) && typescript.isStringLiteral(node.argument.literal));
+        specifiers.push(node.argument.literal.text);
+      }
+      if (typescript.isCallExpression(node) && (node.expression.kind === typescript.SyntaxKind.ImportKeyword || (typescript.isIdentifier(node.expression) && node.expression.text === 'require'))) {
+        assert.ok(node.arguments[0] && typescript.isStringLiteral(node.arguments[0]), `nonliteral product import ${entry.path}`);
+        specifiers.push(node.arguments[0].text);
+      }
+      typescript.forEachChild(node, visit);
+    };
+    visit(parsed);
+    for (const specifier of specifiers) {
       if (specifier.startsWith('node:')) assert.ok(allowedBuiltins.has(specifier), `uninspected builtin ${specifier}`);
       else {
         assert.ok(specifier.startsWith('.'), `external runtime/declaration import ${specifier}`);

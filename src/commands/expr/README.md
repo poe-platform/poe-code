@@ -31,8 +31,10 @@ subpath**. No default aggregate registration or package configuration is changed
 The three approved shared protocol/client/worker files gain the new operation;
 legacy grep/rg/glob descriptors, reply validation and matching are unchanged.
 Build emits the physical module at
-`dist/commands/expr/index.js`. Source/build testing is not proof of installation
-in a standalone moved package; independent packed-consumer proof remains pending.
+`dist/commands/expr/index.js`. Independent c3 packed/moved-consumer evidence
+(`beba7b00`, bound in `tests/commands/expr-stress/initial-profile-handoff-20260827/REPORT.md`)
+passes 19/19 physical-module smoke checks. This INITIAL restricted profile is
+not public wiring: root/subpath/default availability remains **HOLD**.
 
 ## Grammar and results
 
@@ -46,8 +48,8 @@ associate left:
 | 3 | `< <= = == != >= >` |
 | 4 | `+ -` |
 | 5 | `* / %` |
-| 6 | `:` (evaluation pending) |
-| Prefix | `length STRING`, `index STRING CHARS`, `substr STRING POS LENGTH`, `match STRING REGEXP` (match evaluation pending) |
+| 6 | `:` |
+| Prefix | `length STRING`, `index STRING CHARS`, `substr STRING POS LENGTH`, `match STRING REGEXP` |
 | Primary | `( EXPRESSION )`, `+ TOKEN`, literal argument |
 
 Prefix arguments recursively accept prefixes and primaries, not unparenthesized
@@ -71,16 +73,16 @@ integer zero when both are false. `&` returns its left value if both are true,
 otherwise integer zero. Empty strings and minus-optional all-zero strings are
 false. `+0`, a lone minus, and nonnumeric strings are true.
 
-All argv syntax is parsed before evaluation, including skipped branches.
-Short-circuiting suppresses arithmetic, comparison and regex evaluation, not
-syntax validation. GNU's prefix `length`, `index`, and `substr` computations
-still occur within skipped expressions; their resource limits still apply.
-Malformed skipped regex text is not compiled. As a bounded AST implementation,
-this checkpoint reports whole-expression syntax errors before earlier evaluation
-errors if both exist; GNU's interleaved parser can report the earlier arithmetic
-error instead. Diagnostics use bounded human-readable messages, not full GNU
-quoting/help trailers. These diagnostic/error-order gaps are not blanket waivers
-on canonical tests or full GNU diagnostic parity claims.
+A single async token cursor performs awaited reductions in encounter order with
+one invocation Budget; active regex jobs are submitted and awaited once, without
+reparse or replay. Earlier active failures can precede later syntax errors.
+Inactive branches still enforce syntax, arity, structural node/depth and work
+limits, but carry no operand values: no operand encoding, numeric conversion,
+locale operation, prefix reduction or regex compilation/submission. Global argv
+validation and diagnostic quoting still apply; skipping is not zero-work or
+zero-allocation. Suppressing skipped string prefixes is explicit project policy,
+not universal GNU short-circuit equivalence. Bounded human-readable diagnostics
+do not claim full GNU quoting/help parity or waive canonical assertions.
 
 `length` counts characters under the selected profile. `index` returns the
 one-based first character position matching any member of CHARS, or zero.
@@ -154,8 +156,8 @@ All options are positive safe integers; `maxDepth` additionally cannot exceed
 | --- | ---: | --- |
 | `maxArgumentBytes` | 65,536 | Sum of UTF-8 argv bytes, preflight before encoding; count also limited to `4 * maxNodes` |
 | `maxNumericDigits` | 1,024 | Raw decimal digits excluding minus before BigInt conversion; arithmetic and generated numeric result digits |
-| `maxNodes` | 4,096 | AST nodes |
-| `maxDepth` | 128 | Parser recursion and constructed AST depth; flat binary chains also have depth |
+| `maxNodes` | 4,096 | Logical expression nodes, including inactive syntax |
+| `maxDepth` | 128 | Parser recursion and carried expression depth; flat binary chains also have depth |
 | `maxSteps` | 8,000,000 | Shared parse/evaluation work and logical allocation charges for this invocation |
 | `maxStringBytes` | 65,536 | Per-value byte allocation and conservative arithmetic render bound |
 | `maxOutputBytes` | 65,537 | Normal stdout and diagnostic bytes including LF, checked before output encoding/allocation/write |
@@ -193,10 +195,11 @@ its final text would fit. Budget accounting is logical, not a total heap/RSS or
 wall-clock guarantee; configurable limits are trusted host policy.
 
 Index uses bounded scanning rather than allocating a scalar array/set. Loops
-charge before work; evaluation yields to the event loop after approximately
-4,096 charged units. Argument validation/parsing are synchronous and bounded by
-argv/node/depth limits. Diagnostics are fixed-size bounded messages outside the
-stdout byte limit, so even a tiny stdout allowance can report its failure.
+charge before work; async parser/evaluation checkpoints yield when at least
+4,096 charged units have elapsed since the previous yield, not every iteration.
+Global argument validation remains synchronous and bounded by argv limits.
+Ordinary diagnostics obey the output quota; only the fixed 34-byte emergency
+has the separate allowance described above.
 
 Direct execution never accesses stdin, not even its iterator/getter. Actual
 Shell input ownership is tested separately against its standard-command baseline;
@@ -244,7 +247,14 @@ Explicitly unsupported (status 2, no fake nonmatch): GNU word/buffer/alphabetic
 escapes, leading escaped repetitions, stacked repetitions, repeated anchors,
 collating symbols/equivalence classes, class range endpoints, non-ASCII range
 endpoints, named locale classes on non-ASCII UTF-8 subjects, and backreferences
-to captures inside nullable repeated subexpressions. The last restriction follows
+to captures marked by the nullable-repeat guard. That guard propagates a flag
+into a repeat child when already flagged or when `maximum > 1` and the child
+is nullable, marks captures under that flag, and refuses references to marked
+captures. It does not refuse all nullable capture backreferences; maximum-one
+repeats alone do not trigger it, but may inherit a flagged ancestor. Nullability
+treats anchors/backreferences conservatively as nullable, recurses through groups,
+accepts repeats with minimum zero or nullable child, requires every sequence
+child, and accepts any alternative child. The restriction follows
 an author native discrepancy (`aaa : '\\(a*\\)*\\1'`); the original dirty
 capture is preserved, not converted to a pass. Other nested/repeated capture
 corners remain subject to independent review. Unsupported profiles are deliberate

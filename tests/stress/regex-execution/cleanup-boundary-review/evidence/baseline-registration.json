@@ -1,0 +1,32 @@
+{
+  "claim": {
+    "label": "baseline",
+    "job": "registration",
+    "time": "2026-08-27T07:40:56.369Z",
+    "source": "07acb1a4d30b7592cf247a0220250317be4e2038",
+    "sourceManifestSha256": "1265e3f16a078a9a203e545d6e7b5829605979fd9c08771cc8d737ad640e0788",
+    "harnessSha256": "f85a4663321ec4d87ec31ac80702c393395ec98b2d8d5f32f71f683e15657839",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 88279,
+  "events": [
+    "disconnect",
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 1,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/baseline/dist/fs/memory.js' imported from /Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)\n    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/baseline/dist/fs/memory.js'\n}\n\nNode.js v22.22.2\n",
+  "result": null,
+  "killed": false,
+  "code": 1,
+  "signal": null
+}

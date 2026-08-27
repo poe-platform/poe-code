@@ -4,11 +4,12 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const owned = resolve('tests/stress/regex-execution/cleanup-boundary-review');
-const [label, job = 'registration'] = process.argv.slice(2);
-if (!/^[a-z][a-z0-9-]*$/u.test(label ?? '') || !['registration', 'runtime'].includes(job)) throw new Error('static benign job required');
+const [label, job = 'registration', runLabel = job] = process.argv.slice(2);
+if (!/^[a-z][a-z0-9-]*$/u.test(label ?? '') || !/^[a-z][a-z0-9-]*$/u.test(runLabel) || !['registration', 'runtime'].includes(job)) throw new Error('static benign job required');
 const snapshot = resolve(owned, '.temporary', label);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const freeze = JSON.parse(await readFile(resolve(owned, 'evidence', `${label}-freeze.json`)));
+if (job === 'runtime' && freeze.mode !== 'runtime-handoff') throw new Error('runtime controls require explicit root-relayed frozen handoff');
 const build = JSON.parse(await readFile(resolve(owned, 'evidence', `${label}-build.json`)));
 if (build.status !== 0) throw new Error('build prerequisite failed');
 for (const entry of [...freeze.identities, ...build.emitted]) if (hash(await readFile(resolve(snapshot, entry.path))) !== entry.sha256) throw new Error(`snapshot drift: ${entry.path}`);
@@ -34,6 +35,6 @@ const result = await new Promise(resolveResult => {
   child.on('exit', (code, signal) => state.events.push({ exit: code, signal }));
   child.on('close', (code, signal) => { clearTimeout(timer); resolveResult({ ...state, code, signal }); });
 });
-await writeFile(resolve(owned, 'evidence', `${label}-${job}.json`), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+await writeFile(resolve(owned, 'evidence', `${label}-${runLabel}.json`), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
 console.log(JSON.stringify({ label, job, code: result.code, killed: result.killed, pass: result.result?.pass, counts: result.result?.counts }));
 if (result.code !== 0 || result.killed || !result.result?.pass) process.exitCode = 1;

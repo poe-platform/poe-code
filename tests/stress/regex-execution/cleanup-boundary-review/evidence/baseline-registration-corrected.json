@@ -1,0 +1,303 @@
+{
+  "claim": {
+    "label": "baseline",
+    "job": "registration",
+    "time": "2026-08-27T07:41:21.462Z",
+    "source": "07acb1a4d30b7592cf247a0220250317be4e2038",
+    "sourceManifestSha256": "1265e3f16a078a9a203e545d6e7b5829605979fd9c08771cc8d737ad640e0788",
+    "harnessSha256": "7ddbf89d2a58a17be7fbd122a8ea1a88e23be4132bcb35dd3dca09452daf198d",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 88812,
+  "events": [
+    "disconnect",
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": false,
+    "counts": {
+      "controls": 17,
+      "passed": 3,
+      "failed": 14,
+      "workers": 15,
+      "active": 2
+    },
+    "observations": [
+      {
+        "name": "grep:registrar-rejection-before-open",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: independent closed registrar\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:132:23\n-     at check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:37)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:131:9\n-     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:135:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:131:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "grep:preabort-before-registration-acquisition",
+        "pass": true,
+        "events": [],
+        "workers": []
+      },
+      {
+        "name": "grep:close-during-registration-denies-later-acquisition",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: closed owner cannot execute\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:151:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:146:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "grep:finally-duplicate-concurrent-reentrant-close",
+        "pass": false,
+        "error": "Error: bounded observation timeout\n    at Timeout.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:20:111)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+        "cleanupError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:119:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:155:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": false
+          }
+        ]
+      },
+      {
+        "name": "grep:cleanup-does-not-wait-opaque-input-fs-sink",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:194:14\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:177:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "grep:constructor-error-versus-caller-abort",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:213:14\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:205:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": []
+      },
+      {
+        "name": "rg:registrar-rejection-before-open",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: independent closed registrar\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:132:23\n-     at check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:37)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:131:9\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:135:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:131:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "rg:preabort-before-registration-acquisition",
+        "pass": true,
+        "events": [],
+        "workers": []
+      },
+      {
+        "name": "rg:close-during-registration-denies-later-acquisition",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: closed owner cannot execute\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:151:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:146:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "rg:finally-duplicate-concurrent-reentrant-close",
+        "pass": false,
+        "error": "Error: bounded observation timeout\n    at Timeout.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:20:111)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+        "cleanupError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:119:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:155:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": false
+          }
+        ]
+      },
+      {
+        "name": "rg:cleanup-does-not-wait-opaque-input-fs-sink",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:194:14\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:177:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "rg:constructor-error-versus-caller-abort",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:213:14\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:205:3",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": []
+      },
+      {
+        "name": "session:active-close-cancels-and-shares-retirement",
+        "pass": false,
+        "error": "Error: bounded observation timeout\n    at Timeout.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:20:111)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:queued-close-does-not-cancel-active-sibling",
+        "pass": false,
+        "error": "Error: bounded observation timeout\n    at Timeout.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:20:111)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+        "events": [
+          "open",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:active-close-leaves-other-lease-live",
+        "pass": false,
+        "error": "Error: bounded observation timeout\n    at Timeout.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:20:111)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+        "events": [
+          "open",
+          "open",
+          "construct",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "executor:concurrent-dispose-shares-inflight-retirement",
+        "pass": true,
+        "events": [
+          "open",
+          "construct",
+          "open"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:worker-error-first-and-falsy-caller-reason",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ RegexExecutionError: regex WORKER_ERROR: independent worker fault\n+     at ControlledWorker.error (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/baseline/dist/commands/regex-execution/client.js:21:34)\n+     at ControlledWorker.emit (node:events:519:28)\n+     at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:313:20\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:301:1 {\n+   code: 'WORKER_ERROR'\n+ }\n- 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:319:17\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:110:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/registration.mjs:301:1",
+        "events": [
+          "open",
+          "construct",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      }
+    ],
+    "riskConsumed": 0,
+    "transport": "checked-in benign ControlledWorker; no native worker or regex evaluation"
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

@@ -64,7 +64,7 @@ const load = path => import(pathToFileURL(resolve(snapshot, 'dist', path)));
 const { RegexExecutor } = await load('commands/regex-execution/client.js');
 const { grepCommands } = await load('commands/grep.js');
 const { rgCommand } = await load('commands/search/rg.js');
-const { MemoryFileSystem } = await load('fs/memory.js');
+const { MemoryFileSystem } = await load('fs/memory/index.js');
 const originalOpen = RegexExecutor.prototype.open;
 RegexExecutor.prototype.open = function (...args) {
   acquisitionEvents.push('open');
@@ -158,7 +158,7 @@ for (const family of ['grep', 'rg']) {
     const reentrant = [];
     const fixture = contextFor(family);
     behavior.retirement = retirement;
-    behavior.retiring = () => { reentrant.push(settle(fixture.callbacks[0]())); retiring.release(); };
+    behavior.retiring = () => { if (fixture.callbacks[0]) reentrant.push(settle(fixture.callbacks[0]())); retiring.release(); };
     const running = start(fixture);
     await within(retiring.promise);
     assert.equal(fixture.callbacks.length, 1);
@@ -298,7 +298,7 @@ await check('executor:concurrent-dispose-shares-inflight-retirement', async () =
   await session.close();
   assert.throws(() => executor.open(new AbortController().signal), error => error.code === 'CLOSED');
 });
-await check('session:worker-error-first-and-falsy-caller-reason', async () => {
+await check('session:worker-error-and-prior-falsy-caller-reason', async () => {
   const variants = [];
   for (const reason of [undefined, 0, false, '']) {
     behavior.post = () => {};
@@ -310,9 +310,9 @@ await check('session:worker-error-first-and-falsy-caller-reason', async () => {
     const request = settle(session.run(descriptor, rows));
     tasks.push(request);
     await tick();
+    if (reason !== undefined) controller.abort(reason);
     workers.at(-1).emit('error', new Error('independent worker fault'));
     await tick();
-    if (reason !== undefined) controller.abort(reason);
     retirement.release();
     const result = await within(request);
     if (reason === undefined) assert.equal(result.error?.code, 'WORKER_ERROR');

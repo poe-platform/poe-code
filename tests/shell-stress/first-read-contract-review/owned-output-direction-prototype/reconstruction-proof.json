@@ -1,0 +1,127 @@
+{
+  "completedAt": "2026-08-27T10:20:40.900Z",
+  "temp": "/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd",
+  "candidate": "/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate",
+  "exactV1SourceTestsCompiled": true,
+  "exactV2SourceTestsCompiled": true,
+  "compilerInputsMatched": 358,
+  "sourceManifestSha256": "2896bd6108a90e19abee682db729960cc85f71d0ecd15562e4f9cb93b5f3399c",
+  "testManifestSha256": "f56d1acc3973bd82697d888fa68a9a7f92acffd24ece75351062ee3cba9984c7",
+  "compiledManifestSha256": "c8bfd5130b2317c5dabc321791b08211d9a5d689865fdeb1b90916efd23f5543",
+  "candidateReadonly": true,
+  "sourceFallback": false,
+  "liveProductReads": false,
+  "existingHashedDevToolsOnly": true,
+  "children": [
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data"
+      ],
+      "pid": 72464,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate"
+      ],
+      "pid": 72465,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data"
+      ],
+      "pid": 72467,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data"
+      ],
+      "pid": 72468,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 72521,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data"
+      ],
+      "pid": 72592,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data"
+      ],
+      "pid": 72610,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 72639,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--listFiles",
+        "-p",
+        "tsconfig.json"
+      ],
+      "pid": 72685,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    }
+  ],
+  "replayAuthor": "node /tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/run-direction.mjs replay",
+  "note": "Readonly candidate: run-prototype build steps are not a supported postseal mutation; original checks already recorded before seal. Tests may execute against read-only source."
+}

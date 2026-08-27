@@ -1,0 +1,8 @@
+node --input-type=module - <<'NODE' | apply_patch
+import { readFileSync } from 'node:fs';
+const input = 'tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/restore-v2.mjs.data';
+const output = '/tmp/safe-bash-owned-output-direction-prototype-reconstruct-manual.mjs';
+const body = readFileSync(input, 'utf8').replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n');
+console.log(`*** Begin Patch\n*** Add File: ${output}\n${body}\n*** End Patch`);
+NODE
+node /tmp/safe-bash-owned-output-direction-prototype-reconstruct-manual.mjs

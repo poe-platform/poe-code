@@ -1,0 +1,32 @@
+{
+  "label": "reconstruction-r1",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-direction-prototype-PMLamJ/restore-v2.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0f2m0Up:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:20:33.480Z",
+  "finishedAt": "2026-08-27T10:20:40.917Z",
+  "durationMs": 7436.758875,
+  "timeoutMs": 30000,
+  "maxBytes": 2097152,
+  "pid": 72459,
+  "initialIdentity": "72459 72449 72459 Thu Aug 27 05:20:33 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-direction-prototype-PMLamJ/restore-v2.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\n  \"completedAt\": \"2026-08-27T10:20:40.900Z\",\n  \"temp\": \"/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd\",\n  \"candidate\": \"/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate\",\n  \"exactV1SourceTestsCompiled\": true,\n  \"exactV2SourceTestsCompiled\": true,\n  \"compilerInputsMatched\": 358,\n  \"sourceManifestSha256\": \"2896bd6108a90e19abee682db729960cc85f71d0ecd15562e4f9cb93b5f3399c\",\n  \"testManifestSha256\": \"f56d1acc3973bd82697d888fa68a9a7f92acffd24ece75351062ee3cba9984c7\",\n  \"compiledManifestSha256\": \"c8bfd5130b2317c5dabc321791b08211d9a5d689865fdeb1b90916efd23f5543\",\n  \"candidateReadonly\": true,\n  \"sourceFallback\": false,\n  \"liveProductReads\": false,\n  \"existingHashedDevToolsOnly\": true,\n  \"children\": [\n    {\n      \"command\": \"/usr/bin/tar\",\n      \"args\": [\n        \"-tzf\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data\"\n      ],\n      \"pid\": 72464,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/usr/bin/tar\",\n      \"args\": [\n        \"-xzf\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data\",\n        \"-C\",\n        \"/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate\"\n      ],\n      \"pid\": 72465,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"--check\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data\"\n      ],\n      \"pid\": 72467,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data\"\n      ],\n      \"pid\": 72468,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"args\": [\n        \"/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc\",\n        \"-p\",\n        \"tsconfig.build.json\"\n      ],\n      \"pid\": 72521,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"--check\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data\"\n      ],\n      \"pid\": 72592,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data\"\n      ],\n      \"pid\": 72610,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"args\": [\n        \"/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc\",\n        \"-p\",\n        \"tsconfig.build.json\"\n      ],\n      \"pid\": 72639,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    },\n    {\n      \"command\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"args\": [\n        \"/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc\",\n        \"--noEmit\",\n        \"--listFiles\",\n        \"-p\",\n        \"tsconfig.json\"\n      ],\n      \"pid\": 72685,\n      \"status\": 0,\n      \"signal\": null,\n      \"aliveAfterReap\": false\n    }\n  ],\n  \"replayAuthor\": \"node /tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/run-direction.mjs replay\",\n  \"note\": \"Readonly candidate: run-prototype build steps are not a supported postseal mutation; original checks already recorded before seal. Tests may execute against read-only source.\"\n}\n",
+  "stderr": ""
+}

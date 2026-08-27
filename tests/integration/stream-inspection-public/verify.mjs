@@ -102,6 +102,8 @@ try {
   assert.match(readFileSync(join(output, report.steps.at(-1).stderr), 'utf8'), /ENOTCACHED/u);
   const manifest = JSON.parse(readFileSync(join(snapshot, 'package.json')));
   for (const key of ['dependencies', 'optionalDependencies', 'peerDependencies']) assert.deepEqual(manifest[key] ?? {}, {}, key);
+  for (const name of ['prepack', 'prepare', 'postpack', 'preinstall', 'install', 'postinstall']) assert.equal(manifest.scripts?.[name], undefined, `Lifecycle hook disallowed after measured npm prepare bypass: ${name}`);
+  report.lifecycleSafety = { manifestHooksAbsent: ['prepack', 'prepare', 'postpack', 'preinstall', 'install', 'postinstall'], ignoreScriptsAloneTrusted: false };
   assert.equal(manifest.scripts.build, 'tsc -p tsconfig.build.json');
   run('isolated exact build command via copied compiler', node, [compiler, '-p', 'tsconfig.build.json'], snapshot);
   const packed = JSON.parse(run('offline pack no lifecycle scripts', node, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', output], snapshot));

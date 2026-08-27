@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "label": "explicit offline pack suppresses prepack/prepare/postpack",
+      "args": [
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls"
+      ],
+      "cwd": "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/canary",
+      "status": 91,
+      "stdout": "{\n  \"error\": {\n    \"code\": 91,\n    \"summary\": \"command failed\",\n    \"detail\": \"sh -c node -e \\\"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/LIFECYCLE_EXECUTED','executed'); process.exit(91)\\\"\"\n  }\n}\n",
+      "stderr": "\n> stream-public-offline-canary@1.0.0 prepare\n> node -e \"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/LIFECYCLE_EXECUTED','executed'); process.exit(91)\"\n\nnpm error code 91\nnpm error path /private/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/canary\nnpm error command failed\nnpm error command sh -c node -e \"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/LIFECYCLE_EXECUTED','executed'); process.exit(91)\"\nnpm error A complete log of this run can be found in: /tmp/safe-bash-stream-public-independent.p8j8em/offline-controls/empty-cache/_logs/2026-08-27T05_25_57_233Z-debug-0.log\n"
+    }
+  ]
+}

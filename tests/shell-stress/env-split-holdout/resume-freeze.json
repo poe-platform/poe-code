@@ -1,0 +1,37 @@
+{
+  "frozenAt": "2026-08-27T10:19:49.899Z",
+  "phase": "Independent hidden preparation/current committed red baseline only",
+  "sourceCommit": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+  "originalFrozenCommit": "199038f4c96084f87e161bdbd72dc50a48b45a29",
+  "authorNewInputsInspected": false,
+  "oldTwentyFilesUnchanged": true,
+  "newCases": 0,
+  "newNativeExecutions": 0,
+  "counts": {
+    "rowSlots": 48,
+    "exactPrimaryRows": 1,
+    "strictMismatches": 41,
+    "setupUnavailable": 6,
+    "hostSlots": 7,
+    "hostPass": 0,
+    "hostFail": 7,
+    "actualChildRuns": 55,
+    "sourceImportGuards": 55,
+    "integrityPass": 6,
+    "integrityTotal": 6
+  },
+  "nativeSourceReverified": {
+    "src/env.c": "ed606a062de3f107cd3cb9e1e73c7215272e2a8c7ad6f362aa14e0f6d390a032",
+    "lib/putenv.c": "cb6f73b52609c1d332e3198b31969deb5c6ed6aca00acc40a1fb71abf74f1e87",
+    "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+    "lib/stdlib.h": "91810ae170e8c2364b71b084790f3e62ab8d3e849acc420b5e68b94db1c3e432"
+  },
+  "remainingProof": "Frozen row helper passes a string to byte-only VFS for six shebang fixtures. Initial failures preserved; versioned byte-encoding helper repair must precede shebang acceptance. Hosts remain red behind unimplemented split path; no deeper contract closure inferred.",
+  "files": {
+    "RESUME_BASELINE.md": "3553d979dea101d9ce7b02896bb85d0f31944167b0352f3a1157bce3bf4405ae",
+    "resume-baseline.mjs": "a19fd66645b7ac35ba1f2f664427736d1b6f3da951d70eacf84bbae371b6f1fc",
+    "baseline-e7f4f2e.json": "70a88493c697cee1ed311dba83dbacaee746fa71cf673d7d3ed0978b728c0a55",
+    "baseline-e7f4f2e-cleanup.json": "891a11a6e397a41fe04a1a50a769f5c7d7747954ac0c17a16526f37ff5dcfc9d",
+    "resume-integrity.test.mjs": "f1a070131a96285bf1ec89a4a1d3d700f1d66d5d3dbd67a8fd9074ca2f50c3ee"
+  }
+}

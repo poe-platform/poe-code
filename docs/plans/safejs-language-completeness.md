@@ -27,7 +27,7 @@ language completeness from passing existing tests alone.
 - [x] MCP: provide usable transport integration without requiring custom glue.
 - [x] Environment: make capability configuration explicit and missing/denied
       variables distinguishable without granting ambient host access.
-- [ ] Budgets: support an explicit recoverable checkpoint/result policy without
+- [x] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
 - [x] Remaining lint/runtime syntax parity: var, switch, this, and supported new
       expressions, including Map and Set, plus top-level await inside nested
@@ -1541,9 +1541,11 @@ Validation on August 27, 2026, before publication:
   binaries exist, and consumer links stay inside the isolated installation.
 
 The first feature commit is `69e8a64027cf9d8874f39423028117b915f5ec94`;
-pre-push checks pass 21,081 tests with 41 skipped, and Release `33057270790` is
-being monitored. The isolated candidate also passes the matrix on Node 18.18.2,
-22.22.2, and 24.14.0, the real CLI and crash matrices, and strict recovery types.
+pre-push checks pass 21,081 tests with 41 skipped. Release `33057270790` succeeds
+and publishes `10.0.2` on August 27, 2026 at 09:18:24.914 UTC; its GitHub tag and
+npm gitHead match that commit. The isolated candidate passes the matrix on Node
+18.18.2, 22.22.2, and 24.14.0. A fresh published installation independently passes
+the SDK, CLI, crash, strict-type, and cleanup checks.
 
 A final lifecycle audit found a follow-up edge: cleanup rejection happens outside
 the interpreter's catch. The original run rejected, but explicit
@@ -1557,8 +1559,34 @@ finds zero repeated effects or lost primary failures. It covers synchronous and
 asynchronous entrypoints, ordinary script errors, budget errors, and cleanup
 rejections with Error, string, and null reasons.
 
-Publication and the final installed-release receipt remain pending. Keep the
-budget checklist open until the follow-up release is verified.
+### Verified recovery release
+
+- Follow-up commit: `352b78d9779c8179a0e45be6f3c5c6478f6cfabd`.
+  Release `33058052067` succeeds, including build, signatures, package lint,
+  full tests, installed smoke, and publication. npm `10.0.3` is published on
+  August 27, 2026 at 09:30:56.784 UTC; the GitHub release follows at 09:30:58 UTC.
+  npm gitHead and tag `v10.0.3` both resolve to the exact follow-up commit.
+- Final local/pre-push suite: 21,084 passed, 41 skipped across 925 passing test
+  files. The follow-up also rejects dump requests after replay initialization
+  failure rather than leaving them pending forever.
+- Fresh published consumer: `/tmp/safejs-recovery-published-final.fgSwTE`,
+  installed from `poe-code@10.0.3` without workspace links or install scripts.
+  Actual installed CI smoke and strict recovery declarations pass. The full
+  138-case budget / 27-case failure / 468-restore / 48-concurrent-run matrix
+  passes on Node 18.18.2, 22.22.2, and 24.14.0.
+- The published package passes 42 CLI processes with 24 restores, 12 actual
+  SIGKILL/budget/success recovery chains including six external reconciliations,
+  24 MCP SIGINT cases, and 12 initialization-failure policy cases with no stalled
+  requests. The original three stale-snapshot probes now replace the file and
+  restore the recorded error without another effect, for all entrypoint forms.
+- Inspected additional cleanup-failure and successful-resume screenshots.
+  Final cleanup again confirms 153 removed files and six obsolete directories
+  remain absent, five current binaries are present, and all 19 consumer links
+  remain internal. Unrelated font assets are untouched.
+
+The budget policy item is checked off on this release evidence. Other language
+items remain open; skipped tests and the stated unsupported-state/reconciliation
+boundaries are not evidence of universal conformance or perfection.
 
 ## Stale artifact cleanup
 

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/stream-next-stress/strong-diagnostics.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/stream-next-stress/.private/current-public/results.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/stream-next-stress/.private/current-public/diagnostics.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/stream-next-stress/evidence/final/release.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"summary\": {\n    \"executions\": 164,\n    \"strict\": 124,\n    \"originalWeakSelected\": 164,\n    \"strengthened\": 164\n  },\n  \"failures\": [],\n  \"nativeSelfChecks\": 25,\n  \"rejectedMutations\": 68,\n  \"outputPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/stream-next-stress/.private/current-public/diagnostics.json\"\n}\n",
+  "stderr": ""
+}

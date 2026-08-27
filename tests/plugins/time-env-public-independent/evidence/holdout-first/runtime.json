@@ -1,0 +1,15 @@
+{
+  "name": "runtime",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved",
+    "--unhandled-rejections=strict",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/emitted/consumer.mjs"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "node:fs:2815\n        binding.stat(base, false, undefined, true);\n                ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.realpathSync (node:fs:2815:17)\n    at toRealPath (node:internal/modules/helpers:61:13)\n    at Function._findPath (node:internal/modules/cjs/loader:746:22)\n    at resolveMainPath (node:internal/modules/run_main:39:23)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:163:20)\n    at node:internal/main/run_main_module:36:49 {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/var'\n}\n\nNode.js v22.22.2\n"
+}

@@ -1,0 +1,85 @@
+{
+  "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "destination": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "configured": {
+    "profile": "existing GNU tar 1.35 / Apple BSD+gzip Darwin arm64; e3c04127 executable pins, current candidate tests",
+    "assets": [
+      {
+        "name": "gnu",
+        "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+        "version": "tar (GNU tar) 1.35",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "actualSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+        "execution": {
+          "command": [
+            "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "--version"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot",
+          "status": 0,
+          "signal": null,
+          "stdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "bsd",
+        "path": "/usr/bin/bsdtar",
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8",
+        "actualSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "execution": {
+          "command": [
+            "/usr/bin/bsdtar",
+            "--version"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot",
+          "status": 0,
+          "signal": null,
+          "stdout": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "gzip",
+        "path": "/usr/bin/gzip",
+        "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+        "version": "Apple gzip 479",
+        "stream": "stderr",
+        "actualSha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+        "execution": {
+          "command": [
+            "/usr/bin/gzip",
+            "--version"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot",
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "Apple gzip 479\n"
+        }
+      },
+      {
+        "name": "gunzip",
+        "path": "/usr/bin/gunzip",
+        "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+        "version": "Apple gzip 479",
+        "stream": "stderr",
+        "actualSha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+        "execution": {
+          "command": [
+            "/usr/bin/gunzip",
+            "--version"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot",
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "Apple gzip 479\n"
+        }
+      }
+    ],
+    "issues": []
+  }
+}

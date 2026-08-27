@@ -1,0 +1,15 @@
+{
+  "name": "runtime",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-XFeJ5E/moved",
+    "--unhandled-rejections=strict",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-XFeJ5E/moved/emitted/consumer.mjs"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-XFeJ5E/moved",
+  "status": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: same exported factories; three leaf definitions versus exact68 aggregate\nok 1 - same exported factories; three leaf definitions versus exact68 aggregate\n  ---\n  duration_ms: 2.304584\n  type: 'test'\n  ...\n# Subtest: aggregate defaults dispatch three additions, not optional capabilities\nok 2 - aggregate defaults dispatch three additions, not optional capabilities\n  ---\n  duration_ms: 4.326375\n  type: 'test'\n  ...\n# Subtest: factory forwards clock/timezone without sharing settings across instances\nok 3 - factory forwards clock/timezone without sharing settings across instances\n  ---\n  duration_ms: 1.350208\n  type: 'test'\n  ...\n# Subtest: nested replace cannot bypass atomic aggregate collision: date\nok 4 - nested replace cannot bypass atomic aggregate collision: date\n  ---\n  duration_ms: 0.390875\n  type: 'test'\n  ...\n# Subtest: nested replace cannot bypass atomic aggregate collision: sleep\nok 5 - nested replace cannot bypass atomic aggregate collision: sleep\n  ---\n  duration_ms: 0.301\n  type: 'test'\n  ...\n# Subtest: nested replace cannot bypass atomic aggregate collision: printenv\nok 6 - nested replace cannot bypass atomic aggregate collision: printenv\n  ---\n  duration_ms: 0.133667\n  type: 'test'\n  ...\n# Subtest: aggregate replacement overrides nested false, preserves unrelated definition\nok 7 - aggregate replacement overrides nested false, preserves unrelated definition\n  ---\n  duration_ms: 0.447959\n  type: 'test'\n  ...\n# Subtest: aggregate forwards family limits before stdout publication\nok 8 - aggregate forwards family limits before stdout publication\n  ---\n  duration_ms: 0.811041\n  type: 'test'\n  ...\n# Subtest: aggregate forwards scheduler and timer chunk bound\nok 9 - aggregate forwards scheduler and timer chunk bound\n  ---\n  duration_ms: 0.92525\n  type: 'test'\n  ...\n# Subtest: abort reaches forwarded scheduler and preserves reason\nok 10 - abort reaches forwarded scheduler and preserves reason\n  ---\n  duration_ms: 0.560958\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 19.194208\n",
+  "stderr": ""
+}

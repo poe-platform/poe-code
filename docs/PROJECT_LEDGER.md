@@ -1872,3 +1872,34 @@ that any implementation, command, fixture, or test currently exists.
   No new .mts file was added by this integration. The unchanged release guard
   stops before service execution; owner classification/current coverage is a
   separate follow-up. Do not infer the only remaining release issue is WebDAV.
+
+### Independent time-env public integration and explicit release inventory
+
+- Independent integration-only replay of6ffe4f4: unchanged306 scoped checks,
+  packed18/18 twice, two adjacent consumers, six negative types and three
+  denials; new independent10/10 integration controls, four negative types and
+  three denials. Exact68 defaults and aggregate replacement/option forwarding
+  verified. Underlying time-env semantics were authored by this reviewer and
+  are not independently re-certified. Bare%-N/ICU/native profiles unchanged.
+- Harnessd728c71; source/package hashes match the author (package1a757856).
+  First temporary-path permission setup failure retained. No src/private/
+  package/lock/config implementation changes or dependency additions.
+- Release configuration02704bd/847dfd7 explicitly classifies original20 paths:
+  six current, two exact-diagnostic negative, twelve hash-sealed historical.
+  Later WebDAV independent.test.mts gets actual current runtime coverage.
+  Census177:29 current,2 negative,4 declarations,141 frozen evidence,1 oracle.
+  Earlier11/30 omissions remain separate. New paths anywhere in git fail closed;
+  no blanket exclusion or assertion migration. Eight inventory guards reject.
+- Frozen qualified847dfd7 exits0:17 strict current groups; unchanged WebDAV13/13
+  plus20 controls/3mutant kills; metadata318/318+22 native rows; archive11/11;
+  stream18/18 (124/164 strict,164 strengthened-profile matches); registry34/34;
+  moved pack21/21. Negative diagnostic text/positions remain exact. Actual
+  external-service WebDAV/S3 workflows remain compile/import-only here.
+- Final repeated package025357bc includes the candidate README. Preserve
+  selected-tree02704bd package886abaa1 without README as a distinct earlier
+  artifact. Source/candidate-tests/rootdist unchanged; owned scratch cleaned.
+  No whole suite rerun, full-gate110 rebaseline, actualservice closure or
+  superiority claim. Configuration is newly authored and still needs a
+  different verifier. Evidence:tests/integration/qualified-current-release-inventory.
+- Sagan's freshSafeJS13/13 surface and18/19 hook audit remains separate from
+  packed-public acceptance and this qualified profile; private engine untouched.

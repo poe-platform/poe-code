@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/snapshot/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/consumer-moved/tsconfig.negative.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom/consumer-moved",
+  "status": 2,
+  "signal": null,
+  "stdout": "negative.ts(4,33): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<StreamFormatCommandsOptions, \"replace\">'.\nnegative.ts(5,26): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<SplitCommandsOptions, \"replace\">'.\nnegative.ts(6,47): error TS2353: Object literal may only specify known properties, and 'maxNumericDigits' does not exist in type 'Partial<StreamInspectionLimits>'.\nnegative.ts(7,40): error TS2353: Object literal may only specify known properties, and 'maxBufferBytes' does not exist in type 'Partial<StreamFormatLimits>'.\nnegative.ts(8,33): error TS2353: Object literal may only specify known properties, and 'maxNumericDigits' does not exist in type 'Partial<SplitLimits>'.\nnegative.ts(9,34): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.ts(10,27): error TS2322: Type 'string' is not assignable to type 'number'.\n",
+  "stderr": ""
+}

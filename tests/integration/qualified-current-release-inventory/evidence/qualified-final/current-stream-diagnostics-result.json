@@ -1,0 +1,2757 @@
+{
+  "profile": "diagnostic-meaning-v2",
+  "measuredAt": "2026-08-27T10:06:20.174Z",
+  "authorization": "Root authorizes a SEPARATE stronger diagnostic-meaning classifier discovered before product execution. Preserve original frozen policy and original selected counts, exact strict/raw/native inputs byte-for-byte. New profile must be named/versioned, with native meaning plus operand for ENOENT/EISDIR/invalid-option/value/conflicting modes; generic command-name or path token alone insufficient. Record pre-exposure discovery from needs-root, no oracle-picking. Run/report original-selected, strengthened-semantic, and strict separately; never call old weak classifier full semantic parity. Mutation controls should demonstrate wrong errno meaning fails new classifier without inflating native input count. No product edits, no expanded tool corpus.\nSplit fresh fixer session6621 is working only author-disclosed dangling-symlink gap against its own native regressions; your initial source remains pinned1c745c3 immutable. Report initial other failures promptly for routing; do not wait for fixer to finish initial replay. Do not share frozen hidden inputs with fixer absent concrete failure need. Root will release final rerun after actual fixer closure.\n",
+  "sourceResults": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/snapshot/tests/commands/stream-next-stress/.private/current-public/results.json",
+  "sourceResultsSha256": "6b48f6374afab52f99dfa2b3fd7f5512d4f378e7f029441ce783abe45371f6a5",
+  "classifierSha256": "a0a573ac0d7f5ccbfd40b26a0efaf967533a2d02a9e9a65dfccaa4289f12e40c",
+  "rules": {
+    "nl-missing-then-file": {
+      "category": "ENOENT",
+      "patterns": [
+        "/\\bENOENT\\b|no such file or directory/iu"
+      ],
+      "operands": [
+        "missing"
+      ]
+    },
+    "rev-missing-then-file": {
+      "category": "ENOENT",
+      "patterns": [
+        "/\\bENOENT\\b|no such file or directory/iu"
+      ],
+      "operands": [
+        "missing"
+      ]
+    },
+    "unexpand-missing-then-file": {
+      "category": "ENOENT",
+      "patterns": [
+        "/\\bENOENT\\b|no such file or directory/iu"
+      ],
+      "operands": [
+        "missing"
+      ]
+    },
+    "split-missing-input": {
+      "category": "ENOENT",
+      "patterns": [
+        "/\\bENOENT\\b|no such file or directory/iu"
+      ],
+      "operands": [
+        "missing"
+      ]
+    },
+    "split-missing-parent": {
+      "category": "ENOENT",
+      "patterns": [
+        "/\\bENOENT\\b|no such file or directory/iu"
+      ],
+      "operands": [
+        "missing/out.aa"
+      ]
+    },
+    "split-input-directory": {
+      "category": "EISDIR",
+      "patterns": [
+        "/\\bEISDIR\\b|(?:is a|on a) directory/iu"
+      ],
+      "operands": [
+        "input"
+      ]
+    },
+    "split-second-output-directory": {
+      "category": "EISDIR",
+      "patterns": [
+        "/\\bEISDIR\\b|(?:is a|on a) directory/iu"
+      ],
+      "operands": [
+        "out.ab"
+      ]
+    },
+    "seq-zero-step": {
+      "category": "zero-increment",
+      "patterns": [
+        "/zero.*increment|increment.*zero/iu"
+      ],
+      "operands": []
+    },
+    "seq-invalid-format": {
+      "category": "format-conversion-count",
+      "patterns": [
+        "/format/iu",
+        "/too many.*%|exactly one.*conversion|invalid.*format/iu"
+      ],
+      "operands": [
+        "%f %f"
+      ]
+    },
+    "seq-format-width-conflict": {
+      "category": "format-width-conflict",
+      "patterns": [
+        "/format/iu",
+        "/equal width/iu",
+        "/may not|cannot|conflict/iu"
+      ],
+      "operands": []
+    },
+    "seq-invalid-number": {
+      "category": "invalid-numeric-value",
+      "patterns": [
+        "/invalid|illegal/iu",
+        "/floating point|decimal|numeric|number/iu"
+      ],
+      "operands": [
+        "one"
+      ]
+    },
+    "seq-missing-operand": {
+      "category": "missing-numeric-operand",
+      "patterns": [
+        "/missing.*operand|expected.*numeric operands/iu"
+      ],
+      "operands": []
+    },
+    "nl-invalid-style": {
+      "category": "invalid-numbering-style",
+      "patterns": [
+        "/invalid|illegal/iu",
+        "/numbering|line.*type/iu"
+      ],
+      "operands": [
+        "z"
+      ]
+    },
+    "rev-malformed-utf8": {
+      "category": "illegal-byte-sequence",
+      "patterns": [
+        "/illegal byte sequence|invalid.*utf.?8|invalid.*multibyte/iu"
+      ],
+      "operands": [
+        "stdin"
+      ]
+    },
+    "rev-truncated-utf8": {
+      "category": "illegal-byte-sequence",
+      "patterns": [
+        "/illegal byte sequence|invalid.*utf.?8|invalid.*multibyte/iu"
+      ],
+      "operands": [
+        "stdin"
+      ]
+    },
+    "rev-unknown-option": {
+      "category": "invalid-option",
+      "patterns": [
+        "/illegal option|invalid option|unknown option/iu"
+      ],
+      "operands": [
+        "q"
+      ]
+    },
+    "unexpand-invalid-zero-stop": {
+      "category": "zero-tab-size",
+      "patterns": [
+        "/tab.*(?:0|zero)|invalid.*(?:number|value).*0/iu"
+      ],
+      "operands": []
+    },
+    "unexpand-decreasing-stops": {
+      "category": "nonascending-tab-stops",
+      "patterns": [
+        "/tab/iu",
+        "/ascending|increasing/iu"
+      ],
+      "operands": []
+    },
+    "split-suffix-exhaustion": {
+      "category": "suffix-exhaustion",
+      "patterns": [
+        "/suffix/iu",
+        "/exhaust/iu"
+      ],
+      "operands": []
+    },
+    "split-output-is-input": {
+      "category": "input-output-alias",
+      "patterns": [
+        "/overwrite.*input|input.*output.*same/iu"
+      ],
+      "operands": [
+        "xaa"
+      ]
+    },
+    "split-hardlink-output-alias": {
+      "category": "input-output-alias",
+      "patterns": [
+        "/overwrite.*input|input.*output.*same/iu"
+      ],
+      "operands": [
+        "out.aa"
+      ]
+    },
+    "split-symlink-output-alias": {
+      "category": "input-output-alias",
+      "patterns": [
+        "/overwrite.*input|input.*output.*same/iu"
+      ],
+      "operands": [
+        "out.aa"
+      ]
+    },
+    "split-zero-size": {
+      "category": "invalid-byte-size",
+      "patterns": [
+        "/invalid/iu",
+        "/bytes|size/iu"
+      ],
+      "operands": [
+        "0"
+      ]
+    },
+    "split-conflicting-modes": {
+      "category": "conflicting-split-modes",
+      "patterns": [
+        "/more than one way|conflict.*(?:mode|option)|cannot.*combine/iu"
+      ],
+      "operands": []
+    },
+    "split-extra-operand": {
+      "category": "extra-operand",
+      "patterns": [
+        "/extra.*operand|too many.*operand/iu"
+      ],
+      "operands": [
+        "extra"
+      ]
+    }
+  },
+  "nativeSelfChecks": [
+    {
+      "id": "seq-zero-step",
+      "passed": true,
+      "reason": "zero-increment"
+    },
+    {
+      "id": "seq-invalid-format",
+      "passed": true,
+      "reason": "format-conversion-count"
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "passed": true,
+      "reason": "format-width-conflict"
+    },
+    {
+      "id": "seq-invalid-number",
+      "passed": true,
+      "reason": "invalid-numeric-value"
+    },
+    {
+      "id": "seq-missing-operand",
+      "passed": true,
+      "reason": "missing-numeric-operand"
+    },
+    {
+      "id": "nl-missing-then-file",
+      "passed": true,
+      "reason": "ENOENT"
+    },
+    {
+      "id": "nl-invalid-style",
+      "passed": true,
+      "reason": "invalid-numbering-style"
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "passed": true,
+      "reason": "illegal-byte-sequence"
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "passed": true,
+      "reason": "illegal-byte-sequence"
+    },
+    {
+      "id": "rev-missing-then-file",
+      "passed": true,
+      "reason": "ENOENT"
+    },
+    {
+      "id": "rev-unknown-option",
+      "passed": true,
+      "reason": "invalid-option"
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "passed": true,
+      "reason": "zero-tab-size"
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "passed": true,
+      "reason": "nonascending-tab-stops"
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "passed": true,
+      "reason": "ENOENT"
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "passed": true,
+      "reason": "suffix-exhaustion"
+    },
+    {
+      "id": "split-output-is-input",
+      "passed": true,
+      "reason": "input-output-alias"
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "passed": true,
+      "reason": "input-output-alias"
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "passed": true,
+      "reason": "input-output-alias"
+    },
+    {
+      "id": "split-second-output-directory",
+      "passed": true,
+      "reason": "EISDIR"
+    },
+    {
+      "id": "split-missing-parent",
+      "passed": true,
+      "reason": "ENOENT"
+    },
+    {
+      "id": "split-missing-input",
+      "passed": true,
+      "reason": "ENOENT"
+    },
+    {
+      "id": "split-input-directory",
+      "passed": true,
+      "reason": "EISDIR"
+    },
+    {
+      "id": "split-zero-size",
+      "passed": true,
+      "reason": "invalid-byte-size"
+    },
+    {
+      "id": "split-conflicting-modes",
+      "passed": true,
+      "reason": "conflicting-split-modes"
+    },
+    {
+      "id": "split-extra-operand",
+      "passed": true,
+      "reason": "extra-operand"
+    }
+  ],
+  "mutationControls": [
+    {
+      "id": "seq-zero-step",
+      "kind": "wrong-errno",
+      "mutated": "seq: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-zero-step",
+      "kind": "generic-name-and-path",
+      "mutated": "seq: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-format",
+      "kind": "wrong-errno",
+      "mutated": "seq: EACCES: permission denied '%f %f'\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-format",
+      "kind": "generic-name-and-path",
+      "mutated": "seq: error '%f %f'\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-format",
+      "kind": "wrong-operand",
+      "mutated": "seq: format 'WRONG_OPERAND' has too many % directives\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "kind": "wrong-errno",
+      "mutated": "seq: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "kind": "generic-name-and-path",
+      "mutated": "seq: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-number",
+      "kind": "wrong-errno",
+      "mutated": "seq: EACCES: permission denied 'one'\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-number",
+      "kind": "generic-name-and-path",
+      "mutated": "seq: error 'one'\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-invalid-number",
+      "kind": "wrong-operand",
+      "mutated": "seq: invalid floating point argument: 'WRONG_OPERAND'\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-missing-operand",
+      "kind": "wrong-errno",
+      "mutated": "seq: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "seq-missing-operand",
+      "kind": "generic-name-and-path",
+      "mutated": "seq: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-missing-then-file",
+      "kind": "wrong-errno",
+      "mutated": "nl: EACCES: permission denied 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-missing-then-file",
+      "kind": "generic-name-and-path",
+      "mutated": "nl: error 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-missing-then-file",
+      "kind": "wrong-operand",
+      "mutated": "nl: WRONG_OPERAND: No such file or directory\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-invalid-style",
+      "kind": "wrong-errno",
+      "mutated": "nl: EACCES: permission denied 'z'\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-invalid-style",
+      "kind": "generic-name-and-path",
+      "mutated": "nl: error 'z'\n",
+      "rejected": true
+    },
+    {
+      "id": "nl-invalid-style",
+      "kind": "wrong-operand",
+      "mutated": "nl: invalid body numbering style: 'WRONG_OPERAND'\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl --help' for more information.\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "kind": "wrong-errno",
+      "mutated": "rev: EACCES: permission denied 'stdin'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "kind": "generic-name-and-path",
+      "mutated": "rev: error 'stdin'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "kind": "wrong-operand",
+      "mutated": "rev: WRONG_OPERAND: Illegal byte sequence\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "kind": "wrong-errno",
+      "mutated": "rev: EACCES: permission denied 'stdin'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "kind": "generic-name-and-path",
+      "mutated": "rev: error 'stdin'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "kind": "wrong-operand",
+      "mutated": "rev: WRONG_OPERAND: Illegal byte sequence\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-missing-then-file",
+      "kind": "wrong-errno",
+      "mutated": "rev: EACCES: permission denied 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-missing-then-file",
+      "kind": "generic-name-and-path",
+      "mutated": "rev: error 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-missing-then-file",
+      "kind": "wrong-operand",
+      "mutated": "rev: WRONG_OPERAND: No such file or directory\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-unknown-option",
+      "kind": "wrong-errno",
+      "mutated": "rev: EACCES: permission denied 'q'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-unknown-option",
+      "kind": "generic-name-and-path",
+      "mutated": "rev: error 'q'\n",
+      "rejected": true
+    },
+    {
+      "id": "rev-unknown-option",
+      "kind": "wrong-operand",
+      "mutated": "/usr/bin/rev: illegal option -- WRONG_OPERAND\nusage: rev [file ...]\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "kind": "wrong-errno",
+      "mutated": "unexpand: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "kind": "generic-name-and-path",
+      "mutated": "unexpand: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "kind": "wrong-errno",
+      "mutated": "unexpand: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "kind": "generic-name-and-path",
+      "mutated": "unexpand: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "kind": "wrong-errno",
+      "mutated": "unexpand: EACCES: permission denied 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "kind": "generic-name-and-path",
+      "mutated": "unexpand: error 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "kind": "wrong-operand",
+      "mutated": "unexpand: WRONG_OPERAND: No such file or directory\n",
+      "rejected": true
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "split-output-is-input",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'xaa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-output-is-input",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'xaa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-output-is-input",
+      "kind": "wrong-operand",
+      "mutated": "split: 'WRONG_OPERAND' would overwrite input; aborting\n",
+      "rejected": true
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "kind": "wrong-operand",
+      "mutated": "split: 'WRONG_OPERAND' would overwrite input; aborting\n",
+      "rejected": true
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "kind": "wrong-operand",
+      "mutated": "split: 'WRONG_OPERAND' would overwrite input; aborting\n",
+      "rejected": true
+    },
+    {
+      "id": "split-second-output-directory",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'out.ab'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-second-output-directory",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'out.ab'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-second-output-directory",
+      "kind": "wrong-operand",
+      "mutated": "split: WRONG_OPERAND: Is a directory\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-parent",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'missing/out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-parent",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'missing/out.aa'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-parent",
+      "kind": "wrong-operand",
+      "mutated": "split: WRONG_OPERAND: No such file or directory\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-input",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-input",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'missing'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-missing-input",
+      "kind": "wrong-operand",
+      "mutated": "split: cannot open 'WRONG_OPERAND' for reading: No such file or directory\n",
+      "rejected": true
+    },
+    {
+      "id": "split-input-directory",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'input'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-input-directory",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'input'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-input-directory",
+      "kind": "wrong-operand",
+      "mutated": "split: WRONG_OPERAND: Is a directory\n",
+      "rejected": true
+    },
+    {
+      "id": "split-zero-size",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied '0'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-zero-size",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error '0'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-zero-size",
+      "kind": "wrong-operand",
+      "mutated": "split: invalid number of bytes: 'WRONG_OPERAND'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-conflicting-modes",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied ''\n",
+      "rejected": true
+    },
+    {
+      "id": "split-conflicting-modes",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error ''\n",
+      "rejected": true
+    },
+    {
+      "id": "split-extra-operand",
+      "kind": "wrong-errno",
+      "mutated": "split: EACCES: permission denied 'extra'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-extra-operand",
+      "kind": "generic-name-and-path",
+      "mutated": "split: error 'extra'\n",
+      "rejected": true
+    },
+    {
+      "id": "split-extra-operand",
+      "kind": "wrong-operand",
+      "mutated": "split: WRONG_OPERAND operand 'WRONG_OPERAND'\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split --help' for more information.\n",
+      "rejected": true
+    }
+  ],
+  "rows": [
+    {
+      "id": "seq-integers",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-decimal-precision",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-decimal-endpoint",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-descending-negative",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-negative-first",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-zero-step",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "zero-increment"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-empty",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-reversed",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-descending-empty",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-separator",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-empty-separator",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-equal-width",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-fixed",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-scientific",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-general",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-rounding",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-exponent",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-invalid-format",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "format-conversion-count"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "format-width-conflict"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-invalid-number",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-numeric-value"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-missing-operand",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "missing-numeric-operand"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-default-blank",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-logical-pages",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-section-styles",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-no-reset",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-blank-joining",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-zero-fill-negative",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-left-format",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-custom-delimiter",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-pattern-basic",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-multiple-files",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-missing-then-file",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-invalid-style",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-numbering-style"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-invalid-blank-count",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-binary",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-ascii-c",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-ascii-no-final-newline",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-nul-c",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-high-byte-c",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-unicode-utf8",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "illegal-byte-sequence"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "illegal-byte-sequence"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-env-cleared-unicode",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-files",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-missing-then-file",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-unknown-option",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-option"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-initial-only",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-all",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-tab-four-implies-all",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-explicit-stops",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-first-only-override",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-mixed-tabs-backspace",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-single-space",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-no-final-newline",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-binary",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-multiple-files",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "zero-tab-size"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "nonascending-tab-stops"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-default-thousand-lines",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-empty",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-line-groups",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-bytes-binary",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-byte-size-suffix",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-line-bytes",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-long-line",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-named-input",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-numeric-suffix",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-numeric-start-additional",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "suffix-exhaustion"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-overwrite-shorter",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-output-is-input",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-second-output-directory",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "EISDIR"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-missing-parent",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-missing-input",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-input-directory",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "EISDIR"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-zero-size",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-byte-size"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-conflicting-modes",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "conflicting-split-modes"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-extra-operand",
+      "backend": "memory",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "extra-operand"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-option-terminator",
+      "backend": "memory",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-integers",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-decimal-precision",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-decimal-endpoint",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-descending-negative",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-negative-first",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-zero-step",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "zero-increment"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-empty",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-reversed",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-descending-empty",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-separator",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-empty-separator",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-equal-width",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-fixed",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-scientific",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-general",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-rounding",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-exponent",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-invalid-format",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "format-conversion-count"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "format-width-conflict"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-invalid-number",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-numeric-value"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "seq-missing-operand",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "missing-numeric-operand"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-default-blank",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-logical-pages",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-section-styles",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-no-reset",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-blank-joining",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-zero-fill-negative",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-left-format",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-custom-delimiter",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-pattern-basic",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-multiple-files",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-missing-then-file",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-invalid-style",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-numbering-style"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-invalid-blank-count",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "nl-binary",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-ascii-c",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-ascii-no-final-newline",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-nul-c",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-high-byte-c",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-unicode-utf8",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-malformed-utf8",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "illegal-byte-sequence"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-truncated-utf8",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "illegal-byte-sequence"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-env-cleared-unicode",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-files",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-missing-then-file",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "rev-unknown-option",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-option"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-initial-only",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-all",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-tab-four-implies-all",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-explicit-stops",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-first-only-override",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-mixed-tabs-backspace",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-single-space",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-no-final-newline",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-binary",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-multiple-files",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "zero-tab-size"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "nonascending-tab-stops"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "unexpand-missing-then-file",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-default-thousand-lines",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-empty",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-line-groups",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-bytes-binary",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-byte-size-suffix",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-line-bytes",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-long-line",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-named-input",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-numeric-suffix",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-numeric-start-additional",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "suffix-exhaustion"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-overwrite-shorter",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-output-is-input",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "input-output-alias"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-second-output-directory",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "EISDIR"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-missing-parent",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-missing-input",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "ENOENT"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-input-directory",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "EISDIR"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-zero-size",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "invalid-byte-size"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-conflicting-modes",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "conflicting-split-modes"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-extra-operand",
+      "backend": "real",
+      "strict": false,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "extra-operand"
+      },
+      "nonDiagnosticEqual": true
+    },
+    {
+      "id": "split-option-terminator",
+      "backend": "real",
+      "strict": true,
+      "originalWeakSelected": true,
+      "strengthened": true,
+      "diagnostic": {
+        "passed": true,
+        "reason": "Exact successful stderr"
+      },
+      "nonDiagnosticEqual": true
+    }
+  ],
+  "summary": {
+    "executions": 164,
+    "strict": 124,
+    "originalWeakSelected": 164,
+    "strengthened": 164
+  },
+  "byBackend": {
+    "memory": {
+      "executions": 82,
+      "strict": 62,
+      "originalWeakSelected": 82,
+      "strengthened": 82
+    },
+    "real": {
+      "executions": 82,
+      "strict": 62,
+      "originalWeakSelected": 82,
+      "strengthened": 82
+    }
+  },
+  "limitations": "Separate root-authorized stricter profile. Native inputs/raw expectations/strict and original weak-selected outcomes unchanged. Synthetic classifier mutations are not new native or product input coverage. Secondary Apple profiles are not relabeled primary GNU semantics."
+}

@@ -1,0 +1,15 @@
+{
+  "name": "negative-types",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/negative.json",
+    "--noEmit"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved",
+  "status": 2,
+  "signal": null,
+  "stdout": "../../../../../../../../var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\n../../../../../../../../var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/negative.mts(4,25): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\n../../../../../../../../var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/negative.mts(5,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\n../../../../../../../../var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/moved/negative.mts(6,53): error TS2322: Type 'string' is not assignable to type 'number'.\n",
+  "stderr": ""
+}

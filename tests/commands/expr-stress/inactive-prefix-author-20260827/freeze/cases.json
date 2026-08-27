@@ -1,0 +1,1065 @@
+{
+  "cases": [
+    {
+      "id": "root-counterexample",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "modulo-trailing",
+      "args": [
+        "1",
+        "%",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "noninteger-trailing",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "left-error-before-next-operator-missing",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "+"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "left-error-before-next-same-precedence",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "*"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "left-error-before-skipped-syntax",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "|",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "group-runtime-before-missing-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "group-runtime-before-wrong-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "nested-runtime-before-close",
+      "args": [
+        "length",
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "prefix-first-argument-before-missing-second",
+      "args": [
+        "index",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "prefix-second-before-missing-third",
+      "args": [
+        "substr",
+        "abc",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-group-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "(",
+        "0",
+        "x",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-missing-before-division",
+      "args": [
+        "1",
+        "/"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-higher-precedence-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "0",
+        ":"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-prefix-syntax-before-noninteger",
+      "args": [
+        "bad",
+        "+",
+        "length"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-closing-syntax-before-runtime",
+      "args": [
+        "1",
+        "/",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "rhs-higher-precedence-runtime-first",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "earlier-noninteger-before-later-division",
+      "args": [
+        "bad",
+        "*",
+        "1",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "regex-error-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-error-before-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-error-before-later-missing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "+"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-prefix-error-before-outer-arity",
+      "args": [
+        "index",
+        "match",
+        "a",
+        "["
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-success-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-success-before-missing-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-success-before-runtime",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "syntax-prevents-regex-submit",
+      "args": [
+        "a",
+        ":",
+        "(",
+        "[",
+        "x",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "first-regex-before-second-syntax",
+      "args": [
+        "match",
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "("
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "regex-two-once-in-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "jobs": 2
+    },
+    {
+      "id": "first-regex-error-stops-second",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1
+    },
+    {
+      "id": "skip-or-division",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-and-division",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-or-invalid-regex",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-and-prefix-invalid-regex",
+      "args": [
+        "0",
+        "&",
+        "match",
+        "a",
+        "["
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-still-missing-close",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '0'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-still-missing-operand",
+      "args": [
+        "0",
+        "&",
+        "a",
+        ":"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-still-trailing",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-still-prefix-arity",
+      "args": [
+        "1",
+        "|",
+        "substr",
+        "a",
+        "1"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "jobs": 0
+    },
+    {
+      "id": "nested-skip-never-regex",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "match",
+        "a",
+        "[",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "active-then-skipped-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "|",
+        "b",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 1
+    },
+    {
+      "id": "active-false-then-active-regex",
+      "args": [
+        "a",
+        ":",
+        "b",
+        "|",
+        "b",
+        ":",
+        "b"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 2
+    },
+    {
+      "id": "left-associative-division",
+      "args": [
+        "20",
+        "/",
+        "2",
+        "/",
+        "2"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "5\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "prefix-binds-before-colon",
+      "args": [
+        "length",
+        "abc",
+        ":",
+        "3"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 1
+    },
+    {
+      "id": "quoted-parenthesis",
+      "args": [
+        "+",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": ")\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "leading-double-dash",
+      "args": [
+        "--",
+        "1",
+        "+",
+        "2"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "jobs": 0
+    },
+    {
+      "id": "skip-no-prefix-locale-evaluation",
+      "args": [
+        "1",
+        "|",
+        "length",
+        "abc"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "env": {
+        "LC_ALL": "unsupported-sequencing-profile"
+      },
+      "native": false,
+      "noEncode": [
+        "abc"
+      ],
+      "classification": "explicit user parse-only requirement; not GNU skipped-prefix implementation parity"
+    },
+    {
+      "id": "skip-no-substr-number-evaluation",
+      "args": [
+        "1",
+        "|",
+        "substr",
+        "abc",
+        "999",
+        "1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "limits": {
+        "maxNumericDigits": 1
+      },
+      "native": false,
+      "noEncode": [
+        "abc",
+        "999"
+      ],
+      "classification": "explicit user parse-only requirement"
+    },
+    {
+      "id": "argument-admission-before-runtime",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "oversized"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: aggregate argument bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxArgumentBytes": 3
+      },
+      "native": false
+    },
+    {
+      "id": "node-limit-active",
+      "args": [
+        "1",
+        "+",
+        "2"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxNodes": 2
+      },
+      "native": false
+    },
+    {
+      "id": "node-limit-skipped",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "+",
+        "2",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxNodes": 4
+      },
+      "native": false
+    },
+    {
+      "id": "parser-depth-skipped",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "(",
+        "1",
+        ")",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxDepth": 2
+      },
+      "native": false
+    },
+    {
+      "id": "ast-depth-left-chain",
+      "args": [
+        "1",
+        "+",
+        "1",
+        "+",
+        "1"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST depth limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxDepth": 2
+      },
+      "native": false
+    },
+    {
+      "id": "work-admission-before-runtime",
+      "args": [
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: evaluation work limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxSteps": 1
+      },
+      "native": false
+    },
+    {
+      "id": "active-string-allocation",
+      "args": [
+        "abc"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: string allocation limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxStringBytes": 2
+      },
+      "native": false
+    },
+    {
+      "id": "numeric-conversion",
+      "args": [
+        "12",
+        "+",
+        "1"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: numeric digits limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxNumericDigits": 1
+      },
+      "native": false
+    },
+    {
+      "id": "output-limit",
+      "args": [
+        "abc"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxOutputBytes": 3
+      },
+      "native": false
+    },
+    {
+      "id": "diagnostic-output-limit-new-control",
+      "args": [
+        "1",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "limits": {
+        "maxOutputBytes": 4
+      },
+      "native": false
+    },
+    {
+      "id": "shared-budget-two-jobs",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "jobs": 2,
+      "limits": {
+        "maxSteps": 10000
+      },
+      "native": false,
+      "sharedBudget": true
+    },
+    {
+      "id": "abort-before-admission",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 0,
+      "native": false,
+      "abort": "before"
+    },
+    {
+      "id": "abort-after-first-worker-result",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 1,
+      "native": false,
+      "abort": "after-result"
+    },
+    {
+      "id": "abort-admitted-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 1,
+      "native": false,
+      "abort": "admitted"
+    },
+    {
+      "id": "abort-during-evaluation-checkpoint",
+      "args": [
+        "1",
+        "+",
+        "2",
+        "+",
+        "3"
+      ],
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 0,
+      "native": false,
+      "abort": "checkpoint"
+    }
+  ],
+  "oldCap": {
+    "id": "old-syntax-output-one-separate",
+    "args": [
+      "1",
+      "x"
+    ],
+    "limits": {
+      "maxOutputBytes": 1
+    },
+    "expected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    "jobs": 0,
+    "native": false,
+    "classification": "unchanged old cap assumption; separate red denominator, not a sequencing expectation"
+  }
+}

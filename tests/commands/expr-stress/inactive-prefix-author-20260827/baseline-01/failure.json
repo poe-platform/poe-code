@@ -1,0 +1,4 @@
+{
+  "message": "tests/commands/expr/inactive-prefix.test.ts(141,86): error TS2345: Argument of type '\"abc\"' is not assignable to parameter of type 'never'.\n\n\n2 !== 0\n",
+  "stack": "AssertionError [ERR_ASSERTION]: tests/commands/expr/inactive-prefix.test.ts(141,86): error TS2345: Argument of type '\"abc\"' is not assignable to parameter of type 'never'.\n\n\n2 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/inactive-prefix-author-20260827/capture.mjs:116:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+}

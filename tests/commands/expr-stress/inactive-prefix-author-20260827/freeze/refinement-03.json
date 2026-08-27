@@ -1,0 +1,11 @@
+{
+  "frozenAt": "2026-08-27T19:26:40.334Z",
+  "files": {
+    "capture-v2.mjs": "4e8958df1de2398a68f79a8b6b06e478e4a7101c23f21413f13ec2759552167a",
+    "freeze/refinement-02.json": "04f767b6f8fd782ae68956e56d6c947132b7471998dc5d400b292e97479285b0",
+    "freeze/inactive-prefix.test.revision-02.ts.data": "2674e60fafa49853f698a9e4bec8587e59d8accaac7445ae47edbef9cd097522",
+    "capture-v3.mjs": "7b9a6b331cc0a0c6bd9a6effcccda23d58e392f2508a94424d9d393f59669baa",
+    "freeze/inactive-prefix.test.revision-03.ts.data": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70"
+  },
+  "reason": "baseline-02 distinguishes 25 relevant red author cases and one author instrumentation expectation error: argument-count admission throws before the first Budget.charge. Exact cap/status/diagnostic assertions remain unchanged; expect zero charged budgets only for that admission case. All previous captures and frozen inputs retained unchanged. Product evaluate.ts remains accepted baseline."
+}

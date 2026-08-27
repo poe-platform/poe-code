@@ -62,3 +62,23 @@ bounded match; cancellation is checked on instructions, with event-loop yields
 between input work. This is byte/C-locale matching: ASCII POSIX classes and
 byte ranges, no locale collation/equivalence classes or Unicode character classes.
 The inherited matcher dialect is not a claim of all GNU BRE behavior.
+
+## rev
+
+Apple/BSD-style LF line reversal, file operands and `--`; no other flags. With
+no files it reads stdin. Explicit `-` is a literal file named `-`, as on the
+measured Apple reference, not the stdin convention of the other commands here.
+Unterminated lines acquire LF. Guest `LC_ALL`, then `LC_CTYPE`, then `LANG`
+select the character profile; empty/unset resolves to C, based on an actual
+environment-cleared native control, never the host process environment.
+`C`/`POSIX` reverse bytes including NUL and malformed UTF-8. Explicit UTF-8
+locales reverse code points, not grapheme clusters, preserving BOM and NUL.
+Other encodings are not implemented and fail explicitly.
+
+UTF-8 validation rejects overlong encodings, surrogate encodings, out-of-range
+codepoints and incomplete sequences without replacement characters. Like the
+measured Apple rev, malformed input emits the reversed valid prefix plus LF
+if that prefix is nonempty, diagnoses `Illegal byte sequence`, returns failure,
+skips the rest of that input file, and continues later operands. This behavior
+is an Apple/Darwin profile; no util-linux executable was available or installed,
+and rev is not labeled GNU coreutils. Lines are bounded by maxRecordBytes.

@@ -24,6 +24,23 @@ and its linked reports for original failures, later source fixes, fixture/profil
 changes and scoped acceptance. Original reports are preserved; no selected suite
 or command count establishes the full product goal.
 
+The [independently reviewed comparison](benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW.md),
+sealed in `8670ebe8`, measured source `e33974b8` against pinned just-bash 3.4.2
+(not a claim about the latest release):
+
+| Separate cohort | virtual-bash | just-bash 3.4.2 |
+| --- | ---: | ---: |
+| Original oracle-predicate matches | 222/224 | 155/224 |
+| Aligned oracle-predicate matches | 223/224 | 155/224 |
+| Breadth target operational credit | 13/54 | 47/54 |
+| Breadth control operational credit | 7/7 | 6/7 |
+
+Original and aligned profiles overlap and must not be added. Breadth uses declared
+functional intent, not native goldens; its diagnostics remain unscored. Failures,
+including a baseline lifecycle failure excluded from operational credit, remain
+in the report. These tables establish neither overall superiority nor a whole-gate
+result for `8670ebe8` or the moving worktree.
+
 The package exposes `S3FileSystem` plus `createS3Transport` for an explicit
 caller-supplied minimal client. The separate HTTP/SigV4 factory
 `createS3HttpTransport` and its types are public at `virtual-bash` and

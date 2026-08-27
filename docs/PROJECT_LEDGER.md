@@ -2025,3 +2025,34 @@ that any implementation, command, fixture, or test currently exists.
   launcher still requires a reviewed new candidate/policy and complete native
   staging; no broad suite was rerun, old seal rewritten, or product superiority
   or72-hour completion asserted.
+
+### 2026-08-27 — sealed comparison references and evidence rules
+
+- Seal8670ebe8 contains the independently reviewed comparison of source
+  e33974b8c643077453227a9679d8ceca8367998c against pinned just-bash3.4.2.
+  The seal commit is not the measured source revision or a whole-product gate.
+  Earlier registry captures and comparison reports remain historical; this update
+  makes no latest-release claim or retroactive change to their results.
+- Original oracle-predicate matches: virtual222/224 (2 failures), baseline155/224
+  (69 failures). Aligned matches: virtual223/224 (1 failure), baseline155/224
+  (69 failures). These overlapping profiles remain separate, not an additive score.
+- Breadth uses declared-intent predicates rather than native goldens. Target
+  operational credit is virtual13/54 versus baseline47/54; controls7/7 versus6/7.
+  Seven diagnostics per engine remain unscored. Baseline50 raw target matches
+  do not become50 operational passes: the report preserves documentation/no-op/
+  stub/partial classifications and the actual forced-cleanup lifecycle failure.
+  There is no superiority, speed, release-green or broad-goal completion claim.
+- Authoritative references:
+  benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW.md
+  and FINAL_REVIEW_RECEIPT.json; the sealed raw archive and earlier failed review
+  attempts remain intact. README now links these final qualified tables, not the
+  earlier producer handoff's pending-review status. No old report was rewritten.
+- The public/default aggregate remains70 unique commands, with curl and SafeJS
+  explicitly optional. The live grep-aliases and column work is not integrated
+  into that aggregate or injected into frozen8670. Root manifests/exports are
+  unchanged by this documentation update.
+- AGENTS adds only missing durable rules: canonical tests do not rewrite committed
+  evidence; explicit captures use unique isolated output; authorized committed
+  archives bind immutable candidate inputs independently of unrelated live edits,
+  while strict-live mode continues rejecting dirty inputs. No timeline metrics
+  or transient ownership state is added to AGENTS.

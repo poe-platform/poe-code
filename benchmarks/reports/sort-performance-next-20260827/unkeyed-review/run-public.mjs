@@ -8,9 +8,12 @@ import { fileURLToPath } from 'node:url';
 const directory = fileURLToPath(new URL('.', import.meta.url));
 const repository = realpathSync(process.cwd());
 assert.equal(repository, '/Users/kjopek/Workspace/safe-bash');
-const [variant = 'baseline', routedCommit] = process.argv.slice(2);
+const [variant = 'baseline', routedCommit, cohortVersion = 'v1'] = process.argv.slice(2);
 assert.ok(['baseline', 'candidate'].includes(variant));
+assert.ok(['v1', 'v2'].includes(cohortVersion));
 const freeze = JSON.parse(readFileSync(directory + 'freeze.json'));
+const cohortFreeze = cohortVersion === 'v2' ? JSON.parse(readFileSync(directory + 'freeze-v2.json')) : freeze;
+const expectedFilename = cohortVersion === 'v2' ? 'expected-v2.json' : 'expected.json';
 const commit = variant === 'baseline' ? freeze.baselineCommit : routedCommit;
 assert.match(commit ?? '', /^[a-f0-9]{40}$/u);
 if (variant === 'candidate') {
@@ -20,7 +23,7 @@ if (variant === 'candidate') {
 const git = args => execFileSync('git', args, { maxBuffer: 64 * 1024 * 1024, timeout: 30000 });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const scratch = realpathSync(mkdtempSync('/tmp/sort-unkeyed-review-' + variant + '-'));
-const evidence = directory + variant + '-' + commit.slice(0, 12);
+const evidence = directory + variant + '-' + commit.slice(0, 12) + (cohortVersion === 'v2' ? '-v2' : '');
 assert.equal(existsSync(evidence), false, 'evidence is immutable, choose an explicit new attempt rather than overwrite');
 mkdirSync(evidence);
 const sourceRoot = join(scratch, 'source');
@@ -74,10 +77,10 @@ const acceptancePath = join(scratch, 'workloads.json');
 const expectedPath = join(scratch, 'expected.json');
 const acceptance = git(['show', `${freeze.acceptanceCommit}:benchmarks/reports/sort-performance-next-20260827/workloads.json`]);
 assert.equal(hash(acceptance), freeze.acceptanceHash);
-assert.equal(hash(readFileSync(directory + 'expected.json')), freeze.expectedSha256);
+assert.equal(hash(readFileSync(directory + expectedFilename)), cohortFreeze.expectedSha256);
 assert.equal(hash(readFileSync(directory + 'holdouts.mjs')), freeze.holdoutsSha256);
 writeFileSync(acceptancePath, acceptance);
-copyFileSync(directory + 'expected.json', expectedPath);
+copyFileSync(directory + expectedFilename, expectedPath);
 const compiler = realpathSync(join(repository, 'node_modules/typescript/bin/tsc'));
 const compilerInfo = { path: compiler, sha256: hash(readFileSync(compiler)), implementationSha256: hash(readFileSync(join(dirname(compiler), '../lib/_tsc.js'))), packageSha256: hash(readFileSync(join(dirname(compiler), '../package.json'))) };
 writeFileSync(evidence + '/admission.json', JSON.stringify({ variant, commit, tree: git(['rev-parse', `${commit}^{tree}`]).toString().trim(), scratch, sourceRoot, sources, compilerInfo, inputHashes: { acceptance: hash(acceptance), expected: hash(readFileSync(expectedPath)) }, runnerSha256: hash(readFileSync(fileURLToPath(import.meta.url))), workerSha256: hash(readFileSync(directory + 'public-worker.mjs')), profile: { heapMiB: 512, childWallSeconds: 90, childLogBytes: 8388608, execAbortMilliseconds: 5000, outputBytes: 4194304 }, claims: 'No timing or speed measurements; isolated build uses repository compiler only.' }, null, 2) + '\n');
@@ -111,9 +114,9 @@ try {
   }
   assert.deepEqual(inventory(movedPackage), beforeMove);
   assert.equal(hash(readFileSync(acceptancePath)), freeze.acceptanceHash);
-  assert.equal(hash(readFileSync(expectedPath)), freeze.expectedSha256);
+  assert.equal(hash(readFileSync(expectedPath)), cohortFreeze.expectedSha256);
   const failed = result.rows.filter(row => !row.passed);
-  const summary = { variant, commit, scratch, archiveSha256: hash(readFileSync(archive)), packageFiles: beforeMove.length, loadedModules: result.modules.length, acceptance: { passed: result.rows.filter(row => row.cohort === 'acceptance21' && row.passed).length, total: 21 }, independent: { passed: result.rows.filter(row => row.cohort === 'independent33' && row.passed).length, total: 33 }, failed: failed.map(row => row.id), sourceBeforeAfterEqual: true, packageBeforeAfterEqual: true, exactChildClosure: commands.every(command => command.exactChildClosed), shellsDisposed: result.shellsDisposed, candidateAcceptance: false };
+  const summary = { variant, commit, cohortVersion, scratch, archiveSha256: hash(readFileSync(archive)), packageFiles: beforeMove.length, loadedModules: result.modules.length, acceptance: { passed: result.rows.filter(row => row.cohort === 'acceptance21' && row.passed).length, total: 21 }, independent: { passed: result.rows.filter(row => row.cohort.startsWith('independent') && row.passed).length, total: result.rows.filter(row => row.cohort.startsWith('independent')).length }, failed: failed.map(row => row.id), sourceBeforeAfterEqual: true, packageBeforeAfterEqual: true, exactChildClosure: commands.every(command => command.exactChildClosed), shellsDisposed: result.shellsDisposed, candidateAcceptance: false };
   writeFileSync(evidence + '/summary.json', JSON.stringify(summary, null, 2) + '\n');
   console.log(JSON.stringify(summary));
   if (failed.length) process.exitCode = 1;

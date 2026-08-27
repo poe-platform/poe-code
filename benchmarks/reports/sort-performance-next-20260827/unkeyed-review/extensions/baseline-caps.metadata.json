@@ -1,0 +1,20 @@
+{
+  "name": "baseline-caps",
+  "variant": "baseline",
+  "commit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "pid": 70610,
+  "code": 0,
+  "signal": null,
+  "bytes": 37250,
+  "exactChildClosed": true,
+  "sourceBefore": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+  "instrumentedSource": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+  "finalSource": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+  "edits": [],
+  "changedModules": [],
+  "inputs": {
+    "acceptance": "be8fa7d7bf3a10a3473b3b672a96c28eca5e118de2a33a647a2ecd6eb0343a3d",
+    "expected": "305be942477422c49b9595034c4505307da262f6301fdf016a82bbe7e6de486f"
+  },
+  "stderr": ""
+}

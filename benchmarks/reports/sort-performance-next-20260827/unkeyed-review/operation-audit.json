@@ -1,0 +1,1618 @@
+{
+  "actualVersusInstrumentedAll66ObservationsEqualPerVariant": true,
+  "unchangedComparatorCollectionKeyPaddingCounts": true,
+  "accounting": [
+    {
+      "id": "historical-sort-uniq-5000",
+      "baseline": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "candidate": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "plain-5000",
+      "baseline": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "candidate": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "unique-paths-20000",
+      "baseline": {
+        "records": 20000,
+        "recordPayloadBytes": 515459,
+        "sortComparisons": 258589
+      },
+      "candidate": {
+        "records": 20000,
+        "recordPayloadBytes": 515459,
+        "sortComparisons": 258589
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "numeric-stable-8000",
+      "baseline": {
+        "records": 8000,
+        "recordPayloadBytes": 130195,
+        "sortComparisons": 92882,
+        "numericComparisons": 92882,
+        "parses": 185764,
+        "parseInputBytes": 3018123,
+        "normalizedCharacters": 518426,
+        "fractionPadEndCalls": 61946
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 8000,
+        "recordPayloadBytes": 130195,
+        "sortComparisons": 92882,
+        "cacheLookups": 185764,
+        "parses": 8000,
+        "parseInputBytes": 130195,
+        "normalizedCharacters": 22523,
+        "admissions": 8000,
+        "admittedNormalizedCharacters": 22523,
+        "peakEntries": 8000,
+        "peakRetainedCharge": 797170,
+        "numericComparisons": 92882,
+        "cacheHits": 177764,
+        "fractionPadEndCalls": 61946
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "numeric-key-8000",
+      "baseline": {
+        "records": 8000,
+        "recordPayloadBytes": 156670,
+        "sortComparisons": 82450,
+        "keyExtractions": 164900,
+        "keyInputBytes": 3230564,
+        "numericComparisons": 82450,
+        "parses": 164900,
+        "parseInputBytes": 613178,
+        "normalizedCharacters": 613178,
+        "fractionPadEndCalls": 7998
+      },
+      "candidate": {
+        "records": 8000,
+        "recordPayloadBytes": 156670,
+        "sortComparisons": 82450,
+        "keyExtractions": 164900,
+        "keyInputBytes": 3230564,
+        "parses": 164900,
+        "parseInputBytes": 613178,
+        "normalizedCharacters": 613178,
+        "numericComparisons": 82450,
+        "fractionPadEndCalls": 7998
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "in-place-5000",
+      "baseline": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "candidate": {
+        "records": 5000,
+        "recordPayloadBytes": 44447,
+        "sortComparisons": 54095
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "tiny-32",
+      "baseline": {
+        "records": 32,
+        "recordPayloadBytes": 113,
+        "sortComparisons": 118
+      },
+      "candidate": {
+        "records": 32,
+        "recordPayloadBytes": 113,
+        "sortComparisons": 118
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-4",
+      "baseline": {
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1628,
+        "numericComparisons": 1628,
+        "parses": 3256,
+        "parseInputBytes": 7468,
+        "normalizedCharacters": 5829,
+        "fractionPadEndCalls": 362
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1628,
+        "cacheLookups": 3256,
+        "parses": 257,
+        "parseInputBytes": 595,
+        "normalizedCharacters": 466,
+        "admissions": 257,
+        "admittedNormalizedCharacters": 466,
+        "peakEntries": 257,
+        "peakRetainedCharge": 4084,
+        "numericComparisons": 1628,
+        "cacheHits": 2999,
+        "fractionPadEndCalls": 362
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-5",
+      "baseline": {
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1619,
+        "numericComparisons": 1619,
+        "parses": 3238,
+        "parseInputBytes": 7435,
+        "normalizedCharacters": 5794,
+        "fractionPadEndCalls": 360
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1619,
+        "cacheLookups": 3238,
+        "parses": 257,
+        "parseInputBytes": 595,
+        "normalizedCharacters": 466,
+        "admissions": 257,
+        "admittedNormalizedCharacters": 466,
+        "peakEntries": 257,
+        "peakRetainedCharge": 4084,
+        "numericComparisons": 1619,
+        "cacheHits": 2981,
+        "fractionPadEndCalls": 360
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-6",
+      "baseline": {
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1628,
+        "numericComparisons": 1884,
+        "parses": 3768,
+        "parseInputBytes": 8653,
+        "normalizedCharacters": 6757,
+        "fractionPadEndCalls": 674
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 257,
+        "recordPayloadBytes": 595,
+        "sortComparisons": 1628,
+        "cacheLookups": 3768,
+        "parses": 257,
+        "parseInputBytes": 595,
+        "normalizedCharacters": 466,
+        "admissions": 257,
+        "admittedNormalizedCharacters": 466,
+        "peakEntries": 257,
+        "peakRetainedCharge": 4084,
+        "numericComparisons": 1884,
+        "cacheHits": 3511,
+        "fractionPadEndCalls": 674
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-28",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 6
+      },
+      "candidate": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 6
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-29",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 6
+      },
+      "candidate": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 6
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-30",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 8
+      },
+      "candidate": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 8
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-32",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 9,
+        "keyExtractions": 18,
+        "keyInputBytes": 79,
+        "numericComparisons": 9,
+        "parses": 18,
+        "parseInputBytes": 41,
+        "normalizedCharacters": 20,
+        "fractionPadEndCalls": 4
+      },
+      "candidate": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 9,
+        "keyExtractions": 18,
+        "keyInputBytes": 79,
+        "parses": 18,
+        "parseInputBytes": 41,
+        "normalizedCharacters": 20,
+        "numericComparisons": 9,
+        "fractionPadEndCalls": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-33",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 9,
+        "keyExtractions": 26,
+        "keyInputBytes": 114,
+        "numericComparisons": 13,
+        "parses": 26,
+        "parseInputBytes": 59,
+        "normalizedCharacters": 29,
+        "fractionPadEndCalls": 6
+      },
+      "candidate": {
+        "records": 5,
+        "recordPayloadBytes": 22,
+        "sortComparisons": 9,
+        "keyExtractions": 26,
+        "keyInputBytes": 114,
+        "parses": 26,
+        "parseInputBytes": 59,
+        "normalizedCharacters": 29,
+        "numericComparisons": 13,
+        "fractionPadEndCalls": 6
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-native-34",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 5
+      },
+      "candidate": {
+        "records": 4,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-exact-numeric",
+      "baseline": {
+        "records": 9,
+        "recordPayloadBytes": 170,
+        "sortComparisons": 19,
+        "numericComparisons": 19,
+        "parses": 38,
+        "parseInputBytes": 676,
+        "normalizedCharacters": 353,
+        "fractionPadEndCalls": 16
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 9,
+        "recordPayloadBytes": 170,
+        "sortComparisons": 19,
+        "cacheLookups": 38,
+        "parses": 9,
+        "parseInputBytes": 170,
+        "normalizedCharacters": 94,
+        "admissions": 9,
+        "admittedNormalizedCharacters": 94,
+        "peakEntries": 9,
+        "peakRetainedCharge": 1038,
+        "numericComparisons": 19,
+        "cacheHits": 29,
+        "fractionPadEndCalls": 16
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-check-duplicate",
+      "baseline": {
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 4,
+        "fractionPadEndCalls": 4
+      },
+      "candidate": {
+        "parses": 4,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 4,
+        "numericComparisons": 2,
+        "fractionPadEndCalls": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-missing-preserves-output",
+      "baseline": {},
+      "candidate": {
+        "cacheCreated": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-borrowed-10",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 1
+      },
+      "candidate": {
+        "records": 2,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "negative-borrowed-0",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 1
+      },
+      "candidate": {
+        "records": 2,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "precision-integers",
+      "baseline": {
+        "records": 6,
+        "recordPayloadBytes": 139,
+        "sortComparisons": 8,
+        "numericComparisons": 8,
+        "parses": 16,
+        "parseInputBytes": 378,
+        "normalizedCharacters": 342
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 6,
+        "recordPayloadBytes": 139,
+        "sortComparisons": 8,
+        "cacheLookups": 16,
+        "parses": 6,
+        "parseInputBytes": 139,
+        "normalizedCharacters": 125,
+        "admissions": 6,
+        "admittedNormalizedCharacters": 125,
+        "peakEntries": 6,
+        "peakRetainedCharge": 846,
+        "numericComparisons": 8,
+        "cacheHits": 10
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "precision-fractions",
+      "baseline": {
+        "records": 5,
+        "recordPayloadBytes": 426,
+        "sortComparisons": 6,
+        "numericComparisons": 6,
+        "parses": 12,
+        "parseInputBytes": 1024,
+        "normalizedCharacters": 972,
+        "fractionPadEndCalls": 8
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 5,
+        "recordPayloadBytes": 426,
+        "sortComparisons": 6,
+        "cacheLookups": 12,
+        "parses": 5,
+        "parseInputBytes": 426,
+        "normalizedCharacters": 405,
+        "admissions": 5,
+        "admittedNormalizedCharacters": 405,
+        "peakEntries": 5,
+        "peakRetainedCharge": 2566,
+        "numericComparisons": 6,
+        "fractionPadEndCalls": 8,
+        "cacheHits": 7
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "prefix-grammar",
+      "baseline": {
+        "records": 11,
+        "recordPayloadBytes": 115,
+        "sortComparisons": 26,
+        "numericComparisons": 26,
+        "parses": 52,
+        "parseInputBytes": 561,
+        "normalizedCharacters": 64,
+        "fractionPadEndCalls": 26
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 11,
+        "recordPayloadBytes": 115,
+        "sortComparisons": 26,
+        "cacheLookups": 52,
+        "parses": 11,
+        "parseInputBytes": 115,
+        "normalizedCharacters": 14,
+        "admissions": 11,
+        "admittedNormalizedCharacters": 14,
+        "peakEntries": 11,
+        "peakRetainedCharge": 712,
+        "numericComparisons": 26,
+        "cacheHits": 41,
+        "fractionPadEndCalls": 26
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-stable",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "numericComparisons": 3,
+        "parses": 6,
+        "parseInputBytes": 25,
+        "normalizedCharacters": 6,
+        "fractionPadEndCalls": 6
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "cacheLookups": 6,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 3,
+        "fractionPadEndCalls": 6,
+        "cacheHits": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-byte-fallback",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 5,
+        "numericComparisons": 5,
+        "parses": 10,
+        "parseInputBytes": 42,
+        "normalizedCharacters": 10,
+        "fractionPadEndCalls": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 5,
+        "cacheLookups": 10,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 5,
+        "fractionPadEndCalls": 10,
+        "cacheHits": 6
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-reverse-fallback",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 5,
+        "numericComparisons": 5,
+        "parses": 10,
+        "parseInputBytes": 42,
+        "normalizedCharacters": 10,
+        "fractionPadEndCalls": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 5,
+        "cacheLookups": 10,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 5,
+        "fractionPadEndCalls": 10,
+        "cacheHits": 6
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-reverse-stable",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "numericComparisons": 3,
+        "parses": 6,
+        "parseInputBytes": 25,
+        "normalizedCharacters": 6,
+        "fractionPadEndCalls": 6
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "cacheLookups": 6,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 3,
+        "fractionPadEndCalls": 6,
+        "cacheHits": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-unique-first",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "numericComparisons": 6,
+        "parses": 12,
+        "parseInputBytes": 50,
+        "normalizedCharacters": 12,
+        "fractionPadEndCalls": 12
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "cacheLookups": 12,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 6,
+        "fractionPadEndCalls": 12,
+        "cacheHits": 8
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "ties-reverse-unique-first",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "numericComparisons": 6,
+        "parses": 12,
+        "parseInputBytes": 50,
+        "normalizedCharacters": 12,
+        "fractionPadEndCalls": 12
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 17,
+        "sortComparisons": 3,
+        "cacheLookups": 12,
+        "parses": 4,
+        "parseInputBytes": 17,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 110,
+        "numericComparisons": 6,
+        "fractionPadEndCalls": 12,
+        "cacheHits": 8
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "signed-zero-unique",
+      "baseline": {
+        "records": 4,
+        "recordPayloadBytes": 45,
+        "sortComparisons": 3,
+        "numericComparisons": 6,
+        "parses": 12,
+        "parseInputBytes": 134,
+        "normalizedCharacters": 12,
+        "fractionPadEndCalls": 12
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 4,
+        "recordPayloadBytes": 45,
+        "sortComparisons": 3,
+        "cacheLookups": 12,
+        "parses": 4,
+        "parseInputBytes": 45,
+        "normalizedCharacters": 4,
+        "admissions": 4,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 4,
+        "peakRetainedCharge": 278,
+        "numericComparisons": 6,
+        "fractionPadEndCalls": 12,
+        "cacheHits": 8
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-explicit-numeric-key",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 15,
+        "sortComparisons": 4,
+        "keyExtractions": 8,
+        "keyInputBytes": 40,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 8
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 15,
+        "sortComparisons": 4,
+        "keyExtractions": 8,
+        "keyInputBytes": 40,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 8,
+        "numericComparisons": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-multiple-keys",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 9,
+        "sortComparisons": 2,
+        "keyExtractions": 6,
+        "keyInputBytes": 18,
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 4,
+        "normalizedCharacters": 4,
+        "fractionPadEndCalls": 2
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 9,
+        "sortComparisons": 2,
+        "keyExtractions": 6,
+        "keyInputBytes": 18,
+        "parses": 4,
+        "parseInputBytes": 4,
+        "normalizedCharacters": 4,
+        "numericComparisons": 2,
+        "fractionPadEndCalls": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-key-inherits-global",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 7,
+        "sortComparisons": 1,
+        "keyExtractions": 2,
+        "keyInputBytes": 7,
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 3,
+        "normalizedCharacters": 3
+      },
+      "candidate": {
+        "records": 2,
+        "recordPayloadBytes": 7,
+        "sortComparisons": 1,
+        "keyExtractions": 2,
+        "keyInputBytes": 7,
+        "parses": 2,
+        "parseInputBytes": 3,
+        "normalizedCharacters": 3,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-key-character-offsets",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 18,
+        "sortComparisons": 4,
+        "keyExtractions": 8,
+        "keyInputBytes": 48,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 13
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 18,
+        "sortComparisons": 4,
+        "keyExtractions": 8,
+        "keyInputBytes": 48,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 13,
+        "numericComparisons": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-blanks",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 13,
+        "sortComparisons": 2,
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 13,
+        "normalizedCharacters": 4
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 13,
+        "sortComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 13,
+        "normalizedCharacters": 4,
+        "numericComparisons": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-fold",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 9,
+        "sortComparisons": 3,
+        "numericComparisons": 3,
+        "parses": 6,
+        "parseInputBytes": 18,
+        "normalizedCharacters": 6,
+        "fractionPadEndCalls": 2
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 9,
+        "sortComparisons": 3,
+        "parses": 6,
+        "parseInputBytes": 18,
+        "normalizedCharacters": 6,
+        "numericComparisons": 3,
+        "fractionPadEndCalls": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-plain",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 4
+      },
+      "candidate": {
+        "records": 3,
+        "recordPayloadBytes": 4,
+        "sortComparisons": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-check-success",
+      "baseline": {
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 14,
+        "normalizedCharacters": 4,
+        "fractionPadEndCalls": 2
+      },
+      "candidate": {
+        "parses": 4,
+        "parseInputBytes": 14,
+        "normalizedCharacters": 4,
+        "numericComparisons": 2,
+        "fractionPadEndCalls": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-check-disorder",
+      "baseline": {
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 2,
+        "normalizedCharacters": 2
+      },
+      "candidate": {
+        "parses": 2,
+        "parseInputBytes": 2,
+        "normalizedCharacters": 2,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-check-unique",
+      "baseline": {
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 4,
+        "fractionPadEndCalls": 4
+      },
+      "candidate": {
+        "parses": 4,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 4,
+        "numericComparisons": 2,
+        "fractionPadEndCalls": 4
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-input",
+      "baseline": {},
+      "candidate": {
+        "cacheCreated": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-records",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 2,
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 4,
+        "fractionPadEndCalls": 4
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 2,
+        "cacheLookups": 4,
+        "parses": 3,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 3,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 3,
+        "peakEntries": 3,
+        "peakRetainedCharge": 6,
+        "numericComparisons": 2,
+        "fractionPadEndCalls": 4,
+        "cacheHits": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-records-unique",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 2,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 8,
+        "fractionPadEndCalls": 8
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 2,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 3,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 3,
+        "peakEntries": 3,
+        "peakRetainedCharge": 6,
+        "numericComparisons": 4,
+        "fractionPadEndCalls": 8,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "natural-eof",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 2,
+        "sortComparisons": 1,
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 2,
+        "normalizedCharacters": 2
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 2,
+        "sortComparisons": 1,
+        "cacheLookups": 2,
+        "parses": 2,
+        "parseInputBytes": 2,
+        "normalizedCharacters": 2,
+        "admissions": 2,
+        "admittedNormalizedCharacters": 2,
+        "peakEntries": 2,
+        "peakRetainedCharge": 16,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "binary-numeric-fallback",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 6,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 8,
+        "fractionPadEndCalls": 8
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 6,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 3,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 3,
+        "peakEntries": 3,
+        "peakRetainedCharge": 42,
+        "numericComparisons": 4,
+        "fractionPadEndCalls": 8,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "nul-numeric-fallback",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 6,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 16,
+        "normalizedCharacters": 8,
+        "fractionPadEndCalls": 8
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 6,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 6,
+        "normalizedCharacters": 3,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 3,
+        "peakEntries": 3,
+        "peakRetainedCharge": 42,
+        "numericComparisons": 4,
+        "fractionPadEndCalls": 8,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "owned-offset-10-2",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 29,
+        "normalizedCharacters": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 11,
+        "normalizedCharacters": 4,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 3,
+        "peakRetainedCharge": 72,
+        "numericComparisons": 4,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "owned-offset-10-7",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 29,
+        "normalizedCharacters": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 11,
+        "normalizedCharacters": 4,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 3,
+        "peakRetainedCharge": 72,
+        "numericComparisons": 4,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "owned-offset-0-2",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 29,
+        "normalizedCharacters": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 11,
+        "normalizedCharacters": 4,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 3,
+        "peakRetainedCharge": 72,
+        "numericComparisons": 4,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "owned-offset-0-7",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "numericComparisons": 4,
+        "parses": 8,
+        "parseInputBytes": 29,
+        "normalizedCharacters": 10
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 11,
+        "sortComparisons": 4,
+        "cacheLookups": 8,
+        "parses": 3,
+        "parseInputBytes": 11,
+        "normalizedCharacters": 4,
+        "admissions": 3,
+        "admittedNormalizedCharacters": 4,
+        "peakEntries": 3,
+        "peakRetainedCharge": 72,
+        "numericComparisons": 4,
+        "cacheHits": 5
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "missing-later-keeps-inplace",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "source-error-keeps-output",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "cancel-between-chunks-keeps-output",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "guard-key-local-replaces-global-explicit",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 7,
+        "sortComparisons": 1,
+        "keyExtractions": 2,
+        "keyInputBytes": 7
+      },
+      "candidate": {
+        "records": 2,
+        "recordPayloadBytes": 7,
+        "sortComparisons": 1,
+        "keyExtractions": 2,
+        "keyInputBytes": 7
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "entry-below",
+      "baseline": {
+        "records": 16383,
+        "recordPayloadBytes": 169107,
+        "sortComparisons": 16382,
+        "numericComparisons": 16382,
+        "parses": 32764,
+        "parseInputBytes": 338196,
+        "normalizedCharacters": 141612
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16383,
+        "recordPayloadBytes": 169107,
+        "sortComparisons": 16382,
+        "cacheLookups": 32764,
+        "parses": 16383,
+        "parseInputBytes": 169107,
+        "normalizedCharacters": 70809,
+        "admissions": 16383,
+        "admittedNormalizedCharacters": 70809,
+        "peakEntries": 16383,
+        "peakRetainedCharge": 1047408,
+        "numericComparisons": 16382,
+        "cacheHits": 16381
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-entry-below",
+      "baseline": {
+        "records": 16383,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16382,
+        "numericComparisons": 16382,
+        "parses": 32764,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 32764,
+        "fractionPadEndCalls": 32764
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16383,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16382,
+        "cacheLookups": 32764,
+        "parses": 16383,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 16383,
+        "admissions": 16383,
+        "admittedNormalizedCharacters": 16383,
+        "peakEntries": 16383,
+        "peakRetainedCharge": 32766,
+        "numericComparisons": 16382,
+        "fractionPadEndCalls": 32764,
+        "cacheHits": 16381
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "characters-below",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 174761,
+        "sortComparisons": 1,
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 174761,
+        "normalizedCharacters": 174761
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 174761,
+        "sortComparisons": 1,
+        "cacheLookups": 2,
+        "parses": 2,
+        "parseInputBytes": 174761,
+        "normalizedCharacters": 174761,
+        "admissions": 2,
+        "admittedNormalizedCharacters": 174761,
+        "peakEntries": 2,
+        "peakRetainedCharge": 1048570,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "entry-at",
+      "baseline": {
+        "records": 16384,
+        "recordPayloadBytes": 169118,
+        "sortComparisons": 16383,
+        "numericComparisons": 16383,
+        "parses": 32766,
+        "parseInputBytes": 338218,
+        "normalizedCharacters": 141622
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16384,
+        "recordPayloadBytes": 169118,
+        "sortComparisons": 16383,
+        "cacheLookups": 32766,
+        "parses": 16384,
+        "parseInputBytes": 169118,
+        "normalizedCharacters": 70814,
+        "admissions": 16384,
+        "admittedNormalizedCharacters": 70814,
+        "peakEntries": 16384,
+        "peakRetainedCharge": 1047476,
+        "numericComparisons": 16383,
+        "cacheHits": 16382
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-entry-at",
+      "baseline": {
+        "records": 16384,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16383,
+        "numericComparisons": 16383,
+        "parses": 32766,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 32766,
+        "fractionPadEndCalls": 32766
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16384,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16383,
+        "cacheLookups": 32766,
+        "parses": 16384,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 16384,
+        "admissions": 16384,
+        "admittedNormalizedCharacters": 16384,
+        "peakEntries": 16384,
+        "peakRetainedCharge": 32768,
+        "numericComparisons": 16383,
+        "fractionPadEndCalls": 32766,
+        "cacheHits": 16382
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "characters-at",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 174762,
+        "sortComparisons": 1,
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 174762,
+        "normalizedCharacters": 174762
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 174762,
+        "sortComparisons": 1,
+        "cacheLookups": 2,
+        "parses": 2,
+        "parseInputBytes": 174762,
+        "normalizedCharacters": 174762,
+        "admissions": 2,
+        "admittedNormalizedCharacters": 174762,
+        "peakEntries": 2,
+        "peakRetainedCharge": 1048576,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "entry-above",
+      "baseline": {
+        "records": 16385,
+        "recordPayloadBytes": 169129,
+        "sortComparisons": 16384,
+        "numericComparisons": 16384,
+        "parses": 32768,
+        "parseInputBytes": 338240,
+        "normalizedCharacters": 141632
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16385,
+        "recordPayloadBytes": 169129,
+        "sortComparisons": 16384,
+        "cacheLookups": 32768,
+        "parses": 16385,
+        "parseInputBytes": 169129,
+        "normalizedCharacters": 70819,
+        "admissions": 16384,
+        "admittedNormalizedCharacters": 70818,
+        "peakEntries": 16384,
+        "peakRetainedCharge": 1047500,
+        "numericComparisons": 16384,
+        "cacheHits": 16383,
+        "fallbacks": 1,
+        "entryFallbacks": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "empty-entry-above",
+      "baseline": {
+        "records": 16385,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16384,
+        "numericComparisons": 16384,
+        "parses": 32768,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 32768,
+        "fractionPadEndCalls": 32768
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16385,
+        "recordPayloadBytes": 0,
+        "sortComparisons": 16384,
+        "cacheLookups": 32768,
+        "parses": 16385,
+        "parseInputBytes": 0,
+        "normalizedCharacters": 16385,
+        "admissions": 16384,
+        "admittedNormalizedCharacters": 16384,
+        "peakEntries": 16384,
+        "peakRetainedCharge": 32768,
+        "numericComparisons": 16384,
+        "fractionPadEndCalls": 32768,
+        "cacheHits": 16383,
+        "fallbacks": 1,
+        "entryFallbacks": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "characters-above",
+      "baseline": {
+        "records": 2,
+        "recordPayloadBytes": 174763,
+        "sortComparisons": 1,
+        "numericComparisons": 1,
+        "parses": 2,
+        "parseInputBytes": 174763,
+        "normalizedCharacters": 174763
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 2,
+        "recordPayloadBytes": 174763,
+        "sortComparisons": 1,
+        "cacheLookups": 2,
+        "parses": 2,
+        "parseInputBytes": 174763,
+        "normalizedCharacters": 174763,
+        "admissions": 1,
+        "admittedNormalizedCharacters": 87381,
+        "peakEntries": 1,
+        "peakRetainedCharge": 524288,
+        "fallbacks": 1,
+        "characterFallbacks": 1,
+        "numericComparisons": 1
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "huge-short-prefix",
+      "baseline": {
+        "records": 3,
+        "recordPayloadBytes": 349784,
+        "sortComparisons": 2,
+        "numericComparisons": 2,
+        "parses": 4,
+        "parseInputBytes": 699566,
+        "normalizedCharacters": 4
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 3,
+        "recordPayloadBytes": 349784,
+        "sortComparisons": 2,
+        "cacheLookups": 4,
+        "fallbacks": 2,
+        "characterFallbacks": 2,
+        "parses": 4,
+        "parseInputBytes": 699566,
+        "normalizedCharacters": 4,
+        "admissions": 2,
+        "admittedNormalizedCharacters": 2,
+        "peakEntries": 2,
+        "peakRetainedCharge": 16,
+        "numericComparisons": 2
+      },
+      "outputEqual": true
+    },
+    {
+      "id": "mixed-saturation",
+      "baseline": {
+        "records": 16387,
+        "recordPayloadBytes": 139289,
+        "sortComparisons": 16386,
+        "numericComparisons": 16386,
+        "parses": 32772,
+        "parseInputBytes": 278562,
+        "normalizedCharacters": 32772,
+        "fractionPadEndCalls": 32772
+      },
+      "candidate": {
+        "cacheCreated": 1,
+        "records": 16387,
+        "recordPayloadBytes": 139289,
+        "sortComparisons": 16386,
+        "cacheLookups": 32772,
+        "parses": 16389,
+        "parseInputBytes": 139306,
+        "normalizedCharacters": 16389,
+        "admissions": 16384,
+        "admittedNormalizedCharacters": 16384,
+        "peakEntries": 16384,
+        "peakRetainedCharge": 868352,
+        "numericComparisons": 16386,
+        "fractionPadEndCalls": 32772,
+        "cacheHits": 16383,
+        "fallbacks": 5,
+        "entryFallbacks": 5
+      },
+      "outputEqual": true
+    }
+  ],
+  "claims": "Counts are intrusive operation observations, not speed/memory measurements."
+}

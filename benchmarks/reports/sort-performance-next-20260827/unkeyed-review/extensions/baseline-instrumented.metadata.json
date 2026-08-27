@@ -1,0 +1,58 @@
+{
+  "name": "baseline-instrumented",
+  "variant": "baseline",
+  "commit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "pid": 70653,
+  "code": 0,
+  "signal": null,
+  "bytes": 58577,
+  "exactChildClosed": true,
+  "sourceBefore": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+  "instrumentedSource": "f2f2132eb02112f5e85681ebdbce49347b7d72626af956ace79de1383f2e66ad",
+  "finalSource": "f2f2132eb02112f5e85681ebdbce49347b7d72626af956ace79de1383f2e66ad",
+  "edits": [
+    {
+      "name": "parse-call",
+      "before": "const parse = (bytes: Uint8Array) => {",
+      "after": "const parse = (bytes: Uint8Array) => {(globalThis as any).__unkeyedReview?.count(\"parses\", 1);(globalThis as any).__unkeyedReview?.count(\"parseInputBytes\", bytes.length);"
+    },
+    {
+      "name": "normalized-characters",
+      "before": "return { whole, fraction, negative: match[1] === \"-\" && (whole !== \"0\" || fraction !== \"\") };",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"normalizedCharacters\", whole.length + fraction.length);return { whole, fraction, negative: match[1] === \"-\" && (whole !== \"0\" || fraction !== \"\") };"
+    },
+    {
+      "name": "numeric-comparisons",
+      "before": "function numericCompare(left: Uint8Array, right: Uint8Array): number {",
+      "after": "function numericCompare(left: Uint8Array, right: Uint8Array): number {(globalThis as any).__unkeyedReview?.count(\"numericComparisons\", 1);"
+    },
+    {
+      "name": "fraction-padding",
+      "before": "const width = Math.max(first.fraction.length, second.fraction.length);",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"fractionPadEndCalls\", 2);const width = Math.max(first.fraction.length, second.fraction.length);"
+    },
+    {
+      "name": "key-extractions",
+      "before": "const fields: { start: number; end: number }[] = [];",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"keyExtractions\", 1);(globalThis as any).__unkeyedReview?.count(\"keyInputBytes\", line.length);const fields: { start: number; end: number }[] = [];"
+    },
+    {
+      "name": "sort-comparisons",
+      "before": "records.sort(compare);",
+      "after": "records.sort((left, right) => { (globalThis as any).__unkeyedReview?.count(\"sortComparisons\", 1); return compare(left, right); });"
+    },
+    {
+      "name": "collector-records",
+      "before": "await collectSortRecords(input(context, name), delimiter, bytes => {",
+      "after": "await collectSortRecords(input(context, name), delimiter, bytes => {(globalThis as any).__unkeyedReview?.count(\"records\", 1);(globalThis as any).__unkeyedReview?.count(\"recordPayloadBytes\", bytes.length);"
+    }
+  ],
+  "changedModules": [
+    "dist/commands/text.js"
+  ],
+  "inputs": {
+    "acceptance": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504",
+    "expected": "249cdcba45599a5f9278dcf40ed43a3893ffa53ce8dca0705c94507a7d98ee7c"
+  },
+  "stderr": ""
+}

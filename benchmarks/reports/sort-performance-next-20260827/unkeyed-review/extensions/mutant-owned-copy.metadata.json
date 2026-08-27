@@ -1,0 +1,88 @@
+{
+  "name": "mutant-owned-copy",
+  "variant": "candidate",
+  "commit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "pid": 70883,
+  "code": 0,
+  "signal": null,
+  "bytes": 36874,
+  "exactChildClosed": true,
+  "sourceBefore": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+  "instrumentedSource": "f6ca0aab4425c1eacb2aa614f0046e5e4d02e7d7785502dac04436ca285d00ff",
+  "finalSource": "02260b6d91fe54863283bc694c63bf8f56148c84eedc0a8f32d2e0d42c0e2315",
+  "edits": [
+    {
+      "name": "parse-call",
+      "before": "function parseNumeric(bytes: Uint8Array): NumericValue {",
+      "after": "function parseNumeric(bytes: Uint8Array): NumericValue {(globalThis as any).__unkeyedReview?.count(\"parses\", 1);(globalThis as any).__unkeyedReview?.count(\"parseInputBytes\", bytes.length);"
+    },
+    {
+      "name": "normalized-characters",
+      "before": "return { whole, fraction, negative: match[1] === \"-\" && (whole !== \"0\" || fraction !== \"\") };",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"normalizedCharacters\", whole.length + fraction.length);return { whole, fraction, negative: match[1] === \"-\" && (whole !== \"0\" || fraction !== \"\") };"
+    },
+    {
+      "name": "numeric-comparisons",
+      "before": "function compareNumericValues(first: NumericValue, second: NumericValue): number {",
+      "after": "function compareNumericValues(first: NumericValue, second: NumericValue): number {(globalThis as any).__unkeyedReview?.count(\"numericComparisons\", 1);"
+    },
+    {
+      "name": "fraction-padding",
+      "before": "const width = Math.max(first.fraction.length, second.fraction.length);",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"fractionPadEndCalls\", 2);const width = Math.max(first.fraction.length, second.fraction.length);"
+    },
+    {
+      "name": "key-extractions",
+      "before": "const fields: { start: number; end: number }[] = [];",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"keyExtractions\", 1);(globalThis as any).__unkeyedReview?.count(\"keyInputBytes\", line.length);const fields: { start: number; end: number }[] = [];"
+    },
+    {
+      "name": "sort-comparisons",
+      "before": "records.sort(compare);",
+      "after": "records.sort((left, right) => { (globalThis as any).__unkeyedReview?.count(\"sortComparisons\", 1); return compare(left, right); });"
+    },
+    {
+      "name": "collector-records",
+      "before": "await collectSortRecords(input(context, name), delimiter, bytes => {",
+      "after": "await collectSortRecords(input(context, name), delimiter, bytes => {(globalThis as any).__unkeyedReview?.count(\"records\", 1);(globalThis as any).__unkeyedReview?.count(\"recordPayloadBytes\", bytes.length);"
+    },
+    {
+      "name": "cache-construction",
+      "before": "const numericValues = new Map<Uint8Array, NumericValue>();",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"cacheCreated\", 1);const numericValues = new Map<Uint8Array, NumericValue>();"
+    },
+    {
+      "name": "cache-lookup",
+      "before": "const cached = numericValues.get(bytes);",
+      "after": "(globalThis as any).__unkeyedReview?.count(\"cacheLookups\", 1);const cached = numericValues.get(bytes);"
+    },
+    {
+      "name": "cache-hit",
+      "before": "if (cached !== undefined) return cached;",
+      "after": "if (cached !== undefined) { (globalThis as any).__unkeyedReview?.count(\"cacheHits\", 1); return cached; }"
+    },
+    {
+      "name": "fallback",
+      "before": "if (numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes) return parseNumeric(bytes);",
+      "after": "if (numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes) { (globalThis as any).__unkeyedReview?.count(\"fallbacks\", 1); if (numericValues.size >= 16_384) { (globalThis as any).__unkeyedReview?.count(\"entryFallbacks\", 1); } if (charge > 1_048_576 - retainedBytes) { (globalThis as any).__unkeyedReview?.count(\"characterFallbacks\", 1); } return parseNumeric(bytes); }"
+    },
+    {
+      "name": "admission",
+      "before": "retainedBytes += charge;",
+      "after": "retainedBytes += charge; (globalThis as any).__unkeyedReview?.count(\"admissions\", 1);(globalThis as any).__unkeyedReview?.count(\"admittedNormalizedCharacters\", parsedValue.whole.length + parsedValue.fraction.length);(globalThis as any).__unkeyedReview?.peak(\"peakEntries\", numericValues.size);(globalThis as any).__unkeyedReview?.peak(\"peakRetainedCharge\", retainedBytes);"
+    },
+    {
+      "name": "owned-copy",
+      "before": "else accept(new Uint8Array(part));",
+      "after": "else accept(part);"
+    }
+  ],
+  "changedModules": [
+    "dist/commands/text.js"
+  ],
+  "inputs": {
+    "acceptance": "be8fa7d7bf3a10a3473b3b672a96c28eca5e118de2a33a647a2ecd6eb0343a3d",
+    "expected": "c424ed3a93897fa2813085c23416f94be6596a7b26fc0e0f2e84ab46e43a59d2"
+  },
+  "stderr": ""
+}

@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { capHoldouts, capRecipeNames } from './holdouts.mjs';
+
+const directory = fileURLToPath(new URL('.', import.meta.url));
+const candidate = '08a26051438f5c6bdde100a4fe724dbb84f6fca4';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const source = execFileSync('git', ['show', `${candidate}:src/commands/text.ts`], { maxBuffer: 1048576, timeout: 30000 });
+const route = readFileSync('/tmp/sort-unkeyed-review-coordination.txt');
+assert.ok(route.toString().includes(candidate));
+assert.ok(source.toString().includes('const charge = 6 * bytes.length + 2;'));
+assert.ok(source.toString().includes('numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes'));
+const entryCap = 16384;
+const retainedByteCap = 1048576;
+const characterCap = (retainedByteCap - 2 * 2) / 6;
+assert.equal(characterCap, 174762);
+const specimens = capHoldouts({ entryCap, characterCap });
+assert.deepEqual(specimens.map(row => row.id).sort(), [...capRecipeNames].sort());
+const bytes = JSON.stringify({ specimens }, null, 2) + '\n';
+writeFileSync(directory + 'caps-expected.json', bytes, { flag: 'wx' });
+writeFileSync(directory + 'candidate-route.txt', route, { flag: 'wx' });
+writeFileSync(directory + 'caps-binding.json', JSON.stringify({ candidate, sourceSha256: hash(source), constructionSha256: hash(readFileSync(directory + 'holdouts.mjs')), expectedSha256: hash(bytes), entryCap, retainedByteCap, chargeRule: '6 * owned-record payload bytes + 2 per admitted descriptor', genericCharacterParameter: characterCap, parameterization: 'The frozen two-record character recipe has combined normalized whole length L, no fractions. Its conservative retained charge is 6*L+4. Bind L=(1048576-4)/6=174762 without changing construction or expected assertions. Below/at/above charges are 1048570/1048576/1048582. This accounts potential full Latin1 backing, rather than charging only short normalized prefixes. Generic count recipes may meet character saturation before entry saturation; empty records isolate entry cap.', cases: specimens.map(row => ({ id: row.id, stdinBytes: Buffer.from(row.stdin, 'base64').length, stdoutBytes: Buffer.from(row.expected.stdout, 'base64').length, ...row.capExpectation })), originalExpectationChanges: 0, caseCount: 11, executedAtBinding: false }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ entryCap, retainedByteCap, genericCharacterParameter: characterCap, count: 11, expectedSha256: hash(bytes) }));

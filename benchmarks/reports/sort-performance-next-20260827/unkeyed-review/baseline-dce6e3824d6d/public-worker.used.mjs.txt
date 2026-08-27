@@ -43,13 +43,8 @@ const independent = JSON.parse(readFileSync(expectedPath)).specimens;
 const env = { LC_ALL: 'C', HOME: '/home/agent', PATH: '/bin:/usr/bin', TMPDIR: '/tmp' };
 const rows = [];
 let shellsDisposed = 0;
-for (const [cohort, cases] of [['acceptance21', acceptance], [`independent${independent.length}`, independent]]) {
+for (const [cohort, cases] of [['acceptance21', acceptance], ['independent33', independent]]) {
   for (const specimen of cases) {
-    const counts = {};
-    globalThis.__unkeyedReview = process.env.SORT_REVIEW_PROFILE === '1' ? {
-      count(name, amount = 1) { counts[name] = (counts[name] ?? 0) + amount; },
-      peak(name, value) { counts[name] = Math.max(counts[name] ?? 0, value); },
-    } : undefined;
     const fs = library.createMemoryFileSystem();
     await fs.mkdir('/work', { recursive: true });
     await fs.mkdir('/tmp', { recursive: true });
@@ -101,8 +96,7 @@ for (const [cohort, cases] of [['acceptance21', acceptance], [`independent${inde
       if (specimen.borrowed || specimen.borrowedWidth || specimen.streamEffect) assert.equal(producerClosed, 1);
       assert.equal(getEventListeners(controller.signal, 'abort').length, 0);
     } catch (error) { failure = error.message; }
-    rows.push({ id: specimen.id, cohort, passed: failure === undefined, observationHash: hash(JSON.stringify(observation)), stdoutBytes: result?.stdoutBytes.length ?? 0, status: result?.exitCode, producerClosed, producerPulls, ...(process.env.SORT_REVIEW_PROFILE === '1' ? { counts } : {}), ...(failure ? { failure, observation, expected: specimen.expected, rejection: String(rejection) } : {}) });
-    globalThis.__unkeyedReview = undefined;
+    rows.push({ id: specimen.id, cohort, passed: failure === undefined, observationHash: hash(JSON.stringify(observation)), stdoutBytes: result?.stdoutBytes.length ?? 0, status: result?.exitCode, producerClosed, producerPulls, ...(failure ? { failure, observation, expected: specimen.expected, rejection: String(rejection) } : {}) });
   }
 }
 verifyPackage();

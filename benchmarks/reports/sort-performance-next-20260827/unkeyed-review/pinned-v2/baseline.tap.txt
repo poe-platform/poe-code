@@ -1,0 +1,514 @@
+TAP version 13
+# Subtest: sort GNU9.7 byte equality: seed7/plain
+ok 1 - sort GNU9.7 byte equality: seed7/plain
+  ---
+  duration_ms: 10.834334
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-r
+ok 2 - sort GNU9.7 byte equality: seed7/-r
+  ---
+  duration_ms: 6.482792
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-u
+ok 3 - sort GNU9.7 byte equality: seed7/-u
+  ---
+  duration_ms: 10.450542
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-s
+ok 4 - sort GNU9.7 byte equality: seed7/-s
+  ---
+  duration_ms: 7.784625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-n
+ok 5 - sort GNU9.7 byte equality: seed7/-n
+  ---
+  duration_ms: 16.968833
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nr
+ok 6 - sort GNU9.7 byte equality: seed7/-nr
+  ---
+  duration_ms: 6.293625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nu
+ok 7 - sort GNU9.7 byte equality: seed7/-nu
+  ---
+  duration_ms: 8.806083
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/plain
+ok 8 - sort GNU9.7 byte equality: seed23/plain
+  ---
+  duration_ms: 4.518125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-r
+ok 9 - sort GNU9.7 byte equality: seed23/-r
+  ---
+  duration_ms: 7.569209
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-u
+ok 10 - sort GNU9.7 byte equality: seed23/-u
+  ---
+  duration_ms: 2.646334
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-s
+ok 11 - sort GNU9.7 byte equality: seed23/-s
+  ---
+  duration_ms: 5.87575
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-n
+ok 12 - sort GNU9.7 byte equality: seed23/-n
+  ---
+  duration_ms: 5.077584
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nr
+ok 13 - sort GNU9.7 byte equality: seed23/-nr
+  ---
+  duration_ms: 6.006375
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nu
+ok 14 - sort GNU9.7 byte equality: seed23/-nu
+  ---
+  duration_ms: 4.57625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/plain
+ok 15 - sort GNU9.7 byte equality: seed71/plain
+  ---
+  duration_ms: 2.487584
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-r
+ok 16 - sort GNU9.7 byte equality: seed71/-r
+  ---
+  duration_ms: 5.48275
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-u
+ok 17 - sort GNU9.7 byte equality: seed71/-u
+  ---
+  duration_ms: 2.386792
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-s
+ok 18 - sort GNU9.7 byte equality: seed71/-s
+  ---
+  duration_ms: 9.700375
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-n
+ok 19 - sort GNU9.7 byte equality: seed71/-n
+  ---
+  duration_ms: 4.166208
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nr
+ok 20 - sort GNU9.7 byte equality: seed71/-nr
+  ---
+  duration_ms: 8.811542
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nu
+ok 21 - sort GNU9.7 byte equality: seed71/-nu
+  ---
+  duration_ms: 3.532125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/plain
+ok 22 - sort GNU9.7 byte equality: seed997/plain
+  ---
+  duration_ms: 2.563625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-r
+ok 23 - sort GNU9.7 byte equality: seed997/-r
+  ---
+  duration_ms: 6.78425
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-u
+ok 24 - sort GNU9.7 byte equality: seed997/-u
+  ---
+  duration_ms: 2.150625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-s
+ok 25 - sort GNU9.7 byte equality: seed997/-s
+  ---
+  duration_ms: 2.687042
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-n
+ok 26 - sort GNU9.7 byte equality: seed997/-n
+  ---
+  duration_ms: 10.27525
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nr
+ok 27 - sort GNU9.7 byte equality: seed997/-nr
+  ---
+  duration_ms: 3.388333
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nu
+ok 28 - sort GNU9.7 byte equality: seed997/-nu
+  ---
+  duration_ms: 6.635958
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -f
+ok 29 - sort GNU9.7 byte equality: -f
+  ---
+  duration_ms: 0.2695
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -fu
+ok 30 - sort GNU9.7 byte equality: -fu
+  ---
+  duration_ms: 0.144792
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -b
+ok 31 - sort GNU9.7 byte equality: -b
+  ---
+  duration_ms: 0.153583
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -br
+ok 32 - sort GNU9.7 byte equality: -br
+  ---
+  duration_ms: 0.126875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -s -k2,2n
+ok 33 - sort GNU9.7 byte equality: -s -k2,2n
+  ---
+  duration_ms: 0.443417
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -u -k2,2n
+ok 34 - sort GNU9.7 byte equality: -u -k2,2n
+  ---
+  duration_ms: 0.167125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: nul-binary
+ok 35 - sort GNU9.7 byte equality: nul-binary
+  ---
+  duration_ms: 0.1155
+  type: 'test'
+  ...
+# Subtest: sort batches completed output without mutating chunks or exceeding 64KiB
+ok 36 - sort batches completed output without mutating chunks or exceeding 64KiB
+  ---
+  duration_ms: 5.9505
+  type: 'test'
+  ...
+# Subtest: sort awaits backpressure and aborts a blocked output without later writes
+ok 37 - sort awaits backpressure and aborts a blocked output without later writes
+  ---
+  duration_ms: 6.244292
+  type: 'test'
+  ...
+# Subtest: sort -o reads before replacement and preserves binary output
+ok 38 - sort -o reads before replacement and preserves binary output
+  ---
+  duration_ms: 0.9035
+  type: 'test'
+  ...
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+ok 39 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+  ---
+  duration_ms: 2.901208
+  type: 'test'
+  ...
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+ok 40 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+  ---
+  duration_ms: 0.863125
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 41 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 0.15325
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 42 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.056792
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 43 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.359083
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 44 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.277958
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 45 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.096708
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 46 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 10.52525
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 47 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.191625
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 48 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 3.045334
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 49 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.23575
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 50 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.200792
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 51 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.159541
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 52 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.066334
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 53 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.107833
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 54 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.05725
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=1
+ok 55 - hidden borrowed byteOffset source Buffer=false width=1 # SKIP
+  ---
+  duration_ms: 0.011875
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=2
+ok 56 - hidden borrowed byteOffset source Buffer=false width=2 # SKIP
+  ---
+  duration_ms: 0.010041
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=5
+ok 57 - hidden borrowed byteOffset source Buffer=false width=5 # SKIP
+  ---
+  duration_ms: 0.009834
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=17
+ok 58 - hidden borrowed byteOffset source Buffer=false width=17 # SKIP
+  ---
+  duration_ms: 0.009417
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=1
+ok 59 - hidden borrowed byteOffset source Buffer=true width=1 # SKIP
+  ---
+  duration_ms: 0.009458
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=2
+ok 60 - hidden borrowed byteOffset source Buffer=true width=2 # SKIP
+  ---
+  duration_ms: 0.008875
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=5
+ok 61 - hidden borrowed byteOffset source Buffer=true width=5 # SKIP
+  ---
+  duration_ms: 0.008708
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=17
+ok 62 - hidden borrowed byteOffset source Buffer=true width=17 # SKIP
+  ---
+  duration_ms: 0.0085
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer 
+ok 63 - hidden public named VFS borrowed Buffer  # SKIP
+  ---
+  duration_ms: 0.008833
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -z
+ok 64 - hidden public named VFS borrowed Buffer -z # SKIP
+  ---
+  duration_ms: 0.00975
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -n,-s
+ok 65 - hidden public named VFS borrowed Buffer -n,-s # SKIP
+  ---
+  duration_ms: 0.008458
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -u
+ok 66 - hidden public named VFS borrowed Buffer -u # SKIP
+  ---
+  duration_ms: 0.01075
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -o,/work/output
+ok 67 - hidden public named VFS borrowed Buffer -o,/work/output # SKIP
+  ---
+  duration_ms: 0.00875
+  type: 'test'
+  ...
+# Subtest: hidden public stdin ownership is already protected by ShellInput
+ok 68 - hidden public stdin ownership is already protected by ShellInput
+  ---
+  duration_ms: 2.118583
+  type: 'test'
+  ...
+# Subtest: hidden check mode borrowed spanning Buffer remains separately measured
+ok 69 - hidden check mode borrowed spanning Buffer remains separately measured # SKIP
+  ---
+  duration_ms: 0.017125
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] ff0a000ac0800a800aff
+ok 70 - hidden native byte/numeric/empty [] ff0a000ac0800a800aff # SKIP
+  ---
+  duration_ms: 0.010166
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-zru"] e99baa00f09f988000ee80800
+ok 71 - hidden native byte/numeric/empty ["-zru"] e99baa00f09f988000ee80800 # SKIP
+  ---
+  duration_ms: 0.009834
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-ns"] 2d303030302066697273740a3
+ok 72 - hidden native byte/numeric/empty ["-ns"] 2d303030302066697273740a3 # SKIP
+  ---
+  duration_ms: 0.00925
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-t:","-k2,2nr","-k1,1"] 7a3a320a613a320a783a31300
+ok 73 - hidden native byte/numeric/empty ["-t:","-k2,2nr","-k1,1"] 7a3a320a613a320a783a31300 # SKIP
+  ---
+  duration_ms: 0.009333
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-bf","-s"] 2020610a20410a09420a20620
+ok 74 - hidden native byte/numeric/empty ["-bf","-s"] 2020610a20410a09420a20620 # SKIP
+  ---
+  duration_ms: 0.009333
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] 
+ok 75 - hidden native byte/numeric/empty []  # SKIP
+  ---
+  duration_ms: 0.009166
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] 0a0a
+ok 76 - hidden native byte/numeric/empty [] 0a0a # SKIP
+  ---
+  duration_ms: 0.008375
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-z"] 000000
+ok 77 - hidden native byte/numeric/empty ["-z"] 000000 # SKIP
+  ---
+  duration_ms: 0.008833
+  type: 'test'
+  ...
+# Subtest: hidden exact total-byte limit boundary excess=0
+ok 78 - hidden exact total-byte limit boundary excess=0
+  ---
+  duration_ms: 140.382208
+  type: 'test'
+  ...
+# Subtest: hidden exact total-byte limit boundary excess=1
+ok 79 - hidden exact total-byte limit boundary excess=1
+  ---
+  duration_ms: 62.199292
+  type: 'test'
+  ...
+# Subtest: hidden source error after retained records preserves output file
+ok 80 - hidden source error after retained records preserves output file
+  ---
+  duration_ms: 0.320625
+  type: 'test'
+  ...
+# Subtest: hidden missing later file never publishes retained earlier records
+ok 81 - hidden missing later file never publishes retained earlier records
+  ---
+  duration_ms: 0.190375
+  type: 'test'
+  ...
+# Subtest: hidden pending input cancellation keeps reason and observes late rejection
+ok 82 - hidden pending input cancellation keeps reason and observes late rejection
+  ---
+  duration_ms: 2.838791
+  type: 'test'
+  ...
+# Subtest: hidden empty-chunk cancellation stops further pulls before publication
+ok 83 - hidden empty-chunk cancellation stops further pulls before publication
+  ---
+  duration_ms: 0.169791
+  type: 'test'
+  ...
+# Subtest: hidden output is owned and backpressured after all input admission
+ok 84 - hidden output is owned and backpressured after all input admission # SKIP
+  ---
+  duration_ms: 0.013
+  type: 'test'
+  ...
+1..84
+# tests 84
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 23
+# todo 0
+# duration_ms 547.324375

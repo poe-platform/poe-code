@@ -1,0 +1,17 @@
+{
+  "id": "03-namespace-spread",
+  "pid": 1282,
+  "started": 1787857136640,
+  "deadline": 1787857146640,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787857137701,
+  "parentAfter": {
+    "pid": 99102,
+    "at": "2026-08-27T18:58:57.701Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

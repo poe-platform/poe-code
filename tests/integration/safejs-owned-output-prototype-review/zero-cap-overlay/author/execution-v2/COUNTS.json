@@ -1,0 +1,77 @@
+{
+  "at": "2026-08-27T19:05:30.726460+00:00",
+  "role": "AUTHOR_RESULT_NOT_INDEPENDENT_ACCEPTANCE",
+  "scheduled": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "cohorts": {
+    "surface": {
+      "status": "PASS",
+      "counts": {
+        "total": 8,
+        "launched": 8,
+        "engineRuns": 8,
+        "pass": 8,
+        "failed": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "unproved": 0
+      },
+      "inputOrFixtureBindingBlocker": false
+    },
+    "lifecycle": {
+      "status": "PASS",
+      "counts": {
+        "total": 11,
+        "launched": 11,
+        "engineRuns": 11,
+        "pass": 11,
+        "failed": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "unproved": 0
+      },
+      "inputOrFixtureBindingBlocker": false
+    },
+    "controls": {
+      "status": "PASS",
+      "counts": {
+        "total": 6,
+        "launched": 6,
+        "engineRuns": 6,
+        "pass": 6,
+        "failed": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "unproved": 0
+      },
+      "inputOrFixtureBindingBlocker": false
+    }
+  },
+  "observed": {
+    "total": 25,
+    "launched": 25,
+    "engineRuns": 25,
+    "pass": 25,
+    "failed": 0,
+    "blocked": 0,
+    "invalid": 0,
+    "unproved": 0
+  },
+  "wrapperInvocations": 1,
+  "nodeParentControllers": 3,
+  "newActualAttempts": 1,
+  "automaticReruns": 0,
+  "stopReason": null,
+  "wrapperExitCode": 0,
+  "priorRefusal": {
+    "commit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+    "nodeExecutions": 0,
+    "guestExecutions": 0,
+    "blocked": 25,
+    "unchanged": true
+  },
+  "noPromotion": true
+}

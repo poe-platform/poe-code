@@ -1,0 +1,4 @@
+{"cohort": "surface", "launched": true, "assessment": {"status": "PASS", "counts": {"total": 8, "launched": 8, "engineRuns": 8, "pass": 8, "failed": 0, "blocked": 0, "invalid": 0, "unproved": 0}, "inputOrFixtureBindingBlocker": false}, "blocked": null, "privateUnchanged": true}
+{"cohort": "lifecycle", "launched": true, "assessment": {"status": "PASS", "counts": {"total": 11, "launched": 11, "engineRuns": 11, "pass": 11, "failed": 0, "blocked": 0, "invalid": 0, "unproved": 0}, "inputOrFixtureBindingBlocker": false}, "blocked": null, "privateUnchanged": true}
+{"cohort": "controls", "launched": true, "assessment": {"status": "PASS", "counts": {"total": 6, "launched": 6, "engineRuns": 6, "pass": 6, "failed": 0, "blocked": 0, "invalid": 0, "unproved": 0}, "inputOrFixtureBindingBlocker": false}, "blocked": null, "privateUnchanged": true}
+{"attemptRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-attempt-01", "stopReason": null, "cohorts": 3}

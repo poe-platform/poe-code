@@ -1,0 +1,210 @@
+{
+  "rows": [
+    {
+      "cohort": "surface",
+      "id": "01-supported-facades",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "02-direct-surface",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "03-namespace-spread",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "04-shell-module",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "05-missing-register-cleanup",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "06-missing-acquire",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "07-reflection-profile",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "surface",
+      "id": "08-function-spread-profile",
+      "entries": 223,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L01-aliases",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-positive",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-exhausted",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-live",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-after-lifetime",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L04-explicit-children",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-caller-error",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-execution-error",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-cleanup-error",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-open",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-consumer-closed",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-open",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-closed",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-open",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-closed",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-open",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-closed",
+      "entries": 224,
+      "engineFiles": 63,
+      "productFiles": 158,
+      "failures": []
+    }
+  ],
+  "totalProfiles": 25,
+  "totalImportRecords": 5592,
+  "importFailures": 0,
+  "inputInventories": "Exact original88/runtime38 plus source213/compiled708/full940/package709 and authenticated copied engine264/tools.",
+  "runtimeProfile": "Actual private source-hook imports from authenticated regular copies; not private barrel/CLI or installed private package.",
+  "noPromotion": true
+}

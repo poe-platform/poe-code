@@ -1,0 +1,7 @@
+{"id":"Z01-open","variantId":"Z01-open","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"Z01-closed","variantId":"Z01-closed","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"Z02-open","variantId":"Z02-open","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"Z02-closed","variantId":"Z02-closed","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"Z03-open","variantId":"Z03-open","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"Z03-closed","variantId":"Z03-closed","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"status":"PASS","counts":{"total":6,"logicalWorkflows":1,"executed":6,"valid":6,"pass":6,"failed":0,"invalid":0,"unproved":0,"blocked":0},"privateUnchanged":true,"sharedUnchanged":true,"cleanup":{"knownCaseChildrenClosed":true,"temporary":"/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta","removed":true,"sharedCopiesRemoved":false,"appendGuard":"Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."}}

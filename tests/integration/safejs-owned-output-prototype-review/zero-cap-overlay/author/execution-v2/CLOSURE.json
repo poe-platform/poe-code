@@ -1,0 +1,775 @@
+{
+  "at": "2026-08-27T19:05:33.922749+00:00",
+  "role": "AUTHOR_CAPTURED_CLOSURE_NOT_PRIVATE_REQUERY",
+  "cohorts": [
+    {
+      "cohort": "surface",
+      "outerPrivateBeforeAfterExact": true,
+      "outerHistoricalProfileExact": true,
+      "outerPrivateBefore": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "outerPrivateAfter": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "privateIndex": {
+        "bytes": 431585,
+        "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "mode": 420,
+        "mtimeNs": 1787794730073637800,
+        "ctimeNs": 1787794730073782677
+      },
+      "privateStaging": "",
+      "expectedFullStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+      "metadataFiles": 6,
+      "engineFiles": 264,
+      "engineShapeEntries": 284,
+      "outerQueryQualification": {
+        "optionalLocks": "0",
+        "fsmonitor": "disabled per command",
+        "excludedNamesAtEveryDepth": [
+          ".git",
+          "node_modules",
+          "dist",
+          ".cache",
+          ".turbo"
+        ],
+        "newEligibleFilesAndDirectoriesDetected": true,
+        "atimeChecked": false,
+        "atomicInterveningStateChecked": false
+      },
+      "parentBeforeAfterExactExceptSurfaceObservationTimestamp": true,
+      "parentHistoricalFieldsExact": true,
+      "parentBefore": {
+        "bytes": 69741,
+        "sha256": "b95b97cb988967991a6a8bf05be617766c0b298f5ece3b984bc54d0f1981c480"
+      },
+      "parentAfter": {
+        "bytes": 69741,
+        "sha256": "728ecbad7dfd56b2859e9d02a6c25617ec9efda2d5e10dbb64ba32cf9fa97c1b"
+      },
+      "outerSharedUnchanged": true,
+      "outerInputsUnchanged": true,
+      "parentDriverExitCode": 0,
+      "parentControllerReaped": true,
+      "containment": null,
+      "parentChildren": [
+        {
+          "id": "01-supported-facades",
+          "pid": 779,
+          "started": 1787857134651,
+          "deadline": 1787857144651,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857135558,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:58:55.558Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "02-direct-surface",
+          "pid": 916,
+          "started": 1787857135561,
+          "deadline": 1787857145561,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857136636,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:58:56.636Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "03-namespace-spread",
+          "pid": 1282,
+          "started": 1787857136640,
+          "deadline": 1787857146640,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857137701,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:58:57.701Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "04-shell-module",
+          "pid": 1578,
+          "started": 1787857137703,
+          "deadline": 1787857147703,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857138604,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:58:58.604Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "05-missing-register-cleanup",
+          "pid": 1619,
+          "started": 1787857138606,
+          "deadline": 1787857148606,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857139475,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:58:59.475Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "06-missing-acquire",
+          "pid": 1663,
+          "started": 1787857139477,
+          "deadline": 1787857149477,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857140315,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:59:00.315Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "07-reflection-profile",
+          "pid": 1694,
+          "started": 1787857140316,
+          "deadline": 1787857150316,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857141207,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:59:01.207Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        },
+        {
+          "id": "08-function-spread-profile",
+          "pid": 1742,
+          "started": 1787857141210,
+          "deadline": 1787857151210,
+          "timedOut": false,
+          "outputExceeded": false,
+          "code": 0,
+          "signal": null,
+          "closed": 1787857142066,
+          "parentAfter": {
+            "pid": 99102,
+            "at": "2026-08-27T18:59:02.066Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        }
+      ],
+      "parentClosure": {
+        "pid": 99102,
+        "at": "2026-08-27T18:59:09.865Z",
+        "alive": true,
+        "knownLiveChildren": []
+      },
+      "parentFailures": [],
+      "parentAfterGuardFailure": null,
+      "parentPrivateAfterFailure": null
+    },
+    {
+      "cohort": "lifecycle",
+      "outerPrivateBeforeAfterExact": true,
+      "outerHistoricalProfileExact": true,
+      "outerPrivateBefore": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "outerPrivateAfter": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "privateIndex": {
+        "bytes": 431585,
+        "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "mode": 420,
+        "mtimeNs": 1787794730073637800,
+        "ctimeNs": 1787794730073782677
+      },
+      "privateStaging": "",
+      "expectedFullStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+      "metadataFiles": 6,
+      "engineFiles": 264,
+      "engineShapeEntries": 284,
+      "outerQueryQualification": {
+        "optionalLocks": "0",
+        "fsmonitor": "disabled per command",
+        "excludedNamesAtEveryDepth": [
+          ".git",
+          "node_modules",
+          "dist",
+          ".cache",
+          ".turbo"
+        ],
+        "newEligibleFilesAndDirectoriesDetected": true,
+        "atimeChecked": false,
+        "atomicInterveningStateChecked": false
+      },
+      "parentBeforeAfterExactExceptSurfaceObservationTimestamp": true,
+      "parentHistoricalFieldsExact": true,
+      "parentBefore": {
+        "bytes": 69396,
+        "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+      },
+      "parentAfter": {
+        "bytes": 69396,
+        "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+      },
+      "outerSharedUnchanged": true,
+      "outerInputsUnchanged": true,
+      "parentDriverExitCode": 0,
+      "parentControllerReaped": true,
+      "containment": null,
+      "parentChildren": [
+        {
+          "id": "L01-aliases",
+          "variantId": "L01-aliases",
+          "pid": 3397,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:34.911Z",
+          "closed": "2026-08-27T18:59:35.831Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 350
+        },
+        {
+          "id": "L02-budget-positive",
+          "variantId": "L02-budget-positive",
+          "pid": 3469,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:36.212Z",
+          "closed": "2026-08-27T18:59:37.800Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 404
+        },
+        {
+          "id": "L02-budget-exhausted",
+          "variantId": "L02-budget-exhausted",
+          "pid": 3542,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:38.691Z",
+          "closed": "2026-08-27T18:59:40.516Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 406
+        },
+        {
+          "id": "L03-callback-live",
+          "variantId": "L03-callback-live",
+          "pid": 3615,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:41.187Z",
+          "closed": "2026-08-27T18:59:42.968Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 415
+        },
+        {
+          "id": "L03-callback-after-lifetime",
+          "variantId": "L03-callback-after-lifetime",
+          "pid": 3694,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:43.785Z",
+          "closed": "2026-08-27T18:59:45.591Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 435
+        },
+        {
+          "id": "L04-explicit-children",
+          "variantId": "L04-explicit-children",
+          "pid": 3772,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:46.128Z",
+          "closed": "2026-08-27T18:59:46.956Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 426
+        },
+        {
+          "id": "L05-caller-error",
+          "variantId": "L05-caller-error",
+          "pid": 3829,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:47.328Z",
+          "closed": "2026-08-27T18:59:48.164Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 415
+        },
+        {
+          "id": "L05-execution-error",
+          "variantId": "L05-S1-selected-after-command",
+          "pid": 3882,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:48.504Z",
+          "closed": "2026-08-27T18:59:49.370Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 508
+        },
+        {
+          "id": "L05-cleanup-error",
+          "variantId": "L05-cleanup-error",
+          "pid": 3943,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:49.722Z",
+          "closed": "2026-08-27T18:59:50.553Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 417
+        },
+        {
+          "id": "L06-curl-open",
+          "variantId": "L06-Z0-curl-open",
+          "pid": 4006,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:50.918Z",
+          "closed": "2026-08-27T18:59:51.749Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 498
+        },
+        {
+          "id": "L06-curl-consumer-closed",
+          "variantId": "L06-Z0-curl-consumer-closed",
+          "pid": 4063,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA/consumer",
+          "started": "2026-08-27T18:59:52.100Z",
+          "closed": "2026-08-27T18:59:52.913Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 520
+        }
+      ],
+      "parentClosure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      },
+      "parentFailures": [],
+      "parentAfterGuardFailure": null,
+      "parentPrivateAfterFailure": null
+    },
+    {
+      "cohort": "controls",
+      "outerPrivateBeforeAfterExact": true,
+      "outerHistoricalProfileExact": true,
+      "outerPrivateBefore": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "outerPrivateAfter": {
+        "bytes": 92852,
+        "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+      },
+      "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "privateIndex": {
+        "bytes": 431585,
+        "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "mode": 420,
+        "mtimeNs": 1787794730073637800,
+        "ctimeNs": 1787794730073782677
+      },
+      "privateStaging": "",
+      "expectedFullStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+      "metadataFiles": 6,
+      "engineFiles": 264,
+      "engineShapeEntries": 284,
+      "outerQueryQualification": {
+        "optionalLocks": "0",
+        "fsmonitor": "disabled per command",
+        "excludedNamesAtEveryDepth": [
+          ".git",
+          "node_modules",
+          "dist",
+          ".cache",
+          ".turbo"
+        ],
+        "newEligibleFilesAndDirectoriesDetected": true,
+        "atimeChecked": false,
+        "atomicInterveningStateChecked": false
+      },
+      "parentBeforeAfterExactExceptSurfaceObservationTimestamp": true,
+      "parentHistoricalFieldsExact": true,
+      "parentBefore": {
+        "bytes": 69396,
+        "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+      },
+      "parentAfter": {
+        "bytes": 69396,
+        "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+      },
+      "outerSharedUnchanged": true,
+      "outerInputsUnchanged": true,
+      "parentDriverExitCode": 0,
+      "parentControllerReaped": true,
+      "containment": null,
+      "parentChildren": [
+        {
+          "id": "Z01-open",
+          "variantId": "Z01-open",
+          "pid": 6501,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:28.809Z",
+          "closed": "2026-08-27T19:00:29.610Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 697
+        },
+        {
+          "id": "Z01-closed",
+          "variantId": "Z01-closed",
+          "pid": 6561,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:29.986Z",
+          "closed": "2026-08-27T19:00:30.814Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 701
+        },
+        {
+          "id": "Z02-open",
+          "variantId": "Z02-open",
+          "pid": 6615,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:31.237Z",
+          "closed": "2026-08-27T19:00:32.178Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 697
+        },
+        {
+          "id": "Z02-closed",
+          "variantId": "Z02-closed",
+          "pid": 6663,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:32.527Z",
+          "closed": "2026-08-27T19:00:33.394Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 701
+        },
+        {
+          "id": "Z03-open",
+          "variantId": "Z03-open",
+          "pid": 6739,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:33.755Z",
+          "closed": "2026-08-27T19:00:34.508Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 697
+        },
+        {
+          "id": "Z03-closed",
+          "variantId": "Z03-closed",
+          "pid": 6783,
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--max-old-space-size=256",
+            "--unhandled-rejections=strict",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/guard.mjs",
+            "--import",
+            "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/loader.mjs",
+            "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer/harness/child.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta/consumer",
+          "started": "2026-08-27T19:00:34.818Z",
+          "closed": "2026-08-27T19:00:35.578Z",
+          "code": 0,
+          "signal": null,
+          "containment": null,
+          "outputBytes": 701
+        }
+      ],
+      "parentClosure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      },
+      "parentFailures": [],
+      "parentAfterGuardFailure": null,
+      "parentPrivateAfterFailure": null
+    }
+  ],
+  "outerFreshPrivatePairs": 3,
+  "parentFreshPrivatePairs": 3,
+  "privateQueriesDuringCapture": 0,
+  "postCaptureImmutableInputsMatchFreeze": true,
+  "postCaptureSharedInputsMatchFreeze": true,
+  "bindingFreezeAndRootDescriptorUnchanged": true,
+  "parentControllers": [
+    {
+      "cohort": "surface",
+      "pid": 99102,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 8,
+      "closure": {
+        "pid": 99102,
+        "at": "2026-08-27T18:59:09.865Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "cohort": "lifecycle",
+      "pid": 2166,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 11,
+      "closure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      }
+    },
+    {
+      "cohort": "controls",
+      "pid": 5476,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 6,
+      "closure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      }
+    }
+  ],
+  "allParentControllersReaped": true,
+  "queryDiscipline": "All three outer before/after snapshots use GIT_OPTIONAL_LOCKS=0 and per-command core.fsmonitor=false. Parent guard functions remain exactly reviewed; no fresh capture-time private query.",
+  "scopeLimit": "Full recorded before/after status/index/metadata/eligible engine files and directory shape; no atime, excluded-subtree append proof or atomic/intervening-state claim.",
+  "noPromotion": true
+}

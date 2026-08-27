@@ -1,0 +1,22 @@
+{
+  "authorWrapperPreparationFailures": [],
+  "launcherFailure": null,
+  "wrapperExitCode": 0,
+  "wrapperStderrBytes": 0,
+  "runtimeContainments": [
+    null,
+    null,
+    null
+  ],
+  "runtimeGuardFailures": [],
+  "postRunInspectionOnly": [
+    {
+      "error": "KeyError: 'network'",
+      "context": "A host-only summary query assumed every lifecycle critical object was a curl network object; non-curl critical objects have different keys.",
+      "action": "Narrowed the data-summary selection to objects with a network field. No runtime/source/fixture/scorer/assertion changed; no replay.",
+      "rawTranscript": "postprocessing-diagnostics/query-01.txt"
+    }
+  ],
+  "priorRefusalUnchanged": "06426bb62b6cc79f0be04dbf208efd17cfb84082 preserves both primary historical-status refusal and secondary missing-before-snapshot reporting failure.",
+  "noPromotion": true
+}

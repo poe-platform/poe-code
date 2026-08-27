@@ -1,0 +1,20 @@
+{
+  "at": "2026-08-27T18:58:33.406629+00:00",
+  "authorAttemptOrdinal": 2,
+  "oneNewWrapperInvocation": true,
+  "releaseCommit": "e9a30aa7995e4b29ba179d0aea552c36a5ded51f",
+  "bindingFreezeCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "independentBindingReviewCommit": "758880944964ed1bb9f9cbb524dfeb14e88b3047",
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/run.py"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "explicitEnvironmentBindings": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "ZERO_OVERLAY_ROOT_RELEASE": "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v2/ROOT-RELEASE.json"
+  },
+  "capture": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-controller-v2",
+  "priorRefusalCommit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+  "noAutomaticRetry": true
+}

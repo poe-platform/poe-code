@@ -1,0 +1,17 @@
+{
+  "id": "06-missing-acquire",
+  "pid": 1663,
+  "started": 1787857139477,
+  "deadline": 1787857149477,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787857140315,
+  "parentAfter": {
+    "pid": 99102,
+    "at": "2026-08-27T18:59:00.315Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

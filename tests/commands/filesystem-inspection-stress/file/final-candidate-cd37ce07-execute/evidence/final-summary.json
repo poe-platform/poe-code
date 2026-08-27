@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-08-27T09:31:17.961Z",
+  "candidateCommit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "sourceSha256": "f9276a3524347ec20030d41c25d2d5bc033471437b7a9749094585b17693ce0c",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "runnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "peerReportSha256": "63350a5e103d837f22dc03ddf32ffe2a64b5afc98d452f74d35fe73a745c4a44",
+  "freshCases": 40,
+  "reusedCasesAsFinalEvidence": 0,
+  "run": {
+    "startedAt": "2026-08-27T09:28:21.230Z",
+    "finishedAt": "2026-08-27T09:28:23.892Z",
+    "elapsedMs": 2662,
+    "children": 40,
+    "completedChildren": 40,
+    "timeouts": 0,
+    "retries": 0,
+    "nativeCalls": 0,
+    "caseTimeoutMs": 60000,
+    "globalTimeoutMs": 600000,
+    "childOutputCapBytes": 2097152
+  },
+  "rawSemanticCounts": {
+    "pass": 38,
+    "backend-limitation": 2
+  },
+  "rawNativeCounts": {
+    "pass": 17,
+    "native-profile-conflict": 3,
+    "not-run": 20
+  },
+  "adjudicatedCounts": {
+    "pass": 35,
+    "native-profile-conflict": 3,
+    "backend-limitation": 2
+  },
+  "rawFailureIds": [],
+  "routedFailureIds": [],
+  "nativeProfileConflictIds": [
+    "F07",
+    "F12",
+    "F18"
+  ],
+  "backendCharacterizationIds": [
+    "F30",
+    "F31"
+  ],
+  "unsupported": 0,
+  "content": {
+    "views": 80,
+    "semanticAcceptedViews": 80,
+    "nativeByView": {
+      "brief-human": {
+        "total": 20,
+        "exact": 4,
+        "semanticAccepted": 20,
+        "unavailable": 0
+      },
+      "brief-mime": {
+        "total": 20,
+        "exact": 17,
+        "semanticAccepted": 20,
+        "unavailable": 0
+      },
+      "brief-mime-type": {
+        "total": 20,
+        "exact": 18,
+        "semanticAccepted": 20,
+        "unavailable": 0
+      },
+      "brief-mime-encoding": {
+        "total": 20,
+        "exact": 17,
+        "semanticAccepted": 20,
+        "unavailable": 0
+      }
+    },
+    "machineExact": {
+      "matched": 52,
+      "total": 60
+    },
+    "humanExactNotMandatory": {
+      "matched": 4,
+      "total": 20
+    },
+    "historicalNativeReferencesRetained": 109,
+    "contentReferencesCompared": 80,
+    "remainingReferencesNotCompared": 29
+  },
+  "eventCounts": {
+    "case-start": 40,
+    "execute-start": 100,
+    "fs-call": 203,
+    "signal-abort": 100,
+    "sink-write": 99,
+    "sink-resolved": 98,
+    "execute-result": 96,
+    "case-finished": 40,
+    "holdout-source-next": 2,
+    "holdout-source-return": 2,
+    "execute-rejected": 4,
+    "holdout-exact-caller-reason-verified": 2,
+    "holdout-fs-abort-propagation-verified": 2,
+    "holdout-late-read-rejection-injected": 2,
+    "holdout-late-error-window-verified": 2,
+    "holdout-cleanup-gates-released": 2,
+    "holdout-late-return-rejection-injected": 1,
+    "sink-rejected": 1,
+    "shell-start": 5,
+    "shell-result": 4,
+    "shell-disposed": 5,
+    "shell-rejected": 1
+  },
+  "fsMethods": {
+    "lstat": 99,
+    "readStream": 96,
+    "readlink": 1,
+    "stat": 5,
+    "readFile": 1,
+    "access": 1
+  },
+  "loadedProductFiles": 21,
+  "loadedHarnessFiles": 4,
+  "productClosureSha256": "bfa06bed82d55b3421d5dad0c893dc60730ebf94a68a606fc199c60e6fc6426c",
+  "productBuiltins": [
+    "node:path",
+    "node:stream/web",
+    "node:util"
+  ],
+  "buildAndScopedTypes": "REUSED_READY_PASS_NOT_RERUN",
+  "standaloneConsumer": "NOT_RUN_NOT_CLAIMED",
+  "validationBoundary": "No full gate/default/public integration; original40 only; TEXT extreme-input safety has no additional behavioral cohort here; actual Shell source changed separately from file family",
+  "policyMetadataBoundary": "Each raw report preserves original PREP candidateExecutions=0 metadata unchanged; fresh execution counts are this summary/run/events, not the historical PREP policy field."
+}

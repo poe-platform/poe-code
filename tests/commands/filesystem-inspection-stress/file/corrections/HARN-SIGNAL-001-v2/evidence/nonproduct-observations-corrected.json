@@ -1,0 +1,406 @@
+{
+  "recordedAt": "2026-08-27T09:04:11.497Z",
+  "boundary": "Extracted F29 assertion/observation callback with finite synthetic FS/invocation mocks only. No runner module import, candidate import, classification, Shell, or native call.",
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "observations": [
+    {
+      "id": "cleanup-aborted-after-entry",
+      "v1": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": true,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "v2": {
+        "accepted": true,
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": true,
+        "snapshots": [
+          {
+            "method": "lstat",
+            "path": "/input",
+            "signalPresentAtEntry": true,
+            "isAbortSignalAtEntry": true,
+            "abortedAtEntry": false,
+            "reasonUndefinedAtEntry": true
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "signalPresentAtEntry": true,
+            "isAbortSignalAtEntry": true,
+            "abortedAtEntry": false,
+            "maxBytesAtEntry": 65536,
+            "reasonUndefinedAtEntry": true
+          }
+        ],
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {
+          "trace": [
+            {
+              "method": "lstat",
+              "path": "/input",
+              "signalAtSettlement": true
+            },
+            {
+              "method": "readFile",
+              "path": "/input",
+              "maxBytes": 65536,
+              "signalAtSettlement": true
+            }
+          ],
+          "fsEntrySnapshots": [
+            {
+              "method": "lstat",
+              "path": "/input",
+              "signalPresentAtEntry": true,
+              "isAbortSignalAtEntry": true,
+              "abortedAtEntry": false
+            },
+            {
+              "method": "readFile",
+              "path": "/input",
+              "signalPresentAtEntry": true,
+              "isAbortSignalAtEntry": true,
+              "abortedAtEntry": false,
+              "maxBytesAtEntry": 65536
+            }
+          ]
+        }
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "active-baseline-forwarding",
+      "v2": {
+        "accepted": true,
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "snapshots": [
+          {
+            "method": "lstat",
+            "path": "/input",
+            "signalPresentAtEntry": true,
+            "isAbortSignalAtEntry": true,
+            "abortedAtEntry": false,
+            "reasonUndefinedAtEntry": true
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "signalPresentAtEntry": true,
+            "isAbortSignalAtEntry": true,
+            "abortedAtEntry": false,
+            "maxBytesAtEntry": 65536,
+            "reasonUndefinedAtEntry": true
+          }
+        ],
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {
+          "trace": [
+            {
+              "method": "lstat",
+              "path": "/input",
+              "signalAtSettlement": false
+            },
+            {
+              "method": "readFile",
+              "path": "/input",
+              "maxBytes": 65536,
+              "signalAtSettlement": false
+            }
+          ],
+          "fsEntrySnapshots": [
+            {
+              "method": "lstat",
+              "path": "/input",
+              "signalPresentAtEntry": true,
+              "isAbortSignalAtEntry": true,
+              "abortedAtEntry": false
+            },
+            {
+              "method": "readFile",
+              "path": "/input",
+              "signalPresentAtEntry": true,
+              "isAbortSignalAtEntry": true,
+              "abortedAtEntry": false,
+              "maxBytesAtEntry": 65536
+            }
+          ]
+        }
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "negative-already-aborted",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": true,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0,
+      "qualification": "Lifecycle mock intentionally allows invalid host state to reach the harness assertion; not a conforming product/provider claim."
+    },
+    {
+      "id": "negative-missing",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        "callerStillActive": true,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0,
+      "qualification": "Lifecycle mock intentionally allows invalid host state to reach the harness assertion; not a conforming product/provider claim."
+    },
+    {
+      "id": "negative-wrong-reason",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ Error: invalid active-signal reason negative control\n+     at mockLifecycle (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:36:97)\n+     at TestContext.<anonymous> (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:151:27)\n+     at async Test.run (node:internal/test_runner/test:1054:7)\n+     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n- undefined\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0,
+      "qualification": "Lifecycle mock intentionally allows invalid host state to reach the harness assertion; not a conforming product/provider claim."
+    },
+    {
+      "id": "negative-not-a-signal",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0,
+      "qualification": "Lifecycle mock intentionally allows invalid host state to reach the harness assertion; not a conforming product/provider claim."
+    },
+    {
+      "id": "negative-wrong-PNG",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'application/octet-stream; charset=binary\\n'\n- 'image/png; charset=binary\\n'\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "negative-nonzero-status",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "negative-nonempty-stderr",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'mock error\\n' !== ''\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 65536
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 2,
+        "evidence": {}
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "negative-missing-readFile-use",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "AssertionError",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(rig.trace.some((entry) => entry.method === 'readFile'))\n"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 1,
+        "evidence": {}
+      },
+      "productExecutions": 0
+    },
+    {
+      "id": "negative-whole-file-maxBytes-guard",
+      "v2": {
+        "accepted": false,
+        "error": {
+          "name": "Error",
+          "message": "mock original whole-file maxBytes guard"
+        },
+        "callerStillActive": true,
+        "signalAbortedAtSettlement": false,
+        "trace": [
+          {
+            "method": "lstat",
+            "path": "/input"
+          },
+          {
+            "method": "readFile",
+            "path": "/input",
+            "maxBytes": 69
+          }
+        ],
+        "unchangedPromiseForwardingChecked": 1,
+        "evidence": {}
+      },
+      "productExecutions": 0
+    }
+  ]
+}

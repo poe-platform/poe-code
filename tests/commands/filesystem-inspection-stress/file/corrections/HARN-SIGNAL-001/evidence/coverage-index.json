@@ -1,0 +1,412 @@
+{
+  "isNewFull40Run": false,
+  "correctedCases": [
+    "F29",
+    "F33",
+    "F34"
+  ],
+  "reusedCases": 37,
+  "rows": [
+    {
+      "id": "F01",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F01.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F02",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F02.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F03",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F03.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F04",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F04.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F05",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F05.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F06",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F06.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F07",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F07.json",
+      "selectedClassification": "native-profile-conflict",
+      "selectedNativeStatus": "native-profile-conflict",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "native-profile-conflict"
+    },
+    {
+      "id": "F08",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F08.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F09",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F09.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F10",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F10.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F11",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F11.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F12",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F12.json",
+      "selectedClassification": "native-profile-conflict",
+      "selectedNativeStatus": "native-profile-conflict",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "native-profile-conflict"
+    },
+    {
+      "id": "F13",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F13.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F14",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F14.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F15",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F15.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F16",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F16.json",
+      "selectedClassification": "native-profile-conflict",
+      "selectedNativeStatus": "native-profile-conflict",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "native-profile-conflict"
+    },
+    {
+      "id": "F17",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F17.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F18",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F18.json",
+      "selectedClassification": "native-profile-conflict",
+      "selectedNativeStatus": "native-profile-conflict",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "native-profile-conflict"
+    },
+    {
+      "id": "F19",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F19.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F20",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F20.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "pass",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F21",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F21.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F22",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F22.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F23",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F23.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F24",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F24.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F25",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F25.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F26",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F26.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F27",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F27.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F28",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F28.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F29",
+      "origin": "corrected-three-case-run",
+      "executedThisPhase": true,
+      "evidence": "results/F29.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "fail",
+      "historicalAdjudication": "harness-defect"
+    },
+    {
+      "id": "F30",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F30.json",
+      "selectedClassification": "backend-limitation",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "backend-limitation",
+      "historicalAdjudication": "backend-limitation"
+    },
+    {
+      "id": "F31",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F31.json",
+      "selectedClassification": "backend-limitation",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "backend-limitation",
+      "historicalAdjudication": "backend-limitation"
+    },
+    {
+      "id": "F32",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F32.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F33",
+      "origin": "corrected-three-case-run",
+      "executedThisPhase": true,
+      "evidence": "results/F33.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "fail",
+      "historicalAdjudication": "harness-defect"
+    },
+    {
+      "id": "F34",
+      "origin": "corrected-three-case-run",
+      "executedThisPhase": true,
+      "evidence": "results/F34.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "fail",
+      "historicalAdjudication": "harness-defect"
+    },
+    {
+      "id": "F35",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F35.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F36",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F36.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F37",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F37.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F38",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F38.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F39",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F39.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    },
+    {
+      "id": "F40",
+      "origin": "REUSED-initial-run-NOT-rerun",
+      "executedThisPhase": false,
+      "evidence": "../../../evidence/results/F40.json",
+      "selectedClassification": "pass",
+      "selectedNativeStatus": "not-run",
+      "historicalRawSemanticStatus": "pass",
+      "historicalAdjudication": "pass"
+    }
+  ],
+  "evidencePathsRelativeTo": "directory containing the published evidence/coverage-index.json"
+}

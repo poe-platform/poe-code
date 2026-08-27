@@ -1,0 +1,52 @@
+{
+  "phase": "HARN-SIGNAL-001-v2 PREP for peer only",
+  "preparedAt": "2026-08-27T09:06:39.066Z",
+  "peerDecisionPending": true,
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "full40Runs": 0,
+  "authorFixedSourceTested": false,
+  "nonproductChecks": {
+    "correctedRun": {
+      "pass": 6,
+      "fail": 0
+    },
+    "initialPreservedDriverRun": {
+      "pass": 2,
+      "fail": 4,
+      "cause": "Missing fileEntry dependency in extracted-callback mock driver; no runner predicate change."
+    }
+  },
+  "observedMockRecords": 11,
+  "positiveCleanupAfterEntry": {
+    "v1Rejected": true,
+    "v2Accepted": true,
+    "callerStillActive": true,
+    "signalAbortedAtSettlement": true,
+    "snapshotsUnabortedAtEntry": true
+  },
+  "negativeEntryControls": [
+    "already-aborted",
+    "missing signal",
+    "invalid active reason",
+    "duck signal"
+  ],
+  "unchangedF33F34": true,
+  "originalHistory": {
+    "sealedArtifacts": 54,
+    "originalPublicationFiles": 285,
+    "v1PublicationFiles": 37,
+    "initialRaw40Counts": {
+      "pass": 35,
+      "fail": 3,
+      "backendLimitation": 2
+    }
+  },
+  "sourceHashes": {
+    "v1Runner": "3eda4cf112e7a30685b67e1ac942b9fc1521eae4e2acef2f657b3c9522a18fb4",
+    "observationOnly": "f9c375c57656c0abfff872bbd9474dc82e1a2d6053859df247b4a9faa519a584",
+    "v2Runner": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756"
+  },
+  "maxBytesScope": "Capture maxBytesAtEntry and preserve original options/guard/trace unchanged. Do not invent an exact maxBytes value or new family-limit policy. Nonproduct tests verify exact forwarding and whole-file size guard.",
+  "state": "Awaiting peer; no new F29 product pass and no full40/mixed-index approval claimed."
+}

@@ -1,0 +1,7 @@
+{"at":"2026-08-27T08:27:15.283Z","kind":"case-start","id":"F24"}
+{"at":"2026-08-27T08:27:15.284Z","kind":"execute-start","invocation":1,"args":["-L","/dangling"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T08:27:15.285Z","kind":"fs-call","invocation":1,"method":"stat","path":"/dangling","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T08:27:15.285Z","kind":"sink-write","invocation":1,"stream":"stderr","bytes":68,"base64":"ZmlsZTogL2RhbmdsaW5nOiBFTk9FTlQ6IG5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnksIHN0YXQgJy9taXNzaW5nJwo="}
+{"at":"2026-08-27T08:27:15.285Z","kind":"sink-resolved","invocation":1,"stream":"stderr"}
+{"at":"2026-08-27T08:27:15.285Z","kind":"execute-result","invocation":1,"result":{"exitCode":1}}
+{"at":"2026-08-27T08:27:15.286Z","kind":"case-finished","id":"F24","semanticStatus":"pass","nativeStatus":"not-run"}

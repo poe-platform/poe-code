@@ -1,0 +1,110 @@
+TAP version 13
+# Subtest: only F29 observation time changes; original and peer history are preserved
+ok 1 - only F29 observation time changes; original and peer history are preserved
+  ---
+  duration_ms: 0.482833
+  type: 'test'
+  ...
+# Subtest: positive cleanup-aborted-after-entry passes v2 while preserved v1 rejects
+not ok 2 - positive cleanup-aborted-after-entry passes v2 while preserved v1 rejects
+  ---
+  duration_ms: 2.024125
+  type: 'test'
+  location: '/private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:121:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(capturedFs)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    mockLifecycle (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:103:3)
+    async TestContext.<anonymous> (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:122:15)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: positive active-at-entry and settlement preserves exact maxBytes and promises
+not ok 3 - positive active-at-entry and settlement preserves exact maxBytes and promises
+  ---
+  duration_ms: 0.19675
+  type: 'test'
+  location: '/private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:138:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(capturedFs)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    mockLifecycle (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:103:3)
+    async TestContext.<anonymous> (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:139:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: already-aborted entry, missing signal, incorrect reason and duck signal are rejected
+not ok 4 - already-aborted entry, missing signal, incorrect reason and duck signal are rejected
+  ---
+  duration_ms: 0.211833
+  type: 'test'
+  location: '/private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:148:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(capturedFs)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    mockLifecycle (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:103:3)
+    async TestContext.<anonymous> (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:150:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: successful PNG/status/stderr/readFile use and original size guard still reject bad controls
+not ok 5 - successful PNG/status/stderr/readFile use and original size guard still reject bad controls
+  ---
+  duration_ms: 0.148667
+  type: 'test'
+  location: '/private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:157:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(capturedFs)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    mockLifecycle (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:103:3)
+    async TestContext.<anonymous> (file:///private/tmp/safe-bash-file-harness-v2.IHV2O29B/nonproduct-controls.mjs:165:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: F33/F34 remain byte-identical and observation wrapper adds no promise handlers
+ok 6 - F33/F34 remain byte-identical and observation wrapper adds no promise handlers
+  ---
+  duration_ms: 4.023625
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 2
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.599084

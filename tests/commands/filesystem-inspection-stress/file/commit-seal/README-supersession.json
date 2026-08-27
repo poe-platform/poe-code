@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "purpose": "Root-authorized navigation-only README replacement; not an oracle or result change",
+  "recordedAt": "2026-08-27T09:40:07.644Z",
+  "originalPath": "README.md",
+  "originalBytes": 835,
+  "originalSha256": "87a3157f312e72e0d18a6041c67b21b8c543ce6fc56bf8ec21636f383d031788",
+  "preservedPath": "commit-seal/history/original-README.md",
+  "navigationSha256": "10e1a5837f9dbc5afe4e5a3a20cd144e39f86e51e82ea03f56a0ca73193dba85",
+  "navigationBytes": 3154,
+  "originalPublicationRootSha256": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36",
+  "historicalManifestBytesChanged": false,
+  "historicalEntryResolution": "Only initial PUBLICATION README.md resolves to preservedPath; every other historical entry retains its original path and bytes",
+  "scope": "Links latest proof/history/limits and clarifies no public API integration or source-safety approval"
+}

@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "issue": "HARN-SIGNAL-001-v2",
+  "publishedAt": "2026-08-27T09:06:39.080Z",
+  "peerDecisionPending": true,
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "v2RunnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "artifactCount": 26,
+  "publicationRootSha256": "ab56d8d344d1ecaa434f8a069392903486302e6fe3eaada23907aaf10508990d",
+  "entries": [
+    {
+      "path": "README.md",
+      "bytes": 4592,
+      "sha256": "4ace9c2a63f47026bad401fe380ab84fd4075f31ad16e704f091530ff589e043"
+    },
+    {
+      "path": "entry-time-assertions.diff",
+      "bytes": 1184,
+      "sha256": "fab71af6a441a160cb716e040e6d8f6a078e9a868c6dead325dcdf8109fa98e2"
+    },
+    {
+      "path": "evidence/integrity-after.json",
+      "bytes": 752,
+      "sha256": "342b69ff05e55cae88c0c029019b8e516ea81aeec6761275f0abf4fe0400333b"
+    },
+    {
+      "path": "evidence/mock-driver-repair.json",
+      "bytes": 454,
+      "sha256": "4b675e9df57a8266ad29b45bfed1e17e1948f19e9863a4f9fce8d28ecc0e62f4"
+    },
+    {
+      "path": "evidence/nonproduct-controls-corrected.tap",
+      "bytes": 1498,
+      "sha256": "6e1f40efebdd344dc50d32c54340799e9d1b44c439fc247274dd28cbc7a7bc78"
+    },
+    {
+      "path": "evidence/nonproduct-controls-initial.tap",
+      "bytes": 4221,
+      "sha256": "0c2385dd940e9fb41a6645428fb124fa6fbbb93e04ec57f95c3ed4b8665c451b"
+    },
+    {
+      "path": "evidence/nonproduct-controls.tap",
+      "bytes": 4221,
+      "sha256": "0c2385dd940e9fb41a6645428fb124fa6fbbb93e04ec57f95c3ed4b8665c451b"
+    },
+    {
+      "path": "evidence/nonproduct-observations-corrected.json",
+      "bytes": 11791,
+      "sha256": "e42c0503ff389c589c3457bfc05b2aca2234374b2d7a7bcada8fb89b82a94ce4"
+    },
+    {
+      "path": "evidence/nonproduct-observations-initial.json",
+      "bytes": 307,
+      "sha256": "fbc2c53836e419fac0af52e7f1b69f6f432456fc42ddd83a27b45ff734fb7d49"
+    },
+    {
+      "path": "evidence/nonproduct-observations.json",
+      "bytes": 307,
+      "sha256": "fbc2c53836e419fac0af52e7f1b69f6f432456fc42ddd83a27b45ff734fb7d49"
+    },
+    {
+      "path": "evidence/process-state.json",
+      "bytes": 271,
+      "sha256": "e4c83cf75c91dcb1261dc9718d0cf0bf3c98138f718c48052812f283cd55c420"
+    },
+    {
+      "path": "evidence/summary.json",
+      "bytes": 1715,
+      "sha256": "cb4c5683001f5328b47789db0544d089df53abd3cd498bc515a56b7e22475a99"
+    },
+    {
+      "path": "history/nonproduct-controls-initial.mjs",
+      "bytes": 10469,
+      "sha256": "c8472aec68e1dec5a605af182b92a35c4ceb47564df86f2a105a305226d7fd72"
+    },
+    {
+      "path": "history/v1-corrected-assertions-runner.mjs",
+      "bytes": 20917,
+      "sha256": "25b7344b991b97faef2c7454e2820dd7dcad0c3d32a37dc959c5afa368f8971c"
+    },
+    {
+      "path": "history/v1-corrected-observed-runner.mjs",
+      "bytes": 21731,
+      "sha256": "3eda4cf112e7a30685b67e1ac942b9fc1521eae4e2acef2f657b3c9522a18fb4"
+    },
+    {
+      "path": "observation-only.diff",
+      "bytes": 2281,
+      "sha256": "54bf3bdad0ab52291250b704e83b81ea5b3c48f28eb8a1ec97d2b90576d8b43a"
+    },
+    {
+      "path": "peer/F29-original-observation.json",
+      "bytes": 276,
+      "sha256": "c6c168bb968b3c33f44f76369f9eace7de7e5e57e378f26fb82d56b9c4818b55"
+    },
+    {
+      "path": "peer/SAFETY_FINDINGS.md",
+      "bytes": 17295,
+      "sha256": "f3123473928e3258bc0a8f64d69f3c83a23e5cab9352ba9eced8cebbd6c84e37"
+    },
+    {
+      "path": "peer/correction-counterchecks.mjs",
+      "bytes": 4079,
+      "sha256": "25df1b6737fedbbc5ed536534b089bec48ee2f31fe978cbd8b74ddc9da60cadf"
+    },
+    {
+      "path": "peer/original-counterchecks.json",
+      "bytes": 1029,
+      "sha256": "2e8f2c8851e25017fd73f57584de0099cbf0352824c74828b5ac82b3b0280049"
+    },
+    {
+      "path": "runner/v2-observation-only-runner.mjs",
+      "bytes": 22679,
+      "sha256": "f9c375c57656c0abfff872bbd9474dc82e1a2d6053859df247b4a9faa519a584"
+    },
+    {
+      "path": "runner/v2-runner.mjs",
+      "bytes": 22718,
+      "sha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756"
+    },
+    {
+      "path": "tools/nonproduct-controls.mjs",
+      "bytes": 10594,
+      "sha256": "32809c370b3eb8e0fad4e2fea2fa235fbfc6960e0de8716ffec88689b697c623"
+    },
+    {
+      "path": "tools/prepare-v2.mjs",
+      "bytes": 8727,
+      "sha256": "966aab2c0640a8a76d3f399aaa6208595901e91ef3cb0aa00d9c41b8f4985ff0"
+    },
+    {
+      "path": "tools/publish-v2.mjs",
+      "bytes": 7300,
+      "sha256": "01bdcf8c70401fef3c97087ec50dc971cf7ac94b5321f971e609a278a2643c3b"
+    },
+    {
+      "path": "v2-correction.json",
+      "bytes": 5158,
+      "sha256": "1573771bd732db11d6def7e2b8fb89c9e9b8a8620ac325117bdfc767d56de13d"
+    }
+  ],
+  "metadataClarification": "Record the Node test-timeout flag without claiming an additional whole-process watchdog. No runner/raw evidence/test result changed."
+}

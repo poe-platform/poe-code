@@ -1,0 +1,172 @@
+(registered 2018-02-12, last updated 2018-02-12)
+
+Type name:
+
+application
+
+Subtype name:
+
+vnd.sqlite3
+
+Required parameters:
+
+none
+
+Optional parameters:
+
+none
+
+Encoding considerations:
+
+binary
+
+Security considerations:
+
+Database files contain complex data structures, so parsers must take
+care to prevent buffer overflows, stack overruns, and other unexpected
+behaviour caused by malicious content.
+
+Views and triggers can contain arbitrary SQL expressions (including
+recursion), which can result in arbitrarily large amounts of
+processing time, memory, and disk space required when attempting to
+access data. Applications should use mechanisms like
+sqlite3_interrupt() or sqlite3_progress_handler() to allow long
+computations to be aborted, and an alternative memory allocator to
+limit the amount of memory used.
+
+The SQLite library itself, as distributed, does not allow SQL
+statements to access resources or data outside the database. However,
+if applications add extension modules or functions, they should not do
+so in the database connection used to access untrusted content, or
+they must ensure that these modules/functions are safe to use even
+when called from malicious SQL code.
+
+The database may leave part of deleted or updated data in the database
+file. Applications that do not want ot leave traces of old data must
+enable PRAGMA secure_delete before doing any modifications, or run
+VACUUM before transmitting the database file.
+
+Databases can use indexes to cache data in a format that is faster to
+access for certain queries. It is possible to construct database
+files with inconsistent data in indexes so that some queries return
+data different from what is actually stored in a table. To avoid
+this, applications should run REINDEX before accessing a database
+received from a potentially malicious source.
+
+This format provides no cryptographic integrity or confidentiality/
+privacy protections of any kind.
+
+Databases can be used to store blobs containing data to be handled by
+other applications or libraries; any security considerations of those
+must also be taken into account.
+
+Interoperability considerations:
+
+At publication of this document, there exists only a single
+implementation, the SQLite library.
+
+There exist various encryption extensions (e.g., SEE, SQLCipher,
+System.Data.SQLite), but they are incompatible with each other, so
+they cannot be used for interoperable database files.
+
+Database files written with recent versions of the library can be read
+and modified by any version back to at least 3.7.0 (released
+2010-07-21). However, there is no backwards compatibility if SQL
+features introduced in a newer version are actually used. To ensure
+interoperability with other applications that use an older version of
+the library, applications should avoid using features that are not
+supported in the version that other applications are known or
+suspected to use. At publication of this document, features
+introduced in newer versions are:
+
+3.20.0: deterministic date/time functions;
+3.18.0: printf() thousands marks;
+3.16.0: PRAGMA functions;
+3.15.0: row values; deterministic SQL functions in partial indexes;
+3.9.0: expression indexes;
+3.8.8: more than 500 rows in a VALUES clause;
+3.8.6: hexadecimal integer literals; likely();
+3.8.3: common table expressions (WITH); printf();
+3.8.2: clustered indexes (WITHOUT ROWID tables);
+3.8.1: unlikely(); likelihood();
+3.8.0: partial indexes;
+3.7.16: unicode(); char();
+3.7.15: instr();
+3.7.11: multiple rows in a VALUES clause; bare columns in aggregate queries.
+
+Some runtime settings (e.g., PRAGMA case_sensitive_like) or
+compilation options can change the semantics of SQL statements.
+Applications should use the default settings and options; however,
+some settings (e.g., PRAGMA foreign_keys) are disabled by default only
+for backwards compatibility and are commonly enabled.
+
+When a transaction that changes the database has not yet committed,
+the database file might be in an inconsistent state and require data
+from the rollback journal to get back to a consistent state.
+Therefore, when it is possible that other processes or threads change
+a database, an application that wishes to transmit a database file
+should prevent concurrent changes by executing BEGIN IMMEDIATE before
+reading/copying the file, or use the backup API to create a consistent
+copy of the database.
+
+A database in WAL mode can have part of its data in the WAL file.
+Therefore, an application that wishes to transmit a database file in
+WAL mode should initiate a full checkpoint before reading/copying the
+file, or use the backup API to create a copy of the database.
+
+The unregistered media type "application/x-sqlite3" must not be used,
+except where required for backwards compatibility.
+
+Published specification:
+
+http://www.sqlite.org/fileformat2.html
+http://www.sqlite.org/lang.html
+
+Applications that use this media type:
+
+Applications that want to store or interchange relational data.
+
+Fragment identifier considerations:
+
+none
+
+Deprecated alias names for this type:
+
+application/x-sqlite3
+
+Magic number:
+
+53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00
+(zero-terminated ASCII "SQLite format 3") at offset 0
+
+File extensions:
+
+.db, .sqlite, .sqlite3
+(".db" does not uniquely identify SQLite database files.
+Other extensions are commonly used.)
+
+Macintosh file type code:
+
+none
+
+Contact:
+
+SQLite mailing list
+<sqlite-users&mailinglists.sqlite.org>
+
+Intended usage:
+
+COMMON
+
+Restrictions on usage:
+
+none
+
+Author/Change controller:
+
+Clemens Ladisch
+<clemens&ladisch.de>
+
+Provisional registration? (standards tree only):
+
+N/A

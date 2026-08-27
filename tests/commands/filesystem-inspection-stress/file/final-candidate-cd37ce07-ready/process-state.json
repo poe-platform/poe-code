@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-08-27T09:19:24.327Z",
+  "buildChildrenStarted": 1,
+  "buildChildrenSettled": 1,
+  "buildTimedOut": false,
+  "productChildrenStarted": 0,
+  "productChildrenRemaining": 0,
+  "nativeChildrenStarted": 0,
+  "productModulesLoaded": 0,
+  "loadedEntries": [],
+  "nativeCalls": 0,
+  "productCleanupAndLateInjection": "NOT_EXERCISED_THIS_PHASE",
+  "backgroundWorkersStarted": 0,
+  "retryCount": 0,
+  "consumerCalls": 0,
+  "fullGateRuns": 0,
+  "stagedPaths": [],
+  "commitsCreated": 0
+}

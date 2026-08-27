@@ -1,0 +1,7 @@
+{
+  "originalDriverSha256": "c8472aec68e1dec5a605af182b92a35c4ceb47564df86f2a105a305226d7fd72",
+  "correctedDriverSha256": "32809c370b3eb8e0fad4e2fea2fa235fbfc6960e0de8716ffec88689b697c623",
+  "reason": "Bind missing fileEntry helper in mock context; expose original pre-FS exception rather than masking it with capturedFs assertion; keep failed first output and use a new corrected evidence filename.",
+  "productExecutions": 0,
+  "runnerChanges": []
+}

@@ -1,0 +1,32 @@
+{
+  "at": "2026-08-27T08:51:57.281Z",
+  "treeCorrectionFilesVerified": 35,
+  "boundary": "Actual harness predicate and exact F29 assertion block only; builtins/mocks; zero product/native calls",
+  "meaningOfExitZero": "Known acceptance gaps reproduced, NOT correction approval",
+  "observations": [
+    {
+      "id": "positive-control",
+      "stderr": "tree: -L must be between 1 and 256\n",
+      "semanticallyAcceptable": true,
+      "accepted": true
+    },
+    {
+      "id": "irrelevant-same-line-constraint",
+      "stderr": "tree: -L failed; width must be between 1 and 256\n",
+      "semanticallyAcceptable": false,
+      "accepted": true
+    },
+    {
+      "id": "contradictory-next-line-zero-range",
+      "stderr": "tree: -L must be positive\nvalid range: 0..256\n",
+      "semanticallyAcceptable": false,
+      "accepted": true
+    },
+    {
+      "id": "F29-valid-composed-signal-cleaned-after-success",
+      "activeAtFsEntry": true,
+      "callerStillActive": true,
+      "postCompletionAccepted": false
+    }
+  ]
+}

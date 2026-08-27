@@ -1,0 +1,122 @@
+{
+  "issue": "HARN-SIGNAL-001",
+  "candidateCommit": "d168d18b118592e04a6eec9b00eb50cc2b1e5058",
+  "run": {
+    "startedAt": "2026-08-27T08:44:11.505Z",
+    "finishedAt": "2026-08-27T08:44:11.697Z",
+    "elapsedMs": 192,
+    "selected": [
+      "F29",
+      "F33",
+      "F34"
+    ],
+    "perCaseTimeoutMs": 60000,
+    "globalTimeoutMs": 600000,
+    "nativeCalls": 0,
+    "full40Reruns": 0,
+    "childRetries": 0,
+    "rows": [
+      {
+        "id": "F29",
+        "caseStarted": "2026-08-27T08:44:11.505Z",
+        "caseFinished": "2026-08-27T08:44:11.575Z",
+        "pid": 30161,
+        "childStatus": 0,
+        "signal": null,
+        "error": null,
+        "reportExists": true,
+        "semanticStatus": "pass",
+        "nativeStatus": "not-run"
+      },
+      {
+        "id": "F33",
+        "caseStarted": "2026-08-27T08:44:11.575Z",
+        "caseFinished": "2026-08-27T08:44:11.636Z",
+        "pid": 30162,
+        "childStatus": 0,
+        "signal": null,
+        "error": null,
+        "reportExists": true,
+        "semanticStatus": "pass",
+        "nativeStatus": "not-run"
+      },
+      {
+        "id": "F34",
+        "caseStarted": "2026-08-27T08:44:11.636Z",
+        "caseFinished": "2026-08-27T08:44:11.696Z",
+        "pid": 30163,
+        "childStatus": 0,
+        "signal": null,
+        "error": null,
+        "reportExists": true,
+        "semanticStatus": "pass",
+        "nativeStatus": "not-run"
+      }
+    ]
+  },
+  "correctedScenarioCounts": {
+    "pass": 3
+  },
+  "nativeCalls": 0,
+  "full40Runs": 0,
+  "caseRetries": 0,
+  "eventEvidence": [
+    {
+      "id": "F29",
+      "productExecutions": 1,
+      "next": 0,
+      "returned": 0,
+      "lateReadInjected": 0,
+      "lateReturnInjected": 0,
+      "verifiedObservationWindows": 0,
+      "unhandledEvents": 0
+    },
+    {
+      "id": "F33",
+      "productExecutions": 1,
+      "next": 1,
+      "returned": 1,
+      "lateReadInjected": 1,
+      "lateReturnInjected": 0,
+      "verifiedObservationWindows": 1,
+      "unhandledEvents": 0
+    },
+    {
+      "id": "F34",
+      "productExecutions": 1,
+      "next": 1,
+      "returned": 1,
+      "lateReadInjected": 1,
+      "lateReturnInjected": 1,
+      "verifiedObservationWindows": 1,
+      "unhandledEvents": 0
+    }
+  ],
+  "nonproductSelfChecks": {
+    "pass": 5,
+    "fail": 0
+  },
+  "originalHistoricalRawCountsUnchanged": {
+    "pass": 35,
+    "fail": 3,
+    "backend-limitation": 2
+  },
+  "evidenceIndexOnly": {
+    "correctedRows": 3,
+    "reusedRows": 37,
+    "isNewFull40Run": false,
+    "mixedProvenanceCounts": {
+      "pass": 34,
+      "native-profile-conflict": 4,
+      "backend-limitation": 2
+    }
+  },
+  "sourceBugRevealed": false,
+  "originalSQLiteIssueStillAppliesToOldCandidate": true,
+  "authorFixTested": false,
+  "hashes": {
+    "originalIsolatedRunner": "5116aaf53899715e2497140528e5a2338664673e2d284eb688e009dd6e2a2fb5",
+    "correctedAssertionsRunner": "25b7344b991b97faef2c7454e2820dd7dcad0c3d32a37dc959c5afa368f8971c",
+    "correctedObservedRunner": "3eda4cf112e7a30685b67e1ac942b9fc1521eae4e2acef2f657b3c9522a18fb4"
+  }
+}

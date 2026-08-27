@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: independent corpus is exactly 40 scenarios, not expanded by views
+ok 1 - independent corpus is exactly 40 scenarios, not expanded by views
+  ---
+  duration_ms: 2.94625
+  type: 'test'
+  ...
+# Subtest: all 20 generated fixture bytes match frozen files and manifest
+ok 2 - all 20 generated fixture bytes match frozen files and manifest
+  ---
+  duration_ms: 5.439541
+  type: 'test'
+  ...
+# Subtest: 80 exact native content observations are preserved separately from semantics
+ok 3 - 80 exact native content observations are preserved separately from semantics
+  ---
+  duration_ms: 1.060334
+  type: 'test'
+  ...
+# Subtest: preseal corrections retain original expectations and do not alter native oracle
+ok 4 - preseal corrections retain original expectations and do not alter native oracle
+  ---
+  duration_ms: 1.289042
+  type: 'test'
+  ...
+# Subtest: primary references and contract snapshots retain captured hashes
+ok 5 - primary references and contract snapshots retain captured hashes
+  ---
+  duration_ms: 2.389792
+  type: 'test'
+  ...
+# Subtest: source probe records useful bytes, poison next and return once
+ok 6 - source probe records useful bytes, poison next and return once
+  ---
+  duration_ms: 0.270792
+  type: 'test'
+  ...
+# Subtest: readFile-only probe enforces full-file size guard rather than prefix slicing
+ok 7 - readFile-only probe enforces full-file size guard rather than prefix slicing
+  ---
+  duration_ms: 0.189
+  type: 'test'
+  ...
+# Subtest: filesystem probe follows only virtual links and reports dangling/cyclic entries
+ok 8 - filesystem probe follows only virtual links and reports dangling/cyclic entries
+  ---
+  duration_ms: 0.170083
+  type: 'test'
+  ...
+# Subtest: deferred cleanup fixture can remain pending without inventing completion
+ok 9 - deferred cleanup fixture can remain pending without inventing completion
+  ---
+  duration_ms: 0.911042
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57.386416

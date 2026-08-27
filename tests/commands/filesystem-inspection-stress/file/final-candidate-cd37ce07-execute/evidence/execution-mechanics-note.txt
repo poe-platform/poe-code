@@ -1,0 +1,22 @@
+Before any product execution, cp inherited readonly0400 for the new child.mjs
+bridge copy. apply_patch could not update that new copy and did not create the
+later preflight scripts in the same patch. The attempted Node preflight failed
+MODULE_NOT_FOUND before importing any product. Only new copied child/loader
+permissions were made writable to perform the authorized mechanical bridge
+patch, then restored readonly after binding. Original historical bridge,
+runner, candidate, READY evidence and original inputs were not edited.
+Product calls before/after this wiring failure:0. No product retry occurred.
+
+The first node --check of the new parent coordinator rejected a missing template
+literal closing backtick on line39 (SyntaxError: missing ) after argument list).
+Original source retained as run-final-once.syntax-invalid.artifact. This pure
+syntax check occurred before the coordinator could execute or create its claim;
+the two preceding child/runner syntax checks loaded no product modules. Corrected
+only that backtick. No completed product work existed or was duplicated.
+
+After the40 children completed, a read-only one-line stdout summary probe had
+a malformed reduce expression and failed syntax checking before reading files.
+A corrected multiline read-only probe then displayed the existing results; it
+did not rerun the coordinator/candidate. This was not a product case failure.
+An attempted note-only patch used a nonexistent anchor and made no change;
+the correct note append is recorded here. No execution artifacts were rewritten.

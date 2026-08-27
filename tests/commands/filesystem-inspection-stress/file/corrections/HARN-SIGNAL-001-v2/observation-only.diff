@@ -1,0 +1,39 @@
+diff --git a/private/tmp/safe-bash-file-harness-v2.IHV2O29B/history/v1-corrected-observed-runner.mjs b/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-observation-only-runner.mjs
+index 1e2d745..40b4adc 100644
+--- a/private/tmp/safe-bash-file-harness-v2.IHV2O29B/history/v1-corrected-observed-runner.mjs
++++ b/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-observation-only-runner.mjs
+@@ -138,7 +138,25 @@ export async function runHoldouts(adapter) {
+   });
+   await record('F29', async (row) => {
+     const rig = makeFs({ '/input': fileEntry(fixture('F09').bytes) }, { readFileOnly: true });
+-    const invocation = await invoke(rig.fs, ['-b', '--mime', '/input']);
++    const fsEntrySnapshots = [];
++    const entryObservedFs = new Proxy(rig.fs, {
++      get(target, method, receiver) {
++        const operation = Reflect.get(target, method, receiver);
++        if (typeof operation !== 'function') return operation;
++        return (...args) => {
++          const options = args.findLast((argument) => argument && typeof argument === 'object' && !(argument instanceof Uint8Array));
++          const signal = options?.signal;
++          fsEntrySnapshots.push(Object.freeze({
++            method: String(method), path: args[0], signalPresentAtEntry: signal !== undefined,
++            isAbortSignalAtEntry: signal instanceof AbortSignal,
++            abortedAtEntry: signal?.aborted, reasonAtEntry: signal?.reason,
++            maxBytesAtEntry: options?.maxBytes,
++          }));
++          return Reflect.apply(operation, target, args);
++        };
++      },
++    });
++    const invocation = await invoke(entryObservedFs, ['-b', '--mime', '/input']);
+     successful(invocation);
+     assert.equal(stdout(invocation), 'image/png; charset=binary\n');
+     assert(rig.trace.some((entry) => entry.method === 'readFile'));
+@@ -148,6 +166,7 @@ export async function runHoldouts(adapter) {
+       assert.equal(entry.options.signal.reason, undefined);
+     }
+     row.evidence.trace = traceJson(rig.trace);
++    row.evidence.fsEntrySnapshots = fsEntrySnapshots;
+   });
+   for (const [id, unknown] of [['F30', false], ['F31', true]]) await record(id, async (row) => {
+     const rig = makeFs({ '/input': { ...fileEntry(fixture('F09').bytes), size: bound + 4096 } }, {

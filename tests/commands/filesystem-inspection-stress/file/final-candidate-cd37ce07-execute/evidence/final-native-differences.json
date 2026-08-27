@@ -1,0 +1,1106 @@
+[
+  {
+    "id": "F03",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F03",
+      "filename": "F03-unicode.bin",
+      "bytes": 65,
+      "sha256": "a2630165c7629b2009cf1b42a288d304769fe16315d935bc8e95ca11d8fcbdc8",
+      "base64": "WmHFvMOzxYLEhyBnxJnFm2zEhSBqYcW6xYQg4oCUIM6azrHOu863zrzOrc+BzrEg4oCUIOmbqiDigJQg8J+YgAo="
+    },
+    "referenceObservationIndex": 9,
+    "expected": {
+      "stdout": "Unicode text, UTF-8 text\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "Unicode text, UTF-8\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F04",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F04",
+      "filename": "F04-bom.data",
+      "bytes": 26,
+      "sha256": "5dfde79a044988068e55ce83d36bba5d2d790a92c5f4be3a30d8ae4c5e91c93d",
+      "base64": "77u/U25vdyDpm6ogYW5kIG11c2ljIOKZrAo="
+    },
+    "referenceObservationIndex": 13,
+    "expected": {
+      "stdout": "Unicode text, UTF-8 (with BOM) text\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "Unicode text, UTF-8\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F05",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F05",
+      "filename": "F05-wide.dat",
+      "bytes": 28,
+      "sha256": "54bed188c7f4c0815c2b2935eb5896fb35ee688f05a37e98589aacffc7d7ad95",
+      "base64": "//5XAGkAZABlACAAcwBuAG8AdwAgAOqWDQAKAA=="
+    },
+    "referenceObservationIndex": 17,
+    "expected": {
+      "stdout": "Unicode text, UTF-16, little-endian text, with CRLF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "Unicode text, UTF-16, little-endian\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F07",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F07",
+      "filename": "F07-partial.txt",
+      "bytes": 29,
+      "sha256": "04ee23225f88a3fd75594925f1de7ae1a1cc96c6e7e59522706fb74167d13599",
+      "base64": "QSBzaG9ydCB1bmZpbmlzaGVkIHNjYWxhcjog4oI="
+    },
+    "referenceObservationIndex": 25,
+    "expected": {
+      "stdout": "Non-ISO extended-ASCII text, with no line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime",
+    "fixture": {
+      "id": "F07",
+      "filename": "F07-partial.txt",
+      "bytes": 29,
+      "sha256": "04ee23225f88a3fd75594925f1de7ae1a1cc96c6e7e59522706fb74167d13599",
+      "base64": "QSBzaG9ydCB1bmZpbmlzaGVkIHNjYWxhcjog4oI="
+    },
+    "referenceObservationIndex": 26,
+    "expected": {
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime-type",
+    "fixture": {
+      "id": "F07",
+      "filename": "F07-partial.txt",
+      "bytes": 29,
+      "sha256": "04ee23225f88a3fd75594925f1de7ae1a1cc96c6e7e59522706fb74167d13599",
+      "base64": "QSBzaG9ydCB1bmZpbmlzaGVkIHNjYWxhcjog4oI="
+    },
+    "referenceObservationIndex": 27,
+    "expected": {
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime-encoding",
+    "fixture": {
+      "id": "F07",
+      "filename": "F07-partial.txt",
+      "bytes": 29,
+      "sha256": "04ee23225f88a3fd75594925f1de7ae1a1cc96c6e7e59522706fb74167d13599",
+      "base64": "QSBzaG9ydCB1bmZpbmlzaGVkIHNjYWxhcjog4oI="
+    },
+    "referenceObservationIndex": 28,
+    "expected": {
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F08",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F08",
+      "filename": "F08-controls.raw",
+      "bytes": 24,
+      "sha256": "7467a6426b68dc60e6ba4e016afe0253d08fb29d01fdd459b6d4243a72fa9adb",
+      "base64": "YWxwaGEJYmV0YQ0KZ2FtbWEMZGVsdGEK"
+    },
+    "referenceObservationIndex": 29,
+    "expected": {
+      "stdout": "ASCII text, with CRLF, LF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "ASCII text\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F09",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F09",
+      "filename": "F09-picture.txt",
+      "bytes": 70,
+      "sha256": "c764e18e52e0452bff7f084e04326af8f57205a3c1d3975af5541866029c6c94",
+      "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPgEpH7DwABpAE8k4sOtwAAAABJRU5ErkJggg=="
+    },
+    "referenceObservationIndex": 33,
+    "expected": {
+      "stdout": "PNG image data, 1 x 1, 8-bit/color RGBA, non-interlaced\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "PNG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F10",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F10",
+      "filename": "F10-photo.dat",
+      "bytes": 56,
+      "sha256": "51b58df3c466ccd64ba7a65c97d88e949058fac1a99062d2293371914e94ec76",
+      "base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/wAARCAABAAEDAREAAhEAAxEA/9oADAMBAAIRAxEAPwAA/9k="
+    },
+    "referenceObservationIndex": 37,
+    "expected": {
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 1x1, components 3\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "JPEG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F11",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F11",
+      "filename": "F11-animation.bin",
+      "bytes": 42,
+      "sha256": "ef1955ae757c8b966c83248350331bd3a30f658ced11f387f8ebf05ab3368629",
+      "base64": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+    },
+    "referenceObservationIndex": 41,
+    "expected": {
+      "stdout": "GIF image data, version 89a, 1 x 1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "GIF image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F12",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F12",
+      "filename": "F12-report.raw",
+      "bytes": 51,
+      "sha256": "904636248025ad20fb9c6bd8b700179a2a42edb5df3636e926c7e09055ee3f75",
+      "base64": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyA+PgplbmRvYmoKJSVFT0YK"
+    },
+    "referenceObservationIndex": 45,
+    "expected": {
+      "stdout": "PDF document, version 1.7\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "PDF document\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F12",
+    "view": "brief-mime",
+    "fixture": {
+      "id": "F12",
+      "filename": "F12-report.raw",
+      "bytes": 51,
+      "sha256": "904636248025ad20fb9c6bd8b700179a2a42edb5df3636e926c7e09055ee3f75",
+      "base64": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyA+PgplbmRvYmoKJSVFT0YK"
+    },
+    "referenceObservationIndex": 46,
+    "expected": {
+      "stdout": "application/pdf; charset=us-ascii\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "application/pdf; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F12",
+    "view": "brief-mime-encoding",
+    "fixture": {
+      "id": "F12",
+      "filename": "F12-report.raw",
+      "bytes": 51,
+      "sha256": "904636248025ad20fb9c6bd8b700179a2a42edb5df3636e926c7e09055ee3f75",
+      "base64": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyA+PgplbmRvYmoKJSVFT0YK"
+    },
+    "referenceObservationIndex": 48,
+    "expected": {
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F13",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F13",
+      "filename": "F13-archive.data",
+      "bytes": 142,
+      "sha256": "a6df0a402c43f2835c46e0336366a832b898be972503d1553d06583e75b0b2ca",
+      "base64": "UEsDBBQAAAAAAAAAAAChkULiFgAAABYAAAALAAAAbWVzc2FnZS50eHRzZWFsZWQgYXJjaGl2ZSBtZW1iZXIKUEsBAhQAFAAAAAAAAAAAAKGRQuIWAAAAFgAAAAsAAAAAAAAAAAAAAAAAAAAAAG1lc3NhZ2UudHh0UEsFBgAAAAABAAEAOQAAAD8AAAAAAA=="
+    },
+    "referenceObservationIndex": 49,
+    "expected": {
+      "stdout": "Zip archive data, at least v2.0 to extract, compression method=store\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "Zip archive data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F14",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F14",
+      "filename": "F14-compressed.png",
+      "bytes": 54,
+      "sha256": "109119d5987360812d8a257778644a10792ed00141f8bce04094b98a47205e90",
+      "base64": "H4sIAAAAAAAAE+3BsQkAIAwAsL1/dKzQyVkQZ/+/xj8kSd59qseMBQAAAHzvAS4lwEYJEAAA"
+    },
+    "referenceObservationIndex": 53,
+    "expected": {
+      "stdout": "gzip compressed data, original size modulo 2^32 4105\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "gzip compressed data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F15",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F15",
+      "filename": "F15-program.txt",
+      "bytes": 64,
+      "sha256": "958e000963722083149d99a11ae3a793f3e0199ff7dc910eb9cf843c3d26d69e",
+      "base64": "f0VMRgIBAQAAAAAAAAAAAAIAPgABAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAOAAAAEAAAAAAAA=="
+    },
+    "referenceObservationIndex": 57,
+    "expected": {
+      "stdout": "ELF 64-bit LSB executable, x86-64, version 1 (SYSV)\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "ELF 64-bit executable\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F16",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F16",
+      "filename": "F16-catalog.bin",
+      "bytes": 512,
+      "sha256": "66215bf61dedb87462510d7e667349190c0238acaebf8e8e08001079d25420a4",
+      "base64": "U1FMaXRlIGZvcm1hdCAzAAIAAQEAQCAgAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAC5m6A0AAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    "referenceObservationIndex": 61,
+    "expected": {
+      "stdout": "SQLite 3.x database, last written using SQLite version 3041000, page size 512, file counter 1, database pages 1, cookie 0, schema 4, UTF-8, version-valid-for 1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "SQLite 3.x database\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F17",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F17",
+      "filename": "F17-settings.data",
+      "bytes": 60,
+      "sha256": "504022c66ebab1f02bd91d81cf25ff2caf70f11076a76a60a1620d623dc6bd06",
+      "base64": "eyJtZXNzYWdlIjoic2VhbGVkIiwiaXRlbXMiOlsxLHRydWUsbnVsbF0sIm5lc3RlZCI6eyJ4IjoyfX0K"
+    },
+    "referenceObservationIndex": 65,
+    "expected": {
+      "stdout": "JSON data\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "JSON text data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F18",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F18",
+      "filename": "F18-cut.png",
+      "bytes": 6,
+      "sha256": "823ceb99fcef5252333ede1b2202341c3b287b6d47571963e6b0ddf393a24f82",
+      "base64": "iVBORw0K"
+    },
+    "referenceObservationIndex": 69,
+    "expected": {
+      "stdout": "Non-ISO extended-ASCII text, with CRLF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime",
+    "fixture": {
+      "id": "F18",
+      "filename": "F18-cut.png",
+      "bytes": 6,
+      "sha256": "823ceb99fcef5252333ede1b2202341c3b287b6d47571963e6b0ddf393a24f82",
+      "base64": "iVBORw0K"
+    },
+    "referenceObservationIndex": 70,
+    "expected": {
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime-type",
+    "fixture": {
+      "id": "F18",
+      "filename": "F18-cut.png",
+      "bytes": 6,
+      "sha256": "823ceb99fcef5252333ede1b2202341c3b287b6d47571963e6b0ddf393a24f82",
+      "base64": "iVBORw0K"
+    },
+    "referenceObservationIndex": 71,
+    "expected": {
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime-encoding",
+    "fixture": {
+      "id": "F18",
+      "filename": "F18-cut.png",
+      "bytes": 6,
+      "sha256": "823ceb99fcef5252333ede1b2202341c3b287b6d47571963e6b0ddf393a24f82",
+      "base64": "iVBORw0K"
+    },
+    "referenceObservationIndex": 72,
+    "expected": {
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "native-exact-machine",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  },
+  {
+    "id": "F19",
+    "view": "brief-human",
+    "fixture": {
+      "id": "F19",
+      "filename": "F19-length.jpg",
+      "bytes": 20,
+      "sha256": "7b6beb27f4c166a6c162ac2e0bacc7ba517254582cb33c0bd068ff71612243b3",
+      "base64": "/9j/4P//SkZJRgABAQAAAQABAAA="
+    },
+    "referenceObservationIndex": 73,
+    "expected": {
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length -1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "actual": {
+      "stdout": "JPEG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "nativeExact": false,
+    "semanticAccepted": true,
+    "lane": "human-semantic-required-exact-characterization-only",
+    "trace": [
+      {
+        "method": "lstat",
+        "path": "/input",
+        "options": {
+          "signal": "present"
+        }
+      },
+      {
+        "method": "readStream",
+        "path": "/input",
+        "options": {
+          "signal": "aborted",
+          "start": 0,
+          "endExclusive": 65536,
+          "chunkSize": 16384
+        }
+      }
+    ],
+    "effects": "Read-only virtual probe trace retained; original native fixture bytes/hash unchanged after run; no universal host isolation claim"
+  }
+]

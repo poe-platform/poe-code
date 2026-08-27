@@ -1,0 +1,30 @@
+{"at":"2026-08-27T08:27:14.655Z","kind":"case-start","id":"F14"}
+{"at":"2026-08-27T08:27:14.656Z","kind":"execute-start","invocation":1,"args":["-b","/input"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T08:27:14.657Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.657Z","kind":"fs-call","invocation":1,"method":"readStream","path":"/input","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":3,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.658Z","kind":"signal-abort","signalId":3,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at inspect (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:129:30)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:168:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:59:22)"}}
+{"at":"2026-08-27T08:27:14.658Z","kind":"sink-write","invocation":1,"stream":"stdout","bytes":21,"base64":"Z3ppcCBjb21wcmVzc2VkIGRhdGEK"}
+{"at":"2026-08-27T08:27:14.658Z","kind":"sink-resolved","invocation":1,"stream":"stdout"}
+{"at":"2026-08-27T08:27:14.658Z","kind":"execute-result","invocation":1,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:14.658Z","kind":"execute-start","invocation":2,"args":["-b","--mime","/input"],"signal":{"present":true,"signalId":4,"aborted":false}}
+{"at":"2026-08-27T08:27:14.659Z","kind":"fs-call","invocation":2,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":5,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.659Z","kind":"fs-call","invocation":2,"method":"readStream","path":"/input","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":6,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.659Z","kind":"signal-abort","signalId":6,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at inspect (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:129:30)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:168:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:59:22)"}}
+{"at":"2026-08-27T08:27:14.659Z","kind":"sink-write","invocation":2,"stream":"stdout","bytes":33,"base64":"YXBwbGljYXRpb24vZ3ppcDsgY2hhcnNldD1iaW5hcnkK"}
+{"at":"2026-08-27T08:27:14.659Z","kind":"sink-resolved","invocation":2,"stream":"stdout"}
+{"at":"2026-08-27T08:27:14.659Z","kind":"execute-result","invocation":2,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:14.659Z","kind":"execute-start","invocation":3,"args":["-b","--mime-type","/input"],"signal":{"present":true,"signalId":7,"aborted":false}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"fs-call","invocation":3,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":8,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"fs-call","invocation":3,"method":"readStream","path":"/input","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":9,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"signal-abort","signalId":9,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at inspect (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:129:30)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:168:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:59:22)"}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"sink-write","invocation":3,"stream":"stdout","bytes":17,"base64":"YXBwbGljYXRpb24vZ3ppcAo="}
+{"at":"2026-08-27T08:27:14.660Z","kind":"sink-resolved","invocation":3,"stream":"stdout"}
+{"at":"2026-08-27T08:27:14.660Z","kind":"execute-result","invocation":3,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"execute-start","invocation":4,"args":["-b","--mime-encoding","/input"],"signal":{"present":true,"signalId":10,"aborted":false}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"fs-call","invocation":4,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":11,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"fs-call","invocation":4,"method":"readStream","path":"/input","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":12,"aborted":false}}}
+{"at":"2026-08-27T08:27:14.660Z","kind":"signal-abort","signalId":12,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at inspect (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:129:30)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:168:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:59:22)"}}
+{"at":"2026-08-27T08:27:14.661Z","kind":"sink-write","invocation":4,"stream":"stdout","bytes":7,"base64":"YmluYXJ5Cg=="}
+{"at":"2026-08-27T08:27:14.661Z","kind":"sink-resolved","invocation":4,"stream":"stdout"}
+{"at":"2026-08-27T08:27:14.661Z","kind":"execute-result","invocation":4,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:14.661Z","kind":"case-finished","id":"F14","semanticStatus":"pass","nativeStatus":"pass"}

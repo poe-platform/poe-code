@@ -1,0 +1,193 @@
+FILE AUTHOR HANDOFF — 2026-08-27 — BOUNDED CANDIDATE ONLY
+
+Repository: /Users/kjopek/Workspace/safe-bash (package remains virtual-bash).
+Atomic author commit: d168d18b118592e04a6eec9b00eb50cc2b1e5058
+Commit message: feat(file): add bounded VFS content classifier candidate
+Commit time: 2026-08-27T08:15:46Z.
+Exactly 12 new files / 1155 lines in assigned src/commands/file/** and
+tests/commands/file/**. No branch creation or broad staging. git commit --only
+used explicit file paths. Index was empty immediately before and after.
+
+BOUNDARY / INDEPENDENCE
+This leaf did implementation and author verification only. It did not inspect
+tests/commands/filesystem-inspection-stress/file/** holdout contents or any
+independent reviewer artifacts. Directory names appearing in git status were
+not opened. No source/package/root/default/export/FS/core/runtime/metadata/
+contract changes outside the assignment. Tree author files were not modified.
+Concurrent unrelated edits/untracked native artifacts were preserved.
+Different-root-verifier hidden holdout review is REQUIRED BEFORE public/default
+integration. This commit is not approval for that integration. Stop here; route
+any review regressions explicitly rather than adding breadth.
+
+API CHECKPOINT
+Initial checkpoint created 2026-08-27T08:00:43Z, before implementation.
+Internal module src/commands/file/index.ts now exports:
+  fileCommands(options?: FileCommandsOptions): VirtualShellPlugin
+  createFileCommands(options?: FileCommandsOptions): readonly CommandDefinition[]
+  createFileCommand(options?: FileCommandsOptions): CommandDefinition
+  type FileCommandsOptions, type FileLimits
+Options: replace?: boolean; limits?: Partial<FileLimits>.
+Limits: maxSniffBytes, maxReadFileBytes, maxInputBytes, maxOutputBytes,
+maxChunkBytes, maxEntries, maxSteps, maxArgumentBytes, maxDurationMs.
+All positive safe integers; timer limit additionally <=2147483647.
+Profile: virtual-bash-file-v1, available with --version.
+No published root/subpath export or default aggregate registration exists from
+this leaf. No source contract change is required; root integration owner owns
+any public API wiring and eventual public-consumer evidence.
+
+FUNCTIONAL PROFILE
+Content-based VFS-only signature and strict text classifier; no filename-only
+classification. Common image/document/archive/executable/database signatures;
+ASCII, UTF-8, UTF-8 BOM, UTF-16 BOM. JSON only parsed complete bounded object/
+array; not scalar language guessing or JSON from merely complete-looking prefix.
+Options: -b/--brief, -i/--mime, --mime-type, --mime-encoding, -L/--dereference,
+-h/--no-dereference, --, --help, --version. MIME flags accumulate. Default -h
+ignores POSIXLY_CORRECT; last -L/-h wins. No filename padding. Explicit stdin
+'-' consumed once, later '-' reports empty. No operands is usage status2.
+Directory, symlink, dangling-link (-h), empty, multi-input, permission and
+missing-file workflows implemented. Typed VFS errors retain meaning, stderr,
+status1 and continuation; sink failures and cancellation propagate, not retried.
+No external libmagic, subprocess, implicit hostFS, dependency install, network,
+decompression, extraction, provider guarantees, inode identity or allocated-size
+guesses. Header recognition is not full format validation. Unsupported options
+fail, unsupported formats fall back to text/data. Exact profile and limitations
+are in src/commands/file/README.md.
+
+BOUNDED I/O / RUNTIME CAPABILITY GAPS
+Optional readStream is used with start/endExclusive/chunkSize and combined signal.
+Copies retained samples, charges delivered input, awaits sink backpressure and
+normal early iterator return, aborts per-file signal at prefix termination to
+unblock signal-dependent cleanup. Only the exact intentional local abort reason
+is accepted from return; unrelated cleanup/read failures remain errors. Empty
+chunk producers consume steps and yield. Prefix data does not validate unseen
+later bytes; EOF exactly at range cap cannot prove JSON completeness.
+
+readFile-only fallback requires safe nonnegative known size within the minimum
+of maxReadFileBytes, maxChunkBytes and remaining input budget; maxBytes and signal
+are supplied and returned length rechecked. Unknown size without readStream is
+ENOTSUP. Whole fallback bytes may ALREADY have been allocated by the backend:
+neither metadata gating nor returned-length checks bound backend storage
+allocation, prevent concurrent growth or constrain an untruthful host adapter.
+Oversized delivered chunks are rejected after their host allocation too.
+
+Family-local SharedBudget aggregates entries, input/output bytes, steps and
+deadline; existing CommandContext has no public SharedBudget object. Parent
+shell signal and budgeted sinks preserved, not replaced by a fake global quota.
+Timeouts/abort propagate, late host rejections observed; uncooperative host code
+may continue and completed effects are not undone. Diagnostics share output
+quota and may truncate/be absent when exhausted. No root runtime changes.
+No deployed-provider, real FS, S3 or WebDAV verification was performed here.
+
+VALIDATION (SCOPED, NOT FULL GATE)
+1. node --import tsx --test tests/commands/file/*.test.ts
+   Final result: 53 tests, 53 passed, 0 failed/skipped/cancelled/TODO.
+   Includes always-runnable byte fixtures, actual manually-installed Shell
+   binary/stdin/output/error pipelines, strict read caps, readFile fallback/
+   unknown-size/growth behavior, errors, late rejection, iterator cleanup,
+   Buffer ownership, Unicode/control edge cases, malformed/truncated headers,
+   aggregate budgets, stalled reads/sinks, cancellation identity, deadline.
+   Deterministic fuzz loop: 1000 short byte arrays plus header-boundary loops;
+   these are author robustness checks, not 1000 native equivalence cases.
+2. Scoped strict TypeScript:
+   ./node_modules/.bin/tsc --noEmit --target ES2023 --module NodeNext
+     --moduleResolution NodeNext --strict --noUncheckedIndexedAccess
+     --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck
+     --types node src/commands/file/*.ts tests/commands/file/*.ts
+   Result: exit0, no diagnostics. Did not run a concurrent owner's broad suite.
+3. Isolated build: same strict flags, no --noEmit, plus --declaration --rootDir .
+   --outDir /tmp/safe-bash-file-author-build.7w40fS
+   Result: exit0; ESM/declarations emitted outside shared dist.
+   node --test [isolated]/tests/commands/file/file.test.js
+               [isolated]/tests/commands/file/stress.test.js
+   Result: 51/51, no failures/skips. Not a root public-export consumer proof.
+4. git diff --cached --check on the explicit owned paths: exit0.
+
+AUTHOR TEST HISTORY (PRESERVED, NOT SILENTLY ERASED)
+First 32-case run: 31/32. PNG bytes were identical but deepStrictEqual compared
+Buffer to Uint8Array prototypes; correction retains exact Uint8Array byte
+assertion. The initial failed Shell case had stopped at that assertion. Next
+32/32 completed that Shell case; expanded cohorts later passed 48/48, 51/51,
+then final53/53. Author review also fixed Buffer.slice copying, signal-before-
+return ordering and diagnostic deadlines before commit. These are not hidden
+review findings and do not substitute for independent stress/fix review.
+
+NATIVE ORACLE AND EXACT VS SEMANTIC COUNTS
+Native executable: /usr/bin/file, file-5.41.
+Host: Darwin arm64, Node v22.22.2; not a GNU/Linux or latest-file profile.
+Magic sources reported: /usr/share/file/magic.
+Explicit compiled database: /usr/share/file/magic.mgc.
+Executable SHA256:
+  d1fee5edf3c39243cca0c4a0afc94816c55feb032ad5eaeb6d8170d8c7aa64ce
+Database SHA256:
+  38fc8af9d342a3a1d32a626195314a913ee255d8cbd259067d665ea55735b7c0
+Native runner: tests/commands/file/native.ts.
+Native inputs: only deterministic test-owned specimen in freshly created
+tests/commands/file/.native-* directory; removed in finally. Isolated HOME,
+LC_ALL=C/LANG=C, explicit PATH and -m database; no ambient magic/POSIXLY_CORRECT.
+No installations/downloads. Executable/database reads were hashing only, not
+arbitrary host files passed to classification.
+
+Corrected live capture: 26 fixtures; 52 classifier subprocesses (-b --mime and
+-b human), plus one --version per complete run. Final live test reproduced all
+26 frozen rows exactly under matching executable/database hashes; not skipped.
+Original initial oracle defect: -bi meant filesystem-only on this Darwin build,
+so all26 MIME-column outputs were literally 'regular file'; none was a MIME
+pass. Human columns unaffected. Corrected --mime cohort kept all26 byte inputs.
+Original defect retained in tests/commands/file/NATIVE_PROFILE.md.
+
+Frozen native rows and SHA256 for every byte fixture:
+  tests/commands/file/native-baseline.ts
+Always-runnable fixtures and intended candidate outputs:
+  tests/commands/file/fixtures.ts
+Actual comparison against frozen native:
+  Native MIME type component vs candidate --mime-type: 23/26 exact.
+  Full MIME+charset: 22/26 exact.
+  Human categories: 26/26 SEMANTIC, not exact output text/payload validity.
+Known MIME differences preserved explicitly in the comparison test:
+  PE: native application/x-dosexec; candidate application/vnd.microsoft.portable-executable
+  Wasm: native application/octet-stream; candidate application/wasm
+  SQLite: native application/vnd.sqlite3; candidate application/x-sqlite3
+Additional encoding difference: PDF native iso-8859-1 vs candidate binary.
+Passing tests assert these known differences; mismatches are not parity passes.
+Synthetic header fixtures are not claimed valid payloads/executables/databases.
+Gzip bytes were initially generated by Node zlib then frozen to identical hex/
+SHA256; native still says 'truncated', retained in the frozen wording.
+
+Primary upstream documents were inspected with the web tool, pinned FILE5_41:
+  https://github.com/file/file/blob/FILE5_41/doc/file.man
+  https://github.com/file/file/blob/FILE5_41/magic/Magdir/images
+  https://github.com/file/file/blob/FILE5_41/magic/Magdir/compress
+  https://github.com/file/file/blob/FILE5_41/magic/Magdir/database
+No claim of performance, broad libmagic parity or superiority to just-bash.
+
+EXACT OWNED FILE SHA256 AT COMMIT
+d6a74577448970deb15f899f49a7778b3a4c1c9028df6a831d8f0f1bbd95ce42  src/commands/file/README.md
+d3f17f0e1d5ffeff08a015ee7131d9934a3938148ab65388478702e2764f0d1e  src/commands/file/classify.ts
+1753ac81d099b329d52bb83b0047d5241ca25ec74f9c57b62399f254404ee825  src/commands/file/index.ts
+fa4d86f5cc1eb3a642aac34845737566c89e2b2b4983ec21a111441c3b94f87a  src/commands/file/shared.ts
+a67f710203a6b843d57b6f00254a5dcf44597eb6ef0a8303db9506817e251013  tests/commands/file/NATIVE_PROFILE.md
+73acde4bfa7fffef629c138658cdce6a9fa22db0c2a04761a91d4772891fbfa9  tests/commands/file/file.test.ts
+adfdad35054df359e51e6755b44cde4f89aaf4178e1d8de6f7001f2678f4d70f  tests/commands/file/fixtures.ts
+cb6cf3b7a32f205b183c261cfe5fc6d4f300c73575df86632ae2138ca388db7e  tests/commands/file/helpers.ts
+73df75acdfa3a030889505dc702d40d9039a475fefdf7e1b6794af88218bec73  tests/commands/file/native-baseline.ts
+5755b670881e30b91be817027a8cd4e6814b5fbf8d8972a400d73c544a3ca683  tests/commands/file/native.test.ts
+07760efcc622a09148965d74f5bf32504cc9e2d313e801b5eef9b874ef642f4b  tests/commands/file/native.ts
+e7ad3006206a4b8d25b95c607657ef73156a5174e393022edcafa1e3c131d2fe  tests/commands/file/stress.test.ts
+
+FREEZE / PROCESS / DURATION
+Owned source/test files were unchanged during final scoped tests/typecheck and
+isolated build, hashed before the commit and committed as those exact bytes.
+The wider repository was concurrently dirty and other owners advanced HEAD.
+This is NOT a full-source frozen release or global loaded-module hash audit.
+The parent current HEAD observed immediately before author commit preparation
+was 02a78bf64c29dedcd69071551ed5848b0765c107; the exact candidate commit above is
+authoritative, not a claim about the final concurrent repository HEAD.
+
+No subagents, servers or long-running native processes were launched. All owned
+test/typecheck/build jobs completed. Native temporary specimen directories are
+cleaned by the runner. Isolated build retained at the explicit /tmp path above;
+checkpoint and this detail file retained as requested. No unowned artifacts
+removed. Owner stops at this bounded candidate, awaiting independent review.
+Measured checkpoint-to-commit interval: 15 minutes 3 seconds (08:00:43–08:15:46Z),
+not total project work and certainly not the requested 72 hours. No full product
+completion, broad parity, independent verification or superiority is claimed.

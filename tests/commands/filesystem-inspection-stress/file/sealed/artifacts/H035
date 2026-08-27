@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-08-27T08:11:15.123Z",
+  "candidateImports": 0,
+  "candidateRuns": 0,
+  "originalCasesSha256": "ad530bd7a257947933f4c3daa3d79135213c58e828258d16969d8c3d17c721be",
+  "originalExpectationsSha256": "5bf5932b54820272e2e673dc5cbd79c2a79c024a3ee020a9e9d74578192c4f9c",
+  "originalFilesRetained": [
+    "preseal-original-cases.json",
+    "preseal-original-expectations.json"
+  ],
+  "corrections": [
+    {
+      "case": "F18",
+      "reason": "PRE-SEAL oracle review: native 5.41 labels six-byte truncated PNG text/plain unknown-8bit, consistent with upstream extended-character heuristics. Neither user nor contract requires incomplete signatures to be binary. Semantic profile now permits either safe unknown binary or this text result, but never image/png. Native captured values unchanged; no candidate inspected."
+    },
+    {
+      "case": "F38",
+      "reason": "PRE-SEAL harness review: add explicit - stdin operand to redirection command. Omitted operands are not a requested extension to native file behavior; original proposed command retained."
+    },
+    {
+      "harness": "workflow native lanes",
+      "reason": "Do not call unperformed native/profile comparison a conflict. Workflow lanes stay not-run unless actually compared; native reference observations are retained."
+    },
+    {
+      "harness": "readFile fallback and sink",
+      "reason": "Check readFile options after command completion even if command catches instrumentation assertion; compare retained Uint8Array bytes independent of Buffer subclass."
+    }
+  ],
+  "fsProfiles": [
+    {
+      "source": "src/fs/memory/index.ts",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "inspected": "readFile and readStream method bodies only",
+      "finding": "readFile maxBytes rejects oversized complete content; it does not return a prefix. readStream supports start/endExclusive/chunkSize and signal."
+    },
+    {
+      "source": "src/fs/real/index.ts",
+      "sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "inspected": "readFile and readStream method bodies only",
+      "finding": "readFile maxBytes rejects oversized complete content; it does not return a prefix. readStream supports start/endExclusive/chunkSize and signal."
+    }
+  ]
+}

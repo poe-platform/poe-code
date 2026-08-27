@@ -1,0 +1,39 @@
+import { createHash } from 'node:crypto';
+import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { fixtures, cases, policy } from './corpus.mjs';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const oldCases = await readFile(join(root, 'cases.json'));
+const oldExpected = await readFile(join(root, 'expectations.json'));
+await copyFile(join(root, 'cases.json'), join(root, 'preseal-original-cases.json'));
+await copyFile(join(root, 'expectations.json'), join(root, 'preseal-original-expectations.json'));
+const expected = JSON.parse(oldExpected);
+for (const entry of expected) {
+  const source = fixtures.find((value) => value.id === entry.id);
+  entry.semantic = source.semantic;
+  entry.qualification = source.qualification;
+}
+await writeFile(join(root, 'cases.json'), `${JSON.stringify({ policy, cases }, null, 2)}\n`);
+await writeFile(join(root, 'expectations.json'), `${JSON.stringify(expected, null, 2)}\n`);
+const fsProfiles = [];
+for (const source of ['src/fs/memory/index.ts', 'src/fs/real/index.ts']) {
+  const bytes = await readFile(join('/Users/kjopek/Workspace/safe-bash', source));
+  fsProfiles.push({ source, sha256: hash(bytes), inspected: 'readFile and readStream method bodies only', finding: 'readFile maxBytes rejects oversized complete content; it does not return a prefix. readStream supports start/endExclusive/chunkSize and signal.' });
+}
+const record = {
+  recordedAt: new Date().toISOString(), candidateImports: 0, candidateRuns: 0,
+  originalCasesSha256: hash(oldCases), originalExpectationsSha256: hash(oldExpected),
+  originalFilesRetained: ['preseal-original-cases.json', 'preseal-original-expectations.json'],
+  corrections: [
+    { case: 'F18', reason: 'PRE-SEAL oracle review: native 5.41 labels six-byte truncated PNG text/plain unknown-8bit, consistent with upstream extended-character heuristics. Neither user nor contract requires incomplete signatures to be binary. Semantic profile now permits either safe unknown binary or this text result, but never image/png. Native captured values unchanged; no candidate inspected.' },
+    { case: 'F38', reason: 'PRE-SEAL harness review: add explicit - stdin operand to redirection command. Omitted operands are not a requested extension to native file behavior; original proposed command retained.' },
+    { harness: 'workflow native lanes', reason: 'Do not call unperformed native/profile comparison a conflict. Workflow lanes stay not-run unless actually compared; native reference observations are retained.' },
+    { harness: 'readFile fallback and sink', reason: 'Check readFile options after command completion even if command catches instrumentation assertion; compare retained Uint8Array bytes independent of Buffer subclass.' },
+  ],
+  fsProfiles,
+};
+await writeFile(join(root, 'preseal-corrections.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+console.log(JSON.stringify({ presealCorrections: record.corrections.length, candidateRuns: 0, recordedAt: record.recordedAt }));

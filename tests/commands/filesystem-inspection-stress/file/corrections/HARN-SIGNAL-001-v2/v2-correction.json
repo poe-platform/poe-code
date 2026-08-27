@@ -1,0 +1,76 @@
+{
+  "issue": "HARN-SIGNAL-001-v2",
+  "preparedAt": "2026-08-27T09:00:51.320Z",
+  "authorizedScope": [
+    "F29 observation time and associated assertions",
+    "nonproduct lifecycle mocks"
+  ],
+  "productRunsAuthorized": false,
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "reason": "Peer HOLD: legitimate successful cleanup can abort composed signals after FS entry; test entry-time state instead of settlement-time mutable signal state.",
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "originalRunnerSha256": "3eda4cf112e7a30685b67e1ac942b9fc1521eae4e2acef2f657b3c9522a18fb4",
+  "observationOnlyRunnerSha256": "f9c375c57656c0abfff872bbd9474dc82e1a2d6053859df247b4a9faa519a584",
+  "v2RunnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "unchangedBeforeF29Sha256": "e0aeb79dc2447f3f195e2921f14c49d933b1b70a83b319ae12cc1926398e7949",
+  "unchangedAfterF29Sha256": "a4d7c2bf9de2c5e7693fb5bf55c1f446c5b4370dd673b1c83080e64124710fcd",
+  "observationChanges": [
+    {
+      "before": "    const invocation = await invoke(rig.fs, ['-b', '--mime', '/input']);",
+      "after": "    const fsEntrySnapshots = [];\n    const entryObservedFs = new Proxy(rig.fs, {\n      get(target, method, receiver) {\n        const operation = Reflect.get(target, method, receiver);\n        if (typeof operation !== 'function') return operation;\n        return (...args) => {\n          const options = args.findLast((argument) => argument && typeof argument === 'object' && !(argument instanceof Uint8Array));\n          const signal = options?.signal;\n          fsEntrySnapshots.push(Object.freeze({\n            method: String(method), path: args[0], signalPresentAtEntry: signal !== undefined,\n            isAbortSignalAtEntry: signal instanceof AbortSignal,\n            abortedAtEntry: signal?.aborted, reasonAtEntry: signal?.reason,\n            maxBytesAtEntry: options?.maxBytes,\n          }));\n          return Reflect.apply(operation, target, args);\n        };\n      },\n    });\n    const invocation = await invoke(entryObservedFs, ['-b', '--mime', '/input']);"
+    },
+    {
+      "before": "    row.evidence.trace = traceJson(rig.trace);",
+      "after": "    row.evidence.trace = traceJson(rig.trace);\n    row.evidence.fsEntrySnapshots = fsEntrySnapshots;"
+    }
+  ],
+  "assertionChanges": [
+    {
+      "before": "    for (const entry of rig.trace) {\n      assert(entry.options?.signal instanceof AbortSignal);\n      assert.equal(entry.options.signal.aborted, false);\n      assert.equal(entry.options.signal.reason, undefined);\n    }",
+      "after": "    for (const entry of fsEntrySnapshots) {\n      assert.equal(entry.signalPresentAtEntry, true);\n      assert.equal(entry.isAbortSignalAtEntry, true);\n      assert.equal(entry.abortedAtEntry, false);\n      assert.equal(entry.reasonAtEntry, undefined);\n    }"
+    }
+  ],
+  "verifiedHistory": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file",
+      "files": 285,
+      "publicationRoot": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file/corrections/HARN-SIGNAL-001",
+      "files": 37,
+      "publicationRoot": "5a816d16fc208ea52e674875c8adffd380b97bbeeebb6b4749d729dfc8488530"
+    }
+  ],
+  "sealedArtifactsVerified": 54,
+  "peerFiles": [
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/SAFETY_FINDINGS.md",
+      "copy": "peer/SAFETY_FINDINGS.md",
+      "bytes": 17295,
+      "sha256": "f3123473928e3258bc0a8f64d69f3c83a23e5cab9352ba9eced8cebbd6c84e37"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/correction-counterchecks.mjs",
+      "copy": "peer/correction-counterchecks.mjs",
+      "bytes": 4079,
+      "sha256": "25df1b6737fedbbc5ed536534b089bec48ee2f31fe978cbd8b74ddc9da60cadf"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-correction-counterchecks.json",
+      "copy": "peer/original-counterchecks.json",
+      "bytes": 1029,
+      "sha256": "2e8f2c8851e25017fd73f57584de0099cbf0352824c74828b5ac82b3b0280049"
+    }
+  ],
+  "preservation": [
+    "F33/F34 exact v1 text including signal propagation, exact reason, return count, genuine late injection and telemetry",
+    "all other cases",
+    "successful PNG/stdout/status/stderr and readFile-use assertions",
+    "original readFile fixture maxBytes guard and exact forwarded arguments/promise",
+    "all native/MIME/human/status fixtures"
+  ],
+  "maxBytesBoundary": "Capture maxBytesAtEntry and preserve original options/guard/trace unchanged. Do not invent an exact maxBytes value or new family-limit policy. Nonproduct tests verify exact forwarding and whole-file size guard.",
+  "observationPolicy": "Synchronous entry snapshot before Reflect.apply; primitive presence/type/aborted fields and entry-time reason value; no AbortSignal reference retained in snapshots; no await/then/catch or added promise handlers."
+}

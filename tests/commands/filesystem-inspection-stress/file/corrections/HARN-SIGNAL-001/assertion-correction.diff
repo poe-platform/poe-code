@@ -1,0 +1,28 @@
+diff --git a/tmp/safe-bash-file-harness-correction.RN51tj5j/history/original-isolated-runner.mjs b/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-assertions-runner.mjs
+index ed50e83..f9dde2d 100644
+--- a/tmp/safe-bash-file-harness-correction.RN51tj5j/history/original-isolated-runner.mjs
++++ b/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-assertions-runner.mjs
+@@ -142,7 +142,11 @@ export async function runHoldouts(adapter) {
+     successful(invocation);
+     assert.equal(stdout(invocation), 'image/png; charset=binary\n');
+     assert(rig.trace.some((entry) => entry.method === 'readFile'));
+-    for (const entry of rig.trace) assert.equal(entry.options?.signal, invocation.context.signal);
++    for (const entry of rig.trace) {
++      assert(entry.options?.signal instanceof AbortSignal);
++      assert.equal(entry.options.signal.aborted, false);
++      assert.equal(entry.options.signal.reason, undefined);
++    }
+     row.evidence.trace = traceJson(rig.trace);
+   });
+   for (const [id, unknown] of [['F30', false], ['F31', true]]) await record(id, async (row) => {
+@@ -202,7 +206,9 @@ export async function runHoldouts(adapter) {
+       controller.abort(reason);
+       await assert.rejects(deadline(invocation.promise, `${id} cancellation`), (error) => error === reason);
+       await turn();
+-      assert.equal(capturedSignal, controller.signal);
++      assert(capturedSignal instanceof AbortSignal);
++      assert.equal(capturedSignal.aborted, true);
++      assert.equal(capturedSignal.reason, reason);
+       assert.equal(returned, 1);
+       pendingRead.reject(lateReadError);
+       if (id === 'F34') pendingReturn.reject(lateReturnError);

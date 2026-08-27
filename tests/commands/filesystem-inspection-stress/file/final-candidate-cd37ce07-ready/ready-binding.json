@@ -1,0 +1,34 @@
+{
+  "candidateCommit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "sourceSha256": "f9276a3524347ec20030d41c25d2d5bc033471437b7a9749094585b17693ce0c",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "authorHandoffSha256": "26575726dc3e2df1da386de7ba650e5209468de71c45557a28be515fa34559be",
+  "finalV2RunnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "sealedCaseInputs": 40,
+  "sealedContentAssertions": 80,
+  "historicalNativeObservations": 109,
+  "fixtureChanges": [],
+  "oracleChanges": [],
+  "harnessChangesThisPhase": [],
+  "options": {
+    "limits": {
+      "maxSniffBytes": 65536,
+      "maxReadFileBytes": 65536
+    }
+  },
+  "profile": "Approved bounded-read profile: readFile cap64KiB, not default1MiB; other family defaults unchanged; family and Shell sink budgets remain distinct",
+  "plannedBounds": {
+    "sequentialChildren": true,
+    "perCaseTimeoutMs": 60000,
+    "globalTimeoutMs": 600000,
+    "initialCases": 40,
+    "retries": 0
+  },
+  "readyState": "FROZEN_BUILT_INPUTS_PREPARED_NOT_EXECUTED",
+  "freshProductCases": 0,
+  "reusedProductCasesAsFinalEvidence": 0,
+  "nativeCalls": 0,
+  "productLoadedEntries": [],
+  "remainingAdmission": "Read completed independent prep report; explicitly verify GO final F29v2 and F33/F34 against exact runner hash before any candidate import/execution. Original child bridge not yet rebound/executed."
+}

@@ -1,0 +1,418 @@
+[
+  {
+    "id": "F03",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "Unicode text, UTF-8\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Unicode text, UTF-8 text\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F04",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "Unicode text, UTF-8\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Unicode text, UTF-8 (with BOM) text\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F05",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "Unicode text, UTF-16, little-endian\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Unicode text, UTF-16, little-endian text, with CRLF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F07",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Non-ISO extended-ASCII text, with no line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime",
+    "actual": {
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime-type",
+    "actual": {
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F07",
+    "view": "brief-mime-encoding",
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F08",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "ASCII text\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "ASCII text, with CRLF, LF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F09",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "PNG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "PNG image data, 1 x 1, 8-bit/color RGBA, non-interlaced\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F10",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "JPEG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 1x1, components 3\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F11",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "GIF image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "GIF image data, version 89a, 1 x 1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F12",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "PDF document\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "PDF document, version 1.7\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F12",
+    "view": "brief-mime",
+    "actual": {
+      "stdout": "application/pdf; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "application/pdf; charset=us-ascii\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F12",
+    "view": "brief-mime-encoding",
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F13",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "Zip archive data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Zip archive data, at least v2.0 to extract, compression method=store\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F14",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "gzip compressed data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "gzip compressed data, original size modulo 2^32 4105\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F15",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "ELF 64-bit executable\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "ELF 64-bit LSB executable, x86-64, version 1 (SYSV)\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F16",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "SQLite 3.x database\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "SQLite 3.x database, last written using SQLite version 3041000, page size 512, file counter 1, database pages 1, cookie 0, schema 4, UTF-8, version-valid-for 1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F16",
+    "view": "brief-mime",
+    "actual": {
+      "stdout": "application/x-sqlite3; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "application/vnd.sqlite3; charset=binary\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F16",
+    "view": "brief-mime-type",
+    "actual": {
+      "stdout": "application/x-sqlite3\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "application/vnd.sqlite3\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F17",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "JSON text data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "JSON data\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F18",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "Non-ISO extended-ASCII text, with CRLF line terminators\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime",
+    "actual": {
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime-type",
+    "actual": {
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F18",
+    "view": "brief-mime-encoding",
+    "actual": {
+      "stdout": "binary\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  },
+  {
+    "id": "F19",
+    "view": "brief-human",
+    "actual": {
+      "stdout": "JPEG image data\n",
+      "stderr": "",
+      "status": 0
+    },
+    "expected": {
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length -1\n",
+      "stderr": "",
+      "status": 0,
+      "available": true
+    },
+    "semanticAccepted": true
+  }
+]

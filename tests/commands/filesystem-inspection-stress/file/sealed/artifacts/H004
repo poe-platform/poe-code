@@ -1,0 +1,146 @@
+import assert from 'node:assert/strict';
+import { deflateSync, gzipSync } from 'node:zlib';
+
+const text = (value) => Buffer.from(value, 'utf8');
+const hex = (value) => Buffer.from(value.replaceAll(' ', ''), 'hex');
+const crc32 = (bytes) => {
+  let value = 0xffffffff;
+  for (const byte of bytes) {
+    value ^= byte;
+    for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ ((value & 1) ? 0xedb88320 : 0);
+  }
+  return (value ^ 0xffffffff) >>> 0;
+};
+const pngChunk = (kind, payload) => {
+  const chunk = Buffer.alloc(payload.length + 12);
+  chunk.writeUInt32BE(payload.length, 0);
+  chunk.write(kind, 4, 'ascii');
+  payload.copy(chunk, 8);
+  chunk.writeUInt32BE(crc32(chunk.subarray(4, -4)), chunk.length - 4);
+  return chunk;
+};
+const pngHeader = Buffer.alloc(13);
+pngHeader.writeUInt32BE(1, 0);
+pngHeader.writeUInt32BE(1, 4);
+pngHeader[8] = 8;
+pngHeader[9] = 6;
+const png = Buffer.concat([hex('89504e470d0a1a0a'), pngChunk('IHDR', pngHeader), pngChunk('IDAT', deflateSync(hex('000a141eff'))), pngChunk('IEND', Buffer.alloc(0))]);
+const jpeg = hex('ffd8 ffe0 0010 4a46494600 0101 00 0001 0001 00 00 ffc0 0011 08 0001 0001 03 01 1100 02 1100 03 1100 ffda 000c 03 0100 0211 0311 003f00 00 ffd9');
+const elf = Buffer.alloc(64);
+hex('7f454c4602010100').copy(elf);
+elf.writeUInt16LE(2, 16);
+elf.writeUInt16LE(62, 18);
+elf.writeUInt32LE(1, 20);
+elf.writeBigUInt64LE(0x400000n, 24);
+elf.writeUInt16LE(64, 52);
+elf.writeUInt16LE(56, 54);
+elf.writeUInt16LE(64, 58);
+const sqlite = Buffer.alloc(512);
+text('SQLite format 3\0').copy(sqlite);
+sqlite.writeUInt16BE(512, 16);
+sqlite.set([1, 1, 0, 64, 32, 32], 18);
+sqlite.writeUInt32BE(1, 24);
+sqlite.writeUInt32BE(1, 28);
+sqlite.writeUInt32BE(4, 44);
+sqlite.writeUInt32BE(1, 56);
+sqlite.writeUInt32BE(1, 92);
+sqlite.writeUInt32BE(3041000, 96);
+sqlite[100] = 13;
+sqlite.writeUInt16BE(512, 105);
+const memberName = text('message.txt');
+const memberData = text('sealed archive member\n');
+const local = Buffer.alloc(30);
+local.writeUInt32LE(0x04034b50);
+local.writeUInt16LE(20, 4);
+local.writeUInt32LE(crc32(memberData), 14);
+local.writeUInt32LE(memberData.length, 18);
+local.writeUInt32LE(memberData.length, 22);
+local.writeUInt16LE(memberName.length, 26);
+const central = Buffer.alloc(46);
+central.writeUInt32LE(0x02014b50);
+central.writeUInt16LE(20, 4);
+central.writeUInt16LE(20, 6);
+central.writeUInt32LE(crc32(memberData), 16);
+central.writeUInt32LE(memberData.length, 20);
+central.writeUInt32LE(memberData.length, 24);
+central.writeUInt16LE(memberName.length, 28);
+const zipEnd = Buffer.alloc(22);
+zipEnd.writeUInt32LE(0x06054b50);
+zipEnd.writeUInt16LE(1, 8);
+zipEnd.writeUInt16LE(1, 10);
+zipEnd.writeUInt32LE(central.length + memberName.length, 12);
+zipEnd.writeUInt32LE(local.length + memberName.length + memberData.length, 16);
+const zip = Buffer.concat([local, memberName, memberData, central, memberName, zipEnd]);
+
+const fixture = (id, name, bytes, mime, encoding, human, qualification = 'native-exact-and-semantic') => ({
+  id, name, bytes, semantic: { mime, encoding, human }, qualification,
+});
+
+export const fixtures = [
+  fixture('F01', 'empty.pdf', Buffer.alloc(0), ['inode/x-empty', 'application/x-empty'], ['binary'], 'empty'),
+  fixture('F02', 'letter.png', text('A quiet line of ordinary prose.\nAnother quiet line.\n'), ['text/plain'], ['us-ascii'], 'ASCII|text'),
+  fixture('F03', 'unicode.bin', text('Zażółć gęślą jaźń — Καλημέρα — 雪 — 😀\n'), ['text/plain'], ['utf-8'], 'UTF-8|Unicode|text'),
+  fixture('F04', 'bom.data', Buffer.concat([hex('efbbbf'), text('Snow 雪 and music ♬\n')]), ['text/plain'], ['utf-8'], 'UTF-8|Unicode|text'),
+  fixture('F05', 'wide.dat', Buffer.concat([hex('fffe'), Buffer.from('Wide snow 雪\r\n', 'utf16le')]), ['text/plain'], ['utf-16le'], 'UTF-16|Unicode|text|character'),
+  fixture('F06', 'binary.txt', hex('00010203c0afe080afeda080f4908080ff7f0a'), ['application/octet-stream'], ['binary'], 'data|binary'),
+  fixture('F07', 'partial.txt', Buffer.concat([text('A short unfinished scalar: '), hex('e282')]), ['text/plain', 'application/octet-stream'], ['binary', 'unknown-8bit', 'iso-8859-1'], 'text|data', 'native-profile-sensitive-incomplete-unicode-at-EOF'),
+  fixture('F08', 'controls.raw', text('alpha\tbeta\r\ngamma\fdelta\n'), ['text/plain'], ['us-ascii'], 'ASCII|text'),
+  fixture('F09', 'picture.txt', png, ['image/png'], ['binary'], 'PNG'),
+  fixture('F10', 'photo.dat', jpeg, ['image/jpeg'], ['binary'], 'JPEG', 'recognizable-structure-not-decoder-validity'),
+  fixture('F11', 'animation.bin', Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'), ['image/gif'], ['binary'], 'GIF'),
+  fixture('F12', 'report.raw', text('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n'), ['application/pdf'], ['us-ascii', 'binary'], 'PDF', 'recognizable-structure-not-document-validation'),
+  fixture('F13', 'archive.data', zip, ['application/zip'], ['binary'], 'Zip|ZIP'),
+  fixture('F14', 'compressed.png', gzipSync(Buffer.concat([text('%PDF-1.7\n'), Buffer.alloc(4096, 65)]), { level: 6 }), ['application/gzip', 'application/x-gzip'], ['binary'], 'gzip', 'container-only-no-decompression'),
+  fixture('F15', 'program.txt', elf, ['application/x-executable', 'application/x-elf'], ['binary'], 'ELF', 'header-classification-not-loader-validity'),
+  fixture('F16', 'catalog.bin', sqlite, ['application/vnd.sqlite3', 'application/x-sqlite3'], ['binary'], 'SQLite'),
+  fixture('F17', 'settings.data', text('{"message":"sealed","items":[1,true,null],"nested":{"x":2}}\n'), ['application/json'], ['us-ascii', 'utf-8'], 'JSON', 'common-subset-support-measured-not-assumed'),
+  fixture('F18', 'cut.png', png.subarray(0, 6), ['application/octet-stream', 'text/plain'], ['binary', 'unknown-8bit'], 'data|binary|text', 'incomplete-signature-no-full-magic-native-8bit-text-profile'),
+  fixture('F19', 'length.jpg', hex('ffd8ffe0ffff4a46494600010100000100010000'), ['image/jpeg', 'application/octet-stream'], ['binary'], 'JPEG|data', 'malformed-declared-length-classifier-not-validator'),
+  fixture('F20', 'shifted.png', Buffer.concat([hex('00010203'), png]), ['application/octet-stream'], ['binary'], 'data|binary', 'offset-zero-magic-must-not-match-at-arbitrary-offset'),
+];
+
+const workflow = (id, title, setup, assertions, qualification = 'contract') => ({ id, kind: 'workflow', title, setup, assertions, qualification });
+export const cases = [
+  ...fixtures.map((entry) => ({ id: entry.id, kind: 'content', title: entry.name, fixture: entry.id, semantic: entry.semantic, qualification: entry.qualification, views: ['brief-human', 'brief-mime', 'brief-mime-type', 'brief-mime-encoding'] })),
+  workflow('F21', 'directory metadata without content reads', 'VFS directory /input with readFile/readStream throwing if called.', ['Describe directory; MIME inode/directory; binary encoding; do not open content or enumerate children.']),
+  workflow('F22', 'default symlink classification', 'VFS /link -> /picture holding F09; POSIXLY_CORRECT absent.', ['Describe link, not image; no target bytes read; readlink may supply target text.', 'Native inode/symlink versus x-symlink is a recorded MIME dialect difference, not a silent exact pass.']),
+  workflow('F23', 'explicit follow symlink', 'Same fixture, invoke -L.', ['Report image/png and binary from target via supplied VFS; no host resolution.']),
+  workflow('F24', 'dangling follow flow', 'VFS /dangling -> /missing; stat/read fail typed ENOENT under -L.', ['No success classification from invented empty bytes; preserve missing-path meaning and operand identity; no crash.'], 'native-error-presentation-profile'),
+  workflow('F25', 'symlink cycle flow', 'VFS /cycle-a -> /cycle-b -> /cycle-a; following stat returns typed ELOOP.', ['No unbounded traversal; cycle diagnostic, no invented bytes; retain ELOOP meaning without requiring literal errno text.'], 'native-error-presentation-profile'),
+  workflow('F26', 'absolute symlink stays virtual', 'Root binds /absolute -> unique absolute /tmp canary path. Native canary contains F09; VFS same absolute path contains F02.', ['-L must classify VFS ASCII text, not native PNG; only supplied FS used.', 'Absolute spelling does not confer host authority; canary is verifier-owned and nonprivate.']),
+  workflow('F27', 'bounded stream prefix and iterator return', 'Declared finite prefix B chosen from finished public API/documented limit; instrumented source delivers exactly B bytes with F09 prefix, then poison next().', ['Classify PNG; no next after B useful bytes; invoke iterator.return exactly once on early close.', 'Request a bounded start/endExclusive where adapter interface supports it; record actual options.', 'No claim that a consumer controls upstream prefetch or adapter allocations.']),
+  workflow('F28', 'Unicode scalar split at prefix boundary', 'Source has ASCII through B-1, then UTF-8 E2 82 AC split so only E2 enters B-byte sample; another F03 source splits scalars across ordinary chunks.', ['Chunk segmentation within the inspected prefix must not corrupt valid text.', 'Prefix-tail ambiguity may report text/binary/inconclusive under disclosed prefix policy; must not invent replacement bytes as original contents.', 'Do not read beyond B to complete the scalar; retain native full-stream versus prefix qualification.'], 'prefix-versus-EOF-semantic-profile'),
+  workflow('F29', 'readFile-only small known size', 'No readStream; stat size equals F09 length; readFile records options and returns full exact bytes.', ['Classify PNG; pass invocation signal to metadata/read calls; any maxBytes is an allocation guard, not a slice promise.']),
+  workflow('F30', 'readFile-only large known size', 'No readStream; stat size B+4096; conforming readFile throws typed EFBIG when maxBytes is less than full size.', ['Either reject/refuse with truthful bounded-read limitation without unbounded read, or use a real public safe capability.', 'Never retry unbounded, invent prefix return semantics for readFile, or classify an error as empty.'], 'backend-bounded-read-limitation-not-content-pass'),
+  workflow('F31', 'readFile-only unavailable metadata', 'No readStream; stat/lstat reject ENOTSUP (do not fabricate NaN/negative/optional FileStat.size); readFile would enforce full-file maxBytes guard.', ['Either preserve unsupported metadata, or call bounded readFile with positive finite maxBytes and signal; retain EFBIG if encountered.', 'Unknown size is inability to establish metadata, not a fabricated valid FileStat; inability is never counted as successful classification.'], 'backend-bounded-read-limitation-not-content-pass'),
+  workflow('F32', 'one oversized upstream chunk', 'Source yields B+4096 bytes in one already-allocated Uint8Array; first B all ASCII, suffix contains NUL and F09.', ['Classification observes at most first B; no second next; return iterator.', 'Do not claim prevention of the upstream chunk allocation; no RSS threshold asserted; sample suffix must not affect prefix classification.']),
+  workflow('F33', 'cancel pending read with late rejection', 'First next remains pending; abort with exact typed ENOENT-shaped reason; reject pending next later with EIO sentinel.', ['Command settles cancellation before opaque read resolves; exact abort reason identity at public invocation boundary.', 'Signal propagated; iterator return attempted; late rejection observed without unhandledRejection.', 'No forced termination claim for uncooperative host promises.']),
+  workflow('F34', 'late iterator cleanup rejection after abort', 'After first read starts, abort; iterator.return returns pending promise, later rejects a distinct sentinel.', ['Cancel promptly without awaiting opaque return forever; cleanup called once; late cleanup rejection observed.', 'Do not replace caller reason with cleanup failure or report success.']),
+  workflow('F35', 'await sink writes and chunk ownership', 'Two inputs F02/F09; stdout.write retains each chunk and gates fulfillment; stderr separately recorded.', ['No overlapping writes or command settlement before held write resolves.', 'Retained first bytes unchanged after later writes; final output order matches operands; rejection from sink never becomes successful output.']),
+  workflow('F36', 'denied path then readable path', 'First VFS lstat/stat raises EACCES, second is F09. Separate bounded native mode-000 fixture records actual host permission outcome.', ['Diagnostic preserves denied operand/permission meaning; no content access to denied path; supported multioperand continuation retains second result.', 'Do not require errno serialization; native default zero exit for path errors remains separate from virtual command error profile.'], 'native-error-presentation-profile'),
+  workflow('F37', 'stat-read namespace race', 'lstat/stat reports regular F02-sized file, then readStream/readFile raises ENOENT with exact operand.', ['Report vanished input, not empty/ASCII from stale stat; preserve error meaning.', 'Do not require snapshot, identity lease, rollback, or preclude a real replacement that legitimately returns bytes.'], 'native-unavailable-contract-race'),
+  workflow('F38', 'actual Shell binary pipeline and stdin', 'Actual Shell with explicit file plugin; independent producer emits F09 in chunks [1,2,5,3,rest], piped into file -b --mime -; also file -b --mime - < /picture.', ['Both outputs image/png; charset=binary plus newline; producer bytes exactly fixture bytes.', 'No fake file command, stub Shell, native pipe, replacement registry handler, or stringify/decode before file.']),
+  workflow('F39', 'actual Shell multiinput with stdin', 'Actual Shell receives F09 stdin; file --mime /letter - /empty, then brief variant with fresh stdin. Files F02/F01.', ['Exactly three results in operand order; correct source selection and byte classification; brief output omits labels.', 'Named mode labels own paths and stdin recognizably; do not require native padding or Darwin stdin label spelling.']),
+  workflow('F40', 'preaborted invocation has no work', 'Signal already aborted with exact FsError EACCES sentinel; trap all FS, stdin iterator, and sink calls.', ['No new FS/read/write host work; direct execute and actual Shell boundary retain caller reason rather than permission diagnostic or zero exit.']),
+];
+
+assert.equal(cases.length, 40);
+assert.equal(new Set(cases.map((entry) => entry.id)).size, 40);
+assert.equal(fixtures.length, 20);
+
+export const policy = {
+  version: 1,
+  caseCount: 40,
+  contentCases: 20,
+  workflowCases: 20,
+  contentViewCount: 80,
+  preCandidate: true,
+  candidateImports: 0,
+  candidateExecutions: 0,
+  binding: 'Public factory/plugin names and prefix option/limit are pending; root supplies mechanical adapter only after candidate finished. No proposed names imported here.',
+  statusVocabulary: ['not-run', 'pass', 'fail', 'unsupported', 'native-profile-conflict', 'backend-limitation', 'harness-defect', 'oracle-unavailable'],
+  reporting: 'Each case has semantic/safety and native-exact lanes. Unsupported, profile-conflict, backend-limitation, harness-defect and oracle-unavailable are NOT passes. Report 40 denominator and 80 content-view denominator separately; native probes are reference observations, never candidate passes.',
+  assertions: 'Semantic MIME alias sets are frozen before candidate inspection; native exact MIME/encoding is captured independently and never rewritten to match a candidate. Human labels use semantic regex only. Error stderr need not contain errno literals.',
+  limits: 'Classifier, not full file validator. No decompression; no full libmagic parity or unsupported-option matrix. Native bounded -P bytes=65536 fixtures only. Exact file-vs-stdin and prefix-vs-full-source differences stay visible.',
+  sourceAuditLater: 'After candidate freeze, review owned author sources for runtime deps/subprocesses/host fs/libmagic/decompression. No behavioral holdout can universally prove absence of host access; the dedicated canary only covers its exercised route.',
+};

@@ -9,8 +9,9 @@ for (const scenario of [
   "late-read-rejection", "iterator-return", "caller-abort", "budget-abort",
   "completed-success", "completed-failure", "completed-rejection", "delayed-no-write",
   "closed-before-write", "zero-byte-no-write",
-  "first-read-head-zero", "first-read-local", "first-read-s3", "first-read-webdav",
-  "first-read-curl-body", "first-read-curl-headers",
+  "first-read-head-zero", "first-read-local-unenrolled-controlled", "first-read-local-owned",
+  "first-read-s3", "first-read-webdav", "first-read-curl-body", "first-read-curl-headers",
+  "first-read-webdav-body-acquired", "first-read-curl-body-acquired", "first-read-required-destinations",
 ]) {
   test(`hard-deadline pipeline close: ${scenario}`, async context => {
     const child = spawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx",

@@ -17,6 +17,8 @@ export type CommandInvoker = (
   options?: CommandInvokeOptions,
 ) => Promise<CommandResult>;
 
+export type InvocationCleanup = () => void | Promise<void>;
+
 export interface CommandContext {
   readonly command: string;
   readonly args: readonly string[];
@@ -29,6 +31,7 @@ export interface CommandContext {
   readonly fs: FileSystem;
   readonly signal: AbortSignal;
   readonly invoke?: CommandInvoker;
+  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
 }
 
 export interface CommandResult {

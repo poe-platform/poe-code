@@ -1736,6 +1736,18 @@ that any implementation, command, fixture, or test currently exists.
   six historical SGID differences and native124/164 strict plus40 stderr
   differences remain unchanged. Five cleanup blockers remain OPEN pending
   independent closure; this wiring is not full lifecycle/release-ready acceptance.
+- Actual outer candidate5456730 exits1: all22 maintained `.mts` inputs strictly
+  compile in13 groups;11/12 runtime groups pass, but unchanged WebDAV consumer
+  reports12/13 (`mv` to remote: EAGAIN on timestamp postcondition). Root received
+  exact fixture/source paths; no unowned correction or waiver is made. Subsequent
+  independent phases pass current archive11/11 zero skips, metadata318/318 under
+  measured gid20 TMPDIR, stream strict124/164, registry31/31 and packed21/21.
+  Three exact-candidate tar negatives exit78 before tests, including valid
+  GNU_TAR without explicit fixture setup. Final setup-only0 is not a release pass.
+  Both original runner failures, source/test/harness bindings and all raw current
+  results are preserved in `tests/plugins/qualified-current-release/REPORT.md`
+  and its linked evidence. Archived source/consumer/oracle bytes and rootdist
+  remain unchanged during the recorded run; concurrent live work is not certified.
 
 ### Remaining product validation
 

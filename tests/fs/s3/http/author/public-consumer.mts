@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import {
   FsError, MemoryFileSystem, MountFileSystem, Shell, isFsError, normalizePath, standardCommands,
+  createS3HttpTransport as rootCreateS3HttpTransport,
   type FileSystem, type FsOptions,
 } from "virtual-bash";
 import {
-  S3FileSystem, createS3HttpTransport, type S3FileSystemOptions, type S3HttpCredentials,
+  S3FileSystem, type S3FileSystemOptions,
 } from "virtual-bash/fs/s3";
+import { createS3HttpTransport, type S3HttpCredentials } from "virtual-bash/fs/s3/http";
+
+assert.equal(rootCreateS3HttpTransport, createS3HttpTransport, "root and HTTP subpath export the same factory");
 
 export interface PublicS3ExampleOptions {
   readonly endpoint: string;

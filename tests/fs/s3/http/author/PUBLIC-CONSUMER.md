@@ -2,7 +2,9 @@
 
 `public-consumer.mts` exports the fully typed
 `runPublicS3Example(options): Promise<PublicS3ExampleResult>`. It imports only Node's
-assertions and actual public `virtual-bash` / `virtual-bash/fs/s3` exports. There
+assertions and actual public `virtual-bash`, `virtual-bash/fs/s3`, and
+`virtual-bash/fs/s3/http` exports. Importing the compiled consumer asserts that
+the root and HTTP subpath expose the identical factory function. There
 are no private mock observations, SDK bridges, private authority helpers, undefined
 callbacks, casts around missing exports, or installed runtime dependencies.
 
@@ -131,6 +133,8 @@ the compiled package consumer, not substitute a source/private-import fixture.
 `public-build-first.json` preserves the real initial result: package build exits0,
 strict consumer compilation exits1 because the actual S3 barrel lacks
 `createS3HttpTransport` (TS2724) and `S3HttpCredentials` (TS2305). No export map was
-patched. Root/Curie owns that wiring. This first failed build is not public-package
-usability acceptance; a fresh successful build and actual-service execution must
-be recorded separately after the exports land.
+patched. Root/Curie's subsequent `3c45ca2` exposes HTTP APIs from the package root
+and new `virtual-bash/fs/s3/http` subpath, not the existing S3 barrel. This first
+failed build is preserved unchanged; the consumer now uses those actual exports.
+See `PUBLIC-EXPORTS.md` for the separate fresh build result. Actual-service
+execution of this compiled public consumer remains a separate verification step.

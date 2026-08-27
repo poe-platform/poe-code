@@ -1,0 +1,3166 @@
+[
+  {
+    "parent": "dist/commands/archive/create.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.d.ts",
+    "specifier": "./format.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.js",
+    "specifier": "./format.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/create.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.js",
+    "specifier": "./format.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/archive/extract.js",
+    "specifier": "./stream.js"
+  },
+  {
+    "parent": "dist/commands/archive/format.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/format.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./create.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./extract.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./stream.js"
+  },
+  {
+    "parent": "dist/commands/archive/index.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/internal.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/internal.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/options.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/options.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/options.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/options.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/stream.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/stream.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/archive/stream.js",
+    "specifier": "node:zlib"
+  },
+  {
+    "parent": "dist/commands/archive/stream.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/archive/stream.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/basic.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/basic.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/basic.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/checksums/index.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/checksums/index.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/commands/bytes/checksums/index.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/checksums/index.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/files.js",
+    "specifier": "./stream.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/gunzip.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/gunzip.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/gunzip.js",
+    "specifier": "node:zlib"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/gunzip.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.js",
+    "specifier": "./files.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/index.js",
+    "specifier": "./stream.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/options.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "node:stream"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "node:stream/promises"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "node:zlib"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/compression/stream.js",
+    "specifier": "./gunzip.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/base.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/base.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/base.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/index.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/index.js",
+    "specifier": "./base.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/index.js",
+    "specifier": "./od.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/index.js",
+    "specifier": "./xxd.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/od.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/od.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/od.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/shared.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/shared.d.ts",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/shared.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/shared.js",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/shared.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/xxd.d.ts",
+    "specifier": "../../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/xxd.js",
+    "specifier": "../../internal.js"
+  },
+  {
+    "parent": "dist/commands/bytes/encoding/xxd.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/bytes/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/index.js",
+    "specifier": "./encoding/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/index.js",
+    "specifier": "./checksums/index.js"
+  },
+  {
+    "parent": "dist/commands/bytes/index.js",
+    "specifier": "./compression/index.js"
+  },
+  {
+    "parent": "dist/commands/copy-identity.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/copy-identity.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff-format.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/diff.js",
+    "specifier": "./diff-format.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/index.js",
+    "specifier": "./diff.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/index.js",
+    "specifier": "./patch.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-envelope.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-envelope.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-formats.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-formats.d.ts",
+    "specifier": "./unified.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-formats.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-formats.js",
+    "specifier": "./unified.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-formats.js",
+    "specifier": "./patch-path.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+    "specifier": "./unified.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+    "specifier": "./patch-path.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+    "specifier": "./unified.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch-path.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./unified.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./patch-path.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./patch-envelope.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./patch-formats.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./patch-gnu-paths.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/patch.js",
+    "specifier": "./patch-gnu-reject.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/shared.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/diff-patch/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/unified.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/unified.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/diff-patch/unified.js",
+    "specifier": "./patch-path.js"
+  },
+  {
+    "parent": "dist/commands/execution.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/execution.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/execution.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/filesystem.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/filesystem.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/filesystem.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/filesystem.js",
+    "specifier": "./copy-identity.js"
+  },
+  {
+    "parent": "dist/commands/filesystem.js",
+    "specifier": "./move.js"
+  },
+  {
+    "parent": "dist/commands/find.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/find.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/find.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/grep.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/grep.d.ts",
+    "specifier": "./regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/grep.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/grep.js",
+    "specifier": "./regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/index.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/index.d.ts",
+    "specifier": "./regex-execution/protocol.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./basic.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./streams.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./text.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./grep.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./predicates.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./execution.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./find.js"
+  },
+  {
+    "parent": "dist/commands/index.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/internal.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/internal.d.ts",
+    "specifier": "util"
+  },
+  {
+    "parent": "dist/commands/internal.d.ts",
+    "specifier": "util"
+  },
+  {
+    "parent": "dist/commands/internal.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/chmod.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/chmod.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/metadata/chmod.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/chmod.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/chmod.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.js",
+    "specifier": "./chmod.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.js",
+    "specifier": "./stat.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.js",
+    "specifier": "./mktemp.js"
+  },
+  {
+    "parent": "dist/commands/metadata/index.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/internal.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/internal.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/internal.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/mktemp.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/stat.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/stat.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/metadata/stat.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/metadata/stat.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/metadata/stat.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/move.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/move.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/move.js",
+    "specifier": "./copy-identity.js"
+  },
+  {
+    "parent": "dist/commands/move.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/network/args.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/args.js",
+    "specifier": "node:http"
+  },
+  {
+    "parent": "dist/commands/network/args.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/body.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/body.d.ts",
+    "specifier": "./args.js"
+  },
+  {
+    "parent": "dist/commands/network/body.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/network/body.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./args.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./body.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./output.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/commands/network/curl.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/index.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/commands/network/index.d.ts",
+    "specifier": "./curl.js"
+  },
+  {
+    "parent": "dist/commands/network/index.js",
+    "specifier": "./curl.js"
+  },
+  {
+    "parent": "dist/commands/network/index.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/index.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/commands/network/index.js",
+    "specifier": "./curl.js"
+  },
+  {
+    "parent": "dist/commands/network/output.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/output.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/output.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/output.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/network/output.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/network/output.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/shared.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/shared.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/transport.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/transport.js",
+    "specifier": "node:http"
+  },
+  {
+    "parent": "dist/commands/network/transport.js",
+    "specifier": "node:https"
+  },
+  {
+    "parent": "dist/commands/network/transport.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/network/transport.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/network/transport.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/network/types.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/predicates.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/predicates.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/predicates.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.d.ts",
+    "specifier": "node:worker_threads"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.d.ts",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.d.ts",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.d.ts",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.d.ts",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.js",
+    "specifier": "node:worker_threads"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.js",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/client.js",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/matching.d.ts",
+    "specifier": "./protocol.js"
+  },
+  {
+    "parent": "dist/commands/regex-execution/matching.js",
+    "specifier": "node:buffer"
+  },
+  {
+    "parent": "dist/commands/regex-execution/worker.js",
+    "specifier": "node:worker_threads"
+  },
+  {
+    "parent": "dist/commands/regex-execution/worker.js",
+    "specifier": "./matching.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "../../integrations/safejs/index.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "../../integrations/safejs/values.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/safejs/index.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/io.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/safejs/io.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/safejs/io.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/safejs/io.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/io.js",
+    "specifier": "./render.js"
+  },
+  {
+    "parent": "dist/commands/safejs/options.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/options.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/safejs/render.js",
+    "specifier": "../../integrations/safejs/values.js"
+  },
+  {
+    "parent": "dist/commands/safejs/render.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/commands/safejs/types.d.ts",
+    "specifier": "../../integrations/safejs/index.js"
+  },
+  {
+    "parent": "dist/commands/search/glob.d.ts",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/glob.js",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/glob.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/index.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/index.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/index.js",
+    "specifier": "./rg.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.d.ts",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.d.ts",
+    "specifier": "../regex-execution/protocol.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.d.ts",
+    "specifier": "../regex-execution/protocol.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.js",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/matcher.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/options.d.ts",
+    "specifier": "../regex-execution/protocol.js"
+  },
+  {
+    "parent": "dist/commands/search/output.d.ts",
+    "specifier": "./matcher.js"
+  },
+  {
+    "parent": "dist/commands/search/output.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/output.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/search/output.js",
+    "specifier": "node:buffer"
+  },
+  {
+    "parent": "dist/commands/search/output.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "./matcher.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "./output.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "./walk.js"
+  },
+  {
+    "parent": "dist/commands/search/rg.js",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/shared.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/shared.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/search/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/shared.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.d.ts",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.js",
+    "specifier": "../regex-execution/client.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.js",
+    "specifier": "./glob.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/search/walk.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/split/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/index.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/index.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/index.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/index.js",
+    "specifier": "./split.js"
+  },
+  {
+    "parent": "dist/commands/split/io.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/io.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/io.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/split/io.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/io.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/split/names.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/outputs.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/outputs.d.ts",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/commands/split/outputs.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/outputs.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/split/outputs.js",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/commands/split/split.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/split.d.ts",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/split/split.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/split/split.js",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/commands/split/split.js",
+    "specifier": "./names.js"
+  },
+  {
+    "parent": "dist/commands/split/split.js",
+    "specifier": "./outputs.js"
+  },
+  {
+    "parent": "dist/commands/split/split.js",
+    "specifier": "./options.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.js",
+    "specifier": "./seq.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.js",
+    "specifier": "./nl.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.js",
+    "specifier": "./rev.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.js",
+    "specifier": "./unexpand.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/index.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.js",
+    "specifier": "../text-programs/regex.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.js",
+    "specifier": "../text-programs/shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/nl.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/rev.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/rev.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/rev.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/rev.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/seq.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/seq.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/seq.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/seq.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/shared.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/unexpand.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/unexpand.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/unexpand.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-format/unexpand.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/expand.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/expand.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/expand.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/expand.js",
+    "specifier": "./numeric-options.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/expand.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/fold.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/fold.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/fold.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/fold.js",
+    "specifier": "./numeric-options.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/fold.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.js",
+    "specifier": "./tac.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.js",
+    "specifier": "./expand.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.js",
+    "specifier": "./fold.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.js",
+    "specifier": "./strings.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/index.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/numeric-options.d.ts",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/numeric-options.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/shared.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/strings.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/strings.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/strings.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/strings.js",
+    "specifier": "./numeric-options.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/strings.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/tac.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/tac.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/tac.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/stream-inspection/tac.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/streams.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/streams.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/streams.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.js",
+    "specifier": "./jq.js"
+  },
+  {
+    "parent": "dist/commands/structured/index.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/input.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/structured/input.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/input.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/structured/input.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/input.js",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.d.ts",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.js",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.js",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.js",
+    "specifier": "./split.js"
+  },
+  {
+    "parent": "dist/commands/structured/interpreter.js",
+    "specifier": "./values.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.js",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.js",
+    "specifier": "./interpreter.js"
+  },
+  {
+    "parent": "dist/commands/structured/jq.js",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/commands/structured/limits.d.ts",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/limits.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/structured/limits.js",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/numbers.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/parser.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/parser.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/parser.js",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/split.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/split.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/values.d.ts",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/values.js",
+    "specifier": "./limits.js"
+  },
+  {
+    "parent": "dist/commands/structured/values.js",
+    "specifier": "./numbers.js"
+  },
+  {
+    "parent": "dist/commands/structured/values.js",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/commands/table-text/comm.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/comm.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/comm.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.js",
+    "specifier": "./paste.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.js",
+    "specifier": "./comm.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.js",
+    "specifier": "./join.js"
+  },
+  {
+    "parent": "dist/commands/table-text/index.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/internal.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/internal.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/internal.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/join.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/join.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/join.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/paste.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/table-text/paste.d.ts",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/paste.js",
+    "specifier": "../internal.js"
+  },
+  {
+    "parent": "dist/commands/table-text/paste.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.d.ts",
+    "specifier": "./awk-syntax.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.js",
+    "specifier": "./awk-syntax.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.js",
+    "specifier": "./awk-values.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.js",
+    "specifier": "./regex.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-runtime.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-syntax.d.ts",
+    "specifier": "./regex.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-syntax.js",
+    "specifier": "./regex.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-syntax.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-syntax.js",
+    "specifier": "./awk-values.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk-values.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk.js",
+    "specifier": "./awk-syntax.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk.js",
+    "specifier": "./awk-runtime.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/awk.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/index.js",
+    "specifier": "./sed.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/index.js",
+    "specifier": "./awk.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/regex.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/regex.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/sed.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/sed.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/sed.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/sed.js",
+    "specifier": "./regex.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/sed.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text-programs/shared.js",
+    "specifier": "node:timers/promises"
+  },
+  {
+    "parent": "dist/commands/text-programs/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/text.js",
+    "specifier": "./internal.js"
+  },
+  {
+    "parent": "dist/commands/time-env/calendar.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.d.ts",
+    "specifier": "../../contracts/command.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.js",
+    "specifier": "./calendar.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.js",
+    "specifier": "./format.js"
+  },
+  {
+    "parent": "dist/commands/time-env/date.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/format.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/format.d.ts",
+    "specifier": "./calendar.js"
+  },
+  {
+    "parent": "dist/commands/time-env/format.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/format.js",
+    "specifier": "./calendar.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.js",
+    "specifier": "./printenv.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.js",
+    "specifier": "./date.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.js",
+    "specifier": "./sleep.js"
+  },
+  {
+    "parent": "dist/commands/time-env/index.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/printenv.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/printenv.d.ts",
+    "specifier": "../../index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/printenv.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/shared.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/shared.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/sleep.d.ts",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/commands/time-env/sleep.d.ts",
+    "specifier": "../../index.js"
+  },
+  {
+    "parent": "dist/commands/time-env/sleep.js",
+    "specifier": "./shared.js"
+  },
+  {
+    "parent": "dist/contracts/command.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/contracts/command.d.ts",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/contracts/errors.js",
+    "specifier": "node:util"
+  },
+  {
+    "parent": "dist/contracts/filesystem.d.ts",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./command.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./errors.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./path.js"
+  },
+  {
+    "parent": "dist/contracts/index.d.ts",
+    "specifier": "./plugin.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./command.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./errors.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./io.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./path.js"
+  },
+  {
+    "parent": "dist/contracts/index.js",
+    "specifier": "./plugin.js"
+  },
+  {
+    "parent": "dist/contracts/io.js",
+    "specifier": "node:stream/web"
+  },
+  {
+    "parent": "dist/contracts/io.js",
+    "specifier": "./errors.js"
+  },
+  {
+    "parent": "dist/contracts/path.d.ts",
+    "specifier": "path"
+  },
+  {
+    "parent": "dist/contracts/path.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/contracts/path.js",
+    "specifier": "./errors.js"
+  },
+  {
+    "parent": "dist/contracts/plugin.d.ts",
+    "specifier": "./command.js"
+  },
+  {
+    "parent": "dist/contracts/plugin.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.d.ts",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.js",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.js",
+    "specifier": "../s3/authority.js"
+  },
+  {
+    "parent": "dist/fs/memory/index.js",
+    "specifier": "../webdav/resource-id.js"
+  },
+  {
+    "parent": "dist/fs/mount/comparison.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/mount/comparison.js",
+    "specifier": "node:async_hooks"
+  },
+  {
+    "parent": "dist/fs/mount/comparison.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/mount/comparison.js",
+    "specifier": "./identity.js"
+  },
+  {
+    "parent": "dist/fs/mount/identity.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.d.ts",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.js",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.js",
+    "specifier": "../../contracts/path.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.js",
+    "specifier": "./identity.js"
+  },
+  {
+    "parent": "dist/fs/mount/index.js",
+    "specifier": "./comparison.js"
+  },
+  {
+    "parent": "dist/fs/overlay/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/overlay/index.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/overlay/index.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/fs/overlay/index.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/overlay/index.js",
+    "specifier": "../mount/identity.js"
+  },
+  {
+    "parent": "dist/fs/overlay/index.js",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/readonly/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/readonly/index.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/readonly/index.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/readonly/index.js",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/real/index.d.ts",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/real/index.js",
+    "specifier": "node:fs"
+  },
+  {
+    "parent": "dist/fs/real/index.js",
+    "specifier": "node:fs/promises"
+  },
+  {
+    "parent": "dist/fs/real/index.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/fs/real/index.js",
+    "specifier": "../../contracts/index.js"
+  },
+  {
+    "parent": "dist/fs/s3/authority.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/s3/authority.d.ts",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/s3/authority.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/authority.js",
+    "specifier": "node:async_hooks"
+  },
+  {
+    "parent": "dist/fs/s3/authority.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.d.ts",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.d.ts",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "./authority.js"
+  },
+  {
+    "parent": "dist/fs/s3/filesystem.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/index.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/index.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.d.ts",
+    "specifier": "node:http"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.js",
+    "specifier": "node:events"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.js",
+    "specifier": "node:http"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.js",
+    "specifier": "node:https"
+  },
+  {
+    "parent": "dist/fs/s3/http/request.js",
+    "specifier": "../transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/signature.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/signature.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/fs/s3/http/signature.js",
+    "specifier": "../transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.d.ts",
+    "specifier": "../transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.js",
+    "specifier": "node:net"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.js",
+    "specifier": "../transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.js",
+    "specifier": "./request.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.js",
+    "specifier": "./signature.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/transport.js",
+    "specifier": "./xml.js"
+  },
+  {
+    "parent": "dist/fs/s3/http/types.d.ts",
+    "specifier": "node:http"
+  },
+  {
+    "parent": "dist/fs/s3/http/xml.js",
+    "specifier": "../transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./mock.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./mock.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.js",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.js",
+    "specifier": "./mock.js"
+  },
+  {
+    "parent": "dist/fs/s3/index.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/mock.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/mock.d.ts",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/s3/mock.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/fs/s3/mock.js",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/s3/mock.js",
+    "specifier": "./authority.js"
+  },
+  {
+    "parent": "dist/fs/s3/mock.js",
+    "specifier": "./transport.js"
+  },
+  {
+    "parent": "dist/fs/webdav/index.d.ts",
+    "specifier": "./webdav.js"
+  },
+  {
+    "parent": "dist/fs/webdav/index.d.ts",
+    "specifier": "./webdav.js"
+  },
+  {
+    "parent": "dist/fs/webdav/index.js",
+    "specifier": "./webdav.js"
+  },
+  {
+    "parent": "dist/fs/webdav/resource-id.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/webdav/resource-id.d.ts",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/webdav/resource-id.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.d.ts",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.js",
+    "specifier": "../../contracts/errors.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.js",
+    "specifier": "../../contracts/io.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.js",
+    "specifier": "./xml.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.js",
+    "specifier": "../mount/comparison.js"
+  },
+  {
+    "parent": "dist/fs/webdav/webdav.js",
+    "specifier": "./resource-id.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./contracts/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./plugins/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./shell/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/regex-execution/protocol.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/text-programs/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/structured/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/search/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/bytes/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/diff-patch/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/safejs/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/network/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/metadata/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/archive/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/table-text/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/stream-inspection/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/stream-format/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./commands/split/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/memory/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/real/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/s3/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/s3/http/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/webdav/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/readonly/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/mount/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./fs/overlay/index.js"
+  },
+  {
+    "parent": "dist/index.d.ts",
+    "specifier": "./integrations/safejs/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./contracts/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./plugins/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./shell/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/text-programs/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/structured/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/search/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/bytes/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/diff-patch/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/safejs/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/network/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/metadata/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/archive/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/table-text/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/stream-inspection/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/stream-format/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./commands/split/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/memory/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/real/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/s3/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/s3/http/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/webdav/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/readonly/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/mount/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./fs/overlay/index.js"
+  },
+  {
+    "parent": "dist/index.js",
+    "specifier": "./integrations/safejs/index.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.d.ts",
+    "specifier": "node:fs/promises"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.js",
+    "specifier": "node:crypto"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.js",
+    "specifier": "node:path"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.js",
+    "specifier": "node:url"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.js",
+    "specifier": "./stats.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/filesystem.js",
+    "specifier": "./values.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.d.ts",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.d.ts",
+    "specifier": "./shell.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.d.ts",
+    "specifier": "./shell.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.js",
+    "specifier": "./filesystem.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/index.js",
+    "specifier": "./shell.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/shell.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/shell.js",
+    "specifier": "./values.js"
+  },
+  {
+    "parent": "dist/integrations/safejs/stats.d.ts",
+    "specifier": "node:fs"
+  },
+  {
+    "parent": "dist/integrations/safejs/stats.d.ts",
+    "specifier": "../../contracts/filesystem.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/text-programs/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/structured/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/search/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/diff-patch/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/metadata/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/archive/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/table-text/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/stream-inspection/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/stream-format/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.d.ts",
+    "specifier": "../commands/split/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/internal.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/text-programs/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/structured/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/search/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/bytes/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/diff-patch/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/metadata/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/archive/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/table-text/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/stream-inspection/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/stream-format/index.js"
+  },
+  {
+    "parent": "dist/plugins/index.js",
+    "specifier": "../commands/split/index.js"
+  },
+  {
+    "parent": "dist/shell/arithmetic.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/arithmetic.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/display.d.ts",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/index.d.ts",
+    "specifier": "./shell.js"
+  },
+  {
+    "parent": "dist/shell/index.d.ts",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/index.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/index.js",
+    "specifier": "./shell.js"
+  },
+  {
+    "parent": "dist/shell/index.js",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/index.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/input.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/input.d.ts",
+    "specifier": "./runtime.js"
+  },
+  {
+    "parent": "dist/shell/input.js",
+    "specifier": "./runtime.js"
+  },
+  {
+    "parent": "dist/shell/parser.d.ts",
+    "specifier": "./arithmetic.js"
+  },
+  {
+    "parent": "dist/shell/parser.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/parser.js",
+    "specifier": "./arithmetic.js"
+  },
+  {
+    "parent": "dist/shell/runtime.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/runtime.d.ts",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/runtime.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/runtime.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/runtime.d.ts",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./arithmetic.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./pattern.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./locale.js"
+  },
+  {
+    "parent": "dist/shell/runtime.js",
+    "specifier": "./display.js"
+  },
+  {
+    "parent": "dist/shell/shell.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/shell.d.ts",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/shell.d.ts",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "../contracts/index.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "./parser.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "./input.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "./locale.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "./runtime.js"
+  },
+  {
+    "parent": "dist/shell/shell.js",
+    "specifier": "./types.js"
+  },
+  {
+    "parent": "dist/shell/types.d.ts",
+    "specifier": "../contracts/index.js"
+  }
+]

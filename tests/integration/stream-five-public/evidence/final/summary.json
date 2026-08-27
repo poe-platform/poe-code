@@ -1,0 +1,201 @@
+{
+  "sourceCommit": "b7ae676a57adec1193b51fe08a91b17eac6f5884",
+  "wholeTree": "a93e7c778fc46dcec6e4fb398ab96df6350a3c20",
+  "sourceTree": "9b80d2cc65427251024ba77058bb104dda13d43a",
+  "packedHarnessCommit": "7f0f44dde0b8c0068667e62e694b9ce7bdf24cd2",
+  "releaseHarnessCommit": "df0b393ec7afe189a1f2242e04ab53e28b927507",
+  "fixtureSha256": "d22a3e3cb03865b91caa0e2a06e879e32791dfc69bc87e2f9a7b01459c9c120b",
+  "plannerSha256": "c8b778b407a8cdfece9ca87676f2adf762c3127d9c52499f057fe6df71c1ce65",
+  "packed": {
+    "status": "pass",
+    "runtime": {
+      "passed": 28,
+      "failed": 0,
+      "distinctFixtures": 11,
+      "fixtureExecutions": 13,
+      "runtimeControlChecks": 15
+    },
+    "defaultCount": 65,
+    "typeNegatives": [
+      {
+        "filename": "negative-aggregate-format.ts",
+        "diagnostics": "negative-aggregate-format.ts(3,14): error TS2322: Type 'true' is not assignable to type 'never'."
+      },
+      {
+        "filename": "negative-aggregate-split.ts",
+        "diagnostics": "negative-aggregate-split.ts(3,14): error TS2322: Type 'true' is not assignable to type 'never'."
+      },
+      {
+        "filename": "negative-root-format.ts",
+        "diagnostics": "negative-root-format.ts(2,65): error TS2322: Type 'string' is not assignable to type 'number'."
+      },
+      {
+        "filename": "negative-root-split.ts",
+        "diagnostics": "negative-root-split.ts(2,58): error TS2322: Type 'boolean' is not assignable to type 'number'."
+      },
+      {
+        "filename": "negative-sub-format.ts",
+        "diagnostics": "negative-sub-format.ts(2,55): error TS2322: Type 'string' is not assignable to type 'boolean'."
+      },
+      {
+        "filename": "negative-sub-split.ts",
+        "diagnostics": "negative-sub-split.ts(2,58): error TS2322: Type 'never[]' is not assignable to type 'number'."
+      }
+    ],
+    "isolationControlCount": 8,
+    "tarballSha256": "f8b1ab593899c1f63f1f1907440e1fdaf129d669c8f5d050388e41df720f753c",
+    "closure": {
+      "edges": 791,
+      "sha256": "f3e7e3cf7aa2e54496703310dbf34f7185812c81210bce2359c6454b7bf203a3"
+    },
+    "sourceManifestSha256": "34f96d6a581426202860561fd6d70d0f5478966dd3bce482290a2b8034c04bd1",
+    "importEdges": 908,
+    "workerEntriesExecuted": [],
+    "successfulTypeResolutions": 238
+  },
+  "release": {
+    "status": "qualified-positive-and-two-negative-controls-pass",
+    "metadata": {
+      "exitCode": 0,
+      "counts": {
+        "tests": 318,
+        "pass": 318,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "nativeRowsPassed": 22,
+      "unchanged": true
+    },
+    "streamSummary": {
+      "primary": {
+        "executions": 164,
+        "strict": 124,
+        "selectedSemantic": 164
+      },
+      "primaryByBackend": {
+        "memory": {
+          "executions": 82,
+          "strict": 62,
+          "selectedSemantic": 82
+        },
+        "real": {
+          "executions": 82,
+          "strict": 62,
+          "selectedSemantic": 82
+        }
+      },
+      "primaryByCommand": {
+        "seq": {
+          "executions": 42,
+          "strict": 34,
+          "selectedSemantic": 42
+        },
+        "nl": {
+          "executions": 28,
+          "strict": 24,
+          "selectedSemantic": 28
+        },
+        "rev": {
+          "executions": 22,
+          "strict": 18,
+          "selectedSemantic": 22
+        },
+        "unexpand": {
+          "executions": 26,
+          "strict": 20,
+          "selectedSemantic": 26
+        },
+        "split": {
+          "executions": 46,
+          "strict": 28,
+          "selectedSemantic": 46
+        }
+      },
+      "appleSecondary": {
+        "executions": 142,
+        "strict": 52,
+        "selectedSemantic": 66
+      },
+      "distinctPrimaryInputs": 82
+    },
+    "diagnosticSummary": {
+      "executions": 164,
+      "strict": 124,
+      "originalWeakSelected": 164,
+      "strengthened": 164
+    },
+    "nonstrictExecutions": 40,
+    "nonstrictDistinctInputs": 20,
+    "nativeAssets": 15,
+    "primaryOverlay": 14,
+    "cases": [
+      {
+        "label": "missing",
+        "exitCode": 78,
+        "preflightExecutedTests": 0,
+        "productSteps": 0
+      },
+      {
+        "label": "wrong",
+        "exitCode": 78,
+        "preflightExecutedTests": 0,
+        "productSteps": 0
+      },
+      {
+        "label": "positive",
+        "exitCode": 0,
+        "preflightExecutedTests": 0,
+        "productSteps": 14
+      }
+    ],
+    "directoryGroupProfile": {
+      "uid": 501,
+      "gid": 20,
+      "groups": [
+        20,
+        12,
+        61,
+        79,
+        80,
+        81,
+        701,
+        33,
+        98,
+        100,
+        204,
+        250,
+        395,
+        398,
+        400
+      ],
+      "inheritedOutputGid": 0,
+      "nativeReferenceGid": 20,
+      "actualOutputGid": 20,
+      "scope": "new owned isolated output directory only; original artifacts unchanged"
+    },
+    "OSsandbox": false,
+    "packedOSsandbox": true,
+    "noNetworkOperations": true
+  },
+  "tarballDifference": {
+    "independent": "f8b1ab593899c1f63f1f1907440e1fdaf129d669c8f5d050388e41df720f753c",
+    "authorOuter": "cc8a776923d429db81bb2fe2752474fe1f746abebf35483f15c37b5a9f22ade5",
+    "onlyIndependent": [
+      "README.md"
+    ],
+    "distArtifacts": 664,
+    "distHashDifferences": 0
+  },
+  "knownBlocker": "FIVE premature-cleanup failures remain OPEN for the gated source; no full package lifecycle or overall release-readiness claim.",
+  "rawDirectories": {
+    "packedRoot": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4",
+    "releaseRoot": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4"
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "compiler": "Version 5.9.3"
+  }
+}

@@ -1,0 +1,39 @@
+[
+  {
+    "name": "OS source read denial",
+    "filename": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+    "code": "EPERM"
+  },
+  {
+    "name": "OS source read denial",
+    "filename": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/source-build/src/index.ts",
+    "code": "EPERM"
+  },
+  {
+    "name": "OS TCP listen denial",
+    "code": "EPERM"
+  },
+  {
+    "name": "OS TCP connect denial",
+    "code": "EPERM"
+  },
+  {
+    "name": "module resolution denial",
+    "specifier": "./positive.ts",
+    "message": "SOURCE_FALLBACK_DENIED /private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/positive.ts"
+  },
+  {
+    "name": "module resolution denial",
+    "specifier": "./external-module.js",
+    "message": "EXTERNAL_PRODUCT_MODULE_DENIED /private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/tooling/node_modules/typescript/lib/typescript.js"
+  },
+  {
+    "name": "module resolution denial",
+    "specifier": "virtual-bash/src/index.ts",
+    "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+    "message": "Package subpath './src/index.ts' is not defined by \"exports\" in /private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/isolation-controls.mjs"
+  },
+  {
+    "name": "unpacked worker denial"
+  }
+]

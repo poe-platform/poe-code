@@ -36,7 +36,13 @@ must propagate exit78 before product passes. Positive requires 318 canonical
 tests/all22 native rows and the original82 stream inputs (164 executions,
 124 strict, 40 retained stderr differences). The distinct absolute benchmark
 stat and frozen stream references remain read-only. No host pin is modified.
+Native qualification uses the canonical unsandboxed permission profile and
+reference gid20: sandbox-exec itself strips setid bits during fixture setup.
+The independent packed consumer retains its separately proven OS sandbox.
+Both failed native attempts and the controls explaining this distinction remain
+in `harness-corrections.md` and `evidence/`; none are relabeled as passes.
 
 No new native corpus, source algorithm changes, remote-provider proof,
 universal GNU parity, superiority, full-project gate or 72-hour claim is made.
-Generated execution evidence and final scope limitations are recorded separately.
+Final measured results and open lifecycle limitations are in `REPORT.md` and
+`evidence/final/`; these are scoped checks, not overall release readiness.

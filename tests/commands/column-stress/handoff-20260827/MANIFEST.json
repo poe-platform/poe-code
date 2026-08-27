@@ -1,0 +1,264 @@
+{
+  "classification": "independent-column-final-evidence-manifest-not-full-gate",
+  "createdAt": "2026-08-27T15:10:44.673Z",
+  "decision": "HOLD",
+  "sourceWorkStopped": true,
+  "preparationCommit": "46e90c80",
+  "authorCandidate": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+  "sourceCandidate": "38cb670acf0826467e928ea30cdcb0524436d144",
+  "columnSourceDigest": "06a48bca73584c719bad2fa5db1e447e87c63f900e5dc715c80244701d125a75",
+  "candidateArchiveSha256": "a55b09755293e068ebe2be121c5dfc762c21adbb696e8e11abe91aa539243129",
+  "scopedClaimsOnly": true,
+  "nativeAvailability": [
+    {
+      "name": "bsd-darwin",
+      "path": "/usr/bin/column",
+      "recordedSha256": "c6d7b469d8e8437c7185bedd356626ca69867c9c6b002cbb0020d995a6e4cc5f",
+      "currentSha256": "c6d7b469d8e8437c7185bedd356626ca69867c9c6b002cbb0020d995a6e4cc5f",
+      "newNativeInvocations": 0
+    },
+    {
+      "name": "util-linux-2.41.2-darwin",
+      "path": "/private/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+      "recordedSha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88",
+      "currentSha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88",
+      "newNativeInvocations": 0
+    }
+  ],
+  "otherOwnersCommittedSourceChanges": [
+    "src/commands/grep-aliases/index.ts",
+    "src/commands/text.ts",
+    "src/shell/runtime.ts"
+  ],
+  "trackedConsumerInventory": [
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "bytes": 7980,
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "bytes": 2863,
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "path": "scripts/typecheck-consumers.mjs",
+      "bytes": 9794,
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37"
+    }
+  ],
+  "consumerInventoryCaveat": "These files are authenticated as part of the committed archive; existing inventory groups were not all typechecked or run. Only the scoped author/regression and moved standalone consumer checks are claimed.",
+  "commandStatuses": {
+    "postfix-build.json": 0,
+    "postfix-author-tests.json": 0,
+    "postfix-regressions.json": 0,
+    "postfix-types.json": 0,
+    "postfix-stress-command.json": 1,
+    "pack-command.json": 0,
+    "packed-types-command.json": 0,
+    "packed-types-strict-trace-command.json": 0,
+    "packed-runtime-command.json": 1,
+    "root-repro-command.json": 1,
+    "preparation-static-command.json": 0
+  },
+  "preparation": [
+    {
+      "path": "README.md",
+      "bytes": 6441,
+      "sha256": "0119576349d5b0cf95b5d30f1c153b7d5e10c317cafbbacd2e2b3005b08631a5"
+    },
+    {
+      "path": "recipes.json",
+      "bytes": 28834,
+      "sha256": "e6db28115a575c6da046a9efa81841ed05dc28a04c8860630141c461bf20d2aa"
+    },
+    {
+      "path": "capture-native.mjs",
+      "bytes": 7589,
+      "sha256": "01f1cd28e16b61eda0b1dbc74d25aca64ed74b975c25835701cd2b033326f264"
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 8000,
+      "sha256": "bf1bf4e7cea263808ff1c54395b5d43ae4dbb1d62d8eaa6c6f0ae3496b2ad5bd"
+    },
+    {
+      "path": "handoff-plan.md",
+      "bytes": 4792,
+      "sha256": "9326e3d7f2a88b7c7e680736d83a4db4be03f257ce71ea9134413f879ead4566"
+    },
+    {
+      "path": "native-observations.json",
+      "bytes": 87073,
+      "sha256": "89515a42ed2e9e634cf1c82ec523f74f6b04c20732a5826d21177f04f7657a79"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 88728,
+      "sha256": "cac64592731a4ddb210ced63bbb302a225a11db68e0e74615eec7a4a2da5ce6f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "postfix/postfix-auth-before.json",
+      "bytes": 111104,
+      "sha256": "9dc645a4b58ba968c3ee5e8a180f54b95a0faa814b9abc547b22a6e92ee0ccab"
+    },
+    {
+      "path": "postfix/postfix-auth-after.json",
+      "bytes": 111103,
+      "sha256": "35199300fd3433443705c2300ff416b2c5f808900733697ac5c2663241bdbbb9"
+    },
+    {
+      "path": "postfix/postfix-auth-final.json",
+      "bytes": 111103,
+      "sha256": "ff09b339bbde3cdfb7e2303752873edf39e2833018099557852432d23067cad2"
+    },
+    {
+      "path": "postfix/postfix-build.json",
+      "bytes": 668,
+      "sha256": "ea06cd2bb9e352f111690e4bbd92d9895f00ad4ad078c93a06853907ac0a2cfe"
+    },
+    {
+      "path": "postfix/postfix-author-tests.json",
+      "bytes": 38177,
+      "sha256": "c64af52fa228337c751207a1727d1e4d00bdc5feb35e15ec402f2b6ee4c437b3"
+    },
+    {
+      "path": "postfix/postfix-regressions.json",
+      "bytes": 3400,
+      "sha256": "71a570a61954e04c569dca285285e9abc5a6e7e6706ccc5177bcee1df2400ab2"
+    },
+    {
+      "path": "postfix/postfix-types.json",
+      "bytes": 1199,
+      "sha256": "fc72bf507c69b47b7ea4b957d17919caf6b0cba299975a7d819d1ff7c42222e0"
+    },
+    {
+      "path": "postfix/postfix-stress-command.json",
+      "bytes": 3559,
+      "sha256": "d7f1badd78b8102368b5dda5f03a273fa9b233fc14502cb9b9b46a441fdf7de7"
+    },
+    {
+      "path": "postfix/postfix-stress.json",
+      "bytes": 102585,
+      "sha256": "933c7d626361f38ff45f10f8a6aa7a2ce07d451215d364b0ff46b8cbc42e8128"
+    },
+    {
+      "path": "postfix/pack-command.json",
+      "bytes": 166517,
+      "sha256": "9af88c56755b671369aea03c0109220d05df979bbcbf8b4f08ffdfb5c9b0ae9e"
+    },
+    {
+      "path": "postfix/pack-provenance.json",
+      "bytes": 83671,
+      "sha256": "ea95123590aa4f4558d7d1fe42e5c0a028fc723a9186ab6fe587a143dba304ed"
+    },
+    {
+      "path": "postfix/packed-types-command.json",
+      "bytes": 1072,
+      "sha256": "4e0ea737a54ae55cf8bc4d62bbf1760238655ed3bda181fba4a5736fb49b36b6"
+    },
+    {
+      "path": "postfix/packed-types-strict-trace-command.json",
+      "bytes": 1412596,
+      "sha256": "e0b4e2fa3032f139943041625a25942b9ec8fd9dfad82583dd66138551b2dae8"
+    },
+    {
+      "path": "postfix/packed-runtime-command.json",
+      "bytes": 1497,
+      "sha256": "796fccf4a716683f98865125a84049a0469c2da9433dca4fd84d7287f19639a0"
+    },
+    {
+      "path": "postfix/packed-runtime.json",
+      "bytes": 111154,
+      "sha256": "5e8a8c22269f228b086518b4812f67403ba7707e4201c7ebabc89cce51d96443"
+    },
+    {
+      "path": "postfix/root-repro-command.json",
+      "bytes": 1462,
+      "sha256": "21fc8494edc27eb88371c06a6211eedf4c097337e3278cad2ee03be3cf3e6e75"
+    },
+    {
+      "path": "postfix/root-repro.json",
+      "bytes": 387,
+      "sha256": "3eb3e82528f6437882500a805c528bed4e5f8c32273112ebdd325f3ddd6c888e"
+    },
+    {
+      "path": "postfix/preparation-static-command.json",
+      "bytes": 1569,
+      "sha256": "720fb44245532c43013fdd4bd506dd191063ae71e3434904738d58ca282024a8"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 14083,
+      "sha256": "0016caffa85278af703e930edf2e36c0566502ed46707316fed77c9624e6c12c"
+    },
+    {
+      "path": "HISTORY.md",
+      "bytes": 5373,
+      "sha256": "f4018857eafc35d69f78e322a3260a60f5107fb709b230be3cb62af9fbfd52d2"
+    },
+    {
+      "path": "root-hidden-return-repro.mjs",
+      "bytes": 2252,
+      "sha256": "cd225bd6e2a2418729833838c1b296d18ed248c523c869230838e8be55e79f1b"
+    },
+    {
+      "path": "verify-evidence.mjs",
+      "bytes": 5199,
+      "sha256": "758cafd0cfb896fa153deec0e2efa79b0ede42ac1d0d7587a7b51ccc3861b80c"
+    },
+    {
+      "path": "authenticate.mjs",
+      "bytes": 5753,
+      "sha256": "fa7111ea49b048f90b55b3120db62146440c4e8708cab0a55dda10ef1e7c9450"
+    },
+    {
+      "path": "run-command.mjs",
+      "bytes": 2375,
+      "sha256": "945919ae167f5ae1adc686a9a9faaed7d7271151e26de2223a30f9436203784a"
+    },
+    {
+      "path": "stress.mjs",
+      "bytes": 10191,
+      "sha256": "97731e477c33f5de4497c1ceff69b415d2e527ca5172bd92f15e7f9389d8d6ff"
+    },
+    {
+      "path": "safety.mjs",
+      "bytes": 23980,
+      "sha256": "82c36f9e6c47e88d27a957647c370b8797afa753188c11675c51e2119d489012"
+    },
+    {
+      "path": "expectations.json",
+      "bytes": 12073,
+      "sha256": "22ba6a1096b2613dc28b93e5b017f461d38b9901849b92b19b20500ef27eac52"
+    },
+    {
+      "path": "packed-consumer.mjs",
+      "bytes": 9858,
+      "sha256": "3273307791808225271fab40b2c82b30394d4e4d05c05cbd81ef8d729472dc15"
+    },
+    {
+      "path": "packed-types.mts",
+      "bytes": 986,
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7"
+    },
+    {
+      "path": "history/safety-initial.mjs.txt",
+      "bytes": 21283,
+      "sha256": "2ec0524b347cb205660afe0157166b915ec80993913485ab871e9d86a7af40d5"
+    },
+    {
+      "path": "history/stress-initial.mjs.txt",
+      "bytes": 9998,
+      "sha256": "8e001cb02f3190265d18f43fd3d9eb61bd02dd6b875035bfe9fd365e50e6e23a"
+    },
+    {
+      "path": "history/safety-corrected-baseline.mjs.txt",
+      "bytes": 21414,
+      "sha256": "abb82db94ba904b81b9792cef4f5dd0bb2c57a49aeeea35795461d7d0394c3d5"
+    }
+  ],
+  "manifestSelfHash": "Authenticated by the enclosing explicit-path evidence commit; not recursively embedded."
+}

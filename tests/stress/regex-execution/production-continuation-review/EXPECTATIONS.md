@@ -27,6 +27,16 @@ is a separate inherited denominator, not 15 new public scenarios. One ordinary
 complete-command timing workload uses three alternating baseline/new pairs,
 equal bytes/status, startup and awaited cleanup included, imports excluded.
 
+Root's subsequent explicit performance clarification selects one 32-file VFS
+filename/ignore workload instead of another stdin-only content benchmark.
+Frozen fixture: /tree/file00.txt through file31.txt, each `hit NN\nmiss NN\n`;
+.ignore contains `file1?.txt\n!file12.txt\n`; cwd /tree and command
+`rg -g '!file2?.txt' hit .`. Expected ordered selections are 00–09,12,30,31,
+each `./fileNN.txt:hit NN\n`, status0 and empty stderr. VFS fixture population
+is excluded; new Shell/plugin creation, real startup, complete traversal/output
+and awaited ordinary-command disposal are included. No timing replay has run
+when this clarification is added. No acceptance threshold is invented.
+
 Static children only, strict unhandled rejections, 128MiB heap, bounded input
 and output, exact child handles and hard watchdog. No eval, network, risky host
 regex, huge inventory or full-repository gate. Six additional pathological

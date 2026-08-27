@@ -1,0 +1,159 @@
+{
+  "time": "2026-08-27T07:00:11.914Z",
+  "profile": "primary actual default-engine ripgrep on Darwin arm64, no config, C locale, explicitly path-sorted, isolated fixtures; no shell regex interpolation",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+  "executableSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+  "version": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-pXszbD",
+  "files": {
+    "alpha.txt": "hit alpha\n",
+    "beta.log": "hit beta\n",
+    "keep.tmp": "hit keep\n",
+    "skip.tmp": "hit skip\n",
+    "nested/gamma.txt": "hit gamma\n",
+    "nested/delta.log": "hit delta\n",
+    "ignored/drop.txt": "hit drop\n",
+    ".hidden.txt": "hit hidden\n",
+    ".ignore": "*.tmp\n!keep.tmp\nignored/\n"
+  },
+  "observations": [
+    {
+      "id": "include-extension",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "--no-ignore",
+        "-g",
+        "*.txt",
+        "hit",
+        "."
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "Li8uaGlkZGVuLnR4dDpoaXQgaGlkZGVuCi4vYWxwaGEudHh0OmhpdCBhbHBoYQouL2lnbm9yZWQvZHJvcC50eHQ6aGl0IGRyb3AKLi9uZXN0ZWQvZ2FtbWEudHh0OmhpdCBnYW1tYQo=",
+      "stderr": "",
+      "declaredPass": true
+    },
+    {
+      "id": "exclude-extension",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "--no-ignore",
+        "-g",
+        "!*.log",
+        "hit",
+        "."
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "Li9hbHBoYS50eHQ6aGl0IGFscGhhCi4vaWdub3JlZC9kcm9wLnR4dDpoaXQgZHJvcAouL2tlZXAudG1wOmhpdCBrZWVwCi4vbmVzdGVkL2dhbW1hLnR4dDpoaXQgZ2FtbWEKLi9za2lwLnRtcDpoaXQgc2tpcAo=",
+      "stderr": "",
+      "declaredPass": true
+    },
+    {
+      "id": "ignore-negation-directory",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "hit",
+        "."
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "Li9hbHBoYS50eHQ6aGl0IGFscGhhCi4vYmV0YS5sb2c6aGl0IGJldGEKLi9rZWVwLnRtcDpoaXQga2VlcAouL25lc3RlZC9kZWx0YS5sb2c6aGl0IGRlbHRhCi4vbmVzdGVkL2dhbW1hLnR4dDpoaXQgZ2FtbWEK",
+      "stderr": "",
+      "declaredPass": true
+    },
+    {
+      "id": "glob-last-rule",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "--no-ignore",
+        "-g",
+        "*.txt",
+        "-g",
+        "!nested/**",
+        "hit",
+        "."
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "Li8uaGlkZGVuLnR4dDpoaXQgaGlkZGVuCi4vYWxwaGEudHh0OmhpdCBhbHBoYQouL2lnbm9yZWQvZHJvcC50eHQ6aGl0IGRyb3AK",
+      "stderr": "",
+      "declaredPass": true
+    },
+    {
+      "id": "glob-brace",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "--no-ignore",
+        "-g",
+        "*.{txt,log}",
+        "hit",
+        "."
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "Li8uaGlkZGVuLnR4dDpoaXQgaGlkZGVuCi4vYWxwaGEudHh0OmhpdCBhbHBoYQouL2JldGEubG9nOmhpdCBiZXRhCi4vaWdub3JlZC9kcm9wLnR4dDpoaXQgZHJvcAouL25lc3RlZC9kZWx0YS5sb2c6aGl0IGRlbHRhCi4vbmVzdGVkL2dhbW1hLnR4dDpoaXQgZ2FtbWEK",
+      "stderr": "",
+      "declaredPass": true
+    },
+    {
+      "id": "glob-malformed-class",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "-g",
+        "[",
+        "hit",
+        "."
+      ],
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "cmc6IGVycm9yIHBhcnNpbmcgZ2xvYiAnWyc6IHVuY2xvc2VkIGNoYXJhY3RlciBjbGFzczsgbWlzc2luZyAnXScK",
+      "declaredPass": true
+    },
+    {
+      "id": "glob-malformed-brace",
+      "args": [
+        "--no-config",
+        "--sort",
+        "path",
+        "--color",
+        "never",
+        "-g",
+        "{a,b",
+        "hit",
+        "."
+      ],
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "cmc6IGVycm9yIHBhcnNpbmcgZ2xvYiAne2EsYic6IHVuY2xvc2VkIGFsdGVybmF0ZSBncm91cDsgbWlzc2luZyAnfScgKG1heWJlIGVzY2FwZSAneycgd2l0aCAnW3tdJz8pCg==",
+      "declaredPass": true
+    }
+  ],
+  "riskConsumed": 0
+}

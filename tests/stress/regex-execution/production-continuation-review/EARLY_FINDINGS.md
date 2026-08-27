@@ -36,16 +36,16 @@ handler promises would hang on uncooperative user host code: not an acceptable f
 ## Minimal typed proposal — NOT implemented, requires owner approval
 
 ```ts
-export interface CommandCleanupScope {
-  defer(cleanup: () => void | Promise<void>): void;
-}
+export type InvocationCleanup = () => Promise<void>;
 
 export interface CommandContext {
-  readonly cleanup?: CommandCleanupScope;
+  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
 }
 ```
 
-Only additive context capability is proposed. Shell supplies it; direct/custom
+Refined to match the author's minimal spelling after reading the preliminary
+API note; no extra exposed scope object is needed. Only additive context
+capability is proposed. Shell supplies it; direct/custom
 hosts may omit it and retain definition-finally behavior. The owner may select
 a different name. No runtime method is exposed and no command receives drain
 authority. Each actual dispatch gets a distinct registration scope, with parent
@@ -55,6 +55,10 @@ closure over an initially absent resource before acquisition). Close admissions
 when dispatch is interrupted/settled; reject late registration and never acquire
 a resource after closed scope. Normal command finally and host drain share the
 same cleanup promise; cleanup is once-only and awaited before public exec settles.
+
+Proposal history: the earlier scope-object draft is preserved unchanged at
+August 27, 2026 commit `ab05eb9` in this same document. It is historical only,
+not a second active proposal. Root reconciled on registerCleanup in its notes.
 
 Drain registered cooperative resource terminators only, not handler completion,
 arbitrary middleware, input iterators, sinks or host FS promises. Commands must
@@ -66,10 +70,17 @@ is concrete bounded-by-termination owned work, not an all-host-work wait.
 Error precedence proposal: preserve original caller abort reason by identity;
 otherwise preserve original execution rejection; otherwise reject cleanup error
 (AggregateError for multiple failures). Do not let cleanup replace primary error
-or silently turn failed retirement into success. On downstream-close success,
+or silently turn failed retirement into success. Secondary cleanup errors must
+be observed/retained by the drain, without modifying the primary thrown value.
+On downstream-close success,
 drain still runs before returning pipeline's selected exit status. Drain all
 registered cleanups even if one rejects. Plugin-wide disposal is separate and
 must not cancel unrelated concurrent invocation scopes.
+
+Exact path correction for author's preliminary note: `src/shell/shell.ts`, not
+`src/shell.ts`; the public race specifically wraps `runtime.runUnit` at line 107.
+Shell.dispose would additionally await outstanding registered drains, not all
+handler promises, so disposal cannot become a backdoor uncooperative-host wait.
 
 ## Construction and host glob observations
 

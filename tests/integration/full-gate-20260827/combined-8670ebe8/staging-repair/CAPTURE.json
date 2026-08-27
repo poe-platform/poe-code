@@ -1,0 +1,31 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "harnessFix": "f6e07510",
+  "files": [
+    {
+      "path": "attempt-v3-report.json.gz.b64",
+      "originalBytes": 19593427,
+      "sha256": "89e51c9366b7358fb9b0132bc80bf94eeee0b4858c080965f1e98296d2e48289"
+    },
+    {
+      "path": "attempt-v3-archive.json.gz.b64",
+      "originalBytes": 7754488,
+      "sha256": "e496ef04880dc5f51bff04c7bae5d54b01803ac1f8dc049ed78e6180b90ad764"
+    },
+    {
+      "path": "attempt-v3-launcher.log.gz.b64",
+      "originalBytes": 4516647,
+      "sha256": "1680f7089ce98e32b1cc57762460a9eda2ce5f6f2b72fe6966fa6ef5a0a50c32"
+    },
+    {
+      "path": "regression-attempt-1.json.gz.b64",
+      "originalBytes": 8594,
+      "sha256": "d559eb7f652c9395f83d9f63db7793ebf27d09d527436f11d2890326e302af9a"
+    },
+    {
+      "path": "regression-attempt-2.json.gz.b64",
+      "originalBytes": 13564,
+      "sha256": "1372c77b3744836e5a392127f644624311d2b5fe33ebb507115835b0077aa142"
+    }
+  ]
+}

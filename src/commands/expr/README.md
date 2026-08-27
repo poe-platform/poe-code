@@ -26,15 +26,21 @@ policy, admission queue and worker lifecycle without changing defaults. The plur
 factory contains exactly one definition named `expr`. Plugin registration
 rejects a collision before mutation unless `replace: true` is explicit.
 
-These are physical module exports, **not a root export or published package
-subpath**. No default aggregate registration or package configuration is changed.
+These exports are now also exposed at the root and explicit
+`virtual-bash/commands/expr` subpath, with expr in the default aggregate.
+`AgentCommandsOptions.expr` accepts family limits, omitting `replace` and `regex`.
+Aggregate top-level regex and replacement are authoritative. Unknown runtime
+nested `expr.regex`/`expr.replace` fields are ignored, including when the global
+regex option is omitted; direct factories retain their own existing options.
+This mechanical integration does not change the accepted engine or its guard.
 The three approved shared protocol/client/worker files gain the new operation;
 legacy grep/rg/glob descriptors, reply validation and matching are unchanged.
 Build emits the physical module at
 `dist/commands/expr/index.js`. Independent c3 packed/moved-consumer evidence
 (`beba7b00`, bound in `tests/commands/expr-stress/initial-profile-handoff-20260827/REPORT.md`)
-passes 19/19 physical-module smoke checks. This INITIAL restricted profile is
-not public wiring: root/subpath/default availability remains **HOLD**.
+passes 19/19 physical-module smoke checks. Those are historical module checks,
+not acceptance of this new public/default integration, whose different-agent
+review is separate. The INITIAL restricted profile and limitations remain.
 
 ## Grammar and results
 

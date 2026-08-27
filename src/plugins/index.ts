@@ -19,9 +19,11 @@ import { createGrepAliasCommands } from "../commands/grep-aliases/index.js";
 import { createColumnCommands, type ColumnCommandsOptions } from "../commands/column/index.js";
 import { createHtmlToMarkdownCommands, type HtmlToMarkdownCommandsOptions } from "../commands/html-to-markdown/index.js";
 import { createDuCommands, type DuCommandsOptions } from "../commands/du/index.js";
+import { createExprCommands, type ExprCommandsOptions } from "../commands/expr/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -54,6 +56,7 @@ function executor(lookup: (name: string) => CommandDefinition | undefined): Comm
 
 export function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [];
+  const exprLimits = options.expr?.limits;
   commands.push(
     ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createTextProgramCommands({ ...options.text }),
@@ -74,6 +77,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createColumnCommands({ ...options.column }),
     ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
     ...createDuCommands({ ...options.du }),
+    ...createExprCommands({ ...(exprLimits === undefined ? {} : { limits: exprLimits }), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
   );
   return new CommandRegistry(commands).list();
 }

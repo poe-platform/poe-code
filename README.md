@@ -77,7 +77,7 @@ metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
 grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
-(`html-to-markdown`), and usage accounting (`du`), totaling 75 unique registered
+(`html-to-markdown`), usage accounting (`du`) and expressions (`expr`), totaling 76 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -401,7 +401,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 75 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 76 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -417,7 +417,7 @@ bounds and unsupported features remain in `src/commands/network/README.md`.
 The default aggregate includes `egrep`, `fgrep`, and `column`. `egrep` selects
 extended patterns and `fgrep` fixed patterns; the standalone alias plugin owns
 its grep implementation and does not require a separately registered `grep`.
-Aggregate `regex` settings are passed to standard `grep` and both aliases.
+Aggregate `regex` settings are passed to standard `grep`, both aliases and `expr`.
 Search retains its separate `search.regex` configuration. These worker settings
 do not replace the shell's shared budgets or imply one pool across commands.
 
@@ -453,8 +453,8 @@ width, padding and resource bounds remain in `src/commands/column/README.md`;
 that module-author document predates this root wiring. Alias source evidence and
 the two-case public settlement correction are separately recorded in
 `tests/commands/grep-aliases-stress/settlement-v2-independent/REPORT.md`.
-Registration is not a whole-product gate or full native-parity claim. `expr`
-is not a default command; curl and SafeJS remain explicit opt-ins.
+Registration is not a whole-product gate or full native-parity claim.
+Curl and SafeJS remain explicit opt-ins.
 
 ## Optional SafeJS Command
 
@@ -625,3 +625,27 @@ Opaque provider promises are observed but not forcibly stopped or claimed retire
 This is new DU integration/adoption, pending separate public review; the accepted
 module, native qualification and frozen HTML74 package remain separate evidence.
 Exact flags, refusals and limits: `src/commands/du/README.md`.
+
+## Bounded expressions
+
+`expr` is included in the default aggregate. Root and
+`virtual-bash/commands/expr` expose `createExprCommand`, `createExprCommands`,
+`exprCommands`, `ExprCommandsOptions` and `ExprLimits`. For example,
+`expr 20 + 22 > /answer; cat /answer` returns `42\n` through VFS output.
+Quote shell metacharacters when passing expression operators and BRE patterns.
+
+Aggregate `expr` accepts only family `limits`; global `regex` and top-level
+`replace` are authoritative. Unknown nested runtime `expr.regex`/`expr.replace`
+fields do not override them, even when global regex is omitted. Direct factories
+retain their own regex/replacement options. Existing worker defaults do not change.
+
+This initial restricted implementation uses bounded integer/string operations
+and worker-only BRE. The live guard refuses backreferences to captures marked by
+nullable repetition; it does not reject every nullable capture. Named encoding
+profiles have documented collation/bracket restrictions. Normal output quotas
+retain a separate fixed34-byte emergency diagnostic, not an absolute combined
+output cap. It is not full GNU/POSIX parity, an RSS bound or a realtime guarantee.
+Expr consumes argv, not stdin; this wiring adds no owned-output or opaque-input
+preemption promise. Required rejection identity and cooperative worker cleanup
+remain the accepted module behavior. Public integration requires separate review;
+exact profile and limits are in `src/commands/expr/README.md`.

@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: hard-deadline pipeline close: transport
+ok 1 - hard-deadline pipeline close: transport
+  ---
+  duration_ms: 128.748709
+  type: 'test'
+  ...
+# {"scenario":"transport","pid":36133,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: pipefail
+ok 2 - hard-deadline pipeline close: pipefail
+  ---
+  duration_ms: 128.459375
+  type: 'test'
+  ...
+# {"scenario":"pipefail","pid":36136,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle
+ok 3 - hard-deadline pipeline close: middle
+  ---
+  duration_ms: 125.318167
+  type: 'test'
+  ...
+# {"scenario":"middle","pid":36139,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle-status
+ok 4 - hard-deadline pipeline close: middle-status
+  ---
+  duration_ms: 127.550833
+  type: 'test'
+  ...
+# {"scenario":"middle-status","pid":36142,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: nested-invoke
+ok 5 - hard-deadline pipeline close: nested-invoke
+  ---
+  duration_ms: 139.409041
+  type: 'test'
+  ...
+# {"scenario":"nested-invoke","pid":36146,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: redirect
+ok 6 - hard-deadline pipeline close: redirect
+  ---
+  duration_ms: 136.082708
+  type: 'test'
+  ...
+# {"scenario":"redirect","pid":36149,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: group
+ok 7 - hard-deadline pipeline close: group
+  ---
+  duration_ms: 139.843583
+  type: 'test'
+  ...
+# {"scenario":"group","pid":36152,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-rejection
+ok 8 - hard-deadline pipeline close: consumer-rejection
+  ---
+  duration_ms: 138.410291
+  type: 'test'
+  ...
+# {"scenario":"consumer-rejection","pid":36157,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-status
+ok 9 - hard-deadline pipeline close: consumer-status
+  ---
+  duration_ms: 130.971167
+  type: 'test'
+  ...
+# {"scenario":"consumer-status","pid":36162,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: late-read-rejection
+ok 10 - hard-deadline pipeline close: late-read-rejection
+  ---
+  duration_ms: 137.524209
+  type: 'test'
+  ...
+# {"scenario":"late-read-rejection","pid":36166,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: iterator-return
+ok 11 - hard-deadline pipeline close: iterator-return
+  ---
+  duration_ms: 140.6775
+  type: 'test'
+  ...
+# {"scenario":"iterator-return","pid":36170,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: caller-abort
+ok 12 - hard-deadline pipeline close: caller-abort
+  ---
+  duration_ms: 131.540334
+  type: 'test'
+  ...
+# {"scenario":"caller-abort","pid":36174,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: budget-abort
+ok 13 - hard-deadline pipeline close: budget-abort
+  ---
+  duration_ms: 139.404541
+  type: 'test'
+  ...
+# {"scenario":"budget-abort","pid":36178,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-success
+ok 14 - hard-deadline pipeline close: completed-success
+  ---
+  duration_ms: 140.236542
+  type: 'test'
+  ...
+# {"scenario":"completed-success","pid":36182,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-failure
+ok 15 - hard-deadline pipeline close: completed-failure
+  ---
+  duration_ms: 141.697291
+  type: 'test'
+  ...
+# {"scenario":"completed-failure","pid":36185,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-rejection
+ok 16 - hard-deadline pipeline close: completed-rejection
+  ---
+  duration_ms: 140.522208
+  type: 'test'
+  ...
+# {"scenario":"completed-rejection","pid":36193,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: delayed-no-write
+ok 17 - hard-deadline pipeline close: delayed-no-write
+  ---
+  duration_ms: 133.213458
+  type: 'test'
+  ...
+# {"scenario":"delayed-no-write","pid":36202,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: closed-before-write
+ok 18 - hard-deadline pipeline close: closed-before-write
+  ---
+  duration_ms: 137.600958
+  type: 'test'
+  ...
+# {"scenario":"closed-before-write","pid":36205,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: zero-byte-no-write
+ok 19 - hard-deadline pipeline close: zero-byte-no-write
+  ---
+  duration_ms: 140.094833
+  type: 'test'
+  ...
+# {"scenario":"zero-byte-no-write","pid":36209,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: first-read-head-zero
+ok 20 - hard-deadline pipeline close: first-read-head-zero
+  ---
+  duration_ms: 193.441041
+  type: 'test'
+  ...
+# {"scenario":"first-read-head-zero","pid":36212,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"first-read-head-zero: passed\\n{\\"scenario\\":\\"first-read-head-zero\\",\\"active\\":0,\\"reads\\":0,\\"returned\\":1,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"command.settled:head:0\\"]}\\n","stderr":""}
+# Subtest: hard-deadline pipeline close: first-read-local
+not ok 21 - hard-deadline pipeline close: first-read-local
+  ---
+  duration_ms: 1388.629583
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-local: /private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-local (1200ms)
+        at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-local","pid":36217,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-local\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-local (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-s3
+not ok 22 - hard-deadline pipeline close: first-read-s3
+  ---
+  duration_ms: 1393.901625
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-s3: /private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-s3 (1200ms)
+        at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:56:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-s3","pid":36237,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-s3\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.headObject:input:callerAborted=false:signal=live\\",\\"op:S3.headObject:input/:callerAborted=false:signal=live\\",\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.getObjectStream:input:callerAborted=false:signal=live\\",\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-s3 (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-webdav
+not ok 23 - hard-deadline pipeline close: first-read-webdav
+  ---
+  duration_ms: 1396.500458
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-webdav: /private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-webdav (1200ms)
+        at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-webdav","pid":36262,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-webdav\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:PROPFIND:/dav/input\\",\\"http.response.close:PROPFIND:finished=true\\",\\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-webdav (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-body
+not ok 24 - hard-deadline pipeline close: first-read-curl-body
+  ---
+  duration_ms: 1398.445
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-body: /private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-body (1200ms)
+        at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-body","pid":36291,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-body\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-body (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-headers
+not ok 25 - hard-deadline pipeline close: first-read-curl-headers
+  ---
+  duration_ms: 1402.028167
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-headers: /private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-headers (1200ms)
+        at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-headers","pid":36319,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-headers\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-headers (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+1..25
+# tests 25
+# suites 0
+# pass 20
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9844.930625

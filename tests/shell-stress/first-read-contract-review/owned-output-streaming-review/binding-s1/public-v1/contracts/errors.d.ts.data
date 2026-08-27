@@ -1,0 +1,50 @@
+declare const descriptions: {
+    readonly EACCES: "permission denied";
+    readonly EAGAIN: "resource temporarily unavailable";
+    readonly EBADF: "bad file descriptor";
+    readonly EBUSY: "resource busy or locked";
+    readonly ECANCELED: "operation canceled";
+    readonly EEXIST: "file already exists";
+    readonly EFBIG: "file too large";
+    readonly EINTR: "interrupted system call";
+    readonly EINVAL: "invalid argument";
+    readonly EIO: "input/output error";
+    readonly EISDIR: "illegal operation on a directory";
+    readonly ELOOP: "too many symbolic links encountered";
+    readonly EMFILE: "too many open files";
+    readonly ENAMETOOLONG: "name too long";
+    readonly ENFILE: "file table overflow";
+    readonly ENOENT: "no such file or directory";
+    readonly ENOMEM: "not enough memory";
+    readonly ENOSPC: "no space left on device";
+    readonly ENOSYS: "function not implemented";
+    readonly ENOTDIR: "not a directory";
+    readonly ENOTEMPTY: "directory not empty";
+    readonly ENOTSUP: "operation not supported";
+    readonly EOPNOTSUPP: "operation not supported";
+    readonly EPERM: "operation not permitted";
+    readonly EPIPE: "broken pipe";
+    readonly EROFS: "read-only file system";
+    readonly ETIMEDOUT: "operation timed out";
+    readonly EXDEV: "cross-device link not permitted";
+};
+export type ErrnoCode = keyof typeof descriptions;
+export interface FsErrorOptions extends ErrorOptions {
+    readonly syscall?: string;
+    readonly path?: string;
+    readonly dest?: string;
+    readonly message?: string;
+}
+export declare class FsError extends Error {
+    readonly code: ErrnoCode;
+    readonly errno: number;
+    readonly syscall?: string;
+    readonly path?: string;
+    readonly dest?: string;
+    constructor(code: ErrnoCode, options?: FsErrorOptions);
+}
+export declare function isErrnoCode(code: unknown): code is ErrnoCode;
+export declare function isFsError(error: unknown, code?: ErrnoCode): error is FsError;
+export declare function toFsError(error: unknown, options?: FsErrorOptions): FsError;
+export {};
+//# sourceMappingURL=errors.d.ts.map

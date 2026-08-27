@@ -1,0 +1,2062 @@
+{
+  "sealedAt": "2026-08-27T06:58:32.376Z",
+  "authorOnly": true,
+  "productionChanged": false,
+  "unchangedSource": {
+    "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37"
+  },
+  "unchangedHistoricalAuthorFiles": 621,
+  "hashes": {
+    ".gitignore": "1e1d43a7bd60996fc2e4c4a9d19c1e60d546c009770db8ef31af4c841874d823",
+    "evidence/feasibility-final/apache/apache-error.log": "a1443355971e2c62d0d60a78500b0fc5dd2fcaec19e4be4c236414972b8ac963",
+    "evidence/feasibility-final/apache/apache-profile.json": "f9c7ed23bec0e72e59a3ff7d17998afd52472ac957dd3c42a9fb79068a7dc67f",
+    "evidence/feasibility-final/apache/baseline.json": "8644036709ebcc761d4b5991a9a44d34bda9620eb685cc3e16a6abbcd5cca2ef",
+    "evidence/feasibility-final/apache/cert.pem": "9a09539281de158e6a7b48b64b28e21eeec4d0034a785829aaabb81cfb176d19",
+    "evidence/feasibility-final/apache/cleanup.json": "f579fe07ce74b1f0f06d34b6c66aadb3699ba237df7f26d8c77d9740b0df7198",
+    "evidence/feasibility-final/apache/commands.json": "eabf6e2cdaf42a46116fcb1c7507a0be413c7b976e3af356f805a8fb2af49965",
+    "evidence/feasibility-final/apache/consumer.json": "8da51ae081e293e65b77f1faf8bc01b0dd6b7a5e8b6dd02777810fc0ce6663dc",
+    "evidence/feasibility-final/apache/consumer.jsonl": "03c1e7cd74498a53d95db8833c8115d34054fced56eed849cd212445b173f1cf",
+    "evidence/feasibility-final/apache/feasibility.json": "120a030500c4a6ce7fd1f4623e686526255d0988dfd20b57e45e93f346dec231",
+    "evidence/feasibility-final/apache/fixture-hashes.json": "cbb5ac41f4bb095ada18e597a247747beeb563b60c36cbedb806bdd1600d82f2",
+    "evidence/feasibility-final/apache/inputs/apache.mjs": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "evidence/feasibility-final/apache/inputs/consumer.mts": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "evidence/feasibility-final/apache/inputs/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-final/apache/inputs/example.mts": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "evidence/feasibility-final/apache/inputs/feasibility.mts": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+    "evidence/feasibility-final/apache/inputs/https.mts": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "evidence/feasibility-final/apache/inputs/openssl.cnf": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "evidence/feasibility-final/apache/inputs/phase2-consumer.mts": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "evidence/feasibility-final/apache/inputs/phase2-validate.mjs": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "evidence/feasibility-final/apache/inputs/raw.mjs": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "evidence/feasibility-final/apache/inputs/run.mjs": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2",
+    "evidence/feasibility-final/apache/inputs/server.py": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "evidence/feasibility-final/apache/literal-config.json": "38e38406fc409861e05a31697f612a5c4c0ce72999e4e17f25d2a9d99769bb42",
+    "evidence/feasibility-final/apache/package.json": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "evidence/feasibility-final/apache/phase2-consumer.json": "903334663bc91fff68412fc6ee32ec938ba125d48a0d95fd7d9c2638a85a362d",
+    "evidence/feasibility-final/apache/phase2-consumer.jsonl": "eb4e110439b4e760cca55fcc931096a94b5ae6ac20551ababeb90d589d9b012f",
+    "evidence/feasibility-final/apache/raw.json": "a76164a1c868c24cae724cc6474c88b6af537fa85ed27ff1a84c0352b26bf1b3",
+    "evidence/feasibility-final/apache/server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-final/apache/summary.json": "38d5bd2039daa01fd42e567edba3df8c65aa685c89d0996bb9769ce29fc78d42",
+    "evidence/feasibility-final/apache.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-final/apache.stdout.log": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "evidence/feasibility-final/before.json": "1e04c2571d86bbc0f8b0a4dd71c3294b78da9b00f6d5656cc464551645211ea0",
+    "evidence/feasibility-final/run.json": "b62271948de9f98dabaa6927dc93283a8e8d5669e31d42883bd2112d8253c315",
+    "evidence/feasibility-final/validation/cleanup.json": "43d46e6a1bd1fe4f31d819ec17479493695763e1d17134722e6ed0895cece2da",
+    "evidence/feasibility-final/validation/commands.json": "ce3cd090bc810bdd39da4c9673a2635407c04810e3f5a3d9b1bef23de7a53744",
+    "evidence/feasibility-final/validation/inputs.json": "25cb3b18f441c30ee74a9ff7759afd4afa169dfc32f9da3ab0f8c3ec1eb74024",
+    "evidence/feasibility-final/validation.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-final/validation.stdout.log": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "evidence/feasibility-final/wsgidav/baseline.json": "935239e944d101f36b80072e4cb250a9c9733da203a2b38a27a7087387fbd42c",
+    "evidence/feasibility-final/wsgidav/cert.pem": "05df4740da982cedcf03c48b2a4f776cbfd75a175ea4e7757388a01e0f615268",
+    "evidence/feasibility-final/wsgidav/cleanup.json": "c3b1a372b931e739a8b52aebc0794f0b9c9ce596cca8f1a9ade5f03ceeccd1b9",
+    "evidence/feasibility-final/wsgidav/commands.json": "22288b22319bafe9c18e4235e4c8939cac18288abad58b1734e510bc61cc3b4f",
+    "evidence/feasibility-final/wsgidav/consumer.json": "c46c43e90adbef90e4c01c4f9ff5d0a727c52d01a3ac5a36e11a85658f101e31",
+    "evidence/feasibility-final/wsgidav/consumer.jsonl": "3f6ad3d6c1fa5ca64ca9874004f45d1ac82f42f0b81cc138b9b6c77126701ddb",
+    "evidence/feasibility-final/wsgidav/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-final/wsgidav/feasibility.json": "58251d78fb54fe1eb3f627bdeb17a6e46ba0ceb7711909223907af24c124e7ae",
+    "evidence/feasibility-final/wsgidav/fixture-hashes.json": "cbb5ac41f4bb095ada18e597a247747beeb563b60c36cbedb806bdd1600d82f2",
+    "evidence/feasibility-final/wsgidav/inputs/apache.mjs": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "evidence/feasibility-final/wsgidav/inputs/consumer.mts": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "evidence/feasibility-final/wsgidav/inputs/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-final/wsgidav/inputs/example.mts": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "evidence/feasibility-final/wsgidav/inputs/feasibility.mts": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+    "evidence/feasibility-final/wsgidav/inputs/https.mts": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "evidence/feasibility-final/wsgidav/inputs/openssl.cnf": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "evidence/feasibility-final/wsgidav/inputs/phase2-consumer.mts": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "evidence/feasibility-final/wsgidav/inputs/phase2-validate.mjs": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "evidence/feasibility-final/wsgidav/inputs/raw.mjs": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "evidence/feasibility-final/wsgidav/inputs/run.mjs": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2",
+    "evidence/feasibility-final/wsgidav/inputs/server.py": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "evidence/feasibility-final/wsgidav/literal-config.json": "e985412e9e5effdd8631e69116bc289d84d68076098b3ced8e979cfb82df96a2",
+    "evidence/feasibility-final/wsgidav/package.json": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "evidence/feasibility-final/wsgidav/phase2-consumer.json": "749549d8cdcb3dbf1c48b9a813a41547bebfc91b8d65e0983d5515db95dfd72c",
+    "evidence/feasibility-final/wsgidav/phase2-consumer.jsonl": "fefb577ea817b2c92c60ddd1c607c2afdae75caff2a3082c34049be5846b4123",
+    "evidence/feasibility-final/wsgidav/raw.json": "d1215fe46d0c9fd20167a1165bb0c677533a0c305471eb86cc237196dcb79c4a",
+    "evidence/feasibility-final/wsgidav/server.log": "50ecf0b78089f88696930f89a94c84383a0dc3fd942be50bf2dfda0b156aac85",
+    "evidence/feasibility-final/wsgidav/summary.json": "71b1587201ae586c5d085fa467e021ee0515650d57b9dc0c6754be6950dfb574",
+    "evidence/feasibility-final/wsgidav.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-final/wsgidav.stdout.log": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "evidence/feasibility-first/apache/apache-error.log": "52ffc3c625de48a57b645cfe87d3d61aac9145a59517ef584f7bf9f274a2d7af",
+    "evidence/feasibility-first/apache/apache-profile.json": "ca8f2ef089e0528aafa648f564489e1a968f9f3db6664ae713b514eac066b62f",
+    "evidence/feasibility-first/apache/baseline.json": "14ee087b9efcb27436d41d99c3e18ab6f1d786a1befee85c3254f0bd2db96e85",
+    "evidence/feasibility-first/apache/cert.pem": "38c24eec0158ac668fc1f2d70ab21c2ea267dff1a1a3e74f082cc06102d5e4ae",
+    "evidence/feasibility-first/apache/cleanup.json": "5e1a9e81ee4e4d5d65602d6cfccaa32f6b8db042d115ca24f88a56f24abbbb33",
+    "evidence/feasibility-first/apache/commands.json": "6e3dc2583c0647611eebb2f405226fd25ed96419eba823dfe6046dd2097df1f1",
+    "evidence/feasibility-first/apache/consumer.json": "f38e0f4cfc89b600143e6dafdde9de9ffcb078c6a00f35b6e026c2c57784aab3",
+    "evidence/feasibility-first/apache/consumer.jsonl": "663be92750e4528fd97b2e686037c4f703201f2865e6e0d6db1cc18f032ccd22",
+    "evidence/feasibility-first/apache/feasibility.json": "02e0fac08fdec73d096cbc9ba0fed98cd424a08885981224f76a9923c8f00c07",
+    "evidence/feasibility-first/apache/fixture-hashes.json": "b0360978efa7ae60d2c1c838b555296441e421d52d1cc5acd0e29be4f20597da",
+    "evidence/feasibility-first/apache/inputs/apache.mjs": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "evidence/feasibility-first/apache/inputs/consumer.mts": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "evidence/feasibility-first/apache/inputs/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-first/apache/inputs/example.mts": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "evidence/feasibility-first/apache/inputs/feasibility.mts": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+    "evidence/feasibility-first/apache/inputs/https.mts": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "evidence/feasibility-first/apache/inputs/openssl.cnf": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "evidence/feasibility-first/apache/inputs/phase2-consumer.mts": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "evidence/feasibility-first/apache/inputs/phase2-validate.mjs": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "evidence/feasibility-first/apache/inputs/raw.mjs": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "evidence/feasibility-first/apache/inputs/run.mjs": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2",
+    "evidence/feasibility-first/apache/inputs/server.py": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "evidence/feasibility-first/apache/literal-config.json": "936d752379aa4c08fbed835d495b489ff323169ea562fdd299ddfcaaf55bcf0c",
+    "evidence/feasibility-first/apache/package.json": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "evidence/feasibility-first/apache/phase2-consumer.json": "069a4bb4c5815eae44d2f2be33f16c35ef97804d3c060faa9dd28649b18276fc",
+    "evidence/feasibility-first/apache/phase2-consumer.jsonl": "227a53962b808e544e850c651d90938a971ca087dd2655b4118a961f5faad1a6",
+    "evidence/feasibility-first/apache/raw.json": "3b57581858dd477de1c683404b6d4950b6fd21e8282ef2ac7a24ff809559582e",
+    "evidence/feasibility-first/apache/server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-first/apache/summary.json": "38d5bd2039daa01fd42e567edba3df8c65aa685c89d0996bb9769ce29fc78d42",
+    "evidence/feasibility-first/apache.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-first/apache.stdout.log": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "evidence/feasibility-first/before.json": "41e927c538017bcb30e122b421d1606595ae6bb5cfe051221b4fa60bd6c0dbd6",
+    "evidence/feasibility-first/run.json": "d539f35edb098f9655b46e14fa4f92cbca9b354d6473527affb221289e02b60e",
+    "evidence/feasibility-first/validation/cleanup.json": "e623d8f4b066e262ef250fd4b6d83c6faece931f90059dc8b561b36f79c98cb7",
+    "evidence/feasibility-first/validation/commands.json": "0bad4321198ae6c145070c3d1c34eb90cfbf6880db53c747af4f0e2fdccfbad2",
+    "evidence/feasibility-first/validation/inputs.json": "25cb3b18f441c30ee74a9ff7759afd4afa169dfc32f9da3ab0f8c3ec1eb74024",
+    "evidence/feasibility-first/validation.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-first/validation.stdout.log": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "evidence/feasibility-first/wsgidav/baseline.json": "530695c39edd80d769b5c48c841b3ff53eee320d978b68bd74007095a346d4e9",
+    "evidence/feasibility-first/wsgidav/cert.pem": "128528ed899cb13452bcba1cb26e2a64ce09168e7468797dbd4cc0280b94e140",
+    "evidence/feasibility-first/wsgidav/cleanup.json": "3a3845275e85c6a25cb86bb64f6ed7099679ee3266909f043504f65afad0cc21",
+    "evidence/feasibility-first/wsgidav/commands.json": "fbefd219c1f507d57f9b00625d88c598966b28b887c201fe662e02b8e647dd16",
+    "evidence/feasibility-first/wsgidav/consumer.json": "ec4793d43adbcde7a4f21804d462845b4a756490d418ba75a22c421318af6713",
+    "evidence/feasibility-first/wsgidav/consumer.jsonl": "8015672fb459159b6d3365eb84240a17c2dcf6ec5b01ef0941cfbf79a350ce50",
+    "evidence/feasibility-first/wsgidav/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-first/wsgidav/feasibility.json": "f407e76119521c89092f197c1b277095c6ae1c382d6c0669d984734fc19b0f06",
+    "evidence/feasibility-first/wsgidav/fixture-hashes.json": "b0360978efa7ae60d2c1c838b555296441e421d52d1cc5acd0e29be4f20597da",
+    "evidence/feasibility-first/wsgidav/inputs/apache.mjs": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "evidence/feasibility-first/wsgidav/inputs/consumer.mts": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "evidence/feasibility-first/wsgidav/inputs/dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "evidence/feasibility-first/wsgidav/inputs/example.mts": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "evidence/feasibility-first/wsgidav/inputs/feasibility.mts": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+    "evidence/feasibility-first/wsgidav/inputs/https.mts": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "evidence/feasibility-first/wsgidav/inputs/openssl.cnf": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "evidence/feasibility-first/wsgidav/inputs/phase2-consumer.mts": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "evidence/feasibility-first/wsgidav/inputs/phase2-validate.mjs": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "evidence/feasibility-first/wsgidav/inputs/raw.mjs": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "evidence/feasibility-first/wsgidav/inputs/run.mjs": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2",
+    "evidence/feasibility-first/wsgidav/inputs/server.py": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "evidence/feasibility-first/wsgidav/literal-config.json": "af5b80d3518ec43ab67c01f0d09cf851481e5e7137ae5ff2b271b1b20872a8df",
+    "evidence/feasibility-first/wsgidav/package.json": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "evidence/feasibility-first/wsgidav/phase2-consumer.json": "d475c2b7f64f3edde2dc3b1d833415d42f4e0673e40fdd7b8c2311bd10c404d8",
+    "evidence/feasibility-first/wsgidav/phase2-consumer.jsonl": "1af9b64def6b44465d6e3eb50ebce69469513e65ebceecfd9f66d2002400b1dd",
+    "evidence/feasibility-first/wsgidav/raw.json": "4a39a60dbdf79a9cee9e749bd5072bfb42d7a416e3d1755e59dbe2cce0fee63e",
+    "evidence/feasibility-first/wsgidav/server.log": "9513ca0c7a5c1b482b5896f64669cdc97522e01487a1a076ad236bf0d0a2a99a",
+    "evidence/feasibility-first/wsgidav/summary.json": "71b1587201ae586c5d085fa467e021ee0515650d57b9dc0c6754be6950dfb574",
+    "evidence/feasibility-first/wsgidav.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/feasibility-first/wsgidav.stdout.log": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "evidence/primary/review-dav.txt": "47da891e7c52b624f14a61c2dbc8f5165279b7922a870416f566f5166d308f3b",
+    "evidence/primary/sources.json": "1451079a22f9cdf7309165cb6dccb3c853b16c611e05dbfef632a7b7bfcd3ac6",
+    "evidence/primary-corrected/review-dav.txt": "47da891e7c52b624f14a61c2dbc8f5165279b7922a870416f566f5166d308f3b",
+    "evidence/primary-corrected/sources.json": "0f7dde53379cb4613ad98e7d9e61bbd26846af5b6ef03520f741a21c903ce38d",
+    "feasibility.mts": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+    "primary.mjs": "c346c104db98d6299210562ee0e47630451e8572999a451c8707f848937cef56",
+    "README.md": "6c0a68e6c2db0c282419602dfdd160792237ad123da0a765364805cf4b421f5e",
+    "run.mjs": "8d982e4f5a1b53f093a29000c15dd8f775adcf5dc226a7b3c273691daffb40bf",
+    "seal.mjs": "56fd15fd953bc91de0c11acf0903f5ed463055ef52885458315d2cecd305cd64"
+  },
+  "sumsSha256": "73dc8aab2f5cf8b0f3df855965b1ae7740f6b0319c89610d00d5d9f45eb02539",
+  "cohorts": {
+    "feasibility-first": {
+      "source": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "validationPassed": true,
+      "inputs": {
+        "run.mjs": {
+          "originalSha256": "17b6f7a21fa0cec675d83b898db4fc4c3a20c00f73aae56557f357afb355a5d3",
+          "executedSha256": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2"
+        },
+        "apache.mjs": {
+          "originalSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+          "executedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c"
+        },
+        "server.py": {
+          "originalSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+          "executedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35"
+        },
+        "dependencies.json": {
+          "originalSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+          "executedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+        },
+        "openssl.cnf": {
+          "originalSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+          "executedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+        },
+        "https.mts": {
+          "originalSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+          "executedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        "example.mts": {
+          "originalSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+          "executedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+        },
+        "consumer.mts": {
+          "originalSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+          "executedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+        },
+        "phase2-consumer.mts": {
+          "originalSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+          "executedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+        },
+        "raw.mjs": {
+          "originalSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+          "executedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45"
+        },
+        "phase2-validate.mjs": {
+          "originalSha256": "945f8439e0fc138b896b9daaabfc3588c3aec1ee21d68fc528f32812b458c332",
+          "executedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484"
+        },
+        "legacy-lock.test.ts": {
+          "originalSha256": "6815be2399077b3247404a7b060c8af5e340a36d7c2dfcf8c0b8201fdc96fe00",
+          "executedSha256": "6815be2399077b3247404a7b060c8af5e340a36d7c2dfcf8c0b8201fdc96fe00"
+        },
+        "direct-comparison.test.ts": {
+          "originalSha256": "5fc8a3924fa0ca1e092739b7708fd87f82a48df10c50e01bbc24791fbf6805d7",
+          "executedSha256": "5fc8a3924fa0ca1e092739b7708fd87f82a48df10c50e01bbc24791fbf6805d7"
+        },
+        "timestamp-postcondition.test.ts": {
+          "originalSha256": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+          "executedSha256": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263"
+        },
+        "lock-scope.test.ts": {
+          "originalSha256": "2bce00c07c95b81ff8be2a7e8c42ac96e890bfc478c5c13677985f19fd95ac63",
+          "executedSha256": "2bce00c07c95b81ff8be2a7e8c42ac96e890bfc478c5c13677985f19fd95ac63"
+        },
+        "feasibility.mts": {
+          "originalSha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+          "executedSha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af"
+        }
+      },
+      "cleanup": {
+        "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI",
+        "removed": true
+      },
+      "providers": {
+        "apache": {
+          "summary": {
+            "public": {
+              "positive": {
+                "pass": 0,
+                "fail": 2,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 0,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            },
+            "raw": {
+              "positive": {
+                "pass": 1,
+                "fail": 0,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 4,
+                "fail": 2,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            }
+          },
+          "originalSummary": {
+            "provider": "apache",
+            "raw": {
+              "positive": {
+                "pass": 9,
+                "fail": 0
+              },
+              "guard": {
+                "pass": 7,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            },
+            "consumer": {
+              "positive": {
+                "pass": 16,
+                "fail": 1
+              },
+              "guard": {
+                "pass": 14,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 2,
+                "fail": 0
+              }
+            },
+            "phase2": {
+              "positive": {
+                "pass": 2,
+                "fail": 0
+              },
+              "guard": {
+                "pass": 15,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            }
+          },
+          "packageSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+          "sourceArchiveSha256": "63763b507b98d5b49957cd4505b95162524ecda131a9eac0d7207699fc0738de",
+          "sourceHashes": {
+            "package.json": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22",
+            "src/commands/README.md": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+            "src/commands/archive/README.md": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+            "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+            "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+            "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+            "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+            "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+            "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+            "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+            "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+            "src/commands/bytes/README.md": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+            "src/commands/bytes/checksums/README.md": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+            "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+            "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+            "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+            "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+            "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+            "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+            "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+            "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+            "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+            "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+            "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+            "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+            "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+            "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+            "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+            "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+            "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+            "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+            "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+            "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+            "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+            "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+            "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+            "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+            "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+            "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+            "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+            "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+            "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+            "src/commands/diff-patch/unified.ts": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38",
+            "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+            "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+            "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+            "src/commands/grep.ts": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+            "src/commands/index.ts": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+            "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+            "src/commands/metadata/README.md": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+            "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+            "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+            "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+            "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+            "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+            "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+            "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+            "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+            "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+            "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+            "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+            "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+            "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+            "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+            "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+            "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+            "src/commands/regex-execution/README.md": "e5bf76ec9f79673a54d8a4988425807a952a5c72f47b385aa1bdb4ce84263e51",
+            "src/commands/regex-execution/client.ts": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+            "src/commands/regex-execution/matching.ts": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497",
+            "src/commands/regex-execution/protocol.ts": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+            "src/commands/regex-execution/worker.ts": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+            "src/commands/safejs/README.md": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+            "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+            "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+            "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+            "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+            "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+            "src/commands/search/README.md": "8ee093b056d13af684b64468fe06a3b6c5d534e6a40227516de76c710b76af51",
+            "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+            "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+            "src/commands/search/matcher.ts": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+            "src/commands/search/options.ts": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+            "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+            "src/commands/search/rg.ts": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+            "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+            "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+            "src/commands/split/README.md": "96f40bad76b2ef1173a5c217f768ccfd853be82164ce67476f726b83e095a8a4",
+            "src/commands/split/index.ts": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+            "src/commands/split/io.ts": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+            "src/commands/split/names.ts": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+            "src/commands/split/options.ts": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+            "src/commands/split/outputs.ts": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+            "src/commands/split/split.ts": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+            "src/commands/stream-format/README.md": "82c3de9ec2623b8ce7440d20179aa9ebe4e0a9dacafdef8150a96f46ce5c8911",
+            "src/commands/stream-format/index.ts": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+            "src/commands/stream-format/nl.ts": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+            "src/commands/stream-format/rev.ts": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+            "src/commands/stream-format/seq.ts": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+            "src/commands/stream-format/shared.ts": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+            "src/commands/stream-format/unexpand.ts": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+            "src/commands/stream-inspection/README.md": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+            "src/commands/stream-inspection/expand.ts": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+            "src/commands/stream-inspection/fold.ts": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+            "src/commands/stream-inspection/index.ts": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+            "src/commands/stream-inspection/numeric-options.ts": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+            "src/commands/stream-inspection/shared.ts": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+            "src/commands/stream-inspection/strings.ts": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+            "src/commands/stream-inspection/tac.ts": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+            "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+            "src/commands/structured/README.md": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+            "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+            "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+            "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+            "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+            "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+            "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+            "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+            "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+            "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+            "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+            "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+            "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+            "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+            "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+            "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+            "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+            "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+            "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+            "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+            "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+            "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+            "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+            "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+            "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+            "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+            "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+            "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+            "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+            "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+            "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+            "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+            "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+            "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+            "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+            "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+            "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+            "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+            "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+            "src/fs/s3/COMPARISON.md": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+            "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+            "src/fs/s3/SDK_COMPARISON.md": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+            "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+            "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+            "src/fs/s3/http/README.md": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+            "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+            "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+            "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+            "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+            "src/fs/s3/http/types.ts": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+            "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+            "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+            "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+            "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+            "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+            "src/fs/webdav/README.md": "632d5b1598c85d60870b6381e07279a70d06973a22581bbb3ad2aadd7b5c39f7",
+            "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+            "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+            "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+            "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+            "src/index.ts": "59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2",
+            "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+            "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+            "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+            "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+            "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+            "src/plugins/index.ts": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+            "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+            "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+            "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+            "tsconfig.json": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+          },
+          "packageExports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./contracts": {
+              "types": "./dist/contracts/index.d.ts",
+              "import": "./dist/contracts/index.js"
+            },
+            "./contracts/*": {
+              "types": "./dist/contracts/*.d.ts",
+              "import": "./dist/contracts/*.js"
+            },
+            "./commands/network": {
+              "types": "./dist/commands/network/index.d.ts",
+              "import": "./dist/commands/network/index.js"
+            },
+            "./commands/metadata": {
+              "types": "./dist/commands/metadata/index.d.ts",
+              "import": "./dist/commands/metadata/index.js"
+            },
+            "./commands/archive": {
+              "types": "./dist/commands/archive/index.d.ts",
+              "import": "./dist/commands/archive/index.js"
+            },
+            "./commands/table-text": {
+              "types": "./dist/commands/table-text/index.d.ts",
+              "import": "./dist/commands/table-text/index.js"
+            },
+            "./commands/stream-inspection": {
+              "types": "./dist/commands/stream-inspection/index.d.ts",
+              "import": "./dist/commands/stream-inspection/index.js"
+            },
+            "./fs/s3": {
+              "types": "./dist/fs/s3/index.d.ts",
+              "import": "./dist/fs/s3/index.js"
+            },
+            "./fs/s3/http": {
+              "types": "./dist/fs/s3/http/index.d.ts",
+              "import": "./dist/fs/s3/http/index.js"
+            },
+            "./fs/webdav": {
+              "types": "./dist/fs/webdav/index.d.ts",
+              "import": "./dist/fs/webdav/index.js"
+            },
+            "./fs/readonly": {
+              "types": "./dist/fs/readonly/index.d.ts",
+              "import": "./dist/fs/readonly/index.js"
+            },
+            "./fs/mount": {
+              "types": "./dist/fs/mount/index.d.ts",
+              "import": "./dist/fs/mount/index.js"
+            },
+            "./fs/overlay": {
+              "types": "./dist/fs/overlay/index.d.ts",
+              "import": "./dist/fs/overlay/index.js"
+            }
+          },
+          "imports": {
+            "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/consumer/node_modules/virtual-bash/dist/index.js",
+            "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+          },
+          "cleanup": {
+            "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh",
+            "startedAt": "2026-08-27T06:51:19.683Z",
+            "endedAt": "2026-08-27T06:52:01.012Z",
+            "serverPid": 26661,
+            "serverExitCode": 0,
+            "serverSignalCode": null,
+            "serviceDurationMs": 38099,
+            "removed": true
+          },
+          "providerArtifacts": {
+            "port": 53261,
+            "config": "ServerRoot \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh\"\nDefaultRuntimeDir \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh\"\nPidFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/httpd.pid\"\nMutex file:/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh\nListen 127.0.0.1:53261\nServerName 127.0.0.1\nLoadModule mpm_prefork_module /usr/libexec/apache2/mod_mpm_prefork.so\nLoadModule unixd_module /usr/libexec/apache2/mod_unixd.so\nLoadModule auth_basic_module /usr/libexec/apache2/mod_auth_basic.so\nLoadModule authn_file_module /usr/libexec/apache2/mod_authn_file.so\nLoadModule authn_core_module /usr/libexec/apache2/mod_authn_core.so\nLoadModule authz_core_module /usr/libexec/apache2/mod_authz_core.so\nLoadModule authz_user_module /usr/libexec/apache2/mod_authz_user.so\nLoadModule authz_host_module /usr/libexec/apache2/mod_authz_host.so\nLoadModule alias_module /usr/libexec/apache2/mod_alias.so\nLoadModule ssl_module /usr/libexec/apache2/mod_ssl.so\nLoadModule dav_module /usr/libexec/apache2/mod_dav.so\nLoadModule dav_fs_module /usr/libexec/apache2/mod_dav_fs.so\nUser #501\nGroup #20\nErrorLog \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/error.log\"\nLogLevel warn\nServerTokens Full\nTimeout 10\nKeepAlive Off\nSSLEngine on\nSSLCertificateFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/cert.pem\"\nSSLCertificateKeyFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/key.pem\"\nSSLSessionCache none\nDocumentRoot \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root\"\nDavLockDB \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/locks/DavLock\"\nAlias /dav \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root\"\nAlias /alias \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root\"\nAlias /readonly \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root\"\n<Directory \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root\">\n  Dav On\n  Options FollowSymLinks\n  AllowOverride None\n  FileETag INode MTime Size\n  AuthType Basic\n  AuthName fixture\n  AuthBasicProvider file\n  AuthUserFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/passwords\"\n  Require user fixture\n</Directory>\n<Location /readonly>\n  <LimitExcept GET HEAD OPTIONS PROPFIND>\n    Require all denied\n  </LimitExcept>\n</Location>\n",
+            "artifacts": {
+              "/usr/sbin/httpd": "17eab33df66fd97b9a176505d3b4d3357fd529820a7bab1d460a2092344b0871",
+              "/usr/libexec/apache2/mod_mpm_prefork.so": "a7d06b845b63b59222bb7caa9da567c6a60555df1030fdec40fdacb4708ea1c6",
+              "/usr/libexec/apache2/mod_unixd.so": "18527dc3ad1295da7da8a4d6c58f12b5fd4c0116741f49e5e13ac29186984c86",
+              "/usr/libexec/apache2/mod_auth_basic.so": "78a928654467bf04efad2aa1dfc8c4eb11919095cbda9398a6cada47e766bc7c",
+              "/usr/libexec/apache2/mod_authn_file.so": "bef04ae9cb7baf53fe4b688937181a96c5fcfc1457b9e4fe3e04808327534fd8",
+              "/usr/libexec/apache2/mod_authn_core.so": "e3921ba7b6355df8f93fc53b67d92c934df3679ede4236a7bacf40f91eaadb19",
+              "/usr/libexec/apache2/mod_authz_core.so": "df4509ad5e2fc83ddc8ccfdecea84a47a2bc88158ac26ee1b7dc1c39a6997ad5",
+              "/usr/libexec/apache2/mod_authz_user.so": "d80fa22861d3167e1a3f76167ffbd2056a970804559faba7da9b3c8c4b596ded",
+              "/usr/libexec/apache2/mod_authz_host.so": "0b85d86b92e4f3d850e4924ce768dc8732354a1f3a158546cc2e95f8d3f8617c",
+              "/usr/libexec/apache2/mod_alias.so": "ab398b81c9261a67c1670785924c9baaafc4a0f8089163a1f5b4a66d6f3f04f5",
+              "/usr/libexec/apache2/mod_ssl.so": "7fe49ed42b1e2ecfc9bbd5e7e0973b45d1e069fabd59c68ec55c5a4bd1b73ed4",
+              "/usr/libexec/apache2/mod_dav.so": "6ba7592eb9276bb618af867d28262aa0f1ef4c5033c8a913f943930fe8c1323c",
+              "/usr/libexec/apache2/mod_dav_fs.so": "2e40f73d778b1255dd29dd8cb6ea374677dd1157ad22952e51aa107278351504"
+            },
+            "version": "Server version: Apache/2.4.66 (Unix)\nServer built:   Feb 21 2026 17:59:25\n"
+          }
+        },
+        "wsgidav": {
+          "summary": {
+            "public": {
+              "positive": {
+                "pass": 0,
+                "fail": 2,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 0,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            },
+            "raw": {
+              "positive": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 1
+              },
+              "guard": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 6
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            }
+          },
+          "originalSummary": {
+            "provider": "wsgidav",
+            "raw": {
+              "positive": {
+                "pass": 3,
+                "fail": 6
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 4
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            },
+            "consumer": {
+              "positive": {
+                "pass": 10,
+                "fail": 5
+              },
+              "guard": {
+                "pass": 13,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 4,
+                "fail": 0
+              }
+            },
+            "phase2": {
+              "positive": {
+                "pass": 0,
+                "fail": 2
+              },
+              "guard": {
+                "pass": 13,
+                "fail": 2
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            }
+          },
+          "packageSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+          "sourceArchiveSha256": "63763b507b98d5b49957cd4505b95162524ecda131a9eac0d7207699fc0738de",
+          "sourceHashes": {
+            "package.json": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22",
+            "src/commands/README.md": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+            "src/commands/archive/README.md": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+            "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+            "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+            "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+            "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+            "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+            "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+            "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+            "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+            "src/commands/bytes/README.md": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+            "src/commands/bytes/checksums/README.md": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+            "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+            "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+            "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+            "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+            "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+            "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+            "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+            "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+            "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+            "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+            "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+            "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+            "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+            "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+            "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+            "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+            "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+            "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+            "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+            "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+            "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+            "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+            "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+            "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+            "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+            "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+            "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+            "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+            "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+            "src/commands/diff-patch/unified.ts": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38",
+            "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+            "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+            "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+            "src/commands/grep.ts": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+            "src/commands/index.ts": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+            "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+            "src/commands/metadata/README.md": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+            "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+            "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+            "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+            "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+            "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+            "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+            "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+            "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+            "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+            "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+            "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+            "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+            "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+            "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+            "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+            "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+            "src/commands/regex-execution/README.md": "e5bf76ec9f79673a54d8a4988425807a952a5c72f47b385aa1bdb4ce84263e51",
+            "src/commands/regex-execution/client.ts": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+            "src/commands/regex-execution/matching.ts": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497",
+            "src/commands/regex-execution/protocol.ts": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+            "src/commands/regex-execution/worker.ts": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+            "src/commands/safejs/README.md": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+            "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+            "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+            "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+            "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+            "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+            "src/commands/search/README.md": "8ee093b056d13af684b64468fe06a3b6c5d534e6a40227516de76c710b76af51",
+            "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+            "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+            "src/commands/search/matcher.ts": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+            "src/commands/search/options.ts": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+            "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+            "src/commands/search/rg.ts": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+            "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+            "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+            "src/commands/split/README.md": "96f40bad76b2ef1173a5c217f768ccfd853be82164ce67476f726b83e095a8a4",
+            "src/commands/split/index.ts": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+            "src/commands/split/io.ts": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+            "src/commands/split/names.ts": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+            "src/commands/split/options.ts": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+            "src/commands/split/outputs.ts": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+            "src/commands/split/split.ts": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+            "src/commands/stream-format/README.md": "82c3de9ec2623b8ce7440d20179aa9ebe4e0a9dacafdef8150a96f46ce5c8911",
+            "src/commands/stream-format/index.ts": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+            "src/commands/stream-format/nl.ts": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+            "src/commands/stream-format/rev.ts": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+            "src/commands/stream-format/seq.ts": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+            "src/commands/stream-format/shared.ts": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+            "src/commands/stream-format/unexpand.ts": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+            "src/commands/stream-inspection/README.md": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+            "src/commands/stream-inspection/expand.ts": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+            "src/commands/stream-inspection/fold.ts": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+            "src/commands/stream-inspection/index.ts": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+            "src/commands/stream-inspection/numeric-options.ts": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+            "src/commands/stream-inspection/shared.ts": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+            "src/commands/stream-inspection/strings.ts": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+            "src/commands/stream-inspection/tac.ts": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+            "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+            "src/commands/structured/README.md": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+            "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+            "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+            "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+            "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+            "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+            "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+            "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+            "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+            "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+            "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+            "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+            "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+            "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+            "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+            "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+            "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+            "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+            "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+            "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+            "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+            "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+            "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+            "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+            "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+            "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+            "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+            "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+            "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+            "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+            "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+            "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+            "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+            "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+            "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+            "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+            "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+            "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+            "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+            "src/fs/s3/COMPARISON.md": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+            "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+            "src/fs/s3/SDK_COMPARISON.md": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+            "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+            "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+            "src/fs/s3/http/README.md": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+            "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+            "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+            "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+            "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+            "src/fs/s3/http/types.ts": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+            "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+            "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+            "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+            "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+            "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+            "src/fs/webdav/README.md": "632d5b1598c85d60870b6381e07279a70d06973a22581bbb3ad2aadd7b5c39f7",
+            "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+            "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+            "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+            "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+            "src/index.ts": "59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2",
+            "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+            "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+            "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+            "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+            "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+            "src/plugins/index.ts": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+            "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+            "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+            "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+            "tsconfig.json": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+          },
+          "packageExports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./contracts": {
+              "types": "./dist/contracts/index.d.ts",
+              "import": "./dist/contracts/index.js"
+            },
+            "./contracts/*": {
+              "types": "./dist/contracts/*.d.ts",
+              "import": "./dist/contracts/*.js"
+            },
+            "./commands/network": {
+              "types": "./dist/commands/network/index.d.ts",
+              "import": "./dist/commands/network/index.js"
+            },
+            "./commands/metadata": {
+              "types": "./dist/commands/metadata/index.d.ts",
+              "import": "./dist/commands/metadata/index.js"
+            },
+            "./commands/archive": {
+              "types": "./dist/commands/archive/index.d.ts",
+              "import": "./dist/commands/archive/index.js"
+            },
+            "./commands/table-text": {
+              "types": "./dist/commands/table-text/index.d.ts",
+              "import": "./dist/commands/table-text/index.js"
+            },
+            "./commands/stream-inspection": {
+              "types": "./dist/commands/stream-inspection/index.d.ts",
+              "import": "./dist/commands/stream-inspection/index.js"
+            },
+            "./fs/s3": {
+              "types": "./dist/fs/s3/index.d.ts",
+              "import": "./dist/fs/s3/index.js"
+            },
+            "./fs/s3/http": {
+              "types": "./dist/fs/s3/http/index.d.ts",
+              "import": "./dist/fs/s3/http/index.js"
+            },
+            "./fs/webdav": {
+              "types": "./dist/fs/webdav/index.d.ts",
+              "import": "./dist/fs/webdav/index.js"
+            },
+            "./fs/readonly": {
+              "types": "./dist/fs/readonly/index.d.ts",
+              "import": "./dist/fs/readonly/index.js"
+            },
+            "./fs/mount": {
+              "types": "./dist/fs/mount/index.d.ts",
+              "import": "./dist/fs/mount/index.js"
+            },
+            "./fs/overlay": {
+              "types": "./dist/fs/overlay/index.d.ts",
+              "import": "./dist/fs/overlay/index.js"
+            }
+          },
+          "imports": {
+            "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-SzqhKx/consumer/node_modules/virtual-bash/dist/index.js",
+            "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-SzqhKx/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+          },
+          "cleanup": {
+            "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-SzqhKx",
+            "startedAt": "2026-08-27T06:52:01.966Z",
+            "endedAt": "2026-08-27T06:52:10.947Z",
+            "serverPid": 30048,
+            "serverExitCode": null,
+            "serverSignalCode": "SIGTERM",
+            "serviceDurationMs": 3036,
+            "removed": true
+          },
+          "providerArtifacts": [
+            {
+              "name": "WsgiDAV",
+              "version": "4.3.5",
+              "metadataUrl": "https://pypi.org/pypi/WsgiDAV/4.3.5/json",
+              "requires": [
+                "defusedxml",
+                "Jinja2",
+                "json5",
+                "PyYAML",
+                "passlib",
+                "bcrypt<5,>=4.0",
+                "python-pam; extra == \"pam\""
+              ],
+              "filename": "wsgidav-4.3.5-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/e5/e2/d70dbfe68aada7735d38a1a0eeda079b39478f0ec993fec00c432cf4dcfc/wsgidav-4.3.5-py3-none-any.whl",
+              "sha256": "0985f5cb572e00c151e1c60d00e1ae8cbf74dea2a3286ec0bc040ab482cd5095"
+            },
+            {
+              "name": "cheroot",
+              "version": "11.1.2",
+              "metadataUrl": "https://pypi.org/pypi/cheroot/11.1.2/json",
+              "requires": [
+                "more-itertools>=2.6",
+                "jaraco.functools",
+                "sphinx>=1.8.2; extra == \"docs\"",
+                "jaraco.packaging>=3.2; extra == \"docs\"",
+                "sphinx-tabs>=1.1.0; extra == \"docs\"",
+                "furo; extra == \"docs\"",
+                "python-dateutil; extra == \"docs\"",
+                "sphinxcontrib-apidoc>=0.3.0; extra == \"docs\""
+              ],
+              "filename": "cheroot-11.1.2-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/41/99/af65511a10c4212438ac52bc5e45e486e7a04d292201ad84dfd9208fe9a8/cheroot-11.1.2-py3-none-any.whl",
+              "sha256": "0f6c0ba05c00fbc869fb46b1de4ec2384e1d85418ae963d3bc10ae83b688dbfa"
+            },
+            {
+              "name": "defusedxml",
+              "version": "0.7.1",
+              "metadataUrl": "https://pypi.org/pypi/defusedxml/0.7.1/json",
+              "requires": null,
+              "filename": "defusedxml-0.7.1-py2.py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl",
+              "sha256": "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"
+            },
+            {
+              "name": "Jinja2",
+              "version": "3.1.6",
+              "metadataUrl": "https://pypi.org/pypi/Jinja2/3.1.6/json",
+              "requires": [
+                "MarkupSafe>=2.0",
+                "Babel>=2.7; extra == \"i18n\""
+              ],
+              "filename": "jinja2-3.1.6-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+              "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+            },
+            {
+              "name": "MarkupSafe",
+              "version": "3.0.3",
+              "metadataUrl": "https://pypi.org/pypi/MarkupSafe/3.0.3/json",
+              "requires": null,
+              "filename": "markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "url": "https://files.pythonhosted.org/packages/b5/64/7660f8a4a8e53c924d0fa05dc3a55c9cee10bbd82b11c5afb27d44b096ce/markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "sha256": "c47a551199eb8eb2121d4f0f15ae0f923d31350ab9280078d1e5f12b249e0026"
+            },
+            {
+              "name": "json5",
+              "version": "0.15.0",
+              "metadataUrl": "https://pypi.org/pypi/json5/0.15.0/json",
+              "requires": null,
+              "filename": "json5-0.15.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/eb/be/59527c99478aade6bb33a68d72e6e18dd4e6ff6eacfc7d01bdb15bc76912/json5-0.15.0-py3-none-any.whl",
+              "sha256": "56636a30c0e8a4665fe2179c0212f32eae3796dea89ea6f649b9436ecdb39618"
+            },
+            {
+              "name": "PyYAML",
+              "version": "6.0.3",
+              "metadataUrl": "https://pypi.org/pypi/PyYAML/6.0.3/json",
+              "requires": null,
+              "filename": "pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "url": "https://files.pythonhosted.org/packages/bd/9c/4d95bb87eb2063d20db7b60faa3840c1b18025517ae857371c4dd55a6b3a/pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "sha256": "34d5fcd24b8445fadc33f9cf348c1047101756fd760b4dacb5c3e99755703310"
+            },
+            {
+              "name": "passlib",
+              "version": "1.7.4",
+              "metadataUrl": "https://pypi.org/pypi/passlib/1.7.4/json",
+              "requires": [
+                "argon2-cffi (>=18.2.0) ; extra == 'argon2'",
+                "bcrypt (>=3.1.0) ; extra == 'bcrypt'",
+                "sphinx (>=1.6) ; extra == 'build_docs'",
+                "sphinxcontrib-fulltoc (>=1.2.0) ; extra == 'build_docs'",
+                "cloud-sptheme (>=1.10.1) ; extra == 'build_docs'",
+                "cryptography ; extra == 'totp'"
+              ],
+              "filename": "passlib-1.7.4-py2.py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/3b/a4/ab6b7589382ca3df236e03faa71deac88cae040af60c071a78d254a62172/passlib-1.7.4-py2.py3-none-any.whl",
+              "sha256": "aa6bca462b8d8bda89c70b382f0c298a20b5560af6cbfa2dce410c0a2fb669f1"
+            },
+            {
+              "name": "bcrypt",
+              "version": "4.3.0",
+              "metadataUrl": "https://pypi.org/pypi/bcrypt/4.3.0/json",
+              "requires": [
+                "pytest!=3.3.0,>=3.2.1; extra == \"tests\"",
+                "mypy; extra == \"typecheck\""
+              ],
+              "filename": "bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl",
+              "url": "https://files.pythonhosted.org/packages/6e/c1/3fa0e9e4e0bfd3fd77eb8b52ec198fd6e1fd7e9402052e43f23483f956dd/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl",
+              "sha256": "0d3efb1157edebfd9128e4e46e2ac1a64e0c1fe46fb023158a407c7892b0f8c3"
+            },
+            {
+              "name": "more-itertools",
+              "version": "11.1.0",
+              "metadataUrl": "https://pypi.org/pypi/more-itertools/11.1.0/json",
+              "requires": null,
+              "filename": "more_itertools-11.1.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/e8/3d/1087453384dbde46a8c7f9356eead2c58be8a7bf156bca40243377c85715/more_itertools-11.1.0-py3-none-any.whl",
+              "sha256": "4b65538ae22f6fed0ce4874efd317463a7489796a0939fa66824dd542125a192"
+            },
+            {
+              "name": "jaraco.functools",
+              "version": "4.6.0",
+              "metadataUrl": "https://pypi.org/pypi/jaraco.functools/4.6.0/json",
+              "requires": [
+                "more_itertools",
+                "pytest!=8.1.*,>=6; extra == \"test\"",
+                "jaraco.classes; extra == \"test\"",
+                "sphinx>=3.5; extra == \"doc\"",
+                "jaraco.packaging>=9.3; extra == \"doc\"",
+                "rst.linker>=1.9; extra == \"doc\"",
+                "furo; extra == \"doc\"",
+                "sphinx-lint; extra == \"doc\"",
+                "jaraco.tidelift>=1.4; extra == \"doc\"",
+                "pytest-checkdocs>=2.14; extra == \"check\"",
+                "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+                "pytest-cov; extra == \"cover\"",
+                "pytest-enabler>=3.4; extra == \"enabler\"",
+                "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\""
+              ],
+              "filename": "jaraco_functools-4.6.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/02/36/ecc85bc96c273dc8a11273ed4782272975e6338d4a3e9228621175edf0e3/jaraco_functools-4.6.0-py3-none-any.whl",
+              "sha256": "99e3dc0060c5cbe8fcd1cdb36258e2a65ca40f1566b2033b12abb1bb44dd3c30"
+            }
+          ]
+        }
+      }
+    },
+    "feasibility-final": {
+      "source": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "validationPassed": true,
+      "inputs": {
+        "run.mjs": {
+          "originalSha256": "17b6f7a21fa0cec675d83b898db4fc4c3a20c00f73aae56557f357afb355a5d3",
+          "executedSha256": "52cca693f7504497901c9d7135e4fcedae3ed3641926f46b1c1aa68babc632b2"
+        },
+        "apache.mjs": {
+          "originalSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+          "executedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c"
+        },
+        "server.py": {
+          "originalSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+          "executedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35"
+        },
+        "dependencies.json": {
+          "originalSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+          "executedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9"
+        },
+        "openssl.cnf": {
+          "originalSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+          "executedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f"
+        },
+        "https.mts": {
+          "originalSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+          "executedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        "example.mts": {
+          "originalSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+          "executedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+        },
+        "consumer.mts": {
+          "originalSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+          "executedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+        },
+        "phase2-consumer.mts": {
+          "originalSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+          "executedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+        },
+        "raw.mjs": {
+          "originalSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+          "executedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45"
+        },
+        "phase2-validate.mjs": {
+          "originalSha256": "945f8439e0fc138b896b9daaabfc3588c3aec1ee21d68fc528f32812b458c332",
+          "executedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484"
+        },
+        "legacy-lock.test.ts": {
+          "originalSha256": "6815be2399077b3247404a7b060c8af5e340a36d7c2dfcf8c0b8201fdc96fe00",
+          "executedSha256": "6815be2399077b3247404a7b060c8af5e340a36d7c2dfcf8c0b8201fdc96fe00"
+        },
+        "direct-comparison.test.ts": {
+          "originalSha256": "5fc8a3924fa0ca1e092739b7708fd87f82a48df10c50e01bbc24791fbf6805d7",
+          "executedSha256": "5fc8a3924fa0ca1e092739b7708fd87f82a48df10c50e01bbc24791fbf6805d7"
+        },
+        "timestamp-postcondition.test.ts": {
+          "originalSha256": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+          "executedSha256": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263"
+        },
+        "lock-scope.test.ts": {
+          "originalSha256": "2bce00c07c95b81ff8be2a7e8c42ac96e890bfc478c5c13677985f19fd95ac63",
+          "executedSha256": "2bce00c07c95b81ff8be2a7e8c42ac96e890bfc478c5c13677985f19fd95ac63"
+        },
+        "feasibility.mts": {
+          "originalSha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+          "executedSha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca"
+        }
+      },
+      "cleanup": {
+        "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th",
+        "removed": true
+      },
+      "providers": {
+        "apache": {
+          "summary": {
+            "public": {
+              "positive": {
+                "pass": 0,
+                "fail": 2,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 0,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            },
+            "raw": {
+              "positive": {
+                "pass": 1,
+                "fail": 0,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 5,
+                "fail": 1,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            }
+          },
+          "originalSummary": {
+            "provider": "apache",
+            "raw": {
+              "positive": {
+                "pass": 9,
+                "fail": 0
+              },
+              "guard": {
+                "pass": 7,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            },
+            "consumer": {
+              "positive": {
+                "pass": 16,
+                "fail": 1
+              },
+              "guard": {
+                "pass": 14,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 2,
+                "fail": 0
+              }
+            },
+            "phase2": {
+              "positive": {
+                "pass": 2,
+                "fail": 0
+              },
+              "guard": {
+                "pass": 15,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            }
+          },
+          "packageSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+          "sourceArchiveSha256": "63763b507b98d5b49957cd4505b95162524ecda131a9eac0d7207699fc0738de",
+          "sourceHashes": {
+            "package.json": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22",
+            "src/commands/README.md": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+            "src/commands/archive/README.md": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+            "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+            "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+            "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+            "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+            "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+            "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+            "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+            "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+            "src/commands/bytes/README.md": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+            "src/commands/bytes/checksums/README.md": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+            "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+            "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+            "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+            "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+            "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+            "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+            "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+            "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+            "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+            "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+            "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+            "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+            "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+            "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+            "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+            "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+            "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+            "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+            "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+            "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+            "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+            "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+            "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+            "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+            "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+            "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+            "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+            "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+            "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+            "src/commands/diff-patch/unified.ts": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38",
+            "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+            "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+            "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+            "src/commands/grep.ts": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+            "src/commands/index.ts": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+            "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+            "src/commands/metadata/README.md": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+            "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+            "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+            "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+            "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+            "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+            "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+            "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+            "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+            "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+            "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+            "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+            "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+            "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+            "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+            "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+            "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+            "src/commands/regex-execution/README.md": "e5bf76ec9f79673a54d8a4988425807a952a5c72f47b385aa1bdb4ce84263e51",
+            "src/commands/regex-execution/client.ts": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+            "src/commands/regex-execution/matching.ts": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497",
+            "src/commands/regex-execution/protocol.ts": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+            "src/commands/regex-execution/worker.ts": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+            "src/commands/safejs/README.md": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+            "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+            "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+            "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+            "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+            "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+            "src/commands/search/README.md": "8ee093b056d13af684b64468fe06a3b6c5d534e6a40227516de76c710b76af51",
+            "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+            "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+            "src/commands/search/matcher.ts": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+            "src/commands/search/options.ts": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+            "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+            "src/commands/search/rg.ts": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+            "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+            "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+            "src/commands/split/README.md": "96f40bad76b2ef1173a5c217f768ccfd853be82164ce67476f726b83e095a8a4",
+            "src/commands/split/index.ts": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+            "src/commands/split/io.ts": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+            "src/commands/split/names.ts": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+            "src/commands/split/options.ts": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+            "src/commands/split/outputs.ts": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+            "src/commands/split/split.ts": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+            "src/commands/stream-format/README.md": "82c3de9ec2623b8ce7440d20179aa9ebe4e0a9dacafdef8150a96f46ce5c8911",
+            "src/commands/stream-format/index.ts": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+            "src/commands/stream-format/nl.ts": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+            "src/commands/stream-format/rev.ts": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+            "src/commands/stream-format/seq.ts": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+            "src/commands/stream-format/shared.ts": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+            "src/commands/stream-format/unexpand.ts": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+            "src/commands/stream-inspection/README.md": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+            "src/commands/stream-inspection/expand.ts": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+            "src/commands/stream-inspection/fold.ts": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+            "src/commands/stream-inspection/index.ts": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+            "src/commands/stream-inspection/numeric-options.ts": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+            "src/commands/stream-inspection/shared.ts": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+            "src/commands/stream-inspection/strings.ts": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+            "src/commands/stream-inspection/tac.ts": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+            "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+            "src/commands/structured/README.md": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+            "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+            "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+            "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+            "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+            "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+            "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+            "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+            "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+            "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+            "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+            "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+            "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+            "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+            "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+            "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+            "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+            "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+            "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+            "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+            "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+            "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+            "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+            "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+            "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+            "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+            "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+            "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+            "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+            "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+            "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+            "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+            "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+            "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+            "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+            "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+            "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+            "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+            "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+            "src/fs/s3/COMPARISON.md": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+            "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+            "src/fs/s3/SDK_COMPARISON.md": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+            "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+            "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+            "src/fs/s3/http/README.md": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+            "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+            "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+            "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+            "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+            "src/fs/s3/http/types.ts": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+            "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+            "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+            "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+            "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+            "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+            "src/fs/webdav/README.md": "632d5b1598c85d60870b6381e07279a70d06973a22581bbb3ad2aadd7b5c39f7",
+            "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+            "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+            "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+            "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+            "src/index.ts": "59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2",
+            "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+            "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+            "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+            "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+            "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+            "src/plugins/index.ts": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+            "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+            "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+            "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+            "tsconfig.json": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+          },
+          "packageExports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./contracts": {
+              "types": "./dist/contracts/index.d.ts",
+              "import": "./dist/contracts/index.js"
+            },
+            "./contracts/*": {
+              "types": "./dist/contracts/*.d.ts",
+              "import": "./dist/contracts/*.js"
+            },
+            "./commands/network": {
+              "types": "./dist/commands/network/index.d.ts",
+              "import": "./dist/commands/network/index.js"
+            },
+            "./commands/metadata": {
+              "types": "./dist/commands/metadata/index.d.ts",
+              "import": "./dist/commands/metadata/index.js"
+            },
+            "./commands/archive": {
+              "types": "./dist/commands/archive/index.d.ts",
+              "import": "./dist/commands/archive/index.js"
+            },
+            "./commands/table-text": {
+              "types": "./dist/commands/table-text/index.d.ts",
+              "import": "./dist/commands/table-text/index.js"
+            },
+            "./commands/stream-inspection": {
+              "types": "./dist/commands/stream-inspection/index.d.ts",
+              "import": "./dist/commands/stream-inspection/index.js"
+            },
+            "./fs/s3": {
+              "types": "./dist/fs/s3/index.d.ts",
+              "import": "./dist/fs/s3/index.js"
+            },
+            "./fs/s3/http": {
+              "types": "./dist/fs/s3/http/index.d.ts",
+              "import": "./dist/fs/s3/http/index.js"
+            },
+            "./fs/webdav": {
+              "types": "./dist/fs/webdav/index.d.ts",
+              "import": "./dist/fs/webdav/index.js"
+            },
+            "./fs/readonly": {
+              "types": "./dist/fs/readonly/index.d.ts",
+              "import": "./dist/fs/readonly/index.js"
+            },
+            "./fs/mount": {
+              "types": "./dist/fs/mount/index.d.ts",
+              "import": "./dist/fs/mount/index.js"
+            },
+            "./fs/overlay": {
+              "types": "./dist/fs/overlay/index.d.ts",
+              "import": "./dist/fs/overlay/index.js"
+            }
+          },
+          "imports": {
+            "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/consumer/node_modules/virtual-bash/dist/index.js",
+            "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+          },
+          "cleanup": {
+            "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij",
+            "startedAt": "2026-08-27T06:53:58.541Z",
+            "endedAt": "2026-08-27T06:54:40.259Z",
+            "serverPid": 55704,
+            "serverExitCode": 0,
+            "serverSignalCode": null,
+            "serviceDurationMs": 38266,
+            "removed": true
+          },
+          "providerArtifacts": {
+            "port": 55662,
+            "config": "ServerRoot \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij\"\nDefaultRuntimeDir \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij\"\nPidFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/httpd.pid\"\nMutex file:/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij\nListen 127.0.0.1:55662\nServerName 127.0.0.1\nLoadModule mpm_prefork_module /usr/libexec/apache2/mod_mpm_prefork.so\nLoadModule unixd_module /usr/libexec/apache2/mod_unixd.so\nLoadModule auth_basic_module /usr/libexec/apache2/mod_auth_basic.so\nLoadModule authn_file_module /usr/libexec/apache2/mod_authn_file.so\nLoadModule authn_core_module /usr/libexec/apache2/mod_authn_core.so\nLoadModule authz_core_module /usr/libexec/apache2/mod_authz_core.so\nLoadModule authz_user_module /usr/libexec/apache2/mod_authz_user.so\nLoadModule authz_host_module /usr/libexec/apache2/mod_authz_host.so\nLoadModule alias_module /usr/libexec/apache2/mod_alias.so\nLoadModule ssl_module /usr/libexec/apache2/mod_ssl.so\nLoadModule dav_module /usr/libexec/apache2/mod_dav.so\nLoadModule dav_fs_module /usr/libexec/apache2/mod_dav_fs.so\nUser #501\nGroup #20\nErrorLog \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/error.log\"\nLogLevel warn\nServerTokens Full\nTimeout 10\nKeepAlive Off\nSSLEngine on\nSSLCertificateFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/cert.pem\"\nSSLCertificateKeyFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/key.pem\"\nSSLSessionCache none\nDocumentRoot \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/root\"\nDavLockDB \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/locks/DavLock\"\nAlias /dav \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/root\"\nAlias /alias \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/root\"\nAlias /readonly \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/root\"\n<Directory \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/root\">\n  Dav On\n  Options FollowSymLinks\n  AllowOverride None\n  FileETag INode MTime Size\n  AuthType Basic\n  AuthName fixture\n  AuthBasicProvider file\n  AuthUserFile \"/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-s68Cij/passwords\"\n  Require user fixture\n</Directory>\n<Location /readonly>\n  <LimitExcept GET HEAD OPTIONS PROPFIND>\n    Require all denied\n  </LimitExcept>\n</Location>\n",
+            "artifacts": {
+              "/usr/sbin/httpd": "17eab33df66fd97b9a176505d3b4d3357fd529820a7bab1d460a2092344b0871",
+              "/usr/libexec/apache2/mod_mpm_prefork.so": "a7d06b845b63b59222bb7caa9da567c6a60555df1030fdec40fdacb4708ea1c6",
+              "/usr/libexec/apache2/mod_unixd.so": "18527dc3ad1295da7da8a4d6c58f12b5fd4c0116741f49e5e13ac29186984c86",
+              "/usr/libexec/apache2/mod_auth_basic.so": "78a928654467bf04efad2aa1dfc8c4eb11919095cbda9398a6cada47e766bc7c",
+              "/usr/libexec/apache2/mod_authn_file.so": "bef04ae9cb7baf53fe4b688937181a96c5fcfc1457b9e4fe3e04808327534fd8",
+              "/usr/libexec/apache2/mod_authn_core.so": "e3921ba7b6355df8f93fc53b67d92c934df3679ede4236a7bacf40f91eaadb19",
+              "/usr/libexec/apache2/mod_authz_core.so": "df4509ad5e2fc83ddc8ccfdecea84a47a2bc88158ac26ee1b7dc1c39a6997ad5",
+              "/usr/libexec/apache2/mod_authz_user.so": "d80fa22861d3167e1a3f76167ffbd2056a970804559faba7da9b3c8c4b596ded",
+              "/usr/libexec/apache2/mod_authz_host.so": "0b85d86b92e4f3d850e4924ce768dc8732354a1f3a158546cc2e95f8d3f8617c",
+              "/usr/libexec/apache2/mod_alias.so": "ab398b81c9261a67c1670785924c9baaafc4a0f8089163a1f5b4a66d6f3f04f5",
+              "/usr/libexec/apache2/mod_ssl.so": "7fe49ed42b1e2ecfc9bbd5e7e0973b45d1e069fabd59c68ec55c5a4bd1b73ed4",
+              "/usr/libexec/apache2/mod_dav.so": "6ba7592eb9276bb618af867d28262aa0f1ef4c5033c8a913f943930fe8c1323c",
+              "/usr/libexec/apache2/mod_dav_fs.so": "2e40f73d778b1255dd29dd8cb6ea374677dd1157ad22952e51aa107278351504"
+            },
+            "version": "Server version: Apache/2.4.66 (Unix)\nServer built:   Feb 21 2026 17:59:25\n"
+          }
+        },
+        "wsgidav": {
+          "summary": {
+            "public": {
+              "positive": {
+                "pass": 0,
+                "fail": 2,
+                "refused": 0
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 0,
+                "refused": 0
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            },
+            "raw": {
+              "positive": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 1
+              },
+              "guard": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 6
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0,
+                "refused": 0
+              }
+            }
+          },
+          "originalSummary": {
+            "provider": "wsgidav",
+            "raw": {
+              "positive": {
+                "pass": 3,
+                "fail": 6
+              },
+              "guard": {
+                "pass": 3,
+                "fail": 4
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            },
+            "consumer": {
+              "positive": {
+                "pass": 10,
+                "fail": 5
+              },
+              "guard": {
+                "pass": 13,
+                "fail": 0
+              },
+              "refusal": {
+                "pass": 4,
+                "fail": 0
+              }
+            },
+            "phase2": {
+              "positive": {
+                "pass": 0,
+                "fail": 2
+              },
+              "guard": {
+                "pass": 13,
+                "fail": 2
+              },
+              "refusal": {
+                "pass": 0,
+                "fail": 0
+              }
+            }
+          },
+          "packageSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+          "sourceArchiveSha256": "63763b507b98d5b49957cd4505b95162524ecda131a9eac0d7207699fc0738de",
+          "sourceHashes": {
+            "package.json": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22",
+            "src/commands/README.md": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+            "src/commands/archive/README.md": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+            "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+            "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+            "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+            "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+            "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+            "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+            "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+            "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+            "src/commands/bytes/README.md": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+            "src/commands/bytes/checksums/README.md": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+            "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+            "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+            "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+            "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+            "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+            "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+            "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+            "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+            "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+            "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+            "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+            "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+            "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+            "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+            "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+            "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+            "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+            "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+            "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+            "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+            "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+            "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+            "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+            "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+            "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+            "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+            "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+            "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+            "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+            "src/commands/diff-patch/unified.ts": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38",
+            "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+            "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+            "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+            "src/commands/grep.ts": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+            "src/commands/index.ts": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+            "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+            "src/commands/metadata/README.md": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+            "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+            "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+            "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+            "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+            "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+            "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+            "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+            "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+            "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+            "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+            "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+            "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+            "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+            "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+            "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+            "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+            "src/commands/regex-execution/README.md": "e5bf76ec9f79673a54d8a4988425807a952a5c72f47b385aa1bdb4ce84263e51",
+            "src/commands/regex-execution/client.ts": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+            "src/commands/regex-execution/matching.ts": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497",
+            "src/commands/regex-execution/protocol.ts": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+            "src/commands/regex-execution/worker.ts": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+            "src/commands/safejs/README.md": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+            "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+            "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+            "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+            "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+            "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+            "src/commands/search/README.md": "8ee093b056d13af684b64468fe06a3b6c5d534e6a40227516de76c710b76af51",
+            "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+            "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+            "src/commands/search/matcher.ts": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+            "src/commands/search/options.ts": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+            "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+            "src/commands/search/rg.ts": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+            "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+            "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+            "src/commands/split/README.md": "96f40bad76b2ef1173a5c217f768ccfd853be82164ce67476f726b83e095a8a4",
+            "src/commands/split/index.ts": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+            "src/commands/split/io.ts": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+            "src/commands/split/names.ts": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+            "src/commands/split/options.ts": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+            "src/commands/split/outputs.ts": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+            "src/commands/split/split.ts": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+            "src/commands/stream-format/README.md": "82c3de9ec2623b8ce7440d20179aa9ebe4e0a9dacafdef8150a96f46ce5c8911",
+            "src/commands/stream-format/index.ts": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+            "src/commands/stream-format/nl.ts": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+            "src/commands/stream-format/rev.ts": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+            "src/commands/stream-format/seq.ts": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+            "src/commands/stream-format/shared.ts": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+            "src/commands/stream-format/unexpand.ts": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+            "src/commands/stream-inspection/README.md": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+            "src/commands/stream-inspection/expand.ts": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+            "src/commands/stream-inspection/fold.ts": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+            "src/commands/stream-inspection/index.ts": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+            "src/commands/stream-inspection/numeric-options.ts": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+            "src/commands/stream-inspection/shared.ts": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+            "src/commands/stream-inspection/strings.ts": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+            "src/commands/stream-inspection/tac.ts": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+            "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+            "src/commands/structured/README.md": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+            "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+            "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+            "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+            "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+            "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+            "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+            "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+            "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+            "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+            "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+            "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+            "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+            "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+            "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+            "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+            "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+            "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+            "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+            "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+            "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+            "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+            "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+            "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+            "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+            "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+            "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+            "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+            "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+            "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+            "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+            "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+            "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+            "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+            "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+            "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+            "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+            "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+            "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+            "src/fs/s3/COMPARISON.md": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+            "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+            "src/fs/s3/SDK_COMPARISON.md": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+            "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+            "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+            "src/fs/s3/http/README.md": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+            "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+            "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+            "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+            "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+            "src/fs/s3/http/types.ts": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+            "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+            "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+            "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+            "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+            "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+            "src/fs/webdav/README.md": "632d5b1598c85d60870b6381e07279a70d06973a22581bbb3ad2aadd7b5c39f7",
+            "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+            "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+            "src/fs/webdav/webdav.ts": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+            "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+            "src/index.ts": "59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2",
+            "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+            "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+            "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+            "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+            "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+            "src/plugins/index.ts": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+            "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+            "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+            "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+            "tsconfig.json": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+          },
+          "packageExports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./contracts": {
+              "types": "./dist/contracts/index.d.ts",
+              "import": "./dist/contracts/index.js"
+            },
+            "./contracts/*": {
+              "types": "./dist/contracts/*.d.ts",
+              "import": "./dist/contracts/*.js"
+            },
+            "./commands/network": {
+              "types": "./dist/commands/network/index.d.ts",
+              "import": "./dist/commands/network/index.js"
+            },
+            "./commands/metadata": {
+              "types": "./dist/commands/metadata/index.d.ts",
+              "import": "./dist/commands/metadata/index.js"
+            },
+            "./commands/archive": {
+              "types": "./dist/commands/archive/index.d.ts",
+              "import": "./dist/commands/archive/index.js"
+            },
+            "./commands/table-text": {
+              "types": "./dist/commands/table-text/index.d.ts",
+              "import": "./dist/commands/table-text/index.js"
+            },
+            "./commands/stream-inspection": {
+              "types": "./dist/commands/stream-inspection/index.d.ts",
+              "import": "./dist/commands/stream-inspection/index.js"
+            },
+            "./fs/s3": {
+              "types": "./dist/fs/s3/index.d.ts",
+              "import": "./dist/fs/s3/index.js"
+            },
+            "./fs/s3/http": {
+              "types": "./dist/fs/s3/http/index.d.ts",
+              "import": "./dist/fs/s3/http/index.js"
+            },
+            "./fs/webdav": {
+              "types": "./dist/fs/webdav/index.d.ts",
+              "import": "./dist/fs/webdav/index.js"
+            },
+            "./fs/readonly": {
+              "types": "./dist/fs/readonly/index.d.ts",
+              "import": "./dist/fs/readonly/index.js"
+            },
+            "./fs/mount": {
+              "types": "./dist/fs/mount/index.d.ts",
+              "import": "./dist/fs/mount/index.js"
+            },
+            "./fs/overlay": {
+              "types": "./dist/fs/overlay/index.d.ts",
+              "import": "./dist/fs/overlay/index.js"
+            }
+          },
+          "imports": {
+            "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-0vVgDf/consumer/node_modules/virtual-bash/dist/index.js",
+            "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-0vVgDf/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+          },
+          "cleanup": {
+            "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-0vVgDf",
+            "startedAt": "2026-08-27T06:54:41.206Z",
+            "endedAt": "2026-08-27T06:54:50.499Z",
+            "serverPid": 56713,
+            "serverExitCode": null,
+            "serverSignalCode": "SIGTERM",
+            "serviceDurationMs": 3134,
+            "removed": true
+          },
+          "providerArtifacts": [
+            {
+              "name": "WsgiDAV",
+              "version": "4.3.5",
+              "metadataUrl": "https://pypi.org/pypi/WsgiDAV/4.3.5/json",
+              "requires": [
+                "defusedxml",
+                "Jinja2",
+                "json5",
+                "PyYAML",
+                "passlib",
+                "bcrypt<5,>=4.0",
+                "python-pam; extra == \"pam\""
+              ],
+              "filename": "wsgidav-4.3.5-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/e5/e2/d70dbfe68aada7735d38a1a0eeda079b39478f0ec993fec00c432cf4dcfc/wsgidav-4.3.5-py3-none-any.whl",
+              "sha256": "0985f5cb572e00c151e1c60d00e1ae8cbf74dea2a3286ec0bc040ab482cd5095"
+            },
+            {
+              "name": "cheroot",
+              "version": "11.1.2",
+              "metadataUrl": "https://pypi.org/pypi/cheroot/11.1.2/json",
+              "requires": [
+                "more-itertools>=2.6",
+                "jaraco.functools",
+                "sphinx>=1.8.2; extra == \"docs\"",
+                "jaraco.packaging>=3.2; extra == \"docs\"",
+                "sphinx-tabs>=1.1.0; extra == \"docs\"",
+                "furo; extra == \"docs\"",
+                "python-dateutil; extra == \"docs\"",
+                "sphinxcontrib-apidoc>=0.3.0; extra == \"docs\""
+              ],
+              "filename": "cheroot-11.1.2-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/41/99/af65511a10c4212438ac52bc5e45e486e7a04d292201ad84dfd9208fe9a8/cheroot-11.1.2-py3-none-any.whl",
+              "sha256": "0f6c0ba05c00fbc869fb46b1de4ec2384e1d85418ae963d3bc10ae83b688dbfa"
+            },
+            {
+              "name": "defusedxml",
+              "version": "0.7.1",
+              "metadataUrl": "https://pypi.org/pypi/defusedxml/0.7.1/json",
+              "requires": null,
+              "filename": "defusedxml-0.7.1-py2.py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl",
+              "sha256": "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"
+            },
+            {
+              "name": "Jinja2",
+              "version": "3.1.6",
+              "metadataUrl": "https://pypi.org/pypi/Jinja2/3.1.6/json",
+              "requires": [
+                "MarkupSafe>=2.0",
+                "Babel>=2.7; extra == \"i18n\""
+              ],
+              "filename": "jinja2-3.1.6-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+              "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+            },
+            {
+              "name": "MarkupSafe",
+              "version": "3.0.3",
+              "metadataUrl": "https://pypi.org/pypi/MarkupSafe/3.0.3/json",
+              "requires": null,
+              "filename": "markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "url": "https://files.pythonhosted.org/packages/b5/64/7660f8a4a8e53c924d0fa05dc3a55c9cee10bbd82b11c5afb27d44b096ce/markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "sha256": "c47a551199eb8eb2121d4f0f15ae0f923d31350ab9280078d1e5f12b249e0026"
+            },
+            {
+              "name": "json5",
+              "version": "0.15.0",
+              "metadataUrl": "https://pypi.org/pypi/json5/0.15.0/json",
+              "requires": null,
+              "filename": "json5-0.15.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/eb/be/59527c99478aade6bb33a68d72e6e18dd4e6ff6eacfc7d01bdb15bc76912/json5-0.15.0-py3-none-any.whl",
+              "sha256": "56636a30c0e8a4665fe2179c0212f32eae3796dea89ea6f649b9436ecdb39618"
+            },
+            {
+              "name": "PyYAML",
+              "version": "6.0.3",
+              "metadataUrl": "https://pypi.org/pypi/PyYAML/6.0.3/json",
+              "requires": null,
+              "filename": "pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "url": "https://files.pythonhosted.org/packages/bd/9c/4d95bb87eb2063d20db7b60faa3840c1b18025517ae857371c4dd55a6b3a/pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+              "sha256": "34d5fcd24b8445fadc33f9cf348c1047101756fd760b4dacb5c3e99755703310"
+            },
+            {
+              "name": "passlib",
+              "version": "1.7.4",
+              "metadataUrl": "https://pypi.org/pypi/passlib/1.7.4/json",
+              "requires": [
+                "argon2-cffi (>=18.2.0) ; extra == 'argon2'",
+                "bcrypt (>=3.1.0) ; extra == 'bcrypt'",
+                "sphinx (>=1.6) ; extra == 'build_docs'",
+                "sphinxcontrib-fulltoc (>=1.2.0) ; extra == 'build_docs'",
+                "cloud-sptheme (>=1.10.1) ; extra == 'build_docs'",
+                "cryptography ; extra == 'totp'"
+              ],
+              "filename": "passlib-1.7.4-py2.py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/3b/a4/ab6b7589382ca3df236e03faa71deac88cae040af60c071a78d254a62172/passlib-1.7.4-py2.py3-none-any.whl",
+              "sha256": "aa6bca462b8d8bda89c70b382f0c298a20b5560af6cbfa2dce410c0a2fb669f1"
+            },
+            {
+              "name": "bcrypt",
+              "version": "4.3.0",
+              "metadataUrl": "https://pypi.org/pypi/bcrypt/4.3.0/json",
+              "requires": [
+                "pytest!=3.3.0,>=3.2.1; extra == \"tests\"",
+                "mypy; extra == \"typecheck\""
+              ],
+              "filename": "bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl",
+              "url": "https://files.pythonhosted.org/packages/6e/c1/3fa0e9e4e0bfd3fd77eb8b52ec198fd6e1fd7e9402052e43f23483f956dd/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl",
+              "sha256": "0d3efb1157edebfd9128e4e46e2ac1a64e0c1fe46fb023158a407c7892b0f8c3"
+            },
+            {
+              "name": "more-itertools",
+              "version": "11.1.0",
+              "metadataUrl": "https://pypi.org/pypi/more-itertools/11.1.0/json",
+              "requires": null,
+              "filename": "more_itertools-11.1.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/e8/3d/1087453384dbde46a8c7f9356eead2c58be8a7bf156bca40243377c85715/more_itertools-11.1.0-py3-none-any.whl",
+              "sha256": "4b65538ae22f6fed0ce4874efd317463a7489796a0939fa66824dd542125a192"
+            },
+            {
+              "name": "jaraco.functools",
+              "version": "4.6.0",
+              "metadataUrl": "https://pypi.org/pypi/jaraco.functools/4.6.0/json",
+              "requires": [
+                "more_itertools",
+                "pytest!=8.1.*,>=6; extra == \"test\"",
+                "jaraco.classes; extra == \"test\"",
+                "sphinx>=3.5; extra == \"doc\"",
+                "jaraco.packaging>=9.3; extra == \"doc\"",
+                "rst.linker>=1.9; extra == \"doc\"",
+                "furo; extra == \"doc\"",
+                "sphinx-lint; extra == \"doc\"",
+                "jaraco.tidelift>=1.4; extra == \"doc\"",
+                "pytest-checkdocs>=2.14; extra == \"check\"",
+                "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+                "pytest-cov; extra == \"cover\"",
+                "pytest-enabler>=3.4; extra == \"enabler\"",
+                "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\""
+              ],
+              "filename": "jaraco_functools-4.6.0-py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/02/36/ecc85bc96c273dc8a11273ed4782272975e6338d4a3e9228621175edf0e3/jaraco_functools-4.6.0-py3-none-any.whl",
+              "sha256": "99e3dc0060c5cbe8fcd1cdb36258e2a65ca40f1566b2033b12abb1bb44dd3c30"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

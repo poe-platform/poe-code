@@ -1,0 +1,106 @@
+## DAV primary protocol basis
+
+RFC4918 §§7/7.4 protects collection membership, including child PUT/MKCOL;
+depth-infinity also covers descendants. The same principal still needs the token.
+§§10.4.1/10.4.4 requires a matching positive If condition; a removed lock token
+does not match and evaluation fails with 412. §6.6 disallows relying on timeout
+alone. §§9.6/9.6.1 makes collection DELETE recursive and destroys locks rooted
+at the deleted resource. §9.11 allows 409 for absent/nonapplicable UNLOCK tokens.
+§14.1 describes one scope/type/depth and optional timeout/token, plus lockroot;
+§14.12 says servers SHOULD return lockroot. §10.2 gives no general hierarchical
+atomicity guarantee. These rules alone do not demonstrate native-writer exclusion
+or a particular server's expiry-versus-DELETE serialization.
+
+RFC2518 §§7.1/7.5 already blocks membership changes by nonowners, including
+creation; §7.6 requires token submission even for another program of the same
+principal. Its §12.1 activelock grammar lacks lockroot. Therefore a stricter
+root-verifying client profile may reject legacy responses; that is a support
+limit, not proof that every missing-root legacy response violates RFC2518.
+Its §9.4.1 applies an untagged condition across resources affected by a method.
+
+Primary sources read: `https://www.rfc-editor.org/rfc/rfc4918.txt` and
+`https://www.rfc-editor.org/rfc/rfc2518.txt` (also IETF Datatracker HTML).
+
+## DAV author handoff: scoped implementation review obligations
+
+Existing helper `src/fs/webdav/webdav.ts:828` is the bounded reuse candidate:
+fresh LOCK request with body, Depth infinity, finite timeout and If-Match;
+captures a token, verifies several response properties, runs a callback and
+attempts UNLOCK even on late acquisition. Its current lockroot is optional at
+line 861. Do not equate that optional-root check with the proposed verified-root
+profile. `src/fs/webdav/xml.ts:216` already rejects duplicate same-name DAV
+children: preserve it rather than claiming current parsing is first-match-only.
+
+Suggested review sequence and negative cases, not production authorization:
+
+- Guard root/abort/type first. Acquire only an existing target (retain
+  If-Match protection); a stat-to-LOCK disappearance must not create a new file
+  or lock-null artifact. Check changed target type inside the protected callback.
+  Unexpected 201 must not become permission to delete a newly created resource.
+- Validate one unambiguous new exclusive write lock, infinity depth, usable
+  finite cleanup timeout, one safe token matching header/body and verified
+  target lockroot under the chosen strict profile. Include duplicate/conflicting
+  scope/type/depth/token/root, shared lock, depth zero, omitted root, alien root,
+  namespace spoofing, multiple active locks, malformed header and 207 cases.
+  Unknown extension handling is separate from ambiguous DAV-defined fields.
+- Check a fresh complete Depth-1 listing inside that protection, not the
+  pre-lock listing. Reuse strict entries parsing (`src/fs/webdav/webdav.ts:495`)
+  and readdir's root type check at line 575. Existing child means ENOTEMPTY,
+  release the lock and perform no DELETE. Malformed/denied/partial inspection
+  must not be treated as empty. Merely parsed XML cannot prove the server did
+  not omit content that its destructive operation would delete.
+- Submit the same token as a required positive If condition for DELETE, with
+  no always-true alternate list and no tokenless retry. Lock-Token is the UNLOCK
+  header, not a substitute for the DELETE condition. An ETag-only or depth-zero
+  DELETE fallback is not a valid substitute for this proposed workflow.
+- Test child PUT and MKCOL both before lock acquisition (must be observed and
+  preserved) and while locked (must not create a child without the token),
+  including a second client using the same credentials. Test expiry followed
+  by successful child creation before DELETE evaluation: DELETE must fail and
+  preserve that child. Also test removal/recreation of the locked root.
+- Outstanding server-proof question: arrange expiry/admin unlock AFTER the
+  DELETE condition check but BEFORE destructive traversal, then attempt child
+  creation. A client-side timer or token recheck does not close this interval.
+  Need evidence that the selected server serializes/revalidates appropriately
+  or otherwise preserves every raced child. No such provider proof was obtained
+  in this review; do not turn this hypothesis into either a demonstrated exploit
+  or a proven universally safe protocol sequence.
+- Alias/native-writer boundary: test an alternate URL/mount/client addressing
+  the same collection and any actually supported external write route. Native
+  host writes or another protocol bypassing the lock manager are not excluded
+  just because DAV reports a valid lock. No proof for such routes is available
+  here. Protocol-compliant write exclusion and deployed backing-store exclusion
+  must be separate claims. An arbitrary token-bearing cooperating writer also
+  remains capable of mutating inside the protected interval; do not share this
+  fresh operation token with concurrent mutations.
+- Use the existing DELETE response acceptance at
+  `src/fs/webdav/webdav.ts:519`: 204 success; never treat 207/202 as completed
+  empty removal. Preserve 412 -> EAGAIN, 423 -> EBUSY and typed auth/IO errors
+  from `src/fs/webdav/webdav.ts:228`, rewrapped with the requested rmdir path.
+  A partial/ambiguous response cannot prove unchanged namespace.
+- Cleanup must retain the original result/error. After confirmed 204 deletion,
+  absent-lock UNLOCK failure is not rmdir failure. Before deletion or after
+  ambiguous failure, best-effort UNLOCK must use only the acquired token and
+  remain bounded even when the caller's signal is aborted. Existing helper
+  uses an independent request timeout and swallows cleanup errors: retain
+  honest best-effort wording, not guaranteed release. Late acquisition must
+  still attempt cleanup; late rejection must be observed. Never cleanup by
+  unconditional DELETE, nor retry DELETE without its condition.
+
+Required positive evidence: an ordinary empty collection is actually removed,
+not just rejected safely. Existing unsupported tests are not this evidence.
+Add request/effect traces and a truthful provider/profile label; a lock-aware
+mock proves client behavior against that model, not deployed-provider safety.
+
+## Final handoff
+
+Root/Curie owns contract interpretation/wording. S3/DAV authors keep disjoint
+assigned source scopes. No new capability/permission API is requested. Existing
+Node builtins, transport and XML utilities are sufficient implementation
+ingredients; no runtime dependency, global TLS/environment modification,
+private package access or host-native product command is proposed.
+
+Proof unavailable: implementation of either proposed positive workflow, tests
+of new code, live provider interoperability, all-alias/native-writer protection,
+expiry during destructive DAV execution and arbitrary wrapper composition.
+This review is source/protocol reasoning, not a passing current full gate.

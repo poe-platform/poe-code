@@ -1,0 +1,34 @@
+[Thu Aug 27 01:51:23.370357 2026] [ssl:warn] [pid 26661] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 01:51:23.370395 2026] [ssl:warn] [pid 26661] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 01:51:23.376259 2026] [ssl:warn] [pid 26661] AH01873: Init: Session Cache is not configured [hint: SSLSessionCache]
+[Thu Aug 27 01:51:23.376405 2026] [ssl:warn] [pid 26661] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 01:51:23.376414 2026] [ssl:warn] [pid 26661] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 01:51:25.583426 2026] [dav:error] [pid 26661] [client 127.0.0.1:53280] Could not COPY /dav/COPY-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:29.900649 2026] [dav:error] [pid 26661] [client 127.0.0.1:53310] Could not MOVE/COPY /dav/COPY-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:29.900667 2026] [dav:error] [pid 26661] [client 127.0.0.1:53310] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 01:51:29.928163 2026] [dav:error] [pid 26661] [client 127.0.0.1:53320] Could not MOVE/COPY /dav/COPY-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:29.928173 2026] [dav:error] [pid 26661] [client 127.0.0.1:53320] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:51:29.955627 2026] [dav:error] [pid 26661] [client 127.0.0.1:53331] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:51:29.984107 2026] [dav:error] [pid 26661] [client 127.0.0.1:53343] Could not MOVE /dav/MOVE-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:34.306896 2026] [dav:error] [pid 26661] [client 127.0.0.1:53373] Could not MOVE/COPY /dav/MOVE-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:34.306909 2026] [dav:error] [pid 26661] [client 127.0.0.1:53373] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 01:51:34.335321 2026] [dav:error] [pid 26661] [client 127.0.0.1:53383] Could not MOVE/COPY /dav/MOVE-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:34.335330 2026] [dav:error] [pid 26661] [client 127.0.0.1:53383] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:51:34.362378 2026] [dav:error] [pid 26661] [client 127.0.0.1:53394] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:51:56.249790 2026] [auth_basic:error] [pid 26661] [client 127.0.0.1:53892] AH01617: user fixture: authentication failure for "/dav/names/binary": Password Mismatch
+[Thu Aug 27 01:51:56.254902 2026] [authz_core:error] [pid 26661] [client 127.0.0.1:53894] AH01630: client denied by server configuration: /Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/root/forbidden
+[Thu Aug 27 01:51:57.572849 2026] [dav:error] [pid 26661] (70008)Partial results are valid but processing is incomplete: [client 127.0.0.1:54165] An error occurred while reading the request body (URI: /dav/cancel-upload)  [400, #0]
+[Thu Aug 27 01:51:57.888232 2026] [dav:error] [pid 26661] [client 127.0.0.1:54190] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:51:57.919365 2026] [dav:error] [pid 26661] [client 127.0.0.1:54199] Error(s) occurred on resources during the validation process.  [207, #0]
+[Thu Aug 27 01:51:57.936747 2026] [dav:error] [pid 26661] [client 127.0.0.1:54204] Could not DELETE /dav/rmdir-wrong-token/ due to a failed precondition (e.g. locks).  [412, #0]
+[Thu Aug 27 01:51:57.936765 2026] [dav:error] [pid 26661] [client 127.0.0.1:54204] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:52:00.163803 2026] [dav:error] [pid 26661] [client 127.0.0.1:54255] Could not DELETE /dav/rmdir-expiry/ due to a failed precondition (e.g. locks).  [412, #0]
+[Thu Aug 27 01:52:00.163820 2026] [dav:error] [pid 26661] [client 127.0.0.1:54255] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:52:00.168697 2026] [dav:error] [pid 26661] [client 127.0.0.1:54256] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:52:00.189953 2026] [dav:error] [pid 26661] [client 127.0.0.1:54261] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:52:00.206815 2026] [dav:error] [pid 26661] [client 127.0.0.1:54266] Could not DELETE /dav/rmdir-symlink/.  [207, #0]
+[Thu Aug 27 01:52:00.206822 2026] [dav:error] [pid 26661] [client 127.0.0.1:54266] Error(s) occurred on some resources during the deletion process.  [207, #0]
+[Thu Aug 27 01:52:00.209631 2026] [dav:error] [pid 26661] [client 127.0.0.1:54267] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:52:00.725513 2026] [dav:error] [pid 26661] [client 127.0.0.1:54409] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:52:00.764198 2026] [dav:error] [pid 26661] [client 127.0.0.1:54423] Could not LOCK /dav/phase2-locked-conflict-target due to a failed precondition (e.g. other locks).  [423, #0]
+[Thu Aug 27 01:52:00.764215 2026] [dav:error] [pid 26661] [client 127.0.0.1:54423] Existing lock(s) on the requested resource prevent an exclusive lock.  [423, #0]

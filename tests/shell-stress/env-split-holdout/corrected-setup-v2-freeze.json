@@ -1,0 +1,96 @@
+{
+  "frozenAt": "2026-08-27T10:29:39.808Z",
+  "phase": "Independent hidden pre-patch byte-API setup correction / red baseline only",
+  "originalFrozenCommit": "199038f4c96084f87e161bdbd72dc50a48b45a29",
+  "initialBaselineCommit": "7839db5370fe09d57f7aaaea29b5b2acb874cd36",
+  "sourceCommit": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+  "authorNewInputsInspected": false,
+  "oldTwentySixFilesUnchanged": true,
+  "newCases": 0,
+  "newNativeExecutions": 0,
+  "correction": {
+    "helperChanges": 1,
+    "probeImportChanges": 1,
+    "hostChanges": 0,
+    "scriptBytesChanged": 0,
+    "fixturePathModeArgvEnvCwdChanges": 0,
+    "expectationChanges": 0
+  },
+  "history": {
+    "exactRows": 1,
+    "strictMismatches": 41,
+    "setupUnavailable": 6,
+    "hostPass": 0,
+    "hostTotal": 7
+  },
+  "current": {
+    "exactRows": 2,
+    "strictMismatches": 46,
+    "setupUnavailable": 0,
+    "rows": 48,
+    "commandExact": 1,
+    "commandTotal": 42,
+    "shebangExact": 1,
+    "shebangTotal": 6,
+    "hostPass": 0,
+    "hostFail": 7,
+    "hostTotal": 7,
+    "actualChildRuns": 55,
+    "guardsValid": 55,
+    "actualModuleLoads": 10615,
+    "publicIndexLoads": 55,
+    "integrityPass": 7,
+    "integrityTotal": 7,
+    "syntaxChecksPass": 3
+  },
+  "checks": {
+    "integrity": "node --test tests/shell-stress/env-split-holdout/corrected-integrity.test.mjs",
+    "outcome": "7 pass, 0 fail, 0 skipped; read-only evidence integrity, not additional product runs",
+    "syntax": [
+      "node --check tests/shell-stress/env-split-holdout/product-row-bytes-v2.mjs",
+      "node --check tests/shell-stress/env-split-holdout/probe-bytes-v2.mjs",
+      "node --check tests/shell-stress/env-split-holdout/corrected-baseline.mjs"
+    ]
+  },
+  "nativeCapture": {
+    "file": "native-aligned.json",
+    "sha256": "bca8b30a21de8f09e5e660d3f77480cdf8ac3b4a00c36490987b6d15ef9cf818",
+    "reused": true,
+    "freshNativeExecutions": 0,
+    "comparedProfile": "gnu97-darwin-primary",
+    "historicalProfile": "Retained and binary-verified, not rebound to different cwd/env coordinates or selectively chosen as oracle."
+  },
+  "nativeTools": {
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env": {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+    },
+    "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash": {
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    "/usr/bin/env": {
+      "realpath": "/usr/bin/env",
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+    },
+    "/bin/bash": {
+      "realpath": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  },
+  "sourceHashes": {
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "remainingLimits": "Setup corrected, not source acceptance. Seven deep host contracts remain red behind unimplemented split parsing. Historical/Darwin single-optional protocol loss remains raw. No broad suite or source changes.",
+  "files": {
+    "product-row-bytes-v2.mjs": "08930939d78150e663e216767b0373e1616be4407e2756e2a21a64a705b0cd69",
+    "probe-bytes-v2.mjs": "212ff91269ef76dda8f27f42b2c1c5662af544dac93df719c9a4d09dfca37e38",
+    "corrected-baseline.mjs": "8c32f61e69743870a2204107ec58a382eec946a7891e9f7665011b5f61d7e0e6",
+    "corrected-integrity.test.mjs": "2388204c5db34d727a31f6c7655d6b8b4b6159db7017eb3f9eb00f18dab4d385",
+    "baseline-e7f4f2e-bytes-v2.json": "ceb08f881d0418429037e50c28ab8538fd0f79ec64d6cc3d7b0d894c0b2548e7",
+    "baseline-e7f4f2e-bytes-v2-cleanup.json": "f65ef7ecb0452a7f85119ef73b37f35637924f723e8d4e8cf2341d9185e973c0",
+    "CORRECTED_SETUP_V2.md": "6e32feb909d0f3acac0fb4c663e25335b4a8663d43afe600323fd1b4e8fd3b59"
+  }
+}

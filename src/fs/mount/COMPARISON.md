@@ -29,7 +29,10 @@ Trusted wrapper resolvers return their immediate backing filesystem and path.
 Readonly accumulates across the chain; cycles fail `EIO`. The optional terminal
 stat snapshot represents a real trusted observation, including mount's synthetic
 directory (which has unknown identity); it is not a newly fabricated backend.
-Ordinary terminal providers omit it and receive a followed `stat` query.
+Ordinary terminal providers omit it and receive `realpath` followed by `lstat` of
+the followed entry. This preserves the observed named metadata rather than
+replacing incomplete `lstat` identity with unrelated `stat` fields. A final
+symlink appearing at the resolved location fails `EIO`, not a link-as-file proof.
 
 Complete valid scoped tuples win before authority queries. Otherwise each
 distinct registered authority callback is queried at most once, in operand order.
@@ -42,7 +45,9 @@ A provider implementing public `compareEntry` via `compareEntries(this, ...)`
 registers a terminal callback during construction. That callback must not invoke
 comparison methods recursively. Unregistered external providers can supply a
 one-shot terminal `compareEntry`; they are not implicitly trusted wrappers.
-Nested helper negotiation fails `EIO` rather than repeatedly querying peers.
+Nested helper negotiation returns `unknown` before further metadata or authority
+queries, rather than recursively resolving peers. An opaque forwarder of a
+negotiating public method is therefore unsupported, not an invalid answer.
 Opaque adapters that forward a negotiating method without trustworthy view
 registration do not acquire authority through their shape or constructor.
 

@@ -45,10 +45,16 @@ export async function resolveEntryView(filesystem: FileSystem, path: string, opt
     const resolve = resolvers.get(location.filesystem);
     if (!resolve) {
       let stat: FileStat;
-      try { stat = await location.filesystem.stat(location.path, options); }
+      let followedPath: string;
+      try {
+        followedPath = await location.filesystem.realpath(location.path, options);
+        options.signal?.throwIfAborted();
+        stat = await location.filesystem.lstat(followedPath, options);
+      }
       catch (error) { options.signal?.throwIfAborted(); throw error; }
       options.signal?.throwIfAborted();
-      return { filesystem: location.filesystem, path: location.path, stat, readOnly };
+      if (stat.type === "symlink") throw new FsError("EIO", { path, message: "followed entry changed during observation" });
+      return { filesystem: location.filesystem, path: followedPath, stat, readOnly };
     }
     let next: EntryLocation;
     try { next = await resolve(location.path, options); }
@@ -63,9 +69,9 @@ export async function resolveEntryView(filesystem: FileSystem, path: string, opt
 
 export async function compareResolvedEntries(own: EntryView, peer: EntryView, options: FsOptions = {}): Promise<EntryComparison> {
   options.signal?.throwIfAborted();
+  if (negotiating.getStore()) return "unknown";
   const identity = compareIdentity(own.stat, peer.stat);
   if (identity !== "unknown") return identity;
-  if (negotiating.getStore()) throw new FsError("EIO", { path: own.path, dest: peer.path, message: "recursive entry negotiation" });
   return negotiating.run(true, async () => {
     const queried = new Set<EntryAuthority | FileSystem>();
     let result: EntryComparison = "unknown";
@@ -101,6 +107,8 @@ export async function compareResolvedEntries(own: EntryView, peer: EntryView, op
 export async function compareEntries(
   filesystem: FileSystem, path: string, peer: FileSystem, peerPath: string, options: FsOptions = {},
 ): Promise<EntryComparison> {
+  options.signal?.throwIfAborted();
+  if (negotiating.getStore()) return "unknown";
   const own = await resolveEntryView(filesystem, path, options);
   const other = await resolveEntryView(peer, peerPath, options);
   return compareResolvedEntries(own, other, options);

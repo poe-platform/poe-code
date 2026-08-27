@@ -161,18 +161,46 @@ test("ENOENT-shaped cancellation stops between authorities and remains the exact
   assert.deepEqual(calls, ["left"]);
 });
 
-test("recursive negotiation and cyclic trusted views fail instead of requerying", async () => {
+test("recursive negotiation stays unknown without requerying; cyclic trusted views fail EIO", async () => {
   const state = await fixture();
   let calls = 0;
   registerEntryAuthority(state.left, async (own, peer, options) => {
     calls++;
     return compareEntries(own.filesystem, own.path, peer.filesystem, peer.path, options);
   });
-  await assert.rejects(compareEntries(state.left, "/source", state.right, "/target"), { code: "EIO" });
+  assert.equal(await compareEntries(state.left, "/source", state.right, "/target"), "unknown");
   assert.equal(calls, 1);
   const cyclic = unscoped(state.leftStore);
   registerEntryView(cyclic, async path => ({ filesystem: cyclic, path }));
   await assert.rejects(resolveEntryView(cyclic, "/source"), { code: "EIO" });
+});
+
+test("opaque forwarding of a negotiating wrapper method stays unknown before nested metadata or authority queries", async () => {
+  const state = await fixture();
+  registerEntryAuthority(state.left, state.authority);
+  registerEntryAuthority(state.right, state.authority);
+  const events: string[] = [];
+  const opaque = (filesystem: FileSystem, name: string): FileSystem => wrapped(filesystem, {
+    realpath: async (path, options) => {
+      events.push(`${name}.realpath`);
+      return filesystem.realpath(path, options);
+    },
+    lstat: async (path, options) => {
+      events.push(`${name}.lstat`);
+      return filesystem.lstat(path, options);
+    },
+    compareEntry: async (path, peer, peerPath, options) => {
+      events.push(`${name}.compareEntry`);
+      return compareEntries(filesystem, path, peer, peerPath, options);
+    },
+  });
+  const left = opaque(createReadOnlyFileSystem(state.left), "left");
+  const right = opaque(state.right, "right");
+  assert.equal(await compareEntries(left, "/source", right, "/target"), "unknown");
+  assert.deepEqual(state.calls, []);
+  assert.deepEqual(events, ["left.realpath", "left.lstat", "right.realpath", "right.lstat", "left.compareEntry", "right.compareEntry"]);
+  assert.deepEqual(await state.leftStore.readFile("/source"), bytes);
+  assert.deepEqual(await state.rightStore.readFile("/target"), previous);
 });
 
 test("overlay comparison observes selected backing without copy-up, then changes after a real copy-up", async () => {

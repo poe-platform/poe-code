@@ -1,0 +1,239 @@
+{
+  "profile": "compiled-legacy-v2",
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "tree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "sourceManifestSha256": "40914b93fe1a1a82d9abdcdf4f4cc4360ab6e85ab16b5d9f75768e00c73213ec",
+  "sourcePatchSha256": "83b339002970df881efb56cc50fa0e0e74f1f832edb6c8706287827a3dc5e4ad",
+  "started": "2026-08-27T20:20:08.077350+00:00",
+  "orchestrationCommit": "492d2cd6b4eacc492fbca704ab3e5d4d290ca988",
+  "freezeSha256": "b2f7b5ccb81dee3c0e0a036e7f735f12107a8ac2c5c58c478e4919c08a916217",
+  "snapshot": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate",
+  "freshScratchRoot": "/tmp/safe-bash-owned-output-built-legacy-v2-9cbbjquh",
+  "snapshotReused": true,
+  "priorEvidenceCommit": "cf59762539aff3f5454ad9b048598fdff4268b2c",
+  "priorManifestBindings": [
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/compiled-legacy-v1/PREFLIGHT.json",
+      "sha256": "bf7ff0dad52af5afb74fd681f524ecb410df48552a1c0917bc7b09ef1041ab22"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/compiled-legacy-v1/CLOSURE.json",
+      "sha256": "a4655842687355eb342902d7fc7d940d16a66627068bde0c119d01a808820d0b"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/compiled-legacy-v1/BUILD-OUTPUT.json",
+      "sha256": "644c60cbca7b3b6a4a940eeeab8c87c0da227dd799595ea865b5a661d69ef039"
+    }
+  ],
+  "archiveSha256": "8fc214ffbe8544703d3f7b47cb2e6df98805fe1aaa30b03a790d47217438e162",
+  "archiveBytes": 14663680,
+  "sourceEntries": 247,
+  "allSelectedGitBytesMatch": true,
+  "immutableInputsIncludingEntriesMatch": true,
+  "snapshotBeforeSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "snapshotRegularFiles": 1701,
+  "compiledArtifactManifestSha256": "3189d7dd493248d41de38f01055e1ecf844bf10e7226d9b453ad3a1f0d03dfd9",
+  "compiledRegularFiles": 824,
+  "worker": {
+    "path": "commands/regex-execution/worker.js",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 1981,
+    "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+  },
+  "workerUrl": "file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js",
+  "installedToolsBeforeSha256": "8a64487cc654516786ed4e9fbc933836099c590e2149dc84c29c21744e70cbd9",
+  "externalToolsBeforeSha256": "2eb4b7ae8a2af0c3b508edf67bb726c396a25a8035a1cacb867981d6b472c198",
+  "originalToolInventoriesMatchPrior": true,
+  "versions": {
+    "tsx": {
+      "version": "4.23.12",
+      "dependencies": {
+        "esbuild": "~0.28.0"
+      },
+      "optionalDependencies": {
+        "fsevents": "~2.3.3"
+      }
+    },
+    "typescript": {
+      "version": "5.9.3",
+      "dependencies": {},
+      "optionalDependencies": {}
+    },
+    "@types/node": {
+      "version": "22.20.1",
+      "dependencies": {
+        "undici-types": "~6.21.0"
+      },
+      "optionalDependencies": {}
+    },
+    "esbuild": {
+      "version": "0.28.2",
+      "dependencies": {},
+      "optionalDependencies": {
+        "@esbuild/aix-ppc64": "0.28.2",
+        "@esbuild/android-arm": "0.28.2",
+        "@esbuild/android-arm64": "0.28.2",
+        "@esbuild/android-x64": "0.28.2",
+        "@esbuild/darwin-arm64": "0.28.2",
+        "@esbuild/darwin-x64": "0.28.2",
+        "@esbuild/freebsd-arm64": "0.28.2",
+        "@esbuild/freebsd-x64": "0.28.2",
+        "@esbuild/linux-arm": "0.28.2",
+        "@esbuild/linux-arm64": "0.28.2",
+        "@esbuild/linux-ia32": "0.28.2",
+        "@esbuild/linux-loong64": "0.28.2",
+        "@esbuild/linux-mips64el": "0.28.2",
+        "@esbuild/linux-ppc64": "0.28.2",
+        "@esbuild/linux-riscv64": "0.28.2",
+        "@esbuild/linux-s390x": "0.28.2",
+        "@esbuild/linux-x64": "0.28.2",
+        "@esbuild/netbsd-arm64": "0.28.2",
+        "@esbuild/netbsd-x64": "0.28.2",
+        "@esbuild/openbsd-arm64": "0.28.2",
+        "@esbuild/openbsd-x64": "0.28.2",
+        "@esbuild/openharmony-arm64": "0.28.2",
+        "@esbuild/sunos-x64": "0.28.2",
+        "@esbuild/win32-arm64": "0.28.2",
+        "@esbuild/win32-ia32": "0.28.2",
+        "@esbuild/win32-x64": "0.28.2"
+      }
+    },
+    "@esbuild/darwin-arm64": {
+      "version": "0.28.2",
+      "dependencies": {},
+      "optionalDependencies": {}
+    },
+    "undici-types": {
+      "version": "6.21.0",
+      "dependencies": {},
+      "optionalDependencies": {}
+    },
+    "fsevents": {
+      "version": "2.3.3",
+      "dependencies": {},
+      "optionalDependencies": {}
+    },
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "bash": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n"
+  },
+  "receipts": [
+    {
+      "name": "core",
+      "path": "tests/integration/owned-output-production-rebase/author/runs/legacy-core-final-02/RUN.json",
+      "commit": "f27b7b595c529d26161a21cf86d2a86fc0d2cee3",
+      "sha256": "a6eebf6b7759ae87cb4632303c658f7e3eee2bdd66680a7e6714905263ab30bf",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=4",
+        "tests/contracts/io.test.ts",
+        "tests/contracts/io.stress.test.ts",
+        "tests/contracts/command.test.ts",
+        "tests/contracts/invocation-cleanup.test.ts",
+        "tests/contracts/invoke.test.ts",
+        "tests/contracts/stdin-provenance.test.ts",
+        "tests/shell/invocation-cleanup.test.ts",
+        "tests/shell/invocation-cleanup-setup.test.ts",
+        "tests/shell/invocation-cleanup-lifecycle.test.ts",
+        "tests/shell/invocation-cleanup-pipeline.test.ts",
+        "tests/shell/input-return-cleanup.test.ts",
+        "tests/shell/output-accounting.test.ts",
+        "tests/shell/output-accounting-bounds.test.ts",
+        "tests/shell/pipeline-effects.test.ts",
+        "tests/shell/streaming.test.ts",
+        "tests/shell/invoke.test.ts",
+        "tests/shell/stdin-origin.test.ts",
+        "tests/commands/streams.test.ts",
+        "tests/commands/pipelines.test.ts",
+        "tests/commands/network/byte-ownership.test.ts",
+        "tests/commands/network/exports.test.ts",
+        "tests/commands/network/files.test.ts",
+        "tests/commands/network/http.test.ts",
+        "tests/commands/network/safety.test.ts",
+        "tests/commands/network/tls.test.ts",
+        "tests/commands/network/zero-caps.test.ts",
+        "tests/commands/network-zero-caps-review/holdout.test.ts"
+      ],
+      "expectedTests": 505
+    },
+    {
+      "name": "state",
+      "path": "tests/integration/owned-output-production-rebase/author/runs/legacy-state-final/RUN.json",
+      "commit": "f27b7b595c529d26161a21cf86d2a86fc0d2cee3",
+      "sha256": "1aba46c7ba0838dc34834fb2d111f60c352d9a9734cebe10b82a4e31923e8de6",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=4",
+        "tests/shell/env-replacement.test.ts",
+        "tests/shell/env-shebang.test.ts",
+        "tests/shell/source-dot-eval-source.test.ts",
+        "tests/shell/source-dot-eval-eval.test.ts",
+        "tests/shell/source-dot-eval-diagnostics.test.ts",
+        "tests/shell/errexit-extra.test.ts"
+      ],
+      "expectedTests": 203
+    },
+    {
+      "name": "focused-types",
+      "path": "tests/integration/owned-output-production-rebase/author/runs/focused-types-final-02/RUN.json",
+      "commit": "f27b7b595c529d26161a21cf86d2a86fc0d2cee3",
+      "sha256": "ebcb39a23c53681c9616d2366a906a6b28850b24cbcfff953014871f2a6cd246",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--target",
+        "ES2023",
+        "--strict",
+        "--verbatimModuleSyntax",
+        "--exactOptionalPropertyTypes",
+        "--noUncheckedIndexedAccess",
+        "--skipLibCheck",
+        "tests/integration/owned-output-production-rebase/author/helpers.ts",
+        "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+        "tests/integration/owned-output-production-rebase/author/shell.test.ts",
+        "tests/integration/owned-output-production-rebase/author/network.test.ts"
+      ],
+      "expectedTests": null
+    },
+    {
+      "name": "source-types",
+      "path": "tests/integration/owned-output-production-rebase/author/runs/source-types-final-02/RUN.json",
+      "commit": "f27b7b595c529d26161a21cf86d2a86fc0d2cee3",
+      "sha256": "1850e8fd895c8009d9fb70fe2c9cb1a49140c5b67b401383c3e36c612329cfee",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "expectedTests": null
+    }
+  ],
+  "liveHeadObservationOnly": "099d341d7334a3f51599d70c8af5a9c998004850",
+  "foreignStatusObservationOnly": " M tests/integration/owned-output-production-independent-20260827/candidate-v1/core-cases.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/execute.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/run-case.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/probe.mjs\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/replay.mjs\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/runtime-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/ATTEMPT-01.md\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/NEIGHBORS.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/SUMMARY.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/VERIFIED.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/adjacent-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/common.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/legacy-ast.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run01/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run02/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run03/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run04/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05.MANIFEST.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05.json.gz.base64\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/seal.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/setup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/verify-evidence.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/mutations.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/network-cases.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/public-controls.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/safejs-loader.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/safejs-review.mjs\n",
+  "builds": 0,
+  "packs": 0,
+  "installs": 0,
+  "privateQueries": 0,
+  "integrityScope": "Full recursive regular-file bytes/modes and directory entries including additions; prior committed complete manifests referenced by hash; no mtime/xattr/OS-library/atomic/intervening-state proof"
+}

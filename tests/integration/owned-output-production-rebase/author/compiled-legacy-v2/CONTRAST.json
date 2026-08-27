@@ -1,0 +1,137 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "previousCommit": "f8fdae7289162494d09f887bed4846edfd6575cf",
+  "previousPath": "tests/integration/owned-output-production-rebase/author/committed-legacy-followup/FAILURES.json",
+  "previousSha256": "ffcc1f75495a04b8295ddeed5c7e8df9c29d3907c0b1471304ced5de2ffeeebf",
+  "currentPath": "tests/integration/owned-output-production-rebase/author/compiled-legacy-v2/runs/core/stdout.txt",
+  "currentSha256": "eedbdf66db1f79e8bd9df89290d8069dbce84675b75d4b72cbbf495bb35616f9",
+  "matchingRows": [
+    {
+      "number": 231,
+      "name": "standard tools compose in a filtering, transforming, sorting and tee pipeline",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": false,
+      "currentRawTapLine": "ok 231 - standard tools compose in a filtering, transforming, sorting and tee pipeline"
+    },
+    {
+      "number": 481,
+      "name": "stdin origin: rg integration rg match supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 481 - stdin origin: rg integration rg match supplied=false"
+    },
+    {
+      "number": 482,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 482 - stdin origin: rg integration rg match supplied=true"
+    },
+    {
+      "number": 483,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 483 - stdin origin: rg integration rg match supplied=true"
+    },
+    {
+      "number": 484,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 484 - stdin origin: rg integration rg match supplied=true"
+    },
+    {
+      "number": 485,
+      "name": "stdin origin: rg integration printf '' | rg match supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 485 - stdin origin: rg integration printf '' | rg match supplied=false"
+    },
+    {
+      "number": 486,
+      "name": "stdin origin: rg integration printf '' | rg -e match supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 486 - stdin origin: rg integration printf '' | rg -e match supplied=false"
+    },
+    {
+      "number": 487,
+      "name": "stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 487 - stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false"
+    },
+    {
+      "number": 488,
+      "name": "stdin origin: rg integration printf '' | rg match - supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 488 - stdin origin: rg integration printf '' | rg match - supplied=false"
+    },
+    {
+      "number": 489,
+      "name": "stdin origin: rg integration rg match <empty supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 489 - stdin origin: rg integration rg match <empty supplied=false"
+    },
+    {
+      "number": 490,
+      "name": "stdin origin: rg integration rg match <<END\\\\nEND supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 490 - stdin origin: rg integration rg match <<END\\\\nEND supplied=false"
+    },
+    {
+      "number": 491,
+      "name": "stdin origin: rg integration rg match <<< '' supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 491 - stdin origin: rg integration rg match <<< '' supplied=false"
+    },
+    {
+      "number": 492,
+      "name": "stdin origin: rg integration rg match 3<empty 0<&3 supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 492 - stdin origin: rg integration rg match 3<empty 0<&3 supplied=false"
+    },
+    {
+      "number": 493,
+      "name": "stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 493 - stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false"
+    },
+    {
+      "number": 494,
+      "name": "stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 494 - stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false"
+    },
+    {
+      "number": 495,
+      "name": "stdin origin: rg integration env rg match supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 495 - stdin origin: rg integration env rg match supplied=false"
+    },
+    {
+      "number": 496,
+      "name": "stdin origin: rg integration printf '' | env rg match supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 496 - stdin origin: rg integration printf '' | env rg match supplied=false"
+    },
+    {
+      "number": 497,
+      "name": "stdin origin: rg integration printf '' | rg match matched supplied=false",
+      "previousStatus": "not ok",
+      "previousExplicitMissingWorker": true,
+      "currentRawTapLine": "ok 497 - stdin origin: rg integration printf '' | rg match matched supplied=false"
+    }
+  ],
+  "interpretation": "These 18 corresponding rows pass in the new compiled-artifact profile. Old failures remain unchanged. This is not a separate 18-test cohort, fixture waiver or isolated causal proof for the historical pipeline mismatch."
+}

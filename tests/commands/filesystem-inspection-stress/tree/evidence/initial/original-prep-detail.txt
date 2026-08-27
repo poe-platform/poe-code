@@ -1,0 +1,88 @@
+INDEPENDENT TREE VERIFIER — PREP SEALED; STOPPED BEFORE PRODUCT EXECUTION
+
+Sealed UTC: 2026-08-27T08:13:47.498Z
+First recorded inspection clock: 2026-08-27T08:00:47Z
+Actual recorded elapsed: 780 seconds (not a 72-hour completion claim).
+Repo: /Users/kjopek/Workspace/safe-bash
+Private corpus: /private/tmp/safe-bash-tree-hidden-prep-vyzfHc
+Owned publish scope: tests/commands/filesystem-inspection-stress/tree/** only.
+No staging, commits, branches, product/root/FS/contracts/core/metadata changes.
+Root assignment confirms this verifier owns only NEW tree stress scope and /tmp.
+Ancestor/project AGENTS read. No nested applicable AGENTS in owned scope.
+
+Preseal payload SHA256: b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+Private inventory SHA256: 7080fc3c3dd527e2b49183b365253ae9ddd38f78672de5f97623ace661a976fa
+Public seal: /Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/tree/PRESEAL-MANIFEST.json
+Root-only named case plan and exact fixtures: corpus.mjs, native.json, preseal.json.
+Root-only resume/API binding protocol: RESUME.md.
+Author must not read corpus until root failure handoff. Mode 0700 is not an
+enforceable same-user agent security boundary; embargo is a coordination rule.
+
+INDEPENDENCE
+No new author implementation/tests inspected. No product calls/new plugin imports.
+No author-finished/candidate evidence received; no candidate profile inferred.
+Derived only from user requirements, current contract snapshots, primary tree
+manual/tag checked using web, and the already existing pinned native tool.
+Contract input hashes before/after are in preseal.json; original snapshots remain.
+HEAD at native capture: 966cfac676f593e2542e4c84d1b79cb49776c08d
+HEAD at seal: 10273352f8d65d929cbf5a23e69119414dacee60
+Concurrent repo state is dirty; neither hash claims a frozen product gate.
+Source input drift: 0 files.
+
+CORPUS AND NATIVE PROVENANCE
+38 targeted intended product cases, not a broad parity suite:
+20 native-derived captures and 18 positive/adversarial probes. Three provider
+boundary/missing-method characterizations are NOT pass claims. Optional options
+will be classified against the author's supported profile before execution;
+unsupported remains unsupported, never counted as pass.
+Existing binary: /tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree
+Reported version: tree v2.2.1 (c) 1996 - 2024 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro
+Binary SHA256: 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+Archive SHA256: e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5
+Manual SHA256: 0900385101aa663c970b3e558ed3eec8b4fc96e175b70bedefcf32cf4f8bc3dd
+No native download/build performed by this verifier. The existing binary/archive
+and manual were copied into private oracle/ for a frozen identity. Exact build
+command/compiler provenance remains UNVERIFIED pending author/root provenance.
+Native profile: Darwin 25.4.0 arm64; LC_ALL=C,
+LANG=C, TERM=dumb, TZ=UTC, -n --charset=ASCII, stdin empty, non-TTY; 2500ms native
+timeout, 256KiB capture ceiling; only private temp fixtures and internal links.
+This is pinned tree 2.2.1, not current-upstream/latest or GNU/Linux evidence.
+Primary source: https://gitlab.com/OldManProgrammer/unix-tree/-/raw/2.2.1/doc/tree.1
+Tag: https://gitlab.com/OldManProgrammer/unix-tree/-/tags/2.2.1
+Current upstream manual was identified as different, not substituted for 2.2.1.
+
+Coverage includes C sorting/reverse/dirsfirst, hidden/depth/filter/prune/reports,
+Unicode/control/newline/raw/JSON names, root/file/dangling/follow/sibling aliases,
+ancestor loops, disjoint provider inode collisions, unknown/partial identity,
+ENOTSUP and absent realpath, malformed/duplicate readdir, EACCES/late EIO,
+pre-abort and pending FS/sink/late rejection, backpressure/chunk ownership,
+multibyte output and global entry bounds, real rooted VFS, unused stdin, and
+actual Shell pipeline/subshell/redirection with JSON or text stdin consumer.
+Every fixture/case is frozen before any product invocation. Bridge remains a
+new post-candidate artifact because final standalone API is not yet inspected.
+
+ORACLE / CONTRACT DISCLOSURES
+N14 original native capture suppresses sibling alias-b as recursive. Preserved
+exactly. User ancestor-cycle rule instead requires sibling traversal; its
+invariant acceptance cannot be labeled native-byte parity. This discrepancy
+was found in native output, never inferred from candidate output.
+N17/N18 retain original error bytes/status but require meaningful failure, not
+universal native diagnostic spelling. N20 native JSON exact schema is explicit.
+DirectoryEntry documents name/type but no stronger validity/uniqueness rule;
+malicious/duplicate cases characterize defensive handling without inventing a
+mandatory rejection/deduplication policy. Missing realpath method is explicitly
+nonconforming; conforming unknown-identity tests instead return ENOTSUP.
+Direct cancellation tests reject false success and retain thrown reason identity;
+they do not establish exact public Shell cancellation-result behavior by proxy.
+No product static subprocess/dependency audit, public export/packed consumer,
+remote provider deployment, benchmark, full suite or superiority evidence yet.
+
+VALIDATION
+20 bounded native captures recorded, including original errors and alias defect.
+7/7 verifier-only selftests passed. run.mjs syntax passes. PREP execution guard
+rejects before profile access/bridge import. Product cases executed: ZERO.
+Raw selftest and denied-execution logs are private sealed artifacts.
+Root resumes only after author candidate: verify manifest, freeze candidate/API
+and supported profile, bind real APIs in a new adapter, execute independently,
+then route failures to author. Never edit expectations merely to match product.
+STOP: no staging/commit and no author/product work follows this PREP handoff.

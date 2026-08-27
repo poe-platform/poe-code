@@ -1,0 +1,195 @@
+INDEPENDENT SIX-CASE SAFETY PREPARATION / V2 PEER REVIEW — STOP
+August 27, 2026. Scope: harness-review/** plus owned /tmp only.
+
+DECISIONS
+Preparation: GO as a sealed, runnable, nonproduct-checked harness.
+Product execution: HOLD until ROOT FINAL SOURCE FREEZE authorization.
+New author source safety: NOT REVIEWED in this task; prior SOURCE HOLD unchanged.
+Tree N18 v2 predicate: GO, finite whole-single-diagnostic profile only.
+File F29 v2 predicate: GO, synchronous entry-time signal snapshot only.
+File F33/F34: prior scoped GO retained; unchanged and NOT rerun.
+Product command calls by this peer: ZERO. Native-oracle calls: ZERO.
+Product children launched: ZERO. No install/build/default/root/FS/source edits,
+staging, commit, watcher, service or private dependency access.
+
+INDEPENDENCE / PRESEAL
+The six input/expectation records were sealed at2026-08-27T09:03:15.261Z.
+No new tree/file author-fix source was inspected before OR after this seal.
+Root's disclosed65-test progress was known; no author test inputs or new source
+implementation were read. Product API inspection was restricted to original
+d168d18b118592e04a6eec9b00eb50cc2b1e5058 Shell/FS interfaces and dispatch source.
+Later v2 reads were harness corrections, not new author implementation source.
+Source paths visible in git status/index were not read as source or edited.
+
+Durable directory:
+tests/commands/filesystem-inspection-stress/harness-review/safety-v1/
+PRESEAL.json binds cases.mjs, seal.mjs and sealed-cases.json with byte hashes.
+Creation uses exclusive writes. No input or expectation was changed after seal.
+Runner/oracle/control helpers were implemented afterward and are bound by the
+separate runtime identity. The execution gate requires BOTH identities.
+
+PRESEAL SHA256
+b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb
+sealed-cases.json SHA256
+0e7d70e3026e2cc716c28725c529bfc98655224b01f4b2b7ce340fd65f42e6a1
+Final runtime identity (ordered runtime-file/hash records, SHA256)
+428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905
+
+EXACT SIX CASES / CANONICAL RECORD HASHES
+Each case hash is SHA256(JSON.stringify(case)) as reported by run.mjs --check.
+1. T-empty-many
+   255 pipes,64 unique128-byte file basenames; -i --noreport -I; maxSteps262144.
+   Exact complete output, no exclusions, status0/empty stderr after source proof
+   of normalization. No quota failure or timing requirement by fiat. Without
+   normalization proof, execution remains HOLD rather than calling completion safe.
+   SHA256 4866bc199a0d3bcff914bb64e307b5b0d0a895e6e087a5f4202b1ad37c9b03be
+2. T-DP-cumulative
+   Eight *a pairs then z,64 unique128-byte names ending q; maxSteps4096.
+   Require cumulative noneliminated FILTER work rejection/EFBIG before output or
+   child lstat, not a later sort failure. A rejecting-suffix optimization can
+   invalidate this sealed stress. Root must then mark invalidated/HOLD, not pass,
+   and preserve inputs pending any separately approved additive replacement.
+   SHA256 23d8158b9d24bb9b784f05267768cca66926da966b1d7a84fe15215cbaac0d15
+3. T-sort-many
+   64 unique512-byte common-prefix names, deterministic permuted order, alternating
+   files/empty dirs, --dirsfirst; maxSteps4096. Compared BYTE work must exceed
+   quota before output; explicit source proof covers both sort passes. This low
+   cap exercises the first pass; no fabricated dynamic second-pass coverage.
+   SHA256 38e6dc5054b20b5e824e22c3b4a3f204d29a0b37327a277eadc75105f75e6684
+4. F-JSON-cumulative
+   Eight8190-byte complete inputs (8189 spaces plus '['),1-KiB stream chunks;
+   total65520 bytes, maxSteps16384. Require one ASCII text MIME line then a step
+   limit after at least two distinct reads, not reset per operand. Frozen proof
+   must show single-operand INCLUDING startup work fits and two operands exceed
+   quota. If accounting coefficients invalidate this exact boundary, HOLD rather
+   than mislabeling a single-operand rejection as cumulative evidence.
+   SHA256 5608ff842be15508cfdde2de8c4c359e9cc14fc142237e0b2f3d479507c69701
+5. F-header-many
+   32 independent paths,512 bytes each,128-byte chunks;16384 total bytes;
+   near-miss PDF/tar/PE/SQLite headers. maxSniff1024/maxInput32768/maxSteps32768.
+   Require32 complete bounded streams and MIME/charset records, no offset-induced
+   extra reads. Labels are recorded characterizations, NOT validation/security
+   certification. There are29 unique byte payloads: three PDF repetitions are
+   disclosed and retained, not claimed as32 unique formats or native fixtures.
+   SHA256 6fea6d9af3426a2048d21fc2e25568daffffa1ce19f021563d42334475aebfb7
+6. F-metadata-many
+   32 links,4096 U+0001 target codepoints each (131072 prepared codepoints),
+   output4096. First expanded line cannot fit: require relevant family limit,
+   zero content reads/mutations, and empty stdout or only an exact bounded prefix
+   if escaping streams. This probes first-line pre-admission, not32 completed
+   transforms. Pre-expansion AND cumulative accounting still need static proof.
+   SHA256 c4a1163be94e309d2cecfa7b8fbc356386299d1fbdb1ec89277ce6a9da45787f
+
+All cases use actual frozen Shell.exec, literal argv verified at one registered
+command entry, readonly VFS fixtures and awaited byte sinks. Streaming producer
+calls/return counts, signals at entry, exact byte captures, read bounds and
+namespace nonmutation are checked. No default aggregate or public integration.
+Actual input fixtures, all family overrides and exact expectations are in the
+sealed JSON; README explains limitations rather than widening predicates later.
+
+RESOURCE / AUTHORIZATION BOUNDARY
+Always-runnable now, builtins only:
+  node tests/commands/filesystem-inspection-stress/harness-review/safety-v1/seal.mjs --check
+  node tests/commands/filesystem-inspection-stress/harness-review/safety-v1/run.mjs --check
+  node --test tests/commands/filesystem-inspection-stress/harness-review/safety-v1/selfcheck.test.mjs
+
+Future proposal, NOT RUN:
+  node tests/commands/filesystem-inspection-stress/harness-review/safety-v1/run.mjs --execute /tmp/ROOT-AUTH.json AUTH_SHA256 /tmp/FRESH-OWNED-RUN
+
+Root must provide exact ROOT_FINAL_SOURCE_FREEZE_EXECUTION_AUTHORIZED token,
+authorization hash, preseal/runtime hashes, six-case list, final commit, compiled
+isolated snapshot, complete permitted module/source hash inventory, entrypoints
+and proof attestations bound to those source files. No valid authorization was
+created here. The live working tree cannot be selected. Missing approval stops
+before child creation; inapplicable sealed premises become HOLD/unexecuted rows.
+Detailed schema and mandatory numeric/semantic proof fields are in README.md.
+
+Caps: sequential owned children only;5s parent wall stop per child;30s whole
+execution batch;128MiB main V8 heap;256MiB observed RSS stop;64KiB combined product
+stdout/stderr/transport capture;bounded telemetry/IPC;no retries. Child disposal
+and process close precede moving to the next case. Root output directory must be
+fresh/explicit; raw logs/results are retained, never deleted or rewritten.
+Incomplete children have unknown final product effects, not claimed zero effects.
+
+Exact heap flag is --max-heap-size=128, not merely max-old-space-size. A pure
+Node22.22.2 builtin check observed heap_size_limit=134217728; future child verifies
+this before product import. RSS samples are cooperative10ms samples, not a hard
+native-memory sandbox or guaranteed peak measurement during main-thread stalls.
+The independent parent wall cap still stops a stalled child. No ps/native monitor.
+File duration override4000ms is a disclosed family limit inside5s, not a latency
+success assertion. Controller/loader are syntax/static checked, NOT product-run
+or cap-breach validated. No arbitrary timing, performance or superiority claim.
+
+Loader checks frozen hashes/file-backed imports and denies package resolution
+or product host-FS/process/network/worker imports. This is not a JS sandbox or
+hostile-host lease. A legitimate frozen dependency conflict requires root/harness
+adjudication, not unrelated source changes. No product worker API was added.
+
+V2 PEER RESULTS — BOTH FINISHED REPORTS INSPECTED
+Tree v2 GO: actual anchored whole-diagnostic helper passes8 positive controls,
+rejects23 negative controls, including both exact prior false acceptances.
+Preserved v1 still accepts those two negatives. Extra clauses/lines, even
+consistent ones, are explicitly outside the finite profile, not silently parsed.
+Exact nonzero status, byte types, empty stdout and bounded stderr remain.
+Derived runner, corpus, native.json, fixture FS and copied31-check v1 test file
+are byte-identical to v1. No new product/native record was generated or promoted.
+V2 helper c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c
+
+File v2 GO: exact extracted F29 callback evaluated with10 finite mock variants.
+Active and cleanup-after-entry variants pass; preaborted/missing/duck signals,
+too-small maxBytes, wrong PNG/status/stderr and omitted readFile reject. Preserved
+v1 still rejects valid cleanup after entry. Original options and promise identities
+are checked; no mock promise swallowing or runner/product/classifier/Shell import.
+Two observation replacements plus one assertion replacement exactly reconstruct
+F29; all text before/after is unchanged, including F33/F34 late-error obligations.
+V2 runner de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756
+
+Independent manifest verification: tree original316/v1 35/v2 37 entries;
+file original285/v1 37/v2 26 entries, including bytes/hashes/file-vs-symlink kind.
+Total736 listed artifact entries checked. Original failures, copied preparation
+failures, raw38/40 records and v1 captures remain unchanged; no historical seal
+or manifest regenerated. Counts are artifact integrity, not product-case passes.
+Original tree38:30pass/2fail/3unsupported/3characterizations; N16 profile and
+N18 native status/text remain non-parity. Original file40:35pass/3fail/2backend
+limitations; native conflicts and historical80/80 and50/60 views remain old
+evidence. V1 one-tree/three-file calls stay historical; v2 adds zero calls/passes.
+No mixed31/34 index, new full38/full40 gate, SQLite or new safety-source verdict.
+
+EXACT EXECUTED PREPARATION / PEER CHECKS
+  node --check <each safety-v1/*.mjs>; node --check harness-review/v2-peer.mjs
+All syntax checks completed; latest changed entry/controller were rechecked.
+  node --test tests/commands/filesystem-inspection-stress/harness-review/safety-v1/selfcheck.test.mjs
+Final10/10 nonproduct checks pass,0fail/skip/cancel/TODO. Includes exact mock
+oracle positives/negatives for each row, mutation/disposal rejection, finite
+producer, source-premise gates and missing authorization. NOT six product passes.
+  node tests/commands/filesystem-inspection-stress/harness-review/v2-peer.mjs
+Exit0; harness-only mock checks and exact original/v1/v2 integrity/derivation.
+  node --max-heap-size=128 --input-type=module -e 'import {getHeapStatistics} from "node:v8"; console.log(JSON.stringify({node:process.version,heapSizeLimit:getHeapStatistics().heap_size_limit,productImports:0}));'
+Builtin cap configuration check only; no product child or module imported.
+  git diff --check -- tests/commands/filesystem-inspection-stress/harness-review
+Exit0; untracked-file caveat. Index initially held another owner's tree work and
+was later empty due concurrent work; this peer never staged/unstaged/committed.
+
+FINAL ARTIFACT HASHES
+safety-v1/PREPARATION.json
+bf3bb80ae614ae6374953abc1312c0352e2740cb59cef70920ca963bf0de04b2
+safety-v1/selfcheck.tap
+2163f6c9c2b424ace01e45c200d20304998f221e3a0840dc4a1968f7328755c5
+safety-v1/README.md
+e951df14c58e0608a60eb8f2eac0bc7d8756483bf17a2321d814c371b3531573
+v2-peer.mjs
+44c5fc92fb544013dfccdb3de665c3a0a6753696dd83f8e270325fd3d617696a
+v2-peer-results.json
+99b8708fa0bf543e6e33f9207281f2a3fae271a30f4c9da3bfa988612132175d
+V2_REVIEW.md
+63350a5e103d837f22dc03ddf32ffe2a64b5afc98d452f74d35fe73a745c4a44
+/tmp/safe-bash-tree-harness-v2-detail.txt
+2c858041e6092a0080c3fde78a6962d55826a42743c3256bc80856468066b8b1
+/tmp/safe-bash-file-harness-v2-detail.txt
+f43d89da1298f292fdfe07822281fad084925af719653676316e0b5dfd61c634
+
+Root next action: finish/routinely close author fixes, freeze exact source,
+independently review each sealed stress premise, then explicitly authorize the
+bounded batch or mark an invalidated row HOLD. Do not ask product to satisfy a
+now-eliminated workload by restoring inefficient work. No execution authorized
+by this preparation report. Stop; no additional suite, source read, or commit.

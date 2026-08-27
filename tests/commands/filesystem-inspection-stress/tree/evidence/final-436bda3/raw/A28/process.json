@@ -1,0 +1,34 @@
+{
+  "id": "A28",
+  "status": "pass",
+  "rawPredicate": {
+    "id": "A28",
+    "status": "pass",
+    "evidence": {
+      "exitCode": 1,
+      "acceptedBytes": 137,
+      "diagnostics": "errors\n|-- a-good\n|   `-- visible-before-error.txt\n`-- z-denied  [input/output error, readdir '/errors/z-denied']\n\n3 directories, 1 file\ntree: errors/z-denied: input/output error, readdir '/errors/z-denied'\n"
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 192,
+  "pid": 58863,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/profile.json",
+      "A28"
+    ],
+    "cwd": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate"
+  },
+  "observationAvailable": true
+}

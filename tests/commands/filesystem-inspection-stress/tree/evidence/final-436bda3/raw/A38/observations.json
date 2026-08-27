@@ -1,0 +1,43 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "rejected",
+          "error": {
+            "name": "FsError",
+            "message": "EPIPE: broken pipe, holdout-sink",
+            "code": "EPIPE",
+            "stack": "FsError: EPIPE: broken pipe, holdout-sink\n    at Module.makeFsError (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs:15:47)\n    at adversarialCase (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:264:27)\n    at <anonymous> (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:293:139)"
+          }
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:33.980Z",
+      "error": {
+        "name": "FsError",
+        "message": "EPIPE: broken pipe, holdout-sink",
+        "code": "EPIPE",
+        "stack": "FsError: EPIPE: broken pipe, holdout-sink\n    at Module.makeFsError (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs:15:47)\n    at adversarialCase (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:264:27)\n    at <anonymous> (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:293:139)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": false,
+      "finishedAt": "2026-08-27T09:27:33.985Z"
+    }
+  ],
+  "shells": []
+}

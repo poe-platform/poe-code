@@ -1,0 +1,1 @@
+{"id":"N17","status":"pass","evidence":{"exitCode":1,"stdoutBytes":106,"stderrBytes":71,"fsCalls":2,"comparison":"status-and-diagnostic"}}

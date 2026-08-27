@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: peer failure history is reproduced with the actual unchanged v1 helper, not approved
+ok 1 - peer failure history is reproduced with the actual unchanged v1 helper, not approved
+  ---
+  duration_ms: 1.325083
+  type: 'test'
+  ...
+# Subtest: v2 pure peer countercheck: positive-control
+ok 2 - v2 pure peer countercheck: positive-control
+  ---
+  duration_ms: 0.4915
+  type: 'test'
+  ...
+# Subtest: v2 pure peer countercheck: irrelevant-same-line-constraint
+ok 3 - v2 pure peer countercheck: irrelevant-same-line-constraint
+  ---
+  duration_ms: 0.710292
+  type: 'test'
+  ...
+# Subtest: v2 pure peer countercheck: contradictory-next-line-zero-range
+ok 4 - v2 pure peer countercheck: contradictory-next-line-zero-range
+  ---
+  duration_ms: 0.062084
+  type: 'test'
+  ...
+# Subtest: v2 finite-profile independent positive 1
+ok 5 - v2 finite-profile independent positive 1
+  ---
+  duration_ms: 0.054167
+  type: 'test'
+  ...
+# Subtest: v2 finite-profile independent positive 2
+ok 6 - v2 finite-profile independent positive 2
+  ---
+  duration_ms: 0.169958
+  type: 'test'
+  ...
+# Subtest: v2 finite-profile independent positive 3
+ok 7 - v2 finite-profile independent positive 3
+  ---
+  duration_ms: 0.071208
+  type: 'test'
+  ...
+# Subtest: v2 finite-profile independent positive 4
+ok 8 - v2 finite-profile independent positive 4
+  ---
+  duration_ms: 0.040292
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: same-line annotation with an unrelated subject
+ok 9 - v2 whole-diagnostic rejection: same-line annotation with an unrelated subject
+  ---
+  duration_ms: 0.177541
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: valid first clause followed by contradictory bounds
+ok 10 - v2 whole-diagnostic rejection: valid first clause followed by contradictory bounds
+  ---
+  duration_ms: 0.223292
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: valid first line followed by subject-bound contradictory bounds
+ok 11 - v2 whole-diagnostic rejection: valid first line followed by subject-bound contradictory bounds
+  ---
+  duration_ms: 0.079417
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: valid first line followed by zero allowance
+ok 12 - v2 whole-diagnostic rejection: valid first line followed by zero allowance
+  ---
+  duration_ms: 0.036333
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: even consistent extra lines are outside the finite profile
+ok 13 - v2 whole-diagnostic rejection: even consistent extra lines are outside the finite profile
+  ---
+  duration_ms: 0.031458
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: prefix noise cannot lend relevance
+ok 14 - v2 whole-diagnostic rejection: prefix noise cannot lend relevance
+  ---
+  duration_ms: 0.031375
+  type: 'test'
+  ...
+# Subtest: v2 whole-diagnostic rejection: unrelated subject cannot follow a depth subject
+ok 15 - v2 whole-diagnostic rejection: unrelated subject cannot follow a depth subject
+  ---
+  duration_ms: 0.34825
+  type: 'test'
+  ...
+# Subtest: reversible helper delta is exact
+ok 16 - reversible helper delta is exact
+  ---
+  duration_ms: 4.216917
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 1
+ok 17 - nonproduct positive depth diagnostic 1
+  ---
+  duration_ms: 0.719959
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 2
+ok 18 - nonproduct positive depth diagnostic 2
+  ---
+  duration_ms: 0.457459
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 3
+ok 19 - nonproduct positive depth diagnostic 3
+  ---
+  duration_ms: 0.040792
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 4
+ok 20 - nonproduct positive depth diagnostic 4
+  ---
+  duration_ms: 0.107041
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 5
+ok 21 - nonproduct positive depth diagnostic 5
+  ---
+  duration_ms: 0.243125
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 6
+ok 22 - nonproduct positive depth diagnostic 6
+  ---
+  duration_ms: 0.451166
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 7
+ok 23 - nonproduct positive depth diagnostic 7
+  ---
+  duration_ms: 0.035083
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 8
+ok 24 - nonproduct positive depth diagnostic 8
+  ---
+  duration_ms: 0.069709
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects success status
+ok 25 - nonproduct countercheck rejects success status
+  ---
+  duration_ms: 0.432375
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects empty diagnostic
+ok 26 - nonproduct countercheck rejects empty diagnostic
+  ---
+  duration_ms: 0.217542
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects whitespace diagnostic
+ok 27 - nonproduct countercheck rejects whitespace diagnostic
+  ---
+  duration_ms: 0.103667
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unrelated permission diagnostic
+ok 28 - nonproduct countercheck rejects unrelated permission diagnostic
+  ---
+  duration_ms: 0.038333
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unrelated positive range
+ok 29 - nonproduct countercheck rejects unrelated positive range
+  ---
+  duration_ms: 0.032167
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects option without a positive constraint
+ok 30 - nonproduct countercheck rejects option without a positive constraint
+  ---
+  duration_ms: 0.0295
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero inclusive range
+ok 31 - nonproduct countercheck rejects zero inclusive range
+  ---
+  duration_ms: 0.030958
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero minimum
+ok 32 - nonproduct countercheck rejects zero minimum
+  ---
+  duration_ms: 0.028375
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects negative exclusive lower bound
+ok 33 - nonproduct countercheck rejects negative exclusive lower bound
+  ---
+  duration_ms: 0.111417
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero dotted range
+ok 34 - nonproduct countercheck rejects zero dotted range
+  ---
+  duration_ms: 0.03725
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects reversed range
+ok 35 - nonproduct countercheck rejects reversed range
+  ---
+  duration_ms: 0.032333
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero upper range
+ok 36 - nonproduct countercheck rejects zero upper range
+  ---
+  duration_ms: 0.06125
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects wrong case short flag
+ok 37 - nonproduct countercheck rejects wrong case short flag
+  ---
+  duration_ms: 0.031459
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects nonempty normal stdout
+ok 38 - nonproduct countercheck rejects nonempty normal stdout
+  ---
+  duration_ms: 0.150875
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects diagnostic in stdout only
+ok 39 - nonproduct countercheck rejects diagnostic in stdout only
+  ---
+  duration_ms: 0.096333
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects fractional bound
+ok 40 - nonproduct countercheck rejects fractional bound
+  ---
+  duration_ms: 0.032625
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects fractional upper bound
+ok 41 - nonproduct countercheck rejects fractional upper bound
+  ---
+  duration_ms: 0.028375
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unsafe upper bound
+ok 42 - nonproduct countercheck rejects unsafe upper bound
+  ---
+  duration_ms: 0.059666
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects positive but contradictory zero bound
+ok 43 - nonproduct countercheck rejects positive but contradictory zero bound
+  ---
+  duration_ms: 0.031709
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects positive or zero
+ok 44 - nonproduct countercheck rejects positive or zero
+  ---
+  duration_ms: 0.027709
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects invalid negative status
+ok 45 - nonproduct countercheck rejects invalid negative status
+  ---
+  duration_ms: 0.026291
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects invalid oversized status
+ok 46 - nonproduct countercheck rejects invalid oversized status
+  ---
+  duration_ms: 0.025208
+  type: 'test'
+  ...
+# Subtest: only the derived N18 predicate and its import differ; corpus and native bytes remain unchanged
+ok 47 - only the derived N18 predicate and its import differ; corpus and native bytes remain unchanged
+  ---
+  duration_ms: 8.662166
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.498042

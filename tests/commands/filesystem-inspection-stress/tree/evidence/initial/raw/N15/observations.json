@@ -1,0 +1,51 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-l",
+        "cycle"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "Y3ljbGUK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIGlubmVyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwtLSBiYWNrIC0+IC4uICBbcmVjdXJzaXZlLCBub3QgZm9sbG93ZWRdCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIGAtLSBsZWFmLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjMgZGlyZWN0b3JpZXMsIDEgZmlsZQo=",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:21.647Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T08:28:21.649Z"
+    }
+  ],
+  "shells": []
+}

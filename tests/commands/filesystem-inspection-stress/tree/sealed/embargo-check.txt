@@ -1,0 +1,7 @@
+{
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: PREP embargo: explicit root resume required\n+ actual - expected\n\n+ ''\n- 'AUTHOR_FINISHED'\n\n    at file:///private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:280:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '',\n  expected: 'AUTHOR_FINISHED',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "purpose": "Denied before reading profile or importing any bridge; no product calls"
+}

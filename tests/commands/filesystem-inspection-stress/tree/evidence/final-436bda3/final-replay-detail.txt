@@ -1,0 +1,127 @@
+FINAL TREE INDEPENDENT FROZEN REPLAY — STOP FOR ROOT SEAL
+August 27, 2026. No commit/staging/root/default/production/author-test edits.
+Owner: tests/commands/filesystem-inspection-stress/tree/** and own /tmp only.
+
+EXACT SOURCE AND GATE
+Candidate 436bda3e21b2b6041409fac7408cf072b5d3fe5e
+Git tree cf727e5fb2d2c18c46323bcec76820a8f42e988a
+Immutable regular-file snapshot: /tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate
+15299 committed regular files, 965932280 bytes;
+318 copied regular devdependency files, 58892156 bytes.
+No symlinked source/dependency imports, worktree, branch, install or rebuild of native.
+Committed lock versions and copied byte hashes verify; eight installed package
+records, zero runtime dependencies. No fresh tarball integrity recalculation.
+Completed independent report read, not provisional/public announcement:
+/tmp/safe-bash-inspection-safety-prep-detail.txt
+Report SHA256 28e62db59def77bb4c62c7ae37c83cb063ddb52e4a32d1735b66ac8b1a77f456
+Explicit Tree N18 v2 predicate GO; root final-source execution authorization
+supplies the product gate that the peer preparation report itself did not grant.
+Helper SHA256 c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c
+Derived runner SHA256 1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd
+Original runner/corpus/native/physical fixtures unchanged. Only original N18
+assertion and its import differ; v2 helper exact peer-reviewed bytes. Mechanical
+profile changes only candidate hash/commit and author-finished evidence metadata.
+API bridge/driver unchanged from initial; historical profile text remains visible.
+
+MANIFESTS / PRESERVATION
+Original preseal b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+Before and after: original316/v1 35/v2 37 durable artifacts and private97 verify.
+Initial raw38, original regex failure, one fresh v1 run/HOLD, v2 offline results,
+peer negatives, native20 and original seal remain byte-identical. No seal rewrite.
+Candidate regular-file manifest dc739ad1d4d4cb9414ae402d8ede3b1cc56376bbed6fadbf2353b2393e931383
+Source manifest 0c1ff20eaa22c83d2f65c54415ed2acb65cb15397954dc71c727dd3fb00c35ad
+Copied devdependency manifest e1c37e0f0c56c70dba3ce1e19bdd1678ffce01f085f59324a6ecd6a79627400e
+Full input manifest 8eff461853d58fd834e68b1233a6940a8b68ec49adfe9ba198a8026df11e5852
+All15617 files verified before and after; zero drift. Loaded source31 +devtools22;
+all53 input module hashes captured, plus exact own harness hashes. No unexpected
+moving-source/file-backed imports. Build/consumer closure31 file-backed modules;
+125 build files +3 consumer input files hashed before/after, no drift.
+Loaded source delta from initial includes four tree files AND committed
+src/shell/shell.ts plugin-host admission/disposal change, not silently just tree.
+Every old/new loaded hash is in analysis.json; no outside-core bug demonstrated.
+Node v22.22.2 darwin/arm64
+Executable /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node
+Executable SHA256 5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011
+
+EXACT FRESH EXECUTION
+Source cohort 2026-08-27T09:27:26.172Z through 2026-08-27T09:27:34.012Z; 7840ms.
+38 original selections exactly once; 35 actual tree invocations; 3 unsupported
+selections import the bridge but DO NOT invoke tree. No product results reused.
+31 raw predicate passes; 1 raw failure N16; 3 unsupported N09/N12/N19;
+3 characterizations A24/A25/A26 (not passes). No missing/incomplete selections,
+source/import/startup errors, harness watchdog cancellation or timeouts.
+Deliberate cancellation tests execute and pass their unchanged assertions.
+Per-case parent cap120s, total cap600s, original internal settlement cap2s.
+No failed-case retry and no new extra hidden product/native oracle cases.
+Result ID final-436bda3-k1mKIO; individual IDs raw/N01..N20, raw/A21..A38.
+Fresh final result SHA256 c682156302cb2a077962c6d9ca0c6be5ee914dc5c657bcb7176ba71b20907b99
+Filename initial-results.json is retained by unchanged driver; NOT old reuse.
+
+RAW EXACT / SEMANTIC LANES
+All20 original native captures: 12 exact match, 5 differences, 3 unsupported.
+Exact-native predicate selections16:12 pass,1 N16 fail,3 unsupported.
+Other native semantic selections4:4 pass, including fresh corrected N18.
+Adversarial selections18:15 pass,3 characterizations.
+Raw differences unchanged N14/N16/N17/N18/N20; no new parity promotion.
+N16 remains root-accepted declared nofollow-rootlink difference, NO sourcefix:
+  argv ["-n","--charset=ASCII","rootlink"]
+  native status0, stdout "rootlink\n`-- leaf.txt\n\n1 directory, 1 file\n"
+  product status0, stdout "rootlink -> links/target\n\n0 directories, 0 files\n"
+N18 final v2 semantic PASS, not native parity:
+  product status2, stdout empty, stderr "tree: -L must be between 1 and 256\n"
+  native status1, stderr "tree: Invalid level, must be greater than 0.\n"
+  zero FS calls; finite depth-bound diagnostic profile, not generic nonempty text.
+Ancestor-only handling is OUR chosen bounded profile, not a literal user instruction.
+Root route /tmp/safe-bash-tree-final-replay-failures.txt: no new source failures.
+Original /tmp/safe-bash-tree-holdout-failures.txt remains unchanged history.
+
+NATIVE PROVENANCE — READ/HASH ONLY, ZERO NEW NATIVE CALLS
+Existing official tree2.2.1 Darwin arm64 oracle; LC_ALL=C LANG=C TERM=dumb TZ=UTC,
+-n --charset=ASCII; original20 bytes/statuses unchanged. Not GNU/Linux proof.
+Archive SHA256 e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5
+Binary SHA256 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+Existing archive/binary bytes independently rechecked. Original exact build
+command, raw metadata and primary-source provenance remain in initial evidence.
+No recapture, download, rebuild or hidden broad native oracle.
+
+SCOPED TYPES / BUILT PLUGIN / SAFETY
+Scoped frozen compiler PASS: all15 canonical tree source/test/helper TS files
+present in successful226-file compiler list; zero missing. Not inventory alone.
+Isolated build PASS, outside frozen source/live dist. Typed standalone consumer
+PASS (189 compiler inputs); plain Node actual Shell treeCommands plugin smoke
+PASS, one separate tree invocation, no tsx/live import; all three factory APIs typed.
+ID BUILT-STANDALONE-SMOKE-1; output / followed by leaf.txt, status0/empty stderr;
+Shell disposed. This is separate from38; final total fresh tree calls36, native0.
+Source cohort directly imports src/commands/tree/index.ts createTreeCommand.
+Built smoke imports emitted commands/tree/index.js treeCommands/createTreeCommands/
+createTreeCommand. No public root/subpath/default registration/integration claim.
+Actual A37 Shell JSON pipeline/subshell/redirect/consumer/relay passes unchanged.
+Direct pendingFS/sink abort +late rejection/backpressure/partial-output/entry and
+output limits all run unchanged; no low-case budget relaxation required.
+Static final matcher/sort/text delta reviewed: cumulative finite DP; comparison
+byte cost and dirsfirst cost; raw text admission before scans; bounded escaping/
+JSON sizing; scoped identity not realpath authority; VFS metadata only; no tree
+contentread/implicit hostFS/subprocess/network/runtime dependency. Full rationale
+STATIC-DELTA.md. No separate peer six-case safety corpus executed here.
+
+DURABLE EVIDENCE / LIMITS / CLEANUP
+/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3
+358 primary manifested artifacts; 8590184 bytes.
+FINAL-MANIFEST.json SHA256 f5d0e4c69a0c7d797e77b0af89a6cc471ce4f39496a747a56d0d682597839d7b
+Payload SHA256 2e08a8f467e3da7d19cb795b71828a7274413e04b8ce304f927c54e150c8fa26
+Offline builtin evidence checks6/6 pass,0fail/skip/cancel/TODO, no product imports.
+Final detail/test log tail bound separately by FINAL-RECEIPT.json. Raw58MiB V8
+coverage remains /tmp and indexed by hashes; do not infer missing capture from
+not duplicating it. Source snapshot/devdeps/build and exact native fixtures retained.
+A33 tests C-escaped ASCII output for Unicode names, not genuine UTF8 output bytes;
+A25 exits at first malformed name; A26 entry cap precedes duplicate validation.
+Unknown/malicious host-contract rows are characterizations, not invented rejection
+requirements. No jq-specific/deployed provider/performance/fullgate/parity claim.
+All38 owned child groups absent on final check, build/compiler/smoke child PIDs
+closed, Shells disposed, no kill/retry or owned service/watcher remains. Existing
+opaque host-work caveat remains. No unrelated processes/fixtures cleaned up.
+One initial read-only zsh inspection shadowed PATH; later static reads had a
+missing-file/glob error. Those inspections were corrected, never product reruns.
+Concurrent root/other-owner commits changed live git status; exact frozen inputs
+and our existing artifacts remained unchanged. No staging or commit performed.
+STOP for root seal/peer routing; no further product execution authorized here.

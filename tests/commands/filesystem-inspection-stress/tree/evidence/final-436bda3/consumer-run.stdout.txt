@@ -1,0 +1,2 @@
+{"id":"BUILT-STANDALONE-SMOKE-1","status":"pass","productInvocations":1,"exitCode":0,"stdoutBase64":"LwpsZWFmLnR4dAo=","stderrBytes":0,"api":"Built standalone module; all three factories typed; treeCommands plugin installed on actual Shell; no package-root/default claim"}
+{"disposed":true}

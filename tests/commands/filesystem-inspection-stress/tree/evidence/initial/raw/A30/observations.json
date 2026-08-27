@@ -1,0 +1,33 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:24.493Z",
+      "error": {
+        "name": "FsError",
+        "message": "ENOENT: no such file or directory, abort '/cancel-pending'",
+        "code": "ENOENT",
+        "path": "/cancel-pending",
+        "stack": "FsError: ENOENT: no such file or directory, abort '/cancel-pending'\n    at Module.makeFsError (/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs:15:47)\n    at adversarialCase (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:176:29)\n    at async <anonymous> (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:292:133)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": true,
+      "finishedAt": "2026-08-27T08:28:24.498Z"
+    }
+  ],
+  "shells": []
+}

@@ -1,0 +1,14 @@
+basic
+basic/Alpha.txt
+basic/b-dir
+basic/b-dir/drop.bin
+basic/b-dir/keep.txt
+basic/b-dir/nested
+basic/b-dir/nested/last.txt
+basic/b.txt
+basic/empty
+basic/skip-dir
+basic/skip-dir/hidden-by-filter.txt
+basic/z-dir
+basic/z-dir/deep.txt
+basic/zeta.txt

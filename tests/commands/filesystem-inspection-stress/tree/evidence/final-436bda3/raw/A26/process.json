@@ -1,0 +1,35 @@
+{
+  "id": "A26",
+  "status": "characterized-not-pass",
+  "rawPredicate": {
+    "id": "A26",
+    "status": "characterized-not-pass",
+    "evidence": {
+      "characterization": "rejected",
+      "escapedCalls": [],
+      "fsCalls": 2,
+      "boundarySafe": true
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 193,
+  "pid": 58858,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/profile.json",
+      "A26"
+    ],
+    "cwd": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate"
+  },
+  "observationAvailable": true
+}

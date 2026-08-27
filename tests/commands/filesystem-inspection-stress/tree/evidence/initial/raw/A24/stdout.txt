@@ -1,0 +1,1 @@
+{"id":"A24","status":"characterized-not-pass","evidence":{"characterization":0,"stdout":"finite\n`-- child\n    `-- grandchild\n        `-- leaf-marker.txt\n\n3 directories, 1 file\n"}}

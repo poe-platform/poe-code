@@ -1,0 +1,14 @@
+basic
+|-- Alpha.txt
+|-- b-dir
+|   |-- drop.bin
+|   |-- keep.txt
+|   `-- nested
+|       `-- last.txt
+|-- b.txt
+|-- empty
+|-- z-dir
+|   `-- deep.txt
+`-- zeta.txt
+
+5 directories, 7 files

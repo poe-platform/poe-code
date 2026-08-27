@@ -1,0 +1,48 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "missing-root",
+        "basic/Alpha.txt"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "bWlzc2luZy1yb290ICBbbm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeSwgcmVzb2x2ZSAnL21pc3Npbmctcm9vdCddCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvQWxwaGEudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjAgZGlyZWN0b3JpZXMsIDEgZmlsZQo=",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [
+        {
+          "attemptedBase64": "dHJlZTogbWlzc2luZy1yb290OiBubyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5LCByZXNvbHZlICcvbWlzc2luZy1yb290Jwo=",
+          "state": "fulfilled"
+        }
+      ],
+      "startedAt": "2026-08-27T09:27:29.839Z",
+      "result": {
+        "exitCode": 1
+      },
+      "finishedAt": "2026-08-27T09:27:29.841Z"
+    }
+  ],
+  "shells": []
+}

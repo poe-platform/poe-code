@@ -1,0 +1,1320 @@
+{
+  "startedAt": "2026-08-27T08:28:18.368Z",
+  "finishedAt": "2026-08-27T08:28:26.189Z",
+  "elapsedMs": 7821,
+  "perCaseDeadlineMs": 120000,
+  "globalDeadlineMs": 600000,
+  "sealedInternalSettlementDeadlineMs": 2000,
+  "intendedCases": 38,
+  "totals": {
+    "pass": 30,
+    "unsupported-not-pass": 3,
+    "fail": 2,
+    "characterized-not-pass": 3
+  },
+  "productInvocations": 35,
+  "cohort": [
+    {
+      "id": "N01",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N01",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 226,
+          "stderrBytes": 0,
+          "fsCalls": 20,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 667,
+      "pid": 263,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N01"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N02",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N02",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 275,
+          "stderrBytes": 0,
+          "fsCalls": 24,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 194,
+      "pid": 266,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N02"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N03",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N03",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 110,
+          "stderrBytes": 0,
+          "fsCalls": 9,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 268,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N03"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N04",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N04",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 205,
+          "stderrBytes": 0,
+          "fsCalls": 18,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 192,
+      "pid": 270,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N04"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N05",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N05",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 226,
+          "stderrBytes": 0,
+          "fsCalls": 20,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 188,
+      "pid": 272,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N05"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N06",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N06",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 79,
+          "stderrBytes": 0,
+          "fsCalls": 20,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 185,
+      "pid": 276,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N06"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N07",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N07",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 209,
+          "stderrBytes": 0,
+          "fsCalls": 20,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 188,
+      "pid": 283,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N07"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N08",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N08",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 184,
+          "stderrBytes": 0,
+          "fsCalls": 17,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 186,
+      "pid": 285,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N08"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N09",
+      "status": "unsupported-not-pass",
+      "rawPredicate": {
+        "id": "N09",
+        "status": "unsupported-not-pass",
+        "missing": [
+          "prune"
+        ]
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 179,
+      "pid": 287,
+      "productInvocations": 0,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N09"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N10",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N10",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 246,
+          "stderrBytes": 0,
+          "fsCalls": 20,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 290,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N10"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N11",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N11",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 229,
+          "stderrBytes": 0,
+          "fsCalls": 13,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 292,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N11"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N12",
+      "status": "unsupported-not-pass",
+      "rawPredicate": {
+        "id": "N12",
+        "status": "unsupported-not-pass",
+        "missing": [
+          "literal-names"
+        ]
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 185,
+      "pid": 294,
+      "productInvocations": 0,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N12"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N13",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N13",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 159,
+          "stderrBytes": 0,
+          "fsCalls": 17,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 192,
+      "pid": 296,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N13"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N14",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N14",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 193,
+          "stderrBytes": 0,
+          "fsCalls": 21,
+          "comparison": "ancestor-alias-invariant"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 298,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N14"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N15",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N15",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 102,
+          "stderrBytes": 0,
+          "fsCalls": 8,
+          "comparison": "bytes"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 191,
+      "pid": 300,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N15"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N16",
+      "status": "fail",
+      "rawPredicate": {
+        "id": "N16",
+        "status": "fail",
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n+ Buffer(49) [Uint8Array] [\n- Buffer(43) [Uint8Array] [\n    114,\n    111,\n    111,\n    116,\n    108,\n...\n    107,\n+   32,\n-   10,\n-   96,\n    45,\n+   62,\n-   45,\n    32,\n    108,\n+   105,\n+   110,\n+   107,\n+   115,\n+   47,\n+   116,\n+   97,\n+   114,\n+   103,\n    101,\n-   97,\n-   102,\n-   46,\n    116,\n-   120,\n-   116,\n    10,\n    10,\n+   48,\n-   49,\n    32,\n    100,\n    105,\n    114,\n    101,\n...\n    114,\n+   105,\n+   101,\n+   115,\n-   121,\n    44,\n    32,\n+   48,\n-   49,\n    32,\n    102,\n    105,\n    108,\n    101,\n+   115,\n    10\n  ]\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n+ Buffer(49) [Uint8Array] [\n- Buffer(43) [Uint8Array] [\n    114,\n    111,\n    111,\n    116,\n    108,\n...\n    107,\n+   32,\n-   10,\n-   96,\n    45,\n+   62,\n-   45,\n    32,\n    108,\n+   105,\n+   110,\n+   107,\n+   115,\n+   47,\n+   116,\n+   97,\n+   114,\n+   103,\n    101,\n-   97,\n-   102,\n-   46,\n    116,\n-   120,\n-   116,\n    10,\n    10,\n+   48,\n-   49,\n    32,\n    100,\n    105,\n    114,\n    101,\n...\n    114,\n+   105,\n+   101,\n+   115,\n-   121,\n    44,\n    32,\n+   48,\n-   49,\n    32,\n    102,\n    105,\n    108,\n    101,\n+   115,\n    10\n  ]\n\n    at nativeCase (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:82:17)\n    at async <anonymous> (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:292:50)"
+        }
+      },
+      "completion": {
+        "exitCode": 1,
+        "signal": null
+      },
+      "elapsedMs": 191,
+      "pid": 302,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N16"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N17",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N17",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 1,
+          "stdoutBytes": 106,
+          "stderrBytes": 71,
+          "fsCalls": 2,
+          "comparison": "status-and-diagnostic"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 192,
+      "pid": 304,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N17"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N18",
+      "status": "fail",
+      "rawPredicate": {
+        "id": "N18",
+        "status": "fail",
+        "error": {
+          "name": "AssertionError",
+          "message": "The input did not match the regular expression /level|depth|invalid|positive|greater/iu. Input:\n\n'tree: -L must be between 1 and 256\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /level|depth|invalid|positive|greater/iu. Input:\n\n'tree: -L must be between 1 and 256\\n'\n\n    at nativeCase (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:73:36)\n    at async <anonymous> (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:292:50)"
+        }
+      },
+      "completion": {
+        "exitCode": 1,
+        "signal": null
+      },
+      "elapsedMs": 194,
+      "pid": 306,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N18"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N19",
+      "status": "unsupported-not-pass",
+      "rawPredicate": {
+        "id": "N19",
+        "status": "unsupported-not-pass",
+        "missing": [
+          "native-filelimit"
+        ]
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 177,
+      "pid": 309,
+      "productInvocations": 0,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N19"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "N20",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "N20",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "stdoutBytes": 520,
+          "stderrBytes": 0,
+          "fsCalls": 13,
+          "comparison": "json"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 190,
+      "pid": 311,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "N20"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A21",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A21",
+        "status": "pass",
+        "evidence": {
+          "fsCalls": 7
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 195,
+      "pid": 313,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A21"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A22",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A22",
+        "status": "pass",
+        "evidence": {
+          "fsCalls": 7
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 182,
+      "pid": 317,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A22"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A23",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A23",
+        "status": "pass",
+        "evidence": {
+          "fsCalls": 21,
+          "rejected": true
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 191,
+      "pid": 324,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A23"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A24",
+      "status": "characterized-not-pass",
+      "rawPredicate": {
+        "id": "A24",
+        "status": "characterized-not-pass",
+        "evidence": {
+          "characterization": 0,
+          "stdout": "finite\n`-- child\n    `-- grandchild\n        `-- leaf-marker.txt\n\n3 directories, 1 file\n"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 193,
+      "pid": 327,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A24"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A25",
+      "status": "characterized-not-pass",
+      "rawPredicate": {
+        "id": "A25",
+        "status": "characterized-not-pass",
+        "evidence": {
+          "characterization": 1,
+          "escapedCalls": [],
+          "fsCalls": 2,
+          "boundarySafe": true
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 190,
+      "pid": 329,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A25"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A26",
+      "status": "characterized-not-pass",
+      "rawPredicate": {
+        "id": "A26",
+        "status": "characterized-not-pass",
+        "evidence": {
+          "characterization": "rejected",
+          "escapedCalls": [],
+          "fsCalls": 2,
+          "boundarySafe": true
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 190,
+      "pid": 334,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A26"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A27",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A27",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 1,
+          "acceptedBytes": 71,
+          "diagnostics": "errors  [permission denied, readdir '/errors']\n\n0 directories, 0 files\ntree: errors: permission denied, readdir '/errors'\n"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 338,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A27"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A28",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A28",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 1,
+          "acceptedBytes": 137,
+          "diagnostics": "errors\n|-- a-good\n|   `-- visible-before-error.txt\n`-- z-denied  [input/output error, readdir '/errors/z-denied']\n\n3 directories, 1 file\ntree: errors/z-denied: input/output error, readdir '/errors/z-denied'\n"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 184,
+      "pid": 341,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A28"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A29",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A29",
+        "status": "pass",
+        "evidence": {
+          "rejected": true
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 189,
+      "pid": 347,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A29"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A30",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A30",
+        "status": "pass",
+        "evidence": {
+          "rejected": true,
+          "lateUnhandled": 0
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 234,
+      "pid": 349,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A30"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A31",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A31",
+        "status": "pass",
+        "evidence": {
+          "rejected": true,
+          "lateUnhandled": 0
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 235,
+      "pid": 352,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A31"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A32",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A32",
+        "status": "pass",
+        "evidence": {
+          "active": 0,
+          "maxActive": 1,
+          "writes": 15
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 219,
+      "pid": 355,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A32"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A33",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A33",
+        "status": "pass",
+        "evidence": {
+          "acceptedBytes": 36,
+          "fsCalls": 42
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 214,
+      "pid": 358,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A33"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A34",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A34",
+        "status": "pass",
+        "evidence": {
+          "acceptedBytes": 0,
+          "fsCalls": 2
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 178,
+      "pid": 395,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A34"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A35",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A35",
+        "status": "pass",
+        "evidence": {
+          "fsCalls": 21
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 195,
+      "pid": 429,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A35"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A36",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A36",
+        "status": "pass",
+        "evidence": {
+          "fsCalls": 20
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 195,
+      "pid": 431,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A36"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A37",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A37",
+        "status": "pass",
+        "evidence": {
+          "consumerCalls": 1,
+          "names": 11,
+          "actualShellRequired": true,
+          "format": "native-json",
+          "jsonCoverage": "executed"
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 193,
+      "pid": 437,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A37"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    },
+    {
+      "id": "A38",
+      "status": "pass",
+      "rawPredicate": {
+        "id": "A38",
+        "status": "pass",
+        "evidence": {
+          "partialEffectBytes": 6
+        }
+      },
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      },
+      "elapsedMs": 191,
+      "pid": 446,
+      "productInvocations": 1,
+      "command": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--import",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+          "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+          "--execute",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+          "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+          "A38"
+        ],
+        "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+      },
+      "observationAvailable": true
+    }
+  ]
+}

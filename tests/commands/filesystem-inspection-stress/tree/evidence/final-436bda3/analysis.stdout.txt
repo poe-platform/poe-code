@@ -1,0 +1,45 @@
+{
+  "counts": {
+    "pass": 31,
+    "unsupported-not-pass": 3,
+    "fail": 1,
+    "characterized-not-pass": 3
+  },
+  "nativeCounts": {
+    "match": 12,
+    "unsupported-not-run": 3,
+    "mismatch-not-parity-pass": 5
+  },
+  "loadedSource": 31,
+  "loadedDevtools": 22,
+  "builtLoaded": 31,
+  "changedLoadedSource": [
+    {
+      "path": "src/commands/tree/tree.ts",
+      "originalSha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+      "finalSha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "originalSha256": "0b3d8ef78852d0d7623eb0286202bcfec44590906a9fa8892bc51376904bfce3",
+      "finalSha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "originalSha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+      "finalSha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "originalSha256": "6209978bbd3cbfd171eab7cd63aca95414b757ebc2151317835f8ee4166d0121",
+      "finalSha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "originalSha256": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "finalSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+    }
+  ],
+  "inputsChecked": 15617,
+  "liveOwnedPids": []
+}

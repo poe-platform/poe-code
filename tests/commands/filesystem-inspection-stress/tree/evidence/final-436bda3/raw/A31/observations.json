@@ -1,0 +1,43 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "deliberate late host rejection",
+            "stack": "Error: deliberate late host rejection\n    at adversarialCase (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:183:19)\n    at async <anonymous> (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:293:133)"
+          }
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:32.584Z",
+      "error": {
+        "name": "FsError",
+        "message": "ENOENT: no such file or directory, abort '/cancel-pending'",
+        "code": "ENOENT",
+        "path": "/cancel-pending",
+        "stack": "FsError: ENOENT: no such file or directory, abort '/cancel-pending'\n    at Module.makeFsError (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs:15:47)\n    at adversarialCase (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:177:29)\n    at async <anonymous> (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs:293:133)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": true,
+      "finishedAt": "2026-08-27T09:27:32.589Z"
+    }
+  ],
+  "shells": []
+}

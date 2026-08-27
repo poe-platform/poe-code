@@ -1,0 +1,384 @@
+{
+  "algorithm": "bounded line LCS, minimum inserted/deleted line operations; context-only unified hunks",
+  "v1Sha256": "f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691",
+  "v2Sha256": "c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c",
+  "diffSha256": "e3cddd1f60fa4ccf15d38ef59ee43237efca4d343cd1cc1ac7e03f53fb7eefe3",
+  "derivedRunnerSha256": "1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd",
+  "copiedV1TestsSha256": "56ef66028d8f108d947ad384baddb1c164788190fce09a9bee2c5b871c625220",
+  "insertedLines": 19,
+  "deletedLines": 16,
+  "operations": [
+    {
+      "oldLine": 1,
+      "newLine": 1,
+      "tag": " ",
+      "text": "import assert from 'node:assert/strict';"
+    },
+    {
+      "oldLine": 2,
+      "newLine": 2,
+      "tag": " ",
+      "text": ""
+    },
+    {
+      "oldLine": 3,
+      "newLine": 3,
+      "tag": " ",
+      "text": "const integer = '([+-]?\\\\d+)(?![\\\\w]|\\\\.\\\\d)';"
+    },
+    {
+      "oldLine": 4,
+      "newLine": 4,
+      "tag": " ",
+      "text": "const positiveInteger = (value) => Number.isSafeInteger(Number(value)) && Number(value) > 0;"
+    },
+    {
+      "oldLine": 5,
+      "newLine": 5,
+      "tag": " ",
+      "text": "const nonnegativeInteger = (value) => Number.isSafeInteger(Number(value)) && Number(value) >= 0;"
+    },
+    {
+      "oldLine": 6,
+      "newLine": 6,
+      "tag": "+",
+      "text": "const subject = '(?:tree:[ \\\\t]+)?(?:invalid[ \\\\t]+)?(-L|level|(?:maximum[ \\\\t]+)?depth)(?:,[ \\\\t]*|[ \\\\t]+)';"
+    },
+    {
+      "oldLine": 6,
+      "newLine": 7,
+      "tag": "+",
+      "text": "const profile = (constraint) => new RegExp(`^${subject}${constraint}[.]?$`, 'iu');"
+    },
+    {
+      "oldLine": 6,
+      "newLine": 8,
+      "tag": " ",
+      "text": "const rules = ["
+    },
+    {
+      "oldLine": 7,
+      "newLine": 9,
+      "tag": " ",
+      "text": "  {"
+    },
+    {
+      "oldLine": 8,
+      "newLine": 10,
+      "tag": "-",
+      "text": "    expression: /\\b(?:must|shall)\\s+be\\s+(?:a\\s+)?(?:strictly\\s+)?positive(?:\\s+integer)?\\b/giu,"
+    },
+    {
+      "oldLine": 9,
+      "newLine": 10,
+      "tag": "+",
+      "text": "    expression: profile('(?:must|shall)[ \\\\t]+be[ \\\\t]+(?:a[ \\\\t]+)?(?:strictly[ \\\\t]+)?positive(?:[ \\\\t]+integer)?'),"
+    },
+    {
+      "oldLine": 9,
+      "newLine": 11,
+      "tag": " ",
+      "text": "    valid: () => true,"
+    },
+    {
+      "oldLine": 10,
+      "newLine": 12,
+      "tag": " ",
+      "text": "  },"
+    },
+    {
+      "oldLine": 11,
+      "newLine": 13,
+      "tag": " ",
+      "text": "  {"
+    },
+    {
+      "oldLine": 12,
+      "newLine": 14,
+      "tag": "-",
+      "text": "    expression: new RegExp(`\\\\b(?:must|shall)\\\\s+be\\\\s+(?:greater\\\\s+than|above|>)\\\\s*${integer}`, 'giu'),"
+    },
+    {
+      "oldLine": 13,
+      "newLine": 14,
+      "tag": "-",
+      "text": "    valid: (match) => nonnegativeInteger(match[1]),"
+    },
+    {
+      "oldLine": 14,
+      "newLine": 14,
+      "tag": "+",
+      "text": "    expression: profile(`(?:must|shall)[ \\\\t]+be[ \\\\t]+(?:greater[ \\\\t]+than|above|>)[ \\\\t]*${integer}`),"
+    },
+    {
+      "oldLine": 14,
+      "newLine": 15,
+      "tag": "+",
+      "text": "    valid: (match) => nonnegativeInteger(match[2]),"
+    },
+    {
+      "oldLine": 14,
+      "newLine": 16,
+      "tag": " ",
+      "text": "  },"
+    },
+    {
+      "oldLine": 15,
+      "newLine": 17,
+      "tag": " ",
+      "text": "  {"
+    },
+    {
+      "oldLine": 16,
+      "newLine": 18,
+      "tag": "-",
+      "text": "    expression: new RegExp(`\\\\b(?:must|shall)\\\\s+be\\\\s+(?:at\\\\s+least|>=)\\\\s*${integer}`, 'giu'),"
+    },
+    {
+      "oldLine": 17,
+      "newLine": 18,
+      "tag": "-",
+      "text": "    valid: (match) => positiveInteger(match[1]),"
+    },
+    {
+      "oldLine": 18,
+      "newLine": 18,
+      "tag": "+",
+      "text": "    expression: profile(`(?:must|shall)[ \\\\t]+be[ \\\\t]+(?:at[ \\\\t]+least|>=)[ \\\\t]*${integer}`),"
+    },
+    {
+      "oldLine": 18,
+      "newLine": 19,
+      "tag": "+",
+      "text": "    valid: (match) => positiveInteger(match[2]),"
+    },
+    {
+      "oldLine": 18,
+      "newLine": 20,
+      "tag": " ",
+      "text": "  },"
+    },
+    {
+      "oldLine": 19,
+      "newLine": 21,
+      "tag": " ",
+      "text": "  {"
+    },
+    {
+      "oldLine": 20,
+      "newLine": 22,
+      "tag": "-",
+      "text": "    expression: new RegExp(`\\\\b(?:must|shall)\\\\s+be\\\\s+between\\\\s+${integer}\\\\s+and\\\\s+${integer}`, 'giu'),"
+    },
+    {
+      "oldLine": 21,
+      "newLine": 22,
+      "tag": "-",
+      "text": "    valid: (match) => positiveInteger(match[1]) && positiveInteger(match[2]) && Number(match[2]) >= Number(match[1]),"
+    },
+    {
+      "oldLine": 22,
+      "newLine": 22,
+      "tag": "+",
+      "text": "    expression: profile(`(?:must|shall)[ \\\\t]+be[ \\\\t]+between[ \\\\t]+${integer}[ \\\\t]+and[ \\\\t]+${integer}`),"
+    },
+    {
+      "oldLine": 22,
+      "newLine": 23,
+      "tag": "+",
+      "text": "    valid: (match) => positiveInteger(match[2]) && positiveInteger(match[3]) && Number(match[3]) >= Number(match[2]),"
+    },
+    {
+      "oldLine": 22,
+      "newLine": 24,
+      "tag": " ",
+      "text": "  },"
+    },
+    {
+      "oldLine": 23,
+      "newLine": 25,
+      "tag": " ",
+      "text": "  {"
+    },
+    {
+      "oldLine": 24,
+      "newLine": 26,
+      "tag": "-",
+      "text": "    expression: new RegExp(`\\\\b(?:valid|allowed|expected|required)\\\\s+range\\\\s*(?::|is)?\\\\s*${integer}\\\\s*(?:\\\\.\\\\.|-|to)\\\\s*${integer}`, 'giu'),"
+    },
+    {
+      "oldLine": 25,
+      "newLine": 26,
+      "tag": "-",
+      "text": "    valid: (match) => positiveInteger(match[1]) && positiveInteger(match[2]) && Number(match[2]) >= Number(match[1]),"
+    },
+    {
+      "oldLine": 26,
+      "newLine": 26,
+      "tag": "+",
+      "text": "    expression: profile(`(?:valid|allowed|expected|required)[ \\\\t]+range[ \\\\t]*(?::|is)?[ \\\\t]*${integer}[ \\\\t]*(?:\\\\.\\\\.|-|to)[ \\\\t]*${integer}`),"
+    },
+    {
+      "oldLine": 26,
+      "newLine": 27,
+      "tag": "+",
+      "text": "    valid: (match) => positiveInteger(match[2]) && positiveInteger(match[3]) && Number(match[3]) >= Number(match[2]),"
+    },
+    {
+      "oldLine": 26,
+      "newLine": 28,
+      "tag": " ",
+      "text": "  },"
+    },
+    {
+      "oldLine": 27,
+      "newLine": 29,
+      "tag": " ",
+      "text": "];"
+    },
+    {
+      "oldLine": 28,
+      "newLine": 30,
+      "tag": " ",
+      "text": ""
+    },
+    {
+      "oldLine": 29,
+      "newLine": 31,
+      "tag": " ",
+      "text": "export function assertPositiveDepthFailure({ exitCode, stdout, stderr }) {"
+    },
+    {
+      "oldLine": 30,
+      "newLine": 32,
+      "tag": " ",
+      "text": "  assert.ok(Number.isInteger(exitCode) && exitCode > 0 && exitCode <= 255, 'N18 requires a nonzero command failure status');"
+    },
+    {
+      "oldLine": 31,
+      "newLine": 33,
+      "tag": " ",
+      "text": "  assert.ok(stdout instanceof Uint8Array && stderr instanceof Uint8Array, 'N18 checks byte stdout/stderr');"
+    },
+    {
+      "oldLine": 32,
+      "newLine": 34,
+      "tag": " ",
+      "text": "  assert.equal(stdout.byteLength, 0, 'N18 usage failure must not emit normal stdout');"
+    },
+    {
+      "oldLine": 33,
+      "newLine": 35,
+      "tag": " ",
+      "text": "  assert.ok(stderr.byteLength > 0 && stderr.byteLength <= 4096, 'N18 requires a bounded nonempty error diagnostic');"
+    },
+    {
+      "oldLine": 34,
+      "newLine": 36,
+      "tag": " ",
+      "text": "  const diagnostic = new TextDecoder('utf-8', { fatal: true }).decode(stderr).trim();"
+    },
+    {
+      "oldLine": 35,
+      "newLine": 37,
+      "tag": "-",
+      "text": "  const relevant = diagnostic.split(/\\r?\\n/u).filter((line) => /(?:^|[^\\w-])-L(?=$|[^\\w-])/u.test(line) || /\\b(?:level|depth)\\b/iu.test(line));"
+    },
+    {
+      "oldLine": 36,
+      "newLine": 37,
+      "tag": "-",
+      "text": "  assert.ok(relevant.length > 0, 'N18 diagnostic must identify -L, level, or depth');"
+    },
+    {
+      "oldLine": 37,
+      "newLine": 37,
+      "tag": "-",
+      "text": "  const constraints = [];"
+    },
+    {
+      "oldLine": 38,
+      "newLine": 37,
+      "tag": "-",
+      "text": "  for (const line of relevant) {"
+    },
+    {
+      "oldLine": 39,
+      "newLine": 37,
+      "tag": "-",
+      "text": "    for (const rule of rules) for (const match of line.matchAll(rule.expression)) constraints.push(rule.valid(match));"
+    },
+    {
+      "oldLine": 40,
+      "newLine": 37,
+      "tag": "-",
+      "text": "    if (/\\b(?:zero|0)\\s+(?:is\\s+)?(?:allowed|valid|accepted)\\b|\\b(?:including|allowing)\\s+(?:zero|0)\\b|\\bpositive\\s+or\\s+(?:zero|0)\\b/iu.test(line)) constraints.push(false);"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 37,
+      "tag": "+",
+      "text": "  assert.ok(!/[\\r\\n\\u2028\\u2029]/u.test(diagnostic), 'N18 finite profile requires one complete diagnostic line');"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 38,
+      "tag": "+",
+      "text": "  for (const rule of rules) {"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 39,
+      "tag": "+",
+      "text": "    const match = diagnostic.match(rule.expression);"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 40,
+      "tag": "+",
+      "text": "    if (!match) continue;"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 41,
+      "tag": "+",
+      "text": "    assert.ok(!match[1].startsWith('-') || match[1] === '-L', 'N18 short option must be exactly -L');"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 42,
+      "tag": "+",
+      "text": "    assert.ok(rule.valid(match), 'N18 diagnostic must exclude zero with valid ordered positive bounds');"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 43,
+      "tag": "+",
+      "text": "    return;"
+    },
+    {
+      "oldLine": 41,
+      "newLine": 44,
+      "tag": " ",
+      "text": "  }"
+    },
+    {
+      "oldLine": 42,
+      "newLine": 45,
+      "tag": "-",
+      "text": "  assert.ok(constraints.length > 0 && constraints.every(Boolean), 'N18 diagnostic must require a valid positive depth bound or range, excluding zero');"
+    },
+    {
+      "oldLine": 43,
+      "newLine": 45,
+      "tag": "+",
+      "text": "  assert.fail('N18 diagnostic must wholly match a documented depth-subject constraint');"
+    },
+    {
+      "oldLine": 43,
+      "newLine": 46,
+      "tag": " ",
+      "text": "}"
+    }
+  ]
+}

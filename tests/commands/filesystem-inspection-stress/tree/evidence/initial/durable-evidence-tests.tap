@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: exactly 38 unique independently frozen intended cases, 20 native captures
+ok 1 - exactly 38 unique independently frozen intended cases, 20 native captures
+  ---
+  duration_ms: 0.291
+  type: 'test'
+  ...
+# Subtest: native bytes match every original hash and mandatory successful captures
+ok 2 - native bytes match every original hash and mandatory successful captures
+  ---
+  duration_ms: 0.472833
+  type: 'test'
+  ...
+# Subtest: native JSON round trips every control/Unicode filename without normalization
+ok 3 - native JSON round trips every control/Unicode filename without normalization
+  ---
+  duration_ms: 0.342875
+  type: 'test'
+  ...
+# Subtest: independent fixture resolves root symlinks, alias siblings and ancestors
+ok 4 - independent fixture resolves root symlinks, alias siblings and ancestors
+  ---
+  duration_ms: 1.436292
+  type: 'test'
+  ...
+# Subtest: disjoint identities and unknown identities are independent fixture facts
+ok 5 - disjoint identities and unknown identities are independent fixture facts
+  ---
+  duration_ms: 0.509083
+  type: 'test'
+  ...
+# Subtest: fixture abort signal is propagated and content/mutation tripwires fail
+ok 6 - fixture abort signal is propagated and content/mutation tripwires fail
+  ---
+  duration_ms: 0.302167
+  type: 'test'
+  ...
+# Subtest: sink harness retains bytes and exposes pending ownership/backpressure
+ok 7 - sink harness retains bytes and exposes pending ownership/backpressure
+  ---
+  duration_ms: 0.654958
+  type: 'test'
+  ...
+# Subtest: original private corpus and all 97 sealed artifacts remain byte-identical
+ok 8 - original private corpus and all 97 sealed artifacts remain byte-identical
+  ---
+  duration_ms: 17.14225
+  type: 'test'
+  ...
+# Subtest: initial 38-case source cohort retains every raw status and attempt
+ok 9 - initial 38-case source cohort retains every raw status and attempt
+  ---
+  duration_ms: 0.410833
+  type: 'test'
+  ...
+# Subtest: raw native mismatch lane is not silently replaced by semantic passes
+ok 10 - raw native mismatch lane is not silently replaced by semantic passes
+  ---
+  duration_ms: 0.069333
+  type: 'test'
+  ...
+# Subtest: pre-execution binding/profile hashes and all frozen input manifests survive
+ok 11 - pre-execution binding/profile hashes and all frozen input manifests survive
+  ---
+  duration_ms: 2.726333
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline and direct abort observations remain distinct evidence
+ok 12 - actual Shell pipeline and direct abort observations remain distinct evidence
+  ---
+  duration_ms: 0.12075
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.390125

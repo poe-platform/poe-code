@@ -1,0 +1,262 @@
+diff --git a/src/commands/tree/arguments.ts b/src/commands/tree/arguments.ts
+index 779cf85..545875a 100644
+--- a/src/commands/tree/arguments.ts
++++ b/src/commands/tree/arguments.ts
+@@ -24,6 +24,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
+   budget.check(args.length, budget.limits.maxArguments, "argument count");
+   let bytes = 0;
+   for (const arg of args) {
++    budget.check(bytes + arg.length, budget.limits.maxArgumentBytes, "argument");
+     budget.check(bytes += Buffer.byteLength(arg), budget.limits.maxArgumentBytes, "argument");
+     if (arg.includes("\0")) throw new UsageError("arguments must not contain NUL");
+     if (/[\ud800-\udfff]/u.test(arg)) throw new UsageError("arguments must be well-formed Unicode");
+@@ -70,7 +71,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
+               throw new UsageError(`-L must be between 1 and ${budget.limits.maxDepth}`);
+             }
+             result.level = level;
+-          } else (flag === "P" ? result.include : result.exclude).push(compile(argument));
++          } else (flag === "P" ? result.include : result.exclude).push(compile(argument, budget));
+           offset = arg.length; break;
+         }
+         default: throw new UsageError(`unsupported option: -${flag}`);
+diff --git a/src/commands/tree/io.ts b/src/commands/tree/io.ts
+index d1f63b6..799c1ed 100644
+--- a/src/commands/tree/io.ts
++++ b/src/commands/tree/io.ts
+@@ -10,15 +10,23 @@ export class TreeLimitError extends FsError {
+   }
+ }
+ 
+-export function message(error: unknown): string {
+-  return error instanceof Error ? error.message.replace(/^[A-Z][A-Z0-9]+: /u, "") : String(error);
++export function message(error: unknown, budget: WalkBudget): string {
++  const value: unknown = error instanceof Error ? error.message : error;
++  const text = typeof value === "string" ? value
++    : value === null || value === undefined || typeof value === "number" || typeof value === "boolean" ? String(value)
++    : "non-string filesystem error";
++  budget.text(text);
++  return error instanceof Error ? text.replace(/^[A-Z][A-Z0-9]+: /u, "") : text;
+ }
+ 
+-export function escaped(value: string): string {
++export function escaped(value: string, budget: WalkBudget): string {
++  budget.outputText(value);
+   const controls: Record<number, string> = { 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 92: "\\\\" };
+   let result = "";
+   for (const byte of new TextEncoder().encode(value)) {
+-    result += controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
++    const part = controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
++    budget.checkOutput(result.length + part.length);
++    result += part;
+   }
+   return result;
+ }
+@@ -41,11 +49,22 @@ export class WalkBudget {
+   entry(count = 1): void { this.check(this.entries += count, this.limits.maxEntries, "entry"); }
+ 
+   text(value: string): void {
++    this.check(value.length, this.limits.maxPathBytes, "path/name");
++    this.check(this.metadata + value.length, this.limits.maxMetadataBytes, "metadata");
+     const size = Buffer.byteLength(value);
+     this.check(size, this.limits.maxPathBytes, "path/name");
+     this.check(this.metadata += size, this.limits.maxMetadataBytes, "metadata");
+   }
+ 
++  checkOutput(size: number): void { this.check(this.output + size, this.limits.maxOutputBytes, "output"); }
++
++  outputText(value: string): number {
++    this.checkOutput(value.length);
++    const size = Buffer.byteLength(value);
++    this.checkOutput(size);
++    return size;
++  }
++
+   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
+     this.step();
+     const { signal } = this.context;
+@@ -67,8 +86,7 @@ export class WalkBudget {
+   }
+ 
+   async emit(sink: ByteSink, value: string): Promise<void> {
+-    const size = Buffer.byteLength(value);
+-    this.check(this.output + size, this.limits.maxOutputBytes, "output");
++    const size = this.outputText(value);
+     this.output += size;
+     const bytes = new TextEncoder().encode(value);
+     for (let offset = 0; offset < bytes.length; offset += 16384) {
+diff --git a/src/commands/tree/pattern.ts b/src/commands/tree/pattern.ts
+index 9969e53..1085600 100644
+--- a/src/commands/tree/pattern.ts
++++ b/src/commands/tree/pattern.ts
+@@ -3,12 +3,15 @@ import { UsageError, type WalkBudget } from "./io.js";
+ type Token = number | "*" | "?" | { readonly negate: boolean; readonly ranges: readonly (readonly [number, number])[] };
+ export type Pattern = readonly (readonly Token[])[];
+ 
+-export function compile(pattern: string): Pattern {
++export function compile(pattern: string, budget: WalkBudget): Pattern {
++  budget.step(pattern.length + 1);
+   if (pattern.includes("/") || pattern.includes("**")) throw new UsageError("path patterns and ** are not supported; use basename patterns");
++  budget.step(Buffer.byteLength(pattern) + 1);
+   const bytes = new TextEncoder().encode(pattern);
+   const alternatives: Token[][] = [[]];
+   let tokens = alternatives[0]!;
+   for (let index = 0; index < bytes.length; index++) {
++    budget.step();
+     const byte = bytes[index]!;
+     if (byte === 124) { tokens = []; alternatives.push(tokens); }
+     else if (byte === 42) tokens.push("*");
+@@ -22,6 +25,7 @@ export function compile(pattern: string): Pattern {
+       if (negate) index++;
+       const ranges: [number, number][] = [];
+       while (index < bytes.length && (bytes[index] !== 93 || ranges.length === 0)) {
++        budget.step();
+         const start = bytes[index++]!;
+         let end = start;
+         if (bytes[index] === 45 && bytes[index + 1] !== 93 && index + 1 < bytes.length) {
+@@ -39,10 +43,16 @@ export function compile(pattern: string): Pattern {
+ 
+ export function matches(pattern: Pattern, name: Uint8Array, budget: WalkBudget): boolean {
+   for (const tokens of pattern) {
++    budget.step();
++    if (!tokens.length) {
++      if (!name.length) return true;
++      continue;
++    }
++    budget.step(name.length + 1);
+     let previous = new Uint8Array(name.length + 1);
+     previous[0] = 1;
+     for (const token of tokens) {
+-      budget.step(name.length + 1);
++      budget.step(2 * (name.length + 1));
+       const next = new Uint8Array(name.length + 1);
+       if (token === "*") next[0] = previous[0]!;
+       for (let index = 1; index <= name.length; index++) {
+diff --git a/src/commands/tree/tree.ts b/src/commands/tree/tree.ts
+index 7450265..70948ef 100644
+--- a/src/commands/tree/tree.ts
++++ b/src/commands/tree/tree.ts
+@@ -18,7 +18,28 @@ interface Entry {
+ 
+ function directory(entry: Entry): boolean { return (entry.followed ?? entry.stat)?.type === "directory"; }
+ 
+-function serialized(value: unknown): string {
++function serialized(value: Readonly<Record<string, string | number>>, budget: WalkBudget): string {
++  let size = 2;
++  const add = (count: number): void => { budget.checkOutput(size += count); };
++  const string = (text: string): void => {
++    budget.outputText(text);
++    add(2);
++    for (const character of text) {
++      const point = character.codePointAt(0)!;
++      if (point === 34 || point === 92 || point === 8 || point === 9 || point === 10 || point === 12 || point === 13) add(2);
++      else if (point < 32 || (point >= 0xd800 && point <= 0xdfff) || /[\u007f-\u009f\u2028\u2029\p{Cf}]/u.test(character)) add(6 * character.length);
++      else add(point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4);
++    }
++  };
++  let first = true;
++  for (const [key, field] of Object.entries(value)) {
++    if (!first) add(1);
++    first = false;
++    string(key); add(1);
++    if (typeof field === "string") string(field);
++    else if (typeof field === "number") add(String(field).length);
++    else throw new TypeError("tree JSON fields must be strings or numbers");
++  }
+   return JSON.stringify(value).replace(/[\u007f-\u009f\u2028\u2029\p{Cf}]/gu,
+     character => character.split("").map(unit => `\\u${unit.charCodeAt(0).toString(16).padStart(4, "0")}`).join(""));
+ }
+@@ -49,7 +70,7 @@ class Walker {
+     } catch (error) {
+       context.signal.throwIfAborted();
+       if (error instanceof TreeLimitError) throw error;
+-      entry.error = message(error);
++      entry.error = message(error, this.budget);
+     }
+     if (entry.target !== undefined) this.budget.text(entry.target);
+     return entry;
+@@ -71,7 +92,7 @@ class Walker {
+     } catch (error) {
+       context.signal.throwIfAborted();
+       if (error instanceof TreeLimitError) throw error;
+-      entry.error = message(error); return [];
++      entry.error = message(error, this.budget); return [];
+     }
+     this.budget.check(listing.length, limits.maxDirectoryEntries, "directory entry");
+     this.budget.entry(listing.length);
+@@ -91,7 +112,7 @@ class Walker {
+       candidates.push({ name: item.name, bytes });
+     }
+     candidates.sort((left, right) => {
+-      this.budget.step();
++      this.budget.step(1 + left.bytes.length + right.bytes.length);
+       return Buffer.compare(left.bytes, right.bytes) * (this.args.reverse ? -1 : 1);
+     });
+     const children: Entry[] = [];
+@@ -104,7 +125,10 @@ class Walker {
+       }
+       children.push(child);
+     }
+-    if (this.args.dirsFirst) children.sort((left, right) => Number(directory(right)) - Number(directory(left)));
++    if (this.args.dirsFirst) children.sort((left, right) => {
++      this.budget.step();
++      return Number(directory(right)) - Number(directory(left));
++    });
+     return children;
+   }
+ 
+@@ -115,14 +139,14 @@ class Walker {
+     if (entry.error) {
+       this.budget.text(entry.error);
+       this.failed = true;
+-      await this.budget.emit(this.budget.context.stderr, `tree: ${escaped(entry.display)}: ${escaped(entry.error)}\n`);
++      await this.budget.emit(this.budget.context.stderr, `tree: ${escaped(entry.display, this.budget)}: ${escaped(entry.error, this.budget)}\n`);
+     }
+     const name = depth === 0 || this.args.full ? entry.display : entry.name;
+     const annotation = entry.error ?? (entry.cycle ? "recursive, not followed" : undefined);
+     if (this.args.json) {
+       const fields = { type: entry.stat?.type === "symlink" ? "link" : entry.stat?.type ?? "unknown", name,
+         ...(entry.target === undefined ? {} : { target: entry.target }), ...(annotation === undefined ? {} : { error: annotation }) };
+-      await this.write(`${this.padding(depth + 1)}${serialized(fields).slice(0, -1)}`);
++      await this.write(`${this.padding(depth + 1)}${serialized(fields, this.budget).slice(0, -1)}`);
+       if (children.length) {
+         await this.write(`,"contents":[${this.newline()}`);
+         for (let index = 0; index < children.length; index++) {
+@@ -135,7 +159,7 @@ class Walker {
+     } else {
+       const utf8 = this.args.charset === "UTF-8";
+       const branch = this.args.indent && depth > 0 ? prefix + (last ? (utf8 ? "└── " : "`-- ") : (utf8 ? "├── " : "|-- ")) : "";
+-      await this.write(`${branch}${escaped(name)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target)}`}${annotation === undefined ? "" : `  [${escaped(annotation)}]`}\n`);
++      await this.write(`${branch}${escaped(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target, this.budget)}`}${annotation === undefined ? "" : `  [${escaped(annotation, this.budget)}]`}\n`);
+       const childPrefix = depth === 0 ? "" : prefix + (last ? "    " : utf8 ? "│   " : "|   ");
+       for (let index = 0; index < children.length; index++) {
+         await this.visit(children[index]!, [...ancestors, entry], childPrefix, index === children.length - 1, depth + 1);
+@@ -148,9 +172,11 @@ class Walker {
+   private write(value: string): Promise<void> { return this.budget.emit(this.budget.context.stdout, value); }
+ 
+   async run(): Promise<number> {
++    this.budget.text(this.budget.context.cwd);
+     if (this.args.json) await this.write(`[${this.newline()}`);
+     for (let index = 0; index < this.args.operands.length; index++) {
+       const operand = this.args.operands[index]!;
++      this.budget.text(operand);
+       this.budget.entry();
+       if (this.args.json && index) await this.write(`,${this.newline()}`);
+       const entry = await this.inspect(resolvePath(this.budget.context.cwd, operand), operand, operand);
+@@ -159,7 +185,7 @@ class Walker {
+     if (this.args.report) {
+       if (this.args.json) {
+         await this.write(`,${this.newline()}${this.padding(1)}${serialized({ type: "report", directories: this.directories,
+-          ...(this.args.directories ? {} : { files: this.files }) })}`);
++          ...(this.args.directories ? {} : { files: this.files }) }, this.budget)}`);
+       } else await this.write(`\n${this.directories} ${this.directories === 1 ? "directory" : "directories"}${this.args.directories ? "" : `, ${this.files} ${this.files === 1 ? "file" : "files"}`}\n`);
+     }
+     if (this.args.json) await this.write(`${this.newline()}]\n`);
+@@ -176,7 +202,7 @@ export function createTreeCommand(options: TreeCommandsOptions = {}): CommandDef
+     catch (error) {
+       context.signal.throwIfAborted();
+       if (!(error instanceof UsageError)) throw error;
+-      await budget.emit(context.stderr, `tree: ${escaped(error.message)}\n`);
++      await budget.emit(context.stderr, `tree: ${escaped(error.message, budget)}\n`);
+       return { exitCode: 2 };
+     }
+     if (args.help || args.version) {

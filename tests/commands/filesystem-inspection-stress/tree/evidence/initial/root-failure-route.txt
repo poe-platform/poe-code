@@ -1,0 +1,46 @@
+TREE INDEPENDENT INITIAL FAILURE ROUTE — ROOT ONLY
+
+Candidate e2d1b9230f4304650651572395523ca9d1644e74, standalone direct module.
+Original preseal b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937 remains unchanged.
+Source manifest 81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a.
+38 intended cases once: 30 raw sealed passes, 2 raw sealed failures,
+3 unsupported-not-pass, 3 characterizations-not-pass. 35 actual tree invocations.
+No source/import errors, timeouts, cancellations, missing/incomplete cases.
+No demonstrated product implementation bug or outside-core failure in this cohort.
+Do NOT route a source fix merely to make these two sealed predicates green.
+
+N16: RAW EXACT FAILURE / PREDECLARED PROFILE CONFLICT
+Exact fixture: rootlink -> links/target; links/target/leaf.txt contains 'leaf'.
+Exact argv: ["-n","--charset=ASCII","rootlink"]; cwd '/', env C/ASCII profile.
+Native status 0, stdout "rootlink\n`-- leaf.txt\n\n1 directory, 1 file\n", stderr "".
+Product status 0, stdout "rootlink -> links/target\n\n0 directories, 0 files\n", stderr "".
+Candidate README explicitly declines to follow root symlinks without -l.
+The native expectation remains unchanged and this remains NOT a parity pass.
+Root decision: acknowledge chosen profile or request a separate profile change;
+this is not an unannounced implementation regression against candidate docs.
+
+N18: RAW SEMANTIC-PREDICATE FAILURE / OVERNARROW SEALED DIAGNOSTIC REGEX
+Exact argv: ["-n","--charset=ASCII","-L","0","basic"]; fixture contents are irrelevant.
+Native status 1, stderr "tree: Invalid level, must be greater than 0.\n".
+Product status 2, stdout "", stderr "tree: -L must be between 1 and 256\n".
+Sealed regex /level|depth|invalid|positive|greater/iu excludes a meaningful
+'-L must be between 1 and 256' diagnostic. Product rejects zero before VFS work,
+matching its documented positive-depth and status2 usage policy. No assertion
+was edited or rerun. Original raw failure remains; any future harness correction
+must retain it and be separately justified, not a blanket diagnostic relaxation.
+
+Additional raw-native differences (not hidden by semantic passes): N14 sibling
+alias traversal, N17 file/missing-root behavior, and N20 JSON formatting.
+Full raw exact lane counts: {"match":12,"unsupported-not-run":3,"mismatch-not-parity-pass":5} across 20 native cases.
+N14 ancestor-only behavior is OUR chosen bounded profile, not a literal user
+instruction. The original prep attribution was mistaken and is superseded by
+the pre-execution profile correction, with original sealed text retained.
+
+Reproduction commands (NOT rerun during initial cohort):
+TREE_HOLDOUT_ROOT_RESUMED=AUTHOR_FINISHED TREE_CANDIDATE_DIR=/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate \
+node --import /private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs \
+/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs --execute /private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs /private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json N16
+Use the same command with N18 for the other raw failure. Node -L0 reproduction
+uses the actual tree definition; no mock command/parser or modified predicates.
+Raw bytes/predicate stacks: /private/tmp/safe-bash-tree-initial-run-NN3E3X/raw/N16 and raw/N18.
+Authors remain frozen. Root owns any subsequent handoff. No source fixes made.

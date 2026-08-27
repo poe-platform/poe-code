@@ -1,0 +1,37 @@
+{
+  "declaredBeforeInvocationAt": "2026-08-27T08:47:09.410Z",
+  "candidate": "e2d1b9230f4304650651572395523ca9d1644e74",
+  "frozenSourceManifestSha256": "81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a",
+  "originalPresealPayload": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "files": {
+    "original-run.mjs": "3068e51fece206bdcab38a53f5fb47b61cdfc5a71f35900f7241bf9f291fc03d",
+    "derived/run.mjs": "1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd",
+    "derived/corpus.mjs": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+    "derived/fixture-fs.mjs": "8ec8e60ec507f238986bffc0ba745b93d1701aafcc9ce75bad6a2d607df6b9f6",
+    "derived/native.json": "5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897",
+    "n18-predicate.mjs": "f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691",
+    "predicate.test.mjs": "56ef66028d8f108d947ad384baddb1c164788190fce09a9bee2c5b871c625220",
+    "selfchecks.tap": "a2723a37acbb41ca2aa7045d8e2097ff98a97e5b0768badf5ec4265dd466fc8d",
+    "bridge.mjs": "ce1285c9cbdbe59ad59b5df4c7f87d30b6865a63be4fe2debd4bbb448d937dbf",
+    "profile.json": "05938a4bea719be94fc05867b56a1c91cd01fc53eb9cdc3dd483dde28d59a0af",
+    "runner.diff": "ae06e77c89c0d0e8bf5b31d2e1c8ffd4ed5510aa6803729bd55853fe1fb1542e"
+  },
+  "authorization": "Root authorizes only additive N18 semantic-predicate correction plus EXACTLY ONE corrected N18 invocation and bounded nonproduct checks; no other 37 cases/native calls/source fixes.",
+  "contract": "Require a valid nonzero command status, empty normal stdout and bounded meaningful stderr. Identify case-sensitive -L or case-insensitive level/depth and a positive constraint: must/shall be positive; greater than a nonnegative integer; at least a positive integer; ordered inclusive bounds whose endpoints are positive; or an explicit valid/allowed/expected/required positive range. Reject zero-inclusive, reversed, fractional, unsafe and contradictory recognized bounds.",
+  "preservation": "Original shared nonzero and nonempty diagnostic checks remain byte-identical. The N18 helper explicitly checks empty stdout, retaining the original/native error-output expectation. No other predicate or corpus/native bytes change.",
+  "justification": "Candidate README predeclares positive -L depth and status2 usage errors; the original native fixture also specifies a positive bound. The original word-list regex rejects a meaningful range diagnostic. This corrects that harness defect without requiring one complete diagnostic string or accepting any nonempty error.",
+  "limits": "Deliberately bounded English diagnostic forms, not a universal parser for every language or wording. No native-exact status/diagnostic normalization. Original status1 versus candidate usage2 remains a native mismatch.",
+  "originalResultStatus": "fail, retained byte-exact",
+  "expectedFreshInvocations": 1,
+  "reusedOtherSelections": 37,
+  "selfchecks": {
+    "total": 31,
+    "positiveExamples": 8,
+    "rejectionCounterchecks": 22,
+    "exactDerivation": 1,
+    "passed": 31,
+    "failed": 0,
+    "productCalls": 0,
+    "nativeCalls": 0
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "nativeMetadata": {
+    "version": "tree v2.2.1 (c) 1996 - 2024 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro",
+    "binarySha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "platform": "darwin arm64 25.4.0",
+    "locale": "LC_ALL=C",
+    "charset": "ASCII (unless explicit UTF-8)",
+    "source": "https://gitlab.com/OldManProgrammer/unix-tree/-/archive/2.2.1/unix-tree-2.2.1.tar.bz2",
+    "archiveSha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+    "build": "make CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree; Apple clang 21.0.0; no source modifications",
+    "captured": "2026-08-27T08:06:20.133Z"
+  },
+  "independentChecks": {
+    "archiveHash": "matches",
+    "binaryHash": "matches",
+    "sealedCopyHashes": "matches",
+    "archiveSourceVersusBuildTree": [
+      {
+        "path": "Makefile",
+        "archiveAndBuildTreeSha256": "128e8ab59c6d0d6b6051a3f8108e41f53173532c38c0f195d5dda3eb7faeb37b"
+      },
+      {
+        "path": "color.c",
+        "archiveAndBuildTreeSha256": "0b92328df20aeb8fc6988cba7f78b1ceea8832958b032b2a1434b19a2155eb22"
+      },
+      {
+        "path": "doc/tree.1",
+        "archiveAndBuildTreeSha256": "0900385101aa663c970b3e558ed3eec8b4fc96e175b70bedefcf32cf4f8bc3dd"
+      },
+      {
+        "path": "file.c",
+        "archiveAndBuildTreeSha256": "85d040d4e306efadd88c8acc2e192651adaa05c1cface98e69ec111c38327e5d"
+      },
+      {
+        "path": "filter.c",
+        "archiveAndBuildTreeSha256": "9843946752aeb63f25d7dc55b1cb53f82d005eddbfe649c7824d0ff9798aa497"
+      },
+      {
+        "path": "hash.c",
+        "archiveAndBuildTreeSha256": "19da2128444393e79d889f9885a290bc70cf470f14361a91cbeeef29d952773c"
+      },
+      {
+        "path": "html.c",
+        "archiveAndBuildTreeSha256": "b813efb8bcf45d6bcc35c9cdacb00d72d6b8bd52f63d02669a0349059e807696"
+      },
+      {
+        "path": "info.c",
+        "archiveAndBuildTreeSha256": "59d056c124711893f6484113b69b1d81a2b7a83ad52f3ac83fd672744e0c47b0"
+      },
+      {
+        "path": "json.c",
+        "archiveAndBuildTreeSha256": "cc2e11786febab38e36b7ea5c2281525dd74568cc052c86d576926f92032b2ad"
+      },
+      {
+        "path": "list.c",
+        "archiveAndBuildTreeSha256": "9b82dd7ea3b4e2e4fb1e36276fcb0cacbd90b8202be883286dda69b27ec5c15a"
+      },
+      {
+        "path": "strverscmp.c",
+        "archiveAndBuildTreeSha256": "4f85e943f83b0edf4737a239a8dcdcefb81db6a285a5a4a43af8bdfd17def538"
+      },
+      {
+        "path": "tree.c",
+        "archiveAndBuildTreeSha256": "a471fe4fe3694ee65e74d3b58b19edfb1ce61ab12bdfd2f416d17e8b4326e92f"
+      },
+      {
+        "path": "tree.h",
+        "archiveAndBuildTreeSha256": "b6f5b56ea123a6d5cb81cafe2daed4292f4c5a6b9231bec50ecae78ab9d99c85"
+      },
+      {
+        "path": "unix.c",
+        "archiveAndBuildTreeSha256": "45902771e238a5be1eff9560589b062d19dce6be6ce4a86ea1303286443d9dc9"
+      },
+      {
+        "path": "xml.c",
+        "archiveAndBuildTreeSha256": "3ed02cf08e4adba5c32a944021b7c8a5cdaf13ab3d04ce1186d19441cdd4133a"
+      }
+    ],
+    "recordedBuildCommandCompilerWarningExit": "corroborated in original author execution log"
+  },
+  "buildLogWholeSha256": "35edbcf8f7349d5b3a9170efe58cec8b21b5f7c49789f42176716ccd839f4961",
+  "buildExcerptSha256": "e3e21ff2b963c40c839bce7c8e80a68f12e4e0f6f0411723a743e04a899028c9",
+  "provenanceConclusion": "Recorded official archive URL, binary/archive hashes, exact build command, Apple clang21 metadata and successful original build corroborated; relevant build sources equal archive. Not a fresh reproducible rebuild or independent network attestation.",
+  "nativeExecutionsThisResume": 0,
+  "newNativeCaptures": 0,
+  "installedDependencyVersionsMatchCandidateLock": [
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "lockKey": "node_modules/tsx"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "lockKey": "node_modules/typescript"
+    },
+    {
+      "name": "undici-types",
+      "version": "6.21.0",
+      "lockKey": "node_modules/undici-types"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "lockKey": "node_modules/esbuild"
+    },
+    {
+      "name": "fsevents",
+      "version": "2.3.3",
+      "lockKey": "node_modules/fsevents"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "lockKey": "node_modules/@types/node"
+    },
+    {
+      "name": "@esbuild/darwin-arm64",
+      "version": "0.28.2",
+      "lockKey": "node_modules/@esbuild/darwin-arm64"
+    }
+  ],
+  "preExecutionBridgeSha256": "ce1285c9cbdbe59ad59b5df4c7f87d30b6865a63be4fe2debd4bbb448d937dbf",
+  "preExecutionProfileSha256": "05938a4bea719be94fc05867b56a1c91cd01fc53eb9cdc3dd483dde28d59a0af",
+  "preExecutionRunnerSha256": "ef12b00364ee51d3b5c2063690f431b0b2da57d26ac265a339c19354e66003d5",
+  "scope": "Standalone direct source module; no public/default integration"
+}

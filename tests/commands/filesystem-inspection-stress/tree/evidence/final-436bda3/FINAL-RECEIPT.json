@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "at": "2026-08-27T09:36:29.238Z",
+  "phase": "STOP_FOR_ROOT_SEAL_NO_COMMIT",
+  "candidate": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "primaryArtifacts": 358,
+  "offlineChecks": {
+    "pass": 6,
+    "fail": 0,
+    "skip": 0,
+    "cancel": 0
+  },
+  "newProductCallsAfterCohortAndSmoke": 0,
+  "liveOwnedChildGroups": [],
+  "payloadSha256": "cadf112934396ef8b79c1ae530ea7c6b5cb0acb41aeb3d522714c433c86c416f",
+  "files": [
+    {
+      "path": "FINAL-MANIFEST.json",
+      "bytes": 67315,
+      "sha256": "f5d0e4c69a0c7d797e77b0af89a6cc471ce4f39496a747a56d0d682597839d7b"
+    },
+    {
+      "path": "final-replay-detail.txt",
+      "bytes": 8928,
+      "sha256": "6505e2ee7645b2f190f2716b8958980a46a75b8bca9c3ad25a88c9efdd5bdbbd"
+    },
+    {
+      "path": "durable-checks.tap",
+      "bytes": 1373,
+      "sha256": "b171fd3928c6822c797bb7017a70d741c715cc5436e3e0505aa1172a6a6f102d"
+    },
+    {
+      "path": "durable-checks.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "publication.json",
+      "bytes": 344,
+      "sha256": "845cd6360a0f5e8aa29a4689d2269a55167f2ecfd9629db3eaf2b7721474f076"
+    },
+    {
+      "path": "finalize-report.mjs",
+      "bytes": 11461,
+      "sha256": "aa063cdfa5d2c044ecdf63310f75bffceb28c805b413e0346dd397d859cff761"
+    }
+  ]
+}

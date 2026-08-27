@@ -1,0 +1,627 @@
+[
+  {
+    "path": "build/commands/copy-identity.d.ts",
+    "bytes": 485,
+    "sha256": "bf4bd25f33a53f6be09cbd5d197e23128f9138e88120ac010b5d0150a802d486"
+  },
+  {
+    "path": "build/commands/copy-identity.d.ts.map",
+    "bytes": 544,
+    "sha256": "458f7594f13c75ad91cec15f2afba75282fe450d497edef14f8f4137ae69d33f"
+  },
+  {
+    "path": "build/commands/copy-identity.js",
+    "bytes": 2048,
+    "sha256": "c0ec43f7af13501e5bd83895b0f09799c0eaebb2d757e99aaae2593b1c1f2baa"
+  },
+  {
+    "path": "build/commands/copy-identity.js.map",
+    "bytes": 2334,
+    "sha256": "9b67190692f342f167daecdefd3c4a47d498669f6c999a2c8c4d0b199fb0cbe3"
+  },
+  {
+    "path": "build/commands/tree/arguments.d.ts",
+    "bytes": 1306,
+    "sha256": "3729070c16c5757f7bbbe9af28ae0bddf87354ec6977c52de73365e80315c3e2"
+  },
+  {
+    "path": "build/commands/tree/arguments.d.ts.map",
+    "bytes": 823,
+    "sha256": "3b9fc6edb2c8894515a153d8d1a434351fbac276b476d528b110aae920f82784"
+  },
+  {
+    "path": "build/commands/tree/arguments.js",
+    "bytes": 5135,
+    "sha256": "526107672dd067781b2ba5db68b0bbb88d84a4b23b4a73e471d25cd88dad62cb"
+  },
+  {
+    "path": "build/commands/tree/arguments.js.map",
+    "bytes": 4503,
+    "sha256": "323f4589b12d71c216708ae4a3a2f407e2fa3288f8376e890e299c77dda1e660"
+  },
+  {
+    "path": "build/commands/tree/index.d.ts",
+    "bytes": 489,
+    "sha256": "29cef61ca31995ef8c2c0ccbcaf8f2149902bf4000ae44d09a4cae856518119a"
+  },
+  {
+    "path": "build/commands/tree/index.d.ts.map",
+    "bytes": 465,
+    "sha256": "01bb2b1c95a99ee8fdbec746969bd7d0942195c244b341a235fbc208ee5b6979"
+  },
+  {
+    "path": "build/commands/tree/index.js",
+    "bytes": 772,
+    "sha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+  },
+  {
+    "path": "build/commands/tree/index.js.map",
+    "bytes": 831,
+    "sha256": "9ba9635e34513c1bd698a58e7264386a6032590033d136a4f59c7e0fab9c50bb"
+  },
+  {
+    "path": "build/commands/tree/io.d.ts",
+    "bytes": 1110,
+    "sha256": "38747476b7b3aa1d13b3eb3deb5f9accf384be74e0e5df95848648713e277b6c"
+  },
+  {
+    "path": "build/commands/tree/io.d.ts.map",
+    "bytes": 1190,
+    "sha256": "fc6b22fcbb868d31f183d9eca1b08d51144e6fadf98031c749e47e9bd9718acd"
+  },
+  {
+    "path": "build/commands/tree/io.js",
+    "bytes": 3733,
+    "sha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6"
+  },
+  {
+    "path": "build/commands/tree/io.js.map",
+    "bytes": 4536,
+    "sha256": "aaf266d1d359e76fdcf849214bc4a8e3fc491930589970be927c90fe2709871b"
+  },
+  {
+    "path": "build/commands/tree/options.d.ts",
+    "bytes": 583,
+    "sha256": "6cd4145544773cdd7592ea71096064af1a6d18999eeee647332d6f0b34a6469c"
+  },
+  {
+    "path": "build/commands/tree/options.d.ts.map",
+    "bytes": 673,
+    "sha256": "9062df681cef1bc00bb58877155c2451884b9cf56016fef3dd435d0e3afe2038"
+  },
+  {
+    "path": "build/commands/tree/options.js",
+    "bytes": 595,
+    "sha256": "dc7dbff032d304834411dc70bf7d13f141338cdb4e85073653ce9b5a40ba098f"
+  },
+  {
+    "path": "build/commands/tree/options.js.map",
+    "bytes": 744,
+    "sha256": "e8fd27a98b058964e703498e1e36105f1fef8dc8be5135ef62faaf4e47693d93"
+  },
+  {
+    "path": "build/commands/tree/pattern.d.ts",
+    "bytes": 451,
+    "sha256": "3f9f095bf9963c3493e155b8231240ac6e8869e892e3a6f81c7f8c42296dbe18"
+  },
+  {
+    "path": "build/commands/tree/pattern.d.ts.map",
+    "bytes": 593,
+    "sha256": "fd1fc763593b1d577fd53ae21b49d63b1ad62e09281315b17c2e2d5cc94c7965"
+  },
+  {
+    "path": "build/commands/tree/pattern.js",
+    "bytes": 3433,
+    "sha256": "7256665cd6402c15a4c7d95d088fd10647a5b7a3b72a8e3683e169aad4007361"
+  },
+  {
+    "path": "build/commands/tree/pattern.js.map",
+    "bytes": 3885,
+    "sha256": "c6ebf0c95499bf19647c9d2a28bee56d0732d63740c3d3603b4b77bd0bcfb2cc"
+  },
+  {
+    "path": "build/commands/tree/tree.d.ts",
+    "bytes": 251,
+    "sha256": "ed2a37862328c39bccba7f5d21e020e802889358761df4f4052e5f90ea340524"
+  },
+  {
+    "path": "build/commands/tree/tree.d.ts.map",
+    "bytes": 292,
+    "sha256": "98bd1521f271020357fb593e4e9a8a0d7620c0a072e96fad3559d8b7b28a4139"
+  },
+  {
+    "path": "build/commands/tree/tree.js",
+    "bytes": 11619,
+    "sha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89"
+  },
+  {
+    "path": "build/commands/tree/tree.js.map",
+    "bytes": 14297,
+    "sha256": "3640b514d7c795547b02baad99143374e020fefd93cf63322b6aa2ef7599709f"
+  },
+  {
+    "path": "build/contracts/command.d.ts",
+    "bytes": 1977,
+    "sha256": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f"
+  },
+  {
+    "path": "build/contracts/command.d.ts.map",
+    "bytes": 2094,
+    "sha256": "66702a1723df61c84128ea0d6d578fa3c5b3c6f29a1b13a4f47a2c7c76aeccef"
+  },
+  {
+    "path": "build/contracts/command.js",
+    "bytes": 1353,
+    "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+  },
+  {
+    "path": "build/contracts/command.js.map",
+    "bytes": 1486,
+    "sha256": "3b55aed819561e9e550cf2aa506fa2edf3766a123bef24536d6f5eb49ee55865"
+  },
+  {
+    "path": "build/contracts/errors.d.ts",
+    "bytes": 2102,
+    "sha256": "b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9"
+  },
+  {
+    "path": "build/contracts/errors.d.ts.map",
+    "bytes": 927,
+    "sha256": "f00852c549d6e087ea5d150f4a926e3e96b20564d0075ed9bdc0fa548d43f8f7"
+  },
+  {
+    "path": "build/contracts/errors.js",
+    "bytes": 3225,
+    "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+  },
+  {
+    "path": "build/contracts/errors.js.map",
+    "bytes": 3343,
+    "sha256": "7ba3cb8ad9b851f57e08371e2a6d25e26fa5bb782ba0a54e4457c0ee9ba567d1"
+  },
+  {
+    "path": "build/contracts/filesystem.d.ts",
+    "bytes": 4022,
+    "sha256": "d021ebe6f7f5bb11801ee255c80a822b6b1c80065e13489b7383fedc6450867d"
+  },
+  {
+    "path": "build/contracts/filesystem.d.ts.map",
+    "bytes": 4692,
+    "sha256": "7e100410f58f1e3500c35e6bf4354e1f139665371b696465927e19033ae438d1"
+  },
+  {
+    "path": "build/contracts/filesystem.js",
+    "bytes": 121,
+    "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+  },
+  {
+    "path": "build/contracts/filesystem.js.map",
+    "bytes": 280,
+    "sha256": "3c6cca9e4bc91886ed8e5282eb72f74357624ed9e63d76aef1845041f974ee52"
+  },
+  {
+    "path": "build/contracts/index.d.ts",
+    "bytes": 208,
+    "sha256": "bfaa9d5faf0382dcae880d38e6dc8273b54da723573ad0a8268fa620885599b9"
+  },
+  {
+    "path": "build/contracts/index.d.ts.map",
+    "bytes": 253,
+    "sha256": "215d8e9362bdd2cd9ec774d2506c631b5d33684f34a84f37644b1e5be0bd570c"
+  },
+  {
+    "path": "build/contracts/index.js",
+    "bytes": 206,
+    "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+  },
+  {
+    "path": "build/contracts/index.js.map",
+    "bytes": 251,
+    "sha256": "88089c7d6c37641f210969fbeeda28c4cb695dfdcd81fb1d53909730fe8a2573"
+  },
+  {
+    "path": "build/contracts/io.d.ts",
+    "bytes": 1299,
+    "sha256": "462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162"
+  },
+  {
+    "path": "build/contracts/io.d.ts.map",
+    "bytes": 1378,
+    "sha256": "ea423829f4394fe1c0c2ea0513802cf65c01692b09e3ed9bc74164baedbd008d"
+  },
+  {
+    "path": "build/contracts/io.js",
+    "bytes": 7365,
+    "sha256": "866af6e5a93e9779453d3cc08507a96a94a3f7e82b201048e7ae5fc6203c2c3f"
+  },
+  {
+    "path": "build/contracts/io.js.map",
+    "bytes": 7656,
+    "sha256": "87e0d21bce1caeb87051ce000ed11b9cf2e640f5f77195aed4f921111afc24bc"
+  },
+  {
+    "path": "build/contracts/path.d.ts",
+    "bytes": 844,
+    "sha256": "1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f"
+  },
+  {
+    "path": "build/contracts/path.d.ts.map",
+    "bytes": 745,
+    "sha256": "2d23f5d69b75430819ab57cdca89a9c07221385715d597b3f74f7b65fd4f3ed7"
+  },
+  {
+    "path": "build/contracts/path.js",
+    "bytes": 1631,
+    "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+  },
+  {
+    "path": "build/contracts/path.js.map",
+    "bytes": 1882,
+    "sha256": "e980954396867e9cf1a73e11ab3efa7155ee752dfdf7a9a68d22781f83d8ef9b"
+  },
+  {
+    "path": "build/contracts/plugin.d.ts",
+    "bytes": 836,
+    "sha256": "23c31a917e681f99d0ff846c8e03e591cb0e19a5359ec79ffa570ca3a83680a0"
+  },
+  {
+    "path": "build/contracts/plugin.d.ts.map",
+    "bytes": 890,
+    "sha256": "34f5cdc28e23ab2cb0ee4a5be19538d76fa39502c0b6af8bd2b4b81cfa801129"
+  },
+  {
+    "path": "build/contracts/plugin.js",
+    "bytes": 1878,
+    "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+  },
+  {
+    "path": "build/contracts/plugin.js.map",
+    "bytes": 1761,
+    "sha256": "eebcec4a5bd4600ebeba28989ca6be8bbad24d05c4148f6124880106613bff9d"
+  },
+  {
+    "path": "build/fs/memory/index.d.ts",
+    "bytes": 2921,
+    "sha256": "b0a3f7beb8ec86e489b05331bb481d543d38b6a127c6d68b2c0aec8f89c0581b"
+  },
+  {
+    "path": "build/fs/memory/index.d.ts.map",
+    "bytes": 2849,
+    "sha256": "c007f6bd58707e39c63012662c46ca28cf6c103a91c43a4da2f687cb235efa91"
+  },
+  {
+    "path": "build/fs/memory/index.js",
+    "bytes": 23141,
+    "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+  },
+  {
+    "path": "build/fs/memory/index.js.map",
+    "bytes": 27030,
+    "sha256": "da2a72c95dd61b1b91449c9adaf935b3d251ddebf36dc0556d67154092666777"
+  },
+  {
+    "path": "build/fs/mount/comparison.d.ts",
+    "bytes": 1242,
+    "sha256": "baa2c6bcdb575ee54a0e892e3e39259d85a75dbfe8ba8c6ffeb449f2a72985f1"
+  },
+  {
+    "path": "build/fs/mount/comparison.d.ts.map",
+    "bytes": 1242,
+    "sha256": "ada6faacfd6778632240011534584813e1e5952708c54877e1e8ebefeae4296e"
+  },
+  {
+    "path": "build/fs/mount/comparison.js",
+    "bytes": 4843,
+    "sha256": "6bb00dc2d383e8f0b07b29e935a1f891c3811bf41dacd248fbf6119172f3e331"
+  },
+  {
+    "path": "build/fs/mount/comparison.js.map",
+    "bytes": 4890,
+    "sha256": "da5a56a41e01936d78327fc41a9f93b926f1d84fb57d036904e95e64551bf812"
+  },
+  {
+    "path": "build/fs/mount/identity.d.ts",
+    "bytes": 232,
+    "sha256": "c82f3c8f82648691b1574693a274c79c757ed6599506fad682ba96ce52fe2a96"
+  },
+  {
+    "path": "build/fs/mount/identity.d.ts.map",
+    "bytes": 295,
+    "sha256": "8f9ae34dffc4eb8bbd3b432c9f27bc1ec0ee425a51a836bfdb8606761902726f"
+  },
+  {
+    "path": "build/fs/mount/identity.js",
+    "bytes": 651,
+    "sha256": "7803a8b62373af24b18a0a3404c51f8b5c39bf2f9e4d6800e2ffa8a02bb80c9d"
+  },
+  {
+    "path": "build/fs/mount/identity.js.map",
+    "bytes": 833,
+    "sha256": "5016239d541d0f6dbb63c21f1548881ed627c0db39c705b1bc29606dcb3f8d05"
+  },
+  {
+    "path": "build/fs/s3/authority.d.ts",
+    "bytes": 1175,
+    "sha256": "91f6e77dc5d097dfcc461d53799d6277e62649278a611d52606b5e8d198532b1"
+  },
+  {
+    "path": "build/fs/s3/authority.d.ts.map",
+    "bytes": 1146,
+    "sha256": "1a67c21c937af195e2c662743dbf9e3381947d49073d35b8720bdf3bf7371c9f"
+  },
+  {
+    "path": "build/fs/s3/authority.js",
+    "bytes": 4116,
+    "sha256": "288ae377e216a68e0272044312eed9afc7bfe29c8d6cb680010cbe7bb60b4a83"
+  },
+  {
+    "path": "build/fs/s3/authority.js.map",
+    "bytes": 4600,
+    "sha256": "4e6b29609aae427753780ac17f77738e06da2f9e1272e31015bf37392226b976"
+  },
+  {
+    "path": "build/fs/s3/transport.d.ts",
+    "bytes": 4005,
+    "sha256": "ec154e2eb64d8768e8a1115ea15d4f5b971d0fcdfef7e11e579a870ee156ca1d"
+  },
+  {
+    "path": "build/fs/s3/transport.d.ts.map",
+    "bytes": 4094,
+    "sha256": "d689b93f50c6635a0496a9d3ea974a11dccb3436b254d223012b62cb94e53c12"
+  },
+  {
+    "path": "build/fs/s3/transport.js",
+    "bytes": 1413,
+    "sha256": "692c8996973539886b85b208c96329daea13f8e00cafcd3f0fef1bbf8e13f5c9"
+  },
+  {
+    "path": "build/fs/s3/transport.js.map",
+    "bytes": 1826,
+    "sha256": "eff94bb2ba921e0dc361e92ba53ba7d0d8d677aaf97370c3347b82bb96616a6d"
+  },
+  {
+    "path": "build/fs/webdav/resource-id.d.ts",
+    "bytes": 1289,
+    "sha256": "9791d6980f57614624c0e639ea9d3dbf0d472f887127e6a8efe0739e763b7083"
+  },
+  {
+    "path": "build/fs/webdav/resource-id.d.ts.map",
+    "bytes": 1189,
+    "sha256": "3d3b6fba0d28978c65c2fa49944590a0f1cfc09b959bc709e97fe629c2d6ccc6"
+  },
+  {
+    "path": "build/fs/webdav/resource-id.js",
+    "bytes": 4753,
+    "sha256": "3dd1e43036eefe79622618599d5dbc6ad9bbffc1b6a19f251e960fb3f4d28624"
+  },
+  {
+    "path": "build/fs/webdav/resource-id.js.map",
+    "bytes": 5154,
+    "sha256": "157e5579bd3cb4a44e3ba144d02acb8af7b3a0b0cd6b6cdbf56462abbd754a53"
+  },
+  {
+    "path": "build/package.json",
+    "bytes": 18,
+    "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  {
+    "path": "build/shell/arithmetic.d.ts",
+    "bytes": 1009,
+    "sha256": "4649302322cb7d65e5562bc825ab841aab4205fa43b03dba5f12cdebdb34eaf1"
+  },
+  {
+    "path": "build/shell/arithmetic.d.ts.map",
+    "bytes": 1158,
+    "sha256": "fa661b4d589aaff10b9a1a0cb031d18ae67f2c9e348965c6a8e09b900d196e71"
+  },
+  {
+    "path": "build/shell/arithmetic.js",
+    "bytes": 10808,
+    "sha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138"
+  },
+  {
+    "path": "build/shell/arithmetic.js.map",
+    "bytes": 11687,
+    "sha256": "a15a494b1652350fa0e677b11fbf0a47e53a081344099ef464d542b262e77a68"
+  },
+  {
+    "path": "build/shell/cleanup.d.ts",
+    "bytes": 709,
+    "sha256": "69b7821030594705e4aa5285d7d1f43a5fc136700b847d8c3696d6fb1e09fe39"
+  },
+  {
+    "path": "build/shell/cleanup.d.ts.map",
+    "bytes": 646,
+    "sha256": "0a8ef5c8b08e35bab53fcfd845f74dc1aece657962b60313eeb71b0be24a7104"
+  },
+  {
+    "path": "build/shell/cleanup.js",
+    "bytes": 2148,
+    "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+  },
+  {
+    "path": "build/shell/cleanup.js.map",
+    "bytes": 2174,
+    "sha256": "4d2172a4ef95859f922daedd1225803a62f13d6859324472e0254dd4a6db9cc0"
+  },
+  {
+    "path": "build/shell/display.d.ts",
+    "bytes": 159,
+    "sha256": "79b7959b75d493e3345422fcce8d5535bc3c88399ef030fca685e1b4eaf2bc6a"
+  },
+  {
+    "path": "build/shell/display.d.ts.map",
+    "bytes": 247,
+    "sha256": "6077c5a9cf0cbedddd773965e2dc53135a28a22f6655c0da850cd1df68cd4d63"
+  },
+  {
+    "path": "build/shell/display.js",
+    "bytes": 2792,
+    "sha256": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368"
+  },
+  {
+    "path": "build/shell/display.js.map",
+    "bytes": 3406,
+    "sha256": "99347920526f4951734b36f39721480edf4ec9e6d8cb9c580f2fee3f4be84719"
+  },
+  {
+    "path": "build/shell/index.d.ts",
+    "bytes": 310,
+    "sha256": "c7d3b2a67d63d73bbe2c8bea0d549828c30476e6f0ba093a736423972dad5772"
+  },
+  {
+    "path": "build/shell/index.d.ts.map",
+    "bytes": 353,
+    "sha256": "66151e07ee4ac2e9099d0e4cb6811b92636aba91fc82bcbefa270378f1fca641"
+  },
+  {
+    "path": "build/shell/index.js",
+    "bytes": 175,
+    "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+  },
+  {
+    "path": "build/shell/index.js.map",
+    "bytes": 254,
+    "sha256": "2a24b181b190921ed6d0a937a150915113a0b8a64578253e5ac37a44632f71d5"
+  },
+  {
+    "path": "build/shell/input.d.ts",
+    "bytes": 838,
+    "sha256": "53ab49f4afa72aecd70fe2eb5c76a3a1b725fded1e00f4a6afdfbf98000ba5bb"
+  },
+  {
+    "path": "build/shell/input.d.ts.map",
+    "bytes": 876,
+    "sha256": "7470a87c731928b5abc7f72bbbab85966963275a05a1b0db94a487f0bd1cd4ed"
+  },
+  {
+    "path": "build/shell/input.js",
+    "bytes": 10776,
+    "sha256": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331"
+  },
+  {
+    "path": "build/shell/input.js.map",
+    "bytes": 11286,
+    "sha256": "b3ddeeaba4c8a87f95b30163c988b541e4a4386c038f027ed2849d37760fca82"
+  },
+  {
+    "path": "build/shell/locale.d.ts",
+    "bytes": 126,
+    "sha256": "3d7f0c95c2cc971c0bdfc196a4944f183ec0dd4256a82b04e741c22baa7feed6"
+  },
+  {
+    "path": "build/shell/locale.d.ts.map",
+    "bytes": 217,
+    "sha256": "7eb9882a47c077389b4bd553abbc439ad70dc53d0109d95c7758512bda1fa8f7"
+  },
+  {
+    "path": "build/shell/locale.js",
+    "bytes": 202,
+    "sha256": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc"
+  },
+  {
+    "path": "build/shell/locale.js.map",
+    "bytes": 296,
+    "sha256": "f41b25d5376b6a59836736d09ee03f282c9157d3922945046b23ca61b3d0f168"
+  },
+  {
+    "path": "build/shell/parser.d.ts",
+    "bytes": 3382,
+    "sha256": "350a5753d55bdeddc29e50630e317c9440a8f44996794635e9c51c86a14a75f7"
+  },
+  {
+    "path": "build/shell/parser.d.ts.map",
+    "bytes": 3989,
+    "sha256": "93b1bfe464602b999dcd486cb6d457e05afc2ecbe614160a19e60b84723e0cd6"
+  },
+  {
+    "path": "build/shell/parser.js",
+    "bytes": 38936,
+    "sha256": "5e7529b673dbc53503195c551e5a772632467de5e92e06682208b0e54eea90fd"
+  },
+  {
+    "path": "build/shell/parser.js.map",
+    "bytes": 42296,
+    "sha256": "e80e6febb5550d35a313cc72fac84c2c5e8afffabaa0e26307feb49d41475b5a"
+  },
+  {
+    "path": "build/shell/pattern.d.ts",
+    "bytes": 377,
+    "sha256": "6b4f6e7184ac442d78d661a22fbf96f57c38ef4c97888491149be61cf7b3690f"
+  },
+  {
+    "path": "build/shell/pattern.d.ts.map",
+    "bytes": 459,
+    "sha256": "53c686bb123a5e2d335a1ee3441549959514683974f63f122c78cb0c80b96fb8"
+  },
+  {
+    "path": "build/shell/pattern.js",
+    "bytes": 5344,
+    "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19"
+  },
+  {
+    "path": "build/shell/pattern.js.map",
+    "bytes": 5635,
+    "sha256": "fd2a21daabea2ad00e8faa3a5ff9ceb50bfa30a8b874c98914b908992277c621"
+  },
+  {
+    "path": "build/shell/runtime.d.ts",
+    "bytes": 8236,
+    "sha256": "2feb476dc746e1aee15ab5d876f7774d2aa1b7784fe5678337c16edf18c734df"
+  },
+  {
+    "path": "build/shell/runtime.d.ts.map",
+    "bytes": 8975,
+    "sha256": "0a50e66b97c1d26e88cd0bcf66c7ee710b6478713dfe89738842a4105b97c279"
+  },
+  {
+    "path": "build/shell/runtime.js",
+    "bytes": 114786,
+    "sha256": "ee3e045a1770cc43591a19936ec153e9a29c959c9de5886d2112427a9d20e97a"
+  },
+  {
+    "path": "build/shell/runtime.js.map",
+    "bytes": 117395,
+    "sha256": "c40ed8d1d05f7ca070e9539f29eb4acf021100cef1c6603b90d63895790bcb79"
+  },
+  {
+    "path": "build/shell/shell.d.ts",
+    "bytes": 923,
+    "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a"
+  },
+  {
+    "path": "build/shell/shell.d.ts.map",
+    "bytes": 888,
+    "sha256": "69bfacbe7e8d5233672348ce8a6a940b4626a0e475bb37cf6c982ac3f274b704"
+  },
+  {
+    "path": "build/shell/shell.js",
+    "bytes": 10878,
+    "sha256": "38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d"
+  },
+  {
+    "path": "build/shell/shell.js.map",
+    "bytes": 10899,
+    "sha256": "cc7ca939f20a700190fc06e3e3ac6627a03db804d9fd0837792638b05c6825b8"
+  },
+  {
+    "path": "build/shell/types.d.ts",
+    "bytes": 2461,
+    "sha256": "983ec4067a45d672ed4db6c6a42ad9225d5dc1b242e6f983cb6358c574fe56b8"
+  },
+  {
+    "path": "build/shell/types.d.ts.map",
+    "bytes": 2600,
+    "sha256": "fe245938269b92590da35ab79e5ad2a55bec97cde166e175180718b6c02a590a"
+  },
+  {
+    "path": "build/shell/types.js",
+    "bytes": 738,
+    "sha256": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c"
+  },
+  {
+    "path": "build/shell/types.js.map",
+    "bytes": 666,
+    "sha256": "dbc9c4cd02c7940d757355aa5a5a46460c098e91b798cf3805b06a1df246175d"
+  }
+]

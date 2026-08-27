@@ -1,0 +1,323 @@
+{
+  "observedAt": "2026-08-27T08:37:15.595Z",
+  "candidate": "e2d1b9230f4304650651572395523ca9d1644e74",
+  "liveHeadObservedOnly": "c652d99cbd71252da5c6165579bba063d2d6d319",
+  "scopedGitStatus": "?? tests/commands/filesystem-inspection-stress/tree/",
+  "indexObservedOnly": "",
+  "stagingOrCommitByVerifier": false,
+  "productionEditsByVerifier": false,
+  "children": [
+    {
+      "id": "N01",
+      "pid": 263,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N02",
+      "pid": 266,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N03",
+      "pid": 268,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N04",
+      "pid": 270,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N05",
+      "pid": 272,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N06",
+      "pid": 276,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N07",
+      "pid": 283,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N08",
+      "pid": 285,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N09",
+      "pid": 287,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N10",
+      "pid": 290,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N11",
+      "pid": 292,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N12",
+      "pid": 294,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N13",
+      "pid": 296,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N14",
+      "pid": 298,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N15",
+      "pid": 300,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N16",
+      "pid": 302,
+      "completion": {
+        "exitCode": 1,
+        "signal": null
+      }
+    },
+    {
+      "id": "N17",
+      "pid": 304,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N18",
+      "pid": 306,
+      "completion": {
+        "exitCode": 1,
+        "signal": null
+      }
+    },
+    {
+      "id": "N19",
+      "pid": 309,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "N20",
+      "pid": 311,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A21",
+      "pid": 313,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A22",
+      "pid": 317,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A23",
+      "pid": 324,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A24",
+      "pid": 327,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A25",
+      "pid": 329,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A26",
+      "pid": 334,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A27",
+      "pid": 338,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A28",
+      "pid": 341,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A29",
+      "pid": 347,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A30",
+      "pid": 349,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A31",
+      "pid": 352,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A32",
+      "pid": 355,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A33",
+      "pid": 358,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A34",
+      "pid": 395,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A35",
+      "pid": 429,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A36",
+      "pid": 431,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A37",
+      "pid": 437,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "A38",
+      "pid": 446,
+      "completion": {
+        "exitCode": 0,
+        "signal": null
+      }
+    }
+  ],
+  "childCloseEventsReceived": 38,
+  "activeOwnedCohortChildren": 0,
+  "ownedWatchersOrServersStarted": 0,
+  "shellInstances": {
+    "created": 1,
+    "disposed": 1
+  },
+  "cleanup": "Every cohort child closed; no watchdog fired. No daemon/watch/server was started. All own temp fixtures, snapshot, raw logs and original coverage are retained; no unowned process/temp cleanup attempted."
+}

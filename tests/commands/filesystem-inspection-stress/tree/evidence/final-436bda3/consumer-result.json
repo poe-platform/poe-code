@@ -1,0 +1,22 @@
+{
+  "id": "BUILT-STANDALONE-SMOKE-1",
+  "status": "pass",
+  "productInvocations": 1,
+  "cohortCases": 0,
+  "fresh": true,
+  "reused": false,
+  "purpose": "Bounded separately authorized built-plugin verification, NOT an additional holdout or native oracle",
+  "process": {
+    "name": "consumer-run",
+    "argv": [
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/consumer.mjs"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO",
+    "pid": 60082,
+    "completion": {
+      "exitCode": 0,
+      "signal": null
+    },
+    "elapsedMs": 58
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "checkedAfterAt": "2026-08-27T09:08:25.138Z",
+  "originalPresealPayload": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "originalEvidenceManifestSha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01",
+  "v1CorrectionManifestSha256": "18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6",
+  "originalDurableArtifactsUnchanged": 316,
+  "v1ArtifactsUnchanged": 35,
+  "originalPrivateArtifactsUnchanged": 97,
+  "initialRaw38Sha256": "a1cde249bbe1fa2e9a8f049d848a28d12741a3305c0865056d956dba6ff04498",
+  "historicalV1FreshResultSha256": "70aa7266e1985974d1ce2c51248479b23fa70ff7e72f950ca4f4b7989a16f18e",
+  "originalV1PredicateSha256": "f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691",
+  "peerCounterchecksSnapshotSha256": "25df1b6737fedbbc5ed536534b089bec48ee2f31fe978cbd8b74ddc9da60cadf",
+  "peerAuthorizedSectionSnapshotSha256": "9d50b860cd7b599d96a624e6000f25b3f3e2598f470ce5bb7a56db9a09acd9b8",
+  "unchangedDerivedRunnerSha256": "1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd",
+  "productExecutionsThisV2Work": 0,
+  "nativeExecutionsThisV2Work": 0,
+  "currentAuthorSafetyFixImported": false
+}

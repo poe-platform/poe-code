@@ -1,0 +1,34 @@
+{
+  "id": "N18",
+  "status": "fail",
+  "rawPredicate": {
+    "id": "N18",
+    "status": "fail",
+    "error": {
+      "name": "AssertionError",
+      "message": "The input did not match the regular expression /level|depth|invalid|positive|greater/iu. Input:\n\n'tree: -L must be between 1 and 256\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /level|depth|invalid|positive|greater/iu. Input:\n\n'tree: -L must be between 1 and 256\\n'\n\n    at nativeCase (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:73:36)\n    at async <anonymous> (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:292:50)"
+    }
+  },
+  "completion": {
+    "exitCode": 1,
+    "signal": null
+  },
+  "elapsedMs": 194,
+  "pid": 306,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+      "N18"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+  },
+  "observationAvailable": true
+}

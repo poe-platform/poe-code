@@ -1,0 +1,125 @@
+TREE AUTHOR BOUNDED HANDOFF — NOT ACCEPTED RELEASE
+
+Commit: e2d1b9230f4304650651572395523ca9d1644e74
+Subject: feat(tree): add bounded standalone VFS tree author candidate
+19 new owned paths only: src/commands/tree/** and tests/commands/tree/**.
+Explicit FILE argv staging and git commit --only used. Post-commit owned diff
+is empty; index was empty after commit. Concurrent other changes/native fixtures
+were preserved. Root/package/defaults, core/runtime, existing FS/metadata and
+contracts were read-only. No hidden reviewer tree/file holdouts read or run.
+
+API (standalone module, NOT root/package exports):
+src/commands/tree/index.ts exports treeCommands(options?), createTreeCommands
+(options?), createTreeCommand(options?), TreeCommandsOptions and TreeLimits.
+Options: replace?: boolean; limits?: Partial<TreeLimits>. Factories validate
+positive safe integer limits and snapshot values; plugin collision preflight.
+No default/root registration; actual Shell tests manually use treeCommands().
+
+Supported flags: -a -d -L -P -I -f -i -l -J -r -n, --dirsfirst, --noreport,
+--charset=ASCII|UTF-8, --help, --version, --. Basename UTF-8-byte glob profile:
+*, ?, bracket sets/ranges/negation, | alternatives, backslash literals outside
+sets; repeated include/exclude flags OR together. Slash/globstar/malformed
+patterns and unsupported flags preflight fail. C byte sorting/escaping fixed
+independent of ambient locale; JSON round-trips Unicode/control-bearing names.
+
+Default limits (all per invocation):
+maxArguments4096; maxArgumentBytes65536; maxEntries100000;
+maxDirectoryEntries10000; maxDepth256; maxPathBytes16384;
+maxMetadataBytes8388608; maxOutputBytes16777216; maxSteps4194304.
+Roots and raw returned entries (including filtered/hidden) consume entry budget.
+Depth, cumulative path/name/target/error metadata, pattern DP/sort/FS work and
+combined stdout+stderr are bounded. Shared Shell sink output budget remains
+effective across commands; CommandContext has no public shared work tick.
+No native process/content reads/implicit hostFS/network configuration in product.
+
+Streaming/safety:
+Async metadata VFS walk, one directory's metadata prepared for connectors,
+awaited signal-aware writeBytes with owned <=16KiB chunks. Abort checks around
+every FS await; pending host rejections observed after abort. Direct sink errors
+and family limit errors propagate. Ordinary FS failures emit human-readable
+stderr plus inline/JSON annotations and status1; unsupported/usage status2.
+Ordinary error JSON remains valid; abort/budget/sink exceptions can leave a
+partial prefix/incomplete JSON. Backend readdir materializes its array BEFORE
+the command cap can inspect it; no provider-memory or hard host-cancel guarantee.
+
+Identity/follow semantics:
+Default nofollow includes explicit symlink operands; stat still classifies target
+metadata. -l descends directory targets. Ancestors compare complete scoped
+identity or compareEntry via existing helper; bare inodes, scope stringification,
+different clients and realpath strings are NOT identity proofs. Unknown remains
+unknown and is budget-bounded, not falsely labeled a cycle. Sibling aliases are
+walked separately. Comparisons aren't a lease/snapshot/TOCTOU defense. Broken
+ENOENT/ENOTDIR link targets remain link entries; denials/ELOOP remain errors.
+
+Checks (bounded author scope; no full repository gate):
+1. node_modules/.bin/tsc --noEmit -p tests/commands/tree/tsconfig.json PASS.
+2. TREE_NATIVE_BIN=/tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree
+   node --import tsx --test tests/commands/tree/*.test.ts: 58/58 PASS,
+   zero failures/skips/cancellations/TODOs. Repeated with V8 coverage:58/58 PASS.
+   Logs /tmp/safe-bash-tree-author-test.log and -final-test.log.
+3. Six backends: memory, rooted real, readonly, mount, overlay, paginated mock-S3;
+   four common profiles each plus real links/mounted alias checks. No deployed
+   S3 or WebDAV claim. ByteIO/FS doubles cover denial, budgets, known/unknown
+   cycles, scope separation, late errors, backpressure, cancellation, sink errors.
+4. Isolated build PASS:
+   node_modules/.bin/tsc -p tests/commands/tree/tsconfig.build.json --outDir
+   /tmp/safe-bash-tree-author-build-rGXUaI
+   Emitted ESM and .d.ts; strict NodeNext consumer imports all three standalone
+   factories and both types, then plain Node runs actual Shell/MemoryFS smoke.
+   No live dist writes; not installed-package/root/subpath consumer evidence.
+5. Explicit owned staged diff --check PASS. Commit owned scope verified.
+
+Native evidence:
+Official upstream tree2.2.1 source archive fetched only after published bounded
+plan, inspected Makefile, compiled unmodified in isolated /tmp, no install.
+Darwin arm64, Apple clang21.0.0, LC_ALL=C, ASCII charset unless explicit UTF-8.
+Not GNU/Linux evidence. make CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree.
+One upstream unused-variable warning stddata_fd; build exited0.
+Archive SHA256 e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5
+Binary SHA256 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+Pinned doc/tree.1 SHA256 0900385101aa663c970b3e558ed3eec8b4fc96e175b70bedefcf32cf4f8bc3dd
+Native fixture SHA256 a7c312188244ff48760b4a6b247983d2ffa66bcffd6072d67e63acd1f074a3ab
+24 exact bytes/status/stderr cases +4 parsed JSON semantic cases pass.
+Six original divergent rows preserved, not passes: native global sibling-link
+suppression, implicit root-link following, file-root text, missing-root status/
+text, malformed missing-root JSON, misleading file-root JSON. Virtual profile
+intentionally differs as documented. All34 native captures reproduced live.
+Always-runnable frozen fixtures need no native executable. Optional live replay
+requires exact pinned binary hash and otherwise skips when not configured.
+
+Stable loaded source evidence:
+tests/commands/tree/source-manifest.json (also /tmp/safe-bash-tree-author-source-manifest.json)
+records 51 actual covered/loaded source URLs, 6 owned tree modules, and owned
+loaded tests with identical before/after SHA256 during final invocation.
+Snapshot time 2026-08-27T08:14:59.481Z. Repository concurrently dirty, not an
+unchanged whole-repository snapshot. Final owned hashes:
+arguments.ts 0b3d8ef78852d0d7623eb0286202bcfec44590906a9fa8892bc51376904bfce3
+index.ts cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc
+io.ts ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153
+options.ts 8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483
+pattern.ts 6209978bbd3cbfd171eab7cd63aca95414b757ebc2151317835f8ee4166d0121
+tree.ts 449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a
+
+Initial failures retained in tests/commands/tree/AUTHOR-EVIDENCE.md:
+First scoped typecheck4errors:2 ES2023 String.isWellFormed library mismatch,
+2 nonexistent Shell.cwd/env test getters. First37-test run:35pass,1 author
+getter-test failure,1 optional native skip. Corrected with Unicode-surrogate
+regex and actual Shell state observations. Original native inputs/captures
+unchanged; original24exact+4semantic passed even that initial run.
+
+Limits/gaps/next owner:
+Unsupported metadata/du/allocated-size, prune/gitignore, path globstar patterns,
+HTML/XML, arbitrary locales/sort modes, raw -N. No special native file types
+beyond VFS's file/directory/symlink contract, no live WebDAV/provider verification,
+no broad native parity/just-bash superiority/full gate/72-hour claim.
+Independent hidden reviewer owns tests/commands/filesystem-inspection-stress/tree/**;
+must run before public/default integration. Root may route concrete failures for
+separate scoped regression+fix commits. Author stops at this bounded handoff.
+
+Process/time state:
+No active author exec sessions, watchers, servers or background jobs remain.
+Oracle/build/probe /tmp directories retained as evidence; generated per-run
+native and real-backend fixture directories are cleaned by owned test finallys.
+Checkpoint creation observed2026-08-27T08:00:04.423Z; handoff clock observed
+2026-08-27T08:17:07.093Z:1023 wall seconds between checkpoints, not CPU time,
+not proof of continuous work, and not the user's requested72hours.

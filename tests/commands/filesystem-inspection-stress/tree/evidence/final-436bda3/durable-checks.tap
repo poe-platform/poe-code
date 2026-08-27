@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: durable final artifact manifest verifies exact bytes and symlink targets
+ok 1 - durable final artifact manifest verifies exact bytes and symlink targets
+  ---
+  duration_ms: 41.490209
+  type: 'test'
+  ...
+# Subtest: fresh38 is distinct from initial38 and preserves all nonpass classes
+ok 2 - fresh38 is distinct from initial38 and preserves all nonpass classes
+  ---
+  duration_ms: 1.1085
+  type: 'test'
+  ...
+# Subtest: native exact lane stays 12/5/3 with original captures unchanged
+ok 3 - native exact lane stays 12/5/3 with original captures unchanged
+  ---
+  duration_ms: 0.497916
+  type: 'test'
+  ...
+# Subtest: completed peer GO binds v2 while original runner/corpus remain preserved
+ok 4 - completed peer GO binds v2 while original runner/corpus remain preserved
+  ---
+  duration_ms: 5.081625
+  type: 'test'
+  ...
+# Subtest: frozen closure and successful compiler inventories contain no live alias
+ok 5 - frozen closure and successful compiler inventories contain no live alias
+  ---
+  duration_ms: 2.410958
+  type: 'test'
+  ...
+# Subtest: actual Shell, cancellation, cleanup and preservation remain recorded
+ok 6 - actual Shell, cancellation, cleanup and preservation remain recorded
+  ---
+  duration_ms: 0.467916
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 88.872292

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "authorization": "Explicit ROOT approval on 2026-08-27 to externalize ONLY the two generated owned oracle payloads, preserving original seals and private full copy",
+  "repositoryContainsAllInputs": false,
+  "originalPresealPayload": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "originalPrivateFullCopy": "/tmp/safe-bash-tree-hidden-prep-vyzfHc",
+  "externalDirectory": "/tmp/safe-bash-tree-external-oracle-TbVJVK",
+  "artifacts": [
+    {
+      "repositoryRelativePath": "sealed/oracle/tree",
+      "externalPath": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+      "externalBasename": "tree",
+      "kind": "independent-regular-file",
+      "bytes": 114488,
+      "modeOctal": "0755",
+      "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+      "role": "Historical native oracle executable, NOT product code or committed dependency",
+      "recoverability": "Exact local copies retained; no public URL for this exact compiled binary asserted. Rebuild is platform/compiler dependent and NOT claimed bit-identical. A different hash cannot satisfy the original seal."
+    },
+    {
+      "repositoryRelativePath": "sealed/oracle/tree-2.2.1.tar.bz2",
+      "externalPath": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree-2.2.1.tar.bz2",
+      "externalBasename": "tree-2.2.1.tar.bz2",
+      "kind": "independent-regular-file",
+      "bytes": 56345,
+      "modeOctal": "0644",
+      "sha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+      "role": "Historical upstream source archive, NOT committed vendored dependency",
+      "primarySourceUrl": "https://gitlab.com/OldManProgrammer/unix-tree/-/archive/2.2.1/unix-tree-2.2.1.tar.bz2",
+      "recoverability": "Recorded official source URL and pinned hash; availability and future archive-byte stability were not checked during packaging. Recovery requires the exact pinned hash, not merely matching version text."
+    }
+  ],
+  "provenance": {
+    "sourceEvidence": "evidence/initial/provenance-check.json",
+    "rawBuildEvidence": "evidence/initial/native-build-original-excerpt.txt",
+    "primaryManualUrl": "https://gitlab.com/OldManProgrammer/unix-tree/-/raw/2.2.1/doc/tree.1",
+    "version": "tree 2.2.1",
+    "platform": "Darwin arm64 25.4.0",
+    "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101)",
+    "recordedBuildCommand": "make -C /tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1 CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree",
+    "recordedSourceChanges": "none; 15 relevant source/header/Makefile/manual entries matched the pinned archive in original provenance checks",
+    "environment": { "LC_ALL": "C", "LANG": "C", "TERM": "dumb", "TZ": "UTC" },
+    "arguments": ["-n", "--charset=ASCII"],
+    "qualification": "Recorded existing build corroborated, not a fresh download/build, binary reproducibility attestation or GNU/Linux profile"
+  },
+  "verification": {
+    "originalPreExternalizationAudit": "/tmp/safe-bash-tree-stress-seal-kVWgPI/audit-result.json",
+    "originalPreExternalizationReceipt": "/tmp/safe-bash-tree-stress-seal-detail.txt",
+    "relocationReceipt": "/tmp/safe-bash-tree-external-seal-pemNIA/relocation.json",
+    "policy": "No missing input is skipped. Integrity verification resolves exactly these two mapped prerequisites; unchanged legacy checks require an isolated full corpus copy with exact regular files restored at original relative paths.",
+    "externalDirectoryOverride": "TREE_EXTERNAL_ORACLE_DIR may select another retained directory; size, SHA256, regular-file kind and mode must still match",
+    "productCalls": 0,
+    "nativeCalls": 0,
+    "testReplays": 0
+  }
+}

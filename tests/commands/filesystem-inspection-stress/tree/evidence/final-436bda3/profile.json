@@ -1,0 +1,51 @@
+{
+  "candidateSourceHash": "0c1ff20eaa22c83d2f65c54415ed2acb65cb15397954dc71c727dd3fb00c35ad",
+  "candidateCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "authorFinishedEvidence": "author-detail.original.txt; explicit root FinalTREEsourceHANDOFF authorization; completed-peer-report.original.txt N18 v2 GO",
+  "supportedProfileEvidence": "candidate/src/commands/tree/README.md, arguments.ts, options.ts; exact candidate only, inspected before execution",
+  "supportedFeatures": [
+    "ascii-C-profile",
+    "hidden",
+    "depth",
+    "reverse",
+    "dirsfirst",
+    "directories-only",
+    "include-glob",
+    "exclude-glob",
+    "flat",
+    "full-path",
+    "no-report",
+    "native-C-escaping",
+    "symlinks",
+    "follow-links",
+    "native-json-schema",
+    "entry-limit",
+    "output-limit"
+  ],
+  "unsupportedFeatures": [
+    "prune",
+    "literal-names",
+    "native-filelimit"
+  ],
+  "nativeExactProfileQualification": "Common ASCII/C profile is selected, not universal native compatibility. Known root-link and sibling-alias divergences remain eligible for raw native mismatch; they are not feature-skipped.",
+  "knownProfileConflictsBeforeRun": {
+    "N14": "Native suppresses sibling alias-b. Candidate explicitly traverses siblings; sealed predicate uses chosen ancestor-only profile. Native mismatch remains not parity.",
+    "N16": "Native follows explicit symlink roots by default; candidate explicitly does not. Run sealed exact assertion and retain failure, then classify declared profile conflict.",
+    "N17": "Candidate intentionally treats file roots as leaves and missing roots as status1. Sealed semantic predicate may pass while raw exact native lane fails.",
+    "N18": "Candidate parse error is '-L must be between 1 and 256' with usage status2; sealed wording regex excludes this meaningful diagnostic. Retain any assertion failure as predicate/profile adjudication, never rewrite it."
+  },
+  "correctionToOriginalPrep": "Ancestor-only handling is our bounded chosen profile and the candidate's declared policy, NOT a literal user instruction. User requested cycle handling and no false identity. Original sealed mistaken attribution remains preserved as historical evidence, not current authority.",
+  "sixAuthorDivergences": [
+    "sibling aliases",
+    "implicit root-link following",
+    "file-root text",
+    "missing-root text/status",
+    "malformed native missing-root JSON",
+    "native file-root JSON"
+  ],
+  "unmeasuredAuthorDivergences": [
+    "missing-root JSON",
+    "file-root JSON"
+  ],
+  "apiBoundary": "Standalone direct source module only. No root export/default registration/package subpath/public consumer claim."
+}

@@ -1,0 +1,94 @@
+TREE N18 HARNESS V2 — PURE COUNTERCHECKS / OFFLINE CAPTURES ONLY; STOPPED FOR PEER
+
+Recorded UTC: 2026-08-27T09:08:25.138Z
+Scope: additive tests/commands/filesystem-inspection-stress/tree/corrections/n18-positive-depth-v2/** and owned /tmp only.
+Private evidence: /private/tmp/safe-bash-tree-n18-v2-f4qnnc
+Product command executions this v2 work:ZERO.
+Native oracle/tool executions this v2 work:ZERO.
+Current author safety-fix source imports/inspection/execution:ZERO.
+No full38 or other case invocation, source/root/default edit, staging or commit.
+
+PEER HOLD AND BOUNDED FIX
+Read only SAFETY_FINDINGS.md's Completed harness correction verdicts section
+and the requested correction-counterchecks.mjs. Retained their exact authorized
+section/script snapshots; the mixed tree/file peer script was NOT executed.
+Actual unchanged v1 helper reproduces both peer false accepts:
+1 "tree: -L failed; width must be between 1 and 256\n"
+2 "tree: -L must be positive\nvalid range: 0..256\n"
+V1 accepts both; v2 rejects both. Their negative meaning and original HOLD remain.
+
+V2 uses five anchored whole-diagnostic forms. A depth subject (-L, level,
+depth, or maximum depth) directly owns its positive constraint. The complete
+trimmed diagnostic must match; -L is case-sensitive. Positive numeric bounds
+are safe integers and ordered; zero-inclusive/reversed/fractional/unsafe bounds
+fail. Exact nonzero status, byte I/O, empty stdout and bounded nonempty stderr
+guards from v1 are unchanged. Current/native diagnostic strings are examples,
+not hardcoded full expected strings; independent positive variants also pass.
+Extra clauses or internal lines fail wholesale, including consistent extra
+lines outside the finite profile. Thus contradictory bounds on a second line
+cannot be filtered out or ignored. This is deliberately NOT a generic natural-
+language parser, nor a claim to accept every reasonable diagnostic spelling.
+
+EXACT DELTA / HASHES
+Original preseal payload: b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+V1 predicate: f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691
+V2 predicate: c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c
+Exact unified diff: e3cddd1f60fa4ccf15d38ef59ee43237efca4d343cd1cc1ac7e03f53fb7eefe3
+Helper delta:19 inserted lines,16 deleted lines (minimum line-edit LCS delta).
+Pure forward/reverse application of helper.diff reconstructs exact v2/v1 bytes.
+Derived runner unchanged: 1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd
+Corpus/native fixtures/fixture FS and copied31-check v1 test file unchanged.
+No runner assertion other than the already-derived N18 helper binding changes.
+Original regex failure, original seal, initial raw38, v1 one-fresh result and
+predicate, and peer failure evidence remain byte-exact. Original manifests are
+not regenerated; v2 gets its own additive manifest and pending-review record.
+
+PURE CHECKS / OFFLINE EVALUATION
+Authoritative v2 checks:47 tests,47pass,0fail/skip/cancel/TODO.
+31 unchanged checks from v1 run against v2, plus16 peer/subject/diagnostic/
+independent-positive/reversal checks. These use Node builtins and local harness
+helpers only. Two peer negatives rejected; positive-control retained. Existing
+status/stdout/stderr/numeric counterchecks remain. Original v1 false accepts
+are reproduced as known bad history, not promoted by passing reproduction tests.
+
+Offline re-evaluation only:three already-captured records are accepted by v2:
+initial productN18, historical one-fresh v1 productN18, and original nativeN18.
+These are data reads and helper calls, NOT new product/native executions.
+Their captured source provenance is old e2d1b9230f4304650651572395523ca9d1644e74;
+no current safety-fix source was frozen, inspected or tested by this task.
+Original native status1 versus historical product usage2 and diagnostic-byte
+differences remain raw native-not-parity. Initial38 stays30pass/2fail/
+3unsupported/3characterizations. V1's fresh N18 raw result stays historical and
+on peer HOLD; v2 offline acceptance is not a new fresh case, cohort pass count,
+source-safety verdict, or peer GO. No mixed31-pass claim is newly approved here.
+N16 remains an accepted declared nofollow profile difference, not native parity.
+Ancestor-only handling is our chosen profile, not a literal user instruction.
+
+PRESERVATION / PREPARATION HISTORY
+Before/after verified316 original durable artifacts,35 v1 correction artifacts,
+97 original private preseal artifacts unchanged. Initial raw38 SHA256:
+a1cde249bbe1fa2e9a8f049d848a28d12741a3305c0865056d956dba6ff04498
+Historical v1 fresh result SHA256:
+70aa7266e1985974d1ce2c51248479b23fa70ff7e72f950ca4f4b7989a16f18e
+Original evidence manifest: 66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01
+V1 correction manifest: 18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6
+
+First preparation attempt failed: copied v1 helper inherited read-only mode;
+apply_patch could not edit the new copy and make-diff.mjs did not exist yet.
+The subsequent31 copied-old-helper checks were not v2 verification; their log
+and explicit failure record are retained. Only the new v2 copy was made writable.
+The corrected v2 edit then passed the authoritative47-check run. No product
+execution, source change or historical-file mutation occurred in either attempt.
+
+HANDOFF / LIMITS / CLEANUP
+Durable folder: tests/commands/filesystem-inspection-stress/tree/corrections/n18-positive-depth-v2/
+Key artifacts: n18-predicate.mjs, helper.diff, helper-delta.json,
+peer-countercheck-results.json, offline-capture-evaluation.json,
+v2-pure-checks.tap, diff-roundtrip.json and preservation-before/after.json.
+All pure scripts completed. Product/native processes launched:0; active owned
+product/native children:0; watchers/servers started:0. No unowned cleanup or
+temporary evidence deletion performed. Raw history and preparation logs retained.
+Finite English single-diagnostic profile only; extra lines/clauses are rejected,
+not interpreted. No runtime/source validation of the author's ongoing safety
+fix and no final38 gate. Root will separately authorize a full38 run after
+new source freeze and peer GO. No commit. STOP for the requested peer review.

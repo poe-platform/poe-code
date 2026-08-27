@@ -1,0 +1,33 @@
+{
+  "id": "A23",
+  "status": "pass",
+  "rawPredicate": {
+    "id": "A23",
+    "status": "pass",
+    "evidence": {
+      "fsCalls": 21,
+      "rejected": true
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 191,
+  "pid": 58850,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/profile.json",
+      "A23"
+    ],
+    "cwd": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate"
+  },
+  "observationAvailable": true
+}

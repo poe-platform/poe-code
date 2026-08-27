@@ -1,0 +1,31 @@
+{
+  "at": "2026-08-27T08:59:56.394Z",
+  "originalPreseal": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "originalManifestSha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01",
+  "v1ManifestSha256": "18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6",
+  "originalDurableArtifactsVerified": 316,
+  "v1ArtifactsVerified": 35,
+  "originalPrivateArtifactsVerified": 97,
+  "preservedCopies": [
+    "history/v1-predicate.mjs",
+    "n18-predicate.mjs",
+    "predicate.test.mjs",
+    "original-run.mjs",
+    "history/v1-corrected-result.json",
+    "history/v1-N18-observations.json",
+    "history/v1-N18-predicate-result.stdout.txt",
+    "history/initial-N18-observations.json",
+    "history/initial-N18-regex-failure.stdout.txt",
+    "history/PRESEAL-MANIFEST.json",
+    "history/initial-results.json",
+    "history/v1-CORRECTION-MANIFEST.json",
+    "history/peer-counterchecks.original.mjs.txt",
+    "derived/run.mjs",
+    "derived/corpus.mjs",
+    "derived/fixture-fs.mjs",
+    "derived/native.json"
+  ],
+  "sourceInspection": "No current candidate implementation or in-progress safety fix inspected; old captured bytes and harness files only",
+  "productExecutions": 0,
+  "nativeExecutions": 0
+}

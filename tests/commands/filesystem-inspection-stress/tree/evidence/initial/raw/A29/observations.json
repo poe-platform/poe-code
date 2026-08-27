@@ -1,0 +1,33 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:24.301Z",
+      "error": {
+        "name": "FsError",
+        "message": "ENOENT: no such file or directory, abort '/not-a-path-failure'",
+        "code": "ENOENT",
+        "path": "/not-a-path-failure",
+        "stack": "FsError: ENOENT: no such file or directory, abort '/not-a-path-failure'\n    at Module.makeFsError (/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs:15:47)\n    at adversarialCase (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:153:27)\n    at <anonymous> (/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs:292:139)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": true,
+      "finishedAt": "2026-08-27T08:28:24.305Z"
+    }
+  ],
+  "shells": []
+}

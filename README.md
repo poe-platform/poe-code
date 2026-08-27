@@ -53,12 +53,13 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs thirteen delivered families once: standard,
+`agentCommands(options?)` installs fifteen delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 (`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
-time/environment (`date`, `sleep`, `printenv`), totaling 68 unique registered
+time/environment (`date`, `sleep`, `printenv`), tree (`tree`), and file (`file`),
+totaling 70 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -88,6 +89,8 @@ agentCommands({
   streamFormat: { limits: { maxRecordBytes: 1024 * 1024 } },
   split: { limits: { maxFiles: 128 } },
   timeEnv: { defaultTimeZone: "UTC", limits: { maxOutputBytes: 1024 * 1024 } },
+  tree: { limits: { maxEntries: 10000, maxOutputBytes: 1024 * 1024 } },
+  file: { limits: { maxSniffBytes: 65536, maxInputBytes: 1024 * 1024 } },
 });
 ```
 
@@ -119,6 +122,25 @@ uses a documented virtual-clock policy, not strict GNU clock-resolution parity.
 The `%g` compatibility rationale is limited to rendered calendar years0000–9999;
 negative-century native counterexamples and five ICU zone-label differences
 remain explicit. See `docs/integration/2026-08-27-TIME_ENV_PUBLIC.md`.
+
+Tree and file are also available as standalone `treeCommands` / `fileCommands`
+plugins, `createTreeCommands` / `createFileCommands` definition factories, and
+`createTreeCommand` / `createFileCommand` single-command factories, from root or
+`virtual-bash/commands/tree` / `virtual-bash/commands/file`. Their option/limit
+types are `TreeCommandsOptions`, `TreeLimits`, `FileCommandsOptions`, `FileLimits`.
+Aggregate `tree` and `file` options omit `replace`; top-level replacement remains
+authoritative. Both use only the explicit VFS and byte streams, with no native
+utility, host libmagic or implicit host filesystem fallback.
+
+Tree uses bounded traversal, byte-order sorting, escaped names and a documented
+ancestor-cycle profile. File classifies bounded content rather than claiming
+complete format validation. Missing metadata/read capabilities remain errors;
+unknown content size without streaming support is not guessed safe. Their
+family limits and shared shell cancellation/output budgets both remain active.
+Already-published output is not rolled back: a limit/cancelled traversal can
+leave partial text or incomplete JSON. Qualified source review and native/profile
+gaps are in `tests/commands/filesystem-inspection-stress/harness-review/INTEGRATION_HANDOFF.md`;
+they are not full tree/libmagic parity or public-integration acceptance.
 
 These are per-family limits, not a shared resource budget. Byte tools retain
 their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`.

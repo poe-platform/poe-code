@@ -13,6 +13,8 @@ import { createStreamInspectionCommands, type StreamInspectionCommandsOptions } 
 import { createStreamFormatCommands, type StreamFormatCommandsOptions } from "../commands/stream-format/index.js";
 import { createSplitCommands, type SplitCommandsOptions } from "../commands/split/index.js";
 import { createTimeEnvCommands, type TimeEnvCommandsOptions } from "../commands/time-env/index.js";
+import { createTreeCommands, type TreeCommandsOptions } from "../commands/tree/index.js";
+import { createFileCommands, type FileCommandsOptions } from "../commands/file/index.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
@@ -28,6 +30,8 @@ export interface AgentCommandsOptions {
   readonly streamFormat?: Omit<StreamFormatCommandsOptions, "replace">;
   readonly split?: Omit<SplitCommandsOptions, "replace">;
   readonly timeEnv?: Omit<TimeEnvCommandsOptions, "replace">;
+  readonly tree?: Omit<TreeCommandsOptions, "replace">;
+  readonly file?: Omit<FileCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -55,6 +59,8 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createStreamFormatCommands({ ...options.streamFormat }),
     ...createSplitCommands({ ...options.split }),
     ...createTimeEnvCommands({ ...options.timeEnv }),
+    ...createTreeCommands({ ...options.tree }),
+    ...createFileCommands({ ...options.file }),
   );
   return new CommandRegistry(commands).list();
 }

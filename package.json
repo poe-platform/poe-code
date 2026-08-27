@@ -54,6 +54,14 @@
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"
     },
+    "./commands/tree": {
+      "types": "./dist/commands/tree/index.d.ts",
+      "import": "./dist/commands/tree/index.js"
+    },
+    "./commands/file": {
+      "types": "./dist/commands/file/index.d.ts",
+      "import": "./dist/commands/file/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

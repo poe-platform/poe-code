@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+ok 1 - TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+  ---
+  duration_ms: 1.213375
+  type: 'test'
+  ...
+# {"entries":32,"alternatives":16,"nameBytes":32,"compilationSteps":47,"matchingSteps":512,"measuredRowAllocations":0,"measuredRowBytes":0,"originalInitializationFormulaBytes":16896}
+# Subtest: TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+ok 2 - TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+  ---
+  duration_ms: 4.294458
+  type: 'test'
+  ...
+# Subtest: one name fits but many names share cumulative work for both include and exclude
+ok 3 - one name fits but many names share cumulative work for both include and exclude
+  ---
+  duration_ms: 2.965667
+  type: 'test'
+  ...
+# Subtest: empty alternatives preserve empty-name, union, wildcard and literal matching semantics
+ok 4 - empty alternatives preserve empty-name, union, wildcard and literal matching semantics
+  ---
+  duration_ms: 0.401542
+  type: 'test'
+  ...
+# Subtest: initial and transition rows charge before allocation, with separate transition work
+ok 5 - initial and transition rows charge before allocation, with separate transition work
+  ---
+  duration_ms: 0.315875
+  type: 'test'
+  ...
+# {"nameBytes":32,"admittedSteps":100,"measuredRowAllocations":2,"measuredRowBytes":66}
+# Subtest: compilation source/encoding/parser work and repeated flags use the same budget
+ok 6 - compilation source/encoding/parser work and repeated flags use the same budget
+  ---
+  duration_ms: 0.093875
+  type: 'test'
+  ...
+# Subtest: no per-name reset after an empty-alternative match attempt
+ok 7 - no per-name reset after an empty-alternative match attempt
+  ---
+  duration_ms: 0.1335
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.017833

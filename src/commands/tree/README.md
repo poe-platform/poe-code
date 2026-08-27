@@ -108,7 +108,27 @@ Every limit is a positive safe integer, copied and validated at factory creation
 | `maxPathBytes` | 16384 | Each observed path, display path, name, link target and error message |
 | `maxMetadataBytes` | 8388608 | Cumulative bytes of those strings; repeated strings are charged again |
 | `maxOutputBytes` | 16777216 | Combined stdout/stderr bytes, admitted before each write operation |
-| `maxSteps` | 4194304 | FS/comparison calls, entries, name-sort comparisons and pattern DP work |
+| `maxSteps` | 4194304 | FS/comparison calls, entries, name-sort comparisons, pattern compilation, alternatives and DP row/transition work |
+
+Pattern compilation and matching consume the **same invocation budget** as the
+walk, cumulatively across all patterns and all entries, without per-name resets.
+Compilation reserves `UTF-16 length + 1` units before fixed source-validation
+scans, then `UTF-8 byte length + 1` before encoding/initial structures, plus one
+unit for each outer parser iteration and bracket-range iteration before token/
+alternative/range allocation. Source-scan units cover a fixed number of linear
+passes, not individual CPU instructions. General argument validation is also
+bounded separately by argument count/byte caps.
+
+Matching charges one unit before each alternative, including empty alternatives.
+An empty alternative matches only an empty name and needs **no DP row**. For each
+nonempty alternative, the initial row charges `name byte length + 1` units before
+allocation. Each token then reserves twice that row length before allocating:
+one unit per zero-initialized cell and one per transition cell. Bracket membership
+also charges its range count before evaluation, conservatively even if the range
+search short-circuits. Budget rejection precedes the associated allocation/work;
+requested units in a rejected batch are not evidence of allocated bytes or work
+performed. See `tests/commands/tree/WORK-BUDGET.md` for the preserved original
+TREE-WORK-001 failure and bounded measurements; no regex worker is involved.
 
 Directory metadata is collected to determine filtered siblings and connectors;
 the whole subtree/output is not buffered. The backend `readdir` contract returns

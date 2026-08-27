@@ -70,7 +70,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
               throw new UsageError(`-L must be between 1 and ${budget.limits.maxDepth}`);
             }
             result.level = level;
-          } else (flag === "P" ? result.include : result.exclude).push(compile(argument));
+          } else (flag === "P" ? result.include : result.exclude).push(compile(argument, budget));
           offset = arg.length; break;
         }
         default: throw new UsageError(`unsupported option: -${flag}`);

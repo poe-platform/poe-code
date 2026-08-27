@@ -7,6 +7,9 @@ const format = (tag: string): "em" | "strong" | "del" | undefined => tag === "em
 const inlineAtoms = new Set(["a", "img", "code", "br"]);
 
 export class Renderer {
+  private readonly normalized = new WeakMap<HtmlNode, HtmlNode[]>();
+  private readonly destinations = new WeakMap<HtmlNode, string | undefined>();
+  private readonly whitespace = new WeakMap<HtmlNode, boolean>();
   constructor(readonly budget: Budget) {}
 
   private trim(text: string): Promise<string> { return trimText(text, this.budget); }
@@ -37,25 +40,83 @@ export class Renderer {
     return false;
   }
 
+  private async onlyWhitespace(children: readonly HtmlNode[]): Promise<boolean> {
+    for (const child of children) {
+      this.budget.work(1); await this.budget.checkpoint();
+      if (child.tag !== "text") return false;
+      let whitespace = this.whitespace.get(child);
+      if (whitespace === undefined) {
+        whitespace = true;
+        for (const character of child.text!) {
+          this.budget.work(1); await this.budget.checkpoint();
+          if (!htmlSpace(character)) { whitespace = false; break; }
+        }
+        this.budget.work(1); this.whitespace.set(child, whitespace);
+      }
+      if (!whitespace) return false;
+    }
+    return true;
+  }
+
+  private async hasRawContent(node: HtmlNode): Promise<boolean> {
+    for (const child of node.children) {
+      this.budget.work(1); await this.budget.checkpoint();
+      if (child.tag === "text" ? Boolean(child.text) : child.tag === "br" || await this.hasRawContent(child)) return true;
+    }
+    return false;
+  }
+
   private async inlineChildren(node: HtmlNode): Promise<HtmlNode[]> {
+    this.budget.work(1);
+    const cached = this.normalized.get(node);
+    if (cached) return cached;
+    this.budget.work(1);
     const result: HtmlNode[] = [];
-    const visit = async (child: HtmlNode): Promise<void> => {
+    const append = async (child: HtmlNode, target = result): Promise<void> => {
       this.budget.work(1); await this.budget.checkpoint();
       const style = format(child.tag);
-      if (child.tag !== "text" && !blockTags.has(child.tag) && !inlineAtoms.has(child.tag)
-        && (!style || style === format(node.tag))) {
-        for (const nested of child.children) await visit(nested);
-        return;
-      }
-      const previous = result.at(-1);
+      const previous = target.at(-1);
       if (style && previous && format(previous.tag) === style) {
-        for (const nested of child.children) { this.budget.work(1); previous.children.push(nested); await this.budget.checkpoint(); }
-      } else if (style) {
-        this.budget.work(child.children.length);
-        result.push({ ...child, children: [...child.children] });
-      } else result.push(child);
+        for (const nested of child.children) await append(nested, previous.children);
+      } else target.push(child);
+    };
+    const visit = async (child: HtmlNode): Promise<void> => {
+      this.budget.work(1); await this.budget.checkpoint();
+      if (child.tag === "text" && !child.text) return;
+      if (child.tag === "code" && !await this.hasRawContent(child)) return;
+      if (child.tag === "a" || child.tag === "img") {
+        const image = child.tag === "img";
+        const url = await destination(child.attributes.get(image ? "src" : "href"), image, this.budget);
+        if (!url) {
+          if (!image) for (const nested of child.children) await visit(nested);
+          else {
+            const text = child.attributes.get("alt");
+            if (text) { this.budget.work(2); await append({ tag: "text", attributes: child.attributes, children: [], text }); }
+          }
+          return;
+        }
+        this.budget.work(1); this.destinations.set(child, url);
+      }
+      const style = format(child.tag);
+      if (child.tag !== "text" && !blockTags.has(child.tag) && !inlineAtoms.has(child.tag)) {
+        if (!style || style === format(node.tag)) {
+          for (const nested of child.children) await visit(nested);
+          return;
+        }
+        const children = await this.inlineChildren(child);
+        if (!children.length) return;
+        if (await this.onlyWhitespace(children)) {
+          for (const nested of children) await append(nested);
+          return;
+        }
+        this.budget.work(2);
+        const normalized: HtmlNode = { tag: child.tag, attributes: child.attributes, children };
+        this.normalized.set(normalized, children);
+        await append(normalized);
+      } else await append(child);
     };
     for (const child of node.children) await visit(child);
+    this.budget.work(1); this.normalized.set(node, result);
     return result;
   }
 
@@ -241,7 +302,7 @@ export class Renderer {
     } else if (node.tag === "a" || node.tag === "img") {
       const image = node.tag === "img";
       const label = image ? await escapeText(await this.space(node.attributes.get("alt") ?? "", maximum), this.budget, maximum) : await this.trim(content);
-      const url = await destination(node.attributes.get(image ? "src" : "href"), image, this.budget);
+      const url = this.destinations.has(node) ? this.destinations.get(node) : await destination(node.attributes.get(image ? "src" : "href"), image, this.budget);
       if (!url) return image ? label : content;
       if (!image && htmlSpace(content[0])) result.append(" ");
       result.append(image ? "![" : "["); result.append(label); result.append("](<"); result.append(url); result.append(">)");

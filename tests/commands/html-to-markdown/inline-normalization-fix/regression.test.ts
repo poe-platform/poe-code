@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { byteChunks, convert } from "../helpers.js";
 
-const cases = JSON.parse(readFileSync(new URL("./CASES.json", import.meta.url), "utf8")) as { id: string; input: string; markdown: string }[];
+const cases = ["CASES.json", "NESTED.json"].flatMap(name => JSON.parse(readFileSync(new URL(name, import.meta.url), "utf8")) as { id: string; input: string; markdown: string }[]);
 for (const entry of cases) test(`semantic inline normalization: ${entry.id}`, async () => {
   for (const size of [1, 7, 4096]) {
     const result = await convert(byteChunks(entry.input, size));

@@ -1,0 +1,5 @@
+[
+  {"id":"merged-em-strong","input":"<em><b>a</b></em><a></a><i><strong>b</strong></i>","markdown":"*__ab__*\n","runs":[["ab",["Emph","Strong"]]]},
+  {"id":"merged-em-strike","input":"<em><del>a</del></em><b></b><i><s>b</s></i>","markdown":"*~~ab~~*\n","runs":[["ab",["Emph","Strikeout"]]]},
+  {"id":"merged-strike-strong","input":"<s><b>a</b></s><a></a><del><strong>b</strong></del>","markdown":"~~**ab**~~\n","runs":[["ab",["Strikeout","Strong"]]]}
+]

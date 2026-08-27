@@ -49,6 +49,13 @@ successful status. A sink failure is not successful conversion.
   punctuation-sensitive text boundaries preserve delimiter flanking without
   adding visible markers or enabling raw HTML. These choices target the named
   CommonMark/strikeout profile, not every Markdown extension combination.
+- Inline adjacency is normalized before contextual escaping and delimiter
+  selection. Zero-output styles, empty raw code and inactive empty labels do
+  not separate text or equivalent styles; transparent/inactive wrappers expose
+  their children. Whitespace-only styles remain whitespace, not delimiters.
+  Breaks, blocks, nonempty code (including spaces), and active links/images
+  (including empty labels) retain their boundaries. An empty destination
+  attribute remains inactive under the existing destination policy.
 - Links and images preserve visible text/alt text, not arbitrary attributes or
   titles. Destinations allow HTTP(S), relative paths/fragments, and mailto for
   links only. They reject other schemes, network-path `//` references,
@@ -152,6 +159,13 @@ use charged linear or bounded-window scans with cooperative checkpoints. The
 work bound also applies to attribute scanning and Markdown-boundary traversal;
 it is not just an input-size check. Native string copies/joins and fixed bounded
 token operations are not individually preemptible or hard wall-time guarantees.
+Inline normalization charges visits, cached classifications and retained
+reference slots before growth. It uses cached per-container sequences and
+append-only coalescing, not repeated accumulated-prefix copies; transparent and
+empty chains are traversed without building flattened arrays at each wrapper.
+Nested nonempty formatting still consumes depth-dependent rendering work under
+the same work cap. The normalized references are additional bounded retained
+state, not a constant-memory claim or a separate unbounded normalization budget.
 Cleanup registers before acquisition, closes acquired iterators idempotently,
 and preserves primary execution/caller-abort failures over secondary cleanup.
 Opaque host-provided producer/return promises are not hard-preemptible; cleanup

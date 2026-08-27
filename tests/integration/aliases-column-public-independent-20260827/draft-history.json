@@ -1,0 +1,29 @@
+{
+  "classification": "Pre-freeze fixture-author corrections, not candidate or product failures; immutable original attempts remain in their unique temp directories",
+  "baselineCommit": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "attempts": [
+    {
+      "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/aliases-column-public-freeze-ky19ep",
+      "result": "isolated build and strict positive/10-negative checks passed; runtime could not parse draft consumer",
+      "correction": "missing ); at the end of the regex-options check callback; no product edit"
+    },
+    {
+      "directory": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/aliases-column-public-freeze-LxzRrw",
+      "result": {"passed": 35, "failed": 5, "candidateAcceptance": "NOT RUN"},
+      "corrections": [
+        {"originalCase":{"id":"extended-last-fixed-option","script":"egrep -F 'a|b'","stdin":"a\na|b\n","stdout":"a|b\n","stderr":"","exitCode":0},"correctedId":"extended-conflicting-fixed-option","expected":{"stdout":"","stderr":"egrep: conflicting matchers specified\n","exitCode":2},"basis":"Inspected grep-aliases README inherited option profile explicitly rejects combined -E/-F; draft incorrectly assumed last-option precedence"},
+        {"originalCase":{"id":"fixed-last-extended-option","script":"fgrep -E 'a|b'","stdin":"a\nb\nx\n","stdout":"a\nb\n","stderr":"","exitCode":0},"correctedId":"fixed-conflicting-extended-option","expected":{"stdout":"","stderr":"fgrep: conflicting matchers specified\n","exitCode":2},"basis":"Same explicit conflicting-matcher profile; not a native compatibility claim"},
+        {"id":"column-unsupported-option","script":"column --json","stdin":"a b\n","originalExpected":{"stdout":"","stderr":"column: unsupported option: --json\n","exitCode":1},"expected":{"stdout":"","stderr":"column: EINVAL: unsupported option: --json\n","exitCode":1},"basis":"FsError.message includes EINVAL; exact diagnostic retained, not relaxed to a regex"},
+        {"id":"column-limits-propagation:standalone","script":"column -t","stdin":"a b\nc d\n","limits":{"maxRows":1},"originalExpected":{"stdout":"","stderr":"column: column rows limit exceeded\n","exitCode":1},"expected":{"stdout":"","stderr":"column: EFBIG: column rows limit exceeded\n","exitCode":1},"basis":"FsError.message includes EFBIG"},
+        {"id":"column-invalid-limit-preflight-and-options-snapshot","script":"column -t","stdin":"a\nb\n","originalExpected":{"stdout":"","stderr":"column: column rows limit exceeded\n","exitCode":1},"expected":{"stdout":"","stderr":"column: EFBIG: column rows limit exceeded\n","exitCode":1},"basis":"Same FsError.message prefix; snapshot limit remains one row"}
+      ]
+    }
+  ],
+  "pathCorrection": "Resolve mkdtemp output through realpathSync so Darwin /var versus /private/var aliases do not corrupt installed-path authentication. First attempt ended before this latent mismatch was exercised.",
+  "historicalEvidencePreserved": {
+    "moduleSourceEvidence": "final combined0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+    "column": "functional39/39,12source+12moved+6regressions accepted",
+    "aliases": "author82/82 after precisely2 public-Shell return-rejection fixture corrections (independent review pending Curie)",
+    "sharedStdin": "finalf8819e9d accepted with independently corrected fixture35/35+6/6; no arbitrary cleanup guarantee"
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "scope": "PRE-CANDIDATE finishing freeze; no integration candidate inspected or run",
+  "validatedAt": "2026-08-27T17:21:20.539Z",
+  "sourceCommit": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "reportPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/aliases-column-public-freeze-YII8gL/report.json",
+  "reportSha256": "0479da0bae9c28ad1be71bc62eccb690125e2d863d95c3b1529be56f488ea7f4",
+  "syntax": {
+    "status": "PASS",
+    "files": [
+      "consumer.mjs",
+      "contract.mjs",
+      "run.mjs",
+      "self-check.mjs"
+    ]
+  },
+  "selfCheck": {
+    "status": "PASS",
+    "fixedDataCases": 21,
+    "defaultNames": 73,
+    "rejectedManifestMutations": 22
+  },
+  "baseline": {
+    "status": "PASS",
+    "runtime": {
+      "passed": 45,
+      "failed": 0
+    },
+    "positiveTypes": "PASS",
+    "negativeTypeLines": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "aggregateTypeChecks": {
+      "status": "future regex/column routes DEFERRED; four replace-invalid controls only",
+      "lines": {
+        "agentRegex": 13,
+        "definitionsRegex": 14,
+        "agentColumn": 15,
+        "definitionsColumn": 16
+      }
+    },
+    "mainModuleLoads": 181,
+    "workers": 29,
+    "readyWorkers": 29,
+    "exitedWorkers": 29,
+    "controls": {
+      "missingExport": "PASS",
+      "sourceFallback": "PASS",
+      "workerLayout": "PASS",
+      "typeNegative": "PASS",
+      "expectedOutputMutation": "PASS",
+      "beforeAfterInventory": "PASS including new file entries"
+    },
+    "wrongBytes": {
+      "status": "PASS: deliberately wrong bytes rejected",
+      "totals": {
+        "passed": 44,
+        "failed": 1
+      }
+    },
+    "expectedRed": [
+      {
+        "assertion": "aliases root public import",
+        "status": "EXPECTED RED",
+        "observedStatus": 1
+      },
+      {
+        "assertion": "column root public import",
+        "status": "EXPECTED RED",
+        "observedStatus": 1
+      },
+      {
+        "assertion": "exactly 73 default definitions",
+        "status": "EXPECTED RED",
+        "observedStatus": 1
+      }
+    ]
+  },
+  "candidateAcceptance": "NOT RUN / EXPECTED RED: baseline has 70 defaults and lacks public family symbols; internal probes are not integration passes",
+  "pendingBindings": [
+    "exact integration source commit",
+    "complete root/package exports and optional literal subpaths",
+    "pack artifact binding via root",
+    "aggregate regex and column option routes",
+    "wildcard-only export schema clarification if needed"
+  ],
+  "fixtureSha256": {
+    "README.md": "bc394212fd3c1db408357face5e57e7aa7077a7b6e0dbee08c244f61c5827dfc",
+    "baseline-evidence.json": "3558f6ff64d734164945decd0e897cd67f0653ec51f2cee4b8fcbd645c85b8cf",
+    "cases.json": "39480fd5667f94088c9d864fa4b09c8e8dc1ed125d96f9bafc30c1b5da563598",
+    "consumer.mjs": "bd40dc0b2d3399259e7160dc1112a26a88144a1752ebcb984940baa34a14d7a3",
+    "contract.mjs": "83983cfc4c5b7cc87963a86180f849418e5123bdd9c37cf68433eb7e60a0716a",
+    "draft-history.json": "c1081b76f0a515f5341fa6fbca6799fc9af2fc30ffdb5ad8f32682f1814a72aa",
+    "negative.ts.fixture": "349056ff4047ee3222f00d0c5f5a6c5e234badb37913a51fc91f7553835671c8",
+    "positive.ts.fixture": "276c21ee937336e75512985d4d86a39984f92c5d82d085403b76680848bbf811",
+    "run.mjs": "c8a39847e5957d28f820034723722a316064de77577621992b2f92dab7c3b415",
+    "self-check.mjs": "bfff5013f341a4214df8905c489b30bbaebaf39de0187b6ad756c8e94801f0b4"
+  },
+  "notes": [
+    "Historical baseline-evidence.json and draft-history.json preserved byte-for-byte.",
+    "Receipt added after measured run; hashes cover all ten final fixture/evidence files, not this self-referential receipt.",
+    "Candidate negative type calls and conflicting nested replacement probes are frozen but NOT RUN; baseline uses replace-invalid type controls only.",
+    "73 excludes curl, SafeJS, expr and du; baseline still observes 70. No full gate, parity or superiority claim."
+  ]
+}

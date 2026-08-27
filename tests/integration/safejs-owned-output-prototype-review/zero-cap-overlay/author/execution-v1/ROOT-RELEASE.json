@@ -1,0 +1,20 @@
+{
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "independentReviewCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "independentReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json",
+  "rootAuthorized": true,
+  "rootAuthorization": "ROOT RELEASES AUTHOR ACTUAL BOUNDED REPLAY, user message2026-08-27: exactly one isolated author replay of8surface+11lifecycle+6controls from freeze a61e63bc; I01 surface unconditional bounded continuation retained, first-nonpass stops within lifecycle/controls; no source/fixture/assertion repair, no promotion.",
+  "allowedCohorts": [
+    "surface",
+    "lifecycle",
+    "controls"
+  ],
+  "candidateRoot": "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/package",
+  "outputRoot": "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/raw",
+  "noPromotion": true
+}

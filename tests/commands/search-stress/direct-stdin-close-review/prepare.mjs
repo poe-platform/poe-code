@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { prepareFixture } from './prepare-fixture.mjs';
 
 const own = dirname(fileURLToPath(import.meta.url));
 const root = resolve(own, '../../../..');
@@ -60,7 +61,10 @@ try {
   symlinkSync(join(root, 'node_modules'), join(source, 'node_modules'), 'dir');
   const compiler = realpathSync(join(root, 'node_modules/typescript/bin/tsc'));
   const tools = { node: { path: process.execPath, version: process.version, sha256: hash(readFileSync(process.execPath)) },
-    compiler: { path: compiler, sha256: hash(readFileSync(compiler)), version: JSON.parse(readFileSync(join(root, 'node_modules/typescript/package.json'), 'utf8')).version } };
+    compiler: { path: compiler, sha256: hash(readFileSync(compiler)), version: JSON.parse(readFileSync(join(root, 'node_modules/typescript/package.json'), 'utf8')).version },
+    compilerPackage: inventory(join(root, 'node_modules/typescript')),
+    nodeTypes: inventory(join(root, 'node_modules/@types/node')),
+    undiciTypes: inventory(join(root, 'node_modules/undici-types')) };
   command([process.execPath, compiler, '-p', 'tsconfig.build.json'], source);
   const built = inventory(join(source, 'dist'));
   const packs = join(work, 'packs');
@@ -74,7 +78,10 @@ try {
   const packagePath = join(staged, 'node_modules/virtual-bash');
   mkdirSync(packagePath, { recursive: true });
   command(['tar', '-xzf', tarball, '--strip-components=1', '-C', packagePath]);
-  for (const filename of ['consumer.mjs', 'cases.mjs']) writeFileSync(join(staged, filename), readFileSync(join(own, filename)), { flag: 'wx' });
+  writeFileSync(join(staged, 'consumer.mjs'), readFileSync(join(own, 'consumer.mjs')), { flag: 'wx' });
+  const fixture = prepareFixture(readFileSync(join(own, 'cases.mjs'), 'utf8'));
+  writeFileSync(join(staged, 'cases.mjs'), fixture.prepared, { flag: 'wx' });
+  writeFileSync(join(report, 'prepared-cases.mjs.data'), fixture.prepared, { flag: 'wx' });
   writeFileSync(join(staged, 'package.json'), '{"type":"module","private":true}\n', { flag: 'wx' });
   const moved = join(work, 'moved-consumer');
   renameSync(staged, moved);
@@ -88,7 +95,7 @@ try {
   }
   const packageBytes = readFileSync(tarball);
   writeFileSync(join(report, 'virtual-bash-baseline.tgz'), packageBytes, { flag: 'wx' });
-  write('preparation.json', { baseline, freezeCommit, frozen, tools,
+  write('preparation.json', { baseline, freezeCommit, frozen, fixture: fixture.evidence, tools,
     sourceBefore: provenance.files.filter(entry => entry.kind === 'build-input'),
     sourceAfter: inventory(join(quarantine, 'src')),
     built, packedInventory, tarball: { path: tarball, bytes: packageBytes.length, sha256: hash(packageBytes) },
@@ -118,7 +125,7 @@ try {
   }
   const packedAfter = inventory(join(moved, 'node_modules/virtual-bash'));
   const sourceAfter = inventory(join(quarantine, 'src'));
-  const sourceEqual = provenance.files.filter(entry => entry.path.startsWith('src/')).every(entry =>
+  const sourceEqual = provenance.files.filter(entry => entry.kind === 'build-input' && entry.path.startsWith('src/')).every(entry =>
     sourceAfter.find(actual => `src/${actual.path}` === entry.path)?.sha256 === entry.sha256);
   write('summary.json', { baseline, freezeCommit, total: results.length, passed: results.filter(result => result.pass).length,
     failed: results.filter(result => !result.pass).length, results,

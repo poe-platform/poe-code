@@ -1,0 +1,297 @@
+TAP version 13
+# Subtest: quiet native controls use the frozen GNU patch 2.8 executable
+ok 1 - quiet native controls use the frozen GNU patch 2.8 executable
+  ---
+  duration_ms: 10.992625
+  type: 'test'
+  ...
+# {"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}
+# Subtest: default matches pinned native bytes/effects: apply
+ok 2 - default matches pinned native bytes/effects: apply
+  ---
+  duration_ms: 20.100541
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\n","stderr":"","files":{"target":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: apply
+ok 3 - quiet matches pinned native bytes/effects: apply
+  ---
+  duration_ms: 13.156334
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"target":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: reverse
+ok 4 - default matches pinned native bytes/effects: reverse
+  ---
+  duration_ms: 12.217375
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-R"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"new\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\n","stderr":"","files":{"target":"old\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: reverse
+ok 5 - quiet matches pinned native bytes/effects: reverse
+  ---
+  duration_ms: 11.385708
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s","-R"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"new\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"target":"old\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: dry-run
+ok 6 - default matches pinned native bytes/effects: dry-run
+  ---
+  duration_ms: 11.261375
+  type: 'test'
+  ...
+# {"args":["-t","-p0","--dry-run"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n"},"expected":{"exitCode":0,"stdout":"checking file target\\n","stderr":"","files":{"target":"old\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: dry-run
+ok 7 - quiet matches pinned native bytes/effects: dry-run
+  ---
+  duration_ms: 9.288917
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s","--dry-run"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"target":"old\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: multifile
+ok 8 - default matches pinned native bytes/effects: multifile
+  ---
+  duration_ms: 8.926583
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- second\\n+++ second\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n","second":"old\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\npatching file second\\n","stderr":"","files":{"second":"new\\n","target":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: multifile
+ok 9 - quiet matches pinned native bytes/effects: multifile
+  ---
+  duration_ms: 8.956958
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- second\\n+++ second\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"old\\n","second":"old\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"second":"new\\n","target":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: offset and backup
+ok 10 - default matches pinned native bytes/effects: offset and backup
+  ---
+  duration_ms: 10.694917
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"prefix\\nold\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\nHunk \#1 succeeded at 2 (offset 1 line).\\n","stderr":"","files":{"target":"prefix\\nnew\\n","target.orig":"prefix\\nold\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: offset and backup
+ok 11 - quiet matches pinned native bytes/effects: offset and backup
+  ---
+  duration_ms: 9.001
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"prefix\\nold\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"target":"prefix\\nnew\\n","target.orig":"prefix\\nold\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: fuzz and backup
+ok 12 - default matches pinned native bytes/effects: fuzz and backup
+  ---
+  duration_ms: 8.55575
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1,3 +1,3 @@\\n first\\n-old\\n+new\\n last\\n","files":{"target":"different\\nold\\nlast\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\nHunk \#1 succeeded at 1 with fuzz 1.\\n","stderr":"","files":{"target":"different\\nnew\\nlast\\n","target.orig":"different\\nold\\nlast\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: fuzz and backup
+ok 13 - quiet matches pinned native bytes/effects: fuzz and backup
+  ---
+  duration_ms: 7.642625
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1,3 +1,3 @@\\n first\\n-old\\n+new\\n last\\n","files":{"target":"different\\nold\\nlast\\n"},"expected":{"exitCode":0,"stdout":"","stderr":"","files":{"target":"different\\nnew\\nlast\\n","target.orig":"different\\nold\\nlast\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: failed hunk and reject
+ok 14 - default matches pinned native bytes/effects: failed hunk and reject
+  ---
+  duration_ms: 8.440333
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"patching file target\\nHunk \#1 FAILED at 1.\\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\\n","stderr":"","files":{"target":"wrong\\n","target.orig":"wrong\\n","target.rej":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: failed hunk and reject
+ok 15 - quiet matches pinned native bytes/effects: failed hunk and reject
+  ---
+  duration_ms: 10.0975
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"1 out of 1 hunk FAILED -- saving rejects to file target.rej\\n","stderr":"","files":{"target":"wrong\\n","target.orig":"wrong\\n","target.rej":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: failed dry-run
+ok 16 - default matches pinned native bytes/effects: failed dry-run
+  ---
+  duration_ms: 7.492041
+  type: 'test'
+  ...
+# {"args":["-t","-p0","--dry-run"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"checking file target\\nHunk \#1 FAILED at 1.\\n1 out of 1 hunk FAILED\\n","stderr":"","files":{"target":"wrong\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: failed dry-run
+ok 17 - quiet matches pinned native bytes/effects: failed dry-run
+  ---
+  duration_ms: 6.809583
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s","--dry-run"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"1 out of 1 hunk FAILED\\n","stderr":"","files":{"target":"wrong\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: partial hunk publication
+ok 18 - default matches pinned native bytes/effects: partial hunk publication
+  ---
+  duration_ms: 7.924958
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n@@ -3 +3 @@\\n-tail\\n+TAIL\\n","files":{"target":"old\\nkeep\\nwrong\\n"},"expected":{"exitCode":1,"stdout":"patching file target\\nHunk \#2 FAILED at 3.\\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\\n","stderr":"","files":{"target":"new\\nkeep\\nwrong\\n","target.orig":"old\\nkeep\\nwrong\\n","target.rej":"--- target\\n+++ target\\n@@ -3 +3 @@\\n-tail\\n+TAIL\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: partial hunk publication
+ok 19 - quiet matches pinned native bytes/effects: partial hunk publication
+  ---
+  duration_ms: 8.225209
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n@@ -3 +3 @@\\n-tail\\n+TAIL\\n","files":{"target":"old\\nkeep\\nwrong\\n"},"expected":{"exitCode":1,"stdout":"1 out of 2 hunks FAILED -- saving rejects to file target.rej\\n","stderr":"","files":{"target":"new\\nkeep\\nwrong\\n","target.orig":"old\\nkeep\\nwrong\\n","target.rej":"--- target\\n+++ target\\n@@ -3 +3 @@\\n-tail\\n+TAIL\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: explicit reject destination
+ok 20 - default matches pinned native bytes/effects: explicit reject destination
+  ---
+  duration_ms: 8.360667
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-r","rejects"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"patching file target\\nHunk \#1 FAILED at 1.\\n1 out of 1 hunk FAILED -- saving rejects to file rejects\\n","stderr":"","files":{"rejects":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","target":"wrong\\n","target.orig":"wrong\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: explicit reject destination
+ok 21 - quiet matches pinned native bytes/effects: explicit reject destination
+  ---
+  duration_ms: 8.155
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s","-r","rejects"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"wrong\\n"},"expected":{"exitCode":1,"stdout":"1 out of 1 hunk FAILED -- saving rejects to file rejects\\n","stderr":"","files":{"rejects":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","target":"wrong\\n","target.orig":"wrong\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: automatic reversal warning
+ok 22 - default matches pinned native bytes/effects: automatic reversal warning
+  ---
+  duration_ms: 7.936833
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"new\\n"},"expected":{"exitCode":0,"stdout":"patching file target\\nReversed (or previously applied) patch detected!  Assuming -R.\\n","stderr":"","files":{"target":"old\\n","target.orig":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: automatic reversal warning
+ok 23 - quiet matches pinned native bytes/effects: automatic reversal warning
+  ---
+  duration_ms: 8.062708
+  type: 'test'
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n","files":{"target":"new\\n"},"expected":{"exitCode":0,"stdout":"Reversed (or previously applied) patch detected!  Assuming -R.\\n","stderr":"","files":{"target":"old\\n","target.orig":"new\\n"},"directories":[],"rootExists":true}}
+# Subtest: default matches pinned native bytes/effects: deletion conflict warning
+ok 24 - default matches pinned native bytes/effects: deletion conflict warning
+  ---
+  duration_ms: 7.390458
+  type: 'test'
+  ...
+# {"args":["-t","-p0"],"input":"--- target\\n+++ /dev/null\\n@@ -1 +0,0 @@\\n-old\\n","files":{"target":"old\\nextra\\n"},"expected":{"exitCode":1,"stdout":"patching file target\\nNot deleting file target as content differs from patch\\n","stderr":"","files":{"target":"extra\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet matches pinned native bytes/effects: deletion conflict warning
+not ok 25 - quiet matches pinned native bytes/effects: deletion conflict warning
+  ---
+  duration_ms: 9.66625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch/patch-quiet.test.ts:1:2833'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'Not deleting file target as content differs from patch\n'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: |-
+    Not deleting file target as content differs from patch
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch/patch-quiet.test.ts:59:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"args":["-t","-p0","-s"],"input":"--- target\\n+++ /dev/null\\n@@ -1 +0,0 @@\\n-old\\n","files":{"target":"old\\nextra\\n"},"expected":{"exitCode":1,"stdout":"","stderr":"","files":{"target":"extra\\n"},"directories":[],"rootExists":true}}
+# Subtest: quiet aliases/grouped options --quiet
+ok 26 - quiet aliases/grouped options --quiet
+  ---
+  duration_ms: 9.14125
+  type: 'test'
+  ...
+# Subtest: quiet aliases/grouped options --silent
+ok 27 - quiet aliases/grouped options --silent
+  ---
+  duration_ms: 9.80475
+  type: 'test'
+  ...
+# Subtest: quiet aliases/grouped options -stp0
+ok 28 - quiet aliases/grouped options -stp0
+  ---
+  duration_ms: 7.085083
+  type: 'test'
+  ...
+# Subtest: quiet aliases/grouped options -sRp0
+ok 29 - quiet aliases/grouped options -sRp0
+  ---
+  duration_ms: 8.056584
+  type: 'test'
+  ...
+# Subtest: quiet retains malformed diagnostics and committed prefix (39 bytes)
+ok 30 - quiet retains malformed diagnostics and committed prefix (39 bytes)
+  ---
+  duration_ms: 8.035917
+  type: 'test'
+  ...
+# {"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n?bad\\n","expected":{"exitCode":2,"stdout":"","stderr":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 4: ?bad\\n\\n","files":{"second":"old\\n","target":"old\\n"},"directories":[],"rootExists":true},"productStderr":"patch: truncated or malformed hunk body\\n"}
+# Subtest: quiet retains malformed diagnostics and committed prefix (83 bytes)
+ok 31 - quiet retains malformed diagnostics and committed prefix (83 bytes)
+  ---
+  duration_ms: 8.461792
+  type: 'test'
+  ...
+# {"input":"--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- second\\n+++ second\\n@@ -1 +1 @@\\n?bad\\n","expected":{"exitCode":2,"stdout":"","stderr":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 9: ?bad\\n\\n","files":{"second":"old\\n","target":"new\\n"},"directories":[],"rootExists":true},"productStderr":"patch: truncated or malformed hunk body\\n"}
+# Subtest: quiet success never writes routine stdout (atomic=false)
+ok 32 - quiet success never writes routine stdout (atomic=false)
+  ---
+  duration_ms: 0.360292
+  type: 'test'
+  ...
+# Subtest: quiet preserves failure diagnostics and effects (atomic=false)
+ok 33 - quiet preserves failure diagnostics and effects (atomic=false)
+  ---
+  duration_ms: 1.035375
+  type: 'test'
+  ...
+# Subtest: quiet success never writes routine stdout (atomic=true)
+ok 34 - quiet success never writes routine stdout (atomic=true)
+  ---
+  duration_ms: 0.269375
+  type: 'test'
+  ...
+# Subtest: quiet preserves failure diagnostics and effects (atomic=true)
+ok 35 - quiet preserves failure diagnostics and effects (atomic=true)
+  ---
+  duration_ms: 0.296625
+  type: 'test'
+  ...
+# Subtest: quiet retains path, symlink, hardlink and input-alias guards
+ok 36 - quiet retains path, symlink, hardlink and input-alias guards
+  ---
+  duration_ms: 0.785375
+  type: 'test'
+  ...
+# Subtest: quiet does not relax input, output, work or line limits
+ok 37 - quiet does not relax input, output, work or line limits
+  ---
+  duration_ms: 0.357167
+  type: 'test'
+  ...
+# Subtest: quiet reports publication failure and preserves the completed prefix
+ok 38 - quiet reports publication failure and preserves the completed prefix
+  ---
+  duration_ms: 1.038042
+  type: 'test'
+  ...
+# Subtest: quiet propagates pre-aborted cancellation without effects
+ok 39 - quiet propagates pre-aborted cancellation without effects
+  ---
+  duration_ms: 0.199167
+  type: 'test'
+  ...
+# Subtest: quiet aborts blocked input and observes its late rejection
+ok 40 - quiet aborts blocked input and observes its late rejection
+  ---
+  duration_ms: 22.229958
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 39
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 439.8125

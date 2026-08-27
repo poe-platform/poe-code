@@ -1,0 +1,9 @@
+{
+  "kind": "Cleanup of this validation command Node compile cache only",
+  "path": "tests/commands/diff-patch/node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84",
+  "sha256": "54915364f27ae04c917451e7222dc63856db25b31c56e0fb2d7d519d1e516658",
+  "mtime": "2026-08-27T02:16:43.372Z",
+  "evidence": "Absent in validation before; present after; exactly one regular file; creation within validation interval; TMPDIR pointed to this owned author directory.",
+  "cleanup": "unlink verified regular file; rmdir exact two now-empty directories; no recursive removal",
+  "unattributedNative": "tests/commands/diff-patch-stress/fuzz/.native-bvNFwI preserved"
+}

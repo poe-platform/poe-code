@@ -1,0 +1,14 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "noEmit": false,
+    "rootDir": "../../../src",
+    "outDir": "./scratch/build"
+  },
+  "include": [
+    "../../../src/shell/cancellation.ts"
+  ],
+  "exclude": []
+}

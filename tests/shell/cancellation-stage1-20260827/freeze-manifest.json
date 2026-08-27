@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "candidateHeadBeforeFreeze": "290e175d19f065758b8586c79660fc927db65c9d",
+  "designCommit": "618d8967009117547ab476256bc6eb0a9463309a",
+  "helperSourceAbsentDuringAuthoringAndBaseline": true,
+  "baselineExitStatus": 1,
+  "files": {
+    "README.md": "b2a99646f6a0ad1fe11f7e033186921aa518beb9a9ef9385b0a15332b9f5affc",
+    "BASELINE.md": "fdb1b87b9c753ad59bda5d41553ef3916e7f0c5d3cdf661e56b0829c527fb3aa",
+    "cases.json": "8c007845b59e1e502f8632f0b1eee2a7ae7a66012dcd33847a0ad7425df6dbdb",
+    "cancellation.test.ts": "682fb00de4678afa076bca67fc335c60657080120be4e75bd9a536bc813d58f6",
+    "type-negative.ts": "9f264295170d799cf4b3590124e2e0d5aaf8b6db677320cfb9e18351187d09c4",
+    "tsconfig.strict.json": "ecb28998f791906034fad607b3a47c46b78944f7a9946b07335c361886eeb9e6",
+    "tsconfig.type-negative.json": "5c15ba5c77a3fc2d128d3c1fdeeed638e5b87cda1ac753d11470bea1a2f335c2",
+    "tsconfig.build.json": "23d66845a4cf60c8ec19f3abcc7b77e7e6d58dfe46ed326e891912868e8b1872"
+  }
+}

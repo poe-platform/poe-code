@@ -122,7 +122,7 @@ function parseFormat(text: string, session: Session): Format {
   for (let offset = 0; offset < text.length; offset++) {
     if (text[offset] !== "%") { literal += text[offset]; continue; }
     if (text[offset + 1] === "%") { literal += "%"; offset++; continue; }
-    if (result) throw new UsageError("format must contain exactly one conversion");
+    if (result) throw new UsageError(`format '${text}' has too many % directives`);
     const match = /^%([-+ #0]*)(\d*)(?:\.(\d*))?L?([fFeEgG])/u.exec(text.slice(offset));
     if (!match) throw new UsageError("format requires one f, e or g conversion");
     const width = Number(match[2] || 0), precision = match[3] === undefined ? 6 : Number(match[3]);

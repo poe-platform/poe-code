@@ -5,17 +5,17 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { Shell, agentCommands, createMemoryFileSystem, type ByteSource, type CommandContext, type FileSystem } from "../../../src/index.js";
-import { archiveCommands, createTarCommand, type ArchiveCommandsOptions } from "../../../src/commands/archive/index.js";
+import { createTarCommand, type ArchiveCommandsOptions } from "../../../src/commands/archive/index.js";
 
 export const directory = fileURLToPath(new URL("./", import.meta.url));
 export const oracle = join(directory, ".oracle/gnu-tar/1.35/bin/gtar");
 export const oracleHash = "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66";
 export const binary = Uint8Array.from({ length: 2051 }, (_, index) => index % 256);
 
-export async function fixture(options: ArchiveCommandsOptions = {}, fs: FileSystem = createMemoryFileSystem()) {
+export async function fixture(options: Omit<ArchiveCommandsOptions, "replace"> = {}, fs: FileSystem = createMemoryFileSystem()) {
   await fs.mkdir("/work", { recursive: true });
   await fs.mkdir("/out", { recursive: true });
-  const shell = new Shell({ fs, cwd: "/work", limits: { maxOutputBytes: 16 * 1024 * 1024, pipeHighWaterMark: 1024 } }).use(agentCommands()).use(archiveCommands(options));
+  const shell = new Shell({ fs, cwd: "/work", limits: { maxOutputBytes: 16 * 1024 * 1024, pipeHighWaterMark: 1024 } }).use(agentCommands({ archive: options }));
   return { fs, shell };
 }
 

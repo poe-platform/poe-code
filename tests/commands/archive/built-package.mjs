@@ -13,7 +13,7 @@ const fs = createMemoryFileSystem();
 await fs.mkdir("/input"); await fs.mkdir("/output");
 const payload = Uint8Array.of(0, 255, 128, 10);
 await fs.writeFile("/input/data", payload);
-const shell = new Shell({ fs }).use(agentCommands()).use(archiveCommands());
+const shell = new Shell({ fs }).use(agentCommands());
 try {
   const result = await shell.exec("tar czf - -C /input . | tar xzf - -C /output");
   assert.equal(result.exitCode, 0, result.stderr);

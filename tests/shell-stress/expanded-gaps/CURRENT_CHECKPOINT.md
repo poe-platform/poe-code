@@ -193,3 +193,35 @@ count or closure**. The five custom cases are not closed by accounting author
 results. Other ongoing backend/WebDAV, environment, BOM/jq and whole-product
 work is not certified here. No full224/baseline replay, full feature-family
 closure, overall kernel parity, full Bash, superiority or72-hour completion claim.
+
+## Addendum — independent accounting acceptance, August27,2026
+
+The earlier **PENDING at03:47 UTC** statement remains historical. Plato's later
+independent acceptance `1f2aa307bd1a6e2abe0508369e70c7295ffdf263` (03:50:34 UTC)
+reviews the complete frozen source `f7000b05b15fa34371226b35cf537d3f73bbf004`,
+runtime SHA-256
+`c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449`.
+See `tests/commands/core-regression-stress/OUTPUT_ACCOUNTING_REVIEW.md` and
+`tests/commands/core-regression-stress/NORMATIVE_PROFILES.md`.
+
+All **eight original budget failures now pass8/8**, and the nine original budget
+controls remain9/9. Original accounting18 is **17/18**, not18/18: the unchanged
+Apple environment-order row remains the sole exact loss, not a budget failure.
+Separate evidence is core100/100, original recipes6/6, runtime acceptance10/10,
+focused cohort111/111, new accounting guards8/8, detected semantic mutants7/7,
+and independently rerun author29/29. The initial guard-probe6/7 mutant observation
+remains recorded beside the strengthened probe's7/7; no source fix or old
+expectation change was needed. This accepts the bounded accounting repair,
+not broader lifecycle, shell, or product parity.
+
+The retained order difference is virtual/pinned GNU `B=2\nA=1\n` versus Apple
+`A=1\nB=2\n`. That GNU9.7 capture is specifically **Darwin/libSystem with
+gnulib rpl_putenv prepending new names**, not universal GNU/Linux behavior.
+POSIX gives environment-string order no meaning; these fixture maps agree even
+though exact bytes differ. No Linux native control was run in the profile review,
+and the strict Apple mismatch and original expectations remain unchanged.
+
+This addendum only records existing acceptance; no accounting test or source
+was rerun/changed here. The new old9 baseline remains underway separately, with
+no current count asserted; the five custom-first-read cases remain separate.
+No full-scope, full Bash, overall kernel parity or superiority claim follows.

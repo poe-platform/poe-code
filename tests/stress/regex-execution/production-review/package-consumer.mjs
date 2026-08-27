@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { Shell, MemoryFileSystem, standardCommands, searchCommands } from 'virtual-bash';
 
+assert.ok(import.meta.resolve('virtual-bash').startsWith(new URL('./node_modules/virtual-bash/', import.meta.url).href), 'must resolve moved packed product, not repository self-reference');
 const fs = new MemoryFileSystem();
 await fs.writeFile('/input', Buffer.from('ab\ncd\n'));
 const shell = new Shell({ fs }).use(standardCommands({ regex: { requestTimeoutMs: 1000 } })).use(searchCommands({ regex: { requestTimeoutMs: 1000 } }));

@@ -12,6 +12,8 @@ import {
 } from "@poe-code/agent-harness";
 import {
   makeAgentModule,
+  makeEnvModule,
+  parseEnvConfig,
   makeFailModule,
   makeFsModule,
   makeGitModule,
@@ -24,6 +26,7 @@ import {
   splitFrontmatter,
   type AgentSpawnEvent,
   type Diagnostic,
+  type EnvModuleOptions,
   type McpModuleOptions
 } from "@poe-code/safejs";
 import {
@@ -57,6 +60,7 @@ type HarnessRunOptions = {
   fix?: boolean;
   fs?: boolean;
   fsRoot?: string;
+  envConfig?: string;
   mcpConfig?: string;
   mode?: string;
   model?: string;
@@ -100,6 +104,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       )
       .option("--snapshot-path <path>", "File to write/read harness snapshots.")
       .option("--mcp-config <path>", "Give the harness named MCP servers from a JSON config.")
+      .option("--env-config <path>", "Grant environment reads from an explicit JSON config.")
       .option("--resume", "Resume from the snapshot file when it exists.")
       .option("--agent <name>", "Override the agent id from the harness frontmatter agent block.")
       .option("--model <name>", "Override the model from the harness frontmatter agent block.")
@@ -144,6 +149,13 @@ async function executeHarnessRun(
   const flags = resolveHarnessFlags(program, options.yes);
   const resources = createExecutionResources(container, flags, "harness:run");
   const fsOptions = resolveHarnessFsOptions(container, options);
+  let envOptions: EnvModuleOptions | undefined;
+  if (options.envConfig !== undefined) {
+    if (options.envConfig.trim().length === 0)
+      throw new ValidationError("--env-config needs a JSON file path.");
+    const configPath = path.resolve(container.env.cwd, options.envConfig);
+    envOptions = parseEnvConfig(await container.fs.readFile(configPath, "utf8"));
+  }
   let mcpOptions: McpModuleOptions | undefined;
   if (options.mcpConfig !== undefined) {
     if (options.mcpConfig.trim().length === 0)
@@ -228,7 +240,8 @@ async function executeHarnessRun(
                     reportedSpawnFailures.add(error);
                   },
                   runFsOptions,
-                  mcpOptions
+                  mcpOptions,
+                  envOptions
                 ),
               onDiagnostics: (diagnostics) => {
                 lintDiagnostics.push(...diagnostics);
@@ -971,7 +984,8 @@ function createHarnessModules(
   meta: HarnessImportMeta,
   onSpawnFailure: (error: string) => void,
   fsOptions: HarnessFsOptions | undefined,
-  mcpOptions: McpModuleOptions | undefined
+  mcpOptions: McpModuleOptions | undefined,
+  envOptions: EnvModuleOptions | undefined
 ): ModuleRegistry {
   const harnessMeta = {
     kind: meta.kind,
@@ -1027,6 +1041,13 @@ function createHarnessModules(
   return {
     agent: toModuleExports(agent),
     ...(mcpOptions === undefined ? {} : { mcp: toModuleExports(makeMcpModule(mcpOptions)) }),
+    ...(envOptions === undefined
+      ? {}
+      : {
+          env: toModuleExports(
+            makeEnvModule({ ...envOptions, values: envOptions.values ?? container.env.variables })
+          )
+        }),
     fail: toModuleExports(new Map([["default", fail]])),
     ...(fsOptions === undefined
       ? {}

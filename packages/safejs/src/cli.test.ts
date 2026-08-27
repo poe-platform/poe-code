@@ -41,6 +41,99 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("SafeJS CLI", () => {
+  it("registers only an explicit environment capability config", async () => {
+    vol.fromJSON({
+      "/repo/script.ajs":
+        'import {get} from "env"; let denied; try{get("DENIED");}catch(error){denied=error.code;} return [get("TOKEN"),get("EMPTY"),get("MISSING"),denied];',
+      "/repo/env.json": JSON.stringify({
+        allow: ["TOKEN", "EMPTY", "MISSING"],
+        values: { TOKEN: "configured", EMPTY: "" }
+      })
+    });
+    const stdout = createSink();
+    const stderr = createSink();
+    expect(
+      await runCli(["--env-config", "env.json", "script.ajs"], { cwd: "/repo", stdout, stderr })
+    ).toBe(0);
+    expect(JSON.parse(stdout.output()).returnValue).toEqual([
+      "configured",
+      "",
+      null,
+      "ENV_ACCESS_DENIED"
+    ]);
+    expect(stderr.output()).toBe("");
+    expect(
+      await runCli(["script.ajs"], { cwd: "/repo", stdout: createSink(), stderr: createSink() })
+    ).toBe(1);
+  });
+
+  it("accepts environment options through the CLI SDK", async () => {
+    vol.fromJSON({ "/repo/script.ajs": 'import {get} from "env"; return get("TOKEN");' });
+    const stdout = createSink();
+    expect(
+      await runCli(["script.ajs"], {
+        cwd: "/repo",
+        stdout,
+        stderr: createSink(),
+        env: { allow: ["TOKEN"], values: { TOKEN: "sdk" } }
+      })
+    ).toBe(0);
+    expect(JSON.parse(stdout.output()).returnValue).toBe("sdk");
+  });
+
+  it.each(["options-and-file", "custom-module"])(
+    "rejects ambiguous environment registration: %s",
+    async (mode) => {
+      vol.fromJSON({ "/repo/script.ajs": "return true;", "/repo/env.json": '{"allow":[]}' });
+      const stderr = createSink();
+      const code = await runCli(
+        [...(mode === "options-and-file" ? ["--env-config", "env.json"] : []), "script.ajs"],
+        {
+          cwd: "/repo",
+          stdout: createSink(),
+          stderr,
+          env: { allow: [] },
+          ...(mode === "custom-module"
+            ? { modulesFor: () => ({ env: { get: () => "unsafe" } }) }
+            : {})
+        }
+      );
+      expect(code).toBe(1);
+      expect(stderr.output()).toContain(
+        mode === "custom-module" ? "already registered" : "not both"
+      );
+    }
+  );
+
+  it("does not grant environment access from script frontmatter", async () => {
+    vol.fromJSON({
+      "/repo/script.md":
+        '---\nkind: test\nversion: 1\nenv:\n  allow: [TOKEN]\n---\n```js\nimport {get} from "env"; export default (frontmatter) => get("TOKEN");\n```\n'
+    });
+    const stderr = createSink();
+    expect(await runCli(["script.md"], { cwd: "/repo", stdout: createSink(), stderr })).toBe(1);
+    expect(stderr.output()).toContain("Unknown module");
+  });
+
+  it("validates the environment config before running script effects", async () => {
+    vol.fromJSON({
+      "/repo/script.ajs": 'import {effect} from "host"; effect();',
+      "/repo/env.json": '{"allow":"*"}'
+    });
+    const effect = vi.fn();
+    const stderr = createSink();
+    expect(
+      await runCli(["--env-config", "env.json", "script.ajs"], {
+        cwd: "/repo",
+        stdout: createSink(),
+        stderr,
+        modulesFor: () => ({ host: { effect } })
+      })
+    ).toBe(1);
+    expect(stderr.output()).toContain("allow list");
+    expect(effect).not.toHaveBeenCalled();
+  });
+
   it("registers only explicitly configured MCP servers", async () => {
     vol.fromJSON({
       "/repo/script.ajs":

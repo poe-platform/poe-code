@@ -79,6 +79,7 @@ describe("@poe-code/safejs public exports", () => {
     expect(Object.keys(api).sort()).toEqual([
       "AgentSpawnError",
       "Budget",
+      "EnvAccessError",
       "FileSnapshotBackend",
       "HostCallResumabilityError",
       "HostOperationResumePolicyError",
@@ -106,6 +107,7 @@ describe("@poe-code/safejs public exports", () => {
       "makeTimeModule",
       "noopOtelSink",
       "parse",
+      "parseEnvConfig",
       "parseMcpConfig",
       "parseModule",
       "registerPendingHostCallPolicy",

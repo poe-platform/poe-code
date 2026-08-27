@@ -176,7 +176,7 @@ Registered by the caller via the factory functions exported from the package. No
 | `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                                 |
 | `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                                           |
 | `mcp`     | `makeMcpModule({ servers, ...options })` | Named stdio/HTTP clients: `tools()`, `tool(name, args)`, `toolBatch(calls)`, `close()`; custom connectors remain supported |
-| `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                               |
+| `env`     | `makeEnvModule(allowListOrOptions)`    | `get(name)` — explicit grants; denied reads throw, granted missing values return `undefined`                 |
 | `fs`      | `makeFsModule({ root?, fs? })`         | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module) |
 | `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                               |
 | `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                                |
@@ -322,7 +322,6 @@ no module bodies to inspect.
 ## Gotchas
 
 - **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
-- **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
 - **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no partial-result fallback; choose budgets that fit the workload or wrap the run in your own retry policy.
 
 ## What's intentionally limited
@@ -335,7 +334,7 @@ no module bodies to inspect.
 
 ## Environment Variables
 
-This package does not read package-level environment variables. `makeEnvModule(allowList)` reads from `process.env`, but only for names in `allowList`. `parse`, `lint`, `run`, `dump`, `restore`, `runHarness`, and `makeFsModule` do not read environment variables on their own.
+This package does not read package-level environment variables. `makeEnvModule(allowList)` grants exact named reads from `process.env`; `{ allow, values }` supplies explicit values without ambient fallback. Both CLIs register it only with `--env-config`. Denied reads throw `ENV_ACCESS_DENIED`; granted missing values return `undefined`. See [ENV.md](./ENV.md) for configuration, CLI/SDK parity, and secret-bearing checkpoint handling. `parse`, `lint`, `run`, `dump`, `restore`, `runHarness`, and `makeFsModule` do not read environment variables on their own.
 
 ## Configuration
 

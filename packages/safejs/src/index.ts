@@ -59,7 +59,8 @@ export type {
   SpawnUsageAccumulator,
   SpawnUsageTotal
 } from "./modules/agent.js";
-export { makeEnvModule } from "./modules/env.js";
+export { EnvAccessError, makeEnvModule, parseEnvConfig } from "./modules/env.js";
+export type { EnvModule, EnvModuleOptions } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";
 export { makeFsModule } from "./modules/fs.js";
 export type {

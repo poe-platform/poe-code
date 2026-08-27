@@ -28,7 +28,7 @@ import {
 } from "./values.js";
 import { enterRunningState } from "./running-state.js";
 import { promiseReplayContext } from "./promise-replay.js";
-import { hostErrorData } from "../error/shape.js";
+import { hostErrorData, sandboxErrorTypes } from "../error/shape.js";
 import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import type { RunLifecycle } from "../snapshot/dump.js";
 
@@ -239,7 +239,10 @@ function wrapCallerInjectedFunction(
           hostOperationReplayHandlers.get(value)?.bind(undefined, hostArgs)
         );
       } catch (error) {
-        if (isFatalBridgeError(error)) {
+        if (
+          isFatalBridgeError(error) ||
+          (typeof error === "object" && error !== null && sandboxErrorTypes.has(error))
+        ) {
           throw error;
         }
 

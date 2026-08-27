@@ -68,6 +68,15 @@ Connections are lazy and closed after each run. Stdio environments are empty
 unless explicitly configured. Tool calls are effectful: uncertain pending calls
 require reconciliation, not blind reissue on resume.
 
+Environment access is also explicit: both runners accept `--env-config <json-path>`
+with `{ "allow": ["NAME"], "values": { "NAME": "value" } }`. Omit `values` to
+grant the named host variables; an explicit values map never falls back to the
+host environment. Scripts use `import {get} from "env"`. `get(name)` returns
+undefined only for a granted but missing value; denied names throw an Error with
+`code: "ENV_ACCESS_DENIED"` and `variable: name`. Names are exact, not trimmed.
+Frontmatter never grants access. Checkpoints and output may contain granted
+secrets, including historical values retained during replay.
+
 Linted harness files support arrows, ordinary functions (including async
 functions), synchronous generators, closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,

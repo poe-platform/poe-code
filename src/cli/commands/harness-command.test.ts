@@ -1462,6 +1462,52 @@ describe("harness command", () => {
     });
   });
 
+  it("registers explicit environment capabilities without ambient fallback", async () => {
+    vol.writeFileSync(
+      "/repo/env.json",
+      JSON.stringify({
+        allow: ["TOKEN", "EMPTY", "MISSING"],
+        values: { TOKEN: "configured", EMPTY: "" }
+      })
+    );
+    let modules: SafeJSModuleRecord | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      modules = options.modulesFor(
+        {},
+        { filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      return { ok: true, returnValue: "done" };
+    });
+    await runHarnessCommand(["harness", "run", "harness.md", "--env-config", "env.json"]);
+    await expect(
+      runSafeJS(
+        'import {get} from "env"; let denied; try{get("DENIED");}catch(error){denied=error.code;} return [get("TOKEN"),get("EMPTY"),get("MISSING"),denied];',
+        { modules: modules! }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["configured", "", undefined, "ENV_ACCESS_DENIED"]
+    });
+  });
+
+  it.each([false, true])(
+    "rejects malformed environment grants before execution (dry run: %s)",
+    async (dryRun) => {
+      vol.writeFileSync("/repo/env.json", '{"allow":"*"}');
+      await expect(
+        runHarnessCommand([
+          ...(dryRun ? ["--dry-run"] : []),
+          "harness",
+          "run",
+          "harness.md",
+          "--env-config",
+          "env.json"
+        ])
+      ).rejects.toThrow("allow list");
+      expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    }
+  );
+
   it.each(["resolve", "reject"])(
     "awaits harness cleanup before handling SIGINT (%s)",
     async (outcome) => {

@@ -215,7 +215,8 @@ describe("run", () => {
     const result = await run(
       [
         'import { get } from "env";',
-        'return JSON.stringify(Array.of(get("ALLOWED_TOKEN"), get("BLOCKED_TOKEN"), get("MISSING_TOKEN")));'
+        'let denied; try { get("BLOCKED_TOKEN"); } catch(error) { denied = error.code; }',
+        'return JSON.stringify(Array.of(get("ALLOWED_TOKEN"), denied, get("MISSING_TOKEN")));'
       ].join("\n"),
       {
         modules: {
@@ -226,7 +227,7 @@ describe("run", () => {
 
     expect(result).toMatchObject({
       ok: true,
-      returnValue: JSON.stringify(["secret", null, null])
+      returnValue: JSON.stringify(["secret", "ENV_ACCESS_DENIED", null])
     });
   });
 
@@ -237,7 +238,7 @@ describe("run", () => {
     const result = await run(
       [
         'import * as env from "env";',
-        'return JSON.stringify(Array.of(env.get("ALLOWED_TOKEN"), env.get("BLOCKED_TOKEN"), env.process, env.env));'
+        'return JSON.stringify(Array.of(env.get("ALLOWED_TOKEN"), Object.keys(env), env.process, env.env));'
       ].join("\n"),
       {
         modules: {
@@ -248,7 +249,7 @@ describe("run", () => {
 
     expect(result).toMatchObject({
       ok: true,
-      returnValue: JSON.stringify(["secret", null, null, null])
+      returnValue: JSON.stringify(["secret", ["get"], null, null])
     });
   });
 

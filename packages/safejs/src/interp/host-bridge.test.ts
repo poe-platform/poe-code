@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { run } from "../run.js";
 import { dump } from "../dump.js";
 import { Budget } from "./budget.js";
+import { hostErrorData } from "../error/shape.js";
 import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import {
   createSandboxClosure,
@@ -14,6 +15,36 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it.each([Error, TypeError, RangeError])(
+    "preserves synchronous %s metadata through repeated replay",
+    async (ErrorType) => {
+      const failure = new ErrorType("host failure");
+      hostErrorData.set(failure, { code: "HOST_FAILURE", detail: "preserved" });
+      const explode = vi.fn(() => {
+        throw failure;
+      });
+      const source =
+        "try { explode(); } catch(error) { await 0; return [error.name,error.message,error.code,error.detail,error instanceof Error,error instanceof TypeError]; }";
+      let result = await run(source, { bindings: { explode } });
+      const expected = [
+        failure.name,
+        failure.message,
+        "HOST_FAILURE",
+        "preserved",
+        true,
+        ErrorType === TypeError
+      ];
+      expect(result).toMatchObject({ ok: true, returnValue: expected });
+      for (let iteration = 0; iteration < 3; iteration += 1) {
+        result = await run(source, {
+          bindings: { explode },
+          snapshot: JSON.parse(await dump(result))
+        });
+        expect(result).toMatchObject({ ok: true, returnValue: expected });
+      }
+      expect(explode).toHaveBeenCalledTimes(1);
+    }
+  );
   it("preserves one host function identity across bindings and module aliases", async () => {
     const method = () => 7;
     const source = 'import {method} from "host"; return [method===alias,(await get())===method];';

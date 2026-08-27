@@ -1325,6 +1325,97 @@ SIGINT to `runHarnessPair`, although the standalone CLI did.
    npm gitHead and the GitHub tag, then repeat the isolated-consumer checks before
    marking the MCP checklist item complete.
 
+## Explicit environment capabilities — implementation and QA
+
+Keep environment access opt-in. `makeEnvModule(allowList)` remains a host-side
+grant, and an options form `{ allow, values? }` supports explicit values without
+ambient fallback. Both CLIs accept `--env-config <json>`; the standalone CLI SDK
+accepts the same options. Script frontmatter never grants environment access.
+
+`get(name)` returns a string (including an empty string) for a granted, present
+variable, returns undefined for a granted but absent variable, and throws an
+`EnvAccessError` with code `ENV_ACCESS_DENIED` for a name outside the grant.
+Permission checks precede lookup. Names are exact, case-sensitive capabilities,
+not silently trimmed; reject empty names, NUL, and equals signs. Whitespace and
+Unicode names otherwise remain exact. No enumeration, write, or process export
+is added. This intentionally changes the old denied-read and whitespace behavior
+and needs a major release, not a compatibility shim that retains ambiguity.
+
+Copy grants and explicit values at module construction. If values are omitted,
+read only the granted own data property from the current host environment; if
+values are supplied, never fall back to ambient variables. Reject malformed
+options and granted accessors without executing them. Denied properties are not
+read or evaluated. Preserve structured denial fields through the sandbox and
+JSON checkpoint replay. Completed reads remain recorded observations; future
+reads use the capabilities supplied by the restoring host. Checkpoints can
+contain previously granted secrets and must be protected accordingly.
+
+Manual QA:
+
+1. Add failing unit, replay, and CLI tests before implementation. Cover missing,
+   denied, empty, whitespace, Unicode, prototype-named, invalid, and mutable
+   configuration cases; no filesystem writes or real LLM calls in unit tests.
+2. Run independent SDK/native-result and real-process CLI matrices, including
+   changed/revoked grants on restore, malformed configuration, fatal budgets,
+   concurrent runs, fresh processes, and active checkpoint restart.
+3. Inspect both CLIs and their help/error screenshots. Ensure no ambient values
+   appear when the module is absent or when an explicit values map is supplied.
+4. Run focused and full tests, lint/types, forced/cache-hit builds, package lint,
+   public-entrypoint/type checks, and the standing stale-artifact audit.
+5. Commit and push this item; monitor Release to success and verify exact npm
+   gitHead/tag. Repeat tests against an isolated installed package and check off
+   the environment item only after published-package evidence passes.
+
+### Environment verification before release
+
+- New module/CLI regressions initially failed on missing configuration and
+  ambiguous denial. Additional tests exposed inherited-option pollution and
+  synchronous host errors losing their name, code, and custom fields on replay.
+  Grants now read only own descriptors; replay preserves already-branded sandbox
+  errors instead of wrapping them again as generic host errors.
+- A real 9.0.1 consumer returns `["TypeError","EIO",true]` initially but
+  `["Error",null,false]` on replay. The new runtime restores that same `jobs-v5`
+  snapshot to the original result, invoking the host only once. This fixes
+  replay fidelity without changing the dump format or claiming migration.
+- Focused suites pass 3,924 tests, with 39 skips. All 67 workspace tasks pass a
+  forced build followed by a cache-hit/root bundle build. ESLint, root types,
+  workflow lint, and all 17 package-lint rules pass. The template was updated and
+  all six installed SafeJS skills synced.
+- `/tmp/safejs-env-matrix.mjs` passes 144 native/SDK cases, 432 completed JSON
+  restores, 24 fatal payload-budget cases, and 64 concurrent runs. It covers
+  exact whitespace, Unicode, prototype-named variables, explicit/ambient values,
+  mutation, caught/rethrown errors, and no denied-value capture in snapshots.
+- `/tmp/safejs-env-crash.mjs` passes 12 actual SIGKILL/restores with changed,
+  revoked, or newly granted variables. Recorded reads are not repeated; future
+  reads use the restoring host's configuration. `/tmp/safejs-env-root-resume.mjs`
+  independently passes six active root-CLI SIGKILL/restores, waiting for a real
+  periodic checkpoint rather than assuming a file contains current observations.
+- `/tmp/safejs-env-cli.mjs` passes 54 real-process cases and six standalone
+  completed restores. Both CLIs enforce explicit configuration, missing/denied
+  separation, absent-module refusal, and no ambient fallback. Success, denial,
+  and help screenshots were inspected; root harness runs make zero agent spawns.
+- The isolated candidate `/tmp/safejs-env-consumer.jk7RFD/project` independently
+  passes all four environment matrices, the exact updated installed SDK/CLI CI
+  smoke, strict public TypeScript declarations, and shared-runtime checks. The
+  144-case SDK matrix also passes there under Node 18.18.2 and 24.14.0, in addition
+  to Node 22.22.2. Cleanup verifies 153 removed outputs and six obsolete
+  directories remain absent, with five binaries and 19 internal consumer links.
+- Promise regression passes 2,916 native cases and 5,832 restores. Fatal-Promise
+  checks pass 360 cases with zero escaped effects/pending jobs and 360 cleanups.
+  Agent regression passes 480 cases, 960 restores, 480 cancellations, and 12
+  observer cases. MCP regression passes 72 cases, 144 restores, and 20
+  cancellations, closing all 82 child processes and 82 HTTP sessions.
+
+Remaining checkpoint work discovered during QA: an unhandled rejection from a
+default-exported async function can leave a standalone `--snapshot` file from a
+previous invocation, because the CLI's rejected-promise path does not write a
+final snapshot. Source-hash checks correctly refuse restoring that file after a
+source change. Root harness periodic checkpoints default to 30 seconds, and an
+early failure may leave only the initial checkpoint. Do not treat either file as
+proof of a completed observation. Retain this failure-path audit under the open
+snapshot/budget items; environment restore claims above use verified completed
+or active checkpoints, not assumed failure checkpoints.
+
 ## Stale artifact cleanup
 
 - Removed ignored `dist` / `.turbo` output from obsolete `agent-maestro`,

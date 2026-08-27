@@ -13,6 +13,7 @@ import { splitFrontmatter } from "./loader/frontmatter.js";
 import { lint, type Diagnostic, type Fix } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
+import { makeEnvModule, parseEnvConfig, type EnvModuleOptions } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule, type FsModuleOptions } from "./modules/fs.js";
 import { makeMcpModule } from "./modules/mcp.js";
@@ -51,6 +52,7 @@ export type WriteMarkdownFile = (
 
 export type RunCliOptions = {
   cwd?: string;
+  env?: EnvModuleOptions;
   mcp?: McpModuleOptions;
   modulesFor?: (
     frontmatter: Record<string, unknown>,
@@ -76,6 +78,7 @@ type ParsedArgs = {
   fix: boolean;
   fs: boolean;
   fsRoot?: string;
+  envConfig?: string;
   mcpConfig?: string;
   dataSize?: number;
   maxSteps?: number;
@@ -135,6 +138,7 @@ export async function runCli(
 
         return await runScriptFile(filepath, parsed, {
           cwd,
+          env: options.env,
           mcp: options.mcp,
           modulesFor: options.modulesFor,
           process: options.process ?? process,
@@ -194,6 +198,12 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 
     if (arg === "--mcp-config") {
       parsed.mcpConfig = readFlagValue(argv, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--env-config") {
+      parsed.envConfig = readFlagValue(argv, index, arg);
       index += 1;
       continue;
     }
@@ -288,6 +298,7 @@ async function runScriptFile(
   parsed: ParsedArgs,
   options: {
     cwd: string;
+    env: EnvModuleOptions | undefined;
     mcp: McpModuleOptions | undefined;
     modulesFor: RunCliOptions["modulesFor"];
     brokenPipe: BrokenPipeState;
@@ -312,6 +323,20 @@ async function runScriptFile(
     stderr: options.stderr,
     stdout: options.stdout
   });
+  let env = options.env;
+  if (parsed.envConfig !== undefined) {
+    if (env !== undefined) throw new TypeError("Pass environment options or --env-config, not both.");
+    const configPath = path.resolve(options.cwd, parsed.envConfig);
+    env = parseEnvConfig(await options.readFile(configPath, "utf8"));
+  }
+  if (env !== undefined) {
+    const registry = new Map(
+      runtime.registry instanceof Map ? runtime.registry : Object.entries(runtime.registry)
+    );
+    if (registry.has("env")) throw new TypeError("Environment is already registered by modulesFor.");
+    registry.set("env", makeEnvModule(env));
+    runtime.registry = registry;
+  }
   let mcp = options.mcp;
   if (parsed.mcpConfig !== undefined) {
     if (mcp !== undefined) throw new TypeError("Pass MCP options or --mcp-config, not both.");
@@ -672,6 +697,7 @@ function createUsage(): string {
     "  --fs-root <path>      directory --fs confines the script to (default: the script's",
     "                        directory)",
     "  --mcp-config <path>   register named MCP servers from an explicit JSON config",
+    "  --env-config <path>   grant environment reads from an explicit JSON config",
     "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
     "  --restore <path>      restore from a snapshot before running",
     "  --max-steps <n>       cap interpreter step budget",

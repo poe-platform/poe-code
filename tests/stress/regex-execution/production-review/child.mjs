@@ -152,6 +152,7 @@ process.once('message', async message => {
     if (job === 'cohort') await cohort();
     else if (job === 'lifecycle') await lifecycle();
     else if (job === 'benchmark') await benchmark();
+    else if (job === 'transport') await (await import('./transport.mjs')).runTransport(snapshot, caseCheck);
     else throw new Error(`unprepared job ${job}`);
     assert.equal(active, 0, 'zero live workers at final settlement');
   } catch (error) { observations.push({ name: 'job-final', pass: false, error: error.stack }); }

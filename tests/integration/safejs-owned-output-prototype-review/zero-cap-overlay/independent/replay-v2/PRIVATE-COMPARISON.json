@@ -1,0 +1,44 @@
+{
+  "kind": "STATIC_ANALYSIS_OF_FRESH_CAPTURED_GUARDS_NO_NEW_PRIVATE_QUERY",
+  "privateBeforeAfterExact": true,
+  "rawBeforeSha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3",
+  "rawAfterSha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3",
+  "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+  "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+  "staged": "",
+  "sixMetadataByteHashesMatchHistoricalPins": true,
+  "engineFiles": 264,
+  "engineManifestSha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+  "engineByteManifestMatchesHistoricalPins": true,
+  "statusMatchesHistoricalPins": false,
+  "addedStatusLines": [
+    "?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md",
+    "?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md"
+  ],
+  "removedStatusLines": [],
+  "additionalPrivateFileContentsInspected": false,
+  "historicalPinsPath": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+  "pinsGitBindings": [
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+      "bytes": 17846,
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+      "bytes": 17846,
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+      "bytes": 17846,
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+    }
+  ],
+  "qualification": "Fresh before/after includes all metadata equality. Historical comparisons here assert source/index/six-metadata byte hashes and selected scalar identities, not an unstated equivalence of old millisecond and new nanosecond timestamp representations.",
+  "noPromotion": true
+}

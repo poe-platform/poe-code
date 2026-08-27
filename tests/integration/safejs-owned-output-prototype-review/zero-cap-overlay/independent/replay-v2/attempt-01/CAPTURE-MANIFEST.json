@@ -1,0 +1,63 @@
+{
+  "sourceRoot": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y",
+  "files": [
+    {
+      "path": "attempt-01/raw/attempt-once.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/attempt-once.json",
+      "bytes": 144,
+      "sha256": "565745192dd11a04777d346f6d8761e3eabbc455684f83fb6e438af4161e0e7e"
+    },
+    {
+      "path": "attempt-01/raw/independent-summary.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-summary.json",
+      "bytes": 1140,
+      "sha256": "92b402b5e32206e05b5e29c82bfb2fc2dbdc742518880c89db66299ddc439982"
+    },
+    {
+      "path": "attempt-01/raw/data-negatives.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/data-negatives.json",
+      "bytes": 156,
+      "sha256": "f5bea68524447193f24db4438ad0e124241267c133d63f19334009d15cb2b7b7"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/private-before.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-surface/private-before.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/private-after.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-surface/private-after.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/authentication-after.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-surface/authentication-after.json",
+      "bytes": 400,
+      "sha256": "c632d3501bb4778b38719386be3965b2a4dcb2a3bf79f33abe7a8a33c3b01fb0"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/run.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-surface/run.json",
+      "bytes": 307,
+      "sha256": "274dcfd1f08017adf0136247961ceb23dda8b73f9c3d15b1785cdef3c8b05b1a"
+    },
+    {
+      "path": "attempt-01/raw/independent-lifecycle/run.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-lifecycle/run.json",
+      "bytes": 206,
+      "sha256": "817f5d06da73c1e55776f29bb985d7b09f52c54d5286789b2ecabc9745b7facc"
+    },
+    {
+      "path": "attempt-01/raw/independent-controls/run.json",
+      "sourcePath": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y/independent-controls/run.json",
+      "bytes": 205,
+      "sha256": "3c81db367eef2f19e375c5bd7889acc1be187ad653fda2e97ca85d1c27466c32"
+    }
+  ],
+  "copiedByteForByte": true,
+  "snapshotInputFilesExcludedFromRawCapture": 88,
+  "privateSourceBytesCaptured": false,
+  "noPromotion": true
+}

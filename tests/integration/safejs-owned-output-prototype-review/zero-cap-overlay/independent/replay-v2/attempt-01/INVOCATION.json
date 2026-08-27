@@ -1,0 +1,33 @@
+{
+  "date": "2026-08-27",
+  "command": [
+    "python3",
+    "-B",
+    "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v2/execution/run.py"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "freezeCommit": "c3a3b4299a7011b547c21b8fa864356391b6e04d",
+  "toolSession": 66094,
+  "exitCode": 1,
+  "naturalExit": true,
+  "invocations": 1,
+  "retries": 0,
+  "isolatedSnapshotInitialAuthenticationPassed": true,
+  "parentGitBindingPreloadExecuted": false,
+  "nodeParentsLaunched": 0,
+  "guestChildrenLaunched": 0,
+  "privateSnapshots": 2,
+  "privateGitCommands": 10,
+  "outerOutputQualification": "Execution tool returned the surface run JSON and final summary path/allPass:false; exact structured generated records are captured under attempt-01/raw. No parent stdout/stderr or import log was opened because admission failed first.",
+  "surfaceGuardResult": {
+    "cohort": "surface",
+    "started": "2026-08-27T18:22:03.248744+00:00",
+    "status": "PRIVATE_GUARD_NONPASS",
+    "childrenLaunched": 0,
+    "error": "AssertionError('status')",
+    "privateUnchanged": true,
+    "privateAfterFailure": "AssertionError('status')",
+    "finished": "2026-08-27T18:22:11.149739+00:00"
+  },
+  "noPromotion": true
+}

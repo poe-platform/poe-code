@@ -1,0 +1,69 @@
+{
+  "classification": "Lossless compression of owned verbose diagnostic traces, byte-exact recovery verified. No row, event, failed attempt, tuple, or source byte discarded. PREPACK-MANIFEST is the prior seal, not the current inventory.",
+  "mappings": [
+    {
+      "original": "capture-third/candidate.json",
+      "archived": "capture-third/candidate.json.gz",
+      "originalBytes": 40305,
+      "originalSha256": "8f2d8d4022a22d8ced3ffcd08fdc2672aec225d879bd99530db1520c87448dc9",
+      "archiveBytes": 2082,
+      "archiveSha256": "7aded0a67beb3cabfa5248f4bd65c348c5e9a5ace60159eb42b48d7e322b4f00"
+    },
+    {
+      "original": "capture-third/unguarded.json",
+      "archived": "capture-third/unguarded.json.gz",
+      "originalBytes": 269967,
+      "originalSha256": "c84b7fc1d39016c84026653978590897d46d3fc8090c0901989533bba9b9ccbe",
+      "archiveBytes": 6564,
+      "archiveSha256": "d0f8905d70df0e3590e412d0d0c4c70acde9d4f3d1cd4da45413cc8f2cbb2cc2"
+    },
+    {
+      "original": "capture-third/exactMandatoryOnly.json",
+      "archived": "capture-third/exactMandatoryOnly.json.gz",
+      "originalBytes": 81149,
+      "originalSha256": "9f1174004579929cc2cd781d87cd358a82d0fb984d6afd7b4ab826647b7c395a",
+      "archiveBytes": 2931,
+      "archiveSha256": "097ab2af526e098afbad8b844061d6e1a40d1818e6e8f2e29a04978ab2e5c485"
+    },
+    {
+      "original": "capture-third/repeatFrames.json",
+      "archived": "capture-third/repeatFrames.json.gz",
+      "originalBytes": 358170,
+      "originalSha256": "0bb4757dfe43e7ea507323390d0728dc99e17d6c9f0abe0ab2c64b92c1e7707d",
+      "archiveBytes": 7474,
+      "archiveSha256": "88ac4e4c808bf40bc7ce599f8c55c97951f757bc6a892c5e1da5a17ae88a9d48"
+    },
+    {
+      "original": "capture-final/candidate.json",
+      "archived": "capture-final/candidate.json.gz",
+      "originalBytes": 70481,
+      "originalSha256": "e4ae5ae6a42a89bea7bc8afed024e999e0768f4e1d2f22673ccc91311495ebcf",
+      "archiveBytes": 2841,
+      "archiveSha256": "f6fc80992bcc1b3eb18ece420a17c0d6c790cd5d7d3158436d26348ad3118eaf"
+    },
+    {
+      "original": "capture-final/unguarded.json",
+      "archived": "capture-final/unguarded.json.gz",
+      "originalBytes": 300146,
+      "originalSha256": "b8aff96ed81ee23084cf5174eab8bd49a050b3931d79044ca2a832260818019a",
+      "archiveBytes": 7363,
+      "archiveSha256": "4fd5facab106fea2bec114092f72427727a744f746c0f297b12ff8884d74c324"
+    },
+    {
+      "original": "capture-final/exactMandatoryOnly.json",
+      "archived": "capture-final/exactMandatoryOnly.json.gz",
+      "originalBytes": 111344,
+      "originalSha256": "7a1e5981b51d610e3d6199c9f304253800cd94eff509628bab44c8de1d076f85",
+      "archiveBytes": 3721,
+      "archiveSha256": "2194e50e0739f6f2eb0235766b89f6a417f665763ae43be06224a85f94868670"
+    },
+    {
+      "original": "capture-final/repeatFrames.json",
+      "archived": "capture-final/repeatFrames.json.gz",
+      "originalBytes": 404084,
+      "originalSha256": "60362f7d97e1e4c36f2c1efb7941ac5a63f969f3a2966ec27230ec744cb4bf35",
+      "archiveBytes": 8393,
+      "archiveSha256": "f2dc755e4976e871edd8cd01173685850396cbb4b97b5c5be637fdab2e32d27b"
+    }
+  ]
+}

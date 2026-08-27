@@ -1,0 +1,4 @@
+{
+  "message": "ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/config.h'",
+  "stack": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/config.h'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1249:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/nullable-design-review/capture.mjs:51:73\n    at async Promise.all (index 11)\n    at async fingerprint (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/nullable-design-review/capture.mjs:51:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/nullable-design-review/capture.mjs:57:12"
+}

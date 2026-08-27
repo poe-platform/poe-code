@@ -27,6 +27,7 @@ export class Budget {
     this.inputBytes += size;
   }
   output(size: number): void {
+    this.signal.throwIfAborted();
     this.check(size, this.limits.maxOutputBytes - this.outputBytes, "output");
     this.outputBytes += size;
   }

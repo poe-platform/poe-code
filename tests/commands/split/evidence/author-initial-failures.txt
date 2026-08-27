@@ -23,3 +23,10 @@ Cause: author fixture mistakenly passed {client} rather than actual documented {
 Native edge controls (edge-initial.json) revealed two independent product causes:
 1. Unit parser overaccepted lower-case g/t/p and signed/space-prefixed bare units. Pinned GNU9.7 rejects these; retain exact spelling controls, restrict to GNU's accepted unit alphabet and require unsigned/unspaced bare units. Safe-integer limits remain explicit.
 2. Eager output-directory preflight rejected empty input even though native creates no output and succeeds. Correction follows separately, without changing alias preflight requirements or deleting partial outputs.
+
+Cancellation late-pull control (late-pull-initial.tap): an uncooperative writer held
+the supplied output generator until after cancellation; its first next() still
+yielded the already-prefetched bytes because output budget admission did not check
+the combined signal. Added that signal check before offering any payload. The
+host operation itself still cannot be forcibly stopped; no completed-effect
+rollback is claimed. Exact original abort reason remains observable.

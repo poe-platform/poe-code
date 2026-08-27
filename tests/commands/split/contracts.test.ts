@@ -374,6 +374,28 @@ test("blocked host write aborts promptly and late rejection is observed", async 
   assert.deepEqual(await files(fs), {});
 });
 
+test("cancelled write source refuses even its prefetched first chunk", async () => {
+  const fs = createMemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new Error("cancel before host begins pulling");
+  let held: ByteSource | undefined;
+  let entered!: () => void;
+  let finish!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const backend = wrapped(fs, { writeStream(_path, source) {
+    held = source;
+    entered();
+    return new Promise<void>(resolve => { finish = resolve; });
+  } });
+  const operation = run(["-b2"], "abc", {}, { fs: backend, signal: controller.signal });
+  await started;
+  controller.abort(reason);
+  await assert.rejects(operation, error => error === reason);
+  try { await assert.rejects(held![Symbol.asyncIterator]().next(), error => error === reason); }
+  finally { finish(); }
+  assert.deepEqual(await files(fs), {});
+});
+
 test("blocked iterator abort closes asynchronously without waiting forever", async () => {
   const controller = new AbortController();
   const reason = { stop: "input" };

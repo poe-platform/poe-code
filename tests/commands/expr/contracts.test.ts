@@ -135,9 +135,14 @@ test("work yields for timer cancellation without consuming stdin", async () => {
   } finally { clearTimeout(timer); }
 });
 
-test("sink failure is status 3 and diagnostic failure is not swallowed", async () => {
-  const result = await run(["1"], {}, { stdout: { async write() { throw new Error("sink failure"); } } });
-  assert.equal(result.exitCode, 3); assert.match(result.stderr, /output failure/u);
+test("sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed", async () => {
+  const stdoutReason = new Error("sink failure");
+  let diagnosticWrites = 0;
+  await assert.rejects(run(["1"], {}, {
+    stdout: { async write() { throw stdoutReason; } },
+    stderr: { async write() { diagnosticWrites++; } },
+  }), error => error === stdoutReason);
+  assert.equal(diagnosticWrites, 0);
   const reason = new Error("diagnostic sink failure");
   await assert.rejects(run([], {}, { stderr: { async write() { throw reason; } } }), error => error === reason);
 });

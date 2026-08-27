@@ -1,0 +1,155 @@
+{
+  "status": "AUTHOR_V2_EVIDENCE_CONSISTENT",
+  "verifiedAt": "2026-08-27T16:31:07.016Z",
+  "freezeCommit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+  "noPromotion": true,
+  "independentAcceptance": false,
+  "newRuntimeExecutions": 0,
+  "counts": {
+    "total": 11,
+    "logicalWorkflows": 6,
+    "executed": 11,
+    "valid": 11,
+    "pass": 11,
+    "failed": 0,
+    "invalid": 0,
+    "unproved": 0,
+    "blocked": 0
+  },
+  "rows": [
+    {
+      "id": "L01-aliases",
+      "variantId": "L01-aliases",
+      "classification": "PASS",
+      "pid": 44729,
+      "assertions": 3
+    },
+    {
+      "id": "L02-budget-positive",
+      "variantId": "L02-budget-positive",
+      "classification": "PASS",
+      "pid": 44768,
+      "assertions": 4
+    },
+    {
+      "id": "L02-budget-exhausted",
+      "variantId": "L02-budget-exhausted",
+      "classification": "PASS",
+      "pid": 44880,
+      "assertions": 4
+    },
+    {
+      "id": "L03-callback-live",
+      "variantId": "L03-callback-live",
+      "classification": "PASS",
+      "pid": 44894,
+      "assertions": 4
+    },
+    {
+      "id": "L03-callback-after-lifetime",
+      "variantId": "L03-callback-after-lifetime",
+      "classification": "PASS",
+      "pid": 44897,
+      "assertions": 4
+    },
+    {
+      "id": "L04-explicit-children",
+      "variantId": "L04-explicit-children",
+      "classification": "PASS",
+      "pid": 44932,
+      "assertions": 4
+    },
+    {
+      "id": "L05-caller-error",
+      "variantId": "L05-caller-error",
+      "classification": "PASS",
+      "pid": 44935,
+      "assertions": 4
+    },
+    {
+      "id": "L05-execution-error",
+      "variantId": "L05-S1-selected-after-command",
+      "classification": "PASS",
+      "pid": 44937,
+      "assertions": 5
+    },
+    {
+      "id": "L05-cleanup-error",
+      "variantId": "L05-cleanup-error",
+      "classification": "PASS",
+      "pid": 44940,
+      "assertions": 4
+    },
+    {
+      "id": "L06-curl-open",
+      "variantId": "L06-C1-curl-open",
+      "classification": "PASS",
+      "pid": 44948,
+      "assertions": 5
+    },
+    {
+      "id": "L06-curl-consumer-closed",
+      "variantId": "L06-C1-curl-consumer-closed",
+      "classification": "PASS",
+      "pid": 44977,
+      "assertions": 5
+    }
+  ],
+  "original74Unchanged": true,
+  "proposal5Unchanged": true,
+  "runnerFreezeUnchanged": true,
+  "originalRawCountsUnchanged": {
+    "pass": 8,
+    "failed": 1,
+    "invalid": 1,
+    "blocked": 1
+  },
+  "sourceFiles": 213,
+  "productFiles": 940,
+  "compiledFiles": 708,
+  "packageFiles": 709,
+  "importRecords": 2464,
+  "importKinds": {
+    "harness-or-copied-tool": 33,
+    "packed-public-product": 1738,
+    "actual-engine-source-copy": 693
+  },
+  "uniqueLoggedFiles": 224,
+  "engineUniqueLoggedFiles": 63,
+  "regularCopyChecks": 24,
+  "privateBeforeAfterUnchanged": true,
+  "sharedBeforeAfterUnchanged": true,
+  "childrenNaturallyClosed": 11,
+  "remainingTrackedTimers": 0,
+  "containment": false,
+  "temporaryRemoved": true,
+  "foreignLiveChanges": [
+    {
+      "path": "src/commands/network/README.md",
+      "before": {
+        "path": "commands/network/README.md",
+        "bytes": 10805,
+        "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+      },
+      "after": {
+        "path": "commands/network/README.md",
+        "bytes": 12132,
+        "sha256": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e"
+      }
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "before": {
+        "path": "commands/network/shared.ts",
+        "bytes": 2606,
+        "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+      },
+      "after": {
+        "path": "commands/network/shared.ts",
+        "bytes": 2690,
+        "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+      }
+    }
+  ],
+  "caveat": "Read-only consistency of frozen author assertions and captured reference-identity booleans, not a new runtime run, independent replay, current live product gate, zero-host-cap support or universal parity."
+}

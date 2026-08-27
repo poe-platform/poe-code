@@ -1,0 +1,410 @@
+{
+  "id": "L05-execution-error",
+  "variantId": "L05-S1-selected-after-command",
+  "publicSource": "owned-guest\n)",
+  "publicSourceHex": "6f776e65642d67756573740a29",
+  "publicSourceBytes": 13,
+  "selected": {
+    "id": "L05-execution-error",
+    "workflow": "L05",
+    "guest": "guests/precedence.ajs.data",
+    "guestArgs": [],
+    "route": "literal-invoke",
+    "schedule": "real-write-and-diagnostic-rejection",
+    "expect": {
+      "publicKind": "rejection",
+      "identity": "executionError",
+      "stdout": "admitted\n",
+      "cleanupFailureObserved": "cleanupError",
+      "diagnosticSinkRejectedWithExecutionIdentity": true,
+      "cleanupDoneBeforePublicSettlement": true
+    },
+    "qualification": "Do not promote the guest/utility throw into a raw rejection. A real failing public diagnostic sink and source-selected rejection are required; a status-only observation leaves this precedence assertion UNPROVED."
+  },
+  "pid": 44937,
+  "node": "v22.22.2",
+  "started": "2026-08-27T16:24:56.372Z",
+  "events": [
+    {
+      "order": 1,
+      "event": "public-exec-enter",
+      "publicSettled": false,
+      "command": "owned-guest\n)",
+      "variantId": "L05-S1-selected-after-command",
+      "sourceHex": "6f776e65642d67756573740a29",
+      "sourceBytes": 13
+    },
+    {
+      "order": 2,
+      "event": "owned-guest-enter",
+      "publicSettled": false
+    },
+    {
+      "order": 3,
+      "event": "cleanup-registered",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 4,
+      "event": "operation-created",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 5,
+      "event": "acquire-start",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 6,
+      "event": "engine-enter",
+      "publicSettled": false,
+      "modules": [
+        "fs",
+        "stdio",
+        "command"
+      ],
+      "filename": "<safejs -e>"
+    },
+    {
+      "order": 7,
+      "event": "accounted-write-enter",
+      "publicSettled": false,
+      "bytes": "61646d69747465640a"
+    },
+    {
+      "order": 8,
+      "event": "public-stdout-accepted",
+      "publicSettled": false,
+      "hex": "61646d69747465640a"
+    },
+    {
+      "order": 9,
+      "event": "accounted-write-settled",
+      "publicSettled": false,
+      "bytes": "61646d69747465640a"
+    },
+    {
+      "order": 10,
+      "event": "accounted-write-enter",
+      "publicSettled": false,
+      "bytes": "73656c65637465640a"
+    },
+    {
+      "order": 11,
+      "event": "public-write-rejection-point",
+      "publicSettled": false
+    },
+    {
+      "order": 12,
+      "event": "facade-signal-aborted",
+      "publicSettled": false,
+      "reason": {
+        "type": "object",
+        "name": "Error",
+        "message": "execution:L05-execution-error",
+        "stack": "Error: execution:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs:77:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+      },
+      "callerIdentity": false
+    },
+    {
+      "order": 13,
+      "event": "public-diagnostic-rejected",
+      "publicSettled": false,
+      "executionIdentity": true,
+      "attemptedHex": "736166656a733a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+    },
+    {
+      "order": 14,
+      "event": "public-diagnostic-rejected",
+      "publicSettled": false,
+      "executionIdentity": true,
+      "attemptedHex": "7368656c6c3a206c696e6520313a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+    },
+    {
+      "order": 15,
+      "event": "engine-rejected",
+      "publicSettled": false,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "execution:L05-execution-error",
+        "stack": "Error: execution:L05-execution-error"
+      }
+    },
+    {
+      "order": 16,
+      "event": "safejs-invoke-settled",
+      "publicSettled": false,
+      "status": 1
+    },
+    {
+      "order": 17,
+      "event": "close-enter",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 18,
+      "event": "resource-release-enter",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 19,
+      "event": "resource-release-done",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 20,
+      "event": "resource-release-rejected",
+      "publicSettled": false,
+      "cleanupIdentity": true
+    },
+    {
+      "order": 21,
+      "event": "close-rejected",
+      "publicSettled": false,
+      "label": "guest-output",
+      "cleanupIdentity": true,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "cleanup:L05-execution-error",
+        "stack": "Error: cleanup:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs:78:22\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+      }
+    },
+    {
+      "order": 22,
+      "event": "public-diagnostic-rejected",
+      "publicSettled": false,
+      "executionIdentity": true,
+      "attemptedHex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d657865637574696f6e2d6572726f720a"
+    },
+    {
+      "order": 23,
+      "event": "selected-syntax-diagnostic-sink-enter",
+      "publicSettled": false,
+      "count": 1,
+      "attemptedHex": "7368656c6c3a20457870656374656420636f6d6d616e64206174206f66667365742031320a",
+      "bytes": 37,
+      "selectedGuestStatus": 1,
+      "cleanupDone": true,
+      "cleanupErrorObserved": true,
+      "releases": 1,
+      "callerAborted": false
+    },
+    {
+      "order": 24,
+      "event": "public-diagnostic-rejected",
+      "publicSettled": false,
+      "executionIdentity": true,
+      "attemptedHex": "7368656c6c3a20457870656374656420636f6d6d616e64206174206f66667365742031320a"
+    },
+    {
+      "order": 25,
+      "event": "selected-syntax-diagnostic-sink-throw",
+      "publicSettled": false,
+      "count": 1,
+      "executionIdentity": true
+    },
+    {
+      "order": 26,
+      "event": "public-exec-settled",
+      "publicSettled": true
+    }
+  ],
+  "classification": "PASS",
+  "containment": false,
+  "assertions": [
+    {
+      "name": "actual engine and supported helper admission",
+      "pass": true
+    },
+    {
+      "name": "frozen public result and exact accepted bytes",
+      "pass": true
+    },
+    {
+      "name": "before-settlement ownership",
+      "pass": true
+    },
+    {
+      "name": "exact primary and observed secondary failures",
+      "pass": true
+    },
+    {
+      "name": "new exact source-selected rejection after nested status and cleanup",
+      "pass": true
+    }
+  ],
+  "boundary": [
+    {
+      "specifier": "virtual-bash/shell/runtime",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "Package subpath './shell/runtime' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs",
+        "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+        "stack": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './shell/runtime' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:661:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)"
+      }
+    },
+    {
+      "specifier": "virtual-bash/commands/safejs/io",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "Package subpath './commands/safejs/io' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs",
+        "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+        "stack": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './commands/safejs/io' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:661:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)"
+      }
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/dist/index.js",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Outside import: /Users/kjopek/Workspace/safe-bash/dist/index.js",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Outside import: /Users/kjopek/Workspace/safe-bash/dist/index.js\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:20:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Outside import: /Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Outside import: /Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:20:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    },
+    {
+      "specifier": "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/product/src/index.ts",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "No archive-source fallback",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: No archive-source fallback\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:21:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    }
+  ],
+  "engineRuns": 1,
+  "literalInvoke": {
+    "name": "safejs",
+    "args": [
+      "-e",
+      "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"admitted\\n\");\nawait Promise.resolve().then(() => emit(\"selected\\n\"));\nreturn \"precedence-complete\";\n",
+      "--"
+    ]
+  },
+  "budgetOptions": {
+    "maxSteps": 200000,
+    "deadline": 1787847900250,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 8192,
+    "dataSize": 1048576
+  },
+  "atSettlement": {
+    "acquisitions": 1,
+    "releases": 1,
+    "cleanupDone": true,
+    "bridgePending": 0,
+    "cleanupErrorObserved": true,
+    "lateWriteErrorObserved": false,
+    "innerDisposed": false,
+    "callerIdentity": false,
+    "executionIdentity": true,
+    "cleanupIdentity": false,
+    "callerAborted": false,
+    "ordinaryDestinationWriteCalls": 0,
+    "accountedWriteCalls": 2,
+    "holdEntries": 0,
+    "lateEntries": 0,
+    "holdReleased": false,
+    "leftReleases": 0,
+    "rightReleases": 0,
+    "lateAcquisitionStarts": 0,
+    "lateChildCreations": 0,
+    "rightEffect": "",
+    "curlWriteoutCalls": 0,
+    "transportAbortedByConsumer": false,
+    "transportClosed": false,
+    "responseDisposed": false,
+    "uploadBeforeEof": false,
+    "uploadEof": false,
+    "authorizeCalls": 0,
+    "transportCleanupRegistered": false
+  },
+  "selector": {
+    "calls": 1,
+    "throws": 1,
+    "publicResultAbsent": true,
+    "publicExecutionIdentity": true,
+    "callerAborted": false
+  },
+  "publicOutcome": {
+    "kind": "rejection",
+    "error": {
+      "type": "object",
+      "name": "Error",
+      "message": "execution:L05-execution-error",
+      "stack": "Error: execution:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs:77:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    },
+    "stdoutHex": "61646d69747465640a",
+    "stderrHex": ""
+  },
+  "engine": {
+    "error": {
+      "type": "object",
+      "name": "Error",
+      "message": "execution:L05-execution-error",
+      "stack": "Error: execution:L05-execution-error"
+    }
+  },
+  "files": {
+    "/work/late.txt": {
+      "code": "ENOENT"
+    },
+    "/work/body.bin": {
+      "code": "ENOENT"
+    },
+    "/work/headers.txt": {
+      "code": "ENOENT"
+    }
+  },
+  "preTeardown": {
+    "publicSettled": true,
+    "guard": {
+      "failures": [],
+      "activeTimers": 1,
+      "workersCreated": 0,
+      "subprocessesCreated": 0,
+      "socketsCreated": 0
+    },
+    "bridgePending": 0,
+    "releases": 1,
+    "cleanupDone": true
+  },
+  "disposed": true,
+  "disposeSettled": true,
+  "guard": {
+    "failures": [],
+    "activeTimers": 0,
+    "workersCreated": 0,
+    "subprocessesCreated": 0,
+    "socketsCreated": 0
+  },
+  "unhandled": [],
+  "finished": "2026-08-27T16:24:56.765Z"
+}

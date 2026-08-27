@@ -1,0 +1,32 @@
+{
+  "decidedAt": "2026-08-27T18:40:39.631Z",
+  "status": "PREPARATION ONLY",
+  "candidateHandoff": "/tmp/expr-cdiagnostics-candidate.txt",
+  "candidatePresentAtDecision": false,
+  "candidateCommit": null,
+  "candidateAcceptance": 0,
+  "candidateSourceInspected": false,
+  "newAuthorRegressionsInspected": false,
+  "freezeCommit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "wait": {
+    "afterMeaningfulSetup": true,
+    "polls": 12,
+    "intervalSeconds": 10,
+    "totalBoundSeconds": 120,
+    "result": "PREPARATION_ONLY_CANDIDATE_ABSENT_AFTER_120_SECONDS"
+  },
+  "baselineCommit": "27a7793526830768484885afba5832bf8bb248b5",
+  "historicalLegacyCommit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "newCandidateTestsRun": 0,
+  "remaining": [
+    "exact handoff and source delta binding",
+    "archive/build/pack/offline script-free moved candidate install",
+    "strict installed declaration and plain Node qualification",
+    "unchanged original104 plus extension23 plus separate correction1; Apple separate",
+    "frozen nine plus independent26 and runtime12",
+    "core146, shared legacy276, separately labelled author source suites",
+    "retain old grammar empty/dashdash diagnostic assertion failures",
+    "retain locale10 and nullable5/8 unresolved; report AST-first precedence separately",
+    "source/test inventories including added entries; owned cleanup before safety"
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "label": "final-after-replay",
+  "at": "2026-08-27T16:35:07.298Z",
+  "fullMembershipAndNewEntryDetection": true,
+  "source": {
+    "entries": 30613,
+    "files": 28411,
+    "symlinks": 15,
+    "sha256": "78671eef333edaacef7f1383468c57d92bac6ad124df5df093291bbe1e0ec100"
+  },
+  "package": {
+    "entries": 776,
+    "files": 738,
+    "symlinks": 0,
+    "sha256": "65ed138a4b9be0310000f4bb224bae49136bf0b21fcdf9b5fe4a809ca8458ac1"
+  },
+  "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "loadBindings": [
+    {
+      "path": "dist/index.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/index.js",
+      "sha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/grep-aliases/index.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/grep-aliases/index.js",
+      "sha256": "7ea22cf33cc164d19018bcce4c78e4e519bfc593336a7f5d22459e936e5e94ee",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/grep.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/grep.js",
+      "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/regex-execution/client.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+      "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+      "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js",
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "regular": true
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "regular": true
+    },
+    {
+      "path": "dist/shell/input.js",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/shell/input.js",
+      "sha256": "f8b984b6fc338ff3d1ca60e10283ab100d8e62a697f4b7f8e691819c28ea7c4a",
+      "regular": true
+    },
+    {
+      "path": "package.json",
+      "url": "file:///tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "regular": true
+    }
+  ],
+  "oldSeals": [
+    {
+      "path": "SHA256SUMS",
+      "sha256": "85589c8d87b556b77a174260d76250cba23d5516ecb7f6c4bf1f8b8e1967e61e",
+      "payloads": 11
+    },
+    {
+      "path": "verification/gnu/SHA256SUMS",
+      "sha256": "8663488dc2345294b82daa1ed48d72c262eff178da4b29d5dfaaed566370559b",
+      "payloads": 3
+    },
+    {
+      "path": "verification/SHA256SUMS",
+      "sha256": "ec73580edebc95d1ebc8a10cd7f8ed22ac9c879c483917f6cd51fe683a01c4d2",
+      "payloads": 45
+    },
+    {
+      "path": "verification/coverage-supplement/SHA256SUMS",
+      "sha256": "f66d66d1511cdd0f93b745c7490cb81d6a093f4be472c476f6ce2699253a5555",
+      "payloads": 15
+    }
+  ],
+  "liveOldSeals": [
+    {
+      "path": "SHA256SUMS",
+      "sha256": "85589c8d87b556b77a174260d76250cba23d5516ecb7f6c4bf1f8b8e1967e61e",
+      "payloads": 11
+    },
+    {
+      "path": "verification/gnu/SHA256SUMS",
+      "sha256": "8663488dc2345294b82daa1ed48d72c262eff178da4b29d5dfaaed566370559b",
+      "payloads": 3
+    },
+    {
+      "path": "verification/SHA256SUMS",
+      "sha256": "ec73580edebc95d1ebc8a10cd7f8ed22ac9c879c483917f6cd51fe683a01c4d2",
+      "payloads": 45
+    },
+    {
+      "path": "verification/coverage-supplement/SHA256SUMS",
+      "sha256": "f66d66d1511cdd0f93b745c7490cb81d6a093f4be472c476f6ce2699253a5555",
+      "payloads": 15
+    }
+  ],
+  "dependenciesUnchanged": true
+}

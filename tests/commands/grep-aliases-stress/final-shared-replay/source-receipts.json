@@ -1,0 +1,135 @@
+{
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "assertionChanges": false,
+  "sourceInputs": [
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/holdouts.mts",
+      "copied": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/holdouts.mts",
+      "sha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "copied": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/public-consumer.mts",
+      "sha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "copied": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/pipeline-holdouts.mts",
+      "sha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "byteForByte": true
+    },
+    {
+      "compiled": "run/holdouts.mjs",
+      "sha256": "c4b772220f4aa2a4aeb72686f33fbd8cc8771e60db896ff0d01f4849eedcdcaf"
+    },
+    {
+      "compiled": "run/public-consumer.mjs",
+      "sha256": "baeff2c9a263991783565cffd319a176d810dec2728ff3b6868931822f1d78b5"
+    },
+    {
+      "compiled": "run-supplement/pipeline-holdouts.mjs",
+      "sha256": "5e0f8d1f62f905f99a50f3c43c6e681850c2f4a90164a606fd9a97576b118fb2"
+    },
+    {
+      "verifier": "replay.mjs",
+      "sha256": "0515b7e4ca34ae0f7cb6156e37955dc78ed57379221beeeb9d6ea88a59bc11c6"
+    },
+    {
+      "verifier": "diagnose-return.mjs",
+      "sha256": "f4ed0b4b1a0bd34bfc71e26ceb5699a7c21808e260526c2326bae66cd52db157"
+    }
+  ],
+  "rawCaptureExports": [
+    {
+      "path": "authentication.json",
+      "sha256": "780e4738ea348a7e3db07717f2380470508a9db0dd79e3b4d7a1aa3173e1de7f",
+      "bytes": 1198,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/authentication.json",
+      "byteForByte": true
+    },
+    {
+      "path": "execution.json",
+      "sha256": "1201ef1b5593d9fd49dd07b5726e88cc50a95d8027a9ab6fe62e51802e22c1d3",
+      "bytes": 65750,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/execution.json",
+      "byteForByte": true
+    },
+    {
+      "path": "final-integrity.json",
+      "sha256": "067658bd34267db56abd1c5463c8498fb5eade060edca3ea57d6274ea81901bb",
+      "bytes": 4955,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/final-integrity.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/base-01/receipt.json",
+      "sha256": "96ff2035dfec49a5107cb766a746266433610524066ec6fd6112fec533fb0e05",
+      "bytes": 43022,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/base-01/receipt.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/base-01/results.json",
+      "sha256": "3cc302260d027332e491d7696ec059bd52cf97444b9021aa8103cd49824f4abe",
+      "bytes": 280286,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/base-01/results/results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/base-01/comparison.json",
+      "sha256": "58b84da61b1e0618000a1a288f4c4c171180d1be6de518afc4d3920e54cbaebc",
+      "bytes": 3284,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/base-01/results/comparison.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/base-01/bound-driver-source.txt",
+      "sha256": "ce698c92fd2a9bace98dccbab9f43698e45a1bbedd8ef66a2a26b15506002ebd",
+      "bytes": 5679,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/bound-base.mjs",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/supplement-01/receipt.json",
+      "sha256": "c9c16a5ce07a738b300de235e576245312f8cf0a696cfe2b1ce0cfc66cbc1429",
+      "bytes": 3270,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/supplement-01/receipt.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/supplement-01/results.json",
+      "sha256": "44ce73337278d77b8b7139fbdf03f3e2e654c0bf15785c4111c8eb19787f8c98",
+      "bytes": 3315,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/supplement-01/results/results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/supplement-01/bound-driver-source.txt",
+      "sha256": "3cf1a4a7c16978113a4d570b4a3689908bcb2adf64ecf7497610d6cb38125f15",
+      "bytes": 4149,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/bound-supplement.mjs",
+      "byteForByte": true
+    },
+    {
+      "path": "diagnosis/results.json",
+      "sha256": "776fbf427259b93fec8ae03a61f6990ef6e68b66904688c187cdcf707e330aad",
+      "bytes": 3026,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/diagnosis-results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "diagnosis/process.json",
+      "sha256": "7447f60c11a30d8d7e88e6f936467cabab49feaa9be5d9cdcd731f08fb31e2da",
+      "bytes": 800,
+      "origin": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/diagnosis-process.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/prepare-02/receipt.json",
+      "sha256": "c0e9f188d5f2f578ccafe05aab5e785038a102a3882587cc61c8aee2e9168c03",
+      "bytes": 213004
+    }
+  ]
+}

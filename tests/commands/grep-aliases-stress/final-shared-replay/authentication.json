@@ -1,0 +1,37 @@
+{
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "ancestors": [
+    "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+    "a809635432f18a235b8fb622a05367bedc54b315",
+    "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d"
+  ],
+  "identities": {
+    "src/shell/input.ts": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+    "src/commands/column": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+    "src/commands/grep-aliases": "5e8ac069bfa6ead7a337130457cd6519f2066e2c"
+  },
+  "beforeProductImports": true,
+  "at": "2026-08-27T16:32:11.319Z",
+  "seals": [
+    {
+      "path": "SHA256SUMS",
+      "sha256": "85589c8d87b556b77a174260d76250cba23d5516ecb7f6c4bf1f8b8e1967e61e",
+      "payloads": 11
+    },
+    {
+      "path": "verification/gnu/SHA256SUMS",
+      "sha256": "8663488dc2345294b82daa1ed48d72c262eff178da4b29d5dfaaed566370559b",
+      "payloads": 3
+    },
+    {
+      "path": "verification/SHA256SUMS",
+      "sha256": "ec73580edebc95d1ebc8a10cd7f8ed22ac9c879c483917f6cd51fe683a01c4d2",
+      "payloads": 45
+    },
+    {
+      "path": "verification/coverage-supplement/SHA256SUMS",
+      "sha256": "f66d66d1511cdd0f93b745c7490cb81d6a093f4be472c476f6ce2699253a5555",
+      "payloads": 15
+    }
+  ]
+}

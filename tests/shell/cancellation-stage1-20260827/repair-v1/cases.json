@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "cases": [
+    {
+      "id": "R01-detached-snapshot-entry-does-not-truncate-fanout",
+      "finding": "P1",
+      "expected": "A may detach B; inactive B is skipped and still-active C runs while the boundary remains open"
+    },
+    {
+      "id": "R02-close-still-stops-fanout-and-finalizes-failures",
+      "finding": "P1-control",
+      "expected": "an actual boundary close still stops later callbacks, retains exact earlier callback failures, and finalizes naturally"
+    },
+    {
+      "id": "R03-admission-uses-observed-first-delivered-control",
+      "finding": "P2",
+      "expected": "B delivered before configured-first A remains the exact admission reason and options lookup is skipped"
+    },
+    {
+      "id": "R04-ancestor-ranking-is-separate-from-delivery",
+      "finding": "P2-control",
+      "expected": "immutable first delivery remains a control while outer invoke and root caller retain ranked selection/admission priority and original provenance"
+    },
+    {
+      "id": "R05-falsy-equal-control-reasons-remain-exact",
+      "finding": "P2-control",
+      "expected": "equal falsy control reasons remain unwrapped, getter-free admission failures and delivery reason uses exact Object.is semantics"
+    }
+  ]
+}

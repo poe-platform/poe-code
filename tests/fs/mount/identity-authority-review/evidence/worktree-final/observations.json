@@ -1,0 +1,252 @@
+[
+  {
+    "case": "s3-positive",
+    "data": {
+      "receipts": [
+        {
+          "distinct": true,
+          "basis": "comparison"
+        },
+        {
+          "distinct": true,
+          "basis": "comparison"
+        }
+      ],
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "getObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "getObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "getObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "getObject",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2"
+      ]
+    }
+  },
+  {
+    "case": "s3-alias",
+    "data": [
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2",
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2",
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2",
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2",
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2",
+      "listObjectsV2",
+      "headObject",
+      "headObject",
+      "listObjectsV2"
+    ]
+  },
+  {
+    "case": "webdav-positive",
+    "data": {
+      "receipts": [
+        {
+          "distinct": true,
+          "basis": "comparison"
+        },
+        {
+          "distinct": true,
+          "basis": "comparison"
+        }
+      ],
+      "operations": [
+        "PROPFIND",
+        "PUT",
+        "PROPFIND",
+        "PUT",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "GET",
+        "PROPFIND",
+        "PUT",
+        "PROPFIND",
+        "PUT",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND",
+        "GET",
+        "PROPFIND",
+        "PUT",
+        "PROPFIND",
+        "GET",
+        "PROPFIND",
+        "GET",
+        "PROPFIND"
+      ]
+    }
+  },
+  {
+    "case": "webdav-alias",
+    "data": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "case": "s3-native-exclusive",
+    "data": {
+      "operation": "copyObject",
+      "input": {
+        "Bucket": "bucket",
+        "Key": "target",
+        "CopySource": "bucket/source",
+        "CopySourceIfMatch": "\"36cd38f49b9afa08222c0dc9ebfe35eb\"",
+        "MetadataDirective": "COPY",
+        "IfNoneMatch": "*"
+      }
+    }
+  },
+  {
+    "case": "dav-native-exclusive",
+    "data": {
+      "overwrite": "F"
+    }
+  },
+  {
+    "case": "dav-alias-native-counterexample",
+    "data": {
+      "sourceLost": true,
+      "mockIsNotAliasSafeServer": true
+    }
+  },
+  {
+    "case": "move-ordering",
+    "data": [
+      "copy-start",
+      "copy-success",
+      "remove"
+    ]
+  },
+  {
+    "case": "pathname-race-limit",
+    "data": {
+      "sourceLostAfterExternalAliasReplacement": true
+    }
+  },
+  {
+    "case": "move-aba-limit",
+    "data": {
+      "replacementDeleted": true,
+      "originalInode": 2,
+      "replacementInode": 4
+    }
+  },
+  {
+    "case": "dav-resource-id",
+    "data": {
+      "sameViewCopy": true,
+      "crossViewCopy": true,
+      "endpointAliasRejected": true,
+      "missingPropertyIsUnknown": true
+    }
+  }
+]

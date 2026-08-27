@@ -1,0 +1,195 @@
+TAP version 13
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtcG9zaXRpdmUiLCJkYXRhIjp7InJlY2VpcHRzIjpbeyJkaXN0aW5jdCI6dHJ1ZSwiYmFzaXMiOiJjb21wYXJpc29uIn0seyJkaXN0aW5jdCI6dHJ1ZSwiYmFzaXMiOiJjb21wYXJpc29uIn1dLCJvcGVyYXRpb25zIjpbImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJwdXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsInB1dE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImdldE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIl19fQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtYWxpYXMiLCJkYXRhIjpbImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiJdfQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoid2ViZGF2LXBvc2l0aXZlIiwiZGF0YSI6eyJyZWNlaXB0cyI6W3siZGlzdGluY3QiOnRydWUsImJhc2lzIjoiY29tcGFyaXNvbiJ9LHsiZGlzdGluY3QiOnRydWUsImJhc2lzIjoiY29tcGFyaXNvbiJ9XSwib3BlcmF0aW9ucyI6WyJQUk9QRklORCIsIlBVVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJQVVQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJHRVQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIl19fQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoid2ViZGF2LWFsaWFzIiwiZGF0YSI6WyJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiXX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtbmF0aXZlLWV4Y2x1c2l2ZSIsImRhdGEiOnsib3BlcmF0aW9uIjoiY29weU9iamVjdCIsImlucHV0Ijp7IkJ1Y2tldCI6ImJ1Y2tldCIsIktleSI6InRhcmdldCIsIkNvcHlTb3VyY2UiOiJidWNrZXQvc291cmNlIiwiQ29weVNvdXJjZUlmTWF0Y2giOiJcIjM2Y2QzOGY0OWI5YWZhMDgyMjJjMGRjOWViZmUzNWViXCIiLCJNZXRhZGF0YURpcmVjdGl2ZSI6IkNPUFkiLCJJZk5vbmVNYXRjaCI6IioifX19
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LW5hdGl2ZS1leGNsdXNpdmUiLCJkYXRhIjp7Im92ZXJ3cml0ZSI6IkYifX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LWFsaWFzLW5hdGl2ZS1jb3VudGVyZXhhbXBsZSIsImRhdGEiOnsic291cmNlTG9zdCI6dHJ1ZSwibW9ja0lzTm90QWxpYXNTYWZlU2VydmVyIjp0cnVlfX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoibW92ZS1vcmRlcmluZyIsImRhdGEiOlsiY29weS1zdGFydCIsImNvcHktc3VjY2VzcyIsInJlbW92ZSJdfQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoicGF0aG5hbWUtcmFjZS1saW1pdCIsImRhdGEiOnsic291cmNlTG9zdEFmdGVyRXh0ZXJuYWxBbGlhc1JlcGxhY2VtZW50Ijp0cnVlfX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoibW92ZS1hYmEtbGltaXQiLCJkYXRhIjp7InJlcGxhY2VtZW50RGVsZXRlZCI6dHJ1ZSwib3JpZ2luYWxJbm9kZSI6MiwicmVwbGFjZW1lbnRJbm9kZSI6NH19
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LXJlc291cmNlLWlkIiwiZGF0YSI6eyJzYW1lVmlld0NvcHkiOnRydWUsImNyb3NzVmlld0NvcHkiOnRydWUsImVuZHBvaW50QWxpYXNSZWplY3RlZCI6dHJ1ZSwibWlzc2luZ1Byb3BlcnR5SXNVbmtub3duIjp0cnVlfX0=
+# Subtest: s3: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 1 - s3: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 4.122792
+  type: 'test'
+  ...
+# Subtest: s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 2 - s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 1.58225
+  type: 'test'
+  ...
+# Subtest: s3: unregistered peer stays unknown despite distinct client and equal metadata
+ok 3 - s3: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 0.760334
+  type: 'test'
+  ...
+# Subtest: s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 4 - s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 1.106583
+  type: 'test'
+  ...
+# Subtest: webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 5 - webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 20.683792
+  type: 'test'
+  ...
+# Subtest: webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 6 - webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 1.633875
+  type: 'test'
+  ...
+# Subtest: webdav: unregistered peer stays unknown despite distinct client and equal metadata
+ok 7 - webdav: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 1.303666
+  type: 'test'
+  ...
+# Subtest: webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 8 - webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 1.2745
+  type: 'test'
+  ...
+# Subtest: S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+ok 9 - S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+  ---
+  duration_ms: 0.637167
+  type: 'test'
+  ...
+# Subtest: S3 actual conditional CopyObject preserves a raced exclusive destination
+ok 10 - S3 actual conditional CopyObject preserves a raced exclusive destination
+  ---
+  duration_ms: 0.704583
+  type: 'test'
+  ...
+# Subtest: WebDAV actual native COPY uses Overwrite F against a raced missing target
+ok 11 - WebDAV actual native COPY uses Overwrite F against a raced missing target
+  ---
+  duration_ms: 1.731959
+  type: 'test'
+  ...
+# Subtest: WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+ok 12 - WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+  ---
+  duration_ms: 1.621792
+  type: 'test'
+  ...
+# Subtest: different authority objects remain unknown until the owner certifies genuinely disjoint stores
+ok 13 - different authority objects remain unknown until the owner certifies genuinely disjoint stores
+  ---
+  duration_ms: 0.680875
+  type: 'test'
+  ...
+# Subtest: read-only forwarding preserves backing aliases without granting destination writes
+ok 14 - read-only forwarding preserves backing aliases without granting destination writes
+  ---
+  duration_ms: 0.454125
+  type: 'test'
+  ...
+# Subtest: overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+ok 15 - overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+  ---
+  duration_ms: 1.156
+  type: 'test'
+  ...
+# Subtest: contradictory authoritative answers fail before source acquisition
+ok 16 - contradictory authoritative answers fail before source acquisition
+  ---
+  duration_ms: 0.128625
+  type: 'test'
+  ...
+# Subtest: failed metadata and pre-cancel do not become missing targets
+ok 17 - failed metadata and pre-cancel do not become missing targets
+  ---
+  duration_ms: 0.137333
+  type: 'test'
+  ...
+# Subtest: a raced generic exclusive target is preserved
+ok 18 - a raced generic exclusive target is preserved
+  ---
+  duration_ms: 0.082708
+  type: 'test'
+  ...
+# Subtest: move: source failure never removes source (partial destination is disclosed)
+ok 19 - move: source failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.098125
+  type: 'test'
+  ...
+# Subtest: move: target failure never removes source (partial destination is disclosed)
+ok 20 - move: target failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.061084
+  type: 'test'
+  ...
+# Subtest: move: cancel failure never removes source (partial destination is disclosed)
+ok 21 - move: cancel failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.048084
+  type: 'test'
+  ...
+# Subtest: move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+ok 22 - move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+  ---
+  duration_ms: 0.326208
+  type: 'test'
+  ...
+# Subtest: observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+ok 23 - observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+  ---
+  duration_ms: 0.238125
+  type: 'test'
+  ...
+# Subtest: generic move rm has no incarnation condition: source ABA after copy deletes replacement
+ok 24 - generic move rm has no incarnation condition: source ABA after copy deletes replacement
+  ---
+  duration_ms: 0.132
+  type: 'test'
+  ...
+# Subtest: S3 native copy source failure is not a successful move receipt
+ok 25 - S3 native copy source failure is not a successful move receipt
+  ---
+  duration_ms: 0.42825
+  type: 'test'
+  ...
+# Subtest: S3 negotiated overlapping prefix views compare effective keys, not local paths
+ok 26 - S3 negotiated overlapping prefix views compare effective keys, not local paths
+  ---
+  duration_ms: 0.674959
+  type: 'test'
+  ...
+# Subtest: fresh comparison observes pre-call rebinding instead of reusing old metadata
+ok 27 - fresh comparison observes pre-call rebinding instead of reusing old metadata
+  ---
+  duration_ms: 0.105959
+  type: 'test'
+  ...
+# Subtest: cancellation during authority resolution is forwarded and precedes content reads
+ok 28 - cancellation during authority resolution is forwarded and precedes content reads
+  ---
+  duration_ms: 0.062041
+  type: 'test'
+  ...
+# Subtest: WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs
+ok 29 - WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs
+  ---
+  duration_ms: 3.993666
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.05025

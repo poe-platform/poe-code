@@ -1,0 +1,4406 @@
+{
+  "reviewer": "surfaceauditor01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "migrationAuthor": "01a04292-c8dd-7331-9dac-619c9861b11b",
+  "recordedAt": "2026-08-27T10:36:54.188Z",
+  "candidate": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+  "original": "5009ba8146c73bd5628147707e733384e5cd4aee",
+  "product": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "changedPreviouslyTrackedIntegrationFiles": [
+    "tests/integration/safejs-cleanup-regression/integration/child.mjs"
+  ],
+  "unchangedOtherOriginalFiles": 572,
+  "preservedOriginalTree": {
+    "tests/integration/safejs-cleanup-regression/integration/COMMIT-BOUNDARY.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d8b4d50b2eabab564ad9ea740836837f027a5734"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/HANDOFF-PROVENANCE.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "13c02a38e3937ef50baa9c89275564b3e54896d7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2a8987572678d33add28b0aa111617b686fde662"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/VERIFICATION.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f276472ab5696215e71b65efbf938e4fa4f7aeea"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/audit.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9eb788c09406f8a93101b5f95d0f7af8b1105af1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/cases.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/child.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cc1ce9952b72344be4f0c34fa9d364683d9568d6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c2494369dd1bf4a2135a5706e8653994adf9645c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/literal-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "167a914e8a9e33385ed5e74f571c7cdb84e46c75"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2ce4140e59d642e422b0be030954237ba06e1827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/literal-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f820f3154c34a7ee462a648a0dcf225c48c07924"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8f5195b6d4df21a39ed6eea70ecfde438c604212"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9d6b2adb061f96f08dc277129e7131d422f768d1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "87029d08e6757aa08858651e35f500c6c9eec2bc"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e7039fcc8c17af8fff7db1a1948ea2a418375d68"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f1d0884377bd03f8970434bbca938227f343551e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-01/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2697d818ce875cda76d1c9d4e8ea3b7a78c57538"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d24d11790a516edf09bc9a287f53c57b6d62e916"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0e44d549eaaf88a865f2a09356ebb19835844604"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "815509a2c2cfb82b31663b244f5338593aa43832"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ad32fc2f38381cbebab90c01cfb460b0b6c4022b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "661ed42ff1cfd97bff39b7544b785b3433ad8ab5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c93c0e667745d4797a6504d000d09ee705d74a6d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1a6d51331b1571e4bf1da972591259b57188e087"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "14e276e640df8e44dd1ee54f8f86d8425a963e3e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "78294fdc5ab933fbca0ebf21d00201edbab07787"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c593510555b8887f40f0f5305c73394b1204bbec"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3ceb7d5399da79c757555249c3a59aa8138c9314"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e2a9bb72edba1e6013718afa74113907e8ffb9b6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b06dc13d779f6b3270831effff3390daad654883"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0b4962497e73d3304f40240e61ca9882a4118382"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/bridge-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "573f41fc40d22202029ac1b504a6f59bbd38b839"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "318c69423fd217724f5a97761ca49ed6b8d1bc4d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "30f8672351872d1061a8cfb7ab065ebc254ea928"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "59761b6bd18f6e79b5062e2426c674434e0132ef"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "24eccb58971b5730df2620034a78acbfa00b7c25"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ed959b93d99e7547b7f4338feadeb8599c88abd0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a8ddab89bc8cd5d0a09e6db2d64f3096666e5dc4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-sink-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c539406d6719b6f12bd87c77e25e155c45982c88"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-sink-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "081f2bbbc9029d61f81d6f54ec66dbf5ab31ab09"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-sink-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6260c87ea6c22e6bee246b64cd2fca788483560f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-sink-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-caller-sink-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "183533effef7ec2fa0b987a68f17e51257973d79"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "759e97f458c9b63942e844d174934004635ec6b5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c085e1f4e936657298b42e5714aa801293c12c51"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "731674601d9ae08638cd1ccab9dd5e9f958486c6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "50504650a7b6cf39895ea72a1ec8ca2cb4259295"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "353b6728bdb3880125e3d5fb32f900e7e74a8045"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "194d39412f9e31cdf1a19f706ab166d325989adb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "fc2d8b8f016e2d703af284732c4e4350fd8a9906"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2b25a89b96d9246a952772c586e37b803572624a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-budget.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "32b18db2dea8b78cefcac4c3ec52dfa4d251bbc6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-budget.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e686c2b4842289757abc633ffdd947bf56f51083"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-budget.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ad84692ae1ff36cc65c010d6204d01eaeec71139"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-budget.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-budget.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "60dd5cac63d11793d311298c95e450f4bcc5b3ef"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d57142ee6d10925827fc9d76cee721c3f1e95e0a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e9843ce58072cdb38fdd51c198cfe85ff8d3809f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "265aaeab6fc9ebc12bfa71f10fcd52ecb72e748b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-guest-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b9ffbfa9d1efaa386052f04dbcc82fe3836a752b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-retained-lifetime.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a1338b40d82562c9db785c65cc4a3e3f9af9f247"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-retained-lifetime.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "720c026d99e9e679de9e7094c5665cabcd4ed5ff"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-retained-lifetime.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "552c776671026ccec69891e3a09c1c5696f6a9f7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-retained-lifetime.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-retained-lifetime.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "75756ae9080bcb5c078c9f8dd24279970f0eb8f6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "167a914e8a9e33385ed5e74f571c7cdb84e46c75"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c950741a639f90031a7761fc8d5bb11a39393ca8"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ef114bb35e6bbfbe0c24c332ccb92b23468da118"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8f5195b6d4df21a39ed6eea70ecfde438c604212"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-preabort-no-admission.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "de4d8930674d2973ef6e1acf0818c0f170311b67"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-preabort-no-admission.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "01296df56ec0bae5e91d70e422755c7850ef4085"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-preabort-no-admission.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a360350857564b0225db92d5306633d1f6a9b952"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-preabort-no-admission.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-preabort-no-admission.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "338ca975ce0fa1ec26a7b798c9b6f46d78a99920"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-caller-abort-record.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d7b3c7beb40be7b695310000d2c6211a6d9dc144"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-caller-abort-record.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e114715e2114feb0ada9cc7cad4d92052b17f15b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-caller-abort-record.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9d632bf0eec92e28d9a3e1b7752c5561a86e3d18"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-caller-abort-record.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-caller-abort-record.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5871a75a69d76b92a66129ce42eae046a615e5da"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "77e393dc4a71b583557a7c40ec1e8863a89e7478"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ab5d5837a1995ac9bccbaa100b2a0dbd0f517a21"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ffeaf048ac81d5f095f810744d27a375bf70aee5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "84a28b643381d1ef3a7b0018df16885cdb71135e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-overlap-abort-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e08154d2410778deb4e515b8913d11a829e79d25"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-overlap-abort-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "dc6addd4cac2dca9eeca92eaa915cc353d46ee67"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-overlap-abort-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e1fdf0fdb6ff4239174b343743a0951706736111"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-overlap-abort-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-overlap-abort-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "11a729b8bb5466e4b67e65cc098c7ff36d5d1f57"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1cbfc61baa06103e56486586235b11fa92970725"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "88c67c45acd355d3404339d929f768a55f701ee6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "82967e522550e624acb6681fd12123b3957b7370"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/literal-rg-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ec9223d2fe97de1ff789f1c059ea4e724c911387"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6cf3899ed10dfacafcc1b021318cb5278bb1d111"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "225500a9898f78921a887f9f64621d65d445222d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bfd66dcb2850410b5d63f9cb9621dce1b52aecb4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f1d0884377bd03f8970434bbca938227f343551e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-02/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b680dba3709557c5786adea79570ce4b17dca889"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d374eeecdca2c38e7a8b631029a872db127160e3"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c040530c69ba0ca5522982982fcd91530210a55f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "815509a2c2cfb82b31663b244f5338593aa43832"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0172d27d087b76f0b3bb219d3646bed7ffd89d5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "eb29e8cb2f6c62608172b04ea2bb9beb71ecac18"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e6c9da7001834d347168cdbd859ae5671a5f75ca"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1a6d51331b1571e4bf1da972591259b57188e087"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2534600c32efe736958886ec3eb76f5c681b0805"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "aecfc2d118d1f4f0039c2863544382a62f5a7d43"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "13bf172a1f2583fe899034877d7dc08c6d794aee"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3ceb7d5399da79c757555249c3a59aa8138c9314"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "75dc4b48b7e1ecd9572d22117db481176790a36d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f3573c76c7448f44288dd48343d2a5a435320441"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0e94f46fed333d9b2cbe143e1ce05c95f6005add"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/bridge-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "573f41fc40d22202029ac1b504a6f59bbd38b839"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e57b245c69907c27a913bacba8c2983627935c48"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c9b8648fe3271bce5c6ede29d2f2fe2defd6b7e2"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1ca5851781ff9ede46b5c8b5c8107686345b494b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bc12ce9b19d0b7ddd26ca189f29fef427f27cb2e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "059e38a588d0706f448b95456380405802489568"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "883ccf6bc878720a5fa32ef97e42dd5ac4c05c48"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a860fb76ec4f2d45b427f1c53c6c1739e7c10943"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "53da68d4c0291809aedeeacfbf34f6257a18902d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a8ddab89bc8cd5d0a09e6db2d64f3096666e5dc4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "904a00ef914f0c2cab9cd4cddd84908717ca3ab1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0c4302ab9ad16ac85654d07e7e6fec86c684eddd"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "82de220b83e5277e2ada2c14c0c04e2b333f11b0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "183533effef7ec2fa0b987a68f17e51257973d79"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-status-control.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c509e5a3ea58ff27ea9f18cbadeb07a50c493afb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-status-control.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9d5b172de11ba4ddb93352413033cbc1594eeb55"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-status-control.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "637176b2f6786179bf3cbcdeebb6c96d588f2adb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-status-control.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-caller-sink-status-control.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cbfd295b6832e9887be0c168e3d6f6d60b003f6c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-cooperative-hook.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ab54eb7569b2e3f4f3021193ca2772ae839ebf5b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-cooperative-hook.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "4b4acce4d65c2bb2930851a3e6b8beec6d78cb18"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-cooperative-hook.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "118c7d3bf6841ed3a9aa7d9688007076503ac0c4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-cooperative-hook.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-cooperative-hook.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3163b944677aefd900cda9d400b71817f76609d6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "429a65ebc7c56693cb354936f434d72b9e9e1e33"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "95c40879d5d2eef0234260392a99c0b8a24387da"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1c05e3030f9fcfa389395e422da0ebe00a331b44"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "50504650a7b6cf39895ea72a1ec8ca2cb4259295"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "55c54503298addac99be13541628f2b5045ebb9d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "14c40c98539410eb119f97931b94c2df39a4f3b4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8c184ef31ec268ed13594e6858b8e8a4cccda8fd"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2b25a89b96d9246a952772c586e37b803572624a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-budget.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f66ff7263c8ce23d6d83516b64d9ee27b1df79be"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-budget.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1fdddf5d49c487c1bcb9c72445d54374ccda8153"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-budget.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9c034d6fc64e296c65856e1b58a306417fa0b799"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-budget.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-budget.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "60dd5cac63d11793d311298c95e450f4bcc5b3ef"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "966ef6432885592fb5b1fb56bcc70d941275be0e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "abc6a508236fe99c57210496f70812f1b6bef7b3"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6104079474b64a204048055b5a09619c0dae9f7a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-guest-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b9ffbfa9d1efaa386052f04dbcc82fe3836a752b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-retained-lifetime.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a0c983ff349e722edc9f498e48370ed236cc877b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-retained-lifetime.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d7acbbc63bea91cb3b95ef33c75d98b52ac91f77"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-retained-lifetime.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "db16729d21a5ad31b2f53ad12b396e7ac5643cc4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-retained-lifetime.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-retained-lifetime.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "75756ae9080bcb5c078c9f8dd24279970f0eb8f6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bc0ddbfc31690a69a0233563f6848fea5c0c489f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2791a1327bedf4374a1c0370f6bc6ca2227119d7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0704d9dc917b5b6db4de0c4d9bfc12a4be31d76"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8f5195b6d4df21a39ed6eea70ecfde438c604212"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-preabort-no-admission.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c0cae9c23c200e12edbc271f4ee005f23aed7905"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-preabort-no-admission.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d42e34f9c9b41383e3a7eddf507b71e298b903c2"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-preabort-no-admission.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b55dc48026434654e0a949569d9071c296d15747"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-preabort-no-admission.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-preabort-no-admission.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "338ca975ce0fa1ec26a7b798c9b6f46d78a99920"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-caller-abort-record.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cf41322602c8accf0433bc20c16391f2a8524e73"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-caller-abort-record.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0d0142a861359288d53d7a08548ed1c61c3a7ba7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-caller-abort-record.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a6fc1331503eca6538bddc928c37b262e0ddf1d3"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-caller-abort-record.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-caller-abort-record.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5871a75a69d76b92a66129ce42eae046a615e5da"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3c817174ed9c4cee223fa85dd838782831117641"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8174399ebc6adfe86823117c860db1f7421cd93c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "043d281dec2914d772462c7c53d0f3d31fbebe53"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "84a28b643381d1ef3a7b0018df16885cdb71135e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-overlap-abort-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "accbb08e7ad712bb09aa9ef6d70f1508167e4fd8"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-overlap-abort-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f467287081a3bc3265c6f10443aaadc31db19479"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-overlap-abort-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9e5dc537ef4b37ca0085c2b85c623d88f02923a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-overlap-abort-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-overlap-abort-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "11a729b8bb5466e4b67e65cc098c7ff36d5d1f57"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "88ba0b6b38ef7a4313874ece262a93713238b4d9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0755f8e68123616eb3c12e03ac7ba2782f0f7d93"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ad3864872a976456fbc7e7eb9ddc061b16e53f40"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/literal-rg-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ec9223d2fe97de1ff789f1c059ea4e724c911387"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "769069420fe3e0dca0da906d90350081e81a7902"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f1f3b476cee91abef68a708ad0325a5d811ff800"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b7fe3947e699aa1fe571bbb412e5ae2a3a5bdd78"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e5203687863617ea83bdbc0171263587139425fb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-03/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "54a4d389ece50faa2dee5143ba76b4473365aaaf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a53b777f104286fce96f60683a34de65918f36e4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7fa000a0a5d7059541aeee6147f07c2e1ffd3f9b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9b0abe29e59dc445c79b4d25811649f20e856dd2"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/bridge-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "629078076abd97057f4c5d147e52179617d68dff"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "337a9dffb0dbe5971f6717b18310cbfbd29fd84b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6ee1ed8d1445be145bbc6eef3a34fdfb28a6769a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1a8ae6ded103628101ce0563eb935023f04227f7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c2473549b0c4d594d77811edaf0efd9536ee9b5e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8bb103168561aa45a4966ddb3da1aa455b2ba728"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-status-control.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c157ce10b2c2ed85dbee7a691f3e090ce1367863"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-status-control.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-caller-sink-status-control.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-cooperative-hook.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2dc969032120cd00bac59b12b1a9cda0130d292e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-cooperative-hook.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-cooperative-hook.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "959a164b064c6c673f5ddcecd24ed621999c85bc"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cf6c878883fabfb2ae75f4c048c5c4ac45d04a73"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-budget.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ecb347cbf2bb1153ee4eb057ce91f1039630a51a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-budget.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-budget.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e1cc47b0617fcf50ee4a010e7eb7df40e5f07ae5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-guest-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-retained-lifetime.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0cc978ad24856ed0a3065ed9f4057dcdc06c9aab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-retained-lifetime.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-retained-lifetime.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bb02063d312cc93764b1625d837aa995fe58423b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-preabort-no-admission.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5958f493517bda000c791c59fc2e136f7234234c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-preabort-no-admission.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-preabort-no-admission.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-caller-abort-record.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9a3ddd543436a9bf73c57ed30cd14acfdc1ffadc"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-caller-abort-record.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-caller-abort-record.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7254bd58dc75382451c99d48a939f0aa98ee7058"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-overlap-abort-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e755a15f8529b52d1056b963591b9419b8a0bd3f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-overlap-abort-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-overlap-abort-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b0d7015524e39c6d3a110d1f0548b2b09424c4d6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1040fbfa0a80b662d8f24d244a1c60f03036e92f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/literal-rg-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5fb4482f5555293f2f1a7f1ec2d2db6973905fb1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3a735675b3f2a182b88413ce4ed15e38691f275c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c59116cc9b65b035484ad400aa512372c24d4364"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a22e75769ffbc9fa46eece3632e2102225bae453"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-04/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b42d681e23e066a3835ba50168a620f865865abd"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ea82b75d824dcedbcb50654ee30b54568d30ec72"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f9b483e7b21d51d7cfaec6edffa4db0960adfb17"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d91e0fc4ce793cdda37f1225dfeffa5074d6dece"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1ee1b1a520a5be9e513bdf004c0814922a786f98"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "be1025da7a13fc85533ed63553beabb2a1dafbf9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8ceb3e95eb8c46723e9c92e0a0bea83e92801ffd"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3d76c83994a100739384a8d121163f3abd40262b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "aca502006bd7d45108bc3eb0deb61a6c0b13c3f8"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "68ada1abb36b81f1da712077dfa91b8c3c29e090"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-05/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "147d11e6d2fab7ed12d1d205bd068a3759ef76cc"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/audit.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3c11ad17487578d195617e0c29b7856da6f023c2"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/loader.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "de765a9eedc66557194831c1971935c49f64aa58"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "30f8672351872d1061a8cfb7ab065ebc254ea928"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "95a93c91c180818584f1cedaeba78280b51ac477"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "935961f4588a4cdcb71f3eeeb0a10b14dec02c78"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8ceb3e95eb8c46723e9c92e0a0bea83e92801ffd"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c272f8bf8b13fcfbb55db29166110d134383c051"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "022f7a7496974b7848a9f3641a8fabba8b538486"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "697bc625452fdac7868421490f37bb34dcc4c265"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-06/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "20025e4f412ec7fd2f55d4dbc74e6ad9b91632c5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/audit.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9eb788c09406f8a93101b5f95d0f7af8b1105af1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/loader.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "47008da460db09150c056058f2ca267c3c4bdd41"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f56087faf08775b7c5c85fd63a5eee0099b4980b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d9d00ac6247268ea78973b5128219d829a5abfa4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "df524d50ce0d149f45b091df9484d8199406a64f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "757e8a436086ebd6747fc61fed7b964524897241"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8f5195b6d4df21a39ed6eea70ecfde438c604212"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/literal-grep-success.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9e7258d023089a4f57dbddfc033c704feceffdc5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9d6b2adb061f96f08dc277129e7131d422f768d1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e7fc2b2a07f6084553f98178dc9fc1f056b86cfc"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "85ee1e69821f130c7ee9d3b507a066510e435514"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d5c2122ca3e782851194858f9e754e999cffe4c5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-07/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/archive-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/archive-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "481f6857d1e49cbdf62218931c23748be906ffd5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6d1e98d3049497cf2f78022588b2ea6a948a21b5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "704a94167b7b90fbf95bf11f4bf63ddd71497cbb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "815509a2c2cfb82b31663b244f5338593aa43832"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-caller-abort.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "633ffc9e89cf8c302c4819cc4ee7db94a7ff1647"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "39c585138ea73ded157b956fdbcb713452b1dbed"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "25fcd52317c57d30d3b50663587ebaac583c0827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9a5fcbd5c1def4541fa58629cd479643cec9b89e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1a6d51331b1571e4bf1da972591259b57188e087"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-grep-success.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "21d84e92e3096e71aed588ae8d7d54b3419f0dc9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c332957d89db81cd95caf6301c605e36d504264c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0b9e78377a6902a9098f84afb2ee3e3e60a1f521"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "10c613c410f116b8d471c395dee9b7c49dad7f5d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3ceb7d5399da79c757555249c3a59aa8138c9314"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-dispose.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "4876934dacce442dfbc55a7535906ef2f3a3ce90"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bee460e01d4224a2dfd7c7bb1ea80a0c0745b7e5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8253956bf78c7d161c8c64f876e69e7d8e159ab9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "4a13edf3c90ef0d2862a820ec901e914f5358d46"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "573f41fc40d22202029ac1b504a6f59bbd38b839"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/bridge-rg-early-close.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8be1f9499594bbc6ff27adce5e2690f0ae1b7dc1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/build-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/build-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/extract-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/extract-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/freeze.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "502e6fc93c1dfe783635805bf7fba4579387dd49"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/audit.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "9eb788c09406f8a93101b5f95d0f7af8b1105af1"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/loader.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "47008da460db09150c056058f2ca267c3c4bdd41"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/install-packed-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/install-packed-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bd22cbcf56686c972eeb349430c68adf80ba764a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ea28b275448c8de82fee963365a9c4be67291650"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "72e100c1474e62109e1a6316fed530c26282aac5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b4a2c8d2bff6dea80ea5257d21a2a13e16fbadaa"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a8ddab89bc8cd5d0a09e6db2d64f3096666e5dc4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-abort.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3d538d315a73de45da5cdfe1f698bbf6d3f61785"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "4d6e26d687162028cb403b5f605c374130737d93"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e9f470e62f870b66ecada13eaf3104c4df97992c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "17fb9c9c5ee623ead6702b23f6bae9217eca88ff"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "183533effef7ec2fa0b987a68f17e51257973d79"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5a6d7dcd208b1438d49f6815f4049afa4c7c8d81"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "123ed04f4ccea88a8d178ff17d5c9cfafc94ca48"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "79c38635705bb0a9b6c9a129b058329d72c7b074"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "03f264528566df151c7df9976fed6992f1fac88e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cbfd295b6832e9887be0c168e3d6f6d60b003f6c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-status-control.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "cdc41714724c2a078c5aa37ccbd295a80ec77fc2"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "59a35d5ef96055fa3dcf3273511afd17e64bf1b7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d9263061953291e941ea0efff9f6e068e4293555"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "176456532fb9922a615f0e7848a32c3cab524a41"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3163b944677aefd900cda9d400b71817f76609d6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-cooperative-hook.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1c466d376de89bbb23f280663c80e0c274c11aab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0a9d76f2f6be51fef499eeebce4aab11ee1cc670"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bd8ae8fd958343382a303bcd5a2ab8126f995d49"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a64690bfa91c47b2b5727f0a3dfd891a848c4aa5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "50504650a7b6cf39895ea72a1ec8ca2cb4259295"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-dispose.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d004efce71bd417fb3413418051ad336f4e67da6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f70b3d4698d68c6c33934f5e9a0e8c6bcce2bee9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2f5ea08ec88688b04d9b15646f84caf746823eb8"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "75a0fcae63b46cb39d805ad2fed28bd9950ff497"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2b25a89b96d9246a952772c586e37b803572624a"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-early-close.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2dc6279e1f3ea330b2fd1682239aab1ce8473dd0"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7700be54435d13347a53680efbf24d17ae8c4598"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "46dc5356b41191833d7c5c4904abfa78d85ae970"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1c4759812138f126ce23a7884f22d89fb8d78924"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "60dd5cac63d11793d311298c95e450f4bcc5b3ef"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-budget.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e607ded85fcfa9f5d28ad6682f09a4617b15cd8e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3c2f71874411a781f483f98728286176ab0e3c56"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "10dfe18db2a3dc25888764a886896c9f5255f8d9"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d32161e40478ebe58c874b714003b9467ee77956"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b9ffbfa9d1efaa386052f04dbcc82fe3836a752b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-guest-error.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7e13c1c71d21864652707ebae74e0b51c1c6f39d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e3ebe32d5684b83067dadac655c61a5de3af4539"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0b2378745c5eff78979be200cd46aea673621e21"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "28aa54fd5b1de1fbd6df0c2e9d0ee40a667ae142"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "75756ae9080bcb5c078c9f8dd24279970f0eb8f6"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-retained-lifetime.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c93ca9ec134b2134631d5ed06d1c3bac2358d049"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "54dfabb7ab85971353460fefb536fdc1eb55a107"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "651246f4fcddaf400dae728f8f6243aae89f8fea"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2b053e6987cb1f05fb8c293cfc1668ef59c59c47"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8f5195b6d4df21a39ed6eea70ecfde438c604212"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-success.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5bf2bd06313c338eaab407cd165430868ae53c05"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "102c8c1956a88052f6e65ad8ba02ddb48c35819f"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f6c8495637a2086e56f5c22ad59bd9ba6355be70"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "bbc71b650b770a841ddc7f8bd67c3a1caed509ec"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "338ca975ce0fa1ec26a7b798c9b6f46d78a99920"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-preabort-no-admission.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "55bc7b76229438359a43e2ceb0964231075008f3"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "252584b11b392bad686c978f7c7214127ea74a3d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1c33a730c7657206d1bf57aec4ffec0bad6a0666"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "0f8d9dadbeca3fca04503efb8bb47bf25e402fd4"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5871a75a69d76b92a66129ce42eae046a615e5da"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-caller-abort-record.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "50535720efaed0c379cc64c31f652d9e83194b2c"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "6d4f599bbe2724e2f68ce61921d3d99eea2e97df"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "76168e6dd00f10a0acca4c7460275dff49f3fc0d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a2188fa19f22a77181e337663ae8603ed6aba7f5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "84a28b643381d1ef3a7b0018df16885cdb71135e"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-early-close.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1dbdea97c4d4317971a1e7c9180a74faeec90f20"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "33b48fe91914abfc4a56ee9bf2777c7d81691da5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "2eab14351da3a50dd14e77b3577eb8c0c8497ccf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "76c9890501babb87be0f47fd8fb8030419e85d31"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "11a729b8bb5466e4b67e65cc098c7ff36d5d1f57"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-overlap-abort-dispose.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "1e59d7caff8d51f527ed72152efccbfbcfa4f402"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.events.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e7f14b296160a53a9635779bf3655445a4846048"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7f8f412cd0cf890d306b0b28cfd493a07369e98d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "3cd561a3856acb86340955c42767ee7f40b278fb"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "ec9223d2fe97de1ff789f1c059ea4e724c911387"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-rg-success.tools.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "b02b0adbec19f1ad3f9c274b20191f1fbb6d28c8"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/pack-product.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/pack-product.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "910c9a2c53da1fa0597bc217a1bc9cadb52f3504"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/private-after.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/private-before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f0b2bf12f7245e1c9b5ff9aeb67020096cc121ab"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/progress.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "769069420fe3e0dca0da906d90350081e81a7902"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/public-boundary.imports.ndjson": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d1259eb409b882886d56516fb9e5528bc86bc988"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/public-boundary.stderr.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/public-boundary.stdout.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f701056658cfb3aab77dfdddc7330927e6414827"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/report.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "30a277b801cec5dd7641eeb0e9e7a000ffcc98a7"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/runtime-inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d5c2122ca3e782851194858f9e754e999cffe4c5"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/source-closure.json": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "d38b8cf8ce75fa9a9ed004d0a337a4138c8a5bcf"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/original-harness/cases.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "53d6305bc33dcc0a5bd3e4d4f0e3883742ef03aa"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/original-harness/child.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e0e20adda1a60dcaba757df530037f5d064f04db"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/original-harness/guard.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5fcd709678fe4ff3428ee0a29974929d4e608660"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/evidence/original-harness/run.mjs.fixture": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "28253b919772e9ee3f5707ad17f5357c999a8655"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/guard.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/loader.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "47008da460db09150c056058f2ca267c3c4bdd41"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/run.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    "tests/integration/safejs-cleanup-regression/integration/verify-evidence.mjs": {
+      "mode": "100644",
+      "type": "blob",
+      "oid": "34525bf2c2b95d30287eeab9db25e04227e18485"
+    }
+  },
+  "soleFourForTwoLineAssertionReplacement": true,
+  "oldAssertion": "      assert.equal(caught, true);\n      assert.equal(failure, sinkReason, \"Strict caller sink error identity\");",
+  "newAssertion": "      assert.equal(selected.id, \"literal-grep-caller-sink-error\");\n      assert.equal(caught, false);\n      assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },\n        { exitCode: 2, stdout: \"\", stderr: \"grep: sink:literal-grep-caller-sink-error\\n\" });",
+  "oldChildSha256": "70708a7d07fd61595933b08f5ec852f6b8cc5d60f15724239023775318b71ee7",
+  "revisedChildSha256": "528234e9127066607a87ffde499e462189fd092513c9e08f6770f29536ecb7b9",
+  "unchangedRunnerBlocks": [
+    [
+      "function privateState()",
+      "const report ="
+    ],
+    [
+      "  const boundary = [",
+      "  const control = run("
+    ],
+    [
+      "  for (const entry of cohort) {",
+      "  report.importsVerified = 0;"
+    ]
+  ],
+  "contractBasis": {
+    "src/commands/grep.ts": {
+      "commit": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1"
+    },
+    "src/commands/internal.ts": {
+      "commit": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+      "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    "src/contracts/command.md": {
+      "commit": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    }
+  },
+  "historicalAttempt08": {
+    "total": 19,
+    "accepted": 18,
+    "status": "behavioral-failures"
+  },
+  "historicalV1": {
+    "status": "infrastructure-failure",
+    "cases": 0,
+    "error": "Live source/config differs at capture; refuse hidden overlay\n+ actual - expected\n... Skipped lines\n\n  {\n    'package-lock.json': '9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b',\n    'package.json': '316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a',\n    'src/commands/README.md': 'b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a',\n    'src/commands/archive/README.md': '37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822',\n...\n    'src/commands/index.ts': '67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9',\n+   'src/commands/internal.ts': 'ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654',\n-   'src/commands/internal.ts': '28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5',\n    'src/commands/metadata/README.md': '36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce',\n    'src/commands/metadata/chmod.ts': '9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd',\n    'src/commands/metadata/index.ts': 'bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e',\n    'src/commands/metadata/internal.ts': 'bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7',\n    'src/commands/metadata/mktemp.ts': '1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4',\n...\n    'src/commands/stream-inspection/tac.ts': '2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36',\n+   'src/commands/streams.ts': '06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d',\n-   'src/commands/streams.ts': '8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d',\n    'src/commands/structured/README.md': 'a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b',\n    'src/commands/structured/index.ts': 'f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415',\n    'src/commands/structured/input.ts': 'fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca',\n    'src/commands/structured/interpreter.ts': 'bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc',\n    'src/commands/structured/jq.ts': 'feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac',\n"
+  },
+  "privateBefore": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/",
+    "staged": "",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+    "files": {
+      "CHECKPOINT_REPLAY.md": {
+        "sha256": "c37b418094a31fe441cac7c733278b809d7f45b4b6a845d04b0561425d90c62a",
+        "bytes": 9835,
+        "mode": 420
+      },
+      "MARKDOWN_SCRIPTS.md": {
+        "sha256": "57c579e7a5d34ebcab740fb966c54de68e79bba0702cf2d269fe2b1e77511b20",
+        "bytes": 2231,
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "3fa05ec0e0c66f7276b440d451fe7f7989d448897ae9fbbd7c07183755ebeb2b",
+        "bytes": 30971,
+        "mode": 420
+      },
+      "examples/experiment.md": {
+        "sha256": "69a8f49a9fca5176790cd5c170373acdc8681406e14bf85efe86a35c59335631",
+        "bytes": 1912,
+        "mode": 420
+      },
+      "examples/pipeline.md": {
+        "sha256": "9cc5e963a4fc357960091b9c09c7b4832246e92f5ffa4c5d2f1feaeab9eef249",
+        "bytes": 1403,
+        "mode": 420
+      },
+      "examples/superintendent.md": {
+        "sha256": "ae5c55f39db29fd05094868303bca6eda9eeb5af64c28ad36e0f4bba4531168e",
+        "bytes": 2230,
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+        "bytes": 1330,
+        "mode": 420
+      },
+      "src/cli.test.ts": {
+        "sha256": "ff2102823fc703e81b55a8510d31257c74ff39a15516906f30170362a403733e",
+        "bytes": 18826,
+        "mode": 420
+      },
+      "src/cli.ts": {
+        "sha256": "20708b0ba9c725a4944fcf48801c4a2ad885b83d56e3b5b5e4c43ccf3857d7e0",
+        "bytes": 22796,
+        "mode": 420
+      },
+      "src/core.test.ts": {
+        "sha256": "adce66a8adf4ef07a2b2e87a1d469740a2c9dfc6221deeb0383789f8ccaa4d7c",
+        "bytes": 640,
+        "mode": 420
+      },
+      "src/core.ts": {
+        "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+        "bytes": 396,
+        "mode": 420
+      },
+      "src/dump.test.ts": {
+        "sha256": "098ffc967c9d206f7d91a609cd0b43cebea2ffb3b826254d5570a9ec42d07b39",
+        "bytes": 5709,
+        "mode": 420
+      },
+      "src/dump.ts": {
+        "sha256": "38847aa3fd1f6f149862aee3b40053a39fac536dee5a880740b447ce8eee6601",
+        "bytes": 146,
+        "mode": 420
+      },
+      "src/error/format.test.ts": {
+        "sha256": "189c399bb7e7bd9715768bfcb713e8a7f83ea72fe591841b78d5ada46e4731c0",
+        "bytes": 5145,
+        "mode": 420
+      },
+      "src/error/format.ts": {
+        "sha256": "4c7778fbef9c2e58534e3bbba59e98e90613a0a2b045209023ee67f6f6b89d10",
+        "bytes": 11085,
+        "mode": 420
+      },
+      "src/error/shape-audit.test.ts": {
+        "sha256": "31e092096221cac3716d2cd27ebe6301b41b22e43ff2fcf6fd02fa5185e6f085",
+        "bytes": 8430,
+        "mode": 420
+      },
+      "src/error/shape.test.ts": {
+        "sha256": "62af5a1cf09983726d080eada3b8563300dc2daa21d197561f13cf8144bc55b3",
+        "bytes": 2246,
+        "mode": 420
+      },
+      "src/error/shape.ts": {
+        "sha256": "8505bc4cc4b78f98acb039c949c0686f83de6fc8b7de7fabb31b2e64d703144d",
+        "bytes": 5240,
+        "mode": 420
+      },
+      "src/error-codes.ts": {
+        "sha256": "276480f5fc5e9b536fbf976b46c09aed159c0465c32cb8cb448f8fd7137ab51b",
+        "bytes": 470,
+        "mode": 420
+      },
+      "src/example-runner.test.ts": {
+        "sha256": "9e4bf0c91b7199c248bd521a09cb9b7a8b6a0fde2f610634e86e1eb63e8f33dc",
+        "bytes": 2522,
+        "mode": 420
+      },
+      "src/example-runner.ts": {
+        "sha256": "b6a2e227be69e677d45992f2d73c27ad627e07f1b54d097feb3dafe3ad4d1eab",
+        "bytes": 18239,
+        "mode": 420
+      },
+      "src/graph-depth.ts": {
+        "sha256": "36b5f0e3a978f73583d086fd3df38303ce7694947c1c55028b9bfb3831391346",
+        "bytes": 3383,
+        "mode": 420
+      },
+      "src/index.test.ts": {
+        "sha256": "b1efab28fa2be243f403bfef3c6f359f866f05f06267b8087c874a0d8b7c7a1f",
+        "bytes": 21831,
+        "mode": 420
+      },
+      "src/index.ts": {
+        "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+        "bytes": 3030,
+        "mode": 420
+      },
+      "src/interp/arguments.test.ts": {
+        "sha256": "fcdc9de14d775eb7b40eae31e41b49070434a11ccf8ac0a6e86d8fd177477bb0",
+        "bytes": 3240,
+        "mode": 420
+      },
+      "src/interp/arguments.ts": {
+        "sha256": "5eab3d8f1e094babdb96b1ac0031a6aed89279341d88e1b01ef0e31ef77bd186",
+        "bytes": 2210,
+        "mode": 420
+      },
+      "src/interp/async.test.ts": {
+        "sha256": "2d3d2e58afc0f56d436cbeacf5ff07405a8de8f9c7ea739d358e756561e82841",
+        "bytes": 8286,
+        "mode": 420
+      },
+      "src/interp/async.ts": {
+        "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+        "bytes": 12403,
+        "mode": 420
+      },
+      "src/interp/budget.test.ts": {
+        "sha256": "eac05c0163c3d3dbf98b3f9ec783edbc089d8732e8863cf265ce14ba09cc73a4",
+        "bytes": 8289,
+        "mode": 420
+      },
+      "src/interp/budget.ts": {
+        "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+        "bytes": 9007,
+        "mode": 420
+      },
+      "src/interp/cancel.test.ts": {
+        "sha256": "2cc7c64b825f0004805f987263ad610526729e14d0e997e6f23c589521642d0a",
+        "bytes": 14632,
+        "mode": 420
+      },
+      "src/interp/cancel.ts": {
+        "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+        "bytes": 6588,
+        "mode": 420
+      },
+      "src/interp/conformance.test.ts": {
+        "sha256": "10f9889b8b7f103bf01c0dc5dd54b922739f0040018a8b73abe72c20f0530ee4",
+        "bytes": 20014,
+        "mode": 420
+      },
+      "src/interp/data-budget.test.ts": {
+        "sha256": "8109e502e167edb06bf01025bbdf5ebd3eceadf2a760acbbb1d5493fab763b62",
+        "bytes": 7607,
+        "mode": 420
+      },
+      "src/interp/exceptions.test.ts": {
+        "sha256": "66c89e13f3dca17f34ec4be3450c125a619d4a57b2a5a04306c444d1893dfdff",
+        "bytes": 4908,
+        "mode": 420
+      },
+      "src/interp/exceptions.ts": {
+        "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+        "bytes": 19651,
+        "mode": 420
+      },
+      "src/interp/generator.test.ts": {
+        "sha256": "5285ed924fe6b64341226984e8e22959620f325df4d7ab1d4dfb58e929bf1874",
+        "bytes": 9074,
+        "mode": 420
+      },
+      "src/interp/generator.ts": {
+        "sha256": "73e839e516d042d3ea6893ee95b54731b4e3ab23df28baf61f66ac400b4fc59b",
+        "bytes": 5508,
+        "mode": 420
+      },
+      "src/interp/globals/collections.test.ts": {
+        "sha256": "e8e03ffb9d05c89e8d89af7a0f25b9f0e8c24344de60ac40a0068ced31e407bf",
+        "bytes": 10678,
+        "mode": 420
+      },
+      "src/interp/globals/collections.ts": {
+        "sha256": "6cb56413e215814b76d01782dc7d8a5b66b0afccf5c16f8fca56b9e55788c089",
+        "bytes": 4271,
+        "mode": 420
+      },
+      "src/interp/globals/console-json.test.ts": {
+        "sha256": "34c4bb4a26200bf1e66611c7dac663cbf27a4dfa1877e5d2aaa3a91881504144",
+        "bytes": 9937,
+        "mode": 420
+      },
+      "src/interp/globals/console-json.ts": {
+        "sha256": "2b4e345e75d0f3647e53daa588dc71d1b3e363b3a55fd0381e5ada37e8a93b43",
+        "bytes": 10644,
+        "mode": 420
+      },
+      "src/interp/globals/error.test.ts": {
+        "sha256": "02cc6b6cfa648c9567b4a4513385c59684126a09007ea55784bc608db4bb62e1",
+        "bytes": 6463,
+        "mode": 420
+      },
+      "src/interp/globals/error.ts": {
+        "sha256": "6d32795654371c6748f785d96b9b4d37002f245c436ce56572752f23a598f47b",
+        "bytes": 2740,
+        "mode": 420
+      },
+      "src/interp/globals/math.test.ts": {
+        "sha256": "639702a8f7e1c49ad550fb697528924b102be47fbf177fa127f15b043f6db762",
+        "bytes": 8945,
+        "mode": 420
+      },
+      "src/interp/globals/math.ts": {
+        "sha256": "2ea73d09944ff3d81fa10821ae52966edae87a46bdfc02ef1142523330d96502",
+        "bytes": 2338,
+        "mode": 420
+      },
+      "src/interp/globals/misc.test.ts": {
+        "sha256": "e3375b1bd4fc8780dd742d6e61f3462af6d68bff52bdbabfbb81b725fb09b236",
+        "bytes": 6939,
+        "mode": 420
+      },
+      "src/interp/globals/misc.ts": {
+        "sha256": "e6f15902c7e2dfaa6f8e2bf43fe8e1f25b79f1b863c8ee8df00ee4242bc00781",
+        "bytes": 2360,
+        "mode": 420
+      },
+      "src/interp/globals/object-array.test.ts": {
+        "sha256": "bec31ee8475ec4667f4788d15dbe70da1a717060f4dc9137c11e35da9759a911",
+        "bytes": 16595,
+        "mode": 420
+      },
+      "src/interp/globals/object-array.ts": {
+        "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9",
+        "bytes": 9891,
+        "mode": 420
+      },
+      "src/interp/globals/regex.ts": {
+        "sha256": "5b7322f1e633c89e7677ff9f1397ae356a5a0a3dac229553f43c1554439ca6be",
+        "bytes": 409,
+        "mode": 420
+      },
+      "src/interp/host-bridge.test.ts": {
+        "sha256": "729386951480d6fdd7fdf565efa2182b50d2aebfd8c379279e38f514674455a3",
+        "bytes": 23250,
+        "mode": 420
+      },
+      "src/interp/host-bridge.ts": {
+        "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+        "bytes": 30852,
+        "mode": 420
+      },
+      "src/interp/host-call.test.ts": {
+        "sha256": "72a12978c68b71989a9af7d1864cb226480153b8049684484d49494d41f185d0",
+        "bytes": 9187,
+        "mode": 420
+      },
+      "src/interp/host-call.ts": {
+        "sha256": "7f5d5bbc6888f12c268dd9680d3a255c074d81c16f0843fa3ff0c8202aa1e4c5",
+        "bytes": 24833,
+        "mode": 420
+      },
+      "src/interp/interactions.test.ts": {
+        "sha256": "aca57a781ab6ffb11e3821a737c84a848d0fc25ab67f12a345944f3d37264511",
+        "bytes": 8649,
+        "mode": 420
+      },
+      "src/interp/interpreter.test.ts": {
+        "sha256": "ef53dd7d05c94ed0c4c9b478ec9a34d2cf6e353fd6170935a7f7086c3b19757d",
+        "bytes": 137591,
+        "mode": 420
+      },
+      "src/interp/interpreter.ts": {
+        "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+        "bytes": 97921,
+        "mode": 420
+      },
+      "src/interp/iteration.ts": {
+        "sha256": "dd71ba305822701e19deaa7c2bf643bb67c17fcfe7ce9c6f089224fedb2c965d",
+        "bytes": 2798,
+        "mode": 420
+      },
+      "src/interp/jobs.ts": {
+        "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+        "bytes": 2737,
+        "mode": 420
+      },
+      "src/interp/methods/array.test.ts": {
+        "sha256": "8859a77e124d122ab48fea99dd6e5ff2cdbacec90dd8bb56b9bf9b3632dc19ea",
+        "bytes": 24435,
+        "mode": 420
+      },
+      "src/interp/methods/array.ts": {
+        "sha256": "ea2f2b887081c4c1af790c8154068ca7c693915abaa1a59cfa991f649ba23587",
+        "bytes": 22610,
+        "mode": 420
+      },
+      "src/interp/methods/function.test.ts": {
+        "sha256": "d2a5918fab370f47ffb874df545fe0e4ec52e2ed3e35edd7b0c9a6208d18bd9e",
+        "bytes": 5447,
+        "mode": 420
+      },
+      "src/interp/methods/function.ts": {
+        "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb",
+        "bytes": 1942,
+        "mode": 420
+      },
+      "src/interp/methods/generator.ts": {
+        "sha256": "5da82dde9a05bbbf833ba320389033325fe8cf781496cce8bda1009d75ec2657",
+        "bytes": 987,
+        "mode": 420
+      },
+      "src/interp/methods/map.ts": {
+        "sha256": "681c1e044f4ec0c5f780c1c36978de2c14b37d19323a73552ea22a3fd417b446",
+        "bytes": 3192,
+        "mode": 420
+      },
+      "src/interp/methods/number.test.ts": {
+        "sha256": "33d63464451a871b5881b59b5cf7e13f07f053f489352110129d7f5297cd2d7b",
+        "bytes": 7089,
+        "mode": 420
+      },
+      "src/interp/methods/number.ts": {
+        "sha256": "22a78b6782766bbd79d98ebf487721276a4b0fd064aa7d4a61a5d35d9c759a49",
+        "bytes": 2913,
+        "mode": 420
+      },
+      "src/interp/methods/regex.test.ts": {
+        "sha256": "3d6427c965a4cba0c1bb3f95cdc4979cc86243937932c1881bde6f840aa41c67",
+        "bytes": 2197,
+        "mode": 420
+      },
+      "src/interp/methods/regex.ts": {
+        "sha256": "a80b629e850f6d0a934da14e57c8926a691d6ba132d0667c6a1514972bb4171e",
+        "bytes": 2094,
+        "mode": 420
+      },
+      "src/interp/methods/set.ts": {
+        "sha256": "755828aac63a296b9df4e107c5ef046681dc4cc3d93e9e54710419f24096653d",
+        "bytes": 2985,
+        "mode": 420
+      },
+      "src/interp/methods/string.test.ts": {
+        "sha256": "b3a66eed2197bfa95d3b17f9d3c64c6c51da97d8df4ba34d7c573ae340e83016",
+        "bytes": 13726,
+        "mode": 420
+      },
+      "src/interp/methods/string.ts": {
+        "sha256": "25b7eb646e115ce55b5fe02cc5d480109587fb6dab93d70b51cdb5e42a2b19a3",
+        "bytes": 12789,
+        "mode": 420
+      },
+      "src/interp/patterns.test.ts": {
+        "sha256": "26939cc0e291bcf658e6ac32196bee5e5f0128e726b4a28f63d323c7eb21dfde",
+        "bytes": 8867,
+        "mode": 420
+      },
+      "src/interp/patterns.ts": {
+        "sha256": "ea2c4b76ec48549eb82025bbf05777b72d1965e497deee5c3c7de73c80b39010",
+        "bytes": 9354,
+        "mode": 420
+      },
+      "src/interp/promise-replay.test.ts": {
+        "sha256": "3804bee04aa8f97fbe78281984a05d2711a112a0195b7356d630082d31c0caf0",
+        "bytes": 5783,
+        "mode": 420
+      },
+      "src/interp/promise-replay.ts": {
+        "sha256": "12113e684793316e0c476589a6c2e54cba4a7d86a95025e601f6585db0b3a127",
+        "bytes": 15538,
+        "mode": 420
+      },
+      "src/interp/promise-tracker.ts": {
+        "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+        "bytes": 2427,
+        "mode": 420
+      },
+      "src/interp/promise.test.ts": {
+        "sha256": "3be8ed17ba867f3676708c5a95a06c464aacebfda55b80dec11225cb32d916d9",
+        "bytes": 24077,
+        "mode": 420
+      },
+      "src/interp/promise.ts": {
+        "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+        "bytes": 15619,
+        "mode": 420
+      },
+      "src/interp/regex/engine.test.ts": {
+        "sha256": "dc7a75dec2ff1dacffa82f8dfebd50c12738834d9217b64e5366cb487588852d",
+        "bytes": 4083,
+        "mode": 420
+      },
+      "src/interp/regex/engine.ts": {
+        "sha256": "b12b0efa3760b5395a13474d0ce7313f063e2978cdb0e7a97f6e581bd6613118",
+        "bytes": 9631,
+        "mode": 420
+      },
+      "src/interp/regex/parse.test.ts": {
+        "sha256": "9875fb22709a48fe14bbc366495f9c738eea701a472c754644ad28d23fea6e7e",
+        "bytes": 2137,
+        "mode": 420
+      },
+      "src/interp/regex/parse.ts": {
+        "sha256": "86d0c5fa8a8269e5eb40aaccae36160dd09f51358e0f619ac9e4335aa0617e15",
+        "bytes": 11403,
+        "mode": 420
+      },
+      "src/interp/running-state.test.ts": {
+        "sha256": "aabd00aaa5c9bc190186a13f537fd95d1d04993d792c004eb97c814cc4f2a9af",
+        "bytes": 9178,
+        "mode": 420
+      },
+      "src/interp/running-state.ts": {
+        "sha256": "a930536ee55df896b62c77c6c9dfc0ff597f56da7d5bf12b7269c0836cfac041",
+        "bytes": 1254,
+        "mode": 420
+      },
+      "src/interp/scope.test.ts": {
+        "sha256": "1374ba21de75b1efd90874ddbd4a823fc9f2229516f2aa201eaff6e4679c82dd",
+        "bytes": 11265,
+        "mode": 420
+      },
+      "src/interp/scope.ts": {
+        "sha256": "148723026726511c7b444f7c1dd02cb955d8eb22d9aea9891928ef60b326eb6e",
+        "bytes": 7749,
+        "mode": 420
+      },
+      "src/interp/values.test.ts": {
+        "sha256": "65433d60b9539953bbdf8930ec352054c1339b82dcc05157bd52870d1cbc6147",
+        "bytes": 12384,
+        "mode": 420
+      },
+      "src/interp/values.ts": {
+        "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+        "bytes": 24602,
+        "mode": 420
+      },
+      "src/interp/var-hoist.ts": {
+        "sha256": "ae52756a61821f2ae5fc828bcca66c51826121076f043b1a9036c1d23e033aee",
+        "bytes": 5008,
+        "mode": 420
+      },
+      "src/lint/function-syntax.stress.test.ts": {
+        "sha256": "7e9583240830979eeceb620bea264b834a12263e8a8c97050c2b6fbc07b619b6",
+        "bytes": 3419,
+        "mode": 420
+      },
+      "src/lint/function-syntax.test.ts": {
+        "sha256": "951b3ed9e50a39031bc5f4cfcaeeb08372fe49566be964cdf85873b6e012bad6",
+        "bytes": 5838,
+        "mode": 420
+      },
+      "src/lint/index.test.ts": {
+        "sha256": "569627e4749311eacca4fc4e3da64a2f3f8890841ee0a363de3de1fc0a88db9f",
+        "bytes": 14947,
+        "mode": 420
+      },
+      "src/lint/index.ts": {
+        "sha256": "1a71ff42ce0196828154e3ae35b34044e2612a1c32c9ee10c8a73f22146f1457",
+        "bytes": 16522,
+        "mode": 420
+      },
+      "src/lint/mutable-closures.stress.test.ts": {
+        "sha256": "b799ea16b5f97446362154c0b639d06a2609200483d67d3cf8c7434621d286df",
+        "bytes": 4418,
+        "mode": 420
+      },
+      "src/lint/mutable-closures.test.ts": {
+        "sha256": "85c7fb4d618fdb78931bb1f55f9d7f9dd13e81515ebd8b616c7169c9d68143e5",
+        "bytes": 2089,
+        "mode": 420
+      },
+      "src/lint/rules/AS-async-not-needed.test.ts": {
+        "sha256": "9c4bf66ea5574120e49fa4f065f6bebd251983d0869725c0a9a8221d2d1d59ed",
+        "bytes": 2182,
+        "mode": 420
+      },
+      "src/lint/rules/AS-async-not-needed.ts": {
+        "sha256": "22ecf602be315422ef488bc458eb04261cc01026f71ffbe8c347f176011819c3",
+        "bytes": 22158,
+        "mode": 420
+      },
+      "src/lint/rules/AS-await-non-promise.test.ts": {
+        "sha256": "a6957be321f4d7fc4eba50b6e79a61141fbd891b6c8e849f3027793267416196",
+        "bytes": 3096,
+        "mode": 420
+      },
+      "src/lint/rules/AS-await-non-promise.ts": {
+        "sha256": "cb65e3f0df46f5883f57d2a3b3893c2570a70505b1f00e0322020b0033ee3180",
+        "bytes": 10185,
+        "mode": 420
+      },
+      "src/lint/rules/AS-destructure-null-default.test.ts": {
+        "sha256": "ba19072a48eae94e1b4d16623096b6d68c12bf4d2d47f5d520a6794b41430f23",
+        "bytes": 2994,
+        "mode": 420
+      },
+      "src/lint/rules/AS-destructure-null-default.ts": {
+        "sha256": "278575a443d085cd14f8776449b44d193398da5e5cdf2a8d16d7e6b3360dd030",
+        "bytes": 15373,
+        "mode": 420
+      },
+      "src/lint/rules/AS-export-import-meta.test.ts": {
+        "sha256": "e5eb06180acc45adb871866b0d8b6648ad7ee7bf8a3a041ba0dcc88ca6dc4650",
+        "bytes": 2244,
+        "mode": 420
+      },
+      "src/lint/rules/AS-export-import-meta.ts": {
+        "sha256": "7e15e4acb0228fb4f2075c7f357fd595ec51af0043ac9fc7266f037d97bd2f79",
+        "bytes": 15385,
+        "mode": 420
+      },
+      "src/lint/rules/AS-floating-promise.test.ts": {
+        "sha256": "cc17f34d973d3a9c9f290fc5816c180732fb6cb8cdf05a418e5c87d659e21527",
+        "bytes": 4880,
+        "mode": 420
+      },
+      "src/lint/rules/AS-floating-promise.ts": {
+        "sha256": "770ae6632859ca91b32a8406bd562039708adbb0e1b6f4a1054117ea8ec29d2f",
+        "bytes": 22948,
+        "mode": 420
+      },
+      "src/lint/rules/AS-frontmatter-field-unused.test.ts": {
+        "sha256": "8701bc36c054380027d372596254e81fbef9d2888bad08b676f79b39450adcc5",
+        "bytes": 2893,
+        "mode": 420
+      },
+      "src/lint/rules/AS-frontmatter-field-unused.ts": {
+        "sha256": "1040b778ff31c3db45c8c39a0fde709434fe5895f6cfbf4e5362c05d01ab4e16",
+        "bytes": 14369,
+        "mode": 420
+      },
+      "src/lint/rules/AS-import-cycle.test.ts": {
+        "sha256": "e8e04758092cd569aa8f3d4ab9206a6c35f3a90908b2523b7f6278bd5aaefcd9",
+        "bytes": 5389,
+        "mode": 420
+      },
+      "src/lint/rules/AS-import-cycle.ts": {
+        "sha256": "323c9e930a38ec9d537a88104c307d3232aea10e44f3a60cf33aca1055d5bb2e",
+        "bytes": 3819,
+        "mode": 420
+      },
+      "src/lint/rules/AS-jsdoc-type.test.ts": {
+        "sha256": "ab545ca5b66530797ba31cdb1a0350b1e16371518a6d4352cd955d1b65c597ca",
+        "bytes": 6487,
+        "mode": 420
+      },
+      "src/lint/rules/AS-jsdoc-type.ts": {
+        "sha256": "40daf284e7fb340c3a7f9b6c1305c0777043108c52c25e1d0c8a3f97f8ca8267",
+        "bytes": 26690,
+        "mode": 420
+      },
+      "src/lint/rules/AS-large-literal.test.ts": {
+        "sha256": "f58cd8c9e7c48fe230386dd4dea69ebcec463d0b13ee793ff4f206e791cee971",
+        "bytes": 2702,
+        "mode": 420
+      },
+      "src/lint/rules/AS-large-literal.ts": {
+        "sha256": "ca8fb81d601c5d6b62f4c077a846ecdfe42d9f4dc85bdd7948527b5e529273c4",
+        "bytes": 12667,
+        "mode": 420
+      },
+      "src/lint/rules/AS-missing-async.test.ts": {
+        "sha256": "52a90a7a5f04a2ce861d73a40ccb8751b48e097c23a784eb69fc50db5c9975d0",
+        "bytes": 3890,
+        "mode": 420
+      },
+      "src/lint/rules/AS-missing-async.ts": {
+        "sha256": "c1ec6392cd89c3ed4a2a8f381f565d6a61fcd820cf39de398ac1b488edb1d07b",
+        "bytes": 21036,
+        "mode": 420
+      },
+      "src/lint/rules/AS-mutating-frozen.test.ts": {
+        "sha256": "724df5847764072f32bd5a05d81c622318e34184105263181039651e8e527c2a",
+        "bytes": 3583,
+        "mode": 420
+      },
+      "src/lint/rules/AS-mutating-frozen.ts": {
+        "sha256": "a67fdb2b52d94347afaa352cc4ddda5e2b14a5fff5f7a8d1e16eeaa917bc0401",
+        "bytes": 18756,
+        "mode": 420
+      },
+      "src/lint/rules/AS-needless-template.test.ts": {
+        "sha256": "35faec8b9b64a8ccea76538c0a4919124f209adfe11acf11453bf22102c0f9fa",
+        "bytes": 3108,
+        "mode": 420
+      },
+      "src/lint/rules/AS-needless-template.ts": {
+        "sha256": "73fd25f7e02e1ada5e1c649f1c46a417b45b1743e512c801ceccc59bebf3cd83",
+        "bytes": 15221,
+        "mode": 420
+      },
+      "src/lint/rules/AS-shadow-global.test.ts": {
+        "sha256": "70cf2ff5871d1b574898b8c63f79ade73c490f480a9caa461618a4031a2797af",
+        "bytes": 2926,
+        "mode": 420
+      },
+      "src/lint/rules/AS-shadow-global.ts": {
+        "sha256": "b368450a9e14cf4b26ff5b88aeae31cc4e90a5fbb11044f6a313a9f66d1bdd9e",
+        "bytes": 13864,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unbounded-loop.test.ts": {
+        "sha256": "ecc113410cc93ccd4f6026789642b82e93dedebef86ea237e4283fa729174fd2",
+        "bytes": 2229,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unbounded-loop.ts": {
+        "sha256": "e5447fd44dd76914aa390a792e768e2ba1a3944b31f840814555857331fbbf76",
+        "bytes": 13042,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unreachable.test.ts": {
+        "sha256": "6fba8acd92f8e5da6c7b15f8921711f59294a967423f04949c3856bc0624270a",
+        "bytes": 3683,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unreachable.ts": {
+        "sha256": "82a90cc3f375257062a2ad0bd8d3aa4a235fabbd82d175ac4768f895b4e46564",
+        "bytes": 10729,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unused-import.test.ts": {
+        "sha256": "22eb35aab1144646a75edcd61e0660dcfb3c124aa9c944f022d5dec9478d51f2",
+        "bytes": 5949,
+        "mode": 420
+      },
+      "src/lint/rules/AS-unused-import.ts": {
+        "sha256": "567f86e73a631387ba7eca8301700ca5804ffcb63873f67ad413f211500f0fb2",
+        "bytes": 23153,
+        "mode": 420
+      },
+      "src/lint/rules/AS001.test.ts": {
+        "sha256": "ca52c430d10c16cdad014541e380bf6b3788fdbb760172581d99fc574638a9e2",
+        "bytes": 8756,
+        "mode": 420
+      },
+      "src/lint/rules/AS001.ts": {
+        "sha256": "bfd137037d6799e2da74b5b7f74b7f85219a6e825b711261c373b8e3d58bee0e",
+        "bytes": 21099,
+        "mode": 420
+      },
+      "src/lint/rules/AS003.test.ts": {
+        "sha256": "83228d255d431f1eb96737d6140378a55c2144a98deaac690d9de768410cd1d6",
+        "bytes": 8982,
+        "mode": 420
+      },
+      "src/lint/rules/AS003.ts": {
+        "sha256": "71827deb5366c1bc027f075da3a417abb46bc346440fa337270d3c2d6e9a441d",
+        "bytes": 20777,
+        "mode": 420
+      },
+      "src/lint/rules/AS004.test.ts": {
+        "sha256": "3a30ad6ef0fa6dbe342b7c2e9ab652c978650f2b9375196620b55276382940fa",
+        "bytes": 5047,
+        "mode": 420
+      },
+      "src/lint/rules/AS004.ts": {
+        "sha256": "ec1e04bdb5ae4759e4395f06733dfac6cb54a44e0b1ef0b219d31b1a29e0f61d",
+        "bytes": 1175,
+        "mode": 420
+      },
+      "src/lint/rules/AS005.test.ts": {
+        "sha256": "ab634408f9c84c8e1806eebd3e2e99cf8b939aff9d64d41f263e69897f626a90",
+        "bytes": 6796,
+        "mode": 420
+      },
+      "src/lint/rules/AS005.ts": {
+        "sha256": "5783c771a2ca7404d0690d50dc51e1eb62108f4ceffc8966d6a3e0cec9fd9bd6",
+        "bytes": 1659,
+        "mode": 420
+      },
+      "src/lint/rules/AS006-007.test.ts": {
+        "sha256": "1df56098225ea5a4afb0fd0f8a948c563ac7b89358281b97651e02807007bff6",
+        "bytes": 6056,
+        "mode": 420
+      },
+      "src/lint/rules/AS006-007.ts": {
+        "sha256": "6fbf0da47124f3ab99d0bc5ca32eb638d55599795adb57cc9406ee1f4f499ef9",
+        "bytes": 21920,
+        "mode": 420
+      },
+      "src/lint/rules/AS008.test.ts": {
+        "sha256": "e4cdcda154c54e1a4084a9e9df2c502db69e64a77b7e2b951100b450036f3dae",
+        "bytes": 5411,
+        "mode": 420
+      },
+      "src/lint/rules/AS008.ts": {
+        "sha256": "6f260a812010ccc4d3961f24f15e35c88dddd3ecc5fb92293544282674c56ace",
+        "bytes": 12561,
+        "mode": 420
+      },
+      "src/lint/rules/AS009.test.ts": {
+        "sha256": "f87279957dd8b7d780ed86e90f700d82422c288b5e9beec5c7ed0a255c20f8c8",
+        "bytes": 5753,
+        "mode": 420
+      },
+      "src/lint/rules/AS009.ts": {
+        "sha256": "ebee06dbcc3b497219f9baffe0ec6cd71818e49d086ddefdb0dc262325260fd3",
+        "bytes": 16563,
+        "mode": 420
+      },
+      "src/lint/rules/AS010.test.ts": {
+        "sha256": "1637c1e1ff95dc75e1b26e64f820d9f8773e6845a893a389e2b95e76ad3d7c9c",
+        "bytes": 5856,
+        "mode": 420
+      },
+      "src/lint/rules/AS010.ts": {
+        "sha256": "43483112c42db5372f1cf2b4684d3a8076b346fedf87ea4747a2f81e437a0947",
+        "bytes": 22942,
+        "mode": 420
+      },
+      "src/lint/rules/AS011.test.ts": {
+        "sha256": "41ed1ac57885832d9f1701bef3206223a48d6d19a1aea94d4c290a8c1a548689",
+        "bytes": 6889,
+        "mode": 420
+      },
+      "src/lint/rules/AS011.ts": {
+        "sha256": "4e71534547380d2b894e91bbff22f2ee14a943d6541e52ae548176f33a9cb2de",
+        "bytes": 11648,
+        "mode": 420
+      },
+      "src/lint/rules/AS013.test.ts": {
+        "sha256": "7edc2a6bc991c78a2080ef3c321a18005a13cafafe5fa8a99ee735b439d7e082",
+        "bytes": 7713,
+        "mode": 420
+      },
+      "src/lint/rules/AS013.ts": {
+        "sha256": "e2914e61026e634f891b8f0015fb6b280f348c3087000a8f1b1ef1951050ea22",
+        "bytes": 3495,
+        "mode": 420
+      },
+      "src/lint/rules/AS014.test.ts": {
+        "sha256": "fc7ffe8a80de911ffcb955605ef9840f894547749b652e5e1e9bb0a58b1f04b5",
+        "bytes": 8312,
+        "mode": 420
+      },
+      "src/lint/rules/AS014.ts": {
+        "sha256": "cb0aefd618c8f679c5069edf9ddc8677390d7dc228102152d8aaa28c679de6f5",
+        "bytes": 3235,
+        "mode": 420
+      },
+      "src/lint/rules/AS015.test.ts": {
+        "sha256": "3ce9c1972cc0fab7cab03c21e67251efc5a229fae07485e29ce99d4a938cf0fd",
+        "bytes": 4951,
+        "mode": 420
+      },
+      "src/lint/rules/AS015.ts": {
+        "sha256": "337cd55c95f453dc492e7259650177af63747a11e9c5dd17a4f7f0dcf3bc134c",
+        "bytes": 11235,
+        "mode": 420
+      },
+      "src/lint/rules/known-globals.ts": {
+        "sha256": "3d41fdf05b28b16d9e203bb7ce6c6560000ca3146fca17fbf21acaf6254c13fc",
+        "bytes": 361,
+        "mode": 420
+      },
+      "src/lint/rules/module-registry.test.ts": {
+        "sha256": "9efd612024565054e46a45ffb8598378ca91fcbcce119fadca46c47a65aa7e6b",
+        "bytes": 1757,
+        "mode": 420
+      },
+      "src/lint/rules/module-registry.ts": {
+        "sha256": "c134bb1ad5598b8a6a430f9a00f71011996f536bf80fe3f69823208d4c1480fe",
+        "bytes": 5637,
+        "mode": 420
+      },
+      "src/lint/runtime-modules.test.ts": {
+        "sha256": "9dd1d640ea148cd828b0e62f42e6fd77f8d61c61f161515d078ab90613d3f16d",
+        "bytes": 1475,
+        "mode": 420
+      },
+      "src/lint/runtime-modules.ts": {
+        "sha256": "0ae95402221097ba40fa8dc4681214c3761ed7d71b08505b70aaae1d6f82a2ce",
+        "bytes": 1528,
+        "mode": 420
+      },
+      "src/lint.test.ts": {
+        "sha256": "919cea582dbc27afac4874a8e0c86c03c91992a80ee58bcb85a18714f37c92c5",
+        "bytes": 4132,
+        "mode": 420
+      },
+      "src/lint.ts": {
+        "sha256": "6f9d8d7cfa02dac8449f833d465b23346b446925a2bb169b8a3d0a88ae0ea91f",
+        "bytes": 115,
+        "mode": 420
+      },
+      "src/loader/extract-block.test.ts": {
+        "sha256": "74e83d5715cd9cfe142632505abcd2d962ece5859b8b794d5cefc61d1103d126",
+        "bytes": 8149,
+        "mode": 420
+      },
+      "src/loader/extract-block.ts": {
+        "sha256": "3db3176f2bebc5e6f6eee9afe7f93745b3f1faa4b780c502ddf55a694d00c9b2",
+        "bytes": 6609,
+        "mode": 420
+      },
+      "src/loader/find-exported.test.ts": {
+        "sha256": "03c27f2351b3c748c5631e2253ad59f966f03dc6e2ffeb68f914ee61792a8faa",
+        "bytes": 5517,
+        "mode": 420
+      },
+      "src/loader/find-exported.ts": {
+        "sha256": "dd9ee61ab9a03d09611194239ecbfd8d917ce5ad747e251aa84df857e3655976",
+        "bytes": 1188,
+        "mode": 420
+      },
+      "src/loader/frontmatter.test.ts": {
+        "sha256": "e33ce4386d7372f06fb3e3d436227a43c93b7e68ca8e7ae9818194f89ca3f931",
+        "bytes": 7045,
+        "mode": 420
+      },
+      "src/loader/frontmatter.ts": {
+        "sha256": "3c02c88a2d03426a8ece525b75c02d74cd812060b2842acaf22062127e57f4bb",
+        "bytes": 2315,
+        "mode": 420
+      },
+      "src/loader/multiple-blocks.test.ts": {
+        "sha256": "b663977cf5dac9062680ff1225db645a208c5f355eb2025a12a734b1c25e5552",
+        "bytes": 11708,
+        "mode": 420
+      },
+      "src/modules/agent.test.ts": {
+        "sha256": "d418ab78efe2c349cb68efa5ef5da3a26e8d3c99cb092ed34b1f517e66cc4393",
+        "bytes": 40808,
+        "mode": 420
+      },
+      "src/modules/agent.ts": {
+        "sha256": "ff8565b4bead6dfcf92dfb2ad1025ce219447ffa6db2d6589edf1e689f19ff93",
+        "bytes": 35613,
+        "mode": 420
+      },
+      "src/modules/canonical-path.ts": {
+        "sha256": "380aee25cc6a2ac6ace9c67927d930b6159fdda75670bc238d4517b2cafb525a",
+        "bytes": 8572,
+        "mode": 420
+      },
+      "src/modules/env.test.ts": {
+        "sha256": "b390a9f6a3e642bf2ad73baf696bb8a841d47516133890945cde8a1fd747e49f",
+        "bytes": 2441,
+        "mode": 420
+      },
+      "src/modules/env.ts": {
+        "sha256": "2365abe1a00f86c9b0ad0937a1170b70ea41425487881e80dcaf16e54df54ab6",
+        "bytes": 1088,
+        "mode": 420
+      },
+      "src/modules/fail.test.ts": {
+        "sha256": "97bd8ca8709438f482e8c34478da2935f44e9dd5395fbfbeb3ccee3d5c46ab99",
+        "bytes": 1259,
+        "mode": 420
+      },
+      "src/modules/fail.ts": {
+        "sha256": "bab7c7b339da1426b271ee165416d070e76b94d9c2b04b2d4c170e12084dc9b8",
+        "bytes": 676,
+        "mode": 420
+      },
+      "src/modules/fs.conformance-cases.ts": {
+        "sha256": "ffd8da8dedc545dfefe7dc1e0d9c74b98b765813e76efe2c57ec3373505c49fd",
+        "bytes": 57888,
+        "mode": 420
+      },
+      "src/modules/fs.conformance.test.ts": {
+        "sha256": "619acd619666989a8ddf5ef726028c81ac6f56e66f1d7666131aad3fa5df5b0d",
+        "bytes": 11427,
+        "mode": 420
+      },
+      "src/modules/fs.host-module.test.ts": {
+        "sha256": "0de3ed6ee2978ac460ab4e1c9424899cccacd45760943ee37c2bfde09ca1bfeb",
+        "bytes": 11103,
+        "mode": 420
+      },
+      "src/modules/fs.node-truth.json": {
+        "sha256": "d58816b44513a908c76875e8ccbf7889dd133dc348c15ebeab4ff5adc32efdd2",
+        "bytes": 72902,
+        "mode": 420
+      },
+      "src/modules/fs.option-surface.test.ts": {
+        "sha256": "10097f77c5b1f11bd4aa07105536c90388d4da1f37b5ee0ba1e3ad8278fb86ee",
+        "bytes": 7517,
+        "mode": 420
+      },
+      "src/modules/fs.test.ts": {
+        "sha256": "6da8572285cd179087931e4ed2b95f69984b9b30b2eed046a3e4c7f5215efa6d",
+        "bytes": 169727,
+        "mode": 420
+      },
+      "src/modules/fs.ts": {
+        "sha256": "99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142",
+        "bytes": 31730,
+        "mode": 420
+      },
+      "src/modules/git.test.ts": {
+        "sha256": "7d1a9d8d49b09e80fe2b43292f5ec71d05e9e6e6d23a88d27bdda355cf7e7e10",
+        "bytes": 26818,
+        "mode": 420
+      },
+      "src/modules/git.ts": {
+        "sha256": "520ea44f3e0a8f8f4c5dc3395eb52991afb1dcbce5f7eb5f8aa39e7a46c07349",
+        "bytes": 13229,
+        "mode": 420
+      },
+      "src/modules/harness.test.ts": {
+        "sha256": "9e8701cc44c4edb935febe88c67639e94b80885a5c78d5d8576fb0c988cebb90",
+        "bytes": 7922,
+        "mode": 420
+      },
+      "src/modules/harness.ts": {
+        "sha256": "360ce7e2d8f2ad9b9ddb544b8209ee3b17ad6587d4e10328fb9ef193f1091d0f",
+        "bytes": 2155,
+        "mode": 420
+      },
+      "src/modules/log.test.ts": {
+        "sha256": "89a8bf7a84ce00e8dfec8e75d26be8fd60ed6e033719ada18c466a8a3dec97c6",
+        "bytes": 6494,
+        "mode": 420
+      },
+      "src/modules/log.ts": {
+        "sha256": "79bdd9a58234514dd2a619f7fc022879e55df5e240fbdf8f71d32cbb791ba679",
+        "bytes": 3660,
+        "mode": 420
+      },
+      "src/modules/mcp.test.ts": {
+        "sha256": "c1a39c7570cffe161ad98ca3da38806d1c0489dd486e44cd16e46c5f102cd8bc",
+        "bytes": 18569,
+        "mode": 420
+      },
+      "src/modules/mcp.ts": {
+        "sha256": "0eeb19d0d4561f551576f34f5458d95dcc15b81147c81df95dc9c796413e5127",
+        "bytes": 12265,
+        "mode": 420
+      },
+      "src/modules/metric.test.ts": {
+        "sha256": "a838cbe7d0887f87b73e7d3f5352c1effe6a9e532b9f63e96f9690a432055013",
+        "bytes": 2047,
+        "mode": 420
+      },
+      "src/modules/metric.ts": {
+        "sha256": "dbafb775b781a1506c23ef0011969d847d6b59bda0d38aa664111d4cc1f05a8d",
+        "bytes": 1429,
+        "mode": 420
+      },
+      "src/modules/registry.test.ts": {
+        "sha256": "49d6cf99a518806134d236a6cd9bb16cc54f6970dda3d24f6c4645cb8e9e12f9",
+        "bytes": 2098,
+        "mode": 420
+      },
+      "src/modules/registry.ts": {
+        "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+        "bytes": 6478,
+        "mode": 420
+      },
+      "src/modules/time.test.ts": {
+        "sha256": "2c7baa9f589ae58fe8faa4874fb918ba80dd49cf0739a52eac259aca946e7ef0",
+        "bytes": 6852,
+        "mode": 420
+      },
+      "src/modules/time.ts": {
+        "sha256": "10e9755b05bf6c5b092a4366bcae033bae5f896fbe685f07c96b7f2e205d349b",
+        "bytes": 2694,
+        "mode": 420
+      },
+      "src/observability/otel.ts": {
+        "sha256": "14679c70249ccce8e0dbe86a9e158a82b0fffd7b0dce169e0ba6e37bb28d9a02",
+        "bytes": 3224,
+        "mode": 420
+      },
+      "src/output-stream.ts": {
+        "sha256": "f4486e018bca74d9afcd47fb73ed37e435e61eff08c72d5ffbd9a601a55575a0",
+        "bytes": 1667,
+        "mode": 420
+      },
+      "src/parse/assign-ids.test.ts": {
+        "sha256": "710d8031accb14d2b8764d1f02724dcbc466c76ccac322ec814852865b110c29",
+        "bytes": 10659,
+        "mode": 420
+      },
+      "src/parse/assign-ids.ts": {
+        "sha256": "c52cb05ef02c866bf5ceea51ac70a1daf235d2cf946568b384da324553b8ee8e",
+        "bytes": 3144,
+        "mode": 420
+      },
+      "src/parse/format-error.test.ts": {
+        "sha256": "c406453ba0d3114ac0f445a8646ada55ba23e7770948f2e26ad717c00a8fd9c1",
+        "bytes": 6777,
+        "mode": 420
+      },
+      "src/parse/format-error.ts": {
+        "sha256": "f473ea99ac4c6f47a692d1daa105d54084bf5ce0873735e34e6d7a3ad9a08d53",
+        "bytes": 7669,
+        "mode": 420
+      },
+      "src/parse/fuzz.test.ts": {
+        "sha256": "4867e0267a331a17c0b2486717572858e7194288d905019a476728418615d9ef",
+        "bytes": 11798,
+        "mode": 420
+      },
+      "src/parse/generator.test.ts": {
+        "sha256": "18ea96e9be74bfbda289e86685c4c0ce99155ce095a06eb6c868ddf92b004489",
+        "bytes": 4122,
+        "mode": 420
+      },
+      "src/parse/hash.test.ts": {
+        "sha256": "b1748d236d37b27a57cda388df3eb20f53dccc887da7c655380ad968398044db",
+        "bytes": 4377,
+        "mode": 420
+      },
+      "src/parse/hash.ts": {
+        "sha256": "2c8dc1624946ec70722878e792367c8f506560eae62705e60e84d36114bf2cf2",
+        "bytes": 2717,
+        "mode": 420
+      },
+      "src/parse/parse-export.test.ts": {
+        "sha256": "d76e19be37d5c118a58a82ee4f3e7ea7c6a63396c080d35612104239f00b655e",
+        "bytes": 6589,
+        "mode": 420
+      },
+      "src/parse/parse-export.ts": {
+        "sha256": "ba7d304b6fa4b02f9d13f625808bcf7e0a4e3685f4088ec142094a9a7bb8eee6",
+        "bytes": 3164,
+        "mode": 420
+      },
+      "src/parse/parse-import-meta.test.ts": {
+        "sha256": "2291fddb92e83ff0242cb02f30929745b84922ee12eb2b8d10f40d23ed6f48fb",
+        "bytes": 3874,
+        "mode": 420
+      },
+      "src/parse/parse-import-meta.ts": {
+        "sha256": "84ae4c6087918353e0e3c5499cf5031bacafb7a272afb28fa772c85d04278b6b",
+        "bytes": 1105,
+        "mode": 420
+      },
+      "src/parse/parse-switch.test.ts": {
+        "sha256": "db2be8f1a013af7c44775eab1aabdd0aa7929dd41b6e254811c9152017147895",
+        "bytes": 1317,
+        "mode": 420
+      },
+      "src/parse/parser.test.ts": {
+        "sha256": "9c0f949e1ea59beafcca1837912c3ed76078aaff7277da33cb788b581bcac66f",
+        "bytes": 96427,
+        "mode": 420
+      },
+      "src/parse/parser.ts": {
+        "sha256": "cf69c4192e77a65b019de8661079da3276582958361a9b446d488214051957b3",
+        "bytes": 133783,
+        "mode": 420
+      },
+      "src/parse/tokenizer.test.ts": {
+        "sha256": "94679b787e3f75ceff54bb7d37a51451ce44335dfb7eaf67aa886da558cf584d",
+        "bytes": 20798,
+        "mode": 420
+      },
+      "src/parse/tokenizer.ts": {
+        "sha256": "dff80493fc5e1d5aa9a27bfb9526d816dd6b2d8a6705c92ce9c575663b4227ec",
+        "bytes": 29344,
+        "mode": 420
+      },
+      "src/parse.ts": {
+        "sha256": "915cd00a544fcaadf04bc1231da0c1ba16358fffde5a9b03ed43afaa97bd555f",
+        "bytes": 1394,
+        "mode": 420
+      },
+      "src/random.ts": {
+        "sha256": "717f65f8d80823f6fa31a7bcab7cdb0c6a68997b378a1f55f83322e464dbece4",
+        "bytes": 1199,
+        "mode": 420
+      },
+      "src/restore.test.ts": {
+        "sha256": "4c4f66ec1fde6b4e539896d90b4623882aefec315ce324acf489148a0cdda452",
+        "bytes": 4268,
+        "mode": 420
+      },
+      "src/restore.ts": {
+        "sha256": "ef418d071df149b3878a02042a2944faec1a37dba8f894897fef41976e0b7428",
+        "bytes": 2031,
+        "mode": 420
+      },
+      "src/run.completed-replay.test.ts": {
+        "sha256": "229b3b3b2dadbccf9da74d3c78dea2119ad626b8a580d887afbf6ed06ba32092",
+        "bytes": 4966,
+        "mode": 420
+      },
+      "src/run.promise-order.test.ts": {
+        "sha256": "444ac6bbc609de5f8cdbd759835badc6e17b52d2a023fa0710696a9bf24f586f",
+        "bytes": 7639,
+        "mode": 420
+      },
+      "src/run.random.test.ts": {
+        "sha256": "9177f423349fba0e12af79e16dacaecaad6b381d20efb049077c946f20f7571d",
+        "bytes": 6217,
+        "mode": 420
+      },
+      "src/run.replay.stress.test.ts": {
+        "sha256": "0bd01499fbdceebfb02044af6221ec9f8453e77c300aef6eb28330b2b9b1ed87",
+        "bytes": 41331,
+        "mode": 420
+      },
+      "src/run.snapshot.test.ts": {
+        "sha256": "b54b639c31ab8d5ab2416bd19fe01807f5acd5e6f5c1eb62c94baac4e9c080ac",
+        "bytes": 35373,
+        "mode": 420
+      },
+      "src/run.test.ts": {
+        "sha256": "d895a0e3ba0f711e93ae24c9f534e8a313ae3fa54e1c3b41779fa8bc9f694985",
+        "bytes": 52097,
+        "mode": 420
+      },
+      "src/run.ts": {
+        "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+        "bytes": 25016,
+        "mode": 420
+      },
+      "src/runner/run-harness.test.ts": {
+        "sha256": "b225464580b7be614929e82b1913e2eb226d1e10ad4a0c61243581d6c36d2d21",
+        "bytes": 26981,
+        "mode": 420
+      },
+      "src/runner/run-harness.ts": {
+        "sha256": "611869f3de077ce6d97a1eac7b4a1f23291b9096c1ca68fd196561429c4494b2",
+        "bytes": 10290,
+        "mode": 420
+      },
+      "src/runner/signal-dump.test.ts": {
+        "sha256": "34563ff5e6fada13bf82c215269a0c81501fb812e143f855e892525e43d4a536",
+        "bytes": 14011,
+        "mode": 420
+      },
+      "src/runner/signal-dump.ts": {
+        "sha256": "e70b7567fd6d04c4a166b881b91c69e0008bde63267d42334d00e139c8ea04da",
+        "bytes": 2879,
+        "mode": 420
+      },
+      "src/sandbox-integrity.test.ts": {
+        "sha256": "21d23bd29d82bdac9bc161f529053f6b12dfafb2244b25f02e2d6381c9f5e7f4",
+        "bytes": 14267,
+        "mode": 420
+      },
+      "src/snapshot/arguments.ts": {
+        "sha256": "4d34751c3c4f4792029a005e069fab23fb9d4984301168c79a5b024ad2ed9e47",
+        "bytes": 1860,
+        "mode": 420
+      },
+      "src/snapshot/backend.test.ts": {
+        "sha256": "3d05109ea592f20eebf0a14f1ed2b53d0ef2765dd3f8eb6d9f4efbf5164dac32",
+        "bytes": 10352,
+        "mode": 420
+      },
+      "src/snapshot/backend.ts": {
+        "sha256": "55fe58a47a8a623a957d3cdcc40ed922db35d2cdede0f97d38e3eba34ebe70f1",
+        "bytes": 5893,
+        "mode": 420
+      },
+      "src/snapshot/dump-format.ts": {
+        "sha256": "27af4f306a4e616deed470b85c8a0491945dd55da5a025498f4f52f4df2b0c14",
+        "bytes": 7860,
+        "mode": 420
+      },
+      "src/snapshot/dump.ts": {
+        "sha256": "2f0a4f144c6496214b81ee128c8f9605fc548c0638bdec9a6de1d28cc5017ad5",
+        "bytes": 6335,
+        "mode": 420
+      },
+      "src/snapshot/policy.test.ts": {
+        "sha256": "dcc8dee778bc658d5e2b27f0e3613f484fe5a36ae4a3c989fa18cf331f608b7a",
+        "bytes": 10381,
+        "mode": 420
+      },
+      "src/snapshot/policy.ts": {
+        "sha256": "7306c1f3c1170a0bdde41fb56ac943e07dffa1a69fed46faec538f459ae56a33",
+        "bytes": 6813,
+        "mode": 420
+      },
+      "src/snapshot/replay-data.test.ts": {
+        "sha256": "dbbe5b05eb515da861fe8c7fb2b00804a7ad2331fc81a55047e3e1290c144d57",
+        "bytes": 6083,
+        "mode": 420
+      },
+      "src/snapshot/replay-data.ts": {
+        "sha256": "0130544934e8aa02404eb9e4aa41a835dad7416435decff4dcfd5a119ea576e6",
+        "bytes": 13196,
+        "mode": 420
+      },
+      "src/snapshot/replay-inputs.test.ts": {
+        "sha256": "0e50e97faf83377cc5844661874784d54f631ddb654c71ec156f1c900bc69745",
+        "bytes": 2135,
+        "mode": 420
+      },
+      "src/snapshot/replay-inputs.ts": {
+        "sha256": "d23eeb791eeb9ac5610f5fdc014df38d8d5bd9fb4c00b2dfcfbe109bfc5f58d5",
+        "bytes": 5007,
+        "mode": 420
+      },
+      "src/snapshot/restore.test.ts": {
+        "sha256": "6524d83e2ee496fecb4a3c57a0185534cba5ca4a15016167216a1ce53f60e9b3",
+        "bytes": 48978,
+        "mode": 420
+      },
+      "src/snapshot/restore.ts": {
+        "sha256": "7b2aa7b53681e186da0bac24574eef649131146e216566db903fb7252d7e5aee",
+        "bytes": 26758,
+        "mode": 420
+      },
+      "src/snapshot/scheduler.test.ts": {
+        "sha256": "dc8d9a8b30afb0a597321db5f25122455d1d0402ad386e085aac37f4d8e465a6",
+        "bytes": 13071,
+        "mode": 420
+      },
+      "src/snapshot/scheduler.ts": {
+        "sha256": "616c06660d9ee884f3b79c5d0843a255376e1fa441620a803205eb680e28c2fc",
+        "bytes": 2787,
+        "mode": 420
+      },
+      "src/snapshot/serialize.test.ts": {
+        "sha256": "8808a17d82bcc68311c486ff4bd8cec81b8d3b4f6920ed564239ed468d04f116",
+        "bytes": 17799,
+        "mode": 420
+      },
+      "src/snapshot/serialize.ts": {
+        "sha256": "ec5744b807c279928036f65c48bbed55c7ba8d563e25b292fb3ef7c4bc732bd6",
+        "bytes": 15993,
+        "mode": 420
+      },
+      "src/snapshot/validation.ts": {
+        "sha256": "20b30c5a18aec5624c048bd17e07cb0a55f9c90d144c663d388d5ae12a76681c",
+        "bytes": 29061,
+        "mode": 420
+      },
+      "src/templates/skill/SKILL_safejs.md": {
+        "sha256": "2af5704c43b527b1090db7420223ae9a167d82356e81700849fa3cb4bcce7305",
+        "bytes": 6390,
+        "mode": 420
+      },
+      "test/adversarial/corpus.test.ts": {
+        "sha256": "0b0c0be92ee978fc00d3614ab35be9a9a1e4421aee076a11a9f5c86951f52e7b",
+        "bytes": 323,
+        "mode": 420
+      },
+      "test/adversarial/harness.ts": {
+        "sha256": "941bd0f9eeb4fff624e9f4cb2b06c7c9372a7c68674924edb50e77728e334d7e",
+        "bytes": 7744,
+        "mode": 420
+      },
+      "test/adversarial/parser-smoke.test.ts": {
+        "sha256": "0e8bd78fbef4d21bfc17f7b829602b9f3ad33366e6bf5d35049d9ffd07811470",
+        "bytes": 310,
+        "mode": 420
+      },
+      "test/adversarial/parser-smoke.ts": {
+        "sha256": "84502d38e999d34031fc03428550f5b236a2ab622c4b1a9d34fb825ffc0eeeb6",
+        "bytes": 3375,
+        "mode": 420
+      },
+      "test/adversarial/random.ts": {
+        "sha256": "820df23f6900cd797a4ab106508bfeea165ff3fb97e6b85d759f0df5f0ab0b7c",
+        "bytes": 627,
+        "mode": 420
+      },
+      "test/adversarial/report.test.ts": {
+        "sha256": "1fff63dbc162b68dff8531a1ec7a806d8954a19aebad1c184f6ac11eb5361ded",
+        "bytes": 760,
+        "mode": 420
+      },
+      "test/adversarial/report.ts": {
+        "sha256": "a400e7384f3f955c4689985ea111792d9c11424819ff5ebf2a4890d191f381cf",
+        "bytes": 1931,
+        "mode": 420
+      },
+      "test/adversarial/snapshot-mutation.test.ts": {
+        "sha256": "505f5c0a1a77a9883f17635192031ac9ba4e3723dbf2cbcb18ac5eeaff0b6895",
+        "bytes": 350,
+        "mode": 420
+      },
+      "test/adversarial/snapshot-mutation.ts": {
+        "sha256": "9321375d08bed8017987eaf2e01a37b18a75a6985ce5372e2dfab68eb6ac84da",
+        "bytes": 3476,
+        "mode": 420
+      },
+      "test/adversarial/test262-semantics.test.ts": {
+        "sha256": "57451b449e9f650bc2142db39d86789836221ff355b57250dba2105a587f336a",
+        "bytes": 1350,
+        "mode": 420
+      },
+      "test/integration/budgets.test.ts": {
+        "sha256": "339df1cd5544fafd168809fae0aae0ed8529c2c47f2a4e8442c3df25d484bcea",
+        "bytes": 8760,
+        "mode": 420
+      },
+      "test/integration/crash-resume.test.ts": {
+        "sha256": "8fe7a46358776647516f4539caa77100a98383fd0b7626f11dfbae52fc4d9f16",
+        "bytes": 13921,
+        "mode": 420
+      },
+      "test/integration/snapshot-roundtrip.test.ts": {
+        "sha256": "a281de672a9c8360aca5749881793da9cc6150c2942036057d6e7352332116ca",
+        "bytes": 11456,
+        "mode": 420
+      },
+      "test/sinks.ts": {
+        "sha256": "39bfec4269e0d06dccb341d703115efae81ded41fb2d777b28875abc2fb86849",
+        "bytes": 883,
+        "mode": 420
+      },
+      "tsconfig.json": {
+        "sha256": "044c4474e5ee6729958b78b45ff9ee46c5f19150587ee8073114a020a8ddf962",
+        "bytes": 209,
+        "mode": 420
+      }
+    }
+  },
+  "copies": [
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/cases.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/cases.mjs",
+      "sha256": "ef80036361a2c77da536250226f159670cfe522d2a3ca4d43b703b42db828526",
+      "blob": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/child.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/child.mjs",
+      "sha256": "528234e9127066607a87ffde499e462189fd092513c9e08f6770f29536ecb7b9",
+      "blob": "68c69ea50d644655a23414d5650341b028341d5d"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/guard.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/guard.mjs",
+      "sha256": "1cd944c2e7307f13913208adb64497bb53f558366d4298b06fc1d6116c0246bb",
+      "blob": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/loader.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/loader.mjs",
+      "sha256": "92314859cbc175bafc0f97de7adbb76ef4dbe3d3abf1adf5235f6fe02e4220e1",
+      "blob": "47008da460db09150c056058f2ca267c3c4bdd41"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/audit.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/audit.mjs",
+      "sha256": "400a54bb961c5153dca442eb9a3ae54a353438d4f34c11d53097cef2e21429fc",
+      "blob": "9eb788c09406f8a93101b5f95d0f7af8b1105af1"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/run.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/run.mjs",
+      "sha256": "144a774b92b7360891e73ae53b50689aad9875f4f2f1dea3a0f79684f46f6305",
+      "blob": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/migrations/sink-v2/run.mjs",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/migrations/sink-v2/run.mjs",
+      "sha256": "8fc0f239fdd01ec0a7e4cdd7aa6554ec3cc00f5a02bb7ba970ecd7176e50d65c",
+      "blob": "adb3343fcdd50c3a2daf3de556dc5863aa218370"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/report.json",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/report.json",
+      "sha256": "f5dfe8875f4ca22076df695a7ef1b8bf420aed60328d658082f04ea09aa2e498",
+      "blob": "30a277b801cec5dd7641eeb0e9e7a000ffcc98a7"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/runtime-inventory.json",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/runtime-inventory.json",
+      "sha256": "e8582f0cf1713530a419fa137d332b5c7ff5e7e569df7ac8cb1dfddca019bf6e",
+      "blob": "d5c2122ca3e782851194858f9e754e999cffe4c5"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/cases.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/cases.mjs.fixture",
+      "sha256": "ef80036361a2c77da536250226f159670cfe522d2a3ca4d43b703b42db828526",
+      "blob": "d0244dd22f69ba9123fbdcdfd4dcc03da45626a0"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/child.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/child.mjs.fixture",
+      "sha256": "70708a7d07fd61595933b08f5ec852f6b8cc5d60f15724239023775318b71ee7",
+      "blob": "f237e46653b2aa3fd79890d692669343606fcc3b"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/guard.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/guard.mjs.fixture",
+      "sha256": "1cd944c2e7307f13913208adb64497bb53f558366d4298b06fc1d6116c0246bb",
+      "blob": "a47398bec51350f919cb60bb3c61adb7a4f6e24b"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/loader.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/loader.mjs.fixture",
+      "sha256": "92314859cbc175bafc0f97de7adbb76ef4dbe3d3abf1adf5235f6fe02e4220e1",
+      "blob": "47008da460db09150c056058f2ca267c3c4bdd41"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/audit.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/audit.mjs.fixture",
+      "sha256": "400a54bb961c5153dca442eb9a3ae54a353438d4f34c11d53097cef2e21429fc",
+      "blob": "9eb788c09406f8a93101b5f95d0f7af8b1105af1"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/harness/run.mjs.fixture",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/attempt-08/harness/run.mjs.fixture",
+      "sha256": "144a774b92b7360891e73ae53b50689aad9875f4f2f1dea3a0f79684f46f6305",
+      "blob": "623f3499e6d5f6b4eb31cee0ed2debd2c6ded81d"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.json",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.json",
+      "sha256": "88268299ed45058de4d2933f2a5b527f77a00b1655eeff054debaeed755ab6ed",
+      "blob": "17fb9c9c5ee623ead6702b23f6bae9217eca88ff"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.events.ndjson",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.events.ndjson",
+      "sha256": "4b3281f021cc6335048ee64d9df69df4a7a27f8c2f6775b0087027aa1d3caaa4",
+      "blob": "4d6e26d687162028cb403b5f605c374130737d93"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.stdout.txt",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.stdout.txt",
+      "sha256": "c3f1082c26a1285572cf275aae03a48d074b33312fd38ee0540580f664d33b01",
+      "blob": "183533effef7ec2fa0b987a68f17e51257973d79"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.stderr.txt",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.imports.ndjson",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.imports.ndjson",
+      "sha256": "2091a2f7e65900599f9a246423850ec875d3727cad39e192fde7b1ccb0a17b37",
+      "blob": "e9f470e62f870b66ecada13eaf3104c4df97992c"
+    },
+    {
+      "revision": "5009ba8146c73bd5628147707e733384e5cd4aee",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/attempt-08/literal-grep-caller-sink-error.tools.ndjson",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/attempt-08/literal-grep-caller-sink-error.tools.ndjson",
+      "sha256": "097e7ab8736b24540ed98d805a728a51d03fb25683cb7d76991ab3810a37ea03",
+      "blob": "5a6d7dcd208b1438d49f6815f4049afa4c7c8d81"
+    },
+    {
+      "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+      "source": "tests/integration/safejs-cleanup-regression/integration/evidence/sink-migration-v1/report.json",
+      "destination": "tests/integration/safejs-cleanup-regression/sink-migration-review/history/sink-migration-v1-report.json",
+      "sha256": "fc3fc532ca975ef25181420315888b7c14dbd49110b80dcdfe9dee72f12af4ab",
+      "blob": "8e605a53aec9c0ff49e5d40ba6b7f90b60679858"
+    }
+  ]
+}

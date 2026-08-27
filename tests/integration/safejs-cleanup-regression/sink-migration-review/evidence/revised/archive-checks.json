@@ -1,0 +1,34 @@
+[
+  {
+    "phase": "before-build",
+    "at": "2026-08-27T10:38:25.427Z",
+    "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+    "blobsVerified": 15798,
+    "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+    "emittedDistUnchanged": false
+  },
+  {
+    "phase": "after-build",
+    "at": "2026-08-27T10:38:31.069Z",
+    "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+    "blobsVerified": 15798,
+    "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+    "emittedDistUnchanged": true
+  },
+  {
+    "phase": "before-execution",
+    "at": "2026-08-27T10:38:36.090Z",
+    "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+    "blobsVerified": 15798,
+    "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+    "emittedDistUnchanged": true
+  },
+  {
+    "phase": "after-execution",
+    "at": "2026-08-27T10:38:49.524Z",
+    "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+    "blobsVerified": 15798,
+    "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+    "emittedDistUnchanged": true
+  }
+]

@@ -1,0 +1,222 @@
+{
+  "id": "bridge-rg-early-close",
+  "node": "v22.22.2",
+  "pid": 9393,
+  "selected": {
+    "id": "bridge-rg-early-close",
+    "route": "bridge",
+    "guest": "import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"rg '^alpha' /work/many | head -n 1\"); await write(result.stdout); setExitCode(result.exitCode);",
+    "output": "alpha 0\n",
+    "exitCode": 0
+  },
+  "events": [
+    {
+      "order": 0,
+      "event": "public-exec-enter",
+      "argv": "safejs -e 'import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"rg '\\''^alpha'\\'' /work/many | head -n 1\"); await write(result.stdout); setExitCode(result.exitCode);'"
+    },
+    {
+      "order": 1,
+      "event": "host-cleanup-registered"
+    },
+    {
+      "order": 2,
+      "event": "host-admitted"
+    },
+    {
+      "order": 3,
+      "event": "actual-engine-run"
+    },
+    {
+      "order": 4,
+      "event": "guest-shell-enter",
+      "text": "rg '^alpha' /work/many | head -n 1"
+    },
+    {
+      "order": 5,
+      "event": "registered-search-entry",
+      "command": "rg",
+      "args": [
+        "^alpha",
+        "/work/many"
+      ],
+      "stdinIsDefault": true
+    },
+    {
+      "order": 6,
+      "event": "product-cleanup-registered",
+      "command": "rg"
+    },
+    {
+      "order": 7,
+      "event": "worker-created",
+      "id": 0,
+      "threadId": 2
+    },
+    {
+      "order": 8,
+      "event": "worker-post",
+      "id": 0,
+      "count": 1
+    },
+    {
+      "order": 9,
+      "event": "worker-post",
+      "id": 0,
+      "count": 2
+    },
+    {
+      "order": 10,
+      "event": "worker-terminate",
+      "id": 0
+    },
+    {
+      "order": 11,
+      "event": "worker-exit",
+      "id": 0,
+      "code": 1
+    },
+    {
+      "order": 12,
+      "event": "worker-termination-settled",
+      "id": 0,
+      "code": 1
+    },
+    {
+      "order": 13,
+      "event": "inner-public-exec-settled",
+      "cleanupDone": false,
+      "hostCalls": 1,
+      "runnerCalls": 1,
+      "workers": [
+        {
+          "id": 0,
+          "threadId": 2,
+          "exited": true,
+          "terminateCalls": 1,
+          "terminationSettled": true,
+          "posts": 2
+        }
+      ]
+    },
+    {
+      "order": 14,
+      "event": "host-cleanup-start"
+    },
+    {
+      "order": 15,
+      "event": "host-cleanup-done"
+    },
+    {
+      "order": 16,
+      "event": "public-exec-settled",
+      "cleanupDone": true,
+      "hostCalls": 1,
+      "runnerCalls": 1,
+      "workers": [
+        {
+          "id": 0,
+          "threadId": 2,
+          "exited": true,
+          "terminateCalls": 1,
+          "terminationSettled": true,
+          "posts": 2
+        }
+      ]
+    },
+    {
+      "order": 17,
+      "event": "public-dispose-settled",
+      "cleanupDone": true,
+      "hostCalls": 1,
+      "runnerCalls": 1,
+      "workers": [
+        {
+          "id": 0,
+          "threadId": 2,
+          "exited": true,
+          "terminateCalls": 1,
+          "terminationSettled": true,
+          "posts": 2
+        }
+      ]
+    },
+    {
+      "order": 18,
+      "event": "owned-tooling-closed",
+      "processes": [],
+      "loader": {
+        "threadId": 1,
+        "toolProcesses": [
+          {
+            "pid": 9397,
+            "binary": "node_modules/@esbuild/darwin-arm64/bin/esbuild",
+            "args": [
+              "--service=0.28.2",
+              "--ping"
+            ],
+            "closed": true,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "closed": true
+      }
+    }
+  ],
+  "status": "pass",
+  "containment": false,
+  "publicArgv": "safejs -e 'import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"rg '\\''^alpha'\\'' /work/many | head -n 1\"); await write(result.stdout); setExitCode(result.exitCode);'",
+  "atSettlement": {
+    "cleanupDone": true,
+    "hostCalls": 1,
+    "runnerCalls": 1,
+    "workers": [
+      {
+        "id": 0,
+        "threadId": 2,
+        "exited": true,
+        "terminateCalls": 1,
+        "terminationSettled": true,
+        "posts": 2
+      }
+    ]
+  },
+  "result": {
+    "exitCode": 0,
+    "stdout": "alpha 0\n",
+    "stderr": ""
+  },
+  "error": null,
+  "cleanupCalls": 2,
+  "toolProcesses": [],
+  "toolProcessesClosed": true,
+  "loader": {
+    "threadId": 1,
+    "toolProcesses": [
+      {
+        "pid": 9397,
+        "binary": "node_modules/@esbuild/darwin-arm64/bin/esbuild",
+        "args": [
+          "--service=0.28.2",
+          "--ping"
+        ],
+        "closed": true,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "closed": true
+  },
+  "workers": [
+    {
+      "id": 0,
+      "threadId": 2,
+      "exited": true,
+      "terminateCalls": 1,
+      "terminationSettled": true,
+      "posts": 2
+    }
+  ],
+  "finishedAt": "2026-08-27T10:38:45.247Z"
+}

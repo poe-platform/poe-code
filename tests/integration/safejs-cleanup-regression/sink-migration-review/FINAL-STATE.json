@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-08-27T10:43:10.271Z",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "privateIndexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+  "privateStatusSha256": "159ae40a5cab7b2bab81d564b70cd940fec744050119b49e9b6eb442fbb0061d",
+  "privateSourceInventorySha256": "8f74720b772837739e67a11fead7e9a8d52f6ad5c586ea3c23819b6b62a232c1",
+  "privateFiles": 264,
+  "privateMatchesIndependentPreflight": true,
+  "privateBetweenReplaysUnchanged": true,
+  "liveOriginalIntegrationFilesMatchPinnedExpectedBlobs": 573,
+  "executionScratchRemoved": true,
+  "knownOuterGroupsNaturallyRetired": true
+}

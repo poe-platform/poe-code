@@ -133,10 +133,14 @@ export class S3FileSystem implements FileSystem {
     });
     if (this.capabilities.streamingRead) this.readStream = this.streamRead.bind(this);
     if (this.capabilities.streamingWrite) this.writeStream = this.streamWrite.bind(this);
-    if (Object.getPrototypeOf(this) === S3FileSystem.prototype) {
-      registerS3EntryOwner(this, path => this.path(path), this.transport, this.bucket);
-    }
-    registerEntryAuthority(this, compareOwnedS3Entries);
+    const transport = this.transport;
+    const bucket = this.bucket;
+    const registeredPrefix = this.prefix;
+    registerS3EntryOwner(this, path => this.path(path), transport, bucket, () => this.transport === transport
+      && this.bucket === bucket && this.prefix === registeredPrefix
+      && Object.entries(s3Implementation).every(([name, descriptor]) => name === "constructor" || name === "compareEntry"
+        || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value));
+    if (this.compareEntry === s3Implementation.compareEntry!.value) registerEntryAuthority(this, compareOwnedS3Entries);
   }
 
   async compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
@@ -915,3 +919,5 @@ export class S3FileSystem implements FileSystem {
     }
   }
 }
+
+const s3Implementation = Object.getOwnPropertyDescriptors(S3FileSystem.prototype);

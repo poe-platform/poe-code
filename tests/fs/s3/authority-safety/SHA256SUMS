@@ -1,0 +1,8 @@
+0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4  src/fs/s3/authority.ts
+8c98a7738aed477a238084624b4e374d4cdf1575708684d0991869427288a120  src/fs/s3/filesystem.ts
+db2306041639907c46b980e6256b3fd318ed760791599e2a118966513be71b5a  src/fs/s3/COMPARISON.md
+39f658d5f917528f88f962ec147c3afcbc20c691bdb9f6e9e04c463232b2b93c  tests/fs/s3/adapter-overrides.test.ts
+c9150888b8969b02f6bb2e7c2dbed2eaa1e386e905943a85563b5d67a457448e  tests/fs/s3/authority-safety/override-before.json
+674522562b39b8d08dac232f4392663cddc389a6beaf78a859ac05fe458f25f2  tests/fs/s3/authority-safety/override-after.json
+33d12022ff8ff14f2339602788a6638be9f68d54c39c91eb9d6385a7d80bb697  tests/fs/s3/authority-safety/validate.mjs
+9e44f8f483c8c6a88da0a651b430b258178ed51957b95b2d0ac03eac78315e0a  tests/fs/s3/authority-safety/REPORT.md

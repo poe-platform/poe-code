@@ -83,3 +83,26 @@ storage/key authority, with independent review; no new public hook is approved
 or added here. Same limitations on non-atomic rename, ETag ABA and partial effects
 continue unchanged. `tests/fs/s3/comparison.test.ts` includes a genuine-HEAD/local
 Memory GET/PUT/stream adversary that must remain unknown with zero content effects.
+
+## Adapter-override safety followup
+
+The `3cf57d3` checkpoint still captured adapter data methods from each constructed
+instance. A preconstruction change to the base S3FileSystem prototype could
+therefore be mistaken for an original method. Buffered and streamed reproductions
+both modified the local source before returning EIO, even with correctly bound
+Mock clients. Provider integrity alone was not adapter integrity.
+
+Authority now checks the actual original S3 base implementation descriptors saved
+at module initialization, including private stream helpers, alongside unchanged
+bound-stream references and the original transport/bucket/prefix configuration.
+Subclasses using original data operations remain eligible without a class-based
+whitelist. Subclass/prototype/instance data overrides remain unknown unless an
+explicit separate comparison authority supplies a valid answer. A custom
+compareEntry implementation present at construction is not shadowed by a base
+registered callback; common-helper literal/conflict/error validation still applies.
+
+`tests/fs/s3/adapter-overrides.test.ts` asserts actual buffered/streamed source,
+sentinel and provider-byte preservation, not only an unknown comparison result.
+`tests/fs/s3/authority-safety/REPORT.md` records the baseline loss and fixed
+validation, with core `0bee8e7` included in both snapshots. Earlier sealed reports
+are historical evidence, not claims that this subsequently found hole was absent.

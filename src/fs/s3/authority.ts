@@ -78,11 +78,11 @@ export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileSta
   if (entry) observedStats.set(stat, { filesystem, path, entry });
 }
 
-export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string, client: S3Client, bucket: string): void {
+export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string, client: S3Client, bucket: string, intact: () => boolean): void {
   const names = ["stat", "lstat", "realpath", "readFile", "writeFile", "copyFile", "rename", "readStream", "writeStream"] as const;
   const methods = names.map(name => filesystem[name]);
   entries.set(filesystem, view => {
-    if (!names.every((name, index) => filesystem[name] === methods[index])) return undefined;
+    if (!intact() || !names.every((name, index) => filesystem[name] === methods[index])) return undefined;
     const storage = ownedS3Bucket(client, bucket);
     if (!storage) return undefined;
     const observation = observedStats.get(view.stat);

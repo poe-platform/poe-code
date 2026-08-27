@@ -831,7 +831,7 @@ function detailContentLineCount(item: DetailItem): number {
 }
 
 function detailBodyHeight(state: ExplorerState): number {
-  if (state.layout === "too-narrow" || state.layout === "narrow-list-only") {
+  if (state.layout === "too-narrow" || (state.layout === "narrow-list-only" && state.focused !== "detail")) {
     return 0;
   }
 

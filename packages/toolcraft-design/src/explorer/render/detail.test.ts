@@ -1,12 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { ScreenBuffer } from "../../dashboard/buffer.js";
+import { parseKeypress } from "../../dashboard/terminal.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
-import type { ExplorerLayout } from "../layout.js";
+import { computeExplorerLayout, type ExplorerLayout } from "../layout.js";
+import { step } from "../reducer.js";
 import { REGION_DETAIL } from "../state.js";
 import { renderDetail } from "./detail.js";
 import { fixtureState, listDetailItems, renderStateSnapshot } from "./test-fixtures.js";
 
 describe("explorer detail renderer", () => {
+  it("renders the final eight lines after paging a focused narrow preview", () => {
+    const lines = Array.from({ length: 24 }, (_, index) => `Line ${index + 1}`);
+    let state = fixtureState({
+      size: { cols: 70, rows: 14 },
+      detail: {
+        rowId: "27",
+        items: [{ id: "body", renderedContent: lines.join("\n"), render: () => "" }],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    });
+    for (const input of ["\t", "\u001b[6~", "\u001b[6~", "\u001b[6~"]) {
+      const key = parseKeypress(Buffer.from(input));
+      if (key === undefined) throw new Error("Unparsed key");
+      state = step(state, { type: "key", key }).state;
+    }
+    const layout = computeExplorerLayout({ ...state.size, focused: state.focused });
+    const screen = new ScreenBuffer(state.size.cols, state.size.rows);
+
+    renderDetail(state, screen, layout);
+
+    expect(state.detail.scroll).toBe(16);
+    expect(layout.list.width).toBe(0);
+    expect(layout.detail.height - 2).toBe(8);
+    const body = Array.from({ length: 8 }, (_, row) =>
+      Array.from({ length: layout.detail.width - 2 }, (_, column) =>
+        screen.get(layout.detail.x + column + 1, layout.detail.y + row + 1).ch
+      ).join("").trim()
+    );
+    expect(body).toEqual(lines.slice(16));
+  });
+
   it("snapshots detail modes", () => {
     expect(renderStateSnapshot(fixtureState({ dirty: REGION_DETAIL }))).toMatchSnapshot(
       "single detail"

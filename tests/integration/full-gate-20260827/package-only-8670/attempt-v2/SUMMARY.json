@@ -1,0 +1,719 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "harnessCommit": "f231144c",
+  "externalVerifier": {
+    "productRevision": "8670ebe8f0d39966c2de2638780437398e5f8490",
+    "verifierRevision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+    "originalPath": "scripts/verify-current-consumers.mjs",
+    "originalSha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+    "transformedSha256": "9184864a5d0ca6996fc6433ef9efd0161480a36be6162ad24cee8b94d69ae1e4",
+    "external": "/private/tmp/safe-bash-package-execution-un9g9i/harness/permission-tap-verifier-v2.mjs",
+    "helperBindings": [
+      {
+        "path": "tests/plugins/stream-five-public/harness.mjs",
+        "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd",
+        "specifier": "../tests/plugins/stream-five-public/harness.mjs",
+        "replacement": "file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/stream-five-public/harness.mjs"
+      },
+      {
+        "path": "tests/plugins/stream-five-public/current-profile.mjs",
+        "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958",
+        "specifier": "../tests/plugins/stream-five-public/current-profile.mjs",
+        "replacement": "file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/stream-five-public/current-profile.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/consumers.mjs",
+        "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4",
+        "specifier": "../tests/plugins/qualified-current-release/consumers.mjs",
+        "replacement": "file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/consumers.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+        "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5",
+        "specifier": "../tests/plugins/qualified-current-release/runtime-coverage.mjs",
+        "replacement": "file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/runtime-coverage.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+        "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508",
+        "specifier": "../tests/plugins/qualified-current-release/snapshot.mjs",
+        "replacement": "file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/snapshot.mjs"
+      }
+    ],
+    "transformation": "Only five relative helper import specifiers become authenticated frozen8670 file URLs; function bodies and frozen files unchanged",
+    "driver": "/private/tmp/safe-bash-package-execution-un9g9i/harness/permission-tap-driver-v2.mjs",
+    "driverSha256": "249dc0af8244736adcf77c4a83a7cd7b42392f494d114f50f067504895a7529c"
+  },
+  "independentDispatchAcceptance": "daf7ae4c",
+  "startedAt": "2026-08-27T16:13:38.994Z",
+  "finishedAt": "2026-08-27T16:15:17.154Z",
+  "status": "separate-package-cohort-passed-not-whole-gate",
+  "archive": {
+    "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+    "tree": "2b5790d522f433778a3ba2364f24b7ae7b24216f",
+    "count": 24879,
+    "manifestSha256": "5e3555f04b114fff5aca005b827b4689c342d9f1eb49b9ad02a46a6c048a2cdf"
+  },
+  "runtime": {
+    "profile": "guarded-gate-node24.11.1-darwin-arm64",
+    "requested": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "supported": true,
+    "refusalStatus": 78,
+    "identity": {
+      "version": "v24.11.1",
+      "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "platform": "darwin",
+      "arch": "arm64",
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  },
+  "npm": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "version": "10.9.7"
+  },
+  "nativeAssets": 49,
+  "bindingBefore": {
+    "package.json": {
+      "blob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997,
+      "mode": 420,
+      "symlink": false
+    },
+    "package-lock.json": {
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "bytes": 16734,
+      "mode": 420,
+      "symlink": false
+    },
+    "src/index.ts": {
+      "blob": "f22006574a46d127ea52e1209168fc147c57b690",
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+      "bytes": 1320,
+      "mode": 420,
+      "symlink": false
+    },
+    "src/plugins/index.ts": {
+      "blob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+      "bytes": 4578,
+      "mode": 420,
+      "symlink": false
+    }
+  },
+  "bindingAfter": {
+    "package.json": {
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    "package-lock.json": {
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    "src/index.ts": {
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    "src/plugins/index.ts": {
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3"
+    }
+  },
+  "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1",
+  "builtFiles": 708,
+  "packedFilesBefore": 710,
+  "packedFilesAfter": 710,
+  "public": {
+    "count": 70,
+    "names": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "comm",
+      "cp",
+      "cut",
+      "date",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "expand",
+      "false",
+      "file",
+      "find",
+      "fold",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "join",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "nl",
+      "od",
+      "paste",
+      "patch",
+      "printenv",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rev",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "seq",
+      "sha1sum",
+      "sha256sum",
+      "sleep",
+      "sort",
+      "split",
+      "stat",
+      "strings",
+      "tac",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "tree",
+      "true",
+      "unexpand",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "imports": [
+      "virtual-bash",
+      "virtual-bash/contracts",
+      "virtual-bash/contracts/command",
+      "virtual-bash/contracts/errors",
+      "virtual-bash/contracts/filesystem",
+      "virtual-bash/contracts/index",
+      "virtual-bash/contracts/io",
+      "virtual-bash/contracts/path",
+      "virtual-bash/contracts/plugin",
+      "virtual-bash/commands/network",
+      "virtual-bash/commands/metadata",
+      "virtual-bash/commands/archive",
+      "virtual-bash/commands/table-text",
+      "virtual-bash/commands/stream-inspection",
+      "virtual-bash/commands/stream-format",
+      "virtual-bash/commands/split",
+      "virtual-bash/commands/time-env",
+      "virtual-bash/commands/tree",
+      "virtual-bash/commands/file",
+      "virtual-bash/fs/s3",
+      "virtual-bash/fs/s3/http",
+      "virtual-bash/fs/webdav",
+      "virtual-bash/fs/readonly",
+      "virtual-bash/fs/mount",
+      "virtual-bash/fs/overlay"
+    ],
+    "workflows": [
+      {
+        "source": "printf 'a\\nb\\n' | tac",
+        "stdout": "b\na\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'a\\tb\\n' | expand",
+        "stdout": "a       b\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'abcdef\\n' | fold -w 3",
+        "stdout": "abc\ndef\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'abc\\000de\\000fghi' | strings -n 3",
+        "stdout": "abc\nfghi\n",
+        "stderr": "",
+        "exitCode": 0
+      }
+    ],
+    "runtimeDependencies": {},
+    "typesCandidateBound": true
+  },
+  "groups": [
+    {
+      "name": "regex",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "package-consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "regex-continuation",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "package-consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "regex-followup",
+      "compile": "pass",
+      "plannedRuntime": [
+        "product-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "product-consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "regex-production",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "package-consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "regex-production-continuation",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "package-consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "s3-constructor",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "consumer.mjs",
+          "status": 0,
+          "counts": {
+            "tests": 6,
+            "pass": 6,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "scope": "unchanged node:test assertions"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "s3-http-author",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "public-consumer.mjs",
+          "status": 0,
+          "scope": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "s3-http-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-workflow.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "public-workflow.mjs",
+          "status": 0,
+          "scope": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "s3-rmdir",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "public-consumer.mjs",
+          "status": 0,
+          "scope": "strict public types and constructor smoke only; not independent rmdir or MinIO acceptance"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "webdav-loopback",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.test.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "consumer.test.mjs",
+          "status": 0,
+          "counts": {
+            "tests": 13,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "scope": "unchanged node:test assertions"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "webdav-services",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "stream-inspection",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "consumer.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "stream-five",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-options.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "public-options.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "time-env-public",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-positive.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "public-positive.mjs",
+          "status": 0,
+          "scope": "unchanged public consumer; strict declarations and emitted runtime"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "time-env-leaf",
+      "compile": "pass",
+      "plannedRuntime": [
+        "leaf-positive.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "leaf-positive.mjs",
+          "status": 0,
+          "scope": "maintained internal packed leaf types and factory construction; not export-map acceptance"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "env-split-public-types",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "webdav-atomic",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "webdav-atomic-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "consumer.mjs",
+          "status": 0,
+          "scope": "unchanged service-free injected-fetch runtime; configured removal and stock refusal, not real TLS/provider acceptance"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "webdav-timestamp-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "independent.test.mjs"
+      ],
+      "completedRuntime": [
+        {
+          "runtime": "independent.test.mjs",
+          "status": 0,
+          "counts": {
+            "tests": 23,
+            "pass": 23,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "scope": "unchanged node:test assertions"
+        }
+      ],
+      "error": null
+    }
+  ],
+  "negativeTypes": [
+    {
+      "name": "env-split-invalid-binding",
+      "status": "pass",
+      "diagnostics": 1,
+      "error": null
+    },
+    {
+      "name": "time-env-public-negative",
+      "status": "pass",
+      "diagnostics": 2,
+      "error": null
+    },
+    {
+      "name": "time-env-leaf-negative",
+      "status": "pass",
+      "diagnostics": 5,
+      "error": null
+    }
+  ],
+  "permissionAdmission": {
+    "supported": true,
+    "refusalStatus": 78,
+    "probes": [
+      {
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "--input-type=module",
+          "-e",
+          "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+        ],
+        "cwd": "/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ",
+        "status": 0,
+        "signal": null,
+        "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "--permission",
+          "--allow-fs-read=/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe",
+          "--allow-worker",
+          "--unhandled-rejections=strict",
+          "--input-type=module",
+          "-e",
+          "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/snapshot/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+        ],
+        "cwd": "/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe",
+        "status": 0,
+        "signal": null,
+        "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+        "stderr": "(node:16566) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      {
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "--permission",
+          "--allow-fs-read=/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe",
+          "--allow-worker",
+          "--unhandled-rejections=strict",
+          "--input-type=module",
+          "-e",
+          "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/snapshot/src/index.ts\");"
+        ],
+        "cwd": "/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "(node:16573) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-package-execution-un9g9i/source/tests/plugins/qualified-current-release/.runs/qualified-ZrfAgZ/snapshot/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+      }
+    ],
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "identity": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "version": "v24.11.1",
+      "platform": "darwin",
+      "arch": "arm64",
+      "flags": [
+        "--permission"
+      ]
+    },
+    "flag": "--permission"
+  },
+  "phases": [
+    {
+      "label": "current-consumers",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "pack",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "install",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public-types",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public-negative-types",
+      "status": 2,
+      "expectedStatus": 2,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "missing-root-fallback",
+      "status": 1,
+      "expectedStatus": 1,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "missing-contracts-fallback",
+      "status": 1,
+      "expectedStatus": 1,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    }
+  ],
+  "fallbackControls": [
+    {
+      "name": "missing candidate export remains exact TS2305 on authenticated candidate declarations",
+      "status": "pass"
+    },
+    {
+      "name": "unchanged current-consumer Node permission control denies actual source read",
+      "status": "pass",
+      "source": "current-consumers/current-consumer-source-denied.json"
+    },
+    {
+      "name": "missing packed virtual-bash does not resolve repository source or another build",
+      "status": "pass"
+    },
+    {
+      "name": "missing packed virtual-bash/contracts does not resolve repository source or another build",
+      "status": "pass"
+    }
+  ],
+  "sourceChanges": [],
+  "dependencyChanges": [],
+  "nestedSourceUnchanged": true,
+  "nestedTestsUnchanged": true,
+  "nestedRootDistUnchanged": true,
+  "temporaryRemoved": true,
+  "sourceBindingScope": "Exact path-set/blob/mode admission, then original tracked paths checked before/after. Generated nested consumer/build outputs are separately authenticated; no universal append-proof tree claim."
+}

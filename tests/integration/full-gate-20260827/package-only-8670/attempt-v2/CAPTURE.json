@@ -1,0 +1,9 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "verifierRevision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+  "encoding": "base64(tar.gz)",
+  "sha256": "ea00d8391e486405ba2d124849664e5f41818f3cc4efa2585b0c13a9fe882a3a",
+  "bytes": 2782825,
+  "files": 101,
+  "uncompressedFileBytes": 14271238
+}

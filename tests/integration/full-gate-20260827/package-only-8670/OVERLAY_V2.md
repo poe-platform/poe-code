@@ -1,17 +1,18 @@
-# Explicit external verifier v2: prepared, not executed
+# Explicit external verifier v2: preparation and execution
 
 August 27, 2026. Harness `f231144c`; product/config/inventory remain
 `8670ebe8f0d39966c2de2638780437398e5f8490`. External verifier is separately
 `c800c899114c6c83b3d3eb67231176d124abaf49`, SHA256
 `09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c`.
 
-This preparation does not establish TAP independent acceptance or another
-package result. Source c800c899 awaits Plato's unchanged30-case replay. Root
-already authorizes launch after that acceptance; no further feature/candidate
-wait is required. Config fixture91d56dbe independently remains pending, but is
-not silently overlaid into8670 by this package cohort.
+This preparation originally preceded TAP independent acceptance and execution.
+Subsequently `daf7ae4c` accepted the exact dispatch with31/31 controls while
+preserving the helper-only29/30 characterization. The authorized fresh cohort
+then executed: see `attempt-v2/README.md` for the actual16-group/package result
+and its separate qualifications. Config fixture91d56dbe was not overlaid into
+8670 by this package cohort.
 
-The sole actual package run remains the failed `attempt-v1` (`2b26defd`), with
+At preparation the sole actual package run was failed `attempt-v1` (`2b26defd`), with
 19 strict groups/70 names/25 imports/four workflows/types passing but16 runtime
 groups and source-denial blocked by option9; later controls were not reached.
 That output and original harness remain byte-unchanged.

@@ -1,0 +1,6806 @@
+[
+  {
+    "name": "direct-first-pending-no-hook",
+    "before": false,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "not-settled-before-abort",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-before-settlement",
+        "before": false,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-acquire-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "structural-resource-closed-before-settlement",
+        "before": false,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "direct-split-prefix-pending",
+    "before": false,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "not-settled-before-abort",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 4,
+        "afterActual": 4,
+        "expected": 4
+      },
+      {
+        "identity": "source-return-before-settlement",
+        "before": false,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-acquire-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "structural-resource-closed-before-settlement",
+        "before": false,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "shell-structural-pending",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "not-settled-before-abort",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-return-before-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-acquire-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "structural-resource-closed-before-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "direct-opaque-pending",
+    "before": false,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "not-settled-before-abort",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-before-settlement",
+        "before": false,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-acquire-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "opaque-finalizer-not-preempted",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "shell-opaque-pending",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "not-settled-before-abort",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-before-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-acquire-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "opaque-finalizer-not-preempted",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "quiet-awaits-cooperative-return",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "awaits-cooperative-return",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "epipe-gated-return",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "single-write-exact",
+        "before": true,
+        "after": true,
+        "beforeActual": [
+          "6869740a"
+        ],
+        "afterActual": [
+          "6869740a"
+        ],
+        "expected": [
+          "6869740a"
+        ]
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "abort-sink-return-error-identities",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "three-distinct-reason-references",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "not-late-sink-or-return-reason",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "input-error-before-return-error",
+    "before": false,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "distinct-errors",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-return-count",
+        "before": false,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": false,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "72673a207072696d61727920696e707574206661696c7572650a",
+        "afterActual": "72673a207072696d61727920696e707574206661696c7572650a",
+        "expected": "72673a207072696d61727920696e707574206661696c7572650a"
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "limit-input",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "72673a20696e7075742066696c652062797465206c696d69742065786365656465640a",
+        "afterActual": "72673a20696e7075742066696c652062797465206c696d69742065786365656465640a",
+        "expected": "72673a20696e7075742066696c652062797465206c696d69742065786365656465640a"
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "limit-line",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "72673a206c696e652062797465206c696d69742065786365656465640a",
+        "afterActual": "72673a206c696e652062797465206c696d69742065786365656465640a",
+        "expected": "72673a206c696e652062797465206c696d69742065786365656465640a"
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "limit-output",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "6869740a",
+        "afterActual": "6869740a",
+        "expected": "6869740a"
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "72673a206f75747075742062797465206c696d69742065786365656465640a",
+        "afterActual": "72673a206f75747075742062797465206c696d69742065786365656465640a",
+        "expected": "72673a206f75747075742062797465206c696d69742065786365656465640a"
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "binary-exact-natural-eof",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 6,
+        "afterActual": 6,
+        "expected": 6
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "input-bytes",
+        "before": true,
+        "after": true,
+        "beforeActual": 10,
+        "afterActual": 10,
+        "expected": 10
+      },
+      {
+        "identity": "natural-eof",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "68697400ff0a",
+        "afterActual": "68697400ff0a",
+        "expected": "68697400ff0a"
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "chunks-64",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "chunk-1-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "chunk-1-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "chunk-2-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "chunk-2-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "chunk-3-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 3,
+        "afterActual": 3,
+        "expected": 3
+      },
+      {
+        "identity": "chunk-3-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 3,
+        "afterActual": 3,
+        "expected": 3
+      },
+      {
+        "identity": "chunk-4-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 4,
+        "afterActual": 4,
+        "expected": 4
+      },
+      {
+        "identity": "chunk-4-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 4,
+        "afterActual": 4,
+        "expected": 4
+      },
+      {
+        "identity": "chunk-5-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 5,
+        "afterActual": 5,
+        "expected": 5
+      },
+      {
+        "identity": "chunk-5-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 5,
+        "afterActual": 5,
+        "expected": 5
+      },
+      {
+        "identity": "chunk-6-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 6,
+        "afterActual": 6,
+        "expected": 6
+      },
+      {
+        "identity": "chunk-6-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 6,
+        "afterActual": 6,
+        "expected": 6
+      },
+      {
+        "identity": "chunk-7-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 7,
+        "afterActual": 7,
+        "expected": 7
+      },
+      {
+        "identity": "chunk-7-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 7,
+        "afterActual": 7,
+        "expected": 7
+      },
+      {
+        "identity": "chunk-8-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 8,
+        "afterActual": 8,
+        "expected": 8
+      },
+      {
+        "identity": "chunk-8-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 8,
+        "afterActual": 8,
+        "expected": 8
+      },
+      {
+        "identity": "chunk-9-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 9,
+        "afterActual": 9,
+        "expected": 9
+      },
+      {
+        "identity": "chunk-9-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 9,
+        "afterActual": 9,
+        "expected": 9
+      },
+      {
+        "identity": "chunk-10-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 10,
+        "afterActual": 10,
+        "expected": 10
+      },
+      {
+        "identity": "chunk-10-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 10,
+        "afterActual": 10,
+        "expected": 10
+      },
+      {
+        "identity": "chunk-11-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 11,
+        "afterActual": 11,
+        "expected": 11
+      },
+      {
+        "identity": "chunk-11-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 11,
+        "afterActual": 11,
+        "expected": 11
+      },
+      {
+        "identity": "chunk-12-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 12,
+        "afterActual": 12,
+        "expected": 12
+      },
+      {
+        "identity": "chunk-12-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 12,
+        "afterActual": 12,
+        "expected": 12
+      },
+      {
+        "identity": "chunk-13-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 13,
+        "afterActual": 13,
+        "expected": 13
+      },
+      {
+        "identity": "chunk-13-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 13,
+        "afterActual": 13,
+        "expected": 13
+      },
+      {
+        "identity": "chunk-14-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 14,
+        "afterActual": 14,
+        "expected": 14
+      },
+      {
+        "identity": "chunk-14-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 14,
+        "afterActual": 14,
+        "expected": 14
+      },
+      {
+        "identity": "chunk-15-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 15,
+        "afterActual": 15,
+        "expected": 15
+      },
+      {
+        "identity": "chunk-15-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 15,
+        "afterActual": 15,
+        "expected": 15
+      },
+      {
+        "identity": "chunk-16-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 16,
+        "afterActual": 16,
+        "expected": 16
+      },
+      {
+        "identity": "chunk-16-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 16,
+        "afterActual": 16,
+        "expected": 16
+      },
+      {
+        "identity": "chunk-17-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 17,
+        "afterActual": 17,
+        "expected": 17
+      },
+      {
+        "identity": "chunk-17-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 17,
+        "afterActual": 17,
+        "expected": 17
+      },
+      {
+        "identity": "chunk-18-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 18,
+        "afterActual": 18,
+        "expected": 18
+      },
+      {
+        "identity": "chunk-18-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 18,
+        "afterActual": 18,
+        "expected": 18
+      },
+      {
+        "identity": "chunk-19-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 19,
+        "afterActual": 19,
+        "expected": 19
+      },
+      {
+        "identity": "chunk-19-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 19,
+        "afterActual": 19,
+        "expected": 19
+      },
+      {
+        "identity": "chunk-20-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 20,
+        "afterActual": 20,
+        "expected": 20
+      },
+      {
+        "identity": "chunk-20-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 20,
+        "afterActual": 20,
+        "expected": 20
+      },
+      {
+        "identity": "chunk-21-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 21,
+        "afterActual": 21,
+        "expected": 21
+      },
+      {
+        "identity": "chunk-21-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 21,
+        "afterActual": 21,
+        "expected": 21
+      },
+      {
+        "identity": "chunk-22-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 22,
+        "afterActual": 22,
+        "expected": 22
+      },
+      {
+        "identity": "chunk-22-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 22,
+        "afterActual": 22,
+        "expected": 22
+      },
+      {
+        "identity": "chunk-23-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 23,
+        "afterActual": 23,
+        "expected": 23
+      },
+      {
+        "identity": "chunk-23-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 23,
+        "afterActual": 23,
+        "expected": 23
+      },
+      {
+        "identity": "chunk-24-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 24,
+        "afterActual": 24,
+        "expected": 24
+      },
+      {
+        "identity": "chunk-24-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 24,
+        "afterActual": 24,
+        "expected": 24
+      },
+      {
+        "identity": "chunk-25-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 25,
+        "afterActual": 25,
+        "expected": 25
+      },
+      {
+        "identity": "chunk-25-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 25,
+        "afterActual": 25,
+        "expected": 25
+      },
+      {
+        "identity": "chunk-26-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 26,
+        "afterActual": 26,
+        "expected": 26
+      },
+      {
+        "identity": "chunk-26-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 26,
+        "afterActual": 26,
+        "expected": 26
+      },
+      {
+        "identity": "chunk-27-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 27,
+        "afterActual": 27,
+        "expected": 27
+      },
+      {
+        "identity": "chunk-27-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 27,
+        "afterActual": 27,
+        "expected": 27
+      },
+      {
+        "identity": "chunk-28-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 28,
+        "afterActual": 28,
+        "expected": 28
+      },
+      {
+        "identity": "chunk-28-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 28,
+        "afterActual": 28,
+        "expected": 28
+      },
+      {
+        "identity": "chunk-29-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 29,
+        "afterActual": 29,
+        "expected": 29
+      },
+      {
+        "identity": "chunk-29-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 29,
+        "afterActual": 29,
+        "expected": 29
+      },
+      {
+        "identity": "chunk-30-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 30,
+        "afterActual": 30,
+        "expected": 30
+      },
+      {
+        "identity": "chunk-30-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 30,
+        "afterActual": 30,
+        "expected": 30
+      },
+      {
+        "identity": "chunk-31-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 31,
+        "afterActual": 31,
+        "expected": 31
+      },
+      {
+        "identity": "chunk-31-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 31,
+        "afterActual": 31,
+        "expected": 31
+      },
+      {
+        "identity": "chunk-32-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 32,
+        "afterActual": 32,
+        "expected": 32
+      },
+      {
+        "identity": "chunk-32-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 32,
+        "afterActual": 32,
+        "expected": 32
+      },
+      {
+        "identity": "chunk-33-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 33,
+        "afterActual": 33,
+        "expected": 33
+      },
+      {
+        "identity": "chunk-33-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 33,
+        "afterActual": 33,
+        "expected": 33
+      },
+      {
+        "identity": "chunk-34-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 34,
+        "afterActual": 34,
+        "expected": 34
+      },
+      {
+        "identity": "chunk-34-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 34,
+        "afterActual": 34,
+        "expected": 34
+      },
+      {
+        "identity": "chunk-35-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 35,
+        "afterActual": 35,
+        "expected": 35
+      },
+      {
+        "identity": "chunk-35-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 35,
+        "afterActual": 35,
+        "expected": 35
+      },
+      {
+        "identity": "chunk-36-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 36,
+        "afterActual": 36,
+        "expected": 36
+      },
+      {
+        "identity": "chunk-36-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 36,
+        "afterActual": 36,
+        "expected": 36
+      },
+      {
+        "identity": "chunk-37-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 37,
+        "afterActual": 37,
+        "expected": 37
+      },
+      {
+        "identity": "chunk-37-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 37,
+        "afterActual": 37,
+        "expected": 37
+      },
+      {
+        "identity": "chunk-38-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 38,
+        "afterActual": 38,
+        "expected": 38
+      },
+      {
+        "identity": "chunk-38-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 38,
+        "afterActual": 38,
+        "expected": 38
+      },
+      {
+        "identity": "chunk-39-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 39,
+        "afterActual": 39,
+        "expected": 39
+      },
+      {
+        "identity": "chunk-39-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 39,
+        "afterActual": 39,
+        "expected": 39
+      },
+      {
+        "identity": "chunk-40-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 40,
+        "afterActual": 40,
+        "expected": 40
+      },
+      {
+        "identity": "chunk-40-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 40,
+        "afterActual": 40,
+        "expected": 40
+      },
+      {
+        "identity": "chunk-41-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 41,
+        "afterActual": 41,
+        "expected": 41
+      },
+      {
+        "identity": "chunk-41-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 41,
+        "afterActual": 41,
+        "expected": 41
+      },
+      {
+        "identity": "chunk-42-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 42,
+        "afterActual": 42,
+        "expected": 42
+      },
+      {
+        "identity": "chunk-42-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 42,
+        "afterActual": 42,
+        "expected": 42
+      },
+      {
+        "identity": "chunk-43-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 43,
+        "afterActual": 43,
+        "expected": 43
+      },
+      {
+        "identity": "chunk-43-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 43,
+        "afterActual": 43,
+        "expected": 43
+      },
+      {
+        "identity": "chunk-44-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 44,
+        "afterActual": 44,
+        "expected": 44
+      },
+      {
+        "identity": "chunk-44-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 44,
+        "afterActual": 44,
+        "expected": 44
+      },
+      {
+        "identity": "chunk-45-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 45,
+        "afterActual": 45,
+        "expected": 45
+      },
+      {
+        "identity": "chunk-45-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 45,
+        "afterActual": 45,
+        "expected": 45
+      },
+      {
+        "identity": "chunk-46-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 46,
+        "afterActual": 46,
+        "expected": 46
+      },
+      {
+        "identity": "chunk-46-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 46,
+        "afterActual": 46,
+        "expected": 46
+      },
+      {
+        "identity": "chunk-47-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 47,
+        "afterActual": 47,
+        "expected": 47
+      },
+      {
+        "identity": "chunk-47-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 47,
+        "afterActual": 47,
+        "expected": 47
+      },
+      {
+        "identity": "chunk-48-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 48,
+        "afterActual": 48,
+        "expected": 48
+      },
+      {
+        "identity": "chunk-48-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 48,
+        "afterActual": 48,
+        "expected": 48
+      },
+      {
+        "identity": "chunk-49-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 49,
+        "afterActual": 49,
+        "expected": 49
+      },
+      {
+        "identity": "chunk-49-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 49,
+        "afterActual": 49,
+        "expected": 49
+      },
+      {
+        "identity": "chunk-50-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 50,
+        "afterActual": 50,
+        "expected": 50
+      },
+      {
+        "identity": "chunk-50-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 50,
+        "afterActual": 50,
+        "expected": 50
+      },
+      {
+        "identity": "chunk-51-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 51,
+        "afterActual": 51,
+        "expected": 51
+      },
+      {
+        "identity": "chunk-51-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 51,
+        "afterActual": 51,
+        "expected": 51
+      },
+      {
+        "identity": "chunk-52-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 52,
+        "afterActual": 52,
+        "expected": 52
+      },
+      {
+        "identity": "chunk-52-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 52,
+        "afterActual": 52,
+        "expected": 52
+      },
+      {
+        "identity": "chunk-53-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 53,
+        "afterActual": 53,
+        "expected": 53
+      },
+      {
+        "identity": "chunk-53-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 53,
+        "afterActual": 53,
+        "expected": 53
+      },
+      {
+        "identity": "chunk-54-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 54,
+        "afterActual": 54,
+        "expected": 54
+      },
+      {
+        "identity": "chunk-54-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 54,
+        "afterActual": 54,
+        "expected": 54
+      },
+      {
+        "identity": "chunk-55-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 55,
+        "afterActual": 55,
+        "expected": 55
+      },
+      {
+        "identity": "chunk-55-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 55,
+        "afterActual": 55,
+        "expected": 55
+      },
+      {
+        "identity": "chunk-56-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 56,
+        "afterActual": 56,
+        "expected": 56
+      },
+      {
+        "identity": "chunk-56-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 56,
+        "afterActual": 56,
+        "expected": 56
+      },
+      {
+        "identity": "chunk-57-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 57,
+        "afterActual": 57,
+        "expected": 57
+      },
+      {
+        "identity": "chunk-57-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 57,
+        "afterActual": 57,
+        "expected": 57
+      },
+      {
+        "identity": "chunk-58-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 58,
+        "afterActual": 58,
+        "expected": 58
+      },
+      {
+        "identity": "chunk-58-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 58,
+        "afterActual": 58,
+        "expected": 58
+      },
+      {
+        "identity": "chunk-59-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 59,
+        "afterActual": 59,
+        "expected": 59
+      },
+      {
+        "identity": "chunk-59-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 59,
+        "afterActual": 59,
+        "expected": 59
+      },
+      {
+        "identity": "chunk-60-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 60,
+        "afterActual": 60,
+        "expected": 60
+      },
+      {
+        "identity": "chunk-60-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 60,
+        "afterActual": 60,
+        "expected": 60
+      },
+      {
+        "identity": "chunk-61-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 61,
+        "afterActual": 61,
+        "expected": 61
+      },
+      {
+        "identity": "chunk-61-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 61,
+        "afterActual": 61,
+        "expected": 61
+      },
+      {
+        "identity": "chunk-62-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 62,
+        "afterActual": 62,
+        "expected": 62
+      },
+      {
+        "identity": "chunk-62-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 62,
+        "afterActual": 62,
+        "expected": 62
+      },
+      {
+        "identity": "chunk-63-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 63,
+        "afterActual": 63,
+        "expected": 63
+      },
+      {
+        "identity": "chunk-63-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 63,
+        "afterActual": 63,
+        "expected": 63
+      },
+      {
+        "identity": "chunk-64-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 64,
+        "afterActual": 64,
+        "expected": 64
+      },
+      {
+        "identity": "chunk-64-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 64,
+        "afterActual": 64,
+        "expected": 64
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 65,
+        "afterActual": 65,
+        "expected": 65
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "no-next-during-awaited-write",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "writes-exact",
+        "before": true,
+        "after": true,
+        "beforeActual": 64,
+        "afterActual": 64,
+        "expected": 64
+      },
+      {
+        "identity": "input-bytes",
+        "before": true,
+        "after": true,
+        "beforeActual": 256,
+        "afterActual": 256,
+        "expected": 256
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a",
+        "afterActual": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a",
+        "expected": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a"
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "chunks-256",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "chunk-1-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "chunk-1-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "chunk-2-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "chunk-2-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "chunk-3-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 3,
+        "afterActual": 3,
+        "expected": 3
+      },
+      {
+        "identity": "chunk-3-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 3,
+        "afterActual": 3,
+        "expected": 3
+      },
+      {
+        "identity": "chunk-4-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 4,
+        "afterActual": 4,
+        "expected": 4
+      },
+      {
+        "identity": "chunk-4-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 4,
+        "afterActual": 4,
+        "expected": 4
+      },
+      {
+        "identity": "chunk-5-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 5,
+        "afterActual": 5,
+        "expected": 5
+      },
+      {
+        "identity": "chunk-5-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 5,
+        "afterActual": 5,
+        "expected": 5
+      },
+      {
+        "identity": "chunk-6-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 6,
+        "afterActual": 6,
+        "expected": 6
+      },
+      {
+        "identity": "chunk-6-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 6,
+        "afterActual": 6,
+        "expected": 6
+      },
+      {
+        "identity": "chunk-7-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 7,
+        "afterActual": 7,
+        "expected": 7
+      },
+      {
+        "identity": "chunk-7-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 7,
+        "afterActual": 7,
+        "expected": 7
+      },
+      {
+        "identity": "chunk-8-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 8,
+        "afterActual": 8,
+        "expected": 8
+      },
+      {
+        "identity": "chunk-8-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 8,
+        "afterActual": 8,
+        "expected": 8
+      },
+      {
+        "identity": "chunk-9-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 9,
+        "afterActual": 9,
+        "expected": 9
+      },
+      {
+        "identity": "chunk-9-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 9,
+        "afterActual": 9,
+        "expected": 9
+      },
+      {
+        "identity": "chunk-10-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 10,
+        "afterActual": 10,
+        "expected": 10
+      },
+      {
+        "identity": "chunk-10-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 10,
+        "afterActual": 10,
+        "expected": 10
+      },
+      {
+        "identity": "chunk-11-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 11,
+        "afterActual": 11,
+        "expected": 11
+      },
+      {
+        "identity": "chunk-11-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 11,
+        "afterActual": 11,
+        "expected": 11
+      },
+      {
+        "identity": "chunk-12-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 12,
+        "afterActual": 12,
+        "expected": 12
+      },
+      {
+        "identity": "chunk-12-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 12,
+        "afterActual": 12,
+        "expected": 12
+      },
+      {
+        "identity": "chunk-13-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 13,
+        "afterActual": 13,
+        "expected": 13
+      },
+      {
+        "identity": "chunk-13-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 13,
+        "afterActual": 13,
+        "expected": 13
+      },
+      {
+        "identity": "chunk-14-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 14,
+        "afterActual": 14,
+        "expected": 14
+      },
+      {
+        "identity": "chunk-14-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 14,
+        "afterActual": 14,
+        "expected": 14
+      },
+      {
+        "identity": "chunk-15-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 15,
+        "afterActual": 15,
+        "expected": 15
+      },
+      {
+        "identity": "chunk-15-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 15,
+        "afterActual": 15,
+        "expected": 15
+      },
+      {
+        "identity": "chunk-16-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 16,
+        "afterActual": 16,
+        "expected": 16
+      },
+      {
+        "identity": "chunk-16-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 16,
+        "afterActual": 16,
+        "expected": 16
+      },
+      {
+        "identity": "chunk-17-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 17,
+        "afterActual": 17,
+        "expected": 17
+      },
+      {
+        "identity": "chunk-17-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 17,
+        "afterActual": 17,
+        "expected": 17
+      },
+      {
+        "identity": "chunk-18-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 18,
+        "afterActual": 18,
+        "expected": 18
+      },
+      {
+        "identity": "chunk-18-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 18,
+        "afterActual": 18,
+        "expected": 18
+      },
+      {
+        "identity": "chunk-19-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 19,
+        "afterActual": 19,
+        "expected": 19
+      },
+      {
+        "identity": "chunk-19-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 19,
+        "afterActual": 19,
+        "expected": 19
+      },
+      {
+        "identity": "chunk-20-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 20,
+        "afterActual": 20,
+        "expected": 20
+      },
+      {
+        "identity": "chunk-20-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 20,
+        "afterActual": 20,
+        "expected": 20
+      },
+      {
+        "identity": "chunk-21-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 21,
+        "afterActual": 21,
+        "expected": 21
+      },
+      {
+        "identity": "chunk-21-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 21,
+        "afterActual": 21,
+        "expected": 21
+      },
+      {
+        "identity": "chunk-22-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 22,
+        "afterActual": 22,
+        "expected": 22
+      },
+      {
+        "identity": "chunk-22-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 22,
+        "afterActual": 22,
+        "expected": 22
+      },
+      {
+        "identity": "chunk-23-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 23,
+        "afterActual": 23,
+        "expected": 23
+      },
+      {
+        "identity": "chunk-23-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 23,
+        "afterActual": 23,
+        "expected": 23
+      },
+      {
+        "identity": "chunk-24-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 24,
+        "afterActual": 24,
+        "expected": 24
+      },
+      {
+        "identity": "chunk-24-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 24,
+        "afterActual": 24,
+        "expected": 24
+      },
+      {
+        "identity": "chunk-25-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 25,
+        "afterActual": 25,
+        "expected": 25
+      },
+      {
+        "identity": "chunk-25-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 25,
+        "afterActual": 25,
+        "expected": 25
+      },
+      {
+        "identity": "chunk-26-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 26,
+        "afterActual": 26,
+        "expected": 26
+      },
+      {
+        "identity": "chunk-26-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 26,
+        "afterActual": 26,
+        "expected": 26
+      },
+      {
+        "identity": "chunk-27-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 27,
+        "afterActual": 27,
+        "expected": 27
+      },
+      {
+        "identity": "chunk-27-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 27,
+        "afterActual": 27,
+        "expected": 27
+      },
+      {
+        "identity": "chunk-28-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 28,
+        "afterActual": 28,
+        "expected": 28
+      },
+      {
+        "identity": "chunk-28-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 28,
+        "afterActual": 28,
+        "expected": 28
+      },
+      {
+        "identity": "chunk-29-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 29,
+        "afterActual": 29,
+        "expected": 29
+      },
+      {
+        "identity": "chunk-29-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 29,
+        "afterActual": 29,
+        "expected": 29
+      },
+      {
+        "identity": "chunk-30-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 30,
+        "afterActual": 30,
+        "expected": 30
+      },
+      {
+        "identity": "chunk-30-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 30,
+        "afterActual": 30,
+        "expected": 30
+      },
+      {
+        "identity": "chunk-31-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 31,
+        "afterActual": 31,
+        "expected": 31
+      },
+      {
+        "identity": "chunk-31-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 31,
+        "afterActual": 31,
+        "expected": 31
+      },
+      {
+        "identity": "chunk-32-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 32,
+        "afterActual": 32,
+        "expected": 32
+      },
+      {
+        "identity": "chunk-32-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 32,
+        "afterActual": 32,
+        "expected": 32
+      },
+      {
+        "identity": "chunk-33-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 33,
+        "afterActual": 33,
+        "expected": 33
+      },
+      {
+        "identity": "chunk-33-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 33,
+        "afterActual": 33,
+        "expected": 33
+      },
+      {
+        "identity": "chunk-34-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 34,
+        "afterActual": 34,
+        "expected": 34
+      },
+      {
+        "identity": "chunk-34-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 34,
+        "afterActual": 34,
+        "expected": 34
+      },
+      {
+        "identity": "chunk-35-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 35,
+        "afterActual": 35,
+        "expected": 35
+      },
+      {
+        "identity": "chunk-35-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 35,
+        "afterActual": 35,
+        "expected": 35
+      },
+      {
+        "identity": "chunk-36-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 36,
+        "afterActual": 36,
+        "expected": 36
+      },
+      {
+        "identity": "chunk-36-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 36,
+        "afterActual": 36,
+        "expected": 36
+      },
+      {
+        "identity": "chunk-37-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 37,
+        "afterActual": 37,
+        "expected": 37
+      },
+      {
+        "identity": "chunk-37-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 37,
+        "afterActual": 37,
+        "expected": 37
+      },
+      {
+        "identity": "chunk-38-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 38,
+        "afterActual": 38,
+        "expected": 38
+      },
+      {
+        "identity": "chunk-38-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 38,
+        "afterActual": 38,
+        "expected": 38
+      },
+      {
+        "identity": "chunk-39-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 39,
+        "afterActual": 39,
+        "expected": 39
+      },
+      {
+        "identity": "chunk-39-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 39,
+        "afterActual": 39,
+        "expected": 39
+      },
+      {
+        "identity": "chunk-40-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 40,
+        "afterActual": 40,
+        "expected": 40
+      },
+      {
+        "identity": "chunk-40-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 40,
+        "afterActual": 40,
+        "expected": 40
+      },
+      {
+        "identity": "chunk-41-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 41,
+        "afterActual": 41,
+        "expected": 41
+      },
+      {
+        "identity": "chunk-41-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 41,
+        "afterActual": 41,
+        "expected": 41
+      },
+      {
+        "identity": "chunk-42-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 42,
+        "afterActual": 42,
+        "expected": 42
+      },
+      {
+        "identity": "chunk-42-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 42,
+        "afterActual": 42,
+        "expected": 42
+      },
+      {
+        "identity": "chunk-43-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 43,
+        "afterActual": 43,
+        "expected": 43
+      },
+      {
+        "identity": "chunk-43-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 43,
+        "afterActual": 43,
+        "expected": 43
+      },
+      {
+        "identity": "chunk-44-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 44,
+        "afterActual": 44,
+        "expected": 44
+      },
+      {
+        "identity": "chunk-44-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 44,
+        "afterActual": 44,
+        "expected": 44
+      },
+      {
+        "identity": "chunk-45-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 45,
+        "afterActual": 45,
+        "expected": 45
+      },
+      {
+        "identity": "chunk-45-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 45,
+        "afterActual": 45,
+        "expected": 45
+      },
+      {
+        "identity": "chunk-46-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 46,
+        "afterActual": 46,
+        "expected": 46
+      },
+      {
+        "identity": "chunk-46-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 46,
+        "afterActual": 46,
+        "expected": 46
+      },
+      {
+        "identity": "chunk-47-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 47,
+        "afterActual": 47,
+        "expected": 47
+      },
+      {
+        "identity": "chunk-47-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 47,
+        "afterActual": 47,
+        "expected": 47
+      },
+      {
+        "identity": "chunk-48-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 48,
+        "afterActual": 48,
+        "expected": 48
+      },
+      {
+        "identity": "chunk-48-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 48,
+        "afterActual": 48,
+        "expected": 48
+      },
+      {
+        "identity": "chunk-49-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 49,
+        "afterActual": 49,
+        "expected": 49
+      },
+      {
+        "identity": "chunk-49-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 49,
+        "afterActual": 49,
+        "expected": 49
+      },
+      {
+        "identity": "chunk-50-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 50,
+        "afterActual": 50,
+        "expected": 50
+      },
+      {
+        "identity": "chunk-50-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 50,
+        "afterActual": 50,
+        "expected": 50
+      },
+      {
+        "identity": "chunk-51-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 51,
+        "afterActual": 51,
+        "expected": 51
+      },
+      {
+        "identity": "chunk-51-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 51,
+        "afterActual": 51,
+        "expected": 51
+      },
+      {
+        "identity": "chunk-52-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 52,
+        "afterActual": 52,
+        "expected": 52
+      },
+      {
+        "identity": "chunk-52-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 52,
+        "afterActual": 52,
+        "expected": 52
+      },
+      {
+        "identity": "chunk-53-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 53,
+        "afterActual": 53,
+        "expected": 53
+      },
+      {
+        "identity": "chunk-53-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 53,
+        "afterActual": 53,
+        "expected": 53
+      },
+      {
+        "identity": "chunk-54-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 54,
+        "afterActual": 54,
+        "expected": 54
+      },
+      {
+        "identity": "chunk-54-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 54,
+        "afterActual": 54,
+        "expected": 54
+      },
+      {
+        "identity": "chunk-55-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 55,
+        "afterActual": 55,
+        "expected": 55
+      },
+      {
+        "identity": "chunk-55-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 55,
+        "afterActual": 55,
+        "expected": 55
+      },
+      {
+        "identity": "chunk-56-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 56,
+        "afterActual": 56,
+        "expected": 56
+      },
+      {
+        "identity": "chunk-56-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 56,
+        "afterActual": 56,
+        "expected": 56
+      },
+      {
+        "identity": "chunk-57-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 57,
+        "afterActual": 57,
+        "expected": 57
+      },
+      {
+        "identity": "chunk-57-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 57,
+        "afterActual": 57,
+        "expected": 57
+      },
+      {
+        "identity": "chunk-58-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 58,
+        "afterActual": 58,
+        "expected": 58
+      },
+      {
+        "identity": "chunk-58-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 58,
+        "afterActual": 58,
+        "expected": 58
+      },
+      {
+        "identity": "chunk-59-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 59,
+        "afterActual": 59,
+        "expected": 59
+      },
+      {
+        "identity": "chunk-59-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 59,
+        "afterActual": 59,
+        "expected": 59
+      },
+      {
+        "identity": "chunk-60-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 60,
+        "afterActual": 60,
+        "expected": 60
+      },
+      {
+        "identity": "chunk-60-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 60,
+        "afterActual": 60,
+        "expected": 60
+      },
+      {
+        "identity": "chunk-61-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 61,
+        "afterActual": 61,
+        "expected": 61
+      },
+      {
+        "identity": "chunk-61-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 61,
+        "afterActual": 61,
+        "expected": 61
+      },
+      {
+        "identity": "chunk-62-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 62,
+        "afterActual": 62,
+        "expected": 62
+      },
+      {
+        "identity": "chunk-62-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 62,
+        "afterActual": 62,
+        "expected": 62
+      },
+      {
+        "identity": "chunk-63-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 63,
+        "afterActual": 63,
+        "expected": 63
+      },
+      {
+        "identity": "chunk-63-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 63,
+        "afterActual": 63,
+        "expected": 63
+      },
+      {
+        "identity": "chunk-64-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 64,
+        "afterActual": 64,
+        "expected": 64
+      },
+      {
+        "identity": "chunk-64-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 64,
+        "afterActual": 64,
+        "expected": 64
+      },
+      {
+        "identity": "chunk-65-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 65,
+        "afterActual": 65,
+        "expected": 65
+      },
+      {
+        "identity": "chunk-65-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 65,
+        "afterActual": 65,
+        "expected": 65
+      },
+      {
+        "identity": "chunk-66-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 66,
+        "afterActual": 66,
+        "expected": 66
+      },
+      {
+        "identity": "chunk-66-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 66,
+        "afterActual": 66,
+        "expected": 66
+      },
+      {
+        "identity": "chunk-67-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 67,
+        "afterActual": 67,
+        "expected": 67
+      },
+      {
+        "identity": "chunk-67-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 67,
+        "afterActual": 67,
+        "expected": 67
+      },
+      {
+        "identity": "chunk-68-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 68,
+        "afterActual": 68,
+        "expected": 68
+      },
+      {
+        "identity": "chunk-68-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 68,
+        "afterActual": 68,
+        "expected": 68
+      },
+      {
+        "identity": "chunk-69-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 69,
+        "afterActual": 69,
+        "expected": 69
+      },
+      {
+        "identity": "chunk-69-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 69,
+        "afterActual": 69,
+        "expected": 69
+      },
+      {
+        "identity": "chunk-70-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 70,
+        "afterActual": 70,
+        "expected": 70
+      },
+      {
+        "identity": "chunk-70-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 70,
+        "afterActual": 70,
+        "expected": 70
+      },
+      {
+        "identity": "chunk-71-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 71,
+        "afterActual": 71,
+        "expected": 71
+      },
+      {
+        "identity": "chunk-71-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 71,
+        "afterActual": 71,
+        "expected": 71
+      },
+      {
+        "identity": "chunk-72-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 72,
+        "afterActual": 72,
+        "expected": 72
+      },
+      {
+        "identity": "chunk-72-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 72,
+        "afterActual": 72,
+        "expected": 72
+      },
+      {
+        "identity": "chunk-73-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 73,
+        "afterActual": 73,
+        "expected": 73
+      },
+      {
+        "identity": "chunk-73-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 73,
+        "afterActual": 73,
+        "expected": 73
+      },
+      {
+        "identity": "chunk-74-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 74,
+        "afterActual": 74,
+        "expected": 74
+      },
+      {
+        "identity": "chunk-74-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 74,
+        "afterActual": 74,
+        "expected": 74
+      },
+      {
+        "identity": "chunk-75-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 75,
+        "afterActual": 75,
+        "expected": 75
+      },
+      {
+        "identity": "chunk-75-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 75,
+        "afterActual": 75,
+        "expected": 75
+      },
+      {
+        "identity": "chunk-76-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 76,
+        "afterActual": 76,
+        "expected": 76
+      },
+      {
+        "identity": "chunk-76-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 76,
+        "afterActual": 76,
+        "expected": 76
+      },
+      {
+        "identity": "chunk-77-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 77,
+        "afterActual": 77,
+        "expected": 77
+      },
+      {
+        "identity": "chunk-77-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 77,
+        "afterActual": 77,
+        "expected": 77
+      },
+      {
+        "identity": "chunk-78-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 78,
+        "afterActual": 78,
+        "expected": 78
+      },
+      {
+        "identity": "chunk-78-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 78,
+        "afterActual": 78,
+        "expected": 78
+      },
+      {
+        "identity": "chunk-79-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 79,
+        "afterActual": 79,
+        "expected": 79
+      },
+      {
+        "identity": "chunk-79-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 79,
+        "afterActual": 79,
+        "expected": 79
+      },
+      {
+        "identity": "chunk-80-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 80,
+        "afterActual": 80,
+        "expected": 80
+      },
+      {
+        "identity": "chunk-80-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 80,
+        "afterActual": 80,
+        "expected": 80
+      },
+      {
+        "identity": "chunk-81-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 81,
+        "afterActual": 81,
+        "expected": 81
+      },
+      {
+        "identity": "chunk-81-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 81,
+        "afterActual": 81,
+        "expected": 81
+      },
+      {
+        "identity": "chunk-82-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 82,
+        "afterActual": 82,
+        "expected": 82
+      },
+      {
+        "identity": "chunk-82-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 82,
+        "afterActual": 82,
+        "expected": 82
+      },
+      {
+        "identity": "chunk-83-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 83,
+        "afterActual": 83,
+        "expected": 83
+      },
+      {
+        "identity": "chunk-83-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 83,
+        "afterActual": 83,
+        "expected": 83
+      },
+      {
+        "identity": "chunk-84-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 84,
+        "afterActual": 84,
+        "expected": 84
+      },
+      {
+        "identity": "chunk-84-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 84,
+        "afterActual": 84,
+        "expected": 84
+      },
+      {
+        "identity": "chunk-85-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 85,
+        "afterActual": 85,
+        "expected": 85
+      },
+      {
+        "identity": "chunk-85-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 85,
+        "afterActual": 85,
+        "expected": 85
+      },
+      {
+        "identity": "chunk-86-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 86,
+        "afterActual": 86,
+        "expected": 86
+      },
+      {
+        "identity": "chunk-86-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 86,
+        "afterActual": 86,
+        "expected": 86
+      },
+      {
+        "identity": "chunk-87-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 87,
+        "afterActual": 87,
+        "expected": 87
+      },
+      {
+        "identity": "chunk-87-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 87,
+        "afterActual": 87,
+        "expected": 87
+      },
+      {
+        "identity": "chunk-88-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 88,
+        "afterActual": 88,
+        "expected": 88
+      },
+      {
+        "identity": "chunk-88-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 88,
+        "afterActual": 88,
+        "expected": 88
+      },
+      {
+        "identity": "chunk-89-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 89,
+        "afterActual": 89,
+        "expected": 89
+      },
+      {
+        "identity": "chunk-89-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 89,
+        "afterActual": 89,
+        "expected": 89
+      },
+      {
+        "identity": "chunk-90-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 90,
+        "afterActual": 90,
+        "expected": 90
+      },
+      {
+        "identity": "chunk-90-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 90,
+        "afterActual": 90,
+        "expected": 90
+      },
+      {
+        "identity": "chunk-91-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 91,
+        "afterActual": 91,
+        "expected": 91
+      },
+      {
+        "identity": "chunk-91-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 91,
+        "afterActual": 91,
+        "expected": 91
+      },
+      {
+        "identity": "chunk-92-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 92,
+        "afterActual": 92,
+        "expected": 92
+      },
+      {
+        "identity": "chunk-92-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 92,
+        "afterActual": 92,
+        "expected": 92
+      },
+      {
+        "identity": "chunk-93-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 93,
+        "afterActual": 93,
+        "expected": 93
+      },
+      {
+        "identity": "chunk-93-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 93,
+        "afterActual": 93,
+        "expected": 93
+      },
+      {
+        "identity": "chunk-94-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 94,
+        "afterActual": 94,
+        "expected": 94
+      },
+      {
+        "identity": "chunk-94-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 94,
+        "afterActual": 94,
+        "expected": 94
+      },
+      {
+        "identity": "chunk-95-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 95,
+        "afterActual": 95,
+        "expected": 95
+      },
+      {
+        "identity": "chunk-95-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 95,
+        "afterActual": 95,
+        "expected": 95
+      },
+      {
+        "identity": "chunk-96-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 96,
+        "afterActual": 96,
+        "expected": 96
+      },
+      {
+        "identity": "chunk-96-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 96,
+        "afterActual": 96,
+        "expected": 96
+      },
+      {
+        "identity": "chunk-97-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 97,
+        "afterActual": 97,
+        "expected": 97
+      },
+      {
+        "identity": "chunk-97-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 97,
+        "afterActual": 97,
+        "expected": 97
+      },
+      {
+        "identity": "chunk-98-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 98,
+        "afterActual": 98,
+        "expected": 98
+      },
+      {
+        "identity": "chunk-98-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 98,
+        "afterActual": 98,
+        "expected": 98
+      },
+      {
+        "identity": "chunk-99-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 99,
+        "afterActual": 99,
+        "expected": 99
+      },
+      {
+        "identity": "chunk-99-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 99,
+        "afterActual": 99,
+        "expected": 99
+      },
+      {
+        "identity": "chunk-100-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 100,
+        "afterActual": 100,
+        "expected": 100
+      },
+      {
+        "identity": "chunk-100-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 100,
+        "afterActual": 100,
+        "expected": 100
+      },
+      {
+        "identity": "chunk-101-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 101,
+        "afterActual": 101,
+        "expected": 101
+      },
+      {
+        "identity": "chunk-101-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 101,
+        "afterActual": 101,
+        "expected": 101
+      },
+      {
+        "identity": "chunk-102-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 102,
+        "afterActual": 102,
+        "expected": 102
+      },
+      {
+        "identity": "chunk-102-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 102,
+        "afterActual": 102,
+        "expected": 102
+      },
+      {
+        "identity": "chunk-103-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 103,
+        "afterActual": 103,
+        "expected": 103
+      },
+      {
+        "identity": "chunk-103-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 103,
+        "afterActual": 103,
+        "expected": 103
+      },
+      {
+        "identity": "chunk-104-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 104,
+        "afterActual": 104,
+        "expected": 104
+      },
+      {
+        "identity": "chunk-104-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 104,
+        "afterActual": 104,
+        "expected": 104
+      },
+      {
+        "identity": "chunk-105-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 105,
+        "afterActual": 105,
+        "expected": 105
+      },
+      {
+        "identity": "chunk-105-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 105,
+        "afterActual": 105,
+        "expected": 105
+      },
+      {
+        "identity": "chunk-106-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 106,
+        "afterActual": 106,
+        "expected": 106
+      },
+      {
+        "identity": "chunk-106-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 106,
+        "afterActual": 106,
+        "expected": 106
+      },
+      {
+        "identity": "chunk-107-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 107,
+        "afterActual": 107,
+        "expected": 107
+      },
+      {
+        "identity": "chunk-107-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 107,
+        "afterActual": 107,
+        "expected": 107
+      },
+      {
+        "identity": "chunk-108-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 108,
+        "afterActual": 108,
+        "expected": 108
+      },
+      {
+        "identity": "chunk-108-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 108,
+        "afterActual": 108,
+        "expected": 108
+      },
+      {
+        "identity": "chunk-109-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 109,
+        "afterActual": 109,
+        "expected": 109
+      },
+      {
+        "identity": "chunk-109-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 109,
+        "afterActual": 109,
+        "expected": 109
+      },
+      {
+        "identity": "chunk-110-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 110,
+        "afterActual": 110,
+        "expected": 110
+      },
+      {
+        "identity": "chunk-110-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 110,
+        "afterActual": 110,
+        "expected": 110
+      },
+      {
+        "identity": "chunk-111-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 111,
+        "afterActual": 111,
+        "expected": 111
+      },
+      {
+        "identity": "chunk-111-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 111,
+        "afterActual": 111,
+        "expected": 111
+      },
+      {
+        "identity": "chunk-112-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 112,
+        "afterActual": 112,
+        "expected": 112
+      },
+      {
+        "identity": "chunk-112-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 112,
+        "afterActual": 112,
+        "expected": 112
+      },
+      {
+        "identity": "chunk-113-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 113,
+        "afterActual": 113,
+        "expected": 113
+      },
+      {
+        "identity": "chunk-113-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 113,
+        "afterActual": 113,
+        "expected": 113
+      },
+      {
+        "identity": "chunk-114-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 114,
+        "afterActual": 114,
+        "expected": 114
+      },
+      {
+        "identity": "chunk-114-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 114,
+        "afterActual": 114,
+        "expected": 114
+      },
+      {
+        "identity": "chunk-115-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 115,
+        "afterActual": 115,
+        "expected": 115
+      },
+      {
+        "identity": "chunk-115-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 115,
+        "afterActual": 115,
+        "expected": 115
+      },
+      {
+        "identity": "chunk-116-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 116,
+        "afterActual": 116,
+        "expected": 116
+      },
+      {
+        "identity": "chunk-116-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 116,
+        "afterActual": 116,
+        "expected": 116
+      },
+      {
+        "identity": "chunk-117-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 117,
+        "afterActual": 117,
+        "expected": 117
+      },
+      {
+        "identity": "chunk-117-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 117,
+        "afterActual": 117,
+        "expected": 117
+      },
+      {
+        "identity": "chunk-118-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 118,
+        "afterActual": 118,
+        "expected": 118
+      },
+      {
+        "identity": "chunk-118-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 118,
+        "afterActual": 118,
+        "expected": 118
+      },
+      {
+        "identity": "chunk-119-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 119,
+        "afterActual": 119,
+        "expected": 119
+      },
+      {
+        "identity": "chunk-119-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 119,
+        "afterActual": 119,
+        "expected": 119
+      },
+      {
+        "identity": "chunk-120-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 120,
+        "afterActual": 120,
+        "expected": 120
+      },
+      {
+        "identity": "chunk-120-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 120,
+        "afterActual": 120,
+        "expected": 120
+      },
+      {
+        "identity": "chunk-121-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 121,
+        "afterActual": 121,
+        "expected": 121
+      },
+      {
+        "identity": "chunk-121-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 121,
+        "afterActual": 121,
+        "expected": 121
+      },
+      {
+        "identity": "chunk-122-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 122,
+        "afterActual": 122,
+        "expected": 122
+      },
+      {
+        "identity": "chunk-122-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 122,
+        "afterActual": 122,
+        "expected": 122
+      },
+      {
+        "identity": "chunk-123-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 123,
+        "afterActual": 123,
+        "expected": 123
+      },
+      {
+        "identity": "chunk-123-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 123,
+        "afterActual": 123,
+        "expected": 123
+      },
+      {
+        "identity": "chunk-124-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 124,
+        "afterActual": 124,
+        "expected": 124
+      },
+      {
+        "identity": "chunk-124-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 124,
+        "afterActual": 124,
+        "expected": 124
+      },
+      {
+        "identity": "chunk-125-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 125,
+        "afterActual": 125,
+        "expected": 125
+      },
+      {
+        "identity": "chunk-125-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 125,
+        "afterActual": 125,
+        "expected": 125
+      },
+      {
+        "identity": "chunk-126-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 126,
+        "afterActual": 126,
+        "expected": 126
+      },
+      {
+        "identity": "chunk-126-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 126,
+        "afterActual": 126,
+        "expected": 126
+      },
+      {
+        "identity": "chunk-127-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 127,
+        "afterActual": 127,
+        "expected": 127
+      },
+      {
+        "identity": "chunk-127-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 127,
+        "afterActual": 127,
+        "expected": 127
+      },
+      {
+        "identity": "chunk-128-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 128,
+        "afterActual": 128,
+        "expected": 128
+      },
+      {
+        "identity": "chunk-128-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 128,
+        "afterActual": 128,
+        "expected": 128
+      },
+      {
+        "identity": "chunk-129-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 129,
+        "afterActual": 129,
+        "expected": 129
+      },
+      {
+        "identity": "chunk-129-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 129,
+        "afterActual": 129,
+        "expected": 129
+      },
+      {
+        "identity": "chunk-130-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 130,
+        "afterActual": 130,
+        "expected": 130
+      },
+      {
+        "identity": "chunk-130-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 130,
+        "afterActual": 130,
+        "expected": 130
+      },
+      {
+        "identity": "chunk-131-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 131,
+        "afterActual": 131,
+        "expected": 131
+      },
+      {
+        "identity": "chunk-131-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 131,
+        "afterActual": 131,
+        "expected": 131
+      },
+      {
+        "identity": "chunk-132-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 132,
+        "afterActual": 132,
+        "expected": 132
+      },
+      {
+        "identity": "chunk-132-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 132,
+        "afterActual": 132,
+        "expected": 132
+      },
+      {
+        "identity": "chunk-133-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 133,
+        "afterActual": 133,
+        "expected": 133
+      },
+      {
+        "identity": "chunk-133-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 133,
+        "afterActual": 133,
+        "expected": 133
+      },
+      {
+        "identity": "chunk-134-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 134,
+        "afterActual": 134,
+        "expected": 134
+      },
+      {
+        "identity": "chunk-134-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 134,
+        "afterActual": 134,
+        "expected": 134
+      },
+      {
+        "identity": "chunk-135-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 135,
+        "afterActual": 135,
+        "expected": 135
+      },
+      {
+        "identity": "chunk-135-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 135,
+        "afterActual": 135,
+        "expected": 135
+      },
+      {
+        "identity": "chunk-136-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 136,
+        "afterActual": 136,
+        "expected": 136
+      },
+      {
+        "identity": "chunk-136-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 136,
+        "afterActual": 136,
+        "expected": 136
+      },
+      {
+        "identity": "chunk-137-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 137,
+        "afterActual": 137,
+        "expected": 137
+      },
+      {
+        "identity": "chunk-137-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 137,
+        "afterActual": 137,
+        "expected": 137
+      },
+      {
+        "identity": "chunk-138-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 138,
+        "afterActual": 138,
+        "expected": 138
+      },
+      {
+        "identity": "chunk-138-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 138,
+        "afterActual": 138,
+        "expected": 138
+      },
+      {
+        "identity": "chunk-139-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 139,
+        "afterActual": 139,
+        "expected": 139
+      },
+      {
+        "identity": "chunk-139-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 139,
+        "afterActual": 139,
+        "expected": 139
+      },
+      {
+        "identity": "chunk-140-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 140,
+        "afterActual": 140,
+        "expected": 140
+      },
+      {
+        "identity": "chunk-140-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 140,
+        "afterActual": 140,
+        "expected": 140
+      },
+      {
+        "identity": "chunk-141-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 141,
+        "afterActual": 141,
+        "expected": 141
+      },
+      {
+        "identity": "chunk-141-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 141,
+        "afterActual": 141,
+        "expected": 141
+      },
+      {
+        "identity": "chunk-142-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 142,
+        "afterActual": 142,
+        "expected": 142
+      },
+      {
+        "identity": "chunk-142-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 142,
+        "afterActual": 142,
+        "expected": 142
+      },
+      {
+        "identity": "chunk-143-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 143,
+        "afterActual": 143,
+        "expected": 143
+      },
+      {
+        "identity": "chunk-143-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 143,
+        "afterActual": 143,
+        "expected": 143
+      },
+      {
+        "identity": "chunk-144-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 144,
+        "afterActual": 144,
+        "expected": 144
+      },
+      {
+        "identity": "chunk-144-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 144,
+        "afterActual": 144,
+        "expected": 144
+      },
+      {
+        "identity": "chunk-145-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 145,
+        "afterActual": 145,
+        "expected": 145
+      },
+      {
+        "identity": "chunk-145-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 145,
+        "afterActual": 145,
+        "expected": 145
+      },
+      {
+        "identity": "chunk-146-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 146,
+        "afterActual": 146,
+        "expected": 146
+      },
+      {
+        "identity": "chunk-146-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 146,
+        "afterActual": 146,
+        "expected": 146
+      },
+      {
+        "identity": "chunk-147-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 147,
+        "afterActual": 147,
+        "expected": 147
+      },
+      {
+        "identity": "chunk-147-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 147,
+        "afterActual": 147,
+        "expected": 147
+      },
+      {
+        "identity": "chunk-148-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 148,
+        "afterActual": 148,
+        "expected": 148
+      },
+      {
+        "identity": "chunk-148-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 148,
+        "afterActual": 148,
+        "expected": 148
+      },
+      {
+        "identity": "chunk-149-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 149,
+        "afterActual": 149,
+        "expected": 149
+      },
+      {
+        "identity": "chunk-149-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 149,
+        "afterActual": 149,
+        "expected": 149
+      },
+      {
+        "identity": "chunk-150-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 150,
+        "afterActual": 150,
+        "expected": 150
+      },
+      {
+        "identity": "chunk-150-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 150,
+        "afterActual": 150,
+        "expected": 150
+      },
+      {
+        "identity": "chunk-151-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 151,
+        "afterActual": 151,
+        "expected": 151
+      },
+      {
+        "identity": "chunk-151-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 151,
+        "afterActual": 151,
+        "expected": 151
+      },
+      {
+        "identity": "chunk-152-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 152,
+        "afterActual": 152,
+        "expected": 152
+      },
+      {
+        "identity": "chunk-152-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 152,
+        "afterActual": 152,
+        "expected": 152
+      },
+      {
+        "identity": "chunk-153-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 153,
+        "afterActual": 153,
+        "expected": 153
+      },
+      {
+        "identity": "chunk-153-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 153,
+        "afterActual": 153,
+        "expected": 153
+      },
+      {
+        "identity": "chunk-154-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 154,
+        "afterActual": 154,
+        "expected": 154
+      },
+      {
+        "identity": "chunk-154-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 154,
+        "afterActual": 154,
+        "expected": 154
+      },
+      {
+        "identity": "chunk-155-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 155,
+        "afterActual": 155,
+        "expected": 155
+      },
+      {
+        "identity": "chunk-155-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 155,
+        "afterActual": 155,
+        "expected": 155
+      },
+      {
+        "identity": "chunk-156-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 156,
+        "afterActual": 156,
+        "expected": 156
+      },
+      {
+        "identity": "chunk-156-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 156,
+        "afterActual": 156,
+        "expected": 156
+      },
+      {
+        "identity": "chunk-157-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 157,
+        "afterActual": 157,
+        "expected": 157
+      },
+      {
+        "identity": "chunk-157-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 157,
+        "afterActual": 157,
+        "expected": 157
+      },
+      {
+        "identity": "chunk-158-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 158,
+        "afterActual": 158,
+        "expected": 158
+      },
+      {
+        "identity": "chunk-158-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 158,
+        "afterActual": 158,
+        "expected": 158
+      },
+      {
+        "identity": "chunk-159-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 159,
+        "afterActual": 159,
+        "expected": 159
+      },
+      {
+        "identity": "chunk-159-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 159,
+        "afterActual": 159,
+        "expected": 159
+      },
+      {
+        "identity": "chunk-160-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 160,
+        "afterActual": 160,
+        "expected": 160
+      },
+      {
+        "identity": "chunk-160-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 160,
+        "afterActual": 160,
+        "expected": 160
+      },
+      {
+        "identity": "chunk-161-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 161,
+        "afterActual": 161,
+        "expected": 161
+      },
+      {
+        "identity": "chunk-161-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 161,
+        "afterActual": 161,
+        "expected": 161
+      },
+      {
+        "identity": "chunk-162-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 162,
+        "afterActual": 162,
+        "expected": 162
+      },
+      {
+        "identity": "chunk-162-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 162,
+        "afterActual": 162,
+        "expected": 162
+      },
+      {
+        "identity": "chunk-163-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 163,
+        "afterActual": 163,
+        "expected": 163
+      },
+      {
+        "identity": "chunk-163-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 163,
+        "afterActual": 163,
+        "expected": 163
+      },
+      {
+        "identity": "chunk-164-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 164,
+        "afterActual": 164,
+        "expected": 164
+      },
+      {
+        "identity": "chunk-164-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 164,
+        "afterActual": 164,
+        "expected": 164
+      },
+      {
+        "identity": "chunk-165-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 165,
+        "afterActual": 165,
+        "expected": 165
+      },
+      {
+        "identity": "chunk-165-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 165,
+        "afterActual": 165,
+        "expected": 165
+      },
+      {
+        "identity": "chunk-166-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 166,
+        "afterActual": 166,
+        "expected": 166
+      },
+      {
+        "identity": "chunk-166-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 166,
+        "afterActual": 166,
+        "expected": 166
+      },
+      {
+        "identity": "chunk-167-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 167,
+        "afterActual": 167,
+        "expected": 167
+      },
+      {
+        "identity": "chunk-167-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 167,
+        "afterActual": 167,
+        "expected": 167
+      },
+      {
+        "identity": "chunk-168-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 168,
+        "afterActual": 168,
+        "expected": 168
+      },
+      {
+        "identity": "chunk-168-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 168,
+        "afterActual": 168,
+        "expected": 168
+      },
+      {
+        "identity": "chunk-169-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 169,
+        "afterActual": 169,
+        "expected": 169
+      },
+      {
+        "identity": "chunk-169-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 169,
+        "afterActual": 169,
+        "expected": 169
+      },
+      {
+        "identity": "chunk-170-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 170,
+        "afterActual": 170,
+        "expected": 170
+      },
+      {
+        "identity": "chunk-170-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 170,
+        "afterActual": 170,
+        "expected": 170
+      },
+      {
+        "identity": "chunk-171-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 171,
+        "afterActual": 171,
+        "expected": 171
+      },
+      {
+        "identity": "chunk-171-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 171,
+        "afterActual": 171,
+        "expected": 171
+      },
+      {
+        "identity": "chunk-172-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 172,
+        "afterActual": 172,
+        "expected": 172
+      },
+      {
+        "identity": "chunk-172-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 172,
+        "afterActual": 172,
+        "expected": 172
+      },
+      {
+        "identity": "chunk-173-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 173,
+        "afterActual": 173,
+        "expected": 173
+      },
+      {
+        "identity": "chunk-173-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 173,
+        "afterActual": 173,
+        "expected": 173
+      },
+      {
+        "identity": "chunk-174-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 174,
+        "afterActual": 174,
+        "expected": 174
+      },
+      {
+        "identity": "chunk-174-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 174,
+        "afterActual": 174,
+        "expected": 174
+      },
+      {
+        "identity": "chunk-175-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 175,
+        "afterActual": 175,
+        "expected": 175
+      },
+      {
+        "identity": "chunk-175-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 175,
+        "afterActual": 175,
+        "expected": 175
+      },
+      {
+        "identity": "chunk-176-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 176,
+        "afterActual": 176,
+        "expected": 176
+      },
+      {
+        "identity": "chunk-176-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 176,
+        "afterActual": 176,
+        "expected": 176
+      },
+      {
+        "identity": "chunk-177-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 177,
+        "afterActual": 177,
+        "expected": 177
+      },
+      {
+        "identity": "chunk-177-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 177,
+        "afterActual": 177,
+        "expected": 177
+      },
+      {
+        "identity": "chunk-178-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 178,
+        "afterActual": 178,
+        "expected": 178
+      },
+      {
+        "identity": "chunk-178-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 178,
+        "afterActual": 178,
+        "expected": 178
+      },
+      {
+        "identity": "chunk-179-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 179,
+        "afterActual": 179,
+        "expected": 179
+      },
+      {
+        "identity": "chunk-179-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 179,
+        "afterActual": 179,
+        "expected": 179
+      },
+      {
+        "identity": "chunk-180-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 180,
+        "afterActual": 180,
+        "expected": 180
+      },
+      {
+        "identity": "chunk-180-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 180,
+        "afterActual": 180,
+        "expected": 180
+      },
+      {
+        "identity": "chunk-181-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 181,
+        "afterActual": 181,
+        "expected": 181
+      },
+      {
+        "identity": "chunk-181-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 181,
+        "afterActual": 181,
+        "expected": 181
+      },
+      {
+        "identity": "chunk-182-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 182,
+        "afterActual": 182,
+        "expected": 182
+      },
+      {
+        "identity": "chunk-182-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 182,
+        "afterActual": 182,
+        "expected": 182
+      },
+      {
+        "identity": "chunk-183-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 183,
+        "afterActual": 183,
+        "expected": 183
+      },
+      {
+        "identity": "chunk-183-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 183,
+        "afterActual": 183,
+        "expected": 183
+      },
+      {
+        "identity": "chunk-184-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 184,
+        "afterActual": 184,
+        "expected": 184
+      },
+      {
+        "identity": "chunk-184-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 184,
+        "afterActual": 184,
+        "expected": 184
+      },
+      {
+        "identity": "chunk-185-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 185,
+        "afterActual": 185,
+        "expected": 185
+      },
+      {
+        "identity": "chunk-185-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 185,
+        "afterActual": 185,
+        "expected": 185
+      },
+      {
+        "identity": "chunk-186-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 186,
+        "afterActual": 186,
+        "expected": 186
+      },
+      {
+        "identity": "chunk-186-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 186,
+        "afterActual": 186,
+        "expected": 186
+      },
+      {
+        "identity": "chunk-187-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 187,
+        "afterActual": 187,
+        "expected": 187
+      },
+      {
+        "identity": "chunk-187-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 187,
+        "afterActual": 187,
+        "expected": 187
+      },
+      {
+        "identity": "chunk-188-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 188,
+        "afterActual": 188,
+        "expected": 188
+      },
+      {
+        "identity": "chunk-188-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 188,
+        "afterActual": 188,
+        "expected": 188
+      },
+      {
+        "identity": "chunk-189-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 189,
+        "afterActual": 189,
+        "expected": 189
+      },
+      {
+        "identity": "chunk-189-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 189,
+        "afterActual": 189,
+        "expected": 189
+      },
+      {
+        "identity": "chunk-190-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 190,
+        "afterActual": 190,
+        "expected": 190
+      },
+      {
+        "identity": "chunk-190-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 190,
+        "afterActual": 190,
+        "expected": 190
+      },
+      {
+        "identity": "chunk-191-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 191,
+        "afterActual": 191,
+        "expected": 191
+      },
+      {
+        "identity": "chunk-191-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 191,
+        "afterActual": 191,
+        "expected": 191
+      },
+      {
+        "identity": "chunk-192-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 192,
+        "afterActual": 192,
+        "expected": 192
+      },
+      {
+        "identity": "chunk-192-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 192,
+        "afterActual": 192,
+        "expected": 192
+      },
+      {
+        "identity": "chunk-193-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 193,
+        "afterActual": 193,
+        "expected": 193
+      },
+      {
+        "identity": "chunk-193-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 193,
+        "afterActual": 193,
+        "expected": 193
+      },
+      {
+        "identity": "chunk-194-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 194,
+        "afterActual": 194,
+        "expected": 194
+      },
+      {
+        "identity": "chunk-194-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 194,
+        "afterActual": 194,
+        "expected": 194
+      },
+      {
+        "identity": "chunk-195-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 195,
+        "afterActual": 195,
+        "expected": 195
+      },
+      {
+        "identity": "chunk-195-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 195,
+        "afterActual": 195,
+        "expected": 195
+      },
+      {
+        "identity": "chunk-196-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 196,
+        "afterActual": 196,
+        "expected": 196
+      },
+      {
+        "identity": "chunk-196-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 196,
+        "afterActual": 196,
+        "expected": 196
+      },
+      {
+        "identity": "chunk-197-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 197,
+        "afterActual": 197,
+        "expected": 197
+      },
+      {
+        "identity": "chunk-197-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 197,
+        "afterActual": 197,
+        "expected": 197
+      },
+      {
+        "identity": "chunk-198-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 198,
+        "afterActual": 198,
+        "expected": 198
+      },
+      {
+        "identity": "chunk-198-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 198,
+        "afterActual": 198,
+        "expected": 198
+      },
+      {
+        "identity": "chunk-199-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 199,
+        "afterActual": 199,
+        "expected": 199
+      },
+      {
+        "identity": "chunk-199-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 199,
+        "afterActual": 199,
+        "expected": 199
+      },
+      {
+        "identity": "chunk-200-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 200,
+        "afterActual": 200,
+        "expected": 200
+      },
+      {
+        "identity": "chunk-200-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 200,
+        "afterActual": 200,
+        "expected": 200
+      },
+      {
+        "identity": "chunk-201-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 201,
+        "afterActual": 201,
+        "expected": 201
+      },
+      {
+        "identity": "chunk-201-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 201,
+        "afterActual": 201,
+        "expected": 201
+      },
+      {
+        "identity": "chunk-202-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 202,
+        "afterActual": 202,
+        "expected": 202
+      },
+      {
+        "identity": "chunk-202-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 202,
+        "afterActual": 202,
+        "expected": 202
+      },
+      {
+        "identity": "chunk-203-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 203,
+        "afterActual": 203,
+        "expected": 203
+      },
+      {
+        "identity": "chunk-203-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 203,
+        "afterActual": 203,
+        "expected": 203
+      },
+      {
+        "identity": "chunk-204-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 204,
+        "afterActual": 204,
+        "expected": 204
+      },
+      {
+        "identity": "chunk-204-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 204,
+        "afterActual": 204,
+        "expected": 204
+      },
+      {
+        "identity": "chunk-205-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 205,
+        "afterActual": 205,
+        "expected": 205
+      },
+      {
+        "identity": "chunk-205-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 205,
+        "afterActual": 205,
+        "expected": 205
+      },
+      {
+        "identity": "chunk-206-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 206,
+        "afterActual": 206,
+        "expected": 206
+      },
+      {
+        "identity": "chunk-206-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 206,
+        "afterActual": 206,
+        "expected": 206
+      },
+      {
+        "identity": "chunk-207-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 207,
+        "afterActual": 207,
+        "expected": 207
+      },
+      {
+        "identity": "chunk-207-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 207,
+        "afterActual": 207,
+        "expected": 207
+      },
+      {
+        "identity": "chunk-208-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 208,
+        "afterActual": 208,
+        "expected": 208
+      },
+      {
+        "identity": "chunk-208-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 208,
+        "afterActual": 208,
+        "expected": 208
+      },
+      {
+        "identity": "chunk-209-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 209,
+        "afterActual": 209,
+        "expected": 209
+      },
+      {
+        "identity": "chunk-209-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 209,
+        "afterActual": 209,
+        "expected": 209
+      },
+      {
+        "identity": "chunk-210-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 210,
+        "afterActual": 210,
+        "expected": 210
+      },
+      {
+        "identity": "chunk-210-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 210,
+        "afterActual": 210,
+        "expected": 210
+      },
+      {
+        "identity": "chunk-211-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 211,
+        "afterActual": 211,
+        "expected": 211
+      },
+      {
+        "identity": "chunk-211-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 211,
+        "afterActual": 211,
+        "expected": 211
+      },
+      {
+        "identity": "chunk-212-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 212,
+        "afterActual": 212,
+        "expected": 212
+      },
+      {
+        "identity": "chunk-212-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 212,
+        "afterActual": 212,
+        "expected": 212
+      },
+      {
+        "identity": "chunk-213-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 213,
+        "afterActual": 213,
+        "expected": 213
+      },
+      {
+        "identity": "chunk-213-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 213,
+        "afterActual": 213,
+        "expected": 213
+      },
+      {
+        "identity": "chunk-214-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 214,
+        "afterActual": 214,
+        "expected": 214
+      },
+      {
+        "identity": "chunk-214-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 214,
+        "afterActual": 214,
+        "expected": 214
+      },
+      {
+        "identity": "chunk-215-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 215,
+        "afterActual": 215,
+        "expected": 215
+      },
+      {
+        "identity": "chunk-215-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 215,
+        "afterActual": 215,
+        "expected": 215
+      },
+      {
+        "identity": "chunk-216-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 216,
+        "afterActual": 216,
+        "expected": 216
+      },
+      {
+        "identity": "chunk-216-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 216,
+        "afterActual": 216,
+        "expected": 216
+      },
+      {
+        "identity": "chunk-217-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 217,
+        "afterActual": 217,
+        "expected": 217
+      },
+      {
+        "identity": "chunk-217-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 217,
+        "afterActual": 217,
+        "expected": 217
+      },
+      {
+        "identity": "chunk-218-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 218,
+        "afterActual": 218,
+        "expected": 218
+      },
+      {
+        "identity": "chunk-218-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 218,
+        "afterActual": 218,
+        "expected": 218
+      },
+      {
+        "identity": "chunk-219-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 219,
+        "afterActual": 219,
+        "expected": 219
+      },
+      {
+        "identity": "chunk-219-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 219,
+        "afterActual": 219,
+        "expected": 219
+      },
+      {
+        "identity": "chunk-220-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 220,
+        "afterActual": 220,
+        "expected": 220
+      },
+      {
+        "identity": "chunk-220-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 220,
+        "afterActual": 220,
+        "expected": 220
+      },
+      {
+        "identity": "chunk-221-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 221,
+        "afterActual": 221,
+        "expected": 221
+      },
+      {
+        "identity": "chunk-221-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 221,
+        "afterActual": 221,
+        "expected": 221
+      },
+      {
+        "identity": "chunk-222-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 222,
+        "afterActual": 222,
+        "expected": 222
+      },
+      {
+        "identity": "chunk-222-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 222,
+        "afterActual": 222,
+        "expected": 222
+      },
+      {
+        "identity": "chunk-223-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 223,
+        "afterActual": 223,
+        "expected": 223
+      },
+      {
+        "identity": "chunk-223-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 223,
+        "afterActual": 223,
+        "expected": 223
+      },
+      {
+        "identity": "chunk-224-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 224,
+        "afterActual": 224,
+        "expected": 224
+      },
+      {
+        "identity": "chunk-224-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 224,
+        "afterActual": 224,
+        "expected": 224
+      },
+      {
+        "identity": "chunk-225-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 225,
+        "afterActual": 225,
+        "expected": 225
+      },
+      {
+        "identity": "chunk-225-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 225,
+        "afterActual": 225,
+        "expected": 225
+      },
+      {
+        "identity": "chunk-226-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 226,
+        "afterActual": 226,
+        "expected": 226
+      },
+      {
+        "identity": "chunk-226-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 226,
+        "afterActual": 226,
+        "expected": 226
+      },
+      {
+        "identity": "chunk-227-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 227,
+        "afterActual": 227,
+        "expected": 227
+      },
+      {
+        "identity": "chunk-227-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 227,
+        "afterActual": 227,
+        "expected": 227
+      },
+      {
+        "identity": "chunk-228-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 228,
+        "afterActual": 228,
+        "expected": 228
+      },
+      {
+        "identity": "chunk-228-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 228,
+        "afterActual": 228,
+        "expected": 228
+      },
+      {
+        "identity": "chunk-229-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 229,
+        "afterActual": 229,
+        "expected": 229
+      },
+      {
+        "identity": "chunk-229-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 229,
+        "afterActual": 229,
+        "expected": 229
+      },
+      {
+        "identity": "chunk-230-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 230,
+        "afterActual": 230,
+        "expected": 230
+      },
+      {
+        "identity": "chunk-230-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 230,
+        "afterActual": 230,
+        "expected": 230
+      },
+      {
+        "identity": "chunk-231-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 231,
+        "afterActual": 231,
+        "expected": 231
+      },
+      {
+        "identity": "chunk-231-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 231,
+        "afterActual": 231,
+        "expected": 231
+      },
+      {
+        "identity": "chunk-232-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 232,
+        "afterActual": 232,
+        "expected": 232
+      },
+      {
+        "identity": "chunk-232-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 232,
+        "afterActual": 232,
+        "expected": 232
+      },
+      {
+        "identity": "chunk-233-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 233,
+        "afterActual": 233,
+        "expected": 233
+      },
+      {
+        "identity": "chunk-233-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 233,
+        "afterActual": 233,
+        "expected": 233
+      },
+      {
+        "identity": "chunk-234-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 234,
+        "afterActual": 234,
+        "expected": 234
+      },
+      {
+        "identity": "chunk-234-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 234,
+        "afterActual": 234,
+        "expected": 234
+      },
+      {
+        "identity": "chunk-235-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 235,
+        "afterActual": 235,
+        "expected": 235
+      },
+      {
+        "identity": "chunk-235-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 235,
+        "afterActual": 235,
+        "expected": 235
+      },
+      {
+        "identity": "chunk-236-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 236,
+        "afterActual": 236,
+        "expected": 236
+      },
+      {
+        "identity": "chunk-236-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 236,
+        "afterActual": 236,
+        "expected": 236
+      },
+      {
+        "identity": "chunk-237-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 237,
+        "afterActual": 237,
+        "expected": 237
+      },
+      {
+        "identity": "chunk-237-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 237,
+        "afterActual": 237,
+        "expected": 237
+      },
+      {
+        "identity": "chunk-238-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 238,
+        "afterActual": 238,
+        "expected": 238
+      },
+      {
+        "identity": "chunk-238-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 238,
+        "afterActual": 238,
+        "expected": 238
+      },
+      {
+        "identity": "chunk-239-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 239,
+        "afterActual": 239,
+        "expected": 239
+      },
+      {
+        "identity": "chunk-239-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 239,
+        "afterActual": 239,
+        "expected": 239
+      },
+      {
+        "identity": "chunk-240-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 240,
+        "afterActual": 240,
+        "expected": 240
+      },
+      {
+        "identity": "chunk-240-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 240,
+        "afterActual": 240,
+        "expected": 240
+      },
+      {
+        "identity": "chunk-241-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 241,
+        "afterActual": 241,
+        "expected": 241
+      },
+      {
+        "identity": "chunk-241-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 241,
+        "afterActual": 241,
+        "expected": 241
+      },
+      {
+        "identity": "chunk-242-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 242,
+        "afterActual": 242,
+        "expected": 242
+      },
+      {
+        "identity": "chunk-242-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 242,
+        "afterActual": 242,
+        "expected": 242
+      },
+      {
+        "identity": "chunk-243-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 243,
+        "afterActual": 243,
+        "expected": 243
+      },
+      {
+        "identity": "chunk-243-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 243,
+        "afterActual": 243,
+        "expected": 243
+      },
+      {
+        "identity": "chunk-244-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 244,
+        "afterActual": 244,
+        "expected": 244
+      },
+      {
+        "identity": "chunk-244-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 244,
+        "afterActual": 244,
+        "expected": 244
+      },
+      {
+        "identity": "chunk-245-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 245,
+        "afterActual": 245,
+        "expected": 245
+      },
+      {
+        "identity": "chunk-245-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 245,
+        "afterActual": 245,
+        "expected": 245
+      },
+      {
+        "identity": "chunk-246-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 246,
+        "afterActual": 246,
+        "expected": 246
+      },
+      {
+        "identity": "chunk-246-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 246,
+        "afterActual": 246,
+        "expected": 246
+      },
+      {
+        "identity": "chunk-247-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 247,
+        "afterActual": 247,
+        "expected": 247
+      },
+      {
+        "identity": "chunk-247-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 247,
+        "afterActual": 247,
+        "expected": 247
+      },
+      {
+        "identity": "chunk-248-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 248,
+        "afterActual": 248,
+        "expected": 248
+      },
+      {
+        "identity": "chunk-248-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 248,
+        "afterActual": 248,
+        "expected": 248
+      },
+      {
+        "identity": "chunk-249-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 249,
+        "afterActual": 249,
+        "expected": 249
+      },
+      {
+        "identity": "chunk-249-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 249,
+        "afterActual": 249,
+        "expected": 249
+      },
+      {
+        "identity": "chunk-250-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 250,
+        "afterActual": 250,
+        "expected": 250
+      },
+      {
+        "identity": "chunk-250-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 250,
+        "afterActual": 250,
+        "expected": 250
+      },
+      {
+        "identity": "chunk-251-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 251,
+        "afterActual": 251,
+        "expected": 251
+      },
+      {
+        "identity": "chunk-251-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 251,
+        "afterActual": 251,
+        "expected": 251
+      },
+      {
+        "identity": "chunk-252-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 252,
+        "afterActual": 252,
+        "expected": 252
+      },
+      {
+        "identity": "chunk-252-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 252,
+        "afterActual": 252,
+        "expected": 252
+      },
+      {
+        "identity": "chunk-253-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 253,
+        "afterActual": 253,
+        "expected": 253
+      },
+      {
+        "identity": "chunk-253-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 253,
+        "afterActual": 253,
+        "expected": 253
+      },
+      {
+        "identity": "chunk-254-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 254,
+        "afterActual": 254,
+        "expected": 254
+      },
+      {
+        "identity": "chunk-254-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 254,
+        "afterActual": 254,
+        "expected": 254
+      },
+      {
+        "identity": "chunk-255-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 255,
+        "afterActual": 255,
+        "expected": 255
+      },
+      {
+        "identity": "chunk-255-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 255,
+        "afterActual": 255,
+        "expected": 255
+      },
+      {
+        "identity": "chunk-256-handshake",
+        "before": true,
+        "after": true,
+        "beforeActual": 256,
+        "afterActual": 256,
+        "expected": 256
+      },
+      {
+        "identity": "chunk-256-no-prefetch",
+        "before": true,
+        "after": true,
+        "beforeActual": 256,
+        "afterActual": 256,
+        "expected": 256
+      },
+      {
+        "identity": "exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 257,
+        "afterActual": 257,
+        "expected": 257
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "no-next-during-awaited-write",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "writes-exact",
+        "before": true,
+        "after": true,
+        "beforeActual": 256,
+        "afterActual": 256,
+        "expected": 256
+      },
+      {
+        "identity": "input-bytes",
+        "before": true,
+        "after": true,
+        "beforeActual": 1024,
+        "afterActual": 1024,
+        "expected": 1024
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a",
+        "afterActual": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a",
+        "expected": "6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a6869740a"
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "already-aborted-zero-active-workers",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "caller-reason-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "no-iterator-acquisition",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "no-hook-registration",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "no-worker-created",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "invalid-zero-maxworkers",
+    "before": true,
+    "after": true,
+    "checks": [
+      {
+        "identity": "positive-worker-policy",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "positive-worker-message",
+        "before": true,
+        "after": true,
+        "beforeActual": "regex maxWorkers must be a safe integer >= 1",
+        "afterActual": "regex maxWorkers must be a safe integer >= 1",
+        "expected": "regex maxWorkers must be a safe integer >= 1"
+      },
+      {
+        "identity": "no-worker-created",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "name": "shared-executor-sibling-isolation",
+    "before": false,
+    "after": true,
+    "checks": [
+      {
+        "identity": "public-plugin-registered-rg",
+        "before": true,
+        "after": true,
+        "beforeActual": "rg",
+        "afterActual": "rg",
+        "expected": "rg"
+      },
+      {
+        "identity": "cancelled-caller-reference",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 1,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-return-count",
+        "before": false,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 1,
+        "expected": 1
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": false,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "sibling-not-settled",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "sibling-not-returned",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "sibling-not-aborted",
+        "before": true,
+        "after": true,
+        "beforeActual": false,
+        "afterActual": false,
+        "expected": false
+      },
+      {
+        "identity": "sibling-exit-code",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-next-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 2,
+        "afterActual": 2,
+        "expected": 2
+      },
+      {
+        "identity": "source-return-count",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "source-resource-closed",
+        "before": true,
+        "after": true,
+        "beforeActual": true,
+        "afterActual": true,
+        "expected": true
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "stdout-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "6869740a",
+        "afterActual": "6869740a",
+        "expected": "6869740a"
+      },
+      {
+        "identity": "stderr-exact-hex",
+        "before": true,
+        "after": true,
+        "beforeActual": "",
+        "afterActual": "",
+        "expected": ""
+      },
+      {
+        "identity": "zero-live-workers-at-settlement",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      },
+      {
+        "identity": "zero-live-workers-after-cleanup",
+        "before": true,
+        "after": true,
+        "beforeActual": 0,
+        "afterActual": 0,
+        "expected": 0
+      }
+    ]
+  }
+]

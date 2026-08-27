@@ -19,14 +19,19 @@ test("files and repeated stdin share one cursor and preserve VFS", async () => {
   assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "# A\n\nstdin\n\n**B**\n"); assert.equal(acquired, 1);
   assert.equal(Buffer.from(await fs.readFile("/docs/a")).toString(), "<h1>A</h1>");
 });
-test("readFile-only backend receives remaining cap and exact signal", async () => {
+test("readFile-only backend receives remaining cap and the same owned operation signal", async () => {
   const original = new MemoryFileSystem(); const controller = new AbortController();
   const calls: unknown[] = [];
+  let operationSignal: AbortSignal | undefined;
   const fs = readonlyFacade(original, { readFile: async (path, options) => {
-    calls.push([path, options?.maxBytes]); assert.equal(options?.signal, controller.signal); return Buffer.from("<p>x</p>");
+    calls.push([path, options?.maxBytes]);
+    assert.ok(options?.signal instanceof AbortSignal); assert.notEqual(options.signal, controller.signal);
+    operationSignal ??= options.signal; assert.equal(options.signal, operationSignal);
+    assert.equal(options.signal.aborted, false); return Buffer.from("<p>x</p>");
   } }, ["readStream"]);
   const result = await convert("", { limits: { maxInputBytes: 16 } }, { fs, signal: controller.signal, args: ["a", "b"] });
   assert.equal(result.exitCode, 0); assert.equal(result.stdout, "x\n\nx\n"); assert.deepEqual(calls, [["/a", 16], ["/b", 8]]);
+  assert.equal(controller.signal.aborted, false);
 });
 test("missing file produces status1 and leaves previous output explicit", async () => {
   const fs = new MemoryFileSystem(); await fs.writeFile("/a", Buffer.from("<p>A</p>"));

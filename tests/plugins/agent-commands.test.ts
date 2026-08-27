@@ -32,10 +32,10 @@ test("aggregate definitions are exactly the delivered families, each registered 
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
     "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
   ].sort();
-  assert.equal(expected.length, 73);
-  assert.equal(new Set(expected).size, 73);
+  assert.equal(expected.length, 74);
+  assert.equal(new Set(expected).size, 74);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -58,7 +58,7 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 74);
+  assert.equal(target.commands.list().length, 75);
   assert.equal(target.commands.get("custom"), original[0]);
   for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));

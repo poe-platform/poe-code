@@ -1,10 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
-for (const header of ["/usr/bin/env bash -e", "/usr/bin/env -S bash -e", "/usr/bin/env python", "/usr/bin/env", "/usr/bin/env bash\r"]) test(`explicit unsupported env interpreter ${JSON.stringify(header)}`, async () => {
+import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+for (const [header, expected] of [
+  ["/usr/bin/env bash -e", [127, "", "env: bash -e: command not found\n"]],
+  ["/usr/bin/env -S bash -e", [0, "forbidden", ""]],
+  ["/usr/bin/env python", [127, "", "env: python: command not found\n"]],
+  ["/usr/bin/env", null],
+  ["/usr/bin/env bash\r", [127, "", "env: bash\r: command not found\n"]],
+] as const) test(`explicit env interpreter outcome ${JSON.stringify(header)}`, async () => {
   const fs = createMemoryFileSystem(); await fs.writeFile("/script", Buffer.from(`#!${header}\nprintf forbidden`), { mode: 0o755 });
   const shell = new Shell({ fs }).use(agentCommands());
-  try { const result = await shell.exec("/script"); assert.equal(result.exitCode, 126); assert.equal(result.stdout, ""); assert.match(result.stderr, /unsupported interpreter/u); }
+  try {
+    if (expected === null) await assert.rejects(shell.exec("/script"), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
+    else { const result = await shell.exec("/script"); assert.deepEqual([result.exitCode, result.stdout, result.stderr], expected); }
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["script"]);
+    assert.deepEqual(Buffer.from(await fs.readFile("/script")), Buffer.from(`#!${header}\nprintf forbidden`));
+  }
   finally { await shell.dispose(); }
 });
 test("env shebang refuses a registry override rather than silently bypassing it", async () => {

@@ -126,7 +126,19 @@ test("explicit interpreter does not apply file header option twice", async () =>
   const result = await shell.exec("bash -e /script"); assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
 });
 
-for (const header of ["#!/usr/bin/env bash -e", "#!/usr/bin/env -S bash -e", "#!/bin/bash -e -e", "#!/bin/bash -c", "#!/bin/bash '-e'", "#!/unknown -e"]) test(`literal shebang refusal ${header}`, async () => {
+for (const [header, expected] of [
+  ["#!/usr/bin/env bash -e", [127, "", "env: bash -e: command not found\n"]],
+  ["#!/usr/bin/env -S bash -e", [0, "BAD", ""]],
+] as const) test(`env shebang literal optional argument ${header}`, async () => {
+  const { shell, fs } = setup(); await fs.writeFile("/script", Buffer.from(`${header}\nprintf BAD\n`), { mode: 0o755 });
+  try {
+    const result = await shell.exec("/script"); assert.deepEqual([result.exitCode, result.stdout, result.stderr], expected);
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["script"]);
+    assert.deepEqual(Buffer.from(await fs.readFile("/script")), Buffer.from(`${header}\nprintf BAD\n`));
+  } finally { await shell.dispose(); }
+});
+
+for (const header of ["#!/bin/bash -e -e", "#!/bin/bash -c", "#!/bin/bash '-e'", "#!/unknown -e"]) test(`literal shebang refusal ${header}`, async () => {
   const { shell, fs } = setup(); await fs.writeFile("/script", Buffer.from(`${header}\nprintf BAD\n`), { mode: 0o755 });
   const result = await shell.exec("/script"); assert.equal(result.exitCode, 126); assert.equal(result.stdout, ""); assert.match(result.stderr, /unsupported interpreter/u);
 });

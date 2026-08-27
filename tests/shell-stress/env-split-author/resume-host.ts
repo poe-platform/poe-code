@@ -91,9 +91,10 @@ try {
   } else if (scenario === "literal-single-optional-argument") {
     await fs.writeFile("/work/script", Buffer.from("#!/usr/bin/env bash -e\nprintf forbidden > marker\n"), { mode: 0o755 });
     const result = await shell.exec("./script");
-    assert.equal(result.exitCode, 126); assert.equal(result.stdout, "");
-    assert.match(result.stderr, /unsupported interpreter: \/usr\/bin\/env bash -e/u);
+    assert.equal(result.exitCode, 127); assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "env: bash -e: command not found\n");
     assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["script"]);
+    assert.deepEqual(Buffer.from(await fs.readFile("/work/script")), Buffer.from("#!/usr/bin/env bash -e\nprintf forbidden > marker\n"));
   } else if (scenario === "literal-injection-host-boundary") {
     const value = "/bin/sh -c touch marker; $(touch marker) `touch marker`";
     const result = await shell.exec(`env -S ${quote("report ${VALUE}")}`, { env: { VALUE: value } });

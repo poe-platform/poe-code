@@ -32,7 +32,7 @@ const immediate = (): Promise<void> => new Promise(resolve => setImmediate(resol
 
 async function usingShell(action: (shell: Shell) => Promise<void>, settings: AgentCommandsOptions = aggregate) {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(settings));
-  try { await action(shell); } finally { await shell.dispose(); }
+  try { await shell.exec(""); await action(shell); } finally { await shell.dispose(); }
 }
 
 test("public root/subpath declarations and runtime resolve only moved packed dist", () => {
@@ -65,6 +65,7 @@ test("factory and installed registry have the explicit68 names, optional capabil
 test("standalone public family requires no options and does not install the aggregate", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(subPlugin());
   try {
+    await shell.exec("");
     assert.deepEqual(shell.commands.list().map(command => command.name), ["date", "sleep", "printenv"]);
     assert.equal((await shell.exec("date -u -d @0 +%FT%TZ")).stdout, "1970-01-01T00:00:00Z\n");
     assert.equal((await shell.exec("sleep 0")).exitCode, 0);
@@ -135,9 +136,16 @@ for (const name of ["date", "sleep", "printenv"]) test(`${name} collision is ato
   const registry = new CommandRegistry([original, custom]);
   const shell = new Shell({ fs: createMemoryFileSystem(), commands: registry });
   try {
-    assert.throws(() => shell.use(agentCommands({ timeEnv: { replace: true } } as unknown as AgentCommandsOptions)), /already registered/);
+    const forbidden = agentCommands({ timeEnv: { replace: true } } as unknown as AgentCommandsOptions);
+    assert.throws(() => forbidden.setup({ commands: registry, use() { throw new Error("Unexpected middleware"); },
+      registerFileSystem() { throw new Error("Unexpected filesystem"); } }), /already registered/);
+    assert.deepEqual(registry.list(), [original, custom]);
+    const rejectedShell = new Shell({ fs: createMemoryFileSystem(), commands: registry }).use(forbidden);
+    try { await assert.rejects(rejectedShell.exec(""), /already registered/); }
+    finally { await rejectedShell.dispose(); }
     assert.deepEqual(registry.list(), [original, custom]);
     shell.use(agentCommands({ replace: true, timeEnv: { clock: () => 0 } }));
+    await shell.exec("");
     assert.equal(registry.list().length, 69);
     assert.equal(registry.get("custom"), custom);
     assert.notEqual(registry.get(name), original);
@@ -149,9 +157,19 @@ test("family limits fail before output publication and bad options fail registra
   assert.throws(() => createAgentCommands({ timeEnv: { limits: { maxFormatWidth: 0 } } }), RangeError);
   await usingShell(async shell => {
     let written = 0;
-    await assert.rejects(shell.exec("date +%12N", { stdout: { async write(chunk) { written += chunk.length; } } }), { code: "EFBIG" });
+    const result = await shell.exec("date +%12N", { stdout: { async write(chunk) { written += chunk.length; } } });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /time-env output limit exceeded/);
+    assert.equal(result.stdout, "");
     assert.equal(written, 0);
   }, { timeEnv: { limits: { maxOutputBytes: 8 } } });
+  const command = createTimeEnvCommands({ limits: { maxOutputBytes: 8 } }).find(entry => entry.name === "date")!;
+  let written = 0;
+  await assert.rejects(command.execute({ command: "date", args: ["+%12N"], cwd: "/", env: {},
+    fs: createMemoryFileSystem(), signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: { async write(chunk) { written += chunk.length; } }, stderr: { async write() {} },
+  }), { code: "EFBIG" });
+  assert.equal(written, 0);
 });
 
 test("exact decimal sleep sums once and chunks a monotonic injected timer", async () => {

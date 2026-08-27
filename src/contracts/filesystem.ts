@@ -31,6 +31,7 @@ export interface FileSystemCapabilities {
   readonly permissions?: boolean;
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
+  readonly snapshotRmdir?: boolean;
   readonly streamingRead?: boolean;
   readonly streamingWrite?: boolean;
   readonly [capability: string]: boolean | undefined;

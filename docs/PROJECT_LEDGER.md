@@ -1483,6 +1483,35 @@ that any implementation, command, fixture, or test currently exists.
   from this snapshot. Exact six-row replay still follows committed runtime
   integration, not this unrelated five-row result or stub invoker tests.
 
+### August27,2026 committed env integration and exact six-row closure
+
+- Current authoritative inspection found existing Curie contract/core source
+  84fc74259706ee8d7a39680f098aa61d43b0085e and native ordering
+  6b81bb356a0b3498160f17a9bf2fb141393c2547 already committed. Sagan runtime
+  subsequently committed954f2302e4b2f42f90cb5ffd5670d1936f47390c. Curie made
+  no duplicate implementation or shell source edit; verification uses that
+  exact committed archive, excluding other owners' dirty FS/archive changes.
+- Unchanged original six-row replay at954f230 is6/6, zero failures/omissions,
+  using original0294afb harness/environment and immutable corrected native
+  expectations. Realpath-relative, wc words-lines, wc Unicode, env-clean,
+  env-unset and cksum-algorithm all pass. Nested reproduction now produces
+  exactly B=2 plus newline, empty stderr and exit0. Original4/6 replay and
+  inherited-variable leak bytes remain preserved in six-d49d9e5.json.
+- Frozen runtime acceptance10/10 plus separate boundary/order/Sagan author
+  cohort111/111 pass, zero failures/skips/TODO. The historical2/10 is preserved.
+  All-source/selected-test typecheck, production build and actual built-package
+  root env smoke pass. These are121 focused tests, not the full product suite
+  or global all-test typecheck. Complete source/selected-test hashes and raw
+  outputs are in benchmarks/reports/core-fixes-20260827/env-integration-954f230.json;
+  six-row evidence is six-954f230.json with the unchanged recipe/oracle hashes.
+- Exact review handoff is updated for Plato with all source commits and bounded
+  regressions; no new source feature, benchmark breadth or expected-output edit.
+  This closes only the observed six-row gate. Historical full224/18 failures
+  are untouched; no new full comparison total, universal env/kernel support,
+  superiority or72-hour completion claim. Fifty baseline-only names remain
+  unmeasured. The old transient pending-runtime AGENTS sentence is replaced
+  by the durable actual-Shell acceptance rule; its history remains in this ledger.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

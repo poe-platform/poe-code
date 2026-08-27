@@ -1,5 +1,16 @@
 # Curie → Sagan: exact nested env replacement handoff
 
+## Runtime integrated and bounded replay verified
+
+Sagan committed954f2302e4b2f42f90cb5ffd5670d1936f47390c. Curie's frozen replay
+at that revision passes all six unchanged historical rows, including exact
+`B=2\n` for the nested leak reproduction. The separate actual-shell gate is
+10/10, up from historical2/10; boundary/order/Sagan author cohorts111/111 pass.
+Frozen all-source/selected-test typecheck, build and built-package smoke pass.
+See six-954f230.json and env-integration-954f230.json. No dirty source included;
+no additional core/contract or Sagan runtime edits by Curie. Earlier pending
+statements below are historical; independent broad core/env review remains due.
+
 ## Current status after root approval
 
 Root approved the additive semantics below. Contract/core forwarding is now

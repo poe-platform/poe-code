@@ -122,8 +122,8 @@
   arbitrary-provider support.
 - `CommandContext.invoke?: CommandInvoker` invokes literal argv; its optional
   overrides are stdin, stdout, stderr, cwd, env and replaceEnv. The approved
-  replacement rules are in `src/contracts/command.md`; core forwarding is84fc742,
-  with Sagan runtime integration still requiring its own committed acceptance.
+  replacement rules are in `src/contracts/command.md`. Runtime acceptance must
+  use an actual Shell/registry child, not only a stub invocation callback.
   The shell retains filesystem,
   cancellation, middleware, and execution budgets; there is no signal override.
 - `CommandContext.stdinIsDefault?: boolean` records provenance, never byte count:

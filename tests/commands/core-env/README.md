@@ -1,5 +1,19 @@
 # Env replacement and pinned ordering
 
+## Integrated frozen checkpoint
+
+Sagan runtime954f230 integrates the contract/core caller below. At that exact
+committed revision, runtime-acceptance.test.ts passes10/10 (historical2/10 is
+retained), and the separate boundary/order/Sagan author cohort passes111/111,
+zero skips/TODO. Frozen build, all-source/selected-test typecheck and built
+package root nested-env smoke pass. The unchanged six original benchmark rows
+now pass6/6 using the original0294afb harness/environment and expectations.
+Evidence and reproducible snapshot runners:
+`benchmarks/reports/core-fixes-20260827/{six-954f230,env-integration-954f230}.json`.
+This is not a whole-product suite, global all-test typecheck or independent
+full parity review. Pending/red statements below preserve pre-integration
+history; no original report, expected output or failure evidence is overwritten.
+
 `84fc742` adds the approved optional CommandInvokeOptions.replaceEnv and the
 core env caller. Thirty focused boundary/legacy tests and global typecheck pass.
 True requests an exact exported map (missing env means empty); false/omitted

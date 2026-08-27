@@ -3,6 +3,41 @@
 Prepared August27,2026. Curie's author evidence is not independent review.
 No new production feature or broad benchmark expansion is included here.
 
+## Committed integrated checkpoint, August27,2026
+
+Runtime source is now committed as954f2302e4b2f42f90cb5ffd5670d1936f47390c
+(Sagan). It integrates Curie's84fc74259706ee8d7a39680f098aa61d43b0085e contract/
+core caller and6b81bb356a0b3498160f17a9bf2fb141393c2547 ordering. No additional
+production edits were needed or made by Curie for this verification.
+
+`six-954f230.json` replays all six unchanged historical recipes using original
+0294afb harness/environment and native-corrected expectations:6/6 pass, zero
+omitted rows. Both env-clean ordering and env-unset inherited-variable leakage
+now pass alongside realpath-relative, both wc rows and cksum-algorithm. The
+historical six-d49d9e5.json4/6 is preserved, not overwritten.
+
+`env-integration-954f230.json` uses an isolated archive of that exact revision:
+actual-shell acceptance10/10 (previously2/10), boundary/order/Sagan author
+cohorts111/111, zero failures/skips/TODO. All-source/selected-test typecheck,
+production build and built-package root env reproduction pass. No dirty FS or
+archive work is included. This is121 focused tests, not the full product suite
+or a global all-tests typecheck. Source and selected-test hashes are retained.
+
+Reproduce into fresh output files:
+
+```sh
+node benchmarks/reports/core-fixes-20260827/replay-six.mjs \
+  954f230 /tmp/six-integrated-new.json
+node benchmarks/reports/core-fixes-20260827/verify-env-integration.mjs \
+  954f230 /tmp/env-integrated-new.json
+```
+
+Plato's bounded independent core/bytes/sort/env stress review remains required.
+This closes the observed six-row gate at that revision, not all shell/env
+semantics, the full224 result, broad superiority or the72-hour goal. The earlier
+pending/red sections below are retained as historical checkpoints, not current
+blockers at954f230. Fifty baseline-only names remain unmeasured.
+
 ## Approved env follow-up for Plato
 
 Additional production commits84fc742 (additive contract plus env forwarding) and

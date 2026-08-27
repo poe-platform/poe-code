@@ -115,6 +115,17 @@ test("conditional capabilities default false and reject guarded mutations before
   assert.equal(fixture.requests(), 0);
 });
 
+test("effective COPY capability is native-verified or guarded-fallback-verified, never DELETE", async context => {
+  const fixture = await serverFor(context, (_request, response) => { response.end(); });
+  for (const [enableCopy, put, copy, expected] of [[true, true, false, false], [true, false, true, true],
+    [false, true, false, true], [false, false, true, false], [false, false, false, false]] as const) {
+    const client = fixture.transport({ enableCopy, verifiedConditionalOperations: { put, copy, delete: false } });
+    assert.equal(client.capabilities?.conditionalCopy, expected);
+    assert.equal(client.capabilities?.conditionalDelete, false);
+  }
+  assert.equal(fixture.requests(), 0);
+});
+
 test("configuration, headers, keys and upload bounds reject before network", async context => {
   const fixture = await serverFor(context, (_request, response) => { response.end(); });
   for (const endpoint of ["https://user:secret@example.com", "https://example.com/a/..", "https://example.com?query", "https://example.com#hash", "file:///tmp/file"]) {

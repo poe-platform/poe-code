@@ -145,7 +145,8 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
   const enabledCopy = boolean(options.enableCopy, true, "enableCopy");
   const verified = options.verifiedConditionalOperations;
   const conditionalPut = boolean(verified?.put, false, "verifiedConditionalOperations.put");
-  const conditionalCopy = enabledCopy && boolean(verified?.copy, false, "verifiedConditionalOperations.copy");
+  const nativeConditionalCopy = boolean(verified?.copy, false, "verifiedConditionalOperations.copy");
+  const conditionalCopy = enabledCopy ? nativeConditionalCopy : conditionalPut;
   const conditionalDelete = boolean(verified?.delete, false, "verifiedConditionalOperations.delete");
   const clock = options.clock ?? (() => new Date());
   const factory = options.request;

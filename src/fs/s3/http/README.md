@@ -72,8 +72,8 @@ The transport performs no destructive capability discovery at construction.
 
 - `put:true`: actual enforcement of destination `If-Match` and `If-None-Match:*`.
 - `copy:true`: actual enforcement of source `x-amz-copy-source-if-match` **and**
-  destination `If-Match`/`If-None-Match:*`. The coarse existing contract cannot
-  advertise only source-condition support. `enableCopy:false` forces this flag off.
+  destination `If-Match`/`If-None-Match:*` by native provider COPY. The coarse
+  existing contract cannot advertise only native source-condition support.
 - `delete:true`: actual enforcement of `If-Match` before deletion.
 
 Native conditional mutation requests reject `NotImplemented` before network when
@@ -82,7 +82,12 @@ check followed by an unconditional write/delete emulates atomic preconditions.
 Incomplete provider support must be reported, not promoted to a verified profile.
 With verified PUT and native COPY disabled, ordinary bounded copies and the
 existing metadata fallback are available; guarded non-atomic rename additionally
-requires verified DELETE. Native-COPY capability remains false for fallback mode.
+requires verified DELETE. The existing `capabilities.conditionalCopy` describes
+the **effective `copyObject` implementation**: with native COPY enabled it requires
+verified native COPY; with native COPY disabled it is true only for the implemented
+guarded bounded fallback with verified PUT. Keep `verifiedConditionalOperations.copy`
+false for the measured MinIO profile: its native 13/17 guard observations remain
+unchanged. Effective fallback support is not promotion of native provider support.
 The transport does not claim ABA protection, transactionality, global atomicity,
 ETag incarnation identity, or snapshot isolation across multiple requests.
 
@@ -102,9 +107,13 @@ destination race or excessive size fails without an unconditional retry.
 This preserves guarded publication but is **not** an atomic server-side COPY:
 the source can change after its GET snapshot, and a failed response can follow a
 provider-committed PUT. No source lease is claimed. A successful fallback returns
-the PUT-confirmed ETag; it does not fabricate server LastModified. Existing
-`copyFile({exclusive:true})` may still reject because its frozen adapter requires
-the native conditional-COPY capability. The fallback does not promote that flag.
+the PUT-confirmed ETag; it does not fabricate server LastModified. Effective
+conditional-COPY support permits the existing adapter's exclusive-copy gate to
+reach the guarded fallback, including mounted missing-target copies. The supported
+source predicate is one ETag (or `*`), evaluated at GET snapshot acquisition, not
+again at destination publication. General HTTP ETag-list matching is not claimed.
+Conditional DELETE and `FileSystem.capabilities.atomicRename` remain false for
+the measured MinIO profile. No shared contract or legacy adapter change is needed.
 
 ## Protocol and lifetime behavior
 

@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import type { TestContext } from "node:test";
 import test from "node:test";
 import { S3FileSystem } from "../../../../../src/fs/s3/filesystem.js";
+import { MemoryFileSystem } from "../../../../../src/fs/memory/index.js";
+import { MountFileSystem } from "../../../../../src/fs/mount/index.js";
 import { Shell } from "../../../../../src/shell/index.js";
 import { standardCommands } from "../../../../../src/commands/index.js";
 import { date, key, serverFor } from "./helpers.js";
@@ -57,7 +59,7 @@ for (const target of ["target", "new"]) test(`disabled native COPY uses guarded 
   assert.deepEqual(fixture.trace.map(entry => entry.method), ["HEAD", "GET", "PUT"]);
   assert.equal(fixture.trace[2]!.condition, target === "target" ? etag(previous) : "*");
   assert.deepEqual(fixture.trace[2]!.metadata, { origin: "source-metadata" });
-  assert.equal(fixture.client.capabilities?.conditionalCopy, false);
+  assert.equal(fixture.client.capabilities?.conditionalCopy, true);
   assert.equal(fixture.client.capabilities?.conditionalDelete, false);
 });
 
@@ -128,6 +130,23 @@ test("actual Shell same-view cp existing and missing targets works with native C
   const before = fixture.trace.length;
   await assert.rejects(filesystem.rename("/source", "/target"), { code: "ENOTSUP" });
   assert.equal(fixture.trace.length, before);
-  await assert.rejects(filesystem.copyFile("/source", "/other", { exclusive: true }), { code: "ENOTSUP" });
-  assert.equal(fixture.trace.length, before);
+  await filesystem.copyFile("/source", "/other", { exclusive: true });
+  assert.deepEqual([...fixture.objects.get("other")!], [...payload]);
+  const writes = fixture.trace.filter(entry => entry.method === "PUT").length;
+  await assert.rejects(filesystem.copyFile("/source", "/other", { exclusive: true }), { code: "EEXIST" });
+  assert.equal(fixture.trace.filter(entry => entry.method === "PUT").length, writes);
+});
+
+test("mounted same-view missing-target cp reaches guarded exclusive HTTP fallback", async context => {
+  const fixture = await provider(context);
+  const filesystem = new S3FileSystem({ transport: fixture.client, bucket: key.Bucket, allowNonAtomicRename: true });
+  const mounted = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/remote": filesystem } });
+  const shell = new Shell({ fs: mounted }).use(standardCommands());
+  const result = await shell.exec("cp /remote/source /remote/mounted-new");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual([...fixture.objects.get("mounted-new")!], [...payload]);
+  assert.deepEqual(fixture.objects.get("source"), payload);
+  assert.equal(fixture.trace.find(entry => entry.method === "PUT" && entry.path === "mounted-new")?.condition, "*");
+  assert.equal(fixture.trace.some(entry => entry.method === "DELETE"), false);
+  assert.equal(filesystem.capabilities.atomicRename, false);
 });

@@ -4,11 +4,63 @@ import { randomUUID } from "node:crypto";
 import type { FileStat, FileSystem } from "virtual-bash";
 
 const xml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const timestampNamespace = "urn:virtual-bash:metadata";
+const stamp = (stat: FileStat) => `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+
+function xmlText(value: string): string {
+  return value.replace(/&([^;]*);|&/gu, (_match, entity: string | undefined) => {
+    const predefined: Record<string, string> = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">" };
+    if (entity && Object.hasOwn(predefined, entity)) return predefined[entity]!;
+    if (!entity || !/^#(?:[0-9]+|x[0-9a-fA-F]+)$/u.test(entity)) throw new Error("invalid XML entity");
+    const point = entity.startsWith("#x") ? Number.parseInt(entity.slice(2), 16) : Number(entity.slice(1));
+    if (![9, 10, 13].includes(point) && !(point >= 32 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) && point !== 0xfffe && point !== 0xffff)) throw new Error("invalid XML character");
+    return String.fromCodePoint(point);
+  });
+}
+
+function timestampUpdate(input: string): { text: string; value: unknown } {
+  let remaining = input.trim().replace(/^<\?xml\s+[^?]*\?>\s*/u, "");
+  const namespaces = new Map<string, string>();
+  const names: string[] = [];
+  for (const [namespace, localName] of [["DAV:", "propertyupdate"], ["DAV:", "set"], ["DAV:", "prop"], [timestampNamespace, "timestamps"]]) {
+    const tag = /^<([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?)(?=\s|>)([^<>]*?)>/u.exec(remaining);
+    if (!tag) throw new Error("unsupported property update shape");
+    let attributes = tag[2]!;
+    const declared = new Set<string>();
+    while (attributes.trim()) {
+      const attribute = /^\s+(xmlns(?::[A-Za-z_][\w.-]*)?)\s*=\s*(?:"([^"]*)"|'([^']*)')/u.exec(attributes);
+      if (!attribute || declared.has(attribute[1]!)) throw new Error("invalid namespace declaration");
+      declared.add(attribute[1]!);
+      const prefix = attribute[1] === "xmlns" ? "" : attribute[1]!.slice(6);
+      const uri = xmlText(attribute[2] ?? attribute[3]!);
+      if (prefix === "xmlns" || prefix === "xml" || prefix && !uri) throw new Error("unsupported namespace binding");
+      namespaces.set(prefix, uri);
+      attributes = attributes.slice(attribute[0].length);
+    }
+    const parts = tag[1]!.split(":");
+    if (parts.at(-1) !== localName || namespaces.get(parts.length === 2 ? parts[0]! : "") !== namespace) throw new Error("wrong property namespace or name");
+    names.push(tag[1]!);
+    remaining = remaining.slice(tag[0].length);
+    if (localName !== "timestamps") remaining = remaining.trimStart();
+  }
+  const closing = remaining.indexOf("<");
+  if (closing < 0) throw new Error("missing closing property tag");
+  const text = xmlText(remaining.slice(0, closing));
+  remaining = remaining.slice(closing);
+  for (const name of names.reverse()) {
+    const end = /^<\/([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?)\s*>/u.exec(remaining);
+    if (!end || end[1] !== name) throw new Error("mismatched or multiple property updates");
+    remaining = remaining.slice(end[0].length).trimStart();
+  }
+  if (remaining) throw new Error("extra property update content");
+  return { text, value: JSON.parse(text) };
+}
 
 export async function withBackingDav(backing: FileSystem, operation: (baseUrl: string, requests: string[]) => Promise<void>): Promise<void> {
   const requests: string[] = [];
   const resources = new Map<object | symbol | undefined, Map<string, string>>();
   const versions = new Map<string, { stamp: string; version: number }>();
+  const timestamps = new Map<string, string>();
   let nextVersion = 0;
   const identifier = (stat: FileStat) => {
     let scope = resources.get(stat.identityScope);
@@ -19,9 +71,13 @@ export async function withBackingDav(backing: FileSystem, operation: (baseUrl: s
     return value;
   };
   const etag = (path: string, stat: FileStat) => {
-    const stamp = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    const currentStamp = stamp(stat);
     let version = versions.get(path);
-    if (!version || version.stamp !== stamp) { version = { stamp, version: nextVersion++ }; versions.set(path, version); }
+    if (!version || version.stamp !== currentStamp) {
+      version = { stamp: currentStamp, version: nextVersion++ };
+      versions.set(path, version);
+      timestamps.delete(path);
+    }
     return `"fixture-${version.version}"`;
   };
   const server = createServer(async (request, response) => {
@@ -30,7 +86,8 @@ export async function withBackingDav(backing: FileSystem, operation: (baseUrl: s
     try {
       const url = new URL(request.url ?? "/", "http://127.0.0.1");
       if (!url.pathname.startsWith("/dav/")) { response.writeHead(404); response.end(); return; }
-      const path = decodeURIComponent(url.pathname.slice(4));
+      const requestedPath = decodeURIComponent(url.pathname.slice(4));
+      const path = requestedPath.replace(/\/+$/u, "") || "/";
       const chunks: Buffer[] = [];
       let size = 0;
       for await (const chunk of request) {
@@ -40,7 +97,7 @@ export async function withBackingDav(backing: FileSystem, operation: (baseUrl: s
       }
       const body = Buffer.concat(chunks);
       let stat: FileStat | undefined;
-      try { stat = await backing.stat(path); }
+      try { stat = await backing.stat(requestedPath); }
       catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) throw error; }
       const validator = stat && etag(path, stat);
       if (request.headers["if-match"] && request.headers["if-match"] !== validator) { response.writeHead(412); response.end(); return; }
@@ -59,6 +116,7 @@ export async function withBackingDav(backing: FileSystem, operation: (baseUrl: s
             + `<d:resourcetype>${entry.type === "directory" ? "<d:collection/>" : ""}</d:resourcetype>`
             + `<d:getcontentlength>${entry.size}</d:getcontentlength><d:getetag>${xml(etag(entryPath, entry))}</d:getetag>`
             + `<d:getlastmodified>${new Date(entry.mtimeMs).toUTCString()}</d:getlastmodified>`
+            + (timestamps.has(entryPath) ? `<v:timestamps xmlns:v="${timestampNamespace}">${xml(timestamps.get(entryPath)!)}</v:timestamps>` : "")
             + (body.toString().includes("resource-id") ? `<d:resource-id><d:href>${identifier(entry)}</d:href></d:resource-id>` : "")
             + `</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`);
         }
@@ -71,23 +129,38 @@ export async function withBackingDav(backing: FileSystem, operation: (baseUrl: s
         response.writeHead(200, { ETag: validator!, "Content-Length": content.byteLength });
         response.end(content);
       } else if (method === "PUT") {
-        await backing.writeFile(path, new Uint8Array(body));
+        await backing.writeFile(requestedPath, new Uint8Array(body));
         versions.delete(path);
+        timestamps.delete(path);
         response.writeHead(stat ? 204 : 201); response.end();
       } else if (method === "DELETE") {
-        await backing.rm(path);
+        await backing.rm(requestedPath);
         versions.delete(path);
+        timestamps.delete(path);
         response.writeHead(204); response.end();
       } else if (method === "PROPPATCH") {
-        const match = /<v:timestamps>([^]*?)<\/v:timestamps>/.exec(body.toString());
-        if (!stat || !match) { response.writeHead(stat ? 400 : 404); response.end(); return; }
-        const value: unknown = JSON.parse(match[1]!.replaceAll("&quot;", '"').replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&"));
-        if (!value || typeof value !== "object" || !("atimeMs" in value) || typeof value.atimeMs !== "number"
-          || !("mtimeMs" in value) || typeof value.mtimeMs !== "number") {
+        if (!stat) { response.writeHead(404); response.end(); return; }
+        let update: ReturnType<typeof timestampUpdate>;
+        try { update = timestampUpdate(body.toString()); }
+        catch { response.writeHead(400); response.end(); return; }
+        const value = update.value;
+        if (!value || typeof value !== "object" || !("version" in value) || value.version !== 1
+          || !("type" in value) || value.type !== stat.type || !("etag" in value) || typeof value.etag !== "string"
+          || !("atimeMs" in value) || typeof value.atimeMs !== "number" || !Number.isFinite(value.atimeMs) || Math.abs(value.atimeMs) > 8.64e15
+          || !("mtimeMs" in value) || typeof value.mtimeMs !== "number" || !Number.isFinite(value.mtimeMs) || Math.abs(value.mtimeMs) > 8.64e15) {
           response.writeHead(400); response.end(); return;
         }
+        if (value.etag !== validator) { response.writeHead(412); response.end(); return; }
         if (!backing.utimes) { response.writeHead(501); response.end(); return; }
+        const version = versions.get(path)!;
         await backing.utimes(path, value.atimeMs, value.mtimeMs);
+        const updated = await backing.stat(path);
+        if (updated.type !== stat.type || updated.dev !== stat.dev || updated.ino !== stat.ino || updated.size !== stat.size
+          || updated.atimeMs !== value.atimeMs || updated.mtimeMs !== value.mtimeMs) {
+          response.writeHead(409); response.end(); return;
+        }
+        versions.set(path, { stamp: stamp(updated), version: version.version });
+        timestamps.set(path, update.text);
         const content = Buffer.from(`<d:multistatus xmlns:d="DAV:"><d:response><d:href>${xml(`/dav${path}`)}</d:href>`
           + `<d:propstat><d:prop><v:timestamps xmlns:v="urn:virtual-bash:metadata"/></d:prop>`
           + `<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>`);

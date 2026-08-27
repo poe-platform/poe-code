@@ -55,3 +55,17 @@ timestamp property for move preservation. It does not implement LOCK, COPY,
 MOVE, arbitrary SDK authentication, durable resource-ID persistence or concurrent
 ABA protection. The example's explicit `overwritePolicy: "etag"` does not add
 those guarantees. No dependency or SDK installation is required.
+
+The helper persists the single `{urn:virtual-bash:metadata}timestamps` property
+and returns it through PROPFIND. A verified timestamp-only backing update keeps
+the representation ETag stable; PUT, DELETE/recreation and an observed backing
+stamp change invalidate the property. Namespace, value and conditional failures
+cannot publish successful metadata. This is a deliberate fixture profile, not a
+claim that Apache or WsgiDAV supplies matching timestamp semantics. The helper
+accepts only one timestamp `set`, not arbitrary WebDAV property transactions.
+Its dev/inode/size/mtime stamp is not protection against concurrent ABA changes.
+
+The original missing-readback failure, corrected-helper regressions, strict
+extracted-package consumer replay and exact runtime hashes are preserved in
+`../release-timestamp/README.md`. That runner accepts an explicit commit and does
+not use the repository package as a self-reference.

@@ -14,6 +14,8 @@ export * from "./commands/metadata/index.js";
 export * from "./commands/archive/index.js";
 export * from "./commands/table-text/index.js";
 export * from "./commands/stream-inspection/index.js";
+export * from "./commands/stream-format/index.js";
+export * from "./commands/split/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

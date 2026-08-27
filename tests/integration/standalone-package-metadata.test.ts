@@ -164,6 +164,9 @@ describe("standalone package publish metadata", () => {
       "./config/testing",
       "./credentials",
       "./memory",
+      "./safejs",
+      "./safejs/cli",
+      "./safejs/core",
       "./skills"
     ]);
   });
@@ -182,6 +185,7 @@ describe("standalone package publish metadata", () => {
       "poe",
       "poe-agent",
       "poe-code",
+      "poe-safejs",
       "poe-superintendent-mcp"
     ]);
   });
@@ -209,6 +213,17 @@ describe("standalone package publish metadata", () => {
     expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
     expect(rootPackage.files).toContain("packages/safejs/dist");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
+    expect(rootPackage.bin?.["poe-safejs"]).toBe("packages/safejs/dist/cli.js");
+    for (const [subpath, entrypoint] of [
+      ["./safejs", "index"],
+      ["./safejs/core", "core"],
+      ["./safejs/cli", "cli"]
+    ]) {
+      expect(rootPackage.exports?.[subpath]).toEqual({
+        types: `./packages/safejs/dist/${entrypoint}.d.ts`,
+        import: `./packages/safejs/dist/${entrypoint}.js`
+      });
+    }
     expect(safejsPackage).toMatchObject({
       name: "@poe-code/safejs",
       bin: {

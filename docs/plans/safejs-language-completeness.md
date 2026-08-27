@@ -24,7 +24,7 @@ language completeness from passing existing tests alone.
       rejection handling, budgets, and snapshot behavior.
 - [x] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
-- [ ] MCP: provide usable transport integration without requiring custom glue.
+- [x] MCP: provide usable transport integration without requiring custom glue.
 - [ ] Environment: make capability configuration explicit and missing/denied
       variables distinguishable without granting ambient host access.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
@@ -1253,8 +1253,8 @@ paid services. Repeat clean-consumer and stale-artifact audits before release.
 
 Release run 33046923985 succeeded for `1ba5809a22f145996f2aebb24b7848529eb1e258`.
 The registry and GitHub tag both identify this commit as 9.0.0, published on
-August 27, 2026 (GitHub timestamp 06:54:14 UTC). Do not mark this item complete
-yet: final lifecycle validation found that the root harness CLI did not forward
+August 27, 2026 (GitHub timestamp 06:54:14 UTC). This initial release did not clear
+the gate: final lifecycle validation found that the root harness CLI did not forward
 SIGINT to `runHarnessPair`, although the standalone CLI did.
 
 - Four failing unit regressions exposed the missing signal and listener lifetime.
@@ -1269,8 +1269,8 @@ SIGINT to `runHarnessPair`, although the standalone CLI did.
   pending HTTP requests, and stalled response bodies. Each case checks status
   130, bounded shutdown, no remaining child, and HTTP session termination.
 - The focused command, loader, and managed-MCP suites pass 128 tests. The root
-  bundle rebuild and ESLint/type/workflow checks pass. Repeat installed-package
-  validation after publishing this follow-up before checking off MCP.
+  bundle rebuild and ESLint/type/workflow checks pass. Published-package
+  verification for the follow-up is recorded below.
 - The isolated candidate at `/tmp/safejs-mcp-sigint-consumer.b8ZTFh/project`
   independently passes all 24 interruption cases and the 153-file/six-directory
   cleanup audit, with 19 internal symlinks and no repository links. The root
@@ -1281,6 +1281,34 @@ SIGINT to `runHarnessPair`, although the standalone CLI did.
   matrix with 144 restores and 20 cancellations, and the cleanup audit in
   `/tmp/safejs-mcp-published9.EKRb6d`. This does not clear the known root-CLI
   interruption defect; the follow-up release must pass that separate matrix.
+
+### Verified MCP release
+
+- Follow-up commit `879230e12ae47a093b943846fe613b5594933f43` passed the complete
+  pre-push suite: 21,013 tests passed, 41 skipped. Release run 33047912045 completed
+  successfully, including its build, signature audit, package lint, full tests,
+  installation smoke, and publication. npm 9.0.1 and GitHub tag v9.0.1 both point
+  to that exact commit. npm published at 07:10:32.685 UTC on August 27, 2026;
+  GitHub's release timestamp is 07:10:34 UTC.
+- Installed exactly `poe-code@9.0.1` in the fresh consumer
+  `/tmp/safejs-mcp-published-final.xVWk8i`, without repository dependency links.
+  All three public entrypoints, shared runtime/error identity, strict TypeScript
+  declarations, and the installed standalone help command pass.
+- The published package passes 72 MCP cases, 144 completed restores, and 20
+  cancellations, closing all 82 children and all 82 HTTP sessions. It also passes
+  12 real SIGKILL/restores without repeated effects, 24 fatal payload-budget
+  cases, and 12 protocol/process-exit/timeout cases, with no live children.
+- The published root and standalone CLIs pass all 24 interruption cases on each
+  of Node 18.18.2, 22.22.2, and 24.14.0. The normal and real-TTY interruption
+  screenshots were inspected. Agent-result regression passes 480 cases, 960
+  restores, 480 cancellations, and 12 observer-error cases. Standalone entrypoint
+  regression passes 120 cases across 402 processes and ten invocation variants.
+- Cleanup again verifies all 153 removed outputs and six obsolete directories
+  absent locally and from the published package. All five binaries exist; all
+  19 consumer symlinks stay inside the consumer. Unrelated user assets remain
+  untouched. MCP is checked off; the broader language checklist remains active.
+  These results do not establish universal conformance or exactly-once execution
+  across arbitrary crashes.
 
 ### Manual release QA
 

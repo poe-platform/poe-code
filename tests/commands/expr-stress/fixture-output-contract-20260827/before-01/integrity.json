@@ -1,0 +1,28 @@
+{
+  "sourceTestsIncludingNewEntriesUnchanged": true,
+  "compiledArtifactsIncludingNewEntriesUnchanged": true,
+  "dependenciesIncludingNewEntriesUnchanged": true,
+  "nativeExecutableUnchanged": true,
+  "preservedEvidenceUnchanged": true,
+  "nodeExecutableUnchanged": true,
+  "sourceInventorySha256": "3dea1454d6654809d42ea8c5940e78cbb009cb04eda8a7270ed72b11da27c96f",
+  "boundInventorySha256": "bee99e65ba6d8a6a8d8f4cfd74923b5b4f8d646141c5d94b3ad5e4d85584df8c",
+  "distInventorySha256": "ad730c6b580f55b0a25cbfe655f72369aaf66ca64c5112060f60a96efdccb52b",
+  "dependenciesInventorySha256": "cc1c4c42568b7e19ff44c4875d6c30f4383dad41c5383fd5e6784f0355537c31",
+  "addedBindings": [
+    {
+      "path": "node_modules",
+      "kind": "symlink",
+      "target": "/Users/kjopek/Workspace/safe-bash/node_modules"
+    },
+    {
+      "path": "tests/commands/metadata-stress",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/metadata-stress/.oracle",
+      "kind": "symlink",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle"
+    }
+  ]
+}

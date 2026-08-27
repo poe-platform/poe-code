@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "candidateInspected": false,
+  "baselineApi": "27a7793526830768484885afba5832bf8bb248b5:src/commands/expr/internal.ts",
+  "correction": "The initial input sketches used flat options and maxEvaluationSteps. Inspected immutable baseline API instead requires options.limits and maxSteps; all limits must be positive. Preserve initial sketches, do not treat unknown option names as tested limits.",
+  "cases": [
+    {"id":"literal-command-binding","argv":["1","x"],"name":"/not/a/staging/path/renamed-expr","expected":"literal expr prefix","workers":0},
+    {"id":"syntax-output-one","argv":["1","x"],"limits":{"maxOutputBytes":1},"expectedStatus":2,"expectedStderr":"expr: syntax error: unexpected argument 'x'\n","workers":0},
+    {"id":"invalid-output-zero","argv":["1","x"],"limits":{"maxOutputBytes":0},"expectedError":"Invalid expr limit: maxOutputBytes","workers":0},
+    {"id":"invalid-work-zero","argv":["1","x"],"limits":{"maxSteps":0},"expectedError":"Invalid expr limit: maxSteps","workers":0},
+    {"id":"syntax-work-one","argv":["1","x"],"limits":{"maxSteps":1},"expectedStatus":3,"expectedStderr":"expr: evaluation work limit exceeded\n","workers":0},
+    {"id":"help-is-product-owned","argv":["--help"],"expectedStatus":0,"stdoutPrefix":"Usage: expr","expectedStderr":"","workers":0},
+    {"id":"help-output-one","argv":["--help"],"limits":{"maxOutputBytes":1},"expectedStatus":3,"expectedStderr":"expr: output bytes limit exceeded\n","workers":0},
+    {"id":"preabort-error","argv":["1","x"],"reason":"Error","preabort":true,"expected":"exact reason identity, no stdout/stderr or worker"},
+    {"id":"preabort-zero","argv":["1","x"],"reason":0,"preabort":true,"expected":"exact reason identity, no stdout/stderr or worker"},
+    {"id":"preabort-false","argv":["1","x"],"reason":false,"preabort":true,"expected":"exact reason identity, no stdout/stderr or worker"},
+    {"id":"preabort-empty","argv":["1","x"],"reason":"","preabort":true,"expected":"exact reason identity, no stdout/stderr or worker"},
+    {"id":"preabort-null","argv":["1","x"],"reason":null,"preabort":true,"expected":"exact reason identity, no stdout/stderr or worker"}
+  ]
+}

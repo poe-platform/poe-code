@@ -1,0 +1,258 @@
+{
+  "classification": "Separate exploratory observations; no changed frozen assertions or expanded acceptance denominator.",
+  "observations": [
+    {
+      "input": {
+        "id": "success-one",
+        "argv": [
+          "1"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        }
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    {
+      "input": {
+        "id": "success-two",
+        "argv": [
+          "1"
+        ],
+        "limits": {
+          "maxOutputBytes": 2
+        }
+      },
+      "actual": {
+        "status": 0,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": "",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "1\n",
+      "stderr": ""
+    },
+    {
+      "input": {
+        "id": "false-empty-one",
+        "argv": [
+          ""
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        }
+      },
+      "actual": {
+        "status": 1,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": "",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "input": {
+        "id": "syntax-default",
+        "argv": [
+          "1",
+          "x"
+        ]
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICd4Jwo=",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    {
+      "input": {
+        "id": "syntax-boundary-below",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 41
+        }
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    {
+      "input": {
+        "id": "syntax-boundary-exact",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 42
+        }
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    {
+      "input": {
+        "id": "fixed-arithmetic-error-one",
+        "argv": [
+          "1",
+          "/",
+          "0"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        }
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: division by zero\n"
+    },
+    {
+      "input": {
+        "id": "missing-operand-one",
+        "argv": [],
+        "limits": {
+          "maxOutputBytes": 1
+        }
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    {
+      "input": {
+        "id": "quote-expansion-string-eight",
+        "argv": [
+          "1",
+          "éé"
+        ],
+        "limits": {
+          "maxStringBytes": 8
+        }
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3RyaW5nIGFsbG9jYXRpb24gbGltaXQgZXhjZWVkZWQK",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: string allocation limit exceeded\n"
+    }
+  ]
+}

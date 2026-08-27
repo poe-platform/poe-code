@@ -1,0 +1,536 @@
+{
+  "profile": "GNU9.7 Darwin/C, not GNU/Linux",
+  "identity": {
+    "configuredPath": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "argv0": "expr",
+    "versionProbe": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+      "stderrBase64": ""
+    },
+    "versionSupported": true,
+    "linkedLibraries": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n"
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "rows": [
+    {
+      "id": "trailing-apostrophe",
+      "argv": [
+        "1",
+        "a'b"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "612762"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdhXCdiJwo="
+      }
+    },
+    {
+      "id": "trailing-doublequote",
+      "argv": [
+        "1",
+        "a\"b"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "612262"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdhImInCg=="
+      }
+    },
+    {
+      "id": "trailing-both-quotes",
+      "argv": [
+        "1",
+        "a'\"b"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "61272262"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdhXCciYicK"
+      }
+    },
+    {
+      "id": "trailing-controls",
+      "argv": [
+        "1",
+        "a\n\t\r\u0001b"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "610a090d017f62"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdhXG5cdFxyXDAwMVwxNzdiJwo="
+      }
+    },
+    {
+      "id": "trailing-backslash",
+      "argv": [
+        "1",
+        "a\\b"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "615c62"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdhXFxiJwo="
+      }
+    },
+    {
+      "id": "trailing-unicode-Cbytes",
+      "argv": [
+        "1",
+        "é😀"
+      ],
+      "argvUtf8Hex": [
+        "31",
+        "c3a9f09f9880"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICdcMzAzXDI1MVwzNjBcMjM3XDIzMFwyMDAnCg=="
+      }
+    },
+    {
+      "id": "trailing-empty",
+      "argv": [
+        "1",
+        ""
+      ],
+      "argvUtf8Hex": [
+        "31",
+        ""
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICcnCg=="
+      }
+    },
+    {
+      "id": "close-eof-apostrophe",
+      "argv": [
+        "(",
+        "a'b"
+      ],
+      "argvUtf8Hex": [
+        "28",
+        "612762"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGFmdGVyICdhXCdiJwo="
+      }
+    },
+    {
+      "id": "close-eof-controls",
+      "argv": [
+        "(",
+        "\n\t"
+      ],
+      "argvUtf8Hex": [
+        "28",
+        "0a09"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGFmdGVyICdcblx0Jwo="
+      }
+    },
+    {
+      "id": "close-wrong-unicode",
+      "argv": [
+        "(",
+        "1",
+        "é😀"
+      ],
+      "argvUtf8Hex": [
+        "28",
+        "31",
+        "c3a9f09f9880"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGluc3RlYWQgb2YgJ1wzMDNcMjUxXDM2MFwyMzdcMjMwXDIwMCcK"
+      }
+    },
+    {
+      "id": "close-wrong-empty",
+      "argv": [
+        "(",
+        "1",
+        ""
+      ],
+      "argvUtf8Hex": [
+        "28",
+        "31",
+        ""
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGluc3RlYWQgb2YgJycK"
+      }
+    },
+    {
+      "id": "empty-after-dashdash",
+      "argv": [
+        "--"
+      ],
+      "argvUtf8Hex": [
+        "2d2d"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogbWlzc2luZyBvcGVyYW5kClRyeSAnZXhwciAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo="
+      }
+    },
+    {
+      "id": "empty-is-operand",
+      "argv": [
+        ""
+      ],
+      "argvUtf8Hex": [
+        ""
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "dashdash-empty-is-operand",
+      "argv": [
+        "--",
+        ""
+      ],
+      "argvUtf8Hex": [
+        "2d2d",
+        ""
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "double-dashdash-literal",
+      "argv": [
+        "--",
+        "--"
+      ],
+      "argvUtf8Hex": [
+        "2d2d",
+        "2d2d"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "LS0K",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "dashdash-help-literal",
+      "argv": [
+        "--",
+        "--help"
+      ],
+      "argvUtf8Hex": [
+        "2d2d",
+        "2d2d68656c70"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "LS1oZWxwCg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "plus-help-literal",
+      "argv": [
+        "+",
+        "--help"
+      ],
+      "argvUtf8Hex": [
+        "2b",
+        "2d2d68656c70"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "LS1oZWxwCg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "help-extra-trailing",
+      "argv": [
+        "--help",
+        "tail"
+      ],
+      "argvUtf8Hex": [
+        "2d2d68656c70",
+        "7461696c"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICd0YWlsJwo="
+      }
+    },
+    {
+      "id": "skip-bad-regex-no-job",
+      "argv": [
+        "kept",
+        "|",
+        "x",
+        ":",
+        "["
+      ],
+      "argvUtf8Hex": [
+        "6b657074",
+        "7c",
+        "78",
+        "3a",
+        "5b"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "a2VwdAo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "skip-bad-regex-missing-close",
+      "argv": [
+        "kept",
+        "|",
+        "(",
+        "x",
+        ":",
+        "["
+      ],
+      "argvUtf8Hex": [
+        "6b657074",
+        "7c",
+        "28",
+        "78",
+        "3a",
+        "5b"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGFmdGVyICdbJwo="
+      }
+    },
+    {
+      "id": "skip-bad-regex-wrong-close",
+      "argv": [
+        "0",
+        "&",
+        "(",
+        "x",
+        ":",
+        "[",
+        "wrong"
+      ],
+      "argvUtf8Hex": [
+        "30",
+        "26",
+        "28",
+        "78",
+        "3a",
+        "5b",
+        "77726f6e67"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGluc3RlYWQgb2YgJ3dyb25nJwo="
+      }
+    },
+    {
+      "id": "skip-missing-keyword-quote",
+      "argv": [
+        "kept",
+        "|",
+        "substr",
+        "a'b",
+        "1"
+      ],
+      "argvUtf8Hex": [
+        "6b657074",
+        "7c",
+        "737562737472",
+        "612762",
+        "31"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICcxJwo="
+      }
+    },
+    {
+      "id": "quoted-close-is-literal",
+      "argv": [
+        "(",
+        "+",
+        ")",
+        ")"
+      ],
+      "argvUtf8Hex": [
+        "28",
+        "2b",
+        "29",
+        "29"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "KQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "quoted-unicode-no-shell",
+      "argv": [
+        "+",
+        "é'\n😀"
+      ],
+      "argvUtf8Hex": [
+        "2b",
+        "c3a9270af09f9880"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "w6knCvCfmIAK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "missing-prefix-operand",
+      "argv": [
+        "+"
+      ],
+      "argvUtf8Hex": [
+        "2b"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICcrJwo="
+      }
+    },
+    {
+      "id": "ast-first-precedence-counterexample",
+      "argv": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "classification": "Record divergence separately; not a requested source fix or closure condition.",
+      "argvUtf8Hex": [
+        "31",
+        "2f",
+        "30",
+        "78"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo="
+      }
+    }
+  ],
+  "cleanup": {
+    "fixture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-diagnostics-native-qXI4dY",
+    "removed": true
+  }
+}

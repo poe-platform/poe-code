@@ -1,0 +1,17 @@
+diff --git a/tests/commands/expr/grammar.test.ts b/tests/commands/expr/grammar.test.ts
+index e7614221..9b521543 100644
+--- a/tests/commands/expr/grammar.test.ts
++++ b/tests/commands/expr/grammar.test.ts
+@@ -50,7 +50,11 @@ for (const args of [[], ["--"], ["+"], ["length"], ["("], [")"], ["(", "1"], ["1
+   test(`expr invalid ${JSON.stringify(args)}`, async () => {
+     const actual = await run(args);
+     assert.equal(actual.exitCode, 2); assert.equal(actual.stdout, "");
+-    assert.match(actual.stderr, /^expr: (syntax error|division by zero|non-integer argument)/u);
++    if (args.length === 0 || (args.length === 1 && args[0] === "--")) {
++      assert.equal(actual.stderr, "expr: missing operand\nTry 'expr --help' for more information.\n");
++    } else {
++      assert.match(actual.stderr, /^expr: (syntax error|division by zero|non-integer argument)/u);
++    }
+   });
+ }
+ 

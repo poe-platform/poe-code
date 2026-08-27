@@ -1,0 +1,171 @@
+{
+  "author": "independent reviewer72352, not expectation editor93986",
+  "checkedAt": "2026-08-27T00:01:09.605Z",
+  "editorCommit": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "editorHashes": {
+    "tests/commands/diff-patch-stress/gnu-revised-full/REPORT.md": "e1dac39fdd5c3ca09ac729c5bced7c54bf390dc3f9bce45cffb6f32e1acfed03",
+    "tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+    "tests/commands/diff-patch-stress/gnu-revised-full/evidence-archive.json": "7027b9241c5df980b176aac9482bca5d871cd0904906e0dfafdbf6877f727d4c",
+    "tests/commands/diff-patch-stress/gnu-revised-full/finalize.mjs": "2d4c52c4bace7f8022abcf8c0d7081b75453c166e423b567b3d8801973db12f6",
+    "tests/commands/diff-patch-stress/gnu-revised-full/manifest.json": "2f8a5e664b759373037585dc501e6f7e95fc97e54b48193d06b69a8a7139464c",
+    "tests/commands/diff-patch-stress/gnu-revised-full/proof.json": "c23323e412724c4c415290998eb1d0e577b76a81079d8968103da8420e47a0e4",
+    "tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs": "0eadc2d29ecd3b4163828f6559b6f4752554e6199811f9f8d50f6e49a57c83ed",
+    "tests/commands/diff-patch-stress/gnu-revised-full/provenance.json": "3a11bc8b515db6bf48b8ac6ed50d8fa8e563b6c4ffe13fe5aa4221e934071d6e",
+    "tests/commands/diff-patch-stress/gnu-revised-full/read-evidence.mjs": "31c5ab1722c70ad5e94dad0cf637e4377a05e13e957e067e32608decb49ee1b2",
+    "tests/commands/diff-patch-stress/gnu-revised-full/result.json": "27afa923ffb0f17d50dfc567e8d9d68274e767edb90d5e2dcbf6ac6908b89d36",
+    "tests/commands/diff-patch-stress/gnu-revised-full/run.mjs": "9f2e7b580ee866f4c74422169590d95723bdefc2720bf0c7be231abfe7e4b4af"
+  },
+  "marker": "ROOT RELEASE 2026-08-26\nExpectation editor93986 exited successfully; no further writes or active processes.\nEditor commit5ddce1b owns only new gnu-revised-full/** expectation/evidence tools.\nAuthor revised full3758/3758 passed once,70filenames17groups; originals untouched.\nAuthor original3758 and original30 NOT rerun: archived3750/8 and14/16 remain.\nAuthor scoped TS and plainNode publicfixture pass; fullsnapshotbuild FAILED on\nunowned archive internal.ts:91 isWellFormed and stream.ts:9,10 ZlibOptions types.\nDo not waive build failure or claim original acceptance green.\nIndependent reviewer72352 now authorized to audit exact8 expectation-only deltas\nagainst original237/70 and commit5ddce1b, then run paired original3758/revised3758\non identical freshly frozen actual source and dependencies with hash validation.\nFresh independent GNU8 nativeproof already prepared; do not trust author captures\nas an oracle. Keep Apple and true-malformed/atomic/symlink controls separate.\nObserved native host directorylinkcount rules differ from MemoryFS in general;\nretain raw counts and relationships, not false universal equality. Exact6 roots4->3.\nGNU selected ancestor -p0 follows internal symlink while product rejects safely;\nthat intentional extension is NOT the defaultbasename expectation being revised.\nNo productsource or existingtests/helpers edits; flag any genuine issue to root.\nS3fixture test-only55e4102 separately fixed current API spy;3tests/scopedglobalTS\npassed at that checkpoint. Later archive build failures remain separately reported.\nAfter independent checkpoint metadata ownership is queued; no new breadth now.\n",
+  "markerSha256": "36d8342cbe16dff5dfd443a06cc54bc47b2133f8bf326438b279f30f198408e6",
+  "originalBasis": "4d4f5ca/c623665",
+  "changedFiles": 3,
+  "changedNamedTests": [
+    "GNU default: context/--remove-empty-files/apply",
+    "GNU default: context/-E/apply",
+    "GNU default: normal/--remove-empty-files/apply",
+    "GNU default: normal/-E/apply",
+    "GNU default: unified/--remove-empty-files/apply",
+    "GNU default: unified/-E/apply",
+    "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+    "quoted-path security: quoted ancestor symlink"
+  ],
+  "records": [
+    {
+      "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "names": [
+        "quoted-path security: quoted ancestor symlink"
+      ],
+      "originalSha256": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+      "revisedSha256": "6e9efa710d489ad09226e1aeacc973f103c49c4d2de983c00272731968f44c96",
+      "residualTokenSha256": "113c462de8d9e223881dcd201fe18f45cb926bccd57d4dc5d95768ebf21c022b",
+      "residualTokenCount": 127,
+      "beforeExpectations": [
+        {
+          "start": 3728,
+          "end": 3748,
+          "kind": "assertion-expected-value",
+          "actual": "await fileBytes(filesystem, Object.keys(files))",
+          "text": "expectedBytes(files)"
+        },
+        {
+          "start": 3642,
+          "end": 3657,
+          "kind": "assertion-expected-value",
+          "actual": "result.stdout",
+          "text": "Buffer.alloc(0)"
+        },
+        {
+          "start": 3578,
+          "end": 3579,
+          "kind": "assertion-expected-value",
+          "actual": "result.status",
+          "text": "2"
+        }
+      ],
+      "afterExpectations": [
+        {
+          "start": 3867,
+          "end": 3972,
+          "kind": "assertion-expected-value",
+          "actual": "await fileBytes(filesystem, Object.keys(files))",
+          "text": "expectedBytes(name === \"quoted ancestor symlink\" ? { ...files, first: \"new\\n\", target: \"new\\n\" } : files)"
+        },
+        {
+          "start": 3683,
+          "end": 3796,
+          "kind": "assertion-expected-value",
+          "actual": "result.stdout",
+          "text": "name === \"quoted ancestor symlink\" ? Buffer.from(\"patching file first\\npatching file target\\n\") : Buffer.alloc(0)"
+        },
+        {
+          "start": 3578,
+          "end": 3620,
+          "kind": "assertion-expected-value",
+          "actual": "result.status",
+          "text": "name === \"quoted ancestor symlink\" ? 0 : 2"
+        }
+      ],
+      "unchangedOutsideAllowedExpectedNodes": true
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "names": [
+        "atomic extension malformed backward-second-hunk is not swallowed after a valid file section"
+      ],
+      "originalSha256": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+      "revisedSha256": "d30d2188f408ac65653a3523fb079d9718763c9966476005e6fcbad9329ac4c5",
+      "residualTokenSha256": "6c20c3b9b202321c329cd11499c3dcc2b9e1aa34bab3ef8fc8150c62fe3a6a75",
+      "residualTokenCount": 528,
+      "beforeExpectations": [
+        {
+          "start": 6320,
+          "end": 6321,
+          "kind": "assertion-expected-value",
+          "actual": "result.exitCode",
+          "text": "2"
+        }
+      ],
+      "afterExpectations": [
+        {
+          "start": 6320,
+          "end": 6359,
+          "kind": "assertion-expected-value",
+          "actual": "result.exitCode",
+          "text": "name === \"backward-second-hunk\" ? 1 : 2"
+        }
+      ],
+      "unchangedOutsideAllowedExpectedNodes": true
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "names": [
+        "GNU default: normal/-E/apply",
+        "GNU default: normal/--remove-empty-files/apply",
+        "GNU default: context/-E/apply",
+        "GNU default: context/--remove-empty-files/apply",
+        "GNU default: unified/-E/apply",
+        "GNU default: unified/--remove-empty-files/apply"
+      ],
+      "originalSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "residualTokenSha256": "d3a162a862d3ec70b2f0a74437f361733614e0384a9f9179355052c43112601d",
+      "residualTokenCount": 179,
+      "beforeExpectations": [
+        {
+          "start": 1371,
+          "end": 1518,
+          "kind": "assertion-expected-value",
+          "actual": "observed.mutations.map(({ method, path }) => ({ method, path }))",
+          "text": "[{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]"
+        },
+        {
+          "start": 1019,
+          "end": 1066,
+          "kind": "expected-namespace-only",
+          "text": "if (prunedParent) delete before[\"/authorized\"];"
+        }
+      ],
+      "afterExpectations": [
+        {
+          "start": 1540,
+          "end": 1621,
+          "kind": "assertion-expected-value",
+          "actual": "observed.mutations.map(({ method, path }) => ({ method, path }))",
+          "text": "[{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]"
+        },
+        {
+          "start": 1019,
+          "end": 1235,
+          "kind": "expected-namespace-only",
+          "text": "if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }"
+        }
+      ],
+      "unchangedOutsideAllowedExpectedNodes": true
+    }
+  ],
+  "expectedValuesIndependentlyEvaluated": true,
+  "fixturesOptionsHelpersSourceAndCensusTokensUnchanged": true,
+  "fullBeforeAfterDiffSha256": "0a5f60afb2961a80c67b520eaa4ef9cdf127b1d54e05c4d835dfadeb3ad44795",
+  "nativeProofSha256": "f1d0e24f682760b07df3d5dc291fa14e80a9110582d33fadcedb36441171ae59",
+  "limitation": "Tokens outside the six AST-selected expected-value/expected-namespace sites must be byte-token equal; all new expected expressions independently checked. Original observer excludes rmdir; separate frozen product probe must assert actual rm(file),rmdir(parent)."
+}

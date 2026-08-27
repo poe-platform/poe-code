@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-08-27T00:14:41.819Z",
+  "original237": 237,
+  "original70": 70,
+  "editor11Unchanged": true,
+  "archivedMembers": 533,
+  "archiveRawBytes": 15035934,
+  "archiveSha256": "84e89605125bbc5893a80ed1bb0047cae5ac0376f59c9135f325b87c1008e279",
+  "finalNativeProductSha256": "ee818cf2f320567cc30e417315407cc5730abd9cd91a90b5ec70116aeb952475",
+  "deltaAuditSha256": "a7d2646550db6f4cfc4bbe08a97cca8fa822067936775dce579f8a546fb7b9d5",
+  "fullCounts": {
+    "original": {
+      "tests": 3758,
+      "pass": 3750,
+      "fail": 8,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    },
+    "revised": {
+      "tests": 3758,
+      "pass": 3758,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    }
+  },
+  "source": "a1c82c6caac9b8703757d6448dd77da6e23667c99eef01661ed781677662e5f5",
+  "dependencies": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+  "finalSupplementStatus": 0,
+  "initialFailedProbePreserved": true,
+  "broaderValidationGreen": false
+}

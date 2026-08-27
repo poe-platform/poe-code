@@ -1,0 +1,34 @@
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync, cpSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+const base = fileURLToPath(new URL('.', import.meta.url));
+const scratch = resolve(base, '.scratch');
+const staging = resolve(scratch, 'package-staging');
+mkdirSync(staging);
+const source = resolve(scratch, 'built/tests/stress/regex-execution/design');
+const fileHashes = {};
+for (const stem of ['client', 'matching', 'protocol', 'worker']) for (const extension of ['js', 'd.ts']) {
+  const name = `${stem}.${extension}`;
+  cpSync(resolve(source, name), resolve(staging, name));
+  fileHashes[name] = createHash('sha256').update(readFileSync(resolve(staging, name))).digest('hex');
+}
+const manifest = { name: 'regex-validation-prototype', version: '0.0.0', type: 'module', engines: { node: '>=22' }, exports: { '.': { types: './client.d.ts', import: './client.js' } }, files: ['*.js', '*.d.ts'], dependencies: {} };
+writeFileSync(resolve(staging, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
+const npmCli = resolve(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js');
+const args = [npmCli, 'pack', '--json', '--ignore-scripts', '--offline', '--cache', resolve(scratch, 'npm-cache')];
+const packed = spawnSync(process.execPath, args, { cwd: staging, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C', HOME: scratch }, encoding: 'utf8', timeout: 20000, maxBuffer: 262144 });
+if (packed.status !== 0) throw new Error('PACK_FAILED ' + packed.stderr);
+const pack = JSON.parse(packed.stdout)[0];
+const archive = resolve(staging, pack.filename);
+const moved = resolve(scratch, 'moved');
+const installed = resolve(moved, 'node_modules/regex-validation-prototype');
+mkdirSync(installed, { recursive: true });
+const unpack = spawnSync('/usr/bin/tar', ['-xzf', archive, '--strip-components=1', '-C', installed], { encoding: 'utf8', timeout: 5000, maxBuffer: 65536 });
+if (unpack.status !== 0) throw new Error('UNPACK_FAILED ' + unpack.stderr);
+writeFileSync(resolve(moved, 'package.json'), '{"private":true,"type":"module"}\n');
+cpSync(resolve(base, 'consumer.mjs'), resolve(moved, 'consumer.mjs'));
+const movedHashes = Object.fromEntries(Object.keys(fileHashes).map(name => [name, createHash('sha256').update(readFileSync(resolve(installed, name))).digest('hex')]));
+if (JSON.stringify(fileHashes) !== JSON.stringify(movedHashes)) throw new Error('PACKAGE_COPY_DRIFT');
+writeFileSync(resolve(base, 'evidence/package-build.json'), JSON.stringify({ command: [process.execPath, ...args], cwd: staging, manifest, status: packed.status, stderr: packed.stderr, pack, archiveSha256: createHash('sha256').update(readFileSync(archive)).digest('hex'), fileHashes, movedHashes, installed, unpackStatus: unpack.status, runtimeDependencies: 0, scope: 'prototype package only; no root manifest/export integration' }, null, 2) + '\n', { flag: 'wx' });

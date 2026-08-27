@@ -1,0 +1,181 @@
+import assert from 'node:assert/strict';
+import { spawn, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { closeSync, lstatSync, openSync, readFileSync, readdirSync, readSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const own = dirname(fileURLToPath(import.meta.url));
+const repository = resolve(own, '../../..');
+const baseRelative = 'tests/integration/html-public-independent-20260827/admission-v2';
+const base = join(repository, baseRelative);
+const sealedCommit = 'aa4374b0ab5f0789e51026b7c6fe163c044a9a6c';
+const candidate = 'aff899aa94ed0c57a936b08fd36d185688f5c0bb';
+const expected = {
+  seal: '82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7',
+  binding: '7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a',
+  originalRunner: '3e05654ca42f8479db4ca4a66747c94d88fd8b9c7760feefc34ea85d7afe1733',
+  runner: '93772a99c377a950307fdbefcf5f87ed7292a89c105833c4e180a0099f95de1d',
+  core: '446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d',
+  archive: 'cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07',
+  inputs: '1886e217c0cf4c9f4a9c7a19a9d747fbb06660f6e201530785975cdec200c257',
+  pack: 'd9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7',
+};
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+function identity(filename) {
+  const stat = lstatSync(filename);
+  assert.ok(stat.isFile(), filename);
+  const sha256 = createHash('sha256');
+  const blob = createHash('sha1').update(`blob ${stat.size}\0`);
+  const buffer = Buffer.alloc(65536);
+  const descriptor = openSync(filename, 'r');
+  try {
+    let count;
+    while ((count = readSync(descriptor, buffer, 0, buffer.length, null))) {
+      sha256.update(buffer.subarray(0, count));
+      blob.update(buffer.subarray(0, count));
+    }
+  } finally { closeSync(descriptor); }
+  return { sha256: sha256.digest('hex'), blob: blob.digest('hex'), bytes: stat.size, mode: stat.mode & 0o111 ? '100755' : '100644' };
+}
+function files(directory, prefix = '') {
+  const result = {};
+  for (const name of readdirSync(join(directory, prefix)).sort()) {
+    const relative = prefix ? `${prefix}/${name}` : name;
+    const filename = join(directory, relative);
+    const stat = lstatSync(filename);
+    assert.ok(!stat.isSymbolicLink(), filename);
+    if (stat.isDirectory()) Object.assign(result, files(directory, relative));
+    else result[relative] = identity(filename);
+  }
+  return result;
+}
+const env = { ...process.env };
+for (const key of Object.keys(env)) if (key.startsWith('GIT_')) delete env[key];
+Object.assign(env, { GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_NO_REPLACE_OBJECTS: '1', GIT_TERMINAL_PROMPT: '0' });
+function git(args) {
+  const result = spawnSync('/usr/bin/git', ['--no-replace-objects', '-C', repository, ...args], { env, maxBuffer: 16 * 1024 ** 2, timeout: 180000 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr?.toString());
+  assert.equal(result.signal, null);
+  return result.stdout;
+}
+function tree(commit, path) {
+  return git(['ls-tree', '-rz', commit, '--', path]).toString().split('\0').filter(Boolean).map(record => {
+    const separator = record.indexOf('\t');
+    const [mode, type, blob] = record.slice(0, separator).split(' ');
+    return { mode, type, blob, path: record.slice(separator + 1) };
+  });
+}
+function write(name, data) { writeFileSync(join(own, name), `${JSON.stringify(data, null, 2)}\n`, { flag: 'wx' }); }
+const phase = process.argv[2];
+assert.ok(['PRE', 'POST'].includes(phase));
+const started = new Date().toISOString();
+const invocation = { started, argv: process.argv, ownHelper: identity(fileURLToPath(import.meta.url)), node: identity(process.execPath), git: identity('/usr/bin/git'), tar: identity('/usr/bin/tar'), env };
+write(`${phase}-AUTH-INVOCATION.json`, invocation);
+try {
+  const seal = JSON.parse(readFileSync(join(base, 'SEAL.json')));
+  const binding = JSON.parse(readFileSync(join(base, 'binding-04/BINDINGS.json')));
+  const sealed = files(base);
+  assert.equal(sealed['SEAL.json'].sha256, expected.seal);
+  const covered = Object.fromEntries(Object.entries(sealed).filter(([name]) => name !== 'SEAL.json').map(([name, value]) => [name, value.sha256]));
+  assert.deepEqual(covered, seal.files);
+  const committed = tree(sealedCommit, baseRelative);
+  assert.equal(committed.length, Object.keys(sealed).length);
+  for (const entry of committed) {
+    const local = sealed[entry.path.slice(baseRelative.length + 1)];
+    assert.equal(local.blob, entry.blob, entry.path);
+    assert.equal(local.mode, entry.mode, entry.path);
+  }
+  assert.equal(sealed['binding-04/BINDINGS.json'].sha256, expected.binding);
+  assert.equal(sealed['run.mjs'].sha256, expected.runner);
+  assert.equal(sealed['core.mjs'].sha256, expected.core);
+  assert.equal(binding.candidate, candidate);
+  assert.equal(hash(JSON.stringify(binding.inputs)), expected.inputs);
+  assert.equal(binding.inputs.length, 410);
+  assert.equal(binding.archive.sha256, expected.archive);
+  assert.equal(binding.pack.sha256, expected.pack);
+  const pack = Buffer.from(readFileSync(join(base, 'admission-01/package.tgz.base64'), 'utf8'), 'base64');
+  assert.equal(hash(pack), expected.pack);
+  const fixtures = {};
+  for (const entry of binding.fixtures) {
+    const actual = identity(join(repository, entry.path));
+    const frozen = tree(binding.freeze, entry.path);
+    const atSeal = tree(sealedCommit, entry.path);
+    assert.equal(frozen.length, 1);
+    assert.deepEqual(frozen, atSeal);
+    assert.equal(actual.sha256, entry.sha256, entry.path);
+    assert.equal(actual.blob, entry.blob, entry.path);
+    assert.equal(actual.mode, entry.mode, entry.path);
+    assert.equal(frozen[0].blob, actual.blob);
+    fixtures[entry.path] = actual;
+  }
+  assert.equal(Object.keys(fixtures).length, 18);
+  assert.equal(fixtures['tests/integration/html-public-independent-20260827/run.mjs'].sha256, expected.originalRunner);
+  const tools = {};
+  for (const [name, entry] of Object.entries(binding.tools)) {
+    if (entry.files !== undefined) {
+      const inventory = Object.fromEntries(Object.entries(files(entry.path)).map(([path, value]) => [path, value.sha256]));
+      assert.equal(hash(JSON.stringify(inventory)), entry.sha256, name);
+      assert.equal(Object.keys(inventory).length, entry.files, name);
+      tools[name] = { ...entry, inventory };
+    } else {
+      assert.equal(identity(entry.path).sha256, entry.sha256, name);
+      tools[name] = { ...entry, actual: identity(entry.path) };
+    }
+  }
+  const duProof = {};
+  for (const entry of tree('1bd1048b', 'tests/integration/du-public-independent-20260827')) {
+    const actual = identity(join(repository, entry.path));
+    assert.equal(actual.blob, entry.blob, entry.path);
+    assert.equal(actual.mode, entry.mode, entry.path);
+    duProof[entry.path] = actual;
+  }
+  const delta = git(['diff-tree', '--no-commit-id', '--name-only', '-r', binding.durability.parent, candidate]).toString().trim().split('\n');
+  assert.deepEqual(delta, binding.durability.delta.map(entry => entry.path));
+  assert.equal(delta.length, 2);
+  const index = git(['ls-files', '--stage', '-z']);
+  const cached = git(['diff', '--cached', '--binary']);
+  const snapshot = { started, finishedMetadata: new Date().toISOString(), expected, sealedCommit, candidate, sealed, fixtures, duProof, tools, delta, indexSha256: hash(index), cachedDiffSha256: hash(cached), cachedDiffBytes: cached.length, status: git(['status', '--short']).toString(), originalRejection: binding.originalRejection, archive: null, runtimeCases: 0 };
+  if (phase === 'POST') {
+    const before = JSON.parse(readFileSync(join(own, 'PRE.json')));
+    for (const key of ['sealed', 'fixtures', 'duProof', 'tools', 'delta', 'indexSha256', 'cachedDiffSha256']) assert.deepEqual(snapshot[key], before[key], key);
+  }
+  const args = ['--no-replace-objects', '-C', repository, 'archive', '--format=tar', candidate];
+  write(`${phase}-ARCHIVE-PRE.json`, { at: new Date().toISOString(), executable: '/usr/bin/git', executableIdentity: identity('/usr/bin/git'), args, env, expectedBytes: 2340945920, expectedSha256: expected.archive, bufferBytes: 65536, ceilingBytes: 3 * 1024 ** 3, timeoutMs: 180000 });
+  const child = spawn('/usr/bin/git', args, { env, stdio: ['ignore', 'pipe', 'pipe'] });
+  let error, timedOut = false, bytes = 0, chunks = 0, maxChunkBytes = 0, stderr = '';
+  child.on('error', caught => { error = caught.message; });
+  const closure = new Promise(resolveResult => child.on('close', (code, signal) => resolveResult({ code, signal })));
+  child.stderr.on('data', chunk => { stderr += chunk.toString(); if (stderr.length > 65536) { error = 'stderr limit'; child.kill('SIGKILL'); } });
+  const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, 180000);
+  const digest = createHash('sha256');
+  let streamError;
+  try {
+    for await (const chunk of child.stdout) {
+      bytes += chunk.length;
+      chunks++;
+      maxChunkBytes = Math.max(maxChunkBytes, chunk.length);
+      assert.ok(bytes <= 3 * 1024 ** 3);
+      assert.ok(chunk.length <= 1024 ** 2);
+      digest.update(chunk);
+    }
+  } catch (caught) { streamError = caught.message; child.kill('SIGKILL'); }
+  const closed = await closure;
+  clearTimeout(timer);
+  snapshot.archive = { ...closed, bytes, chunks, maxChunkBytes, sha256: digest.digest('hex'), stderr, error, timedOut, streamError, closeObserved: true };
+  write(`${phase}-ARCHIVE-RAW.json`, snapshot.archive);
+  assert.equal(closed.code, 0);
+  assert.equal(closed.signal, null);
+  assert.equal(error, undefined);
+  assert.equal(streamError, undefined);
+  assert.equal(timedOut, false);
+  assert.equal(bytes, 2340945920);
+  assert.equal(snapshot.archive.sha256, expected.archive);
+  snapshot.finished = new Date().toISOString();
+  write(`${phase}.json`, snapshot);
+  console.log(JSON.stringify({ phase, authenticatedFiles: committed.length, originalFixtures: 18, duFrozenFiles: Object.keys(duProof).length, selectedInputs: 410, deltaPaths: delta.length, archive: snapshot.archive, runtimeCases: 0 }));
+} catch (error) {
+  write(`${phase}-AUTH-FAILURE.json`, { at: new Date().toISOString(), message: error.message, stack: error.stack });
+  throw error;
+}

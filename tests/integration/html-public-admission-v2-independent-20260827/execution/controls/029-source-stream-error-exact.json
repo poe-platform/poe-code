@@ -1,0 +1,13 @@
+{
+  "name": "source-stream-error-exact",
+  "expectedBoundary": "FIXTURE_SOURCE",
+  "started": "2026-08-27T22:49:13.945Z",
+  "error": {
+    "name": "Error",
+    "message": "fixture source failed",
+    "code": "FIXTURE_SOURCE",
+    "stack": "Error: fixture source failed\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:71:143\n    at AsyncGenerator.next (<anonymous>)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:159:20)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:71:1"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.945Z"
+}

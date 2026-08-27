@@ -1,0 +1,13 @@
+{
+  "name": "missing-input-before-materialization",
+  "expectedBoundary": "INPUT_MISSING",
+  "started": "2026-08-27T22:49:13.841Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:INPUT_MISSING README.md",
+    "code": "INPUT_MISSING",
+    "stack": "Error: BOUNDARY:INPUT_MISSING README.md\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:87:5)\n    at materialize (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:124:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:53:76\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:53:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.897Z"
+}

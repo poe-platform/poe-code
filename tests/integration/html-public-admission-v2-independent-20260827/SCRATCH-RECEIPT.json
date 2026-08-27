@@ -1,0 +1,21 @@
+{
+  "sha256": "76b447d73013efd5912fb84d52134708f96aafd9c691876e364a728959bd7b33",
+  "payloadSha256": "9fa29c3fd59336353cd67ea26f9ac37061e73f484a743b27e45231af285d3718",
+  "compressedBytes": 367,
+  "payloadBytes": 610,
+  "entries": 3,
+  "files": 0,
+  "symlinks": [
+    [
+      "html-admission-v2-controls-GrWU0P/link-view/link",
+      {
+        "kind": "symlink",
+        "target": "missing",
+        "followed": false
+      }
+    ]
+  ],
+  "regularBytes": 0,
+  "rawSourceRetained": false,
+  "contentDisposition": "Authenticated immutable Git inputs and tool receipts retained; not a full scratch-content archive. Reproduced full package base64 retained in execution/admission."
+}

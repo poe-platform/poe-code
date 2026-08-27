@@ -1,0 +1,61 @@
+{
+  "started": "2026-08-27T22:49:12.827Z",
+  "finished": "2026-08-27T22:49:16.655Z",
+  "results": [
+    {
+      "name": "controls",
+      "started": "2026-08-27T22:49:12.923Z",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+        "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/controls"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_NO_REPLACE_OBJECTS": "1",
+        "GIT_TERMINAL_PROMPT": "0"
+      },
+      "entrySha256": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016",
+      "supervisorSha256": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+      "actual34": 0,
+      "pid": 31612,
+      "pgid": 31612,
+      "signalsSent": [],
+      "code": 1,
+      "signal": null,
+      "closeObserved": true,
+      "finished": "2026-08-27T22:49:16.617Z",
+      "remainingGroupMembers": [],
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/controls.stdout.data",
+        "bytes": 3877,
+        "sha256": "a434cfee72d8c580e55b8a30472b99db325d557caf17f7d53fef83300235ec71"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/controls.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "success": false
+    }
+  ],
+  "completedPhases": 1,
+  "unexecutedPhases": [
+    "extra-controls",
+    "admission",
+    "reconstruction"
+  ],
+  "actual34": 0,
+  "allPassed": false
+}

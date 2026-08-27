@@ -1,0 +1,20 @@
+{
+  "name": "over1GiB-wrong-hash",
+  "expectedBoundary": "STREAM_HASH",
+  "started": "2026-08-27T22:49:14.529Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:STREAM_HASH f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "code": "STREAM_HASH",
+    "stack": "Error: BOUNDARY:STREAM_HASH f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:176:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:193:19)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:84:1",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "{\"emitted\":1073872896,\"drains\":16101}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:15.024Z"
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-27T22:43:46.702Z",
+  "helper": "tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs",
+  "sha256": "c45f371e7bc0b206505c31c895e55e83c8c501df13c08a5f35bb04e042d9c5e2",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs",
+    "PRE"
+  ],
+  "scope": "actual reviewer auth correction; earlier failed patch and invocations preserved"
+}

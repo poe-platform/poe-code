@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-27T22:56:53.480Z",
+  "gitRoot": "/Users/kjopek/Workspace/safe-bash",
+  "head": "bb283c8c233f164fd4da5f2e21249b007d862a68",
+  "indexSha256": "4134931191aea3ffe6b1554589ffe6b88bd31fd4c942b5d0c49c3ee842655cf7",
+  "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stagedDiffBytes": 0,
+  "stagedNames": "",
+  "status": " M tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/PLAN.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/AUTHENTICATION.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/DESIGN.md\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/EXECUTION-01.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/RUN-INPUTS.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01.stderr.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01.stdout.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/freeze-candidate.txt\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/inherited-model.mjs\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/integrity.mjs\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/model-extension.patch.data\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/model.mjs\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/run-prototype.mjs\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/verify.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-type-workflow-independent-20260827/\n?? tests/integration/html-public-admission-v2-independent-20260827/\n?? tests/plugins/du-public-author/POLICY.md\n?? tests/plugins/du-public-author/evidence-v1/\n?? tests/plugins/du-public-author/seal-bindings.mjs\n?? tests/shell/cancellation-stage1-20260827/repair-v1/\n",
+  "allowedPath": "tests/integration/html-public-admission-v2-independent-20260827",
+  "plannedCommit": "test(html): record blocked independent admission-v2 verification",
+  "policy": "git add explicit owned paths then git commit --only those paths; no branch/reset/stash or foreign path staging"
+}

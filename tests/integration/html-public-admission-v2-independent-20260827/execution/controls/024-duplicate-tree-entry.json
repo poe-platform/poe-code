@@ -1,0 +1,13 @@
+{
+  "name": "duplicate-tree-entry",
+  "expectedBoundary": "TREE_DUPLICATE",
+  "started": "2026-08-27T22:49:13.897Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:TREE_DUPLICATE .gitignore",
+    "code": "TREE_DUPLICATE",
+    "stack": "Error: BOUNDARY:TREE_DUPLICATE .gitignore\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:70:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:55:61\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:55:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.923Z"
+}

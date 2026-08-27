@@ -861,7 +861,13 @@ export class Runtime {
         else if (!command && flag === "f") skipFunctions = true;
         else if (!command && flag === "t") mode = "kind";
         else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; }
-        else { await writeText(context.stderr, `${context.command}: ${option}: unsupported option\n`); return 2; }
+        else {
+          if (command && flag !== "p") {
+            await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
+            await writeText(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
+          } else await writeText(context.stderr, `${context.command}: ${option}: unsupported option\n`);
+          return 2;
+        }
       }
     }
     if (!discover) {
@@ -880,7 +886,14 @@ export class Runtime {
       if (!all) matches = matches.slice(0, 1);
       if (all || !matches.length) {
         const paths = await this.searchPaths(name, state, all, true);
-        matches.push(...paths.map(path => ({ kind: "file" as const, name: state.profile === "sh" && !name.includes("/") && !path.startsWith("/") ? `${state.cwd === "/" ? "" : state.cwd}/${path}` : path })));
+        matches.push(...paths.map(path => {
+          const absolute = command && mode === "describe";
+          if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
+            const relative = absolute && path.startsWith("./") ? path.slice(2) : path;
+            path = `${state.cwd === "/" ? "" : state.cwd}/${relative}`;
+          }
+          return { kind: "file" as const, name: path };
+        }));
       }
       if (!matches.length) {
         if (mode === "describe") await writeText(context.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${context.command}: ${name}: not found\n`);

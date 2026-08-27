@@ -1,0 +1,116 @@
+[
+  {
+    "id": "literal-grep-success",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-rg-success",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-early-close",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-rg-early-close",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-caller-abort",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-rg-caller-abort-record",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-dispose",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-rg-overlap-abort-dispose",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-guest-budget",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-guest-error",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-retained-lifetime",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-caller-sink-error",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-caller-sink-status-control",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-grep-cooperative-hook",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "literal-preabort-no-admission",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "bridge-grep-success",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "bridge-rg-early-close",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "bridge-grep-caller-abort",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  },
+  {
+    "id": "bridge-rg-dispose",
+    "accepted": false,
+    "status": 1,
+    "signal": null
+  }
+]

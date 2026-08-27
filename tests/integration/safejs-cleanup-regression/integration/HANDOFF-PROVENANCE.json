@@ -1,0 +1,59 @@
+{
+  "at": "2026-08-27T10:01:33.414Z",
+  "owner": "tests/integration/safejs-cleanup-regression/integration",
+  "publicPin": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "publicHeadBeforeStaging": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "publicStatus": " M scripts/verify-current-consumers.mjs\n M tests/integration/adapter-tools/README.md\n M tests/integration/adapter-tools/fixtures.ts\n M tests/integration/adapter-tools/matrix.test.ts\n M tests/plugins/qualified-current-release/consumers.mjs\n M tests/plugins/qualified-current-release/snapshot.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-v2/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/profiles/\n?? tests/integration/qualified-current-release-inventory/\n?? tests/integration/safejs-cleanup-regression/integration/\n?? tests/plugins/qualified-current-release/inventory-check.mjs\n?? tests/plugins/time-env-public-independent/",
+  "foreignIndexSha256": "9d5df457761a133c216955862018774f6022eb30f427ecacbfd1b3ad3ff75457",
+  "foreignStaging": "",
+  "liveRootMatchesPin": true,
+  "private": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+    "metadata": {
+      "AGENTS.md": "a68ac67735ca1eccdb4cfad1f706a47384a01a446f2555e6d01b4726e2830fd7",
+      "package.json": "e9f4bbb3216a3576528a812a3274db8a4cdc309654e4b724da69dea61161ec39",
+      "package-lock.json": "f0734bf2551b7add4257b0d7562e5fdcecac552f17c4a5a1e1cb5eb99d72db98",
+      "tsconfig.json": "dd954deaf678dd2276e2b39f16511e7246bbaad999f0bacc039add3cf241e17d",
+      "packages/poe-agent/package.json": "fe4ddedea7af55fc1b2d5fa0c00df519b8c4801575cf3e043fed2a4004a2041b"
+    },
+    "allCopiedFileHashesStillMatch": true,
+    "instructions": [
+      {
+        "filename": "/Users/AGENTS.md",
+        "exists": false
+      },
+      {
+        "filename": "/Users/kjopek/AGENTS.md",
+        "exists": false
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/AGENTS.md",
+        "exists": true,
+        "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/poe-code/AGENTS.md",
+        "exists": true,
+        "sha256": "a68ac67735ca1eccdb4cfad1f706a47384a01a446f2555e6d01b4726e2830fd7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/poe-code/packages/AGENTS.md",
+        "exists": false
+      }
+    ]
+  },
+  "finalEvidence": "evidence/attempt-08/report.json",
+  "finalHarnessHashes": {
+    "cases.mjs": "ef80036361a2c77da536250226f159670cfe522d2a3ca4d43b703b42db828526",
+    "child.mjs": "70708a7d07fd61595933b08f5ec852f6b8cc5d60f15724239023775318b71ee7",
+    "guard.mjs": "1cd944c2e7307f13913208adb64497bb53f558366d4298b06fc1d6116c0246bb",
+    "loader.mjs": "92314859cbc175bafc0f97de7adbb76ef4dbe3d3abf1adf5235f6fe02e4220e1",
+    "audit.mjs": "400a54bb961c5153dca442eb9a3ae54a353438d4f34c11d53097cef2e21429fc",
+    "run.mjs": "144a774b92b7360891e73ae53b50689aad9875f4f2f1dea3a0f79684f46f6305"
+  },
+  "allEightOwnedTemporaryTreesRemoved": true,
+  "allKnownRunnerSessionsExited": true,
+  "metadataCaptureNote": "Initial read-only public ls-files --stage capture exceeded execFileSync default buffer (ENOBUFS); rerun with 16 MiB. No guest or index writes in that failed query."
+}

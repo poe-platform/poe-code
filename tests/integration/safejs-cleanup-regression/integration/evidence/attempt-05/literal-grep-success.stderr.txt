@@ -1,0 +1,19 @@
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_METHOD_NOT_IMPLEMENTED]: The resolveSync() method is not implemented
+    at Hooks.resolveSync (node:internal/modules/esm/hooks:323:11)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:765:35)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolve (file:///private/tmp/safe-bash-safejs-cleanup-integration-fNjv46/consumer/harness/guard.mjs:48:20)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36) {
+  code: 'ERR_METHOD_NOT_IMPLEMENTED'
+}
+
+Node.js v22.22.2

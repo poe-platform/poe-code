@@ -1,0 +1,1 @@
+{"id":"literal-rg-early-close","status":"pass","containment":false,"workers":1}

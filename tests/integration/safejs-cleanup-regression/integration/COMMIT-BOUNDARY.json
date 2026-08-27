@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-27T10:03:26.846Z",
+  "head": "d728c716aff60d067ba4e98102dce215f418f1e2",
+  "status": " M tests/integration/adapter-tools/README.md\n M tests/integration/adapter-tools/fixtures.ts\n M tests/integration/adapter-tools/matrix.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-v2/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/profiles/\n?? tests/integration/safejs-cleanup-regression/integration/\n?? tests/plugins/time-env-public-independent/evidence/\n?? tests/shell-stress/first-read-contract-review/owned-output-direction-review/",
+  "foreignStaging": "",
+  "foreignIndexSha256": "13f254eb32a8d2b46632591ceaddf6d9a7679870669a2ef9e8137b7fc3c6c50a",
+  "previousForeignIndexSha256": "9d5df457761a133c216955862018774f6022eb30f427ecacbfd1b3ad3ff75457",
+  "foreignIndexChangedBeforeStaging": true,
+  "qualification": "Unrelated concurrent commits changed the tracked index before staging; original handoff snapshot retained. No staging had occurred at the failed stale-snapshot check. Fresh snapshot used for exact preservation checks.",
+  "rootSourceConfigStillPinned": true
+}

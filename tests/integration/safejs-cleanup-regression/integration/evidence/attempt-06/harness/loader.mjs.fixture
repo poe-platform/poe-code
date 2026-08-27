@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { check, verify, stopTools } from "./audit.mjs";
+
+verify(import.meta.url);
+export async function resolve(specifier, context, next) {
+  const result = await next(specifier, context);
+  check(result.url);
+  return result;
+}
+export async function load(url, context, next) {
+  const entry = verify(url);
+  const result = await next(url, context);
+  if (entry && result.format === "commonjs" && result.source == null) return { ...result, source: readFileSync(entry.filename) };
+  return result;
+}
+export function initialize({ port }) {
+  port.on("message", async message => {
+    assert.equal(message, "stop-owned-loader");
+    try { port.postMessage(await stopTools()); }
+    catch (error) { port.postMessage({ error: String(error) }); }
+    finally { port.close(); }
+  });
+  port.unref();
+}

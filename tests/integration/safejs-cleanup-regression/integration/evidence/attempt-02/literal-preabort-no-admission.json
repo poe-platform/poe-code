@@ -1,0 +1,53 @@
+{
+  "id": "literal-preabort-no-admission",
+  "node": "v22.22.2",
+  "pid": 83516,
+  "selected": {
+    "id": "literal-preabort-no-admission",
+    "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+    "preabort": true,
+    "reason": "error"
+  },
+  "events": [
+    {
+      "order": 0,
+      "event": "public-exec-enter",
+      "argv": "safejs -e 'import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));'"
+    },
+    {
+      "order": 1,
+      "event": "public-exec-settled",
+      "cleanupDone": false,
+      "hostCalls": 0,
+      "runnerCalls": 0,
+      "workers": []
+    },
+    {
+      "order": 2,
+      "event": "public-dispose-settled",
+      "cleanupDone": false,
+      "hostCalls": 0,
+      "runnerCalls": 0,
+      "workers": []
+    }
+  ],
+  "status": "pass",
+  "containment": false,
+  "publicArgv": "safejs -e 'import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));'",
+  "atSettlement": {
+    "cleanupDone": false,
+    "hostCalls": 0,
+    "runnerCalls": 0,
+    "workers": []
+  },
+  "error": {
+    "type": "object",
+    "name": "Error",
+    "message": "caller:literal-preabort-no-admission",
+    "callerIdentity": true,
+    "sinkIdentity": false
+  },
+  "cleanupCalls": 0,
+  "workers": [],
+  "finishedAt": "2026-08-27T09:45:18.139Z"
+}

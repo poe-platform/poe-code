@@ -51,8 +51,9 @@ function shellFor(context: TestContext, fs: FileSystem = createMemoryFileSystem(
   return shell;
 }
 
-function named(kind: "Buffer" | "Uint8Array", events: string[]): FileSystem {
+async function named(kind: "Buffer" | "Uint8Array", events: string[]): Promise<FileSystem> {
   const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from(vectors.whole, "hex"));
   fs.readStream = (path: string, options?: ReadStreamOptions): ByteSource => {
     assert.equal(path, "/input");
     assert.ok(options?.signal);
@@ -92,7 +93,7 @@ for (const [id, kind, command, expected] of [
 ] as const) {
   test(`${id} public named VFS ${command} ${kind}`, timeout, async context => {
     const events: string[] = [];
-    const result = await shellFor(context, named(kind, events)).exec(command);
+    const result = await shellFor(context, await named(kind, events)).exec(command);
     assert.deepEqual(events, vectors.events);
     report(id, resultBytes(result), success(expected), events);
   });
@@ -161,21 +162,21 @@ test("10 byte pipe awaited write reuse with acceptance handshake", timeout, asyn
 
 test("11 public named cat consumes before next-read reuse", timeout, async context => {
   const events: string[] = [];
-  const result = await shellFor(context, named("Buffer", events)).exec("cat /input");
+  const result = await shellFor(context, await named("Buffer", events)).exec("cat /input");
   assert.deepEqual(events, vectors.events);
   report("11", resultBytes(result), success(vectors.whole), events);
 });
 
 test("12 public named head captures before early finalizer zero", timeout, async context => {
   const events: string[] = [];
-  const result = await shellFor(context, named("Buffer", events)).exec("head -c 2 /input");
+  const result = await shellFor(context, await named("Buffer", events)).exec("head -c 2 /input");
   assert.deepEqual(events, ["yield:0:00ffc3", "finally:zero"]);
   report("12", resultBytes(result), success(vectors.prefix2), events);
 });
 
 test("13 public cat tee base64 pipeline preserves VFS bytes/effects", timeout, async context => {
   const events: string[] = [];
-  const fs = named("Buffer", events);
+  const fs = await named("Buffer", events);
   const result = await shellFor(context, fs).exec("cat /input | tee /out | base64 -w 0");
   assert.deepEqual(events, vectors.events);
   const actual = { ...resultBytes(result), file: hex(await fs.readFile("/out")) };
@@ -184,7 +185,7 @@ test("13 public cat tee base64 pipeline preserves VFS bytes/effects", timeout, a
 
 test("14 readonly named-stream copy isolates shared line collector", timeout, async context => {
   const events: string[] = [];
-  const fs = createReadOnlyFileSystem(named("Buffer", events));
+  const fs = createReadOnlyFileSystem(await named("Buffer", events));
   const result = await shellFor(context, fs).exec("tail -n 1 /input");
   assert.deepEqual(events, vectors.events);
   report("14", resultBytes(result), success(vectors.whole), events);
@@ -291,7 +292,7 @@ test("20 public sink acceptance barrier and cancellation finalize named source",
   const entered = deferred();
   const released = deferred();
   context.after(() => { released.resolve(); });
-  const shell = shellFor(context, named("Buffer", events));
+  const shell = shellFor(context, await named("Buffer", events));
   const execution = shell.exec("cat /input", { signal: controller.signal, stdout: { async write(bytes) {
     assert.equal(hex(bytes), vectors.chunks[0]);
     entered.resolve();

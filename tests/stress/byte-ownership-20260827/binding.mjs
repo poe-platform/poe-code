@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const owned = "tests/stress/byte-ownership-20260827/";
-const manifest = `${owned}source-before.json`;
+const manifest = `${owned}source-public-before.json`;
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trimEnd();
 if (process.argv.includes("--freeze")) {

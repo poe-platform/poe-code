@@ -1,0 +1,78 @@
+{
+  "schema": "owned-output-validity-independent-phase2-signature-v1",
+  "signedBy": "Codex Independent Leaf Verifier",
+  "threadId": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "attestationKind": "Explicit agent/thread attestation and SHA-256 binding; not personal cryptographic signing",
+  "phase2FirstRecordedAt": "2026-08-27T15:56:42Z",
+  "findingsFrozenAt": "2026-08-27T16:07:04.611529+00:00",
+  "phase1UnchangedCommit": "65a887ac7aa0e361216b827f9fedee20389bc609",
+  "exactAuthorCommits": {
+    "surface": "d8bb351619c2b14a8d633dfea5f670b8f8adabcf",
+    "lifecycle": "37b89260c16e51dbf3f825f111d5f5b3c5ea32e8"
+  },
+  "sourceManifest": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "reviewVerdicts": {
+    "surfaceObserver": "APPROVE_STATIC_PROPOSAL_ONLY_NOT_APPLY_OR_EXECUTE",
+    "surfaceOldAssertionSatisfaction": "REJECT_INFERENCE_OBSERVER_DOES_NOT_SATISFY_OLD_ASSERTIONS",
+    "surfaceNewScoring": "CONDITIONAL_REVIEWER_PROPOSAL_ROOT_APPROVAL_AND_NEW_EXACT_DELTA_REQUIRED",
+    "L06C1": "CONDITIONAL_ALTERNATE_PROFILE_ZERO_HOST_AUTHORIZATION_NOT_PRESERVED",
+    "L06CounterImplementation": "UNPROVED_NO_EXECUTABLE_PATCH_PROVIDED",
+    "L05S1": "CONDITIONAL_NEW_SCENARIO_STATIC_SELECTOR_FEASIBLE_ACTUAL_EXECUTION_UNPROVED",
+    "promotion": "NOT_APPROVED",
+    "newPasses": 0
+  },
+  "approvalBoundary": "Static proposal verdicts only. Root must decide semantic/profile changes and separately authorize exact new freezes/reviews and any later bounded execution. No application, rescore, source promotion or whole-gate approval.",
+  "assertions": {
+    "proposalInputsReadFromFrozenGit": true,
+    "liveAuthorProposalFilesRead": false,
+    "privateCheckoutQueries": 0,
+    "copiedPrivateEngineReads": 0,
+    "privateWrites": 0,
+    "newGuestExecutions": 0,
+    "newProductRuntimeExecutions": 0,
+    "newParserCalls": 0,
+    "newNativeProbes": 0,
+    "newNetworkProbes": 0,
+    "authorCheckScriptsExecuted": 0,
+    "builds": 0,
+    "installs": 0,
+    "proposalsApplied": 0,
+    "originalFilesEdited": 0,
+    "dispatchEnvironmentShebangEdits": 0,
+    "newPasses": 0
+  },
+  "preservedOriginalCounts": {
+    "surface": {
+      "executed": 8,
+      "rawPass": 7,
+      "rawFail": 1,
+      "supportedPass": 6,
+      "dialectMatch": 1,
+      "observerFail": 1
+    },
+    "lifecycle": {
+      "pass": 8,
+      "fail": 1,
+      "invalidFixture": 1,
+      "blocked": 1
+    }
+  },
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 20896,
+      "sha256": "bee19aa27d5ce91e1aaa222a99ad476ba72b13a734859320f86745dff4a5c326"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 17728,
+      "sha256": "a349582549d49ac57c506448d58116df8a7b929630b8b96e96af483f34b719d6"
+    },
+    {
+      "path": "STATIC-REVIEW.json",
+      "bytes": 9094,
+      "sha256": "b5a718ec7a9aa4ac57f1edf93da8e3fea547a8ba8a06920d5d40bbea74290f99"
+    }
+  ],
+  "stop": "Commit only four new phase2 paths; write /tmp/safe-bash-owned-output-validity-independent-phase2-ready.txt and stop without waiting or additional work."
+}

@@ -74,6 +74,7 @@
     "benchmark": "node --import tsx benchmarks/run.ts",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
+    "typecheck:consumers": "npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
   },

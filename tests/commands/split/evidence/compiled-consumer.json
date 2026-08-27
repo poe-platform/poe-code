@@ -1,0 +1,1 @@
+{"compiledModule":"tests/commands/split/.build/src/commands/split/index.js","factory":"createSplitCommands","plugin":"splitCommands","files":["partaa.bin","partab.bin"],"stdoutHex":"ff00410a420a","exitCode":0,"packageSubpathExport":false}

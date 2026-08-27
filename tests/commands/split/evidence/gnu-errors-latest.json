@@ -11,13 +11,15 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: invalid number of lines: '0'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: invalid number of lines: '0'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "semanticMatch": true,
       "strictMatch": true,
@@ -36,13 +38,15 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: invalid number of bytes: '0'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: invalid number of bytes: '0'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "semanticMatch": true,
       "strictMatch": true,
@@ -62,13 +66,15 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: cannot split in more than one way\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split --help' for more information.\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: cannot split in more than one way\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "semanticMatch": true,
       "strictMatch": false,
@@ -87,13 +93,15 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: cannot open 'missing' for reading: No such file or directory\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: no such file or directory, stat '/missing'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "semanticMatch": true,
       "strictMatch": false,
@@ -114,13 +122,15 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: missing/partaa: No such file or directory\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: no such file or directory, writeStream '/missing/partaa'\n",
-        "files": {}
+        "files": {},
+        "entries": []
       },
       "semanticMatch": true,
       "strictMatch": false,
@@ -167,7 +177,113 @@
           "xx": "78",
           "xy": "79",
           "xz": "7a"
-        }
+        },
+        "entries": [
+          {
+            "name": "xa",
+            "type": "file"
+          },
+          {
+            "name": "xb",
+            "type": "file"
+          },
+          {
+            "name": "xc",
+            "type": "file"
+          },
+          {
+            "name": "xd",
+            "type": "file"
+          },
+          {
+            "name": "xe",
+            "type": "file"
+          },
+          {
+            "name": "xf",
+            "type": "file"
+          },
+          {
+            "name": "xg",
+            "type": "file"
+          },
+          {
+            "name": "xh",
+            "type": "file"
+          },
+          {
+            "name": "xi",
+            "type": "file"
+          },
+          {
+            "name": "xj",
+            "type": "file"
+          },
+          {
+            "name": "xk",
+            "type": "file"
+          },
+          {
+            "name": "xl",
+            "type": "file"
+          },
+          {
+            "name": "xm",
+            "type": "file"
+          },
+          {
+            "name": "xn",
+            "type": "file"
+          },
+          {
+            "name": "xo",
+            "type": "file"
+          },
+          {
+            "name": "xp",
+            "type": "file"
+          },
+          {
+            "name": "xq",
+            "type": "file"
+          },
+          {
+            "name": "xr",
+            "type": "file"
+          },
+          {
+            "name": "xs",
+            "type": "file"
+          },
+          {
+            "name": "xt",
+            "type": "file"
+          },
+          {
+            "name": "xu",
+            "type": "file"
+          },
+          {
+            "name": "xv",
+            "type": "file"
+          },
+          {
+            "name": "xw",
+            "type": "file"
+          },
+          {
+            "name": "xx",
+            "type": "file"
+          },
+          {
+            "name": "xy",
+            "type": "file"
+          },
+          {
+            "name": "xz",
+            "type": "file"
+          }
+        ]
       },
       "observed": {
         "status": 1,
@@ -200,7 +316,113 @@
           "xx": "78",
           "xy": "79",
           "xz": "7a"
-        }
+        },
+        "entries": [
+          {
+            "name": "xa",
+            "type": "file"
+          },
+          {
+            "name": "xb",
+            "type": "file"
+          },
+          {
+            "name": "xc",
+            "type": "file"
+          },
+          {
+            "name": "xd",
+            "type": "file"
+          },
+          {
+            "name": "xe",
+            "type": "file"
+          },
+          {
+            "name": "xf",
+            "type": "file"
+          },
+          {
+            "name": "xg",
+            "type": "file"
+          },
+          {
+            "name": "xh",
+            "type": "file"
+          },
+          {
+            "name": "xi",
+            "type": "file"
+          },
+          {
+            "name": "xj",
+            "type": "file"
+          },
+          {
+            "name": "xk",
+            "type": "file"
+          },
+          {
+            "name": "xl",
+            "type": "file"
+          },
+          {
+            "name": "xm",
+            "type": "file"
+          },
+          {
+            "name": "xn",
+            "type": "file"
+          },
+          {
+            "name": "xo",
+            "type": "file"
+          },
+          {
+            "name": "xp",
+            "type": "file"
+          },
+          {
+            "name": "xq",
+            "type": "file"
+          },
+          {
+            "name": "xr",
+            "type": "file"
+          },
+          {
+            "name": "xs",
+            "type": "file"
+          },
+          {
+            "name": "xt",
+            "type": "file"
+          },
+          {
+            "name": "xu",
+            "type": "file"
+          },
+          {
+            "name": "xv",
+            "type": "file"
+          },
+          {
+            "name": "xw",
+            "type": "file"
+          },
+          {
+            "name": "xx",
+            "type": "file"
+          },
+          {
+            "name": "xy",
+            "type": "file"
+          },
+          {
+            "name": "xz",
+            "type": "file"
+          }
+        ]
       },
       "semanticMatch": true,
       "strictMatch": true,
@@ -222,7 +444,13 @@
         "stderr": "split: output file suffixes exhausted\n",
         "files": {
           "x99": "61"
-        }
+        },
+        "entries": [
+          {
+            "name": "x99",
+            "type": "file"
+          }
+        ]
       },
       "observed": {
         "status": 1,
@@ -230,7 +458,13 @@
         "stderr": "split: output file suffixes exhausted\n",
         "files": {
           "x99": "61"
-        }
+        },
+        "entries": [
+          {
+            "name": "x99",
+            "type": "file"
+          }
+        ]
       },
       "semanticMatch": true,
       "strictMatch": true,
@@ -252,7 +486,13 @@
         "stderr": "split: 'xaa' would overwrite input; aborting\n",
         "files": {
           "xaa": "4f524947494e414c"
-        }
+        },
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "file"
+          }
+        ]
       },
       "observed": {
         "status": 1,
@@ -260,7 +500,13 @@
         "stderr": "split: output would overwrite input; aborting '/xaa'\n",
         "files": {
           "xaa": "4f524947494e414c"
-        }
+        },
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "file"
+          }
+        ]
       },
       "semanticMatch": true,
       "strictMatch": false,
@@ -279,13 +525,25 @@
         "status": 1,
         "stdout": "",
         "stderr": "split: xaa: Is a directory\n",
-        "files": {}
+        "files": {},
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "directory"
+          }
+        ]
       },
       "observed": {
         "status": 1,
         "stdout": "",
         "stderr": "split: illegal operation on a directory '/xaa'\n",
-        "files": {}
+        "files": {},
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "directory"
+          }
+        ]
       },
       "semanticMatch": true,
       "strictMatch": false,

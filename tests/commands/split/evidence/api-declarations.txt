@@ -1,0 +1,32 @@
+import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { type SplitCommandsOptions } from "./options.js";
+export type { SplitCommandsOptions, SplitLimits } from "./options.js";
+export declare function createSplitCommands(options?: SplitCommandsOptions): readonly CommandDefinition[];
+export declare function splitCommands(options?: SplitCommandsOptions): VirtualShellPlugin;
+export interface SplitLimits {
+    readonly maxInputBytes: number;
+    readonly maxOutputBytes: number;
+    readonly maxFiles: number;
+    readonly maxBufferBytes: number;
+    readonly maxChunkBytes: number;
+    readonly maxArgumentBytes: number;
+    readonly maxSuffixLength: number;
+    readonly maxSteps: number;
+}
+export interface SplitCommandsOptions {
+    readonly replace?: boolean;
+    readonly limits?: Partial<SplitLimits>;
+}
+export declare function settings(options: SplitCommandsOptions): SplitLimits;
+export interface SplitArguments {
+    readonly mode: "lines" | "bytes" | "line-bytes";
+    readonly size: number;
+    readonly input: string;
+    readonly prefix: string;
+    readonly alphabet: string;
+    readonly suffixLength: number;
+    readonly automatic: boolean;
+    readonly numericStart: string;
+    readonly additionalSuffix: string;
+}
+export declare function parseArguments(args: readonly string[], limits: SplitLimits): SplitArguments;

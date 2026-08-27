@@ -30,3 +30,13 @@ yielded the already-prefetched bytes because output budget admission did not che
 the combined signal. Added that signal check before offering any payload. The
 host operation itself still cannot be forcibly stopped; no completed-effect
 rollback is claimed. Exact original abort reason remains observable.
+
+Initial compiled-consumer harness failure is retained in compiled-consumer-initial.tap.
+It mixed compiled split/contracts with TS-source MemoryFS/Shell/contracts, loading
+two different FsError class identities. Therefore compiled isFsError correctly
+did not recognize the source-runtime ENOENT as its own typed FsError, and a new
+output path was rejected. The harness now compiles its owned compiled-host.ts
+entry and all imported host/plugin dependencies together into the owned .build
+directory, so the test uses one coherent runtime artifact. No product source
+was changed for this fixture correction. This is not an unchanged-fixture pass
+or a claim that arbitrary duplicate package instances share class identity.

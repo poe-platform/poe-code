@@ -38,15 +38,18 @@ test("GNU errors: exact status/effects, separately asserted diagnostic profiles"
     const nativeFiles: Record<string, string> = {};
     for (const entry of await native.readdir(temp, { withFileTypes: true })) if (entry.isFile()) nativeFiles[entry.name] = (await native.readFile(join(temp, entry.name))).toString("hex");
     const observedFiles = await files(fs);
+    const nativeEntries = (await native.readdir(temp, { withFileTypes: true })).map(entry => ({ name: entry.name, type: entry.isDirectory() ? "directory" : entry.isSymbolicLink() ? "symlink" : "file" })).sort((left, right) => left.name.localeCompare(right.name));
+    const observedEntries = [...await fs.readdir("/")].sort((left, right) => left.name.localeCompare(right.name));
     let semanticMatch = true;
     try {
       assert.equal(actual.exitCode, expected.status);
       assert.equal(actual.stdout, expected.stdout.toString());
       assert.deepEqual(observedFiles, nativeFiles);
+      assert.deepEqual(observedEntries, nativeEntries);
       assert.match(expected.stderr.toString(), specimen.nativeMessage);
       assert.match(actual.stderr, specimen.virtualMessage);
     } catch { failure = true; semanticMatch = false; }
-    report.push({ id: specimen.id, args: specimen.args, input: specimen.input, expected: { status: expected.status, stdout: expected.stdout.toString(), stderr: expected.stderr.toString(), files: nativeFiles }, observed: { status: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr, files: observedFiles }, semanticMatch, strictMatch: semanticMatch && actual.stderr === expected.stderr.toString(), diagnosticPolicy: { native: String(specimen.nativeMessage), virtual: String(specimen.virtualMessage) } });
+    report.push({ id: specimen.id, args: specimen.args, input: specimen.input, expected: { status: expected.status, stdout: expected.stdout.toString(), stderr: expected.stderr.toString(), files: nativeFiles, entries: nativeEntries }, observed: { status: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr, files: observedFiles, entries: observedEntries }, semanticMatch, strictMatch: semanticMatch && actual.stderr === expected.stderr.toString(), diagnosticPolicy: { native: String(specimen.nativeMessage), virtual: String(specimen.virtualMessage) } });
     if (semanticMatch) await native.rm(temp, { recursive: true });
   }
   await native.mkdir(join(directory, "evidence"), { recursive: true });
@@ -58,12 +61,14 @@ test("GNU errors: exact status/effects, separately asserted diagnostic profiles"
 
 test("explicit GNU versus Apple naming/profile differences remain visible", async context => {
   try { await native.access(executable); await native.access("/usr/bin/split"); } catch { context.skip("both native profiles required"); return; }
+  assert.equal(createHash("sha256").update(await native.readFile(executable)).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
+  assert.equal(createHash("sha256").update(await native.readFile("/usr/bin/split")).digest("hex"), "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91");
   const report: unknown[] = [];
   for (const scenario of [
-    { id: "alphabet-auto", args: ["-b1"], input: "z".repeat(677) },
-    { id: "numeric-auto", args: ["-db1"], input: "z".repeat(101) },
-    { id: "GNU-C-option", args: ["-C3"], input: "ab\nc\n" },
-    { id: "invalid-zero", args: ["-l0"], input: "abc" },
+    { id: "alphabet-auto", args: ["-b1"], input: "z".repeat(677), appleStatus: 65, appleFiles: 676, appleDiagnostic: /^split: too many files\n$/u, gnuFiles: 677 },
+    { id: "numeric-auto", args: ["-db1"], input: "z".repeat(101), appleStatus: 65, appleFiles: 100, appleDiagnostic: /^split: too many files\n$/u, gnuFiles: 101 },
+    { id: "GNU-C-option", args: ["-C3"], input: "ab\nc\n", appleStatus: 64, appleFiles: 0, appleDiagnostic: /^\/usr\/bin\/split: illegal option -- C\nusage: split/u, gnuFiles: 2 },
+    { id: "invalid-zero", args: ["-l0"], input: "abc", appleStatus: 64, appleFiles: 0, appleDiagnostic: /^split: 0: line count is too small\n$/u, gnuFiles: 0 },
   ]) {
     const outputs: Record<string, unknown> = {};
     for (const [name, tool] of [["gnu", executable], ["apple", "/usr/bin/split"]] as const) {
@@ -71,11 +76,17 @@ test("explicit GNU versus Apple naming/profile differences remain visible", asyn
       const result = spawnSync(tool, scenario.args, { cwd: temp, input: scenario.input, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 10000 });
       const names = (await native.readdir(temp)).sort();
       outputs[name] = { status: result.status, stdout: result.stdout.toString(), stderr: result.stderr.toString(), names };
-      if (name === "gnu") assert.equal(result.status, scenario.id === "invalid-zero" ? 1 : 0);
-      else assert.notEqual(result.status, 0);
+      if (name === "gnu") {
+        assert.equal(result.status, scenario.id === "invalid-zero" ? 1 : 0);
+        assert.equal(names.length, scenario.gnuFiles);
+      } else {
+        assert.equal(result.status, scenario.appleStatus);
+        assert.equal(names.length, scenario.appleFiles);
+        assert.match(result.stderr.toString(), scenario.appleDiagnostic);
+      }
       await native.rm(temp, { recursive: true });
     }
-    report.push({ ...scenario, outputs });
+    report.push({ ...scenario, appleDiagnostic: String(scenario.appleDiagnostic), outputs });
   }
   await native.mkdir(join(directory, "evidence"), { recursive: true });
   await native.writeFile(join(directory, "evidence/native-profile-differences.json"), JSON.stringify(report, null, 2) + "\n");

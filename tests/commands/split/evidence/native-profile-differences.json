@@ -5,6 +5,10 @@
       "-b1"
     ],
     "input": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+    "appleStatus": 65,
+    "appleFiles": 676,
+    "appleDiagnostic": "/^split: too many files\\n$/u",
+    "gnuFiles": 677,
     "outputs": {
       "gnu": {
         "status": 0,
@@ -1381,6 +1385,10 @@
       "-db1"
     ],
     "input": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+    "appleStatus": 65,
+    "appleFiles": 100,
+    "appleDiagnostic": "/^split: too many files\\n$/u",
+    "gnuFiles": 101,
     "outputs": {
       "gnu": {
         "status": 0,
@@ -1605,6 +1613,10 @@
       "-C3"
     ],
     "input": "ab\nc\n",
+    "appleStatus": 64,
+    "appleFiles": 0,
+    "appleDiagnostic": "/^\\/usr\\/bin\\/split: illegal option -- C\\nusage: split/u",
+    "gnuFiles": 2,
     "outputs": {
       "gnu": {
         "status": 0,
@@ -1629,6 +1641,10 @@
       "-l0"
     ],
     "input": "abc",
+    "appleStatus": 64,
+    "appleFiles": 0,
+    "appleDiagnostic": "/^split: 0: line count is too small\\n$/u",
+    "gnuFiles": 0,
     "outputs": {
       "gnu": {
         "status": 1,

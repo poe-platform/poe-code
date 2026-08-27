@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import * as native from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
@@ -11,16 +12,22 @@ const directory = fileURLToPath(new URL(".", import.meta.url));
 const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 
 test("GNU size spellings and empty-input output-directory controls", async context => {
-  try { await native.access(executable); } catch { context.skip("pinned GNU oracle unavailable"); return; }
+  let binary: Uint8Array;
+  try { binary = await native.readFile(executable); } catch { context.skip("pinned GNU oracle unavailable"); return; }
+  assert.equal(createHash("sha256").update(binary).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
   const evidence: unknown[] = [];
   let failed = false;
   for (const size of ["1g", "1t", "1p", "1e", "1z", "1y", "1r", "1q", "1B", "1mB", "1miB", "+K", " K", "K", " +2", "0K"]) {
+    const temp = await native.mkdtemp(join(directory, ".native-size-"));
     const args = ["-b", size];
-    const expected = spawnSync(executable, args, { input: Buffer.alloc(0), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" } });
+    const expected = spawnSync(executable, args, { cwd: temp, input: Buffer.alloc(0), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" } });
     const observed = await run(args);
-    const match = expected.status === observed.exitCode;
+    const match = expected.status === observed.exitCode && expected.stderr.toString() === observed.stderr && expected.stdout.toString() === observed.stdout;
     failed ||= !match;
     evidence.push({ id: `size-${size}`, args, expected: { status: expected.status, stderr: expected.stderr.toString() }, observed: { status: observed.exitCode, stderr: observed.stderr }, semanticMatch: match });
+    assert.deepEqual(await native.readdir(temp), []);
+    assert.deepEqual(await observed.fs.readdir("/"), []);
+    await native.rm(temp, { recursive: true });
   }
   for (const named of [false, true]) {
     const temp = await native.mkdtemp(join(directory, ".native-empty-"));

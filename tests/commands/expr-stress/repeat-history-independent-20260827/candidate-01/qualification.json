@@ -1,0 +1,74 @@
+{
+  "typecheck": {
+    "started": "2026-08-27T19:36:19.814Z",
+    "finished": "2026-08-27T19:36:20.421Z",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--module",
+      "NodeNext",
+      "--target",
+      "ES2022",
+      "--types",
+      "node",
+      "--skipLibCheck",
+      "tests/commands/expr-stress/repeat-history-independent-20260827/isolated-01/source/src/commands/expr/bre-worker.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "",
+    "scope": "Isolated candidate BRE worker and its imported shared protocol; no full product typecheck or public consumer gate."
+  },
+  "runtime": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0"
+  },
+  "initialDriver": {
+    "commit": "a035cb1f5f43108cb4440f8ae9d2745b05bfc6e1",
+    "sha256": "36837ef7bd1803349421987b41405409d46d43626abe8ab36b246dea4911d425"
+  },
+  "firstFollowupDriver": {
+    "commit": "aa128eac5e3673b51d3281bc9e2658605e1fcf76",
+    "sha256": "a3abc13926a9e240b5960e543544de969ebc4c7c88fa69e604d0e1ebfa2be2e8"
+  },
+  "preExecutionReviewCommit": "d1bf8f0009f7d41c6106ae523e1aeb61dd2314d4",
+  "wait": {
+    "started": "2026-08-27T19:28:26.506Z",
+    "finished": "2026-08-27T19:30:06.535Z",
+    "elapsedMs": 100029,
+    "maximumMs": 300000,
+    "receiptPresent": true
+  },
+  "finalSourceFileInventory": true,
+  "newFileDetection": true,
+  "emptyDirectoryDetection": false,
+  "liveSourceOverlay": false,
+  "oldEvidenceAnchorsUnchanged": true,
+  "cleanup": {
+    "capture": {
+      "workers": 67,
+      "activeBeforeSafetyCleanup": 0,
+      "activeAfter": 0,
+      "terminations": 67,
+      "childProcesses": "bounded spawnSync; each scoped test process owns its worker threads",
+      "caveat": "No claim of preemption of opaque host promises."
+    },
+    "followup": {
+      "workers": 15,
+      "activeBeforeSafetyCleanup": 0,
+      "activeAfter": 0
+    },
+    "cancellation": {
+      "workerAcquisitions": 0,
+      "activeOwnedWorkers": 0
+    },
+    "isolatedSourceAndCompiledRemoval": "Owned scratch is removed after byte-exact evidence publication; accepted Git source plus authenticated patch reproduces it."
+  }
+}

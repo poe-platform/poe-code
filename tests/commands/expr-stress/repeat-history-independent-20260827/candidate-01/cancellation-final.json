@@ -1,0 +1,22 @@
+{
+  "started": "2026-08-27T19:35:07.812Z",
+  "workerSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+  "driverSha256": "0817e41762b0cde350e1100240ccb9826dede99fad50f084c24fc84289fa3e7b",
+  "controls": [
+    {
+      "id": "pre-aborted-open",
+      "passed": true,
+      "exactReasonPreserved": true
+    },
+    {
+      "id": "pre-aborted-match",
+      "passed": true,
+      "exactReasonPreserved": true
+    }
+  ],
+  "cleanup": {
+    "workerAcquisitions": 0,
+    "activeOwnedWorkers": 0
+  },
+  "finished": "2026-08-27T19:35:07.814Z"
+}

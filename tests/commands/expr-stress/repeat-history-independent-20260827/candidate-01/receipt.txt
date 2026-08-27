@@ -1,0 +1,135 @@
+2026-08-27 — delegated LEAF final bounded implementation receipt. No delegation.
+SOURCE CANDIDATE / NOT LIVE PROMOTED / NOT NORMATIVE OR PUBLIC ACCEPTANCE.
+
+FULL COMMITS
+Approved source base: 21220b465537bf45ffcfb36740956a69f43bf75e.
+Before-code baseline evidence: e9480736ed91e46a4074288888d2e4a8dbc9f802.
+Bounded candidate, tests and sealed evidence: c433d0230468889e825dfff680a5a729b45bd272.
+Both owned commits used explicit path lists and git commit --only; no other
+owners' edits/staging were included. No branches or other worktrees created.
+
+IMPLEMENTATION / PROMOTION
+Implemented static repeat-enter/end identity, dynamic activation/parent-iteration
+frames, progress/min/max counts, immutable branch-local absent/open/completed
+capture histories and checkpoints, pre-admitted AST/instruction/state/vector/
+frame/history allocation and charged scans. Completed captures only; unchanged
+byte protocol. No flat-final-capture comparator, PC-only cycle key, malformed
+[0,-1] spans, GNU anomaly hacks, native-input special cases, dependencies, eval,
+main-thread regex or host product I/O. Shared worker/client/protocol unchanged.
+
+Because complete repeated/nested policy is unresolved, used the user's explicit
+fallback: full structural source in owned DATA plus patch, built/run only in a
+unique approved-base snapshot. Live src/commands/expr/bre-worker.ts and live dist
+were NEVER edited. No provisional matching policy was promoted into live source.
+
+PATHS / HASHES (SHA256)
+Candidate DATA: tests/commands/expr-stress/repeat-history-author/candidate-bre-worker.ts.data
+  663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890
+Candidate patch: tests/commands/expr-stress/repeat-history-author/candidate.patch
+Task-owned exact patch copy: /tmp/expr-repeat-author-20260827.patch
+  900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de
+Owned seal: tests/commands/expr-stress/repeat-history-author/manifest.json
+  734937be8f20969e2fe35c94c7e018dce066ef30faa7a047b81e11e6ec41a8b4
+Final compiled candidate worker: a55309b366367c73b3c093e81914d9c51f278b7a68aff6eaab0f1f76b107ab2b
+Approved-base archive used by both final runs:
+  01fc9f0d1165008fd2fc04c7ba518ff781e0006a453e7a8a7865bbbceac30daf
+Report: tests/commands/expr-stress/repeat-history-author/REPORT.md
+Tests: tests/commands/expr/repeat-history/invariants.test.ts (canonical 12);
+  tests/commands/expr/repeat-history/candidate.checks.ts (explicit-only 34).
+
+UNCHANGED LIVE / APPROVED-BASE SOURCE HASHES
+src/commands/expr/bre-worker.ts:
+  f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0
+src/commands/regex-execution/protocol.ts:
+  3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1
+src/commands/regex-execution/worker.ts:
+  a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6
+src/commands/regex-execution/client.ts:
+  5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc
+src/commands/regex-execution/matching.ts:
+  1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737
+
+EXACT DENOMINATORS
+Final candidate-run-04: 183/183 node:test cases, zero failed/skipped/cancelled/TODO.
+  137 unchanged expr limit/protocol/lifecycle/abort-reason controls;
+  12 new baseline-compatible invariants; 34 explicit provisional checks.
+  One of the 34 enumerates 63 bounded subjects with complete witnesses and
+  maximal whole endpoints under the PROVISIONAL empty rule; not 63 additional tests.
+  16 boundary tests = 15 engine-limit thresholds plus one protocol invalid-zero
+  floor for required-empty's single state. 1000 required-empty copies fit 16 nodes.
+Final baseline-run-02: 149/149 = same 137 existing controls + all 12 canonical invariants.
+Both final snapshots pass isolated source/declaration builds and existing expr
+strict source/test TypeScript configuration. No root build/global suite/consumer
+acceptance run. Untouched regex-native.test.ts expects 11 old unsupported nullable
+rows and would conflict with promotion; inspected, NOT run or waived here.
+
+NATIVE / ACTUAL CLI VS INTERNAL STATES
+24 unchanged named rows, same pinned GNU9.7/Darwin oracle SHA256
+e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c.
+Explicit PATH=/usr/bin:/bin, LC_ALL=C, LANG=C, LANGUAGE=C, TZ=UTC; unique isolated
+native cwd, bounded literal argv, 2s timeout, 16KiB output, before/after binary hash.
+All final native tuples checked equal to original frozen tuples. No GNU/Linux claim.
+Actual Shell.exec status/stdout/stderr and separate RegexExecutor whole/capture
+states captured independently; command results are NOT projected from spans.
+Original8 baseline remains 3/8 equal, 5 different. Candidate7/8 equal, aaa different.
+Original5 failed rows: actual candidate CLI now equals frozen GNU on4/5; not native
+or POSIX acceptance. Original historical prototype4/5 projection is kept unchanged.
+24-row CLI equality: baseline10/24, candidate19/24; candidate differences:
+aaa, end-anchor, literal-suffix, nested-history, finite-optional.
+Both old prototype regressions retained: mandatory-no-reference still empty;
+alternation-longest still a. Old evidence trees/rows/failed prototypes unchanged.
+
+Original8 candidate internal whole/capture and actual CLI (all stderr empty):
+empty: [0,0]/[0,0], status1 stdouthex0a
+a: [0,0]/[0,0], status1 stdouthex0a
+aa: [0,2]/[0,1], status0 stdouthex610a
+aaa: [0,3]/[1,2], status0 stdouthex610a (frozen GNU status1 stdouthex0a)
+no-reference: [0,3]/[0,3], status0 stdouthex6161610a
+not-repeated: [0,2]/[0,1], status0 stdouthex610a
+nonnullable: [0,3]/[1,2], status0 stdouthex610a
+mandatory-empty: [0,0]/[0,0], status1 stdouthex0a
+Historical native a whole[0,1] and mandatory-empty no-match remain distinct
+despite equal CLI bytes; no new native register measurements performed here.
+
+UNRESOLVED / FAILED ATTEMPTS
+Equal-whole repeated/nested ordering, sole-optional-empty rule and descendant
+last-participation retention remain provisional pending Curie/root. Histories
+are retained structurally; first-completed DFS tie selection is NOT a normative
+solution. No duplicated primary POSIX research or waiting for external approval.
+Earlier baseline-run-01 137/137; candidate-run-01 167/167 on an earlier source.
+Candidate-run-02 182/183: author test incorrectly assumed a positive rejected
+state limit below admitted1. Candidate-run-03 182/183: author test then expected
+async rather than actual synchronous protocol rejection at zero. Full failures
+retained; final test asserts the real protocol floor. No product fix for either.
+Run02 lacks contemporaneous failure-source preparation receipt; not retroactively
+repaired. Run03/04 record preparation before execution. Final source additionally
+charges class-name copies/sequence traversal and 16 compile-bootstrap units.
+Only run04 certifies final source. Initial patch whitespace-context serialization
+was replaced by an exact whole-file hunk without source-byte change.
+Logical allocation reservations are not RSS accounting; larger byte-admitted
+inputs may hit allocation limits earlier. No linear-time claim. Phase-specific
+interruption of every new history transition and independent stress remain undone.
+
+CLEANUP / SCOPED STATUS / VERIFICATION
+Final candidate interval 2026-08-27T19:22:21.138Z–19:22:34.629Z.
+Final baseline interval 2026-08-27T19:23:02.741Z–19:23:13.502Z.
+Observed host Darwin25.4.0 arm64; Nodev22.22.2. No elapsed-work/72h claim.
+All six capture child processes exited and were awaited; all session closes,
+executor disposals and Shell disposals awaited. No owned source/native scratch
+remains. Existing lifecycle/abort tests report20/138 workers respectively, both
+zero active BEFORE safety cleanup and zero afterward. No other owners' processes
+or native scratch reaped. All tool sessions for captures have exited.
+Postcommit scoped git status empty for owned paths and shared regex paths;
+index empty at checkpoint. Other owners have unrelated live changes; preserved,
+not a globally clean-tree claim. Live worker/shared hashes rechecked unchanged.
+Read-only verify-candidate.mjs passed after commit. Seal rejects all added/removed
+files, added empty directories, symlinks and changed bytes in both owned trees.
+One negative injected-empty-directory seal check rejected as expected; its owned
+directory was removed, and read-only verification passed again.
+Final snapshot source post-check includes new files AND empty dirs; test-input
+hashes were recorded after execution, not an append-proof test-tree guarantee.
+git apply --check candidate.patch passed; never applied to live source.
+Explicit owned staged whitespace check passed before commit.
+
+This checkpoint is finished. No full GNU/POSIX parity, superiority, public
+permission, complete expr suite or full task completion claim.

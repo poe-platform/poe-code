@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: expr regex cap: input bytes
+ok 1 - expr regex cap: input bytes
+  ---
+  duration_ms: 3.133916
+  type: 'test'
+  ...
+# Subtest: expr regex cap: nodes
+ok 2 - expr regex cap: nodes
+  ---
+  duration_ms: 27.217416
+  type: 'test'
+  ...
+# Subtest: expr regex cap: depth
+ok 3 - expr regex cap: depth
+  ---
+  duration_ms: 22.205584
+  type: 'test'
+  ...
+# Subtest: expr regex cap: states
+ok 4 - expr regex cap: states
+  ---
+  duration_ms: 22.417834
+  type: 'test'
+  ...
+# Subtest: expr regex cap: allocation
+ok 5 - expr regex cap: allocation
+  ---
+  duration_ms: 20.58425
+  type: 'test'
+  ...
+# Subtest: expr regex cap: work
+ok 6 - expr regex cap: work
+  ---
+  duration_ms: 22.525416
+  type: 'test'
+  ...
+# Subtest: expr regex cap: output bytes
+ok 7 - expr regex cap: output bytes
+  ---
+  duration_ms: 21.141834
+  type: 'test'
+  ...
+# Subtest: regex policy ceilings are validated at factory creation
+ok 8 - regex policy ceilings are validated at factory creation
+  ---
+  duration_ms: 0.768584
+  type: 'test'
+  ...
+# Subtest: regex capture output preserves partial C bytes and waits for backpressure
+ok 9 - regex capture output preserves partial C bytes and waits for backpressure
+  ---
+  duration_ms: 23.135709
+  type: 'test'
+  ...
+# Subtest: actual Shell expr plugin evaluates regex in pipelines and redirections
+ok 10 - actual Shell expr plugin evaluates regex in pipelines and redirections
+  ---
+  duration_ms: 94.656708
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 345.26675

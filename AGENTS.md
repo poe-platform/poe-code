@@ -111,8 +111,20 @@
   rule in `src/contracts/filesystem.md`; Poincare implements and Dirac reviews.
   Generic SDK/copied-metadata integration remains open, and qualified38/38 does
   not close original31/38 or the broader backend goal.
+- Root approved an additive S3/WebDAV constructor option named compareEntry
+  using the existing filesystem comparison contract for serialized SDK-like
+  clients. It is an explicit truthful host backing-resource resolver: preserve
+  composition/alias precedence, errors and cancellation; never fabricate client
+  identity or require private mock APIs in consumer examples. Poincare owns
+  adapter source/types/docs/tests; shared contracts remain unchanged. Curie
+  reviews the concrete handoff, not a new design-approval gate. Author original
+  38/38 evidence is distinct from Dirac's pending independent acceptance and
+  arbitrary-provider support.
 - `CommandContext.invoke?: CommandInvoker` invokes literal argv; its optional
-  overrides are stdin, stdout, stderr, cwd, and env. The shell retains filesystem,
+  overrides are stdin, stdout, stderr, cwd, env and replaceEnv. The approved
+  replacement rules are in `src/contracts/command.md`; core forwarding is84fc742,
+  with Sagan runtime integration still requiring its own committed acceptance.
+  The shell retains filesystem,
   cancellation, middleware, and execution budgets; there is no signal override.
 - `CommandContext.stdinIsDefault?: boolean` records provenance, never byte count:
   true is implicit no-input default; false is supplied/piped/redirected/closed

@@ -1435,6 +1435,29 @@ that any implementation, command, fixture, or test currently exists.
   Poincare; no new binding API or backend acceptance claim. No new benchmark
   breadth or tool family;50 baseline-only names remain unmeasured.
 
+### August27,2026 provider author first gate and approved SDK resolver option
+
+- Root reports provider first-gate author evidence at eab1d48/1b0cbb9:
+  unchanged original38/38 plus5 controls, guards4+49. This is an author-fixed
+  original gate, not merely the earlier qualified-mock fixture cohort. Preserve
+  historical31/38 and qualified38/38 separately. Dirac's independent review
+  remains pending; no all-provider or whole-product acceptance follows.
+- Root approved the next minimal S3/WebDAV compareEntry constructor callback
+  using the existing FileSystem.compareEntry contract for serialized real
+  SDK-like clients. The callback is an explicit truthful host backing-resource
+  resolver, retaining composition/alias precedence, error and cancellation
+  semantics. No fictional per-client identity or consumer example relying on
+  private Mock APIs. Poincare owns options/source/types/docs/tests; the global
+  contract is unchanged. Curie will review concrete implementation semantics
+  when root routes the handoff, without another design-approval block. Approval
+  to implement is not implementation or independent validation evidence.
+- Env handoff is already committed:84fc742 contract/core forwarding,6b81bb3
+  pinned ordering,ebc7019 required runtime acceptance. Current inspection shows
+  Sagan's env replacement tests in progress, not a committed runtime change.
+  No replay or all-green assertion is made from that uncommitted work. Historical
+  runtime2/10 and six-row4/6 remain; exact six-row replay follows committed
+  runtime integration. No other production scope or benchmark breadth added.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

@@ -1,11 +1,11 @@
-# Standalone virtual tree author candidate
+# Bounded virtual tree
 
 `index.ts` exports `treeCommands(options?)`, `createTreeCommands(options?)`,
 `createTreeCommand(options?)`, `TreeCommandsOptions` and `TreeLimits`.
 The plugin registers only `tree`, with collision preflight and optional explicit
-`replace`. These are **standalone source-module exports**, not root exports or
-an installed package subpath. Root/package/default registration is intentionally
-unchanged; independent hidden review must precede public integration.
+`replace`. The factories and types are available through the package root and
+`virtual-bash/commands/tree`. `agentCommands()` includes `tree` by default and
+forwards its `tree` family limits; the aggregate replacement policy is authoritative.
 
 The implementation uses async VFS metadata operations, never native processes,
 host filesystem reads, file-content reads or ambient configuration files. It
@@ -38,7 +38,7 @@ explicit responsibility. This is not a filesystem sandbox or a snapshot.
   Nonempty traversed nodes have `contents`. Failed metadata has `type: unknown`;
   errors/cycles have an `error` field. Unicode names round-trip as JSON strings;
   terminal controls, formatting characters and line separators are escaped.
-- `-r`, `--dirsfirst`, `--noreport`, `--charset=ASCII|UTF-8`, `-n`, `--`,
+- `-r`, `--dirsfirst`, `--noreport`, `--charset=ASCII|US-ASCII|UTF-8|UTF8`, `-n`, `--`,
   `--help`, `--version`. Short flags can be combined and `-L/-P/-I` take
   attached values. Color is always off; `-n` is an explicit no-op.
 
@@ -50,8 +50,40 @@ Sorting is fixed unsigned UTF-8-byte order, independent of host/shell locale
 and directory enumeration order. Text names use C-locale escaping: ASCII is
 literal, backslash and common controls are escaped, other bytes use octal.
 This preserves newline and Unicode filenames without injecting terminal control
-bytes. The default branches are ASCII; UTF-8 changes branches, not name escaping.
+bytes. Branches use the selection rules below; UTF-8 changes branches, not name escaping.
 Pretty JSON is semantically compared, not whitespace-parity claimed.
+
+### Branch charset and virtual locale
+
+Selection uses only own-key entries of `CommandContext.env`, never ambient host
+environment, locale installation, terminal detection or configuration files:
+
+1. The last explicit `--charset` wins. The four documented charset names are
+   case-insensitive. Unknown or empty explicit values remain usage errors;
+   unlike native tree's unknown-charset fallback, they are not silently accepted.
+   When explicit, no environment charset/locale fields are read or charged.
+2. A present `TREE_CHARSET` overrides every locale, including when empty. UTF-8
+   and UTF8 (case-insensitive) select Unicode branches; all other values select
+   ASCII. Values are not trimmed. This includes empty/unknown values, matching
+   the pinned tree 2.2.1 native profile.
+3. Otherwise the first nonempty `LC_ALL`, `LC_CTYPE`, or `LANG` selects the virtual
+   locale. `C.UTF-8`, `C.utf8`, `en_US.UTF-8`, and `en_US.utf8` select UTF-8;
+   `C`, `POSIX`, missing values and other names select ASCII. These locale names
+   are case-sensitive; an unknown higher-precedence name does not fall through.
+
+The virtual locale table is deterministic, not a probe of installed host locales.
+The lowercase `.utf8` aliases are explicit virtual-profile aliases: the captured
+Darwin native binary falls back to ASCII for those two names. Native Darwin
+`en_US.UTF-8` filename collation/escaping is not emulated. For Unicode branches
+with the preserved C-byte name order/escaping, use `TREE_CHARSET=UTF-8` with a C
+locale or an explicit `--charset=UTF-8`. This does not enable unsafe raw names.
+
+At most four relevant environment fields are visited. Each visited string is
+length-admitted before byte sizing/normalization, charged against existing
+path/name and cumulative metadata limits, and reserves its UTF-16 length plus
+one work unit before scanning. Lower-precedence fields are not read after a
+selection. Output continues to charge actual UTF-8 bytes, including branches;
+ASCII and UTF-8 output can reach the same byte cap at different positions.
 
 Reports count displayed entries, not disk usage: directory-target links count
 as directories; broken links count as files. Nested directories count even if
@@ -59,6 +91,10 @@ empty/unreadable. A root directory counts only if it has displayed children,
 matching the pinned native empty-root convention. Repeated operands/aliases
 are counted repeatedly. `-d` omits the file count. No `du`, allocated-size,
 permissions, timestamps, inode display or execution metadata is fabricated.
+In particular, the two-file root with one nested directory reports **2
+directories, 2 files**, matching tree 2.2.1. No legacy root-count subtraction is
+performed. The original comparison's UTF-8/one-directory expectation remains
+unchanged and is not made passing by charset selection.
 
 ## Identity, errors and cancellation
 

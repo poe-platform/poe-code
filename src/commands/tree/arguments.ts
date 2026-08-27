@@ -1,5 +1,6 @@
 import { UsageError, type WalkBudget } from "./io.js";
 import { compile, type Pattern } from "./pattern.js";
+import { environmentCharset, explicitCharset, type Charset } from "./charset.js";
 
 export interface Arguments {
   all: boolean;
@@ -11,7 +12,7 @@ export interface Arguments {
   report: boolean;
   reverse: boolean;
   dirsFirst: boolean;
-  charset: "ASCII" | "UTF-8";
+  charset: Charset;
   level: number | undefined;
   include: Pattern[];
   exclude: Pattern[];
@@ -33,6 +34,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
     json: false, report: true, reverse: false, dirsFirst: false, charset: "ASCII", level: undefined,
     include: [], exclude: [], operands: [], help: false, version: false };
   let ended = false;
+  let explicit = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
     const value = (option: string, attached: string | undefined): string => {
@@ -47,9 +49,8 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
     if (arg === "--help") { result.help = true; continue; }
     if (arg === "--version") { result.version = true; continue; }
     if (arg === "--charset" || arg.startsWith("--charset=")) {
-      const charset = value("--charset", arg.startsWith("--charset=") ? arg.slice(10) : undefined).toUpperCase();
-      if (charset !== "ASCII" && charset !== "UTF-8") throw new UsageError("supported charsets: ASCII, UTF-8");
-      result.charset = charset; continue;
+      result.charset = explicitCharset(value("--charset", arg.startsWith("--charset=") ? arg.slice(10) : undefined));
+      explicit = true; continue;
     }
     if (arg.startsWith("--")) throw new UsageError(`unsupported option: ${arg}`);
     for (let offset = 1; offset < arg.length; offset++) {
@@ -80,14 +81,16 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
   }
   if (!result.operands.length) result.operands.push(".");
   for (const operand of result.operands) if (operand === "") throw new UsageError("empty path operand");
+  if (!explicit) result.charset = environmentCharset(budget);
   return result;
 }
 
 export const help = `Usage: tree [-adlfirnJ] [-L depth] [-P pattern] [-I pattern] [--dirsfirst]
-            [--charset=ASCII|UTF-8] [--noreport] [--] [path ...]
+            [--charset=ASCII|US-ASCII|UTF-8|UTF8] [--noreport] [--] [path ...]
 Virtual filesystem tree; no native processes or implicit host access.
 Default: visible entries, no symlink traversal, C/UTF-8-byte name order,
-ASCII branches, escaped filenames. -l follows directory links; ancestor
+escaped filenames. Branch charset: --charset, TREE_CHARSET, virtual locale,
+then ASCII; UTF-8 changes branches only. -l follows directory links; ancestor
 cycles are skipped. -P includes files; -I excludes files and directories.
 Basename patterns: *, ?, bracket ranges, | alternatives, backslash literals.
 -J emits JSON; -i removes text branches or JSON formatting whitespace.

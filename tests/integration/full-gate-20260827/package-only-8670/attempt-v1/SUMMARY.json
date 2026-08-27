@@ -1,0 +1,450 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "harnessCommit": "eaed12f8",
+  "runtimeSource": "6dc79cd5",
+  "runtimeIndependentAcceptance": "c7489e14",
+  "startedAt": "2026-08-27T15:34:20.264Z",
+  "finishedAt": "2026-08-27T15:35:29.715Z",
+  "status": "separate-package-cohort-failed",
+  "archive": {
+    "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+    "tree": "2b5790d522f433778a3ba2364f24b7ae7b24216f",
+    "count": 24879,
+    "manifestSha256": "5e3555f04b114fff5aca005b827b4689c342d9f1eb49b9ad02a46a6c048a2cdf"
+  },
+  "runtime": {
+    "profile": "guarded-gate-node24.11.1-darwin-arm64",
+    "requested": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "supported": true,
+    "refusalStatus": 78,
+    "identity": {
+      "version": "v24.11.1",
+      "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "platform": "darwin",
+      "arch": "arm64",
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  },
+  "npm": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "version": "10.9.7"
+  },
+  "nativeAssets": 49,
+  "bindingBefore": {
+    "package.json": {
+      "blob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997,
+      "mode": 420,
+      "symlink": false
+    },
+    "package-lock.json": {
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "bytes": 16734,
+      "mode": 420,
+      "symlink": false
+    },
+    "src/index.ts": {
+      "blob": "f22006574a46d127ea52e1209168fc147c57b690",
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+      "bytes": 1320,
+      "mode": 420,
+      "symlink": false
+    },
+    "src/plugins/index.ts": {
+      "blob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+      "bytes": 4578,
+      "mode": 420,
+      "symlink": false
+    }
+  },
+  "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1",
+  "builtFiles": 708,
+  "packedFilesBefore": 710,
+  "public": {
+    "count": 70,
+    "names": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "comm",
+      "cp",
+      "cut",
+      "date",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "expand",
+      "false",
+      "file",
+      "find",
+      "fold",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "join",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "nl",
+      "od",
+      "paste",
+      "patch",
+      "printenv",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rev",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "seq",
+      "sha1sum",
+      "sha256sum",
+      "sleep",
+      "sort",
+      "split",
+      "stat",
+      "strings",
+      "tac",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "tree",
+      "true",
+      "unexpand",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "imports": [
+      "virtual-bash",
+      "virtual-bash/contracts",
+      "virtual-bash/contracts/command",
+      "virtual-bash/contracts/errors",
+      "virtual-bash/contracts/filesystem",
+      "virtual-bash/contracts/index",
+      "virtual-bash/contracts/io",
+      "virtual-bash/contracts/path",
+      "virtual-bash/contracts/plugin",
+      "virtual-bash/commands/network",
+      "virtual-bash/commands/metadata",
+      "virtual-bash/commands/archive",
+      "virtual-bash/commands/table-text",
+      "virtual-bash/commands/stream-inspection",
+      "virtual-bash/commands/stream-format",
+      "virtual-bash/commands/split",
+      "virtual-bash/commands/time-env",
+      "virtual-bash/commands/tree",
+      "virtual-bash/commands/file",
+      "virtual-bash/fs/s3",
+      "virtual-bash/fs/s3/http",
+      "virtual-bash/fs/webdav",
+      "virtual-bash/fs/readonly",
+      "virtual-bash/fs/mount",
+      "virtual-bash/fs/overlay"
+    ],
+    "workflows": [
+      {
+        "source": "printf 'a\\nb\\n' | tac",
+        "stdout": "b\na\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'a\\tb\\n' | expand",
+        "stdout": "a       b\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'abcdef\\n' | fold -w 3",
+        "stdout": "abc\ndef\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "source": "printf 'abc\\000de\\000fghi' | strings -n 3",
+        "stdout": "abc\nfghi\n",
+        "stderr": "",
+        "exitCode": 0
+      }
+    ],
+    "runtimeDependencies": {},
+    "typesCandidateBound": true
+  },
+  "groups": [
+    {
+      "name": "regex",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/regex/emitted/package-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "regex-continuation",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/regex-continuation/emitted/package-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "regex-followup",
+      "compile": "pass",
+      "plannedRuntime": [
+        "product-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/regex-followup/emitted/product-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "regex-production",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/regex-production/emitted/package-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "regex-production-continuation",
+      "compile": "pass",
+      "plannedRuntime": [
+        "package-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/regex-production-continuation/emitted/package-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "s3-constructor",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/s3-constructor/emitted/consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "s3-http-author",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/s3-http-author/emitted/public-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "s3-http-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-workflow.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/s3-http-independent/emitted/public-workflow.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "s3-rmdir",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/s3-rmdir/emitted/public-consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "webdav-loopback",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.test.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/webdav-loopback/emitted/consumer.test.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "webdav-services",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "stream-inspection",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/stream-inspection/emitted/consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "stream-five",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-options.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/stream-five/emitted/public-options.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "time-env-public",
+      "compile": "pass",
+      "plannedRuntime": [
+        "public-positive.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/time-env-public/emitted/public-positive.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "time-env-leaf",
+      "compile": "pass",
+      "plannedRuntime": [
+        "leaf-positive.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/time-env-leaf/leaf-positive.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "env-split-public-types",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "webdav-atomic",
+      "compile": "pass",
+      "plannedRuntime": [],
+      "completedRuntime": [],
+      "error": null
+    },
+    {
+      "name": "webdav-atomic-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "consumer.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/webdav-atomic-independent/emitted/consumer.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    },
+    {
+      "name": "webdav-timestamp-independent",
+      "compile": "pass",
+      "plannedRuntime": [
+        "independent.test.mjs"
+      ],
+      "completedRuntime": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer/webdav-timestamp-independent/emitted/independent.test.mjs\"],\"cwd\":\"/private/tmp/safe-bash-package-execution-RHeDci/source/tests/plugins/qualified-current-release/.runs/qualified-7x2Y2f/consumer\",\"status\":9,\"signal\":null,\"stdout\":\"\",\"stderr\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n\"}"
+    }
+  ],
+  "negativeTypes": [
+    {
+      "name": "env-split-invalid-binding",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "name": "time-env-public-negative",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: positive control must pass before negative types"
+    },
+    {
+      "name": "time-env-leaf-negative",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: positive control must pass before negative types"
+    }
+  ],
+  "phases": [
+    {
+      "label": "current-consumers",
+      "status": 1,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "pack",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "install",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public-types",
+      "status": 0,
+      "expectedStatus": 0,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    },
+    {
+      "label": "public-negative-types",
+      "status": 2,
+      "expectedStatus": 2,
+      "sourceChanges": [],
+      "clean": true,
+      "mixedNodeExecutables": []
+    }
+  ],
+  "fallbackControls": [
+    {
+      "name": "missing candidate export remains exact TS2305 on authenticated candidate declarations",
+      "status": "pass"
+    }
+  ],
+  "sourceChanges": [],
+  "nestedSourceUnchanged": true,
+  "nestedTestsUnchanged": true,
+  "nestedRootDistUnchanged": true,
+  "finalPackageManifestReached": false,
+  "finalDependencySweepReached": false,
+  "temporaryRemoved": true,
+  "sourceBindingScope": "Exact path-set/blob/mode admission, then original tracked paths checked before/after. Generated nested consumer/build outputs are separately authenticated; no universal append-proof tree claim.",
+  "error": {
+    "message": "Expected values to be strictly equal:\n\n9 !== 1\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n9 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/package-only-8670/run.mjs:191:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  }
+}

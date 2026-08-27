@@ -1,0 +1,2613 @@
+[
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "every split plus empty chunks preserves native bytes: unicode-records",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "every split plus empty chunks preserves native bytes: unicode-slurp",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "every split plus empty chunks preserves native bytes: json-multibyte",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "every split plus empty chunks preserves native bytes: json-surrogate-pair",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "every split plus empty chunks preserves native bytes: raw-nul",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "UTF-8 crossing the internal 16384-byte scan boundary preserves native bytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "exact maxOutputBytes boundary retains native output: join-quota-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "exact maxOutputBytes boundary retains native output: join-json-quota-reference",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "exact maxOutputBytes boundary retains native output: join-unicode-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "exact maxOutputBytes boundary retains native output: raw-quota-reference",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "exact maxValueBytes boundary retains native output: raw-quota-reference",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxInputBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxValueBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxOutputBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxSourceBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxDepth",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxAstDepth",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxSteps",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxResults",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "uncatchable quota: maxCollectionSize",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "raw backpressure precedes later generator error and cancels blocked write",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "partial multibyte input cancels pending read and observes late rejection",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "cancellation interrupts separator generation before quota exhaustion",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "name": "pre-aborted execution does not acquire input",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: empty:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: empty:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: empty:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: empty:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: empty:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blank:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blank:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blank:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blank:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blank:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blanks:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blanks:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blanks:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blanks:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: blanks:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: lf:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: lf:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: lf:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: lf:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: lf:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: partial:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: partial:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: partial:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: partial:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: partial:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: crlf:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: crlf:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: crlf:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: crlf:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: crlf:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: unicode:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: unicode:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: unicode:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: unicode:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: unicode:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: bom:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: bom:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: bom:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: bom:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: bom:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: controls:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: controls:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: controls:-Rr",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: controls:-Rsj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: controls:-Re",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: long-options",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: join-output-long",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: join-nonstrings",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: join-then-raw",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: raw-then-join",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: status-false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: status-null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: status-empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: status-prior",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: null-slurp",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: null-raw",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: files:-Rc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: files:-Rsc",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: files:-Rj",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: files:-Rns",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "name": "raw native: null-missing-file",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 0 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 1 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 2 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 3 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 4 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 6 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 7 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 8 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 9 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 10 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 11 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 12 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 13 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 17 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 18 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "strict malformed JSON 19 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "valid large exponent 20 across chunk boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "malformed suffix preserves completed prefix but slurp remains atomic",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 0 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 1 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 2 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 3 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 4 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 5 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 6 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 7 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 8 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 9 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 10 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 11 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "preflight 12 acquires no input or data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "null input ignores invalid stdin and missing data files",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "virtual argv preserves NUL without invoking a host process",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "empty last remains distinct from empty first under exit-status mode",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "result and UTF-8 output limits preserve exact emitted prefixes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "limits cannot be swallowed by optional filters or hidden products",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "bounded generators remain lazy after index and slice fixes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "stalled reads and writes abort and observe late host rejections",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "CPU expansion cooperatively observes cancellation",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "name": "seeded JSON roundtrips tolerate every selected byte split",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 1",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 2",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 3",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 4",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 5",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 6",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 7",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 8",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 9",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 10",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 11",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 12",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 13",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 14",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 15",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 16",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 17",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 18",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 19",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 20",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 21",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 22",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 23",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 24",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 25",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 26",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 27",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 28",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 29",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "CLI stream/status matrix 30",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "whole stream, every byte, and every two-way UTF-8 split agree",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "compile errors precede stdin iterator creation and data-file effects",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "null-input ignores stdin and data files, but still compiles",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "virtual files, relative -f, input order, and filesystem signal propagation",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "bounded readFile fallback supplies signal and explicit maxBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "name": "plugin definitions, duplicate registration, replacement, and immutable defaults",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "name": "compact JSON byte accounting is exact at container boundaries",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "name": "depth limits cover inputs, constructed outputs, and source AST",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "name": "limits protect hidden Cartesian expansion, collections, and emitted results",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "name": "input, source, output, slurp and result budgets enforce boundary values",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "name": "hazardous expansion cases have a one-second killable outer deadline",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: pair:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nulls:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: mixed:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: unicode:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: emptyObject:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedArray:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nestedObject:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nullInput:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:\"-\"",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:false",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:1",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:[]",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: stringInput:(\"-\",\":\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-object",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-true",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton-object-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty-object-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: booleans",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: all-null",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty-strings",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: input-bound-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: object-bound-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-iteration",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-duplicates",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty-separator-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: singleton-separator-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-error-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: empty-separator-error-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: separator-type-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: outer-prefix-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: optional-error-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: optional-type-prefix",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: first-lazy",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: first-empty-lazy",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: first-million-separators",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: limit-separators",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: limit-zero",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: null-empty-lazy",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: null-error-order",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: nested-empty-lazy",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: multi-input-cartesian",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: generator-with-filter",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-in-assignment",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-computed-index",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-empty-last",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-numeric-input",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-bool-input",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: decimal-lexeme",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: tiny-exponent",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: large-exponent",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: raw-output",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: join-output",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: exit-empty-string",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: exit-no-results",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: raw-slurp-composition",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "name": "join native: json-slurp-composition",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: lines",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: empty-input",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: empty-both",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: empty-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: no-match",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: entire-match",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: longer-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: leading",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: trailing",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: repeated",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: all-separators",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: multichar",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: overlap",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: overlap-repeat",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-dot",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-pattern",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-bracket",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-backslash",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-anchor",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: literal-alternative",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: astral-empty-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: multibyte-empty-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: combining-not-graphemes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: astral-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: multibyte-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: no-normalization",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: nul-separator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: nul-input",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: nul-multichar",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: nul-only",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: crlf",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: controls",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-0",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-0",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-1",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-1",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-2",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-2",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-3",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-3",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-4",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-4",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-5",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-5",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-6",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-6",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-7",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-7",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-input-8",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: invalid-separator-8",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: both-invalid",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: separator-generator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: separator-input-context",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: separator-empty-generator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: generator-valid-then-invalid",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: generator-invalid-first",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: generator-error-after-output",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: generator-error-before-typecheck",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: input-generator",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: input-generator-error-order",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: optional-error-resume",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: optional-type-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: first-stops-generator-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: limit-stops-generator-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: collection-discards-partial-on-error",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: generator-cartesian-order",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: matrix-raw-lines",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: raw-empty",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command native: raw-nul-output",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command output cap preserves complete earlier results only",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command allows shrinking intermediate arrays before output",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split optional cannot suppress collection budgets",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split separator generators share the command result budget",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split rejects out-of-scope arity: split(\",\"; \"g\")",
+    "timeoutUnchanged": true,
+    "identicalCallback": false,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command cancellation during literal scan",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command cancellation during separator preprocessing",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split command cancellation during code-point expansion",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split respects output backpressure before later separator errors and observes late rejections",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split optional cannot suppress maxSteps",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "name": "split optional cannot suppress maxValueBytes",
+    "timeoutUnchanged": true,
+    "identicalCallback": true,
+    "otherwiseUnchangedSyntheticCallsAndAssertions": false
+  }
+]

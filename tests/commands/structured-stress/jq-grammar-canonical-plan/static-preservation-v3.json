@@ -1,0 +1,653 @@
+[
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 41,
+    "bytes": 52,
+    "sha256": "0a937a5bfa4835908447f125dc9498e1b7bf9a77a63f51cf9a8cbddd736763bb",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 94,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 128,
+    "bytes": 69,
+    "sha256": "0baccc3c094edf165214af1be45e6160bbcd58ca8c2f67693a0e75270469aee6",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 198,
+    "bytes": 77,
+    "sha256": "7286777aceab65343ea3491ad79d46b638ae868a919ec38fe160d93cf699605f",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 349,
+    "bytes": 142,
+    "sha256": "8f8fe6d67abf07593c7e7c548fc2a2219da56d967463699d7c384d3b20c0fea5",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 493,
+    "bytes": 589,
+    "sha256": "e8a83e90541d0892962092bc2b5ee6b1918e72b9f10aabdeb8a61271582741d1",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 1084,
+    "bytes": 514,
+    "sha256": "2c294c48fa6ebeaa43ac1117c6bb8f7efaaec54275a6cf084d830313f5630169",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 2357,
+    "bytes": 1021,
+    "sha256": "bc77fa8e066f917700f8af3dd5844e645033a1bcc8e97a23a49bbe25649bc978",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 3380,
+    "bytes": 861,
+    "sha256": "03e50512e9d9dfb6512b33493a8407e664333b8c8c26a5a4587e88faad471d7c",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 4242,
+    "bytes": 540,
+    "sha256": "973f71de555c312de3c8186aaed99e88340a4f7e2df8ca13a1ba9011c189e839",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 4784,
+    "bytes": 1409,
+    "sha256": "9a0df8778c70d2797bf9f434f444ef6e6c2dcec5ab7e71f430b36de90cf8ff57",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 6195,
+    "bytes": 1118,
+    "sha256": "f2ba8bdc89f362539101191e74fe343584cff8eb8b94371e17c88bacd2816b2d",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 7315,
+    "bytes": 631,
+    "sha256": "be902522b5e9440571a2469a54849bf8e4b93af651c6b0588fca8889ffe29b74",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+    "startByte": 7948,
+    "bytes": 407,
+    "sha256": "7f08ce45d2af90755f6ef69d7a9b06314ae35f849f04be9726bbdfb0521b9cb1",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 41,
+    "bytes": 39,
+    "sha256": "7571c7236d81e917e5ef265d146901817322e3131c2855da79e3b0a84ea5374e",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 81,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 115,
+    "bytes": 67,
+    "sha256": "7ccc91e4c690d02be98ccca61e0b0e9b4248d86f586522bec692d355ec2b7a31",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 224,
+    "bytes": 229,
+    "sha256": "90052de2e5c53b77d4a6933567038e7d5f099c3423637e5555ed2b2c9977bcca",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 454,
+    "bytes": 128,
+    "sha256": "d35397a8294812600c9288c2c08f403a2519176c454908f8dd2e9eac1200301b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/raw-input.test.ts",
+    "startByte": 583,
+    "bytes": 166,
+    "sha256": "60bf4e164220d724cbef03c0c81fbcc56a88ec547705fba713d1504bb22bea41",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 41,
+    "bytes": 73,
+    "sha256": "292b8090ec3f379f8006e491f808be9b1c409160c578d12d9f0b6bfed5fbc189",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 115,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 149,
+    "bytes": 82,
+    "sha256": "43b79fc7fb6f8126af442e80566a60e553f9dd7fee0ed772ee1eef991c167eb1",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 232,
+    "bytes": 67,
+    "sha256": "7ccc91e4c690d02be98ccca61e0b0e9b4248d86f586522bec692d355ec2b7a31",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 341,
+    "bytes": 177,
+    "sha256": "de863220d817130e7466772ea5064656e1fe2496bcdf25cb324cfb0b7bc15bc3",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 520,
+    "bytes": 275,
+    "sha256": "eb6933ab02c98a1d05fd7c8a990d7daacc8a5f36f0b186be52ce8ce363a20a44",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 1403,
+    "bytes": 456,
+    "sha256": "78821dfa39f955bf1a30cbc616849174c80aa4f6cfdcf8efe71c0db12eb1486b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 2363,
+    "bytes": 454,
+    "sha256": "b958a89d60d1b2e206828d7447a5e490ab6cd303f3fd7b32def63df195e665c1",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 2818,
+    "bytes": 869,
+    "sha256": "046e9fc661c376297b42a167835852a8b267bbca26acc1fa904e34b61b7f194b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 3689,
+    "bytes": 331,
+    "sha256": "6e14806468d1f4ee2b3db548b385847ea160f0a6c6177688dd54dd95cec9e72a",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 4022,
+    "bytes": 242,
+    "sha256": "3aff6406ec539e63086358e633f17e871fa12c163f0723bf8d094f39ffea7de9",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 4266,
+    "bytes": 296,
+    "sha256": "fc84f6ff4643e9d2e1d4a2dfc65a3e75d0154f0a92c11f7f7a986565c9d9f976",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 4564,
+    "bytes": 672,
+    "sha256": "8d6da0c6f1511bf355a71ffe061ac48a15092749476446365e1cc7061a936fcc",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 5238,
+    "bytes": 877,
+    "sha256": "39b9b835d3d33876e910f7be6be7727c2490c97b56c834ab51d37a78ae2b6a91",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 6117,
+    "bytes": 448,
+    "sha256": "07ad02a4871b38291b232ec6e5ddd2f0bdff3cd0ed0eabe76b0cc16b2293eff5",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 6567,
+    "bytes": 1084,
+    "sha256": "2e24fb9e85f1d011981b3d997b75c0c2a8404c4677c639ff6360f11879522379",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 7653,
+    "bytes": 473,
+    "sha256": "6164ea89b0540b00b324ed24ce324d725ca0836fab41dc579369713cd5779bd7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/safety.test.ts",
+    "startByte": 8128,
+    "bytes": 1251,
+    "sha256": "7a7e636890343fe0d65a952000f65a4950d5a280324f215e4e07b725a347619d",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 41,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 75,
+    "bytes": 122,
+    "sha256": "4ef206c724fd7adf91976d075a7821ac14ae8588b4bd0a6cf9db71865329da87",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 198,
+    "bytes": 100,
+    "sha256": "8f3e775c3bf02412334da136afd147eb0bd9cb3c21774b3fa4910b4f4cca5a7d",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 299,
+    "bytes": 67,
+    "sha256": "7ccc91e4c690d02be98ccca61e0b0e9b4248d86f586522bec692d355ec2b7a31",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 412,
+    "bytes": 1697,
+    "sha256": "2721cdb618ea3bf2b8cab93fdf4e85c591119f21a431f94b88492673a8d2d4c7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 2110,
+    "bytes": 281,
+    "sha256": "6dfea668f88548214868664205cecb7f79127f8f0d17e3514c52df5cd8cfde51",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 2393,
+    "bytes": 651,
+    "sha256": "2cfa5c72a7c8f5a9daa84e28f37a6263b827aac80c0ec06b5883543949cb93f4",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 4195,
+    "bytes": 827,
+    "sha256": "086a6423da8aa4933a5fbe979fc1a9df9dce9a190cf1890a950a58e8bef4474c",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 5024,
+    "bytes": 416,
+    "sha256": "0fc09928e43732c380dd348a9b4b7a32eda9f6d125bba7eba509abb63ff669c7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 5442,
+    "bytes": 1262,
+    "sha256": "5113e89e94d6fcf30d3aa597eaa6cc58d566258082ed4207de1bf751009ae3c7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 6706,
+    "bytes": 1160,
+    "sha256": "712dacfe6badb50c0e5f80c88527c70f6f77b6c6a1b1269948619d27df48ecd7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/cli.test.ts",
+    "startByte": 7868,
+    "bytes": 855,
+    "sha256": "6658d3a78ec27e06b24f929bdf9cffc99d0fbad5508596f2e4a216fffc116e42",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 41,
+    "bytes": 47,
+    "sha256": "096b44f386db1877e4f98a4fc9bd2fdc228bb63bd32bed1a22c407ef9b7765f5",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 89,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 123,
+    "bytes": 85,
+    "sha256": "ad0120311ee62eaefb7617df2c73e8cca557963e2dfbc8eee11618d1c3db5870",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 209,
+    "bytes": 74,
+    "sha256": "9653ed2009af03dc3a07e493f21b2db557ea073a40d01fe8b3d2828eb407fffe",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 329,
+    "bytes": 697,
+    "sha256": "29524175178251597ba42c43c02b3e8d5ae8fdce1f73fc7085ca7bd164dc1b28",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 2460,
+    "bytes": 795,
+    "sha256": "160ce1124c8f86e89eaa77d0811cea4847d25a21c72187a37d01c7667c137938",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 3257,
+    "bytes": 1045,
+    "sha256": "0d6a16b87b0efdf6ba57d31a7661f60d9dc1637da1243f65c3efc61da80344c5",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 4304,
+    "bytes": 1180,
+    "sha256": "b0eb54d684477d008ebcc1bee19e36f822592e9a6cd3b01a522ce61cca5dffc1",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured/resources.test.ts",
+    "startByte": 5486,
+    "bytes": 506,
+    "sha256": "241071cfb7e48e1f6fa3c3c2e3f1d6702ec50c35b4116f7ad843325a4315cf4c",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "startByte": 41,
+    "bytes": 39,
+    "sha256": "7571c7236d81e917e5ef265d146901817322e3131c2855da79e3b0a84ea5374e",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "startByte": 81,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "startByte": 170,
+    "bytes": 110,
+    "sha256": "4f24d47b6d964ff67ce3bef28894d7601dffb3051841c85aad9a8a6c09533db2",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/join.test.ts",
+    "startByte": 281,
+    "bytes": 124,
+    "sha256": "2154e76044a7bd67f69d3914776db373160a96d0d491f246dc0837e8349cea03",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 41,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 75,
+    "bytes": 73,
+    "sha256": "292b8090ec3f379f8006e491f808be9b1c409160c578d12d9f0b6bfed5fbc189",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 190,
+    "bytes": 41,
+    "sha256": "830200f6a7f8ddee13b7688d498e6e954571fd81cc53e4030a5a9fd767b46ebb",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 233,
+    "bytes": 603,
+    "sha256": "8810dd43c71d2ebdf6a8474070c34307b90eb2ad0117357da50942fb38c0206c",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 838,
+    "bytes": 375,
+    "sha256": "bf260ebe31c436234fdd6d2c273a35cd4421927d642191e36edfcef4811d6de7",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 1215,
+    "bytes": 305,
+    "sha256": "b6decedbceaeee5f57fe912d665a19423da98bf93beb871a9377d1d773707c64",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 1522,
+    "bytes": 350,
+    "sha256": "f5b91e80ef05fed29f037c1b94df6623d5a9b40cf5d44ac182cff8c2f80aaf77",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 1874,
+    "bytes": 362,
+    "sha256": "4f8df660319511d165bf20aa01fb0a50fed9098de249b1788874269fbc7b8ef0",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 2714,
+    "bytes": 950,
+    "sha256": "c387701c01891a92cf47700b075a2382ebc43c235da0d4d64b0d7fe4fe9b743d",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 3666,
+    "bytes": 911,
+    "sha256": "51170236d805f596507c53b9114576ae1162f9308832c827cf71ece8463af355",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+    "startByte": 4579,
+    "bytes": 466,
+    "sha256": "137e0f59ef6e1df3b2b6d39635aa755b05b8c022837deaa1246f8e3388b69362",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 0,
+    "bytes": 40,
+    "sha256": "57f1709746dd7dd60c275d2834f4d96fb0d5da730b4974371e98141d980b3849",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 41,
+    "bytes": 33,
+    "sha256": "a317f8408e6b56d255cd9e77bc1e599c7ef4874ad632598cfaa3d8f64242bb92",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 75,
+    "bytes": 52,
+    "sha256": "0a937a5bfa4835908447f125dc9498e1b7bf9a77a63f51cf9a8cbddd736763bb",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 128,
+    "bytes": 78,
+    "sha256": "9b5063d39d91b21642ece90b265275266decc312c0d92cbfb40c525fe76ff434",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 207,
+    "bytes": 72,
+    "sha256": "60b8bcd583bc297bdd97b1bb2ba59609dc7a6b12144ce227772dce6495ab6d6c",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 280,
+    "bytes": 80,
+    "sha256": "725b1163ee26a9fad39e0db96410800146c13699f4dbb1af2a1f0755c8c5037d",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 362,
+    "bytes": 370,
+    "sha256": "de2dd6070e44852d9c756d42a46fe76cf26c6c4a997426bdf953f438a7582c42",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 734,
+    "bytes": 381,
+    "sha256": "fbb01be949bd87694b737d0d8228278a6f204604bc6bf3be3d3f0f205cbd9baa",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 1117,
+    "bytes": 427,
+    "sha256": "a8c6bc7730c55b259fec15ace46bf7a7a8755c2b3adafc54700dc45de200831b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 2284,
+    "bytes": 720,
+    "sha256": "e21aa285d2b7a7e2d6adf96cb45f6032fbb8f8925f4c87d6d691b1e87084a08b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 3006,
+    "bytes": 569,
+    "sha256": "e1510338d59ffdcfbb30ac4848a56d2ff78fe94e04efd11c3766a1ce73d85f3b",
+    "identical": true
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "startByte": 3577,
+    "bytes": 544,
+    "sha256": "bf608c2721066513422f821e10640ebb15fbbba39c10358eeeb604564939e875",
+    "identical": true
+  }
+]

@@ -1,0 +1,186 @@
+{
+  "version": 3,
+  "recordedAt": "2026-08-27T02:28:17.582Z",
+  "applied": false,
+  "reviewAuthorized": false,
+  "sourceAcceptance": {
+    "status": "separate leaf; not certified here",
+    "userSuppliedCommit": "b9187c0",
+    "userSuppliedStructuredSha256": "120a10c34d96b26f584c6e4349ef9098c0537d76952078e70e9ce6ab5c3f0176"
+  },
+  "artifacts": [
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/native-v3.patch",
+      "sha256": "c83cd9adabd99925007bb79332899913829166ac21a6a25353dcfd199196627d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/host-conditional-v3.patch",
+      "sha256": "18abf8765ce8474b30b0704063743f2e93217a19810a568160b4c30736187f0b"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/patch-manifest-v3.json",
+      "sha256": "aae89dfeefab84c50ef91a84c1c1608d659c0037ac96eb93c5f828ab32c938ce"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/row-map-final-v3.json",
+      "sha256": "3008ddc08195b655adfd17f155deecfbfe147fc517ca6b714b60f377f7046564"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/host-row-v3.json",
+      "sha256": "c45b5dcc882106454f721c3fcbdda2ab6d0d76e709e5a47cb331261852465328"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/proof-links-v3.json",
+      "sha256": "8459fd6bd023060cd6691db5ac52cff10bf71648b494fe7ae4c0e6f136169ceb"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/native-v3.json",
+      "sha256": "83ad852fbd797c4e73bc7b2937f408286d2bb28f245488dc33b3cfa26fc5faff"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/verification-v3-final.json",
+      "sha256": "4616499c5ea3a719de731c6200c70e785b5d1bfc5f1444ffa437cc5f15710fa0"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/invocation-schedules-v3.json",
+      "sha256": "6674ce75ec057d009afabbcbbaff6e16064e20c3d2c00397173dc0dcb00e6ebf"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/mutation-checks-v3.json",
+      "sha256": "86c3b0f7d38067ae9bc1a18dc24f6a27fdf66d81a3f57d99138874fa67e490d3"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/unrelated-preservation-v3-final.json",
+      "sha256": "58b30bae24c047a47cb83c0801dd026b6eaafe808889eca6a6c67875545ccc37"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/static-preservation-v3.json",
+      "sha256": "369b5184cb90713b89025d556896c0f654d6dbb6bc891f34ab9e574556fdf2e3"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/inputs-before.json",
+      "sha256": "36c4fb29f8d0b45679df6ba5e8aa84614b25d9a9dff8dd6d9f4b1af1895382d8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/inputs-after.json",
+      "sha256": "d4060d64c5b6bf74b83e5ec8f7ecc45e3e4d398593faa6ccb41733cb2f8e02a0"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/pinned-review-v3.json",
+      "sha256": "f9b0d3b706fd8b94162cc4b20b7f0fe76dafde99e9d93ced6a9741321d0d471e"
+    }
+  ],
+  "targets": [
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-native-v3.json",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "62ca039b1fb3bb517d21d5499e4cd8467a80349f597a1231e8380368530e9e62",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.json.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-native-v3.ts",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "6882ecf1406ab085718b7da9cd1d90e448522c66039a3784c14a21f45fd1de2a",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "0a97ec591a786bc68cee14168cc7d09af312faa50cc6ab259e6fced471fac4d7",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/harness.ts",
+      "patch": "native",
+      "beforeSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+      "afterSha256": "47007ff2be4249e70a250084ca10f40ac2fe9108918326041169e658b7d26e1e",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/harness.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/harness.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured/helpers.ts",
+      "patch": "native",
+      "beforeSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+      "afterSha256": "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/helpers.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/helpers.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "patch": "native",
+      "beforeSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "afterSha256": "93337441d16dfe84004576b8ce7ee07f7cd4851715fd164cf18c2eb791b5161b",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/independent-increment/safety.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "patch": "native",
+      "beforeSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "afterSha256": "11ada84fe790a81b335d43b9776c2f0ec6fe08ebe0e9fa2558695f3444ac268f",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/raw-input.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/raw-input.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "patch": "native",
+      "beforeSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "afterSha256": "ba9c576a8173a9aa5ff8545f88b7288faa4fee9fe2919648861a5286326b3fee",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/safety.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "patch": "native",
+      "beforeSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "afterSha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/cli.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/cli.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "patch": "native",
+      "beforeSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "afterSha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/resources.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "patch": "native",
+      "beforeSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+      "afterSha256": "91c700cc536e17fffcaa2818fe43639a0c4108ebf6d515fbff30afed18e48146",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/join.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/join.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "patch": "native",
+      "beforeSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+      "afterSha256": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/split-increment/command.test.ts.txt"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+      "patch": "host",
+      "beforeSha256": "34d4a0d819eb5bcbdd7bf65b6d7daa370fe975545b960976e95f8f14086a8528",
+      "afterSha256": "6e5b793461e41c8b392c84db81bebb49340b7d3baea4946c68f8142d830157be",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-host/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt"
+    }
+  ],
+  "gates": [
+    "Independent review of exact native patch and both test-only helpers",
+    "Two unavailable literal binary-file checks require independently authorized resolution",
+    "Separate stable source/build acceptance; no source imports here",
+    "Explicit host contract ruling before any conditional host patch application",
+    "Separate root authorization and later TEST-ONLY application commit; never apply from this proposal authoring step"
+  ]
+}

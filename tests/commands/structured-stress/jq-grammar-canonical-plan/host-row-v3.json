@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "applied": false,
+  "conditional": true,
+  "authority": "Source reviewer must decide host JqError sink-identity contract; no native proof and no assumption that old assertion is stale.",
+  "row": {
+    "oldTestPath": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+    "oldTestName": "host stdout failure is never a recoverable filter error: host sink failure",
+    "oldAssertion": "if (error instanceof FsError) await assert.rejects(running, failure => failure === error);\n  else assert.equal((await running).status, 5);",
+    "replacementAssertion": "await assert.rejects(running, failure => failure === error); preserve writes===1, reads===1 and closed; add stderr-write count===0.",
+    "classification": "NON-NATIVE CONTRACT DECISION, not a native-backed retirement. Old test expected a host-thrown JqError to become status5. Latest user explicitly requires sink throw identity/no extra writes; source now preserves it just like FsError EIO/EPIPE and plain Error. Different independent leaf must review this semantic change.",
+    "nativeProof": null,
+    "authority": "Current leaf assignment: Preserve sinkthrowidentity/EPIPE/EIO/noextrawrites/reads/replay.",
+    "authorControls": "limits.test.ts four stdout failure identities; original independent seven stderr failure controls remain unchanged.",
+    "applied": false,
+    "newTestName": "host stdout failure is never a recoverable filter error: host sink failure",
+    "schedule": {
+      "selectedJqErrorExecutions": 1,
+      "sharedLoopEpipeControlExecutions": 1,
+      "writes": 1,
+      "reads": 1,
+      "closed": true,
+      "proposedStderrWrites": 0
+    }
+  }
+}

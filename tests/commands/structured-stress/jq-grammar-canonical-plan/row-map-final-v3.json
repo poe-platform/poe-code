@@ -1,0 +1,6410 @@
+{
+  "version": 3,
+  "applied": false,
+  "rows": [
+    {
+      "number": 1,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+      "newTestName": "native UTF-8 replacement remains chunk invariant: raw-lone-continuation",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          10
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 12
+      },
+      "constituents": [
+        {
+          "id": "strict-raw-lone-continuation",
+          "argv": [
+            "-Rc",
+            "--",
+            "."
+          ],
+          "inputHex": "6f6b0a8061667465720a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              10
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 12
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "strict-raw-lone-continuation",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0a8061667465720a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+      "newTestName": "native UTF-8 replacement remains chunk invariant: raw-truncated",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          5
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 7
+      },
+      "constituents": [
+        {
+          "id": "strict-raw-truncated",
+          "argv": [
+            "-Rj",
+            "--",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6f6befbfbd",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              5
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 7
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "strict-raw-truncated",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0af09f",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+      "newTestName": "native UTF-8 replacement remains chunk invariant: raw-bad-continuation",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          4
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 6
+      },
+      "constituents": [
+        {
+          "id": "strict-raw-bad-continuation",
+          "argv": [
+            "-Rc",
+            "--",
+            "."
+          ],
+          "inputHex": "e282410a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd41220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              4
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 6
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "strict-raw-bad-continuation",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "e282410a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+      "newTestName": "native UTF-8 replacement remains chunk invariant: json-bad-string",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          17
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 19
+      },
+      "constituents": [
+        {
+          "id": "strict-json-bad-string",
+          "argv": [
+            "-c",
+            "--",
+            "."
+          ],
+          "inputHex": "226f6b220a2280220a226166746572220a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              17
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 19
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "strict-json-bad-string",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "226f6b220a2280220a226166746572220a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "oldTestName": "raw native: record-error-prefix",
+      "newTestName": "raw native: record-error-prefix",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "record-error-prefix",
+          "argv": [
+            "-Rc",
+            ".,1/0"
+          ],
+          "inputHex": "780a790a",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "2278220a2279220a",
+            "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "record-error-prefix",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "780a790a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "oldTestName": "raw native: file-unicode:-Rc",
+      "newTestName": "raw native: file-unicode:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {
+          "unicode-start": "f09f"
+        },
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "file-unicode:-Rc",
+          "argv": [
+            "-Rc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "files": {
+            "unicode-start": "f09f"
+          },
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {
+              "unicode-start": "f09f"
+            },
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "file-unicode:-Rc",
+            "route": "binary-file-input-via-inherited-fd"
+          },
+          "originalProofInputHex": "98800a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "oldTestName": "raw native: file-unicode:-Rsc",
+      "newTestName": "raw native: file-unicode:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {
+          "unicode-start": "f09f"
+        },
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "file-unicode:-Rsc",
+          "argv": [
+            "-Rsc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "files": {
+            "unicode-start": "f09f"
+          },
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {
+              "unicode-start": "f09f"
+            },
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "file-unicode:-Rsc",
+            "route": "binary-file-input-via-inherited-fd"
+          },
+          "originalProofInputHex": "98800a",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "oldTestName": "raw native: invalid:0:-Rc",
+      "newTestName": "raw native: invalid:0:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:0:-Rc",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0ac0af",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:0:-Rc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0ac0af",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "oldTestName": "raw native: invalid:0:-Rsc",
+      "newTestName": "raw native: invalid:0:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:0:-Rsc",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0ac0af",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:0:-Rsc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0ac0af",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "oldTestName": "raw native: invalid:1:-Rc",
+      "newTestName": "raw native: invalid:1:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:1:-Rc",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0aeda080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:1:-Rc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0aeda080",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "oldTestName": "raw native: invalid:1:-Rsc",
+      "newTestName": "raw native: invalid:1:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:1:-Rsc",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0aeda080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:1:-Rsc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0aeda080",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "oldTestName": "raw native: invalid:2:-Rc",
+      "newTestName": "raw native: invalid:2:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:2:-Rc",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0af4908080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:2:-Rc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0af4908080",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "oldTestName": "raw native: invalid:2:-Rsc",
+      "newTestName": "raw native: invalid:2:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:2:-Rsc",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0af4908080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:2:-Rsc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0af4908080",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "oldTestName": "raw native: invalid:3:-Rc",
+      "newTestName": "raw native: invalid:3:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:3:-Rc",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:3:-Rc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0af09f",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "oldTestName": "raw native: invalid:3:-Rsc",
+      "newTestName": "raw native: invalid:3:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:3:-Rsc",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:3:-Rsc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0af09f",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "oldTestName": "raw native: invalid:4:-Rc",
+      "newTestName": "raw native: invalid:4:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:4:-Rc",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0a80",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:4:-Rc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0a80",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "oldTestName": "raw native: invalid:4:-Rsc",
+      "newTestName": "raw native: invalid:4:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "constituents": [
+        {
+          "id": "invalid:4:-Rsc",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0a80",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "invalid:4:-Rsc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6f6b0a80",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "oldTestName": "strict malformed JSON 14 across chunk boundaries",
+      "newTestName": "native JSON acceptance 14 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "malformed-14",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754443303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "malformed-14",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "225c754443303022",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "oldTestName": "strict malformed JSON 16 across chunk boundaries",
+      "newTestName": "native JSON acceptance 16 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "stale-policy",
+      "historicalBaseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "malformed-16",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "6e756c6c00",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "malformed-16",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "6e756c6c00",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "oldTestName": "invalid UTF-8 never becomes replacement text",
+      "newTestName": "invalid UTF-8 JSON tokens preserve prefix and native diagnostics",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "diagnostic-mixed",
+      "historicalBaseline": {
+        "probes": 5,
+        "exact": 0,
+        "diagnosticOnly": 5,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          64
+        ],
+        "executions": 15,
+        "completedPrefixHex": "7b7d0a"
+      },
+      "constituents": [
+        {
+          "id": "outside-string-0",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac0af",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "outside-string-0",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0ac0af",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "outside-string-1",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "outside-string-1",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0aeda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "outside-string-2",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "outside-string-2",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "outside-string-3",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af09f",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "outside-string-3",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af09f",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "outside-string-4",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0a80",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "outside-string-4",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0a80",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "oldTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "newTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "path": "tests/commands/structured/cli.test.ts",
+      "classification": "diagnostic-mixed",
+      "historicalBaseline": {
+        "probes": 36,
+        "exact": 12,
+        "diagnosticOnly": 24,
+        "statusOrStdout": 0
+      },
+      "schedule": {
+        "everyInclusiveCutFor18Inputs": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            23
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            0,
+            24
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            25
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            25
+          ]
+        ],
+        "bytewiseFor18Inputs": true,
+        "wholeSlurpFor18Inputs": true,
+        "executions": 297,
+        "exactStderrAlsoRequiredForSingleAndSlurp": true
+      },
+      "constituents": [
+        {
+          "id": "prefix-0-0--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-0--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0aff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-0--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-0--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0aff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-0--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-0--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310aff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-0--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-0--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310aff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-0--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-0--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-0--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-0--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-1--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-1--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0ac3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-1--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-1--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0ac3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-1--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-1--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310ac3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-1--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-1--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310ac3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-1--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-1--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-1--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-1--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-2--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-2--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0ac328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-2--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-2--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0ac328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-2--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-2--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310ac328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-2--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-2--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310ac328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-2--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-2--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-2--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-2--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-3--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-3--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0aeda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-3--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-3--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0aeda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-3--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-3--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310aeda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-3--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-3--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310aeda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-3--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-3--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-3--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-3--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-4--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-4--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-4--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-4--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-4--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-4--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310af0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-4--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-4--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310af0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-4--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-4--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-4--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-4--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-5--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-5--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-0-5--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-0-5--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b7d0af4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-5--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-5--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310af4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-1-5--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-1-5--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "22f09f9880220a310af4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-5--c",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-5--c",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "prefix-2-5--sc",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "schedule": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "prefix-2-5--sc",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "oldTestName": "valid large decimals survive while malformed JSON and division by zero fail",
+      "newTestName": "native JSON grammar, large decimals and division diagnostics",
+      "path": "tests/commands/structured/resources.test.ts",
+      "classification": "resource-mixed-composite",
+      "historicalBaseline": {
+        "probes": 29,
+        "exact": 13,
+        "diagnosticOnly": 10,
+        "statusOrStdout": 6
+      },
+      "schedule": {
+        "executions": 29,
+        "jsonInputs": 15,
+        "invalidByteInputs": 4,
+        "divisionFilters": 3,
+        "largeDecimalInputs": 3,
+        "arithmeticAndConversionFilters": 3,
+        "surrogatePair": 1,
+        "customQuotaAssertionsInThisTest": 0,
+        "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+      },
+      "constituents": [
+        {
+          "id": "resource-json-0",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "4e614e",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-0",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "4e614e",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-1",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "496e66696e697479",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-1",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "496e66696e697479",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-2",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "2d496e66696e697479",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-2",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "2d496e66696e697479",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-3",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754438303022",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-3",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "225c754438303022",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-4",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754443303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-4",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "225c754443303022",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-5",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "5b7d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-6",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-6",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a7d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-7",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "3031",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-7",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "3031",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-8",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "312e",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-8",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "312e",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-9",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "3165",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-9",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "3165",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-10",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7472756566616c7365",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-10",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7472756566616c7365",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-11",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "226261640a737472696e6722",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-11",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "226261640a737472696e6722",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-12",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b312c5d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-12",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "5b312c5d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-13",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a302c7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-13",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a302c7d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-json-14",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "efbbbf30",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "300a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-json-14",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "efbbbf30",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-large-0",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "316539393939",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-large-0",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "316539393939",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-large-1",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b3165393939395d",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-large-1",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "5b3165393939395d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-large-2",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a3165393939397d",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "7b2261223a31452b393939397d0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-large-2",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "7b2261223a3165393939397d",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-utf8-0",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-utf8-0",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "ff",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-utf8-1",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-utf8-1",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "c3",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-utf8-2",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-utf8-2",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "c328",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-utf8-3",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-utf8-3",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "eda080",
+          "helperDefaultCorrected": false
+        },
+        {
+          "id": "resource-filter-0",
+          "argv": [
+            "-nc",
+            "1/0"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-0-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-filter-1",
+          "argv": [
+            "-nc",
+            "0/0"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-1-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-filter-2",
+          "argv": [
+            "-nc",
+            "1%0"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-2-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-filter-3",
+          "argv": [
+            "-nc",
+            "1e308*1e308"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-3-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-filter-4",
+          "argv": [
+            "-nc",
+            "\"1e9999\"|tonumber"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-4-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-filter-5",
+          "argv": [
+            "-nc",
+            "\"[1e9999]\"|fromjson"
+          ],
+          "inputHex": "6e756c6c",
+          "files": {},
+          "implicitDefaultInput": true,
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-filter-5-actual-default-input",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "",
+          "helperDefaultCorrected": true
+        },
+        {
+          "id": "resource-large-3",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c75443833445c754445303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22f09f9880220a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "resource-large-3",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "225c75443833445c754445303022",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "oldTestName": "strict malformed JSON 5 across chunk boundaries",
+      "newTestName": "native JSON acceptance 5 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "historicalBaseline": "not part of historical22; do not inflate baseline",
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "token-282",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b30315d",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b315d0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "token-282",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "5b30315d",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "oldTestName": "strict malformed JSON 15 across chunk boundaries",
+      "newTestName": "native JSON acceptance 15 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "historicalBaseline": "not part of historical22; do not inflate baseline",
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "bom-737",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "efbbbf30",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "300a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "bom-737",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "efbbbf30",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "oldTestName": "strict malformed JSON 21 across chunk boundaries",
+      "newTestName": "native JSON acceptance 21 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "historicalBaseline": "not part of historical22; do not inflate baseline",
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "token-176",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "2d496e66696e697479",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "token-176",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "2d496e66696e697479",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "oldTestName": "strict malformed JSON 22 across chunk boundaries",
+      "newTestName": "native JSON acceptance 22 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "historicalBaseline": "not part of historical22; do not inflate baseline",
+      "schedule": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "constituents": [
+        {
+          "id": "token-0",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "4e614e",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "schedule": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+            "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8",
+            "id": "token-0",
+            "route": "literal-argv-stdin"
+          },
+          "originalProofInputHex": "4e614e",
+          "helperDefaultCorrected": false
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "oldTestName": "join native: join-zero-arity",
+      "newTestName": "join native: join-zero-arity",
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "classification": "additional-native-compiler-diagnostic",
+      "schedule": {
+        "executions": 1,
+        "inputKind": "literal input"
+      },
+      "constituents": [
+        {
+          "id": "join-zero-arity",
+          "argv": [
+            "-c",
+            "--",
+            "join"
+          ],
+          "inputHex": "5b5d",
+          "files": {},
+          "expected": {
+            "status": 3,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json",
+            "sha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+            "id": "join-zero-arity",
+            "vectorSha256": "da8647a19179b0f0a4149132eee17a8cdfbd2d51b6ce05c4f9b7bf1ee599c534"
+          }
+        }
+      ]
+    },
+    {
+      "number": 28,
+      "oldTestName": "join native: join-two-arity",
+      "newTestName": "join native: join-two-arity",
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "classification": "additional-native-compiler-diagnostic",
+      "schedule": {
+        "executions": 1,
+        "inputKind": "literal input"
+      },
+      "constituents": [
+        {
+          "id": "join-two-arity",
+          "argv": [
+            "-c",
+            "--",
+            "join(\"-\";\":\")"
+          ],
+          "inputHex": "5b5d",
+          "files": {},
+          "expected": {
+            "status": 3,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json",
+            "sha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+            "id": "join-two-arity",
+            "vectorSha256": "dba08f5a1b71b0a7c18ca0873f5108db4486ac48c5ec088116aef998f752d46d"
+          }
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "oldTestName": "split rejects out-of-scope arity: split",
+      "newTestName": "split rejects undefined native arity: split",
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "classification": "additional-native-compiler-diagnostic",
+      "schedule": {
+        "executions": 1,
+        "timeoutMs": 3000,
+        "inputAcquisitionMustRemainFalse": true,
+        "inputKind": "throwing iterator; native empty stdin is compiler-only control"
+      },
+      "constituents": [
+        {
+          "id": "canonical-split-zero",
+          "argv": [
+            "split"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 3,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f723a2073706c69742f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a73706c69740a6a713a203120636f6d70696c65206572726f720a"
+          },
+          "proof": {
+            "path": "tests/commands/structured-stress/jq-grammar-author-20260827/native-proposal-arity-frozen.json",
+            "sha256": "7920233fe5a263f95938adde1bbae2000d8f0578c32476c434275a7061de4df3",
+            "id": "canonical-split-zero",
+            "vectorSha256": "97a7ced746a0f30371bdd1f3a82112f77b6ed8c180d99f04e27b9558af234b9a"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,682 @@
+{
+  "date": "2026-08-27T16:13:30.587Z",
+  "candidate": "5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7",
+  "parent": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "original": {
+    "revision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+    "archiveSha256": "9a0b72c1e589e7a9cc051b9c6aa399c558b1046e263e581c52ff7b7fcffcffe4",
+    "canonical": {
+      "tests": 36,
+      "pass": 29,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "resume": {
+      "total": 25,
+      "failures": [
+        "resume-literal-single-optional-argument"
+      ]
+    },
+    "controls": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "build": 0,
+    "strict": 0
+  },
+  "migrated": {
+    "revision": "5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7",
+    "archiveSha256": "cf982e221cd2e31389bd5b5b02f519e4dac7053acc3381aa9fc93f3aee196a9a",
+    "canonical": {
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "resume": {
+      "total": 25,
+      "failures": []
+    },
+    "controls": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "build": 0,
+    "strict": 0
+  },
+  "originalSelectedInputsEqualParent": true,
+  "onlyChangedSourceInputs": [
+    "tests/shell-stress/env-split-author/resume-host.ts",
+    "tests/shell/errexit-host.test.ts",
+    "tests/shell/expanded-gaps-env-host.test.ts"
+  ],
+  "observationsUnchanged": true,
+  "fixtureInputBytesEqual": true,
+  "fixtureInputs": [
+    {
+      "path": "tests/shell-stress/env-split-author/resume-host.ts",
+      "header": "#!/usr/bin/env bash -e",
+      "script": "#!/usr/bin/env bash -e\nprintf forbidden > marker\n",
+      "file": "/work/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"./script\")",
+      "body": "printf forbidden > marker\n",
+      "scriptSha256": "621195344a4da18ebc8004e4a8823bd4da698741a9e6f6355068a8b37406f0fb",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg=="
+    },
+    {
+      "path": "tests/shell/errexit-host.test.ts",
+      "header": "#!/usr/bin/env bash -e",
+      "script": "#!/usr/bin/env bash -e\nprintf BAD\n",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf BAD\n",
+      "scriptSha256": "86b35fd610b7e39cf864287502946261432355bbdf631dae8f9063c34bba46de",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgQkFECg=="
+    },
+    {
+      "path": "tests/shell/errexit-host.test.ts",
+      "header": "#!/usr/bin/env -S bash -e",
+      "script": "#!/usr/bin/env -S bash -e\nprintf BAD\n",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf BAD\n",
+      "scriptSha256": "93dbdca4d22c4664354c2c356b9602546a472d77c7b24919c4270b8330a1b09f",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgQkFECg=="
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "header": "/usr/bin/env bash -e",
+      "script": "#!/usr/bin/env bash -e\nprintf forbidden",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf forbidden",
+      "scriptSha256": "4df56a5458cb6c83f0e70f66d31aab99401c061497f6310e8d235027a83292d5",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "header": "/usr/bin/env -S bash -e",
+      "script": "#!/usr/bin/env -S bash -e\nprintf forbidden",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf forbidden",
+      "scriptSha256": "4cd6ef8ac6283afb8adf58515390ba402d186cc8bd6645ef4ac3ef2a2fbc7d71",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "header": "/usr/bin/env python",
+      "script": "#!/usr/bin/env python\nprintf forbidden",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf forbidden",
+      "scriptSha256": "9d69f961c35a64910c2cb679ee7482d277a75a3e772a0d01a91b512919acd080",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgcHl0aG9uCnByaW50ZiBmb3JiaWRkZW4="
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "header": "/usr/bin/env",
+      "script": "#!/usr/bin/env\nprintf forbidden",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf forbidden",
+      "scriptSha256": "213b5d52942043a068c998b6b5c12786ef82bd83586b7e5c49fb3f96c88c1972",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "header": "/usr/bin/env bash\r",
+      "script": "#!/usr/bin/env bash\r\nprintf forbidden",
+      "file": "/script",
+      "mode": "{ mode: 0o755 }",
+      "exec": "shell.exec(\"/script\")",
+      "body": "printf forbidden",
+      "scriptSha256": "1b9d398ceff4fa0af3e39c79defd9a6b4534eecf3b3468e57998dda466e30bb0",
+      "scriptBase64": "IyEvdXNyL2Jpbi9lbnYgYmFzaA0KcHJpbnRmIGZvcmJpZGRlbg=="
+    }
+  ],
+  "history": [
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/report.json",
+      "sha256": "bc8cf21b3abf3dae5e660bf56d7d82297c0653d45961b5aee45652eb75d8895f",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/native.json",
+      "sha256": "2a08146fe7bf9ba81e0611001f33a0f85d48c20b1671e5cf779fcbc5f1eb0370",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/manifest.json",
+      "sha256": "5d22b56b3f9c72f0e2d39df5443bdea4a3393871b4c4cb5cd1d35db558bb42ed",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/original-assertion-observations.json",
+      "sha256": "85ba9003214cb5c6f546dbea7997b24511c0c0c5edd3eae1f41cc55ae7c3af0a",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/report.json",
+      "sha256": "f0b5469f2637df517555e616e09963029a0cf2b789754bc35d711bfba2de15b8",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/author.tap",
+      "sha256": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/core.tap",
+      "sha256": "18f18ecd1b9f135461695213044b54e4f67c3cd11fa3e0d2707866151ffe8a97",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/scripts.tap",
+      "sha256": "ccafd6ff85ea06c85141100b1de2719280a34abb6fe175ecd01ae6635d3fbf37",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/manifest.json",
+      "sha256": "c52fd834e82127be5d30b761da574913350c5c84e489eacb2ee3f20def8edd1b",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/README.md",
+      "sha256": "8ef29a00dbb71970bae5b7c39c36b4aca7f5fadf5f7c5a98047ee538a68d94c5",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/report.json",
+      "sha256": "2552a85d8799ce850508450f363d1394c639c225f3c990da914d06c4dd8f64bc",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/input-delta.diff",
+      "sha256": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/transcript.log",
+      "sha256": "91d32d5691d0a7cbc64dd6a0b3a3e0da2b665da894c152db244e55408ac51952",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/review-runner.mjs.data",
+      "sha256": "ef41c487869277c9bc59300650b9537373be5dceace8d03db9d1f22ba9014069",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/SHA256SUMS",
+      "sha256": "1264850645e5a647d0c5c4359636f32fcee3c247a1ef734f0e3b7472a39d6cf5",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap",
+      "sha256": "142e51689305f298b15a00bc39b0239b5a827dd571482e3a7ec00f3967bb2833",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/manifest.json",
+      "sha256": "8ed8592177811ab01aa5d76484fc12bf19cbf7e50fe5750a6ef8c014915d0328",
+      "matchesGitRevision": "c800c899114c6c83b3d3eb67231176d124abaf49"
+    }
+  ],
+  "processes": [
+    {
+      "capture": "original-c800c899",
+      "command": "extract",
+      "pid": 7043,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "observations",
+      "pid": 7055,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "canonical",
+      "pid": 7057,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-real-nested-pipeline",
+      "pid": 7063,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-export-local-cwd-parent",
+      "pid": 7065,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-prefix-assignment-before-clear",
+      "pid": 7068,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-binary-cursor-origin",
+      "pid": 7184,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-supplied-empty-origin",
+      "pid": 7557,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-bom-stderr-stdout",
+      "pid": 7957,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-parse-before-chdir-effects",
+      "pid": 8348,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-unsupported-before-chdir",
+      "pid": 8722,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-literal-single-optional-argument",
+      "pid": 8747,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-literal-injection-host-boundary",
+      "pid": 8749,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-shared-command-budget",
+      "pid": 8759,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-shared-output-budget",
+      "pid": 8762,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-shared-depth-budget",
+      "pid": 8764,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-shared-source-budget",
+      "pid": 8775,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-shared-loop-budget",
+      "pid": 8777,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-split-byte-cap",
+      "pid": 8779,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-split-argument-cap",
+      "pid": 8782,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-split-recursion-cap",
+      "pid": 8784,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-typed-cancel-cleanup-late-reject",
+      "pid": 8786,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-cleanup-failure-identity",
+      "pid": 8805,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-preabort-no-dispatch",
+      "pid": 8807,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-blocked-input-cancel",
+      "pid": 8809,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-fallback-keeps-context",
+      "pid": 8811,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-sink-cancel-precedence",
+      "pid": 8814,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "resume-same-stream-split-does-not-consume",
+      "pid": 8823,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "shebang-controls",
+      "pid": 8825,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "build",
+      "pid": 8828,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "original-c800c899",
+      "command": "strict-owned",
+      "pid": 8830,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "extract",
+      "pid": 10287,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "observations",
+      "pid": 10294,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "canonical",
+      "pid": 10296,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-real-nested-pipeline",
+      "pid": 10306,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-export-local-cwd-parent",
+      "pid": 10310,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-prefix-assignment-before-clear",
+      "pid": 10312,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-binary-cursor-origin",
+      "pid": 10317,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-supplied-empty-origin",
+      "pid": 10319,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-bom-stderr-stdout",
+      "pid": 10322,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-parse-before-chdir-effects",
+      "pid": 10324,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-unsupported-before-chdir",
+      "pid": 10326,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-literal-single-optional-argument",
+      "pid": 10328,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-literal-injection-host-boundary",
+      "pid": 10330,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-shared-command-budget",
+      "pid": 10332,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-shared-output-budget",
+      "pid": 10334,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-shared-depth-budget",
+      "pid": 10336,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-shared-source-budget",
+      "pid": 10339,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-shared-loop-budget",
+      "pid": 10348,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-split-byte-cap",
+      "pid": 10350,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-split-argument-cap",
+      "pid": 10352,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-split-recursion-cap",
+      "pid": 10355,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-typed-cancel-cleanup-late-reject",
+      "pid": 10357,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-cleanup-failure-identity",
+      "pid": 10359,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-preabort-no-dispatch",
+      "pid": 10361,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-blocked-input-cancel",
+      "pid": 10363,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-fallback-keeps-context",
+      "pid": 10366,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-sink-cancel-precedence",
+      "pid": 10370,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "resume-same-stream-split-does-not-consume",
+      "pid": 10385,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "shebang-controls",
+      "pid": 10387,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "build",
+      "pid": 10391,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "capture": "candidate-5ba1a0f3",
+      "command": "strict-owned",
+      "pid": 10404,
+      "pidAbsent": true,
+      "groupAbsent": true
+    }
+  ],
+  "scratchAbsent": true,
+  "limits": "Author verification only; source execution and scoped build/typecheck. No independent acceptance, native recapture, Linux qualification, complete typecheck inventory, packed consumer, full gate, superiority or 72-hour completion."
+}

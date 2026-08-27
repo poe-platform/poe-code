@@ -1,0 +1,150 @@
+[
+  {
+    "id": "core-literal",
+    "result": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "env: bash -e: command not found\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZW52OiBiYXNoIC1lOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [
+      "./script",
+      "env",
+      "bash -e"
+    ],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "errexit-1",
+    "result": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "env: bash -e: command not found\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZW52OiBiYXNoIC1lOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [
+      "/script",
+      "env",
+      "bash -e"
+    ],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "errexit-2",
+    "result": {
+      "status": 0,
+      "stdout": "BAD",
+      "stderr": "",
+      "stdoutBase64": "QkFE",
+      "stderrBase64": ""
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [
+      "/script",
+      "env",
+      "bash",
+      "printf"
+    ],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "expanded-1",
+    "result": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "env: bash -e: command not found\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZW52OiBiYXNoIC1lOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "expanded-2",
+    "result": {
+      "status": 0,
+      "stdout": "forbidden",
+      "stderr": "",
+      "stdoutBase64": "Zm9yYmlkZGVu",
+      "stderrBase64": ""
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "expanded-3",
+    "result": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "env: python: command not found\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZW52OiBweXRob246IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "expanded-4",
+    "rejection": {
+      "name": "ShellLimitError",
+      "message": "Shell limit exceeded: maxSubstitutionDepth",
+      "limit": "maxSubstitutionDepth",
+      "publicShellLimitError": true
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [],
+    "entered": 0,
+    "disposed": true
+  },
+  {
+    "id": "expanded-5",
+    "result": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "env: bash\r: command not found\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZW52OiBiYXNoDTogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    "entries": [
+      "script"
+    ],
+    "scriptUnchanged": true,
+    "calls": [],
+    "entered": 0,
+    "disposed": true
+  }
+]

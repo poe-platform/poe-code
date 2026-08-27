@@ -1,0 +1,332 @@
+{
+  "at": "2026-08-27T16:15:31.302Z",
+  "archives": [
+    {
+      "revision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "sha256": "9a0b72c1e589e7a9cc051b9c6aa399c558b1046e263e581c52ff7b7fcffcffe4",
+      "matchesPreExecution": true
+    },
+    {
+      "revision": "5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7",
+      "sha256": "cf982e221cd2e31389bd5b5b02f519e4dac7053acc3381aa9fc93f3aee196a9a",
+      "matchesPreExecution": true
+    }
+  ],
+  "processes": [
+    {
+      "pid": 7043,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7055,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7057,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7063,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7065,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7068,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7184,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7557,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 7957,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8348,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8722,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8747,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8749,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8759,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8762,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8764,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8775,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8777,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8779,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8782,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8784,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8786,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8805,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8807,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8809,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8811,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8814,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8823,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8825,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8828,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 8830,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10287,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10294,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10296,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10306,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10310,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10312,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10317,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10319,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10322,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10324,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10326,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10328,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10330,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10332,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10334,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10336,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10339,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10348,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10350,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10352,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10355,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10357,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10359,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10361,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10363,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10366,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10370,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10385,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10387,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10391,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 10404,
+      "pidAbsent": true,
+      "groupAbsent": true
+    }
+  ],
+  "allOwnedScratchAbsent": true,
+  "sourceInventoryScope": "Full recursive source regular-file keys/hashes and directory entries, unexpected symlinks rejected; only root dist and node_modules excluded. Detects new source files/directories/links, not metadata changes.",
+  "generatedRunnerDiscovery": "Explicit opt-in .mjs only; probe source stored as .mjs.data. No new .ts or .test.* files and no new native data.",
+  "gitStatusBeforeEvidenceCommit": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/config-policy-fixture-independent-20260827/\n?? tests/integration/shared-external-stdin-independent-20260827/candidate-review/README.md\n?? tests/integration/shared-external-stdin-independent-20260827/candidate-review/SEAL.json\n?? tests/integration/shared-external-stdin-independent-20260827/candidate-review/evidence/\n?? tests/integration/shared-external-stdin-independent-20260827/candidate-review/verify.mjs\n?? tests/shell-stress/env-shebang-eight-migration-author/\n?? tests/shell-stress/env-shebang-eight-migration-review/\n",
+  "foreignStagedBeforeEvidenceCommit": ""
+}

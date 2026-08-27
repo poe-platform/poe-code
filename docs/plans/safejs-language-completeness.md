@@ -29,7 +29,7 @@ language completeness from passing existing tests alone.
       variables distinguishable without granting ambient host access.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
-- [ ] Remaining lint/runtime syntax parity: var, switch, this, and supported new
+- [x] Remaining lint/runtime syntax parity: var, switch, this, and supported new
       expressions, including Map and Set, plus top-level await inside nested
       control-flow blocks; retain host-escape protections.
 - [ ] Classes and prototypes: implement language-level objects and inheritance
@@ -971,8 +971,15 @@ Final pre-commit gates passed on the consolidated implementation:
 - Rechecked the six obsolete package output directories and four deleted-rule
   output files: all remain absent. Unrelated user assets remain untouched.
 
-Commit/push and GitHub publication verification remain pending at this checkpoint.
-General prototypes, migration, and the remaining delivery checklist stay open.
+Released in poe-code 7.0.0:
+
+- Commit `7bfc6eb1181c29c2c9429fffab188192b59907d3`; GitHub Release run
+  `33037147560` completed successfully on August 27, 2026. npm publication time
+  is `2026-08-27T03:53:37.483Z`; npm `gitHead` and GitHub tag `v7.0.0` both point
+  to that exact commit.
+- Normal pre-commit/pre-push hooks passed without bypasses. The full repository
+  suite passed 20,898 tests with 41 skipped across 918 passing files.
+- General prototypes, migration, and the remaining delivery checklist stay open.
 
 ## Stale artifact cleanup
 
@@ -981,6 +988,29 @@ General prototypes, migration, and the remaining delivery checklist stay open.
 - Removed four leftover generated `.js`/`.d.ts` files for the deleted AS008 and
   AS-AWAIT-NON-PROMISE scanners from SafeJS dist. These ignored build artifacts
   are not staged or committed.
+- A subsequent source/output inventory found two more generated files for the
+  deleted AS012 rule, plus 60 orphaned package outputs and 87 root outputs,
+  including obsolete binary wrappers. Removed only ignored build artifacts;
+  retained current generated binaries and all source/user changes. Recovery
+  archives for the latter groups are
+  `/tmp/poe-stale-outputs-IG6xKj/outputs.tar.gz` and
+  `/tmp/poe-stale-root-hhFVyl/outputs.tar.gz`.
+- Forced all 67 workspace build tasks, rebuilt the root bundle, then repeated a
+  cache-hit build. All 17 package-lint rules pass. A separate npm-pack dry-run
+  inventory verifies all 153 removed files and six obsolete output directories
+  remain absent, none of the removed files ships among 3,329 package entries,
+  and all four current binary entries remain packaged. A full source/output
+  scan finds zero remaining orphaned `.js`/`.d.ts` files in the audited root and
+  package dist directories. This does not claim every cache or temporary file
+  on the machine is obsolete or safe to delete.
+- Corrected stale syntax, constructor, binding, and randomness guidance in the
+  existing README and SafeJS skill template. Ran `npm run sync-skills`; all six
+  installed copies update from the template. This replaces outdated restrictions
+  rather than adding new README sections.
+- Post-cleanup full repository tests pass again: 20,898 passed, 41 skipped.
+  Separate native syntax stress passes 160 cases and 320 restores; CLI stress
+  passes 60 cases across 180 processes; fatal-budget stress passes all 360 cases
+  with zero escaped effects, 360 awaited cleanups, and zero pending escapes.
 - An empty, inactive rebase marker dated June 13, 2026 prevented integration of
   newer main commits. Archived it to
   `/tmp/poe-stale-rebase.oKpckf/rebase-merge.tar.gz`, then used `git rebase --quit`,

@@ -50,17 +50,14 @@ capped at five.
 
 Linted harness files support arrows, ordinary functions (including async
 functions), synchronous generators, closures over `const`, `let`, parameters, and imports,
-`async`/`await`, regex literals, `new RegExp(...)`, `const`/`let`,
+`async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
 `for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
-and `return`.
+`switch`, `this`, and `return`.
 
-The parser/runtime can execute additional JavaScript forms including
-`var`, `switch`, `this`, and constructor calls for
-sandbox constructors, but default harness lint reports several of those forms
-(`var`, `switch`, `this`, and most `new` expressions). Avoid them
-in harnesses unless you are deliberately suppressing a lint rule.
+Top-level `await` also works inside control-flow blocks. `new Map(...)`,
+`new Set(...)`, and `new Promise(executor)` do not require lint suppressions.
 
 Not supported: class syntax, async generators, `eval`, `Function`, dynamic
 imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
@@ -76,12 +73,9 @@ or rely on runtime imports during schema extraction.
 
 ## Common Pitfalls
 
-- `Map` and `Set` exist at runtime, but constructing them with `new Map(...)`
-  or `new Set(...)` requires suppressing the default `AS001` lint diagnostic.
-  Their `keys()`, `values()`, and `entries()` methods return eager arrays.
+- `Map` and `Set` methods `keys()`, `values()`, and `entries()` return eager arrays.
 - Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
   with a user constructor throws. Use an explicit brand property.
-- `Function#bind` is unsupported. Use an arrow that calls the function.
 - `for...in` rejects destructuring in the loop head. Destructure in the body.
 - Bare function calls set `this` to `undefined` (strict semantics).
 - Generators cannot `await`.
@@ -108,9 +102,10 @@ poe-code harness run path/to/harness.md --snapshot-path tmp/harness.snapshot.jso
 poe-code harness run path/to/harness.md --snapshot-path tmp/harness.snapshot.json --resume
 ```
 
-Snapshots record interpreter state across await points. Resume validates that the
-`.ajs` source still matches the snapshot; if the source changed, start fresh
-without `--resume`.
+Snapshots record interpreter state across await points. Resume validates the
+`.ajs` source and execution semantics. Older execution semantics require the
+original runtime; automatic migration is unavailable. Starting fresh without
+`--resume` can repeat earlier host effects.
 
 ## Constraint Propagation
 

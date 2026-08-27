@@ -1,0 +1,70 @@
+{
+  "kind": "which-access-policy-v2-source-only-proposed-migration",
+  "date": "2026-08-27",
+  "status": "root decision required; different independent freeze required; all code HOLD",
+  "baseCommit": "5c34372be6aedd179123ceab2663c7d52f207ed1",
+  "reviewHead": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+  "baseDesign": {
+    "path": "src/commands/which/DESIGN.md",
+    "sha256": "fc8984c7a6858709ee9341c5e2b17f3f01c4a4b2306571229229d54584ada15c"
+  },
+  "policy": {
+    "order": ["followed stat", "if regular file, access X_OK with supplied signal"],
+    "authority": "delegated effective virtual access; not universal host permission enforcement",
+    "capabilityGate": false,
+    "modeBitGate": false,
+    "fallback": "none",
+    "logicalCandidateProbes": 1,
+    "maximumTopLevelProviderCallsPerCandidate": 2,
+    "providerInternalOperationsBoundedByTwo": false,
+    "unsupportedAccess": "fatal diagnostic and status 1",
+    "supersedes": "v1 permission and relevant matrix/probe-operation/error/cancellation text only",
+    "unchanged": "v1 grammar, flags, PATH/display, status policy, seven caps/defaults, ownership, no-host/registry profile"
+  },
+  "primarySource": {
+    "revision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+    "path": "src/commands/which/design-evidence/which-source.data",
+    "isThereStartLine": 102,
+    "actualOrder": "access X_OK, stat, regular type, UID-zero execute-bit workaround",
+    "retrieval": "existing pinned official source bytes only; no new retrieval"
+  },
+  "guards": {
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/contracts/filesystem.ts": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "src/contracts/filesystem.md": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/io.ts": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "src/commands/tree/index.ts": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+    "src/commands/tree/options.ts": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/real/index.ts": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+    "src/fs/s3/filesystem.ts": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "src/fs/readonly/index.ts": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+    "src/fs/readonly/README.md": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+    "src/fs/s3/README.md": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78",
+    "src/fs/webdav/README.md": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+    "src/commands/which/DESIGN.md": "fc8984c7a6858709ee9341c5e2b17f3f01c4a4b2306571229229d54584ada15c",
+    "src/commands/which/design-evidence/provenance.json": "4e7641429f299054e45c54cd82421757c475145547d849e5c782db1183178a90",
+    "src/commands/which/design-evidence/which-source.data": "dce7ea97b948b1ba0248a1a699248b8ab63c36f4887d8b95a8ae2b8cbe6bae25",
+    "src/commands/which/design-evidence/which-manual.data": "904c4c1e74bbbbb1b6c0114cdea88b0609282cb6f7ed39513cfb4a912f151cdb",
+    "src/commands/which/design-evidence/getopt-source.data": "a911e3dcd3cdfed04cc1192e7668feabe5452435c58304c53870a3d7a26f0fce"
+  },
+  "qualification": {
+    "nativeObservations": 0,
+    "testBuildTypecheckExecution": false,
+    "hiddenFixturesInspected": false,
+    "existingTwelveObservations": "user-supplied read-only wrapper X_OK positives skipped by type-aP; not rerun",
+    "independentDraft": "user identifies independentDRAFT65d198cf as 28 proposed families, not normative freeze",
+    "DarwinWhich": "not qualified",
+    "FreeBSDBinary": "not provisioned; no 14.3 qualification",
+    "guardScope": "enumerated inputs only; does not detect arbitrary new entries or establish append-proof tree",
+    "initialForeignIndex": "empty; unrelated working-tree edits and untracked directories preserved",
+    "ownedBackgroundProcesses": 0
+  }
+}

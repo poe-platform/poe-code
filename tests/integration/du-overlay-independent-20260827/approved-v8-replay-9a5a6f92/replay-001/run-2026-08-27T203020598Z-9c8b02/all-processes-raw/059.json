@@ -1,0 +1,31 @@
+{
+  "sequence": 59,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v8-replay-9a5a6f92/replay-001/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/harness/verify-v5.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v8-replay-9a5a6f92/replay-001/work-NXdBjz/source",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v8-replay-9a5a6f92/replay-001/work-NXdBjz"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 1,
+  "signal": null,
+  "pid": 98104,
+  "pgid": 98104,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:30:25.810Z",
+  "finishedAt": "2026-08-27T20:30:25.960Z",
+  "durationMs": 150.173625,
+  "stdoutSha256": "800f0de73706f4014da763c1c8fa2d9c250ac440e5f620dae77d1667c81c617e",
+  "stderrSha256": "e9b9446c61e91860e30fdc2f9d1b56bea612b07e6da596cc40ca78cc36a545fd"
+}

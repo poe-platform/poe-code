@@ -1,0 +1,29 @@
+{
+  "sequence": 56,
+  "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+  "args": [
+    "--version"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 98077,
+  "pgid": 98077,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:30:23.762Z",
+  "finishedAt": "2026-08-27T20:30:23.815Z",
+  "durationMs": 53.445917,
+  "stdoutSha256": "4985b444236c5acdb5b850e5d754975e130eed5b033c53f201cdf471e83d7f13",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

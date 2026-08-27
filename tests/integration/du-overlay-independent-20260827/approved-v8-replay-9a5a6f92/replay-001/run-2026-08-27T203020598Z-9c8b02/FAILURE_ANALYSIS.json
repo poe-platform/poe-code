@@ -1,0 +1,1046 @@
+{
+  "schema": 1,
+  "decision": "V8_REPLAY_REJECTED_AS_FROZEN_FIXTURE_ATIME_PRECONDITION_FAILURE",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "freeze": "ae0f8b3f4f927b06718fc51e176ca7a54b517364",
+  "sourceOriginal": {
+    "summary": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "holdouts": {
+        "passed": 17,
+        "failed": 0
+      },
+      "controls": {
+        "passed": 7,
+        "failed": 0
+      }
+    },
+    "stdoutBytes": 272679,
+    "stdoutSha256": "5f0c4f9dabcbbaf4f5a7d5a1e7c11d5aad44600c35fd479c69af9dfac453b180",
+    "stderrBytes": 1232,
+    "stderrSha256": "dda3727c055596ac8610c62da04757a77499b63c8b47deed2e9bcf82296f45b5"
+  },
+  "sourceFresh": {
+    "summary": {
+      "total": 40,
+      "passed": 38,
+      "failed": 2,
+      "byCategory": {
+        "historical-frozen-derived": {
+          "total": 19,
+          "passed": 19,
+          "failed": 0
+        },
+        "holdout": {
+          "total": 6,
+          "passed": 6,
+          "failed": 0
+        },
+        "v5-observer-policy-control": {
+          "total": 3,
+          "passed": 2,
+          "failed": 1
+        },
+        "negative-control": {
+          "total": 7,
+          "passed": 6,
+          "failed": 1
+        },
+        "v5-approved-addition": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "positive-control": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        }
+      },
+      "byLineage": {
+        "historical-frozen-derived": {
+          "total": 31,
+          "passed": 31,
+          "failed": 0
+        },
+        "v5-observer-policy-control": {
+          "total": 7,
+          "passed": 5,
+          "failed": 2
+        },
+        "postfreeze-lifecycle-addition": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        }
+      }
+    },
+    "stdoutPath": "run-2026-08-27T203020598Z-9c8b02/all-processes-raw/059.stdout",
+    "stdoutBytes": 1173839,
+    "stdoutSha256": "800f0de73706f4014da763c1c8fa2d9c250ac440e5f620dae77d1667c81c617e",
+    "stderrPath": "run-2026-08-27T203020598Z-9c8b02/all-processes-raw/059.stderr",
+    "stderrBytes": 2630,
+    "stderrSha256": "e9b9446c61e91860e30fdc2f9d1b56bea612b07e6da596cc40ca78cc36a545fd",
+    "failedCases": [
+      {
+        "id": "V5-023",
+        "name": "observer-only file read visibly changes file atime outside product phase",
+        "category": "v5-observer-policy-control",
+        "lineage": "v5-observer-policy-control",
+        "pass": false,
+        "failures": [
+          "old file-atime fixture precondition is established",
+          "file atime change is visible",
+          "resulting delta is exactly real file atime"
+        ],
+        "target": {},
+        "observation": {
+          "observerScope": "real-adapter observer-only read outside product phase",
+          "inventoryMethod": "lstat-only",
+          "fileAtimeSetup": {
+            "requestedAtimeMs": 946684800000,
+            "originalAtimeMs": 1787862625916.493,
+            "observedAtimeMs": 946684800000,
+            "mtimeMs": 1787862625917,
+            "demonstrablyOld": true
+          },
+          "beforeStats": {
+            "real": [
+              {
+                "path": "/file.bin",
+                "stat": {
+                  "type": "file",
+                  "size": 1500,
+                  "allocatedBytes": 4096,
+                  "mode": 33188,
+                  "atimeMs": 1787862625919.392,
+                  "mtimeMs": 1787862625917,
+                  "ctimeMs": 1787862625916.9998,
+                  "birthtimeMs": 1787862625916.493,
+                  "identityScope": "symbol-41",
+                  "ino": 177637862,
+                  "dev": 16777232,
+                  "nlink": 1,
+                  "uid": 501,
+                  "gid": 20
+                }
+              }
+            ]
+          },
+          "afterStats": {
+            "real": [
+              {
+                "path": "/file.bin",
+                "stat": {
+                  "type": "file",
+                  "size": 1500,
+                  "allocatedBytes": 4096,
+                  "mode": 33188,
+                  "atimeMs": 1787862625919.392,
+                  "mtimeMs": 1787862625917,
+                  "ctimeMs": 1787862625916.9998,
+                  "birthtimeMs": 1787862625916.493,
+                  "identityScope": "symbol-41",
+                  "ino": 177637862,
+                  "dev": 16777232,
+                  "nlink": 1,
+                  "uid": 501,
+                  "gid": 20
+                }
+              }
+            ]
+          },
+          "deltas": [],
+          "bytesSha256": "b935f6b7a9c56a15e7b99c8d6d4b5e918f5a68fafc4490544a446b2ae47bf809"
+        }
+      },
+      {
+        "id": "V5-024",
+        "name": "atime field scope rejects file-read listing mutant",
+        "category": "negative-control",
+        "lineage": "v5-observer-policy-control",
+        "pass": false,
+        "failures": [
+          "old file-atime fixture precondition is established",
+          "target file atime actually changes",
+          "file atime is the sole rejected field"
+        ],
+        "target": {},
+        "observation": {
+          "rootAtimeSetup": {
+            "requestedAtimeMs": 946684800000,
+            "originalAtimeMs": 1787862625920.7795,
+            "observedAtimeMs": 946684800000,
+            "mtimeMs": 1787862625921,
+            "demonstrablyOld": true
+          },
+          "fileAtimeSetup": {
+            "requestedAtimeMs": 946684800000,
+            "originalAtimeMs": 1787862625920.8708,
+            "observedAtimeMs": 946684800000,
+            "mtimeMs": 1787862625921,
+            "demonstrablyOld": true
+          },
+          "beforeStats": {
+            "real": [
+              {
+                "path": "/",
+                "stat": {
+                  "type": "directory",
+                  "size": 96,
+                  "allocatedBytes": 0,
+                  "mode": 16832,
+                  "atimeMs": 946684800000,
+                  "mtimeMs": 1787862625921,
+                  "ctimeMs": 1787862625921.3271,
+                  "birthtimeMs": 1787862625920.7795,
+                  "identityScope": "symbol-41",
+                  "ino": 177637863,
+                  "dev": 16777232,
+                  "nlink": 3,
+                  "uid": 501,
+                  "gid": 20
+                }
+              },
+              {
+                "path": "/file.bin",
+                "stat": {
+                  "type": "file",
+                  "size": 1500,
+                  "allocatedBytes": 4096,
+                  "mode": 33188,
+                  "atimeMs": 1787862625926.3386,
+                  "mtimeMs": 1787862625921,
+                  "ctimeMs": 1787862625923.7915,
+                  "birthtimeMs": 1787862625920.8708,
+                  "identityScope": "symbol-41",
+                  "ino": 177637864,
+                  "dev": 16777232,
+                  "nlink": 1,
+                  "uid": 501,
+                  "gid": 20
+                }
+              }
+            ]
+          },
+          "afterStats": {
+            "real": [
+              {
+                "path": "/",
+                "stat": {
+                  "type": "directory",
+                  "size": 96,
+                  "allocatedBytes": 0,
+                  "mode": 16832,
+                  "atimeMs": 1787862625926.834,
+                  "mtimeMs": 1787862625921,
+                  "ctimeMs": 1787862625921.3271,
+                  "birthtimeMs": 1787862625920.7795,
+                  "identityScope": "symbol-41",
+                  "ino": 177637863,
+                  "dev": 16777232,
+                  "nlink": 3,
+                  "uid": 501,
+                  "gid": 20
+                }
+              },
+              {
+                "path": "/file.bin",
+                "stat": {
+                  "type": "file",
+                  "size": 1500,
+                  "allocatedBytes": 4096,
+                  "mode": 33188,
+                  "atimeMs": 1787862625926.3386,
+                  "mtimeMs": 1787862625921,
+                  "ctimeMs": 1787862625923.7915,
+                  "birthtimeMs": 1787862625920.8708,
+                  "identityScope": "symbol-41",
+                  "ino": 177637864,
+                  "dev": 16777232,
+                  "nlink": 1,
+                  "uid": 501,
+                  "gid": 20
+                }
+              }
+            ]
+          },
+          "deltas": [
+            {
+              "backing": "real",
+              "layer": "real",
+              "path": "/",
+              "type": "directory",
+              "field": "atimeMs",
+              "before": 946684800000,
+              "after": 1787862625926.834
+            }
+          ],
+          "authorized": [
+            {
+              "backing": "real",
+              "layer": "real",
+              "path": "/",
+              "type": "directory",
+              "field": "atimeMs",
+              "before": 946684800000,
+              "after": 1787862625926.834
+            }
+          ],
+          "unauthorized": [],
+          "actionCalls": [
+            {
+              "sequence": 0,
+              "layer": "real",
+              "method": "readFile",
+              "path": "/file.bin"
+            },
+            {
+              "sequence": 1,
+              "layer": "real",
+              "method": "readdir",
+              "path": "/"
+            }
+          ]
+        }
+      }
+    ],
+    "literalEnvironmentRecord": {
+      "id": "V5-032",
+      "name": "literal 1500-byte three-level environment precedence table",
+      "category": "v5-approved-addition",
+      "lineage": "historical-frozen-derived",
+      "pass": true,
+      "failures": [],
+      "target": {
+        "table": [
+          {
+            "id": "no-env-default",
+            "selected": null,
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "du-block-size-valid-selected",
+            "selected": "DU_BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "du-block-size-invalid-fallback-default",
+            "selected": "DU_BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "du-block-size-empty-fallback-default",
+            "selected": "DU_BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "du-block-size-explicit-valid-overrides",
+            "selected": "DU_BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "du-block-size-explicit-invalid-strict",
+            "selected": "DU_BLOCK_SIZE",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "du: invalid block size 'invalid-value'\n",
+            "callCount": 0
+          },
+          {
+            "id": "block-size-valid-selected",
+            "selected": "BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "block-size-invalid-fallback-default",
+            "selected": "BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "block-size-empty-fallback-default",
+            "selected": "BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "block-size-explicit-valid-overrides",
+            "selected": "BLOCK_SIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "block-size-explicit-invalid-strict",
+            "selected": "BLOCK_SIZE",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "du: invalid block size 'invalid-value'\n",
+            "callCount": 0
+          },
+          {
+            "id": "blocksize-valid-selected",
+            "selected": "BLOCKSIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "blocksize-invalid-fallback-default",
+            "selected": "BLOCKSIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "blocksize-empty-fallback-default",
+            "selected": "BLOCKSIZE",
+            "exitCode": 0,
+            "stdout": "2\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "blocksize-explicit-valid-overrides",
+            "selected": "BLOCKSIZE",
+            "exitCode": 0,
+            "stdout": "1\t/env-size-1500.bin\n",
+            "stderr": "",
+            "callCount": 1
+          },
+          {
+            "id": "blocksize-explicit-invalid-strict",
+            "selected": "BLOCKSIZE",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "du: invalid block size 'invalid-value'\n",
+            "callCount": 0
+          }
+        ]
+      },
+      "observation": {
+        "table": [
+          {
+            "id": "no-env-default",
+            "selected": null,
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {},
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "du-block-size-valid-selected",
+            "selected": "DU_BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "DU_BLOCK_SIZE": "3072",
+              "BLOCK_SIZE": "512",
+              "BLOCKSIZE": "256"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "du-block-size-invalid-fallback-default",
+            "selected": "DU_BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "DU_BLOCK_SIZE": "invalid-value",
+              "BLOCK_SIZE": "3072",
+              "BLOCKSIZE": "512"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "du-block-size-empty-fallback-default",
+            "selected": "DU_BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "DU_BLOCK_SIZE": "",
+              "BLOCK_SIZE": "3072",
+              "BLOCKSIZE": "512"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "du-block-size-explicit-valid-overrides",
+            "selected": "DU_BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "-B3072",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "DU_BLOCK_SIZE": "invalid-value",
+              "BLOCK_SIZE": "512"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "du-block-size-explicit-invalid-strict",
+            "selected": "DU_BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "-B",
+              "invalid-value",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "DU_BLOCK_SIZE": "3072",
+              "BLOCK_SIZE": "512"
+            },
+            "expect": {
+              "statusClass": "failure",
+              "stdout": "",
+              "stderrClass": "invalid-block-size",
+              "filesystemCalls": 0
+            },
+            "expectedStdout": "",
+            "result": {
+              "settled": "returned",
+              "exitCode": 1,
+              "stdout": "",
+              "stderr": "du: invalid block size 'invalid-value'\n",
+              "registeredCleanups": 1
+            },
+            "calls": [],
+            "pass": true
+          },
+          {
+            "id": "block-size-valid-selected",
+            "selected": "BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCK_SIZE": "3072",
+              "BLOCKSIZE": "512"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "block-size-invalid-fallback-default",
+            "selected": "BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCK_SIZE": "invalid-value",
+              "BLOCKSIZE": "3072"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "block-size-empty-fallback-default",
+            "selected": "BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCK_SIZE": "",
+              "BLOCKSIZE": "3072"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "block-size-explicit-valid-overrides",
+            "selected": "BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "-B3072",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCK_SIZE": "invalid-value",
+              "BLOCKSIZE": "512"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "block-size-explicit-invalid-strict",
+            "selected": "BLOCK_SIZE",
+            "args": [
+              "--apparent-size",
+              "-B",
+              "invalid-value",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCK_SIZE": "3072",
+              "BLOCKSIZE": "512"
+            },
+            "expect": {
+              "statusClass": "failure",
+              "stdout": "",
+              "stderrClass": "invalid-block-size",
+              "filesystemCalls": 0
+            },
+            "expectedStdout": "",
+            "result": {
+              "settled": "returned",
+              "exitCode": 1,
+              "stdout": "",
+              "stderr": "du: invalid block size 'invalid-value'\n",
+              "registeredCleanups": 1
+            },
+            "calls": [],
+            "pass": true
+          },
+          {
+            "id": "blocksize-valid-selected",
+            "selected": "BLOCKSIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCKSIZE": "3072"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "blocksize-invalid-fallback-default",
+            "selected": "BLOCKSIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCKSIZE": "invalid-value"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "blocksize-empty-fallback-default",
+            "selected": "BLOCKSIZE",
+            "args": [
+              "--apparent-size",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCKSIZE": ""
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 2,
+              "stderr": ""
+            },
+            "expectedStdout": "2\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "2\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "blocksize-explicit-valid-overrides",
+            "selected": "BLOCKSIZE",
+            "args": [
+              "--apparent-size",
+              "-B3072",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCKSIZE": "invalid-value"
+            },
+            "expect": {
+              "statusClass": "success",
+              "units": 1,
+              "stderr": ""
+            },
+            "expectedStdout": "1\t/env-size-1500.bin\n",
+            "result": {
+              "settled": "returned",
+              "exitCode": 0,
+              "stdout": "1\t/env-size-1500.bin\n",
+              "stderr": "",
+              "registeredCleanups": 1
+            },
+            "calls": [
+              {
+                "sequence": 0,
+                "layer": "env",
+                "method": "lstat",
+                "path": "/env-size-1500.bin"
+              }
+            ],
+            "pass": true
+          },
+          {
+            "id": "blocksize-explicit-invalid-strict",
+            "selected": "BLOCKSIZE",
+            "args": [
+              "--apparent-size",
+              "-B",
+              "invalid-value",
+              "/env-size-1500.bin"
+            ],
+            "env": {
+              "BLOCKSIZE": "3072"
+            },
+            "expect": {
+              "statusClass": "failure",
+              "stdout": "",
+              "stderrClass": "invalid-block-size",
+              "filesystemCalls": 0
+            },
+            "expectedStdout": "",
+            "result": {
+              "settled": "returned",
+              "exitCode": 1,
+              "stdout": "",
+              "stderr": "du: invalid block size 'invalid-value'\n",
+              "registeredCleanups": 1
+            },
+            "calls": [],
+            "pass": true
+          }
+        ]
+      }
+    }
+  },
+  "metadataDu": {
+    "passed": 19,
+    "total": 19,
+    "authorizedDirectoryAtimeDeltas": 19,
+    "unauthorizedDeltas": 0
+  },
+  "failureClassification": {
+    "candidateProductDefectEstablished": false,
+    "v5023": "forced-old setup was observed, but file atime advanced before the recorded pre-read lstat sample; the product phase is not involved",
+    "v5024": "forced-old setup was observed, but file atime advanced before the recorded mutant pre-action sample; root directory atime remained old and the later exact readdir delta was narrowly authorized",
+    "consequence": "the frozen atime controls did not retain their required preconditions and cannot support candidate acceptance"
+  },
+  "reached": [
+    "freeze/candidate resolution and admission",
+    "timeout/grandchild control",
+    "candidate archive/extraction",
+    "source build",
+    "original source suite",
+    "fresh source suite"
+  ],
+  "unexecuted": [
+    "scoped regressions",
+    "npm pack dry-run and actual npm package",
+    "offline package install and physical consumer move",
+    "strict moved-consumer typecheck and runtime",
+    "moved original/fresh suites and nextLoad attestation",
+    "wrong-root, missing-DU, restored-cleanup and declaration controls",
+    "native 16-row GNU environment table"
+  ],
+  "frozenPostchecks": {
+    "materializedFinally": {
+      "phase": "materialized-finally-before-cleanup",
+      "completeFileCount": 22,
+      "everyByteSizeSha256AndGitBlobVerified": true,
+      "exactInventoryNoNewOrDeletedEntries": true,
+      "inventorySha256": "5bf4b5ca1a2c560f8c9be39e81813f9c12bb943748275d3def20da46562d6269"
+    },
+    "materializedAfterChild": {
+      "materializedAfterChild": {
+        "phase": "bootstrap-materialized-after-child",
+        "completeFileCount": 22,
+        "everyByteSizeSha256AndGitBlobVerified": true,
+        "exactInventoryNoNewOrDeletedEntries": true,
+        "inventorySha256": "5bf4b5ca1a2c560f8c9be39e81813f9c12bb943748275d3def20da46562d6269"
+      }
+    }
+  },
+  "processClosure": {
+    "probedAt": "2026-08-27T20:32:03.629Z",
+    "bootstrapRootRecords": 54,
+    "materializedRootRecords": 59,
+    "totalRootRecords": 113,
+    "totalGroupRecords": 113,
+    "liveRootPids": [],
+    "liveProcessGroups": [],
+    "timeoutGrandchildPid": 97364,
+    "timeoutGrandchildAlive": false
+  },
+  "forbiddenAgents": [],
+  "scratchBasename": "work-NXdBjz",
+  "bootstrapScratchBasename": "bootstrap-scratch"
+}

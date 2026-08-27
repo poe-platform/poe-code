@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { artifact } from './artifacts.mjs';
+import { digest,git,sourceSnapshot } from '../jq-42-independent-review/common.mjs';
+const read = name => JSON.parse(readFileSync(new URL(name,import.meta.url)));
+const checkpoint=read('committed-r3-checkpoint.json');
+const sourceCommit='b9187c0f601c278b334f5a391d552c38c433444c';
+const source=sourceSnapshot();
+assert.equal(source.structuredSha256,'120a10c34d96b26f584c6e4349ef9098c0537d76952078e70e9ce6ab5c3f0176');
+assert.ok(checkpoint.structuredStable);
+const tapSummary=name=>{
+  const command=read(`committed-r3-${name}.json`);
+  const fields=Object.fromEntries([...command.stdout.matchAll(/^# (tests|pass|fail|cancelled|skipped) (\d+)$/gmu)].map(match=>[match[1],Number(match[2])]));
+  const failures=[...command.stdout.matchAll(/^not ok \d+ - (.*)$/gmu)].map(match=>match[1]);
+  return {commandArtifact:`committed-r3-${name}.json`,status:command.status,fields,failures,structuredStable:command.structuredStable,productStable:command.productStable};
+};
+const broad=tapSummary('broad-unchanged');
+const planned=read('planned-test-only-changes-v2.json');
+const additional=read('additional-test-only-proposal.json');
+const classifications=[...planned.proposal,...planned.supplemental,...additional.proposal];
+assert.equal(broad.failures.length,30);
+assert.deepEqual(new Set(broad.failures),new Set(classifications.map(row=>row.oldTestName)));
+const native=[];
+for(const name of ['native-frozen.json','native-extra-frozen.json','native-equality-frozen.json','native-context-frozen.json','native-files-frozen.json','native-arithmetic-frozen.json','native-nonfinite-bounds-frozen.json']) {
+  const bytes=readFileSync(new URL(name,import.meta.url));
+  const {vectors,before}=JSON.parse(bytes);
+  native.push({artifact:name,sha256:digest(bytes),vectors:vectors.length,sourceBeforeFreeze:before.structuredSha256,allSplitExecutions:vectors.reduce((sum,row)=>sum+2*(2+Math.max(0,row.inputHex.length/2-1)),0),locale:name==='native-equality-frozen.json'?'Inherited environment in the one-shot capture; no explicit LC_ALL override was passed':'LC_ALL=C, LANG=C, TZ=UTC, TERM=dumb explicitly supplied'});
+}
+const expectedSourcePaths=['src/commands/structured/input.ts','src/commands/structured/interpreter.ts','src/commands/structured/jq.ts','src/commands/structured/numbers.ts','src/commands/structured/parser.ts','src/commands/structured/values.ts'];
+const sourcePaths=git(['diff-tree','--no-commit-id','--name-only','-r',sourceCommit]).toString().trim().split('\n');
+assert.deepEqual(sourcePaths,expectedSourcePaths);
+const packageData=JSON.parse(readFileSync('package.json'));
+assert.deepEqual(packageData.dependencies??{},{});
+assert.equal(packageData.name,'virtual-bash');
+assert.equal(git(['diff','0278a3032d7851de4c2f5141bbc863cdf310c39d','--','src/commands/structured/index.ts']).length,0);
+const executable='/usr/bin/jq';
+const nativeSha=digest(readFileSync(executable));
+assert.equal(nativeSha,'1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f');
+const profile={executable,sha256:nativeSha,version:spawnSync(executable,['--version']).stdout.toString().trim(),build:spawnSync(executable,['--build-configuration']).stdout.toString().trim()};
+const summary={recordedAt:new Date().toISOString(),sourceCommit,source,sourcePaths,acceptedSourceCommit:'0278a3032d7851de4c2f5141bbc863cdf310c39d',acceptedStructuredSha256:'30c573976d4dddb5e8e545f8e3914aeb166e0232f92ed0dfe20514205056db8f',acceptedEvidenceCommit:'bb1ceabef3a3a4c3791af64d9efb7384f6ca773f',profile,checkpoint:{artifact:'committed-r3-checkpoint.json',structuredStable:checkpoint.structuredStable,productStable:checkpoint.productStable},main:read('committed-r3-main.json').summary,legacy:read('committed-r3-legacy.json').summary,native,author:tapSummary('new-author'),broad,priorAuthor:tapSummary('author114'),historical:tapSummary('historical238'),nearby:tapSummary('author-nearby117'),boundaries:[1,2,3].map(index=>tapSummary(`boundaries-${index}`)),authorSafety:[1,2,3].map(index=>tapSummary(`author-safety-${index}`)),scopedTypes:read('committed-r3-scoped-types.json').status,globalTypes:read('committed-r3-global-types.json').status,build:{status:read('committed-r3-build-command.json').status,emittedFiles:read('committed-r3-build.json').emittedFiles,smoke:read('committed-r3-build.json').smoke},testsUnchanged:true,runtimeDependencies:0,newPublicExports:false,scope:'Author handoff only. No canonical TEST-ONLY delta applied, no independent approval, full jq parity or product closure claimed.'};
+artifact('final-validation-summary.json',summary);
+console.log(JSON.stringify({sourceCommit,structuredSha256:source.structuredSha256,main:summary.main.total,legacy:summary.legacy.legacy,author:summary.author.fields,broad:summary.broad.fields,structuredStable:checkpoint.structuredStable,productStable:checkpoint.productStable}));

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { artifact } from './artifacts.mjs';
+import { digest,git,sourceSnapshot } from '../jq-42-independent-review/common.mjs';
+const accepted='bb1ceabef3a3a4c3791af64d9efb7384f6ca773f';
+const before=sourceSnapshot();
+const paths=git(['ls-tree','-r','--name-only',accepted,'--','tests/commands/structured','tests/commands/structured-stress','benchmarks/reports/current-integration']).toString().trim().split('\n');
+const files=paths.map(path=>{const expected=digest(git(['show',`${accepted}:${path}`]));const actual=digest(readFileSync(path));assert.equal(actual,expected,path);return {path,sha256:actual};});
+const after=sourceSnapshot();
+artifact(process.argv[2],{recordedAt:new Date().toISOString(),accepted,before,after,files,count:files.length,structuredStable:before.structuredSha256===after.structuredSha256,productStable:before.productSha256===after.productSha256,scope:'All accepted historical structured tests/fixtures/reports plus frozen integration reports; source intentionally differs. No historical fixture or canonical assertion was edited.'});
+console.log(JSON.stringify({immutableFiles:files.length}));

@@ -1,0 +1,2468 @@
+{
+  "recordedAt": "2026-08-27T01:53:15.675Z",
+  "source": {
+    "productSha256": "125f5522e22ef6ccd22e365f83dff6c49fd5d36638df8c9781b14df02ec1c55e",
+    "structuredSha256": "96ea1521c0045f2f219fa0567e2ad67a7b5eb4c5f5c77d0b4bb32f414275e854",
+    "files": {
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "4ff48b5157a24d54d10fd2874c6e6d83f1bc912d8b5e123a8e4801ee0ce44b2c",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/README.md": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+      "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "src/commands/structured/interpreter.ts": "36388bf520b2e2ebaa81a1084bded25348ed9dd3cf95e650162ba1844f7a4307",
+      "src/commands/structured/jq.ts": "014473ae2c1f92e6ba40cb2abc0213967fbe93ec228701ac98be300d08deae27",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "src/commands/structured/parser.ts": "f710440f4f3dfbe073873175f40cef70d0a146835b44fc9e0b0de1fecede0ebc",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "40057626f9d47e46918673c944bcb00a815dd35c92f1f96c17946c6b03933cb3",
+      "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+      "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/authority.ts": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229",
+      "src/fs/s3/COMPARISON.md": "909ccdae411009d4fd1566a4ac79d8aaeac7457b1f5735843b9e9a93ab908aca",
+      "src/fs/s3/filesystem.ts": "97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+      "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+      "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "5f1ed9c4d19ad3445310144ae94148c19ad125a156032a3e05993b30555b88fb",
+      "src/fs/webdav/resource-id.ts": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+      "src/fs/webdav/webdav.ts": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+      "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    "head": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+    "status": " M src/commands/archive/format.ts\n M src/commands/structured/input.ts\n M src/commands/structured/interpreter.ts\n M src/commands/structured/jq.ts\n M src/commands/structured/numbers.ts\n M src/commands/structured/parser.ts\n M src/commands/structured/values.ts\n M tests/shell-stress/invocation-closure/verify.ts\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-author-20260827/\n?? tests/fs/mount/identity-compatibility-review/checkpoint-b02bbe8.mjs\n?? tests/fs/mount/identity-compatibility-review/evidence/final-checkpoint-b02bbe8/\n?? tests/shell-stress/invocation-closure/.verify-uOb11P/\n?? tests/shell-stress/invocation-closure/v2-postfix-author-original.json\n?? tests/shell-stress/invocation-closure/v2-postfix-corrected34.json\n?? tests/shell-stress/invocation-closure/v2-postfix-original34.json\n?? tests/shell-stress/invocation-closure/v2-postfix-start.json\n",
+    "tooling": {
+      "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    }
+  },
+  "originalTapPath": "../jq-42-author-20260827/final-owned.tap",
+  "originalTapSha256": "927f32925c0f612e5c1f2f64a74addfb9fea900479c84d84e98cb985d5d28658",
+  "scope": "PROPOSAL ONLY, canonical files unchanged; not source acceptance, not independent approval; v2 supplies exact whole assertion blocks for the supplemental four, v1 retains their abbreviated assertions",
+  "summary": {
+    "originalTests": 22,
+    "alreadyNativePolicyRetirements": 19,
+    "staleRegexWithRealBaselineDiagnostics": 2,
+    "mixedComposite": 1,
+    "supplementalNewlyExposedStaleTests": 4
+  },
+  "proposal": [
+    {
+      "oldTestPath": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+      "oldFileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 34,
+      "oldAssertion": "for (const id of [\"raw-lone-continuation\", \"raw-truncated\", \"raw-bad-continuation\", \"json-bad-string\"]) {\n  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {\n    const vector = reference(id);\n    const input = Buffer.from(vector.inputHex, \"hex\");\n    const baseline = await executeBytes(vector.argv!, input);\n    assert.equal(baseline.status, 5);\n    assert.match(Buffer.from(baseline.stderrHex, \"hex\").toString(), /invalid UTF-8/u);\n    for (let cut = 0; cut <= input.length; cut++) {\n      async function* source() { yield input.subarray(0, cut); yield new Uint8Array(); yield input.subarray(cut); }\n      assert.deepEqual(await executeBytes(vector.argv!, source()), baseline, `split ${cut}`);\n    }\n  });\n}\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual(await executeBytes(vector.argv!, source), nativeExpected); apply to baseline AND every original chunk split",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "strict-raw-lone-continuation",
+          "vectorSha256": "ffe8421c24f977e3c24f7ef9589b5e0e655be26270b52d50a3ae9aa2c0c6b76d",
+          "argv": [
+            "-Rc",
+            "--",
+            "."
+          ],
+          "inputHex": "6f6b0a8061667465720a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+      "oldFileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 34,
+      "oldAssertion": "for (const id of [\"raw-lone-continuation\", \"raw-truncated\", \"raw-bad-continuation\", \"json-bad-string\"]) {\n  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {\n    const vector = reference(id);\n    const input = Buffer.from(vector.inputHex, \"hex\");\n    const baseline = await executeBytes(vector.argv!, input);\n    assert.equal(baseline.status, 5);\n    assert.match(Buffer.from(baseline.stderrHex, \"hex\").toString(), /invalid UTF-8/u);\n    for (let cut = 0; cut <= input.length; cut++) {\n      async function* source() { yield input.subarray(0, cut); yield new Uint8Array(); yield input.subarray(cut); }\n      assert.deepEqual(await executeBytes(vector.argv!, source()), baseline, `split ${cut}`);\n    }\n  });\n}\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual(await executeBytes(vector.argv!, source), nativeExpected); apply to baseline AND every original chunk split",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "strict-raw-truncated",
+          "vectorSha256": "4e08e69af4364c4d1ca727fb74f21d52673fd734502f05f61306bf6ce631c0a7",
+          "argv": [
+            "-Rj",
+            "--",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6f6befbfbd",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "6f6befbfbd",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+      "oldFileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 34,
+      "oldAssertion": "for (const id of [\"raw-lone-continuation\", \"raw-truncated\", \"raw-bad-continuation\", \"json-bad-string\"]) {\n  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {\n    const vector = reference(id);\n    const input = Buffer.from(vector.inputHex, \"hex\");\n    const baseline = await executeBytes(vector.argv!, input);\n    assert.equal(baseline.status, 5);\n    assert.match(Buffer.from(baseline.stderrHex, \"hex\").toString(), /invalid UTF-8/u);\n    for (let cut = 0; cut <= input.length; cut++) {\n      async function* source() { yield input.subarray(0, cut); yield new Uint8Array(); yield input.subarray(cut); }\n      assert.deepEqual(await executeBytes(vector.argv!, source()), baseline, `split ${cut}`);\n    }\n  });\n}\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual(await executeBytes(vector.argv!, source), nativeExpected); apply to baseline AND every original chunk split",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "strict-raw-bad-continuation",
+          "vectorSha256": "ce9ef50ced5dd818aab553722a9ff3543b229bb1bf8e4768e8aa6f5825fa6171",
+          "argv": [
+            "-Rc",
+            "--",
+            "."
+          ],
+          "inputHex": "e282410a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd41220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd41220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+      "oldFileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 34,
+      "oldAssertion": "for (const id of [\"raw-lone-continuation\", \"raw-truncated\", \"raw-bad-continuation\", \"json-bad-string\"]) {\n  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {\n    const vector = reference(id);\n    const input = Buffer.from(vector.inputHex, \"hex\");\n    const baseline = await executeBytes(vector.argv!, input);\n    assert.equal(baseline.status, 5);\n    assert.match(Buffer.from(baseline.stderrHex, \"hex\").toString(), /invalid UTF-8/u);\n    for (let cut = 0; cut <= input.length; cut++) {\n      async function* source() { yield input.subarray(0, cut); yield new Uint8Array(); yield input.subarray(cut); }\n      assert.deepEqual(await executeBytes(vector.argv!, source()), baseline, `split ${cut}`);\n    }\n  });\n}\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual(await executeBytes(vector.argv!, source), nativeExpected); apply to baseline AND every original chunk split",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "strict-json-bad-string",
+          "vectorSha256": "d8cc7775b8f78a1f29083dfd3c7b7a6fc11623c0a0df64611caa128f1503872e",
+          "argv": [
+            "-c",
+            "--",
+            "."
+          ],
+          "inputHex": "226f6b220a2280220a226166746572220a",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: record-error-prefix",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "record-error-prefix",
+          "vectorSha256": "7206e39f3825979abee8b0b2775c9323f352704a039f5cc8bcae71110a55acc7",
+          "argv": [
+            "-Rc",
+            ".,1/0"
+          ],
+          "inputHex": "780a790a",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "2278220a2279220a",
+            "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "historicalExpected": {
+            "status": 5,
+            "stdoutHex": "2278220a2279220a",
+            "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: file-unicode:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "file-unicode:-Rc",
+          "vectorSha256": "ce6f115ba3b52673ec619f115a738adda7df3cad010df084aae61940762e3d82",
+          "argv": [
+            "-Rc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "files": {
+            "unicode-start": "f09f"
+          },
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: file-unicode:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "file-unicode:-Rsc",
+          "vectorSha256": "217c66dd32e62c307cbed753b584a04d8701a98ed18d4fd8d3ddebf4b1d70115",
+          "argv": [
+            "-Rsc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "files": {
+            "unicode-start": "f09f"
+          },
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:0:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:0:-Rc",
+          "vectorSha256": "14c16928f67621621f120ee8bb956d768ce48918beea96c76e2275bcc338f8a6",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0ac0af",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:0:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:0:-Rsc",
+          "vectorSha256": "3d18930c54dfc62721dad6490ba39ba3ad022b146c55855621a2c0ac6ce846d8",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0ac0af",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:1:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:1:-Rc",
+          "vectorSha256": "f27b5f7487b3b065c62028e128ac3553d5452b00515a63369b2fb61fa1ebb265",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0aeda080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:1:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:1:-Rsc",
+          "vectorSha256": "6990ef53a3cd04009e89aaae8f4b312243911db7a2e77ec7984ee90b3457dcf7",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0aeda080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:2:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:2:-Rc",
+          "vectorSha256": "11ab8680e2069ec47c63a3880d058e0e9914ee756b90cf235ffbc2155b4a8087",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0af4908080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:2:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:2:-Rsc",
+          "vectorSha256": "bcdaaf10911b2f1ed8630a7d1148102ceec48526e6fbe30cc2542bc2ab49f6e4",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0af4908080",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:3:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:3:-Rc",
+          "vectorSha256": "721c3b1736fe2e89c07aa8aa1c3ef33b118ce1bf77949f1be49878de7385a5eb",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:3:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:3:-Rsc",
+          "vectorSha256": "d328c33ae1af0317c0103b07f6229b938687422101bcad791ae3c598810d5844",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0af09f",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:4:-Rc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:4:-Rc",
+          "vectorSha256": "e500ad0ce40b92ea2c8fb8c1ac903d609c33e1faa8bdc53ffbd33d31206602ea",
+          "argv": [
+            "-Rc",
+            "."
+          ],
+          "inputHex": "6f6b0a80",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/raw-input.test.ts",
+      "oldTestName": "raw native: invalid:4:-Rsc",
+      "oldFileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 22,
+      "oldAssertion": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n  for (const size of [1, 2, 7, 16384]) {\n    const fs = new MemoryFileSystem();\n    for (const file of fixture.files ?? []) await fs.writeFile(`/${file.path}`, Buffer.from(file.inputHex, \"hex\"));\n    const input = chunks(Buffer.from(fixture.inputHex, \"hex\"), size);\n    const result = await execute(fixture.argv, input, {}, { fs });\n    assert.equal(result.status, fixture.policyStatus ?? fixture.status, `${fixture.id} chunk ${size}: ${result.stderr}`);\n    assert.equal(result.stdout, fixture.policyStdout ?? fixture.stdout, `${fixture.id} chunk ${size}`);\n    if (fixture.policy?.startsWith(\"strict-utf8\")) assert.match(result.stderr, /invalid UTF-8/u);\n    else if (fixture.policy) assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n    else if (fixture.status < 5) assert.equal(result.stderr, \"\");\n    else assert.match(result.stderr, /^jq: .{1,1000}\\n$/u);\n  }\n});\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "invalid:4:-Rsc",
+          "vectorSha256": "133ced85dba9da0c181f6500fa1148b839173966ea2aa4df7c3ceccc63033513",
+          "argv": [
+            "-Rsc",
+            "."
+          ],
+          "inputHex": "6f6b0a80",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "historicalExpected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 14 across chunk boundaries",
+      "oldFileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 17,
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "malformed-14",
+          "vectorSha256": "3006ab73f2d7145a5a4974933d0896d297a53e7e1a37a1f3a76ea41e5654d8bb",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754443303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 16 across chunk boundaries",
+      "oldFileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 17,
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Historical non-native strict-rejection/stop-first-runtime policy; accepted baseline already matches native for this constituent",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "whyStale": "Native replaces malformed UTF-8 or continues after runtime errors, and the immutable old fixture policy overrides deliberately demanded different behavior. Retire only the override, never edit the historical fixture.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "malformed-16",
+          "vectorSha256": "44ec89810755b8ed69233f82794ffe507e7d42d8f3a7af08882b79d72d9760f8",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "6e756c6c00",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "invalid UTF-8 never becomes replacement text",
+      "oldFileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 37,
+      "oldAssertion": "test('invalid UTF-8 never becomes replacement text', async () => {\n  for (const invalid of [[0xc0, 0xaf], [0xed, 0xa0, 0x80], [0xf4, 0x90, 0x80, 0x80], [0xf0, 0x9f], [0x80]]) {\n    const bytes = Buffer.concat([Buffer.from('{}\\n'), Buffer.from(invalid)]);\n    for (const size of [1, 2, 64]) {\n      const result = await execute(['-c', '.'], split(bytes, size));\n      assert.equal(result.status, 5);\n      assert.equal(result.stdout, '{}\\n');\n      assert.match(result.stderr, /UTF-8/u);\n    }\n  }\n});\n\nconst preflight: readonly [readonly string[], number][] = [\n  [['-c', '1,('], 3], [['-c', 'if true then 1 else $missing end'], 3], [['-c', 'false and nope'], 3],\n  [['-c', '\"\\\\q\"'], 3], [['-c', '.foo='], 3], [['-c', 'sort_by()'], 3], [['-c', '.[0:1]=0'], 3],\n  [['-c', '.[]? |= 0'], 3], [['-c', 'join(\",\";\":\")'], 3], [['-RZ', '.'], 2], [['--raw-input=lines', '.'], 2],\n  [['--argjson', 'x', '{\"bad\":}', '$x'], 2], [['--argjson', 'x', '1 2', '$x'], 2],\n];\nfor (const [index, [argv, status]] of preflight.entries()) test(`preflight ${index} acquires no input or data files`, async () => {\n  let acquired = 0;\n  let opened = 0;\n  const stdin: ByteSource = { [Symbol.asyncIterator]() { acquired++; throw new Error('unexpected stdin acquisition'); } };\n  const fs = new Proxy(new MemoryFileSystem(), { get(target, property) {\n    if (property === 'readFile' || property === 'readStream') return () => { opened++; throw new Error('unexpected data file read'); };\n    const member: unknown = Reflect.get(target, property);\n    return typeof member === 'function' ? member.bind(target) : member;\n  } });\n  const result = await execute([...argv, '/must-not-open'], stdin, {}, { fs });\n  assert.equal(result.status, status, result.stderr);\n  assert.equal(result.stdout, '');\n  assert.equal(acquired, 0);\n  assert.equal(opened, 0);\n});\n\ntest('null input ignores invalid stdin and missing data files', async () => {\n  const stdin: ByteSource = { [Symbol.asyncIterator]() { throw new Error('unexpected stdin acquisition'); } };\n  const result = await execute(['-nsc', '.', '/missing'], stdin);\n  assert.deepEqual(result, { status: 0, stdout: 'null\\n', stderr: '' });\n});\n\ntest('virtual argv preserves NUL without invoking a host process', async () => {\n  const result = await execute(['-nr', '--arg', 'value', 'a\\u0000b', '$value']);\n  assert.deepEqual(result, { status: 0, stdout: 'a\\u0000b\\n', stderr: '' });\n});\n\ntest('empty last remains distinct from empty first under exit-status mode', async () => {\n  assert.deepEqual(await execute(['-ne', 'last(empty)']), { status: 1, stdout: 'null\\n', stderr: '' });\n  assert.deepEqual(await execute(['-ne', 'first(empty)']), { status: 4, stdout: '', stderr: '' });\n});\n\ntest('result and UTF-8 output limits preserve exact emitted prefixes', async () => {\n  const results = await execute(['-nc', 'range(20)'], '', { limits: { maxResults: 3 } });\n  assert.equal(results.status, 5);\n  assert.equal(results.stdout, '0\\n1\\n2\\n');\n  assert.match(results.stderr, /maxResults/u);\n  const exact = await execute(['-nr', '\"😀\"'], '', { limits: { maxOutputBytes: 5 } });\n  assert.equal(exact.stdout, '😀\\n');\n  assert.equal(exact.status, 0);\n  const short = await execute(['-nr', '\"😀\"'], '', { limits: { maxOutputBytes: 4 } });\n  assert.equal(short.stdout, '');\n  assert.equal(short.status, 5);\n  assert.match(short.stderr, /maxOutputBytes/u);\n});\n\ntest('limits cannot be swallowed by optional filters or hidden products', async () => {\n  const cases = [\n    { filter: '([range(1000)])?', limits: { maxCollectionSize: 8 }, message: /maxCollectionSize/u },\n    { filter: '([range(100000)]|empty)?', limits: { maxSteps: 64 }, message: /maxSteps/u },\n    { filter: '.[1000000]=0', limits: { maxCollectionSize: 8 }, message: /maxCollectionSize/u },\n    { filter: '(\"😀\"*1000000)?', limits: { maxValueBytes: 32 }, message: /maxValueBytes/u },\n    { filter: '[range(32)]|sort_by([range(32)])', limits: { maxValueBytes: 256 }, message: /maxValueBytes/u },\n  ];\n  for (const fixture of cases) {\n    const result = await execute(['-nc', fixture.filter], '', { limits: fixture.limits });\n    assert.equal(result.status, 5, fixture.filter);\n    assert.equal(result.stdout, '');\n    assert.match(result.stderr, fixture.message);\n  }\n});\n\ntest('bounded generators remain lazy after index and slice fixes', async () => {\n  for (const filter of ['first([42][range(1000000)])', 'first([42][range(1000000):1])', 'first([42][0:range(1;1000000)])']) {\n    const result = await execute(['-nc', filter], '', { limits: { maxSteps: 128, maxCollectionSize: 8 } });\n    assert.equal(result.status, 0, result.stderr);\n    assert.equal(result.stdout, filter.includes(':') ? '[42]\\n' : '42\\n');\n  }\n});\n\ntest('stalled reads and writes abort and observe late host rejections', { timeout: 3000 }, async () => {\n  for (const operation of ['read', 'write'] as const) {\n    const controller = new AbortController();\n    const reason = new Error(`independent ${operation} abort`);\n    let entered!: () => void;\n    let rejectLate!: (error: Error) => void;\n    const ready = new Promise<void>(resolve => { entered = resolve; });\n    const pending = () => { entered(); return new Promise<never>((_, reject) => { rejectLate = reject; }); };\n    const stdin: ByteSource = { [Symbol.asyncIterator]() { return { next: pending }; } };\n    const overrides: Partial<CommandContext> = { signal: controller.signal, ...(operation === 'write' ? { stdout: { write: pending } } : {}) };\n    const running = execute(operation === 'read' ? ['.'] : ['-n', '.'], stdin, {}, overrides);\n    const rejected = assert.rejects(running, error => error === reason);\n    await ready;\n    controller.abort(reason);\n    await rejected;\n    rejectLate(new Error('late failure must be observed'));\n    await delay(0);\n  }\n});\n\ntest('CPU expansion cooperatively observes cancellation', { timeout: 3000 }, async () => {\n  const controller = new AbortController();\n  const reason = new Error('independent CPU cancellation');\n  const running = execute(['-nc', 'range(1000000000)|empty'], '', { limits: { maxSteps: 10000000 } }, { signal: controller.signal });\n  const rejected = assert.rejects(running, error => error === reason);\n  await setImmediate();\n  controller.abort(reason);\n  await rejected;\n});\n\ntest('seeded JSON roundtrips tolerate every selected byte split', { timeout: 10000 }, async () => {\n  let seed = 0x6d2b79f5;\n  const random = (maximum: number) => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed % maximum; };\n  const strings = ['😀', 'é', '\\u0000', '\\n\\t\"\\\\', '__proto__', 'constructor', '', '2'];\n  const value = (depth: number): unknown => {\n    const kind = random(depth ? 6 : 4);\n    if (kind === 0) return null;\n    if (kind === 1) return random(2) !== 0;\n    if (kind === 2) return (random(201) - 100) / 8;\n    if (kind === 3) return strings[random(strings.length)];\n    if (kind === 4) return Array.from({ length: random(5) }, () => value(depth - 1));\n    return Object.fromEntries(Array.from({ length: random(5) }, () => [strings[random(strings.length)]!, value(depth - 1)]));\n  };\n  for (let round = 0; round < 64; round++) {\n    const input = JSON.stringify(value(3));\n    for (const size of [1, 2, 7, 64]) {\n      const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n      assert.deepEqual(result, { status: 0, stdout: `${input}\\n`, stderr: '' }, `seed 0x6d2b79f5 round ${round} chunk ${size}`);\n    }\n  }\n  assert.equal(Object.hasOwn(Object.prototype, 'polluted'), false);\n});\n",
+      "classification": "Stale UTF-8 diagnostic regex AND real native parser diagnostic defects at baseline; source fix required, not merely weakening the assertion",
+      "baseline": {
+        "probes": 5,
+        "exact": 0,
+        "diagnosticOnly": 5,
+        "statusOrStdout": 0
+      },
+      "whyStale": "The bytes are invalid numeric/literal tokens or unfinished strings at their byte/line positions, not a universal UTF-8 rejection diagnostic. Preserve exact completed output and nonzero status, and strengthen stderr to exact native bytes.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.status,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "outside-string-0",
+          "vectorSha256": "c28daee0da5007598f181dcda1f317f7072e4e36ce2917411748c3b6374d2c64",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac0af",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "outside-string-1",
+          "vectorSha256": "49354a814199d477a4f49418da20ef88c24c7e35257fa2233a23b450a6bf9889",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "outside-string-2",
+          "vectorSha256": "168b75cf3dd403975955384c92ed2204759281c437c5c659beebe0050f9c8326",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "outside-string-3",
+          "vectorSha256": "13bc2a91f95d1f46340d7bcf71df1dcee575c58fda96ec4d973b41c3d03e866e",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af09f",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "outside-string-4",
+          "vectorSha256": "beb12be3c324dbd642edc6482b88d1ee2d658c7227284487341b90dfb54ea76b",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0a80",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured/cli.test.ts",
+      "oldTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "oldFileSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 57,
+      "oldAssertion": "test(\"malformed UTF-8 preserves completed JSON prefix across every chunk split\", async () => {\n  for (const suffix of [[0xff], [0xc3], [0xc3, 0x28], [0xed, 0xa0, 0x80], [0xf0, 0x80, 0x80, 0x80], [0xf4, 0x90, 0x80, 0x80]]) {\n    for (const prefix of ['{}\\n', '\"😀\"\\n1\\n', '{\"a\":[1]}\\n\"incomplete']) {\n      const bytes = Buffer.concat([Buffer.from(prefix), Buffer.from(suffix)]);\n      const expected = prefix === '{}\\n' ? '{}\\n' : prefix.startsWith('\"😀\"') ? '\"😀\"\\n1\\n' : '{\"a\":[1]}\\n';\n      for (let split = 0; split <= bytes.length; split++) {\n        const source = (async function* () { yield bytes.subarray(0, split); yield bytes.subarray(split); })();\n        const result = await run([\"-c\", \".\"], source);\n        assert.equal(result.exitCode, 5); assert.equal(result.stdout, expected, `${suffix} split ${split}`); assert.match(result.stderr, /invalid UTF-8/);\n      }\n      const single = await run([\"-c\", \".\"], chunks(bytes)); assert.equal(single.stdout, expected); assert.equal(single.exitCode, 5);\n      const slurp = await run([\"-sc\", \".\"], bytes); assert.equal(slurp.stdout, \"\"); assert.equal(slurp.exitCode, 5);\n    }\n  }\n});\n\n",
+      "classification": "Stale UTF-8 diagnostic regex AND real native parser diagnostic defects at baseline; source fix required, not merely weakening the assertion",
+      "baseline": {
+        "probes": 36,
+        "exact": 12,
+        "diagnosticOnly": 24,
+        "statusOrStdout": 0
+      },
+      "whyStale": "The bytes are invalid numeric/literal tokens or unfinished strings at their byte/line positions, not a universal UTF-8 rejection diagnostic. Preserve exact completed output and nonzero status, and strengthen stderr to exact native bytes.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.exitCode,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-0--c",
+          "vectorSha256": "8dcdf51b7212cdfcfa320b5892dfd4a5bbed554ffef1d49c748279b75cc3283e",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-0--sc",
+          "vectorSha256": "9c193ce940fe403a92ef412a47299a8c0e9177f3d43810ae1839f9012768c943",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-0--c",
+          "vectorSha256": "6d63e6c8fefaee002ef265f7f679105d58004fb8089865a6793d276e6863e726",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-0--sc",
+          "vectorSha256": "b8497de680cc27d2e8db77d433240867f4fe5eee96be510823fd046dd02e7609",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-0--c",
+          "vectorSha256": "23db20a9eb1ebaa767e48244bc36e7cd6960e8de1c4c72fc391fb9ccb965bb9b",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-0--sc",
+          "vectorSha256": "558e9865ba6ae1098503d52cd132c5a12bcf54c99d640bdcade67ce2874d9b67",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-1--c",
+          "vectorSha256": "442e157e2c20a83eeb0e4d28cbdce68760f076833452b70ede73dbfde4696c30",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-1--sc",
+          "vectorSha256": "2d31d8bfd7e151de338b7670d207e6c626e43b5118cc68a7ad6a60d0c320fd04",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-1--c",
+          "vectorSha256": "8cad4d60ee39655e87e5b67dd7b78db1ff600506720bb5a959bdcf31c5ab0793",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-1--sc",
+          "vectorSha256": "b9442cd7be87707ece83c3fc57d9c5d5ed58f8659db301914ca2007499ada4f3",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-1--c",
+          "vectorSha256": "b1bb5f1629686b76d3dbbe59008df8da80a93e5ba5a7c53ca08024b571c8c3c8",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-1--sc",
+          "vectorSha256": "aac10945d0c07ce760144455c87811c82cf6f4c7abf8780f18063acb46bd0cf8",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-2--c",
+          "vectorSha256": "93a0d599b8884dfea81c79446952a039f2b20c64b3ac0466b9b6cbd5c471416f",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-2--sc",
+          "vectorSha256": "77938c082abe972c9a0e1970b99c3c4ffef608540d46800811a9c575be927f66",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-2--c",
+          "vectorSha256": "1f80ed52cc5f27beba0522249e52512ab875497eb1821455ead9202b41857b0f",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-2--sc",
+          "vectorSha256": "c9417b1b7e3c436e1108a9ee14c4dc7602bd04f7dbedef63584ed507648140d3",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310ac328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-2--c",
+          "vectorSha256": "fb2853758d2ac91deadf51a7472230cc2c13f6a1e05db0438d877636f4aa6371",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-2--sc",
+          "vectorSha256": "940f050e5e2bcc5f073984efde6d3ff78dec0ea98192c430f487d90d81fe6fa0",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-3--c",
+          "vectorSha256": "d2355a40abe59b6a5d1224ca02c1c56ae6a558ca837123d8d1a0acec4e48e087",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-3--sc",
+          "vectorSha256": "5c51e93c52807ecbd59521588e364be3d3dbb749ce44e8ebefe3147021867e55",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-3--c",
+          "vectorSha256": "3d36f3e490c1ee164687031aa2bf3a9761acf5cfb36fa94eecb4cb01068d2b57",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-3--sc",
+          "vectorSha256": "f662c81244aa156e8c2f7ce1a53be56bd55687b2d164b71f762590ee009268d8",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310aeda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-3--c",
+          "vectorSha256": "6e455230aa491a49e750d4a75f9bac8df892513fccdf15ad0351b8224509a128",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-3--sc",
+          "vectorSha256": "d992fbd3b1e8a9640ddba63245ab8d6859f2e31d3e13bd355571d6996f7cb2fb",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-4--c",
+          "vectorSha256": "bd296401e2df6c5b0accd69dbd4b45eaaa80a4ff53c84b95ba0109be28d60eb5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-4--sc",
+          "vectorSha256": "70ec0da0625f73417968f4c46b010614eb4f3693473b3dc39ce5e7e6760ce116",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-4--c",
+          "vectorSha256": "11d302a677f6f879b6ab25f65ab20c58574cca7f5c2274cc50aae24d261016e5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-4--sc",
+          "vectorSha256": "c6957eda9b38e7d855b179dff355c56bfa4e75834f216eaace2d9e953731262e",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-4--c",
+          "vectorSha256": "0112e93a5e3ad64b71e6f0f201f038d23d2230fa447f9db89e1a621da2d6f1e3",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-4--sc",
+          "vectorSha256": "fee6e2567f30febcf99842123e349711508cb1de4de975f1af5a4be0504f3316",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-5--c",
+          "vectorSha256": "37a996acb823771dc3ac49df521cd6bb7d4cc3d35efb0aef6b553a8f48832832",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-0-5--sc",
+          "vectorSha256": "786c2f0b76554d6d210950b80640f3e87495bfc8102786217b075e27c77fe308",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b7d0af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-5--c",
+          "vectorSha256": "a42a65025245a2f85d3efa8c221d15b772379679abffb25dc8b96065c4d487fa",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-1-5--sc",
+          "vectorSha256": "43d70625c86003902bbd257bb9d819afce4a7e6955d96963227fc4b61296ce00",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "22f09f9880220a310af4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-5--c",
+          "vectorSha256": "4006bd3894533c0553e03059a909031dc95779016288b0064b0144ee6a0e97a5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "prefix-2-5--sc",
+          "vectorSha256": "1dd32eab634cdc7734e2f60f4286902c44a9b0f512c5453128ac23cc26bfc3b5",
+          "argv": [
+            "-sc",
+            "."
+          ],
+          "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          }
+        }
+      ]
+    },
+    {
+      "oldTestPath": "tests/commands/structured/resources.test.ts",
+      "oldTestName": "valid large decimals survive while malformed JSON and division by zero fail",
+      "oldFileSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "snapshotArtifact": "canonical-before.json",
+      "snapshotHead": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+      "oldAssertionStartLine": 20,
+      "oldAssertion": "test(\"valid large decimals survive while malformed JSON and division by zero fail\", async () => {\n  for (const input of [\"NaN\", \"Infinity\", \"-Infinity\", '\"\\\\uD800\"', '\"\\\\uDC00\"', '[}', '{\"a\":}', \"01\", \"1.\", \"1e\", \"truefalse\", '\"bad\\nstring\"', \"[1,]\", '{\"a\":0,}', \"\\uFEFF0\"]) {\n    const result = await run([\"-c\", \".\"], input);\n    assert.equal(result.exitCode, 5, input); assert.equal(result.stdout, \"\", input);\n  }\n  for (const bytes of [[255], [0xc3], [0xc3, 0x28], [0xed, 0xa0, 0x80]]) {\n    const result = await run([\"-c\", \".\"], Uint8Array.from(bytes)); assert.equal(result.exitCode, 5); assert.equal(result.stdout, \"\");\n  }\n  for (const filter of [\"1/0\", \"0/0\", \"1%0\"]) {\n    const result = await run([\"-nc\", filter]); assert.equal(result.exitCode, 5, filter); assert.equal(result.stdout, \"\");\n  }\n  for (const input of ['1e9999', '[1e9999]', '{\"a\":1e9999}']) {\n    const result = await run([\"-c\", \".\"], input);\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stdout, `${input.replace(\"e\", \"E+\")}\\n`);\n  }\n  for (const [filter, expected] of [[\"1e308*1e308\", \"1.7976931348623157e+308\"], ['\"1e9999\"|tonumber', '1E+9999'], ['\"[1e9999]\"|fromjson', '[1E+9999]']]) {\n    const result = await run([\"-nc\", filter!]);\n    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, `${expected}\\n`);\n  }\n  assert.equal((await run([\"-c\", \".\"], '\"\\\\uD83D\\\\uDE00\"')).stdout, '\"😀\"\\n');\n});\n\n",
+      "classification": "MIXED at accepted baseline: obsolete rejection assertions plus six real acceptance gaps and ten diagnostic gaps; source fix required before TEST-ONLY retirement",
+      "baseline": {
+        "probes": 29,
+        "exact": 13,
+        "diagnosticOnly": 10,
+        "statusOrStdout": 6
+      },
+      "whyStale": "Native accepts NaN, infinities, leading zero, trailing decimal, leading BOM, and low surrogate replacement; reject-only loop is not a correct oracle. Keep invalid literals, malformed structures, division failures and precision controls as exact native results.",
+      "plannedChange": {
+        "applied": false,
+        "approval": "REQUIRES DIFFERENT INDEPENDENT LEAF; root schedules separate TEST-ONLY commit after source review",
+        "loops": "Preserve every original chunk size, split endpoint, file arrangement, empty chunk, cancellation and effect control; no skips or weakened status/output assertions.",
+        "replacementAssertion": "assert.deepEqual({status:result.exitCode,stdoutHex:Buffer.from(result.stdout).toString(\"hex\"),stderrHex:Buffer.from(result.stderr).toString(\"hex\")}, nativeExpected);",
+        "expectedLookup": "Use exact argv + inputHex + files and the explicit per-vector expected tuples below. No capture at test runtime; frozen file must have the pinned hash. Preserve original fixtures unchanged. Names may be clarified only with an explicit old-to-new mapping."
+      },
+      "nativeProof": [
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-0",
+          "vectorSha256": "fb91afdf1554b5b0668ea1e312f389217b5a9b24f0bb50d4992e567c556e48b1",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "4e614e",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-1",
+          "vectorSha256": "1b8ea24adabb8cdf8ca5d6e9ddd98473e036e2f9bfde7b1eb09d50a25cb80dcd",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "496e66696e697479",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-2",
+          "vectorSha256": "c8c7696e10a1ecea4e48e1bcc2e29337b34fcf95e41d319c946e4ec21f51b690",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "2d496e66696e697479",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-3",
+          "vectorSha256": "b69d0fb67513e6da1dbdaf14bb8a4dd1a9eacae8ebca7ee9c7c3e287b5cd5c3a",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754438303022",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-4",
+          "vectorSha256": "5bd93817dede033693577f46562bf07294295aa3e77cd3667a2f46351f03f38f",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c754443303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-5",
+          "vectorSha256": "a5eb394675b2c86dd60c27f07614ddf0c02b645242ce5882c03f9f470da9b326",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-6",
+          "vectorSha256": "1b8fc7f7356e9c2980cc2521e95095e7b14f732b1847eb87adc3acd13f2ffd9e",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-7",
+          "vectorSha256": "5f8e20112d67ae4162f15680bb06107a6ea41d416359c56419c01f0c38fe1a81",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "3031",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-8",
+          "vectorSha256": "d8265083bc7be1fd37de1c397e2fe705786c5634c3192bf46def20ea1313fc3b",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "312e",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-9",
+          "vectorSha256": "679f37aa8e391e7452f0d48dfcbdf3002b5e29b008f46e2d0555e0569b2ecdb6",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "3165",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-10",
+          "vectorSha256": "4207ae214c0df9c845ace1b1a40a97ae22a73698e980d912466896859f691ded",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7472756566616c7365",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-11",
+          "vectorSha256": "e63fd57204489d5a0ed86d827cbacb657664a99e67eb76edeb9b807e6bc63fa5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "226261640a737472696e6722",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-12",
+          "vectorSha256": "7091fcc31bf2cb053ecbc10bbfefdb11c8cf9abb0eee5f340b094788576f0847",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b312c5d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-13",
+          "vectorSha256": "f324cfd4e7ed726ac2394e1e4646f6b10417eb259fd331ec3c3e48907124453d",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a302c7d",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-json-14",
+          "vectorSha256": "fb6a304ee6da443bd39c743a606ada6b06bd21168d7490c33ed7c4626a277cd5",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "efbbbf30",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "300a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-utf8-0",
+          "vectorSha256": "b115f6c5d4770fc730d77d649b03910f5398056ba102688f100ed1810f78b994",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "ff",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-utf8-1",
+          "vectorSha256": "112c7a60e4abbacf246d037492916312ec6aae7b53150083acfd4844491c0b2a",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "c3",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-utf8-2",
+          "vectorSha256": "e02ca5fdd6e03a9521f2211b5f548480095174c5f0b80f395816c7e018614e9a",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "c328",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-utf8-3",
+          "vectorSha256": "9d23094a1e4bbeb0d36d610e8248ab27bc99bca7e4676fef64385425f3fad61e",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "eda080",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-0",
+          "vectorSha256": "1d30dec2bde86baa93bddac1a2c12dfbf4eff557a2674bef6ef25dd3458092fb",
+          "argv": [
+            "-nc",
+            "1/0"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-1",
+          "vectorSha256": "dda4e06f44458a393e70d99154a57e48f25fd886ea569e5be7ca4fc82beba509",
+          "argv": [
+            "-nc",
+            "0/0"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-2",
+          "vectorSha256": "d7b8e0240223bdca489549db9da85c19b878557733f2bf57d6a84586b4546e24",
+          "argv": [
+            "-nc",
+            "1%0"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-3",
+          "vectorSha256": "fe126e3f0d70904bf8d5d7a40854b1bcc49849b51c945f993e00890e36447d0c",
+          "argv": [
+            "-nc",
+            "1e308*1e308"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-4",
+          "vectorSha256": "1bc0d834b42b89c18d98446373b6dedbff99fcc7c5780fd08d40ccc9565f12cb",
+          "argv": [
+            "-nc",
+            "\"1e9999\"|tonumber"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-filter-5",
+          "vectorSha256": "422838ee900fe65129cc5f82563574c5f73c3902b16c9dfdeec0711a02a0046b",
+          "argv": [
+            "-nc",
+            "\"[1e9999]\"|fromjson"
+          ],
+          "inputHex": "",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-large-0",
+          "vectorSha256": "09313c3f93633edd0212c1dc55b9ab5aca4a1de266639919a7c8903fe6fbff1a",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "316539393939",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-large-1",
+          "vectorSha256": "02a5987883d01032217a3e60f23f525449bba9fd48a649537ac604b0de644a30",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "5b3165393939395d",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-large-2",
+          "vectorSha256": "20c8451104b9d88f41e8690820ccbd11cd5d31825301b689707ecd542c28b137",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "7b2261223a3165393939397d",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "7b2261223a31452b393939397d0a",
+            "stderrHex": ""
+          }
+        },
+        {
+          "artifact": "../jq-42-independent-review/legacy-native-proof.json",
+          "artifactSha256": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+          "id": "resource-large-3",
+          "vectorSha256": "4bf1f457f45f084281bcb0c2cb3a5f506485f52ceca1ee23f758c466ce6d7b6f",
+          "argv": [
+            "-c",
+            "."
+          ],
+          "inputHex": "225c75443833445c754445303022",
+          "files": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22f09f9880220a",
+            "stderrHex": ""
+          }
+        }
+      ]
+    }
+  ],
+  "supplemental": [
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 5 across chunk boundaries",
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Newly exposed stale rejection assertion after an actual native acceptance gap is fixed; not part of historical22",
+      "replacementAssertion": "Assert exact native expected status/stdout/stderr for this existing input across the unchanged [1,2,5,64] chunk loop; retain all other malformed inputs as exact native failures.",
+      "nativeProof": {
+        "artifact": "native-frozen.json",
+        "artifactSha256": "83686533ca0465678a82f34592b6a0cf5d6db040e1fe8bbdcfc1a64f2534f35b",
+        "vectorSha256": "e66a74076b23d24ceda2b47b49b5e5a21cbade90f4d8cec9fd66e3994f65bd82",
+        "id": "token-282",
+        "group": "token",
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "5b315d0a",
+          "stderrHex": ""
+        }
+      },
+      "applied": false
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 15 across chunk boundaries",
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Newly exposed stale rejection assertion after an actual native acceptance gap is fixed; not part of historical22",
+      "replacementAssertion": "Assert exact native expected status/stdout/stderr for this existing input across the unchanged [1,2,5,64] chunk loop; retain all other malformed inputs as exact native failures.",
+      "nativeProof": {
+        "artifact": "native-frozen.json",
+        "artifactSha256": "83686533ca0465678a82f34592b6a0cf5d6db040e1fe8bbdcfc1a64f2534f35b",
+        "vectorSha256": "b9c7c64ddaaf9c8274a610aa1400143e1a1263e057f84a8ce1e68444d29fac95",
+        "id": "bom-737",
+        "group": "bom",
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "300a",
+          "stderrHex": ""
+        }
+      },
+      "applied": false
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 21 across chunk boundaries",
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Newly exposed stale rejection assertion after an actual native acceptance gap is fixed; not part of historical22",
+      "replacementAssertion": "Assert exact native expected status/stdout/stderr for this existing input across the unchanged [1,2,5,64] chunk loop; retain all other malformed inputs as exact native failures.",
+      "nativeProof": {
+        "artifact": "native-frozen.json",
+        "artifactSha256": "83686533ca0465678a82f34592b6a0cf5d6db040e1fe8bbdcfc1a64f2534f35b",
+        "vectorSha256": "eca6a7c69c9311bbca116187dfba0e8ea2c3e0a832eecdbad602e8d364d73e90",
+        "id": "token-176",
+        "group": "token",
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        }
+      },
+      "applied": false
+    },
+    {
+      "oldTestPath": "tests/commands/structured-stress/safety.test.ts",
+      "oldTestName": "strict malformed JSON 22 across chunk boundaries",
+      "oldAssertion": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n  for (const size of [1, 2, 5, 64]) {\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\\n' : '');\n    if (input === '1e9999') assert.equal(result.stderr, '');\n    else assert.match(result.stderr, /^jq: /u);\n  }\n});\n\n",
+      "classification": "Newly exposed stale rejection assertion after an actual native acceptance gap is fixed; not part of historical22",
+      "replacementAssertion": "Assert exact native expected status/stdout/stderr for this existing input across the unchanged [1,2,5,64] chunk loop; retain all other malformed inputs as exact native failures.",
+      "nativeProof": {
+        "artifact": "native-frozen.json",
+        "artifactSha256": "83686533ca0465678a82f34592b6a0cf5d6db040e1fe8bbdcfc1a64f2534f35b",
+        "vectorSha256": "067a7b5527e7430ca975a7f39b8c637eb0b752618badf866569e00e2a15ef287",
+        "id": "token-0",
+        "group": "token",
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "6e756c6c0a",
+          "stderrHex": ""
+        }
+      },
+      "applied": false
+    }
+  ]
+}

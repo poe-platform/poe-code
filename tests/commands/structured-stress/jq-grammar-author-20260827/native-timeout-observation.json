@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-27T01:57:50.706Z",
+  "profile": "/usr/bin/jq pinned 1.7.1-apple",
+  "argv": [
+    "-c",
+    "\"x\"*."
+  ],
+  "input": "9223372036854774784",
+  "timeoutMs": 2000,
+  "observedError": "spawnSync /usr/bin/jq ETIMEDOUT",
+  "effect": "The exploratory loop aborted without a frozen result artifact. No timeout is called native semantic parity. No source implementation attempt or repeated unsafe multiplication was made. The narrowed followup records bounded integer-remainder/grouping operations only, separately."
+}

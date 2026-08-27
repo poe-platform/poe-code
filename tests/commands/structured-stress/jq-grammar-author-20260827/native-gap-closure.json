@@ -1,0 +1,2973 @@
+{
+  "historicalBaseline": {
+    "vectors": 94,
+    "exact": 45,
+    "differences": 49,
+    "stderrOnly": 43,
+    "statusOrStdout": 6
+  },
+  "final": {
+    "vectors": 94,
+    "exact": 94,
+    "differences": 0,
+    "executions": 376
+  },
+  "gaps": [
+    {
+      "before": {
+        "id": "outside-string-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "outside-string-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "outside-string-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "outside-string-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "outside-string-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "outside-string-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "outside-string-3",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "outside-string-3",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "outside-string-4",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "outside-string-4",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "assertion": "invalid UTF-8 never becomes replacement text",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-0--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-0--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-0--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-0--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-0--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-0--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-0--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-0--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-1--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-1--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-1--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-1--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-1--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-1--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-1--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-1--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-2--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-2--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-2--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-2--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-2--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-2--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-2--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-2--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-3--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-3--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-3--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-3--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-3--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-3--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-3--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-3--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-4--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-4--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-4--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-4--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-4--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-4--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-4--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-4--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-5--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-5--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "7b7d0a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-0-5--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-0-5--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-5--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-5--c",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "22f09f9880220a310a",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "prefix-1-5--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "prefix-1-5--sc",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "group": "old-utf8-diagnostic-regex",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "6e756c6c0a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "6e756c6c0a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "6e756c6c0a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "496e66696e697479",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20380a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "496e66696e697479",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20390a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-5",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b7d",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206d69736d617463686564204a534f4e2064656c696d697465720a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-5",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b7d",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-7",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3031",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-7",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3031",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-8",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "312e",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-8",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "312e",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "310a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-9",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3165",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-9",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3165",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-10",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7472756566616c7365",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520312c20636f6c756d6e20390a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-10",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7472756566616c7365",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-json-14",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "300a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20340a"
+        },
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-json-14",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 0,
+          "stdoutHex": "300a",
+          "stderrHex": ""
+        },
+        "actual": {
+          "status": 0,
+          "stdoutHex": "300a",
+          "stderrHex": ""
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-utf8-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "ff",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-utf8-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "ff",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-utf8-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c3",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-utf8-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c3",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-utf8-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c328",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-utf8-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c328",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-utf8-3",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "eda080",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-utf8-3",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "eda080",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-filter-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "1/0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-filter-0",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "1/0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-filter-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "0/0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e3a30293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-filter-1",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "0/0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "resource-filter-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "1%0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "resource-filter-2",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-nc",
+          "1%0"
+        ],
+        "inputHex": "",
+        "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+        "group": "resource-composite-control",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "join-zero-arity",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "--",
+          "join"
+        ],
+        "inputHex": "5b5d",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "actual": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e206a6f696e2f30206174206f666673657420340a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "join-zero-arity",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "--",
+          "join"
+        ],
+        "inputHex": "5b5d",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "actual": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "join-two-arity",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "--",
+          "join(\"-\";\":\")"
+        ],
+        "inputHex": "5b5d",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "actual": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e206a6f696e2f32206174206f66667365742031330a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "join-two-arity",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "--",
+          "join(\"-\";\":\")"
+        ],
+        "inputHex": "5b5d",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "actual": {
+          "status": 3,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "generator-error-after-output",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "split((\",\", .missing))"
+        ],
+        "inputHex": "22612c62220a",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "5b2261222c2262225d0a",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e64657820737472696e67207769746820737472696e6720226d697373696e67220a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "5b2261222c2262225d0a",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2063616e6e6f7420696e64657820737472696e67207769746820737472696e670a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "generator-error-after-output",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "split((\",\", .missing))"
+        ],
+        "inputHex": "22612c62220a",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "5b2261222c2262225d0a",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e64657820737472696e67207769746820737472696e6720226d697373696e67220a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "5b2261222c2262225d0a",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e64657820737472696e67207769746820737472696e6720226d697373696e67220a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    },
+    {
+      "before": {
+        "id": "generator-error-before-typecheck",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "split(.missing)"
+        ],
+        "inputHex": "310a",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226d697373696e67220a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2063616e6e6f7420696e646578206e756d626572207769746820737472696e670a"
+        },
+        "differingFields": [
+          "stderrHex"
+        ],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": false
+      },
+      "after": {
+        "id": "generator-error-before-typecheck",
+        "cohort": "legacy",
+        "route": "direct",
+        "transport": "whole",
+        "original42": false,
+        "argv": [
+          "-c",
+          "split(.missing)"
+        ],
+        "inputHex": "310a",
+        "assertion": "four-author-reported-gaps",
+        "group": "supplementary-diagnostic-gap",
+        "expected": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226d697373696e67220a"
+        },
+        "actual": {
+          "status": 5,
+          "stdoutHex": "",
+          "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226d697373696e67220a"
+        },
+        "differingFields": [],
+        "stageDifferences": [],
+        "stageCountMatches": true,
+        "pass": true
+      }
+    }
+  ]
+}

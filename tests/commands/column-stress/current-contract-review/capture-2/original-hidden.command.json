@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-column-current-Fe3eCP/candidate/tests/commands/column-stress/handoff-20260827/root-hidden-return-repro.mjs",
+    "/private/tmp/safe-bash-column-current-Fe3eCP/candidate",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/capture-2/ORIGINAL-HIDDEN.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-current-Fe3eCP/candidate",
+  "startedAt": "2026-08-27T15:58:47.642Z",
+  "finishedAt": "2026-08-27T15:58:47.763Z",
+  "deadlineMs": 90000,
+  "status": 1,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 319,
+    "stderr": 0
+  },
+  "stdoutHex": "7b22636c617373696669636174696f6e223a22726f6f742d6f776e65642d68696464656e2d65787465726e616c2d737464696e2d72657475726e2d626f756e64617279222c2263616e646964617465223a222f707269766174652f746d702f736166652d626173682d636f6c756d6e2d63757272656e742d4665336543502f63616e646964617465222c226265666f72654761746552656c65617365223a7b2272657475726e73223a312c2265786563536574746c6564223a747275652c22646973706f7365536574746c6564223a747275657d2c22616363657074616e6365223a22484f4c44222c226f7574636f6d65223a7b2272656a656374696f6e223a224572726f723a205368656c6c20697320646973706f736564227d2c2266696e616c6c7952656c65617365644861726e65737347617465223a747275657d0a",
+  "stderrHex": "",
+  "cleanup": "child-close-observed-owned-process-group-retired",
+  "isolationEnvironment": {
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true"
+  }
+}

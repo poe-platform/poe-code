@@ -1,0 +1,100 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-l7jXfm/candidate",
+  "auditedAt": "2026-08-27T16:00:59.480Z",
+  "classification": "retained initial harness failures, not a qualifying run",
+  "allOriginalSourceBuildDependencyEntriesUnchanged": true,
+  "missingEntries": [],
+  "changedOriginalEntries": [],
+  "appendProofDetectorCaught": [
+    {
+      "path": ".verification-npm-cache",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/content-v2",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/content-v2/sha512",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/content-v2/sha512/28",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/content-v2/sha512/28/00",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/content-v2/sha512/28/00/b2f102ff99961fc29cbaa562ba6483ca99ed3f2ff73b61ba64e9a91e74188b98d6f725d485f682a8f1725e50746a940f2f548555bf35cab2ede21c1b8e19",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 647614,
+      "sha256": "27ea798e910a97ddaf9b066e6d869967ed5475eaaa98f0151016c4aaf88cf268"
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/index-v5",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/index-v5/31",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/index-v5/31/04",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/index-v5/31/04/65c4bd86d48fa08d7e7598bf9bf34d267a10d27da4989086a3726535146d",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 271,
+      "sha256": "71d8aaf288b291eaeaa9c9d64dee746d7429acb46aa2fdda654233fccb711930"
+    },
+    {
+      "path": ".verification-npm-cache/_cacache/tmp",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_logs",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": ".verification-npm-cache/_logs/2026-08-27T15_57_01_313Z-debug-0.log",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1525,
+      "sha256": "0c1917921fda32d28dccdb2d6078d1f70d871bdf3e358677d7e3862ed09a0d46"
+    },
+    {
+      "path": ".verification-npm-cache/_update-notifier-last-checked",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "firstCorpus": {
+    "source": "11/12; C10 failed",
+    "packed": "11/12; C10 failed",
+    "reason": "C10 correctly observed exact caller exec rejection; harness incorrectly required concurrent disposal success and its final awaited disposal then rethrew the cleanup error. Existing dispose contract preserves that cleanup failure."
+  },
+  "runnerFailure": "Full after-inventory assertion caught npm cache entries created by unchanged bounded runner environment. Corrected runner passes explicit separate --cache, without excluding entries.",
+  "originalFilesPreserved": true
+}

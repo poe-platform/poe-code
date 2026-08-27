@@ -1,0 +1,42 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-l7jXfm/candidate",
+  "mode": "source",
+  "mutant": "late-unhandled",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "id": "C04",
+      "name": "dispose interrupts opaque return; late rejection observed",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "afterInterruptBeforeRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returns": 1,
+        "retired": false
+      },
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: Shell is disposed"
+      },
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    }
+  ],
+  "counts": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "unhandledRejections": [
+    "Error: late-unhandled detector sentinel"
+  ],
+  "allCasesAndGatesFinished": true
+}

@@ -1,0 +1,43 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-Fe3eCP/candidate",
+  "mode": "source",
+  "mutant": "remove-registration",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "id": "C07",
+      "name": "registered exec and repeated dispose strong barrier",
+      "status": "fail",
+      "effects": {},
+      "beforeRelease": [
+        true,
+        true,
+        true
+      ],
+      "trace": [
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 0,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 2,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true,
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: registered/normal barrier must remain pending before release",
+        "stack": "AssertionError [ERR_ASSERTION]: registered/normal barrier must remain pending before release\n    at pendingBarrier (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:50:3)\n    at async owned (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:138:21)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:211:96"
+      }
+    }
+  ],
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "unhandledRejections": [],
+  "allCasesAndGatesFinished": true
+}

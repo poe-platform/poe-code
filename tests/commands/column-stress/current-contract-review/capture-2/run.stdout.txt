@@ -1,0 +1,208 @@
+{"label":"archive","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"extract","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"build","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"scoped-types","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"scoped-tests","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"legacy","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"original-hidden","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"current","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"mutant-remove-registration","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"mutant-wrong-output","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"mutant-wrong-error","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"mutant-late-unhandled","status":1,"signal":null,"termination":null,"spawnError":null}
+{"label":"pack","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"unpack","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"packed-current","status":0,"signal":null,"termination":null,"spawnError":null}
+{"label":"packed-types","status":0,"signal":null,"termination":null,"spawnError":null}
+{
+  "revision": "3af3f62890c528bd40da56514e4b08f44b2e6cf0",
+  "startedAt": "2026-08-27T15:58:21.740Z",
+  "finishedAt": "2026-08-27T15:59:00.918Z",
+  "temporary": "/private/tmp/safe-bash-column-current-Fe3eCP",
+  "archiveSha256": "55202a0c155a6c40e68033da79876ee5e3970829cdd435e38583c8fe8b31326f",
+  "packSha256": "27ea798e910a97ddaf9b066e6d869967ed5475eaaa98f0151016c4aaf88cf268",
+  "sourceBlobCount": 26648,
+  "sourceInventorySha256": "0ce74ac786cef933af32e270ec8d04a69547ca4bf7a890bdbc73b0f9828ae8d1",
+  "beforeInventorySha256": "4fa14ca8be953c154737a8ed6167266a0e87ee6f61d2c565566276fd9868ca83",
+  "afterInventorySha256": "4fa14ca8be953c154737a8ed6167266a0e87ee6f61d2c565566276fd9868ca83",
+  "newEntriesDetected": true,
+  "reusedDependenciesUnchanged": true,
+  "archiveUnchanged": true,
+  "packUnchanged": true,
+  "node": {
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "commands": [
+    {
+      "label": "archive",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "extract",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "build",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "scoped-types",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "scoped-tests",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "legacy",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "original-hidden",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "current",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "mutant-remove-registration",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "mutant-wrong-output",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "mutant-wrong-error",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "mutant-late-unhandled",
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "pack",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "unpack",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "packed-current",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    },
+    {
+      "label": "packed-types",
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null
+    }
+  ],
+  "legacyCounts": {
+    "topLevelRecipes": 40,
+    "topLevelPass": 39,
+    "topLevelFail": 1,
+    "topLevelUnexecuted": 0,
+    "executedVariants": 88,
+    "originalRecipeVariants": 84,
+    "supplementalVariants": 4,
+    "variantPass": 87,
+    "variantFail": 1,
+    "denominatorCaveat": "Top-level and variant counts overlap, never add them; native comparisons are a separate profile partition, not extra product passes."
+  },
+  "originalHidden": {
+    "classification": "root-owned-hidden-external-stdin-return-boundary",
+    "candidate": "/private/tmp/safe-bash-column-current-Fe3eCP/candidate",
+    "beforeGateRelease": {
+      "returns": 1,
+      "execSettled": true,
+      "disposeSettled": true
+    },
+    "acceptance": "HOLD",
+    "outcome": {
+      "rejection": "Error: Shell is disposed"
+    },
+    "finallyReleasedHarnessGate": true
+  },
+  "currentCounts": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "packedCounts": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "scopedTestCounts": {
+    "tests": 73,
+    "pass": 73,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "checks": {
+    "build": 0,
+    "types": 0,
+    "tests": 0,
+    "legacy": 1,
+    "hidden": 1,
+    "current": 0,
+    "packed": 0,
+    "packedTypes": 0
+  },
+  "closure": "Every bounded child close observed; no deadline/output cap/spawn failure. All fixture gates released and awaited. Isolated regular-file snapshots retained for audit; no foreign artifacts removed."
+}

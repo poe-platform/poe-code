@@ -1,0 +1,18 @@
+{
+  "at": "2026-08-27T08:05:22.553Z",
+  "proof": "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-review.json",
+  "proofSha256": "cc999be32df1d3f5baba6916634ab4001ade8054996dc95b4ec9b72376d30307",
+  "cleanup": [
+    {
+      "archive": "/private/tmp/safe-bash-dispose-review-ip9Dp0",
+      "removedAfterDurableProof": true,
+      "retainedOnForcedTermination": false
+    },
+    {
+      "archive": "/private/tmp/safe-bash-dispose-review-K1lcOh",
+      "removedAfterDurableProof": true,
+      "retainedOnForcedTermination": false
+    }
+  ],
+  "method": "Exact generated archives only; lstat/unlink does not traverse node_modules symlinks."
+}

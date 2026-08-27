@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-08-27T08:01:49.750Z",
+  "candidate": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+  "contract": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "callbacks": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+  "preparation": "0f4339d90937c6a82db9fd84b99a5b5ca9f30974",
+  "headAtPreflight": "71515770018077c1ae511f41f49e3a39c615cce5",
+  "sourceWasInspectedBeforeRun": false,
+  "verification": "Git blob hashes/ancestry only; no candidate source text, author tests, fixtures or evidence inspected.",
+  "product": {
+    "src/shell/cleanup.ts": {
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "liveSha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    "src/shell/runtime.ts": {
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "blob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+      "liveSha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+    },
+    "src/shell/shell.ts": {
+      "sha256": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "blob": "fba333dc18f666a75c5f6c34a928a89fda934d88",
+      "liveSha256": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee"
+    }
+  },
+  "components": {
+    "contract": {
+      "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    "callbacks": {
+      "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "src/commands/regex-execution/README.md": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+    }
+  },
+  "profileFiles": {
+    "src/index.ts": {
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+      "sameAsCallbackCommit": true
+    },
+    "package.json": {
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "sameAsCallbackCommit": true
+    },
+    "package-lock.json": {
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "sameAsCallbackCommit": true
+    },
+    "tsconfig.json": {
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08",
+      "sameAsCallbackCommit": true
+    },
+    "tsconfig.build.json": {
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "sameAsCallbackCommit": true
+    }
+  },
+  "frozenFiles": {
+    "tests/shell-stress/invocation-cleanup-holdout/README.md": "d17a42ab64a828e9877d1487c9563d73f7a73ffd41d5bdeaf1acc4ce73aa7235",
+    "tests/shell-stress/invocation-cleanup-holdout/cases.mjs": "8b146a6bea9f1f27d7d8d7f4463d839b8ff9f7a8cb0eff2ec8d3d5a13a5ed843",
+    "tests/shell-stress/invocation-cleanup-holdout/child.mjs": "83d4ed3c571b415ce451112232ccd16ec35df31f342805456df8af6aef9babf6",
+    "tests/shell-stress/invocation-cleanup-holdout/contract-source.json": "0cf142736a28c4ccafd7cf9b3483dceb5d484e6303bbeebf1b4af3a623fb2c4a",
+    "tests/shell-stress/invocation-cleanup-holdout/freeze.json": "e2132d725422852867e1b41c05bb4de3c77fb3f7d9f34c3c3f6a397ce497f914",
+    "tests/shell-stress/invocation-cleanup-holdout/inventory.json": "c9bc780d791b6c9adb07e60fbfcb2101c98b8c05cc417967f25173b99941a963",
+    "tests/shell-stress/invocation-cleanup-holdout/preparation-validation.json": "6038bbaedc647289351f89865f6ee1dbdf033e61a3dae14f5be17f168c205887",
+    "tests/shell-stress/invocation-cleanup-holdout/run.mjs": "ad078123a6a5e38a1a60ee4a439539240498760a535af6fe1997fcd6999a5eef",
+    "tests/shell-stress/invocation-cleanup-holdout/support.mjs": "7f73a76e74e88092bba37878beab6ce5b64170a396069f7ecae8f816ce9d5e84",
+    "tests/shell-stress/invocation-cleanup-holdout/trace.mjs": "5ae9834cfa6abd613a79472f7c609e58942fdaf9021f3abb88386bb3960def33"
+  },
+  "indexSha256": "c70e19c675e00966eeb93a2608f37010757f1a7b84487a2362c536f9fbc64c24",
+  "cachedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

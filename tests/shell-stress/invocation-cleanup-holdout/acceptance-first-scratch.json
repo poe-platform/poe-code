@@ -1,0 +1,9 @@
+{
+  "at": "2026-08-27T08:02:15.368Z",
+  "archive": "/private/tmp/safe-bash-cleanup-holdout-lFmOcJ",
+  "evidencePath": "tests/shell-stress/invocation-cleanup-holdout/acceptance-first.json",
+  "evidenceSha256": "5ec7f20d9f0d45bb55052f5d13cf374a7b9694c18c58c271a4918f4c59e6cab3",
+  "removedAfterDurableProof": true,
+  "retainedOnForcedChildTermination": false,
+  "method": "Exact owned archive only; lstat recursion and unlink symlinks, never their tooling targets."
+}

@@ -20,7 +20,7 @@ export function captureGnuStrings() {
       providerEvidence: "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/PROVENANCE.md",
       configuration: "--enable-default-strings-all --with-system-zlib; unmodified upstream source, existing system runtime, no install or product dependency",
     },
-    observations: gnuStringsCases.map(specimen => capture(specimen, executable)),
+    observations: gnuStringsCases.map(specimen => capture(specimen, executable, defaultStrings)),
   };
 }
 

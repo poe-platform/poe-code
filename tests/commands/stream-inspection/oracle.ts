@@ -20,11 +20,11 @@ export function identity(executable: string) {
   return { executable, resolved, sha256: createHash("sha256").update(readFileSync(resolved)).digest("hex"), version: version.stdout, versionStderr: version.stderr, versionStatus: version.status };
 }
 
-export function capture(specimen: Fixture, executable: string) {
+export function capture(specimen: Fixture, executable: string, argv0 = executable) {
   const folder = mkdtempSync(fileURLToPath(new URL("./author-native-", import.meta.url)));
   try {
     for (const [name, hex] of Object.entries(specimen.files ?? {})) writeFileSync(join(folder, name), Buffer.from(hex, "hex"));
-    const result = spawnSync(executable, specimen.args, { cwd: folder, input: Buffer.from(specimen.stdinHex, "hex"), timeout: 5000, maxBuffer: 8 * 1024 * 1024, env: { LC_ALL: "C", LANG: "C", TZ: "UTC", PATH: "/usr/bin:/bin" } });
+    const result = spawnSync(executable, specimen.args, { argv0, cwd: folder, input: Buffer.from(specimen.stdinHex, "hex"), timeout: 5000, maxBuffer: 8 * 1024 * 1024, env: { LC_ALL: "C", LANG: "C", TZ: "UTC", PATH: "/usr/bin:/bin" } });
     if (result.error) throw result.error;
     return { id: specimen.id, command: specimen.command, fixtureSha256: createHash("sha256").update(JSON.stringify(specimen)).digest("hex"), status: result.status, signal: result.signal, stdoutHex: result.stdout.toString("hex"), stderrHex: result.stderr.toString("hex") };
   } finally { rmSync(folder, { recursive: true }); }

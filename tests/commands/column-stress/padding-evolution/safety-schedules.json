@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-safety-specifications-not-executed-not-native-expectations",
+  "basis": "User-authorized absent-trailing-cell evolution; unchanged API/limits and historical documented scalar profile. No new input-cleanup semantics.",
+  "globalProtocol": {
+    "execution": "Only after explicit closed-author handoff, from authenticated committed regular archive. Large cases each run in an isolated bounded product child, never native.",
+    "childBounds": { "deadlineMs": 5000, "maxOldSpaceSizeMiB": 128, "rawStdoutCapBytes": 65536, "rawStderrCapBytes": 65536, "maxConcurrentChildren": 1 },
+    "interpretation": "V8 heap cap is not an RSS guarantee. Deadline, cap, signal, premature exit, or forced group cleanup is failure, never expected budget refusal or PASS. No performance comparison.",
+    "capture": "Record exact argv, override limits, generator and input hash, status, stdout/stderr bytes or bounded stream hash+length+prefix, effects, write sizes/counts, resource admission/return events and child close/group retirement. Never allocate a rectangular oracle or giant expected string.",
+    "allocation": "Bound product child even if instrumentation is bypassed. Guard padding repeat/allocation and record arrays in that child only; include deliberately unsafe synthetic negative controls. Do not infer absence of rectangular allocation from elapsed time or successful output alone.",
+    "work": "Do not guess implementation-specific exact maxSteps totals. Small sufficient-budget exact controls and deliberately insufficient budgets are separate assertions. No uncharged rows-times-absent-columns scan is permitted, including zero-byte output.",
+    "terminology": "There is no maxColumns option: maxFields limits actual fields per record, maxCells cumulative parsed fields. Absent rendered cells must not materialize a rows-times-maxFields matrix.",
+    "diagnostics": "For failures retain original diagnostics and status; require nonzero and bounded diagnostic bytes, not invented message spelling. Completed awaited sink writes may remain a prefix. Input/decode failures must precede layout output.",
+    "notInScope": "No S38 reclassification, assertion migration, opaque-return contract audit, source edits, public integration, new dependencies or product runs during preparation."
+  },
+  "schedules": [
+    {
+      "id": "E01", "name": "ragged-output-exact-boundary",
+      "argv": ["-t"], "stdinUtf8": " z\t9  \nalpha  1 tail\n b\t22\n",
+      "expectedStdoutUtf8": "z      9   \nalpha  1   tail\nb      22  \n",
+      "runs": [{ "maxOutputBytes": 40, "expect": "exact success, 40 UTF-8 bytes" }, { "maxOutputBytes": 39, "expect": "nonzero; stdout is a prefix of exact success and at most 39 bytes" }],
+      "negativeControl": "Old no-absent-padding output must fail byte equality; accepting 40 bytes under cap39 must fail."
+    },
+    {
+      "id": "E02", "name": "padding-preallocation-not-posthoc-truncation",
+      "argv": ["-t", "-s", ":"], "generator": "'a\\n' + ASCII x repeated 4096 + ':q\\n'",
+      "limits": { "maxOutputBytes": 1024, "maxSteps": 100000 },
+      "expect": "Nonzero, output <=1024; the first row needs 4095 spaces plus separator before LF. Any padding allocation/repeat exceeding remaining output budget is rejected before allocation, even if later slicing could hide it. Bounded incremental admission is allowed.",
+      "negativeControl": "Synthetic allocate-padding-then-check implementation must trip isolated allocation observer, not pass solely for final capped bytes."
+    },
+    {
+      "id": "E03", "name": "sparse-ragged-low-output-cap",
+      "argv": ["-t", "-s", ":"],
+      "generator": "First record x plus ':' repeated 1023 plus LF; then 'x\\n' repeated 19999. Stream chunks <=4096 bytes.",
+      "math": { "rows": 20000, "maxFields": 1024, "actualCells": 21023, "inputBytes": 41023, "rectangularSlotsForbidden": 20480000, "successfulOutputBytes": 40960000 },
+      "limits": { "maxOutputBytes": 4096, "maxSteps": 1000000 },
+      "expect": "Nonzero with <=4096 output; no rectangular row expansion or row-width padding string allocated before budget refusal. Input stays below default rows/cells/bytes bounds.",
+      "negativeControl": "Rectangular synthetic allocator must fail child allocation/heap guard even if it would emit identical bytes."
+    },
+    {
+      "id": "E04", "name": "zero-output-absent-columns-no-quadratic-scan",
+      "argv": ["-t", "-s", ":", "-o", ""],
+      "generator": "Same sparse generator as E03.",
+      "limits": { "maxOutputBytes": 40000, "maxSteps": 1000000 },
+      "expectedStream": { "repeatUtf8": "x\n", "count": 20000, "bytes": 40000 },
+      "expect": "Either exact successful stream through bounded aggregate handling, or explicit maxSteps refusal with a bounded exact-output prefix. Uncharged 20,480,000-slot traversal is failure, not permitted zero-output work. A refusal is resource-safety success only, never byte-layout success.",
+      "negativeControl": "Unchecked synthetic zero-byte rectangular scanner must be detected by work instrumentation or isolated child failure, not credited by output hash."
+    },
+    {
+      "id": "E05", "name": "zero-width-columns-small-exact",
+      "argv": ["-t", "-s", ":", "-o", ""], "stdinUtf8": "a::\nb\n::\n",
+      "expectedStdoutUtf8": "a\nb\n \n", "limits": { "maxOutputBytes": 6, "maxSteps": 10000 },
+      "expect": "Exact success including one space padding the explicit empty first field to global first-column width; absent zero-width tails add no separator bytes.",
+      "negativeControl": "Skipping explicit-empty first-column padding must fail; manufacturing delimiters for empty -o must fail."
+    },
+    {
+      "id": "E06", "name": "display-zero-does-not-mean-byte-zero",
+      "argv": ["-t", "-s", ":", "-o", ""], "stdinUtf8": "a:\u0301:\u0300\nb\n",
+      "expectedStdoutUtf8": "a\u0301\u0300\nb\n",
+      "runs": [{ "maxOutputBytes": 8, "expect": "exact success" }, { "maxOutputBytes": 7, "expect": "nonzero, <=7-byte exact-output prefix" }],
+      "negativeControl": "Charging combining scalars as zero bytes must fail the cap7 case."
+    },
+    {
+      "id": "E07", "name": "multibyte-separator-byte-budget",
+      "argv": ["-t", "-s", ":", "-o", "界"], "stdinUtf8": "a:b:c\nz\n",
+      "expectedStdoutUtf8": "a界b界c\nz界 界\n",
+      "runs": [{ "maxOutputBytes": 19, "expect": "exact success" }, { "maxOutputBytes": 18, "expect": "nonzero, <=18-byte exact-output prefix" }],
+      "negativeControl": "Budget by separator display width instead of UTF-8 bytes must fail."
+    },
+    {
+      "id": "E08", "name": "cumulative-work-before-layout",
+      "argv": ["-t", "-s", ":"], "generator": "'x:y\\n' repeated 64",
+      "runs": [{ "maxSteps": 1, "expect": "nonzero and no layout output" }, { "maxSteps": 10000, "expect": "exact 'x  y\\n' repeated 64" }],
+      "expect": "Work cannot reset per row. Record counters and refusal stage; do not infer precise charge formula.",
+      "negativeControl": "Per-record reset or silently ignoring maxSteps must fail."
+    },
+    {
+      "id": "E09", "name": "actual-fields-cells-rows-input-independent",
+      "argv": ["-t", "-s", ":"], "stdinUtf8": "a:b:c\nx\n",
+      "expectedStdoutUtf8": "a  b  c\nx     \n",
+      "runs": [
+        { "limits": { "maxRows": 2, "maxCells": 4, "maxFields": 3, "maxInputBytes": 8 }, "expect": "exact success; absent rendering cells are not parsed cells" },
+        { "limits": { "maxRows": 1 }, "expect": "nonzero, no layout output" },
+        { "limits": { "maxCells": 3 }, "expect": "nonzero, no layout output" },
+        { "limits": { "maxFields": 2 }, "expect": "nonzero, no layout output" },
+        { "limits": { "maxInputBytes": 7 }, "expect": "nonzero, no layout output" }
+      ],
+      "negativeControl": "Charging a materialized six-cell rectangle against maxCells4 is not a substitute for preserving the four parsed cells."
+    },
+    {
+      "id": "E10", "name": "padding-writes-bounded-and-backpressured",
+      "argv": ["-t", "-s", ":"], "generator": "ASCII x repeated 32768 + ':q\\na\\n'",
+      "limits": { "maxSteps": 1000000, "maxOutputBytes": 70000, "maxChunkBytes": 65536 },
+      "schedule": "Hold the first padding-bearing sink write; advance deterministic microtask turns; verify no second concurrent write or public settlement. Release gate, require exact stream computed incrementally from column widths [32768,1].",
+      "expect": "Every observed sink write <=65536 bytes for this bounded fixture, sequential awaited writes; output 65543 bytes. This is a fixture safety ceiling, not an output guarantee of maxChunkBytes (an input limit). Future harness records actual maximum padding chunk size without inventing a public output-chunk option.",
+      "negativeControl": "Fire-and-forget writer or over-ceiling single padding write must fail."
+    },
+    {
+      "id": "E11", "name": "cancel-during-padding-and-owned-return",
+      "argv": ["-t", "-s", ":"], "stdinUtf8": "a:b:c\nx\n",
+      "schedule": "Two separate gates, not an impossible simultaneous lease: (A) after input retires normally, hold a padding sink write and abort with unique object; observe late resolve/reject without further writes; (B) while an owned VFS next remains pending after the ragged bytes, abort and hold its cooperative return, then release it. Register cleanup synchronously before acquisition in both direct contexts; invoke overlapping registered/finally cleanup.",
+      "expect": "Exact abort identity. In B result remains pending until the registered owned return gate releases, one underlying return; no new acquisitions/writes after abort admission closes. In A do not invent an owned lease for an opaque pending sink. Observe late rejections and no owned child/resource leak; do not substitute borrowed opaque external stdin.",
+      "negativeControl": "Early settlement before registered return, duplicate return, or starting post-abort padding write must fail."
+    },
+    {
+      "id": "E12", "name": "padding-sink-partial-failure-prefix",
+      "argv": ["-t", "-s", ":", "-o", "|"], "stdinUtf8": "a:bb:ccc\nz\n",
+      "schedule": "Record successful writes; sink rejects on the first write containing padding for the ragged second row, with a unique failure object. Retain rejected attempted bytes separately from completed effects.",
+      "expectedStdoutUtf8": "a|bb|ccc\nz|  |\n",
+      "expect": "Fail according to existing direct-context sink contract (nonzero handled status if diagnostic succeeds; propagate diagnostic-sink failure); completed bytes are a prefix of the exact success string, no later stdout writes, owned cleanup exactly once. Run sinks that reject before and after recording attempted effects; distinguish both explicitly.",
+      "negativeControl": "Continuing after sink rejection or claiming attempted bytes were completed must fail."
+    },
+    {
+      "id": "E13", "name": "control-invalid-utf8-no-padding-publication",
+      "argv": ["-t", "-s", ":"],
+      "variants": [{ "name": "nul", "stdinHex": "613a623a630a78000a" }, { "name": "escape", "stdinHex": "613a623a630a781b0a" }, { "name": "incomplete", "stdinHex": "613a623a630a78e282" }, { "name": "zwj", "stdinHex": "613a623a630a78e2808d0a" }],
+      "expect": "Strict profile nonzero, no layout output, bounded diagnostics and cooperative owned cleanup. Split malformed sequence across producer chunks in a second schedule; neither native acceptance nor padding change permits it.",
+      "negativeControl": "Replacement-decoding, accepting NUL/ZWJ, or publishing the first row before validation must fail."
+    },
+    {
+      "id": "E14", "name": "reused-byte-source-and-final-partial",
+      "argv": ["-t", "-s", ":"], "stdinUtf8": "a:b:c\nx",
+      "expectedStdoutUtf8": "a  b  c\nx     \n",
+      "schedule": "Yield transient Buffer views from a single reused buffer; split at delimiters and UTF-8 boundaries in companion P10. Mutate backing buffer before each next and at EOF/return. Compare ordinary and reused producer captures, including final partial record.",
+      "expect": "Exact retained bytes copied before producer advance/finalization, no arbitrary concurrent-mutation claim.",
+      "negativeControl": "Retaining subarray views must fail when earlier rows are overwritten."
+    },
+    {
+      "id": "E15", "name": "multioperand-missing-file-shared-stdin-stays-separated",
+      "argv": ["-t", "-s", ":", "first", "missing", "-", "-", "last"],
+      "files": { "first": "a:b:c\n", "last": "z:q" }, "stdinUtf8": "x\n",
+      "expectedStdoutUtf8": "a  b  c\nx     \nz  q  \n",
+      "expect": "Status1 for missing operand, bounded diagnostic naming missing path; repeated dash consumes stdin only once; final partial file record independent. Record exact VFS effects. This is product contract, not native dash oracle.",
+      "negativeControl": "Replay stdin on second dash, suppress missing status, or merge file boundary records must fail."
+    },
+    {
+      "id": "E16", "name": "argument-budget-and-child-retirement-negative-controls",
+      "argv": ["-t", "-s", ":", "-o", "界"], "stdinUtf8": "a:b:c\nz\n",
+      "runs": [{ "maxArgumentBytes": 10, "expect": "exact success as E07; total UTF-8 argv bytes10" }, { "maxArgumentBytes": 9, "expect": "nonzero/refusal before input acquisition; retain exact actual error interface" }],
+      "expect": "Arguments remain cumulative UTF-8 byte counted. Before future large-product run, validate outer runner against deliberately hung and output-flooding synthetic children; both must be failures with raw cause and all owned PIDs/groups retired.",
+      "negativeControl": "Byte-undercharging of multibyte argv, accepting timeout as expected cap refusal, or surviving worker after runner completion must fail."
+    }
+  ]
+}

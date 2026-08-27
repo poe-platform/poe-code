@@ -31,7 +31,11 @@ const captured = JSON.parse(readFileSync(new URL("./native.json", import.meta.ur
 const qualifications = JSON.parse(readFileSync(new URL("./qualifications.json", import.meta.url), "utf8")) as {
   overrides: { [id: string]: { profile: "qualified"; qualification: string } };
 };
-const effective = fixtures.map(fixture => ({ ...fixture, ...qualifications.overrides[fixture.id] }));
+const historical = fixtures.map(fixture => ({ ...fixture, ...qualifications.overrides[fixture.id] }));
+const paddingProfile = JSON.parse(readFileSync(new URL("./padding-evolution/profile-deltas.json", import.meta.url), "utf8")) as {
+  nativeOverrides: { [id: string]: { profile: "qualified"; stdout: string; qualification: string } };
+};
+const effective = historical.map(fixture => ({ ...fixture, ...paddingProfile.nativeOverrides[fixture.id] }));
 
 test("native cohort fixture hash, distinct classifications and denominator are authenticated", () => {
   assert.equal(createHash("sha256").update(fixtureBytes).digest("hex"), captured.fixtureSha256);
@@ -42,8 +46,10 @@ test("native cohort fixture hash, distinct classifications and denominator are a
   assert.equal(fixtures.filter(fixture => fixture.profile === "qualified").length, 7);
   assert.equal(fixtures.filter(fixture => fixture.profile === "native-unsupported").length, 2);
   assert.equal(fixtures.filter(fixture => fixture.profile === "product-unsupported").length, 2);
-  assert.equal(effective.filter(fixture => fixture.profile === "exact").length, 15);
-  assert.equal(effective.filter(fixture => fixture.profile === "qualified").length, 9);
+  assert.equal(historical.filter(fixture => fixture.profile === "exact").length, 15);
+  assert.equal(historical.filter(fixture => fixture.profile === "qualified").length, 9);
+  assert.equal(effective.filter(fixture => fixture.profile === "exact").length, 14);
+  assert.equal(effective.filter(fixture => fixture.profile === "qualified").length, 10);
 });
 
 for (const fixture of effective) test(`${fixture.profile === "exact" ? "BSD exact bytes/status" : "product contract ONLY, NOT native parity"}: ${fixture.id}`, async () => {

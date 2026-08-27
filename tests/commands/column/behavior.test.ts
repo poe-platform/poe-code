@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { CommandRegistry, FsError, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { columnCommands, createColumnCommand, createColumnCommands } from "../../../src/commands/column/index.js";
 import { run, shell } from "./helpers.js";
 
+const paddingProfile = JSON.parse(readFileSync(new URL("./padding-evolution/profile-deltas.json", import.meta.url), "utf8")) as { behavior: { stdout: string } };
+
 test("table whitespace, ragged rows, blanks and unterminated final record", async () => {
   const result = await run(["-t"], " a\tb \n\nlong z\nsingle\n\t \nlast q");
-  assert.equal(result.stdout, "a       b\nlong    z\nsingle\nlast    q\n");
+  assert.equal(result.stdout, paddingProfile.behavior.stdout);
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
 });

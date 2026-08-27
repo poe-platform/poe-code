@@ -2,20 +2,7 @@ import { type CommandDefinition } from "../../contracts/index.js";
 import { cell, decode, fields, validateScalar, type Cell } from "./display.js";
 import { ColumnInputs, diagnostics, type ColumnBudget } from "./internal.js";
 import { helpText, parse, settings, type ColumnCommandsOptions, type ParsedOptions } from "./options.js";
-
-async function tableOutput(rows: readonly Cell[][], widths: readonly number[], separator: string, budget: ColumnBudget): Promise<void> {
-  for (const row of rows) {
-    for (let index = 0; index < row.length; index++) {
-      const entry = row[index]!;
-      await budget.text(entry.text);
-      if (index + 1 < row.length) {
-        await budget.padding(widths[index]! - entry.width);
-        await budget.text(separator);
-      }
-    }
-    await budget.text("\n");
-  }
-}
+import { tableOutput } from "./table.js";
 
 async function fillOutput(rows: readonly Cell[][], options: ParsedOptions, budget: ColumnBudget): Promise<void> {
   let maximum = 0;

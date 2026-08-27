@@ -23,6 +23,7 @@ export function diagnostics(context: CommandContext, maximum: number): (error: u
 }
 
 export class ColumnBudget extends Budget {
+  static readonly outputChunkBytes = 8192;
   private workUsed = 0;
   private untilYield = 128;
   private emittedBytes = 0;
@@ -50,13 +51,26 @@ export class ColumnBudget extends Budget {
     this.check(value.length, this.columnLimits.maxOutputBytes - this.emittedBytes, "output");
     const size = Buffer.byteLength(value);
     this.check(size, this.columnLimits.maxOutputBytes - this.emittedBytes, "output");
-    this.emittedBytes += size;
-    await this.output([Buffer.from(value)]);
+    const bytes = Buffer.from(value);
+    if (!size) await this.output([]);
+    for (let offset = 0; offset < size; offset += ColumnBudget.outputChunkBytes) {
+      await this.chunk(bytes.subarray(offset, offset + ColumnBudget.outputChunkBytes));
+    }
+  }
+  checkOutput(size: number, label = "output padding"): void {
+    this.check(size, this.columnLimits.maxOutputBytes - this.emittedBytes, label);
+  }
+  async chunk(bytes: Uint8Array): Promise<void> {
+    this.checkOutput(bytes.length, "output");
+    this.emittedBytes += bytes.length;
+    await this.output([bytes]);
   }
   async padding(size: number, character = " "): Promise<void> {
-    this.check(size, this.columnLimits.maxOutputBytes - this.emittedBytes, "output padding");
+    this.checkOutput(size);
     await this.work(size);
-    if (size) await this.text(character.repeat(size));
+    for (let remaining = size; remaining > 0; remaining -= ColumnBudget.outputChunkBytes) {
+      await this.text(character.repeat(Math.min(remaining, ColumnBudget.outputChunkBytes)));
+    }
   }
 }
 

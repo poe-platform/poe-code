@@ -1,0 +1,12 @@
+{
+  "classification": "New author evolution observations; no historical evidence modified",
+  "initialExistingTests": { "tests": 113, "pass": 111, "fail": 2, "resolution": "Deliberate old/new absent-tail expectation changes documented in profile-deltas.json; not implementation defect fixes or old evidence relabeling." },
+  "initialNewTests": {
+    "tests": 28,
+    "pass": 27,
+    "fail": 1,
+    "test": "large synthetic padding and separators emit bounded owned chunks with backpressure",
+    "failure": "deepStrictEqual distinguished Uint8Array from Buffer despite identical 8192 space bytes",
+    "resolution": "Normalize actual chunks to Buffer for the byte equality assertions; expected bytes and retained-chunk/backpressure assertions unchanged."
+  }
+}

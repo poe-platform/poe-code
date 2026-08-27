@@ -1,0 +1,14 @@
+{
+  "classification": "Prior verifier-authoritative API, scalar policy, context forwarding and cleanup sections intentionally unchanged by this evolution",
+  "sourceCommit": "38cb670a",
+  "sourceTree": "014da3de0ca297c4e28bc410f908e94478edd40d",
+  "files": {
+    "index.ts": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+    "options.ts": "e26bdac0703fc65bc481e4ef42b9e7f5d3bccd43fda296463615eef389b613ec",
+    "display.ts": "c79c3570b5e84e0304851ba782e4946f3f340ad3e70414f4aa123b600cbd4117"
+  },
+  "sections": [
+    { "file": "internal.ts", "from": "function cancellable", "sha256": "697434bdd047718a4f583c75c0a634301bc2a1509d7fd070eccb797a3e736a54" },
+    { "file": "column.ts", "from": "async function fillOutput", "sha256": "f1471d59b0a60098e90d7cc279373bdc797b241ccb42cc5854cc7ddedbbada75" }
+  ]
+}

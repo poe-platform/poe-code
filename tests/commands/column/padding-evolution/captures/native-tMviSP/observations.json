@@ -1,0 +1,224 @@
+{
+  "classification": "Additive small deterministic native records for prospective padding evolution, not revised historical 37/40 evidence",
+  "capturedAt": "2026-08-27T15:34:36.996Z",
+  "profile": "util-linux 2.41.2 on Darwin, not GNU/Linux locale certification",
+  "binary": {
+    "path": "/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+    "bytes": 196024,
+    "sha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88"
+  },
+  "version": {
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "636f6c756d6e2066726f6d207574696c2d6c696e757820322e34312e320a",
+    "stderrHex": ""
+  },
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "COLUMNS": "80",
+    "TERM": "dumb",
+    "HOME": "/tmp/safe-bash-column-stress-prep-Y7nUWq/native-home",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-column-stress-prep-Y7nUWq/native-home/config",
+    "NO_COLOR": "1"
+  },
+  "originalProvenanceSha256": "cac64592731a4ddb210ced63bbb302a225a11db68e0e74615eec7a4a2da5ce6f",
+  "originalNativeSha256": "89515a42ed2e9e634cf1c82ec523f74f6b04c20732a5826d21177f04f7657a79",
+  "casesSha256": "3f75d6fc1fc94d1958ed34e8ccdce8f05fe8348b007d9789de37a821bb1257e6",
+  "deadlineMs": 2000,
+  "maxInputBytes": 4096,
+  "maxBufferBytes": 65536,
+  "observations": [
+    {
+      "id": "N01",
+      "args": [
+        "-t"
+      ],
+      "stdinHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "N03",
+      "args": [
+        "-t",
+        "-s",
+        ",:"
+      ],
+      "stdinHex": "612c623a630a643a3a652c0a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "multiple-absent",
+      "args": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "613a623a630a640a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a6420202020200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "explicit-empty",
+      "args": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "613a623a630a643a0a653a3a0a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a6420202020200a6520202020200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "visible-separator",
+      "args": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "|"
+      ],
+      "stdinHex": "613a623a630a640a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "617c627c630a647c207c0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "empty-separator",
+      "args": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "stdinHex": "613a623a630a640a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6162630a64200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "multibyte-separator",
+      "args": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "界·"
+      ],
+      "stdinHex": "613a623a630a640a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61e7958cc2b762e7958cc2b7630a64e7958cc2b720e7958cc2b70a",
+      "stderrHex": ""
+    },
+    {
+      "id": "zero-empty-cells",
+      "args": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "stdinHex": "3a3a0a780a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "200a780a",
+      "stderrHex": ""
+    },
+    {
+      "id": "zero-width-cells",
+      "args": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "stdinHex": "613acc813acc810a780a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61cc81cc810a780a",
+      "stderrHex": ""
+    },
+    {
+      "id": "empty-middle",
+      "args": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "783a3a7a0a790a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "78202020207a0a79202020200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "selected-wide-cell",
+      "args": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "e7958c3a613a620a780a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "e7958c2020612020620a782020202020200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "narrow-table-width",
+      "args": [
+        "-t",
+        "-c",
+        "1"
+      ],
+      "stdinHex": "61206220630a780a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a7820202020200a",
+      "stderrHex": ""
+    },
+    {
+      "id": "fill-down-unchanged",
+      "args": [
+        "-c",
+        "16"
+      ],
+      "stdinHex": "610a620a630a640a650a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6109640a6209650a630a",
+      "stderrHex": ""
+    },
+    {
+      "id": "fill-across-unchanged",
+      "args": [
+        "-x",
+        "-c",
+        "16"
+      ],
+      "stdinHex": "610a620a630a640a650a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6109620a6309640a650a",
+      "stderrHex": ""
+    }
+  ],
+  "processStatus": "All synchronous children exited; no spawned process or temporary native install remains. Unique capture directory retained as evidence."
+}

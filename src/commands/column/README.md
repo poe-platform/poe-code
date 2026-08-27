@@ -51,8 +51,13 @@ the next strictly greater multiple of eight above the maximum display width.
 Fit as many strides as the requested width permits, at least one; `-x` changes
 entry traversal, not the stride. Inter-column padding uses actual TAB bytes at
 eight-column stops. Entries wider than `-c` are emitted intact on their own line.
-Table padding uses spaces. Neither mode pads after its last cell, but an explicit
-empty last field preserves the preceding delimiter/padding.
+Table padding uses spaces. Its prospective absent-tail profile preserves the
+padding and output separators up to the table's final column, even when a row
+has fewer actual fields. It does not pad the final column's absent content or
+add data cells. Explicit empty fields keep their original meaning. For example,
+`a b c` followed by `d` produces `a  b  c\nd     \n`. Fill mode still does not
+pad after its last entry. This is a root-authorized compatibility evolution from
+the previous absent-tail omission policy, not a retroactive bug designation.
 
 JSON, headers, named columns, column selection/reordering/alignment, wrapping,
 truncation, colors/ANSI handling, tree/depth processing, keep-empty-lines,
@@ -150,6 +155,30 @@ against remaining stdout bytes before encoding; padding is admitted before
 safe bounded arithmetic. Per-record scans/decode and bounded host calls are not
 preemptible mid-operation. Arguments, collected input, row/cell objects, expanded
 tabs and output fragments consume memory; these are not a precise RSS ceiling.
+
+Table tail padding uses O(maximum actual columns) suffix byte totals and links
+that skip zero-output columns, not a rectangular matrix. Totals saturate at
+`maxOutputBytes + 1`: saturation is an overflow-safe proof of non-admission,
+never a truncated output size. Metadata construction charges work before its
+arrays are populated and while traversing columns. Each short row looks up its
+suffix in constant time, admits its complete byte length against remaining
+stdout and charges those bytes as cumulative work **before** encoding/copying
+padding. Zero-byte suffixes return immediately, including empty separators and
+all-zero-width absent columns. Actual fields still consume the original row/cell
+limits; absent fields do not become stored cells. Emission traverses only
+positive-output suffix segments, so repeated suffix work is bounded by admitted
+output bytes, not unchecked rows times maximum columns.
+
+stdout writes are at most 8,192 bytes and awaited; a multibyte sequence may span
+ByteIO chunks without changing the concatenated UTF-8 bytes. Already written
+buffers are not reused for mutation. Padding repeats are chunk-bounded. Each
+output chunk also charges an output-dispatch work step, so work thresholds can
+be reached sooner than in the old omission/unbounded-write-size profile. A tail
+admission failure preserves any already emitted actual cells but emits none of
+that tail. A later newline, sink, cancellation or dispatch-budget failure may
+leave an admitted tail prefix. Limits, API, fill layout, scalar-width policy and
+resource-cleanup/forwarding contracts are unchanged.
+
 stderr diagnostics are separate from `maxOutputBytes` and cumulatively bounded
 by `maxDiagnosticBytes`. Oversized diagnostics include a truncation marker when
 space permits; exhausted stderr budget suppresses further diagnostics, not error
@@ -202,18 +231,31 @@ external stdin. No out-of-scope core fix or guarantee is implied.
 `tests/commands/column/native.json` preserves 28 raw native invocations, locale,
 argv, stdin/file bytes, exit status and stderr/stdout hex. `cases.json` is the
 unchanged original canonical fixture cohort; `qualifications.json` preserves two
-failed exact assumptions and explicitly corrects their classification. Effective
-cohort: **15 exact bytes/status/stderr**, **9 qualified divergences**, **2 options
+failed exact assumptions and explicitly corrects their classification. Historical
+author cohort: **15 exact bytes/status/stderr**, **9 qualified divergences**, **2 options
 unsupported by the BSD oracle**, **2 unsupported product features**. None of the
 latter 13 is counted as a native parity pass. In particular BSD rejects short
 unterminated records as “line too long”; this implementation preserves them.
 Original author harness/type mistakes and external-stdin boundary are recorded
 in `author-corrections.json`, not silently discarded.
 
+The padding evolution has its own additive records and profile deltas under
+`tests/commands/column/padding-evolution/`. Its selected **14/14** exact native
+cases use the previously built, identity-checked util-linux **2.41.2 on Darwin**
+binary (`a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88`).
+N01/N03 argv, input and raw native bytes are checked against the immutable
+`column-stress` recipes/captures. No fresh native install/build or giant native
+probe occurs. This does not certify GNU/Linux locale behavior or full util-linux
+parity. The historical stress **37/40** remains attached to its old snapshot;
+it is neither rerun nor relabeled here. One prospective author BSD case,
+`ragged-table`, now intentionally differs: its current selection is **14 exact,
+10 qualified**, with the same 2 native-unsupported and 2 product-unsupported
+cases. Original `cases.json`, native captures and historical reports are intact.
+
 Always-runnable regressions require only normal repository development tools:
 
 ```sh
-node --import tsx --test tests/commands/column/*.test.ts
+node --import tsx --test tests/commands/column/*.test.ts tests/commands/column/padding-evolution/*.test.ts
 node tests/commands/column/capture-native.mjs --verify
 ```
 

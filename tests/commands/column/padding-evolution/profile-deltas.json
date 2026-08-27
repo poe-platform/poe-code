@@ -1,0 +1,20 @@
+{
+  "classification": "Root-authorized prospective padding profile evolution, not a correction of historical source or native evidence",
+  "previousSourceTree": "014da3de0ca297c4e28bc410f908e94478edd40d",
+  "authority": "Immutable column-stress N01/N03 util-linux 2.41.2/Darwin records; original old 37/40 report remains literal",
+  "firstEvolutionRun": { "tests": 113, "passed": 111, "failed": 2, "cause": "Two existing assertions intentionally described the previous absent-tail omission policy; all other original author assertions passed." },
+  "behavior": {
+    "name": "table whitespace, ragged rows, blanks and unterminated final record",
+    "oldStdout": "a       b\nlong    z\nsingle\nlast    q\n",
+    "stdout": "a       b\nlong    z\nsingle  \nlast    q\n",
+    "qualification": "The short row now retains the delimiter before the absent final field. Input bytes and row order unchanged."
+  },
+  "nativeOverrides": {
+    "ragged-table": {
+      "profile": "qualified",
+      "oldStdout": "a\nb  c\n",
+      "stdout": "a  \nb  c\n",
+      "qualification": "New util-linux-aligned absent-tail padding differs intentionally from the preserved historical BSD capture. This prospective case is not a BSD exact pass; old cases.json/native.json and historical 15-exact count remain unchanged."
+    }
+  }
+}

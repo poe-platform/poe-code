@@ -22,3 +22,17 @@ The pre/mid/post captures ran serially against the shared worktree, not an
 entire frozen product gate. Final packed validation must use a committed
 candidate and a separate consumer with no source fallback. Independent
 time-env source/holdout snapshots and their original65-name results are untouched.
+
+Adjacent maintained author fixtures at8e1298b give43/47 with four intentional
+registry-count failures, then47/47 after the same65→68/66→69 count migration.
+The explicit inspection tail adds date/sleep/printenv after the existing five.
+Only count/tail assertions and their titles change in stream inspection, split,
+and formatting author tests. The current-classified strict inspection consumer
+has the same mechanical delta for the qualified release runner. Hex byte
+expectations remain unchanged. Both TAP captures are retained here.
+
+The separately owned independent `tests/integration/stream-five-public`65-name
+holdout remains unchanged. It is a historical frozen consumer, not a current68
+gate; a different reviewer must qualify new public integration. No global search/
+replace of65, no waiver of service tests, and no change to the release inventory
+classification or native-data exclusions occurred.

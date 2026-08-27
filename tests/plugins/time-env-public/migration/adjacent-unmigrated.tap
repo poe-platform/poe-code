@@ -1,0 +1,364 @@
+TAP version 13
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 1 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 16.723333
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 21.517917
+  type: 'test'
+  ...
+# Subtest: actual default registry contains 65 including split without duplicate installation
+not ok 3 - actual default registry contains 65 including split without duplicate installation
+  ---
+  duration_ms: 2.428333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:1:1976'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    68 !== 65
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 65
+  actual: 68
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:39:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 4 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 1.024875
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 5 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 1.316666
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 6 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 26.126458
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 11.052542
+  type: 'test'
+  ...
+# Subtest: default factory contains65 and standalone formatting installs exactly four without split
+not ok 8 - default factory contains65 and standalone formatting installs exactly four without split
+  ---
+  duration_ms: 3.743625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/stream-format-author-stress/contracts.test.ts:1:903'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    68 !== 65
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 65
+  actual: 68
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/stream-format-author-stress/contracts.test.ts:19:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: collision preflight does not partially register; replacement is intentional
+ok 9 - collision preflight does not partially register; replacement is intentional
+  ---
+  duration_ms: 3.925458
+  type: 'test'
+  ...
+# Subtest: limits reject invalid typed values rather than treating them as unlimited
+ok 10 - limits reject invalid typed values rather than treating them as unlimited
+  ---
+  duration_ms: 0.088625
+  type: 'test'
+  ...
+# Subtest: seq awaits sinks, does not pull ahead, and owns published chunks
+ok 11 - seq awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.760416
+  type: 'test'
+  ...
+# Subtest: seq cancellation propagates an errno-shaped reason through blocked sink
+ok 12 - seq cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 2.763334
+  type: 'test'
+  ...
+# Subtest: seq sink failure does not keep consuming input
+ok 13 - seq sink failure does not keep consuming input
+  ---
+  duration_ms: 0.46575
+  type: 'test'
+  ...
+# Subtest: nl awaits sinks, does not pull ahead, and owns published chunks
+ok 14 - nl awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.966083
+  type: 'test'
+  ...
+# Subtest: nl cancellation propagates an errno-shaped reason through blocked sink
+ok 15 - nl cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.543209
+  type: 'test'
+  ...
+# Subtest: nl sink failure does not keep consuming input
+ok 16 - nl sink failure does not keep consuming input
+  ---
+  duration_ms: 0.326875
+  type: 'test'
+  ...
+# Subtest: rev awaits sinks, does not pull ahead, and owns published chunks
+ok 17 - rev awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.930958
+  type: 'test'
+  ...
+# Subtest: rev cancellation propagates an errno-shaped reason through blocked sink
+ok 18 - rev cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.856375
+  type: 'test'
+  ...
+# Subtest: rev sink failure does not keep consuming input
+ok 19 - rev sink failure does not keep consuming input
+  ---
+  duration_ms: 0.317
+  type: 'test'
+  ...
+# Subtest: unexpand awaits sinks, does not pull ahead, and owns published chunks
+ok 20 - unexpand awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.749333
+  type: 'test'
+  ...
+# Subtest: unexpand cancellation propagates an errno-shaped reason through blocked sink
+ok 21 - unexpand cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 0.496292
+  type: 'test'
+  ...
+# Subtest: unexpand sink failure does not keep consuming input
+ok 22 - unexpand sink failure does not keep consuming input
+  ---
+  duration_ms: 0.167667
+  type: 'test'
+  ...
+# Subtest: VFS host reads receive cancellation and late rejection is observed
+ok 23 - VFS host reads receive cancellation and late rejection is observed
+  ---
+  duration_ms: 0.937958
+  type: 'test'
+  ...
+# Subtest: real Shell pipes, files, invoke middleware, and shared output budget
+ok 24 - real Shell pipes, files, invoke middleware, and shared output budget
+  ---
+  duration_ms: 12.543208
+  type: 'test'
+  ...
+# Subtest: long records and explicit UTF-8 split chunks stay byte faithful
+ok 25 - long records and explicit UTF-8 split chunks stay byte faithful
+  ---
+  duration_ms: 193.68725
+  type: 'test'
+  ...
+# Subtest: timer cancellation stops bounded ongoing work
+ok 26 - timer cancellation stops bounded ongoing work
+  ---
+  duration_ms: 21.224333
+  type: 'test'
+  ...
+# Subtest: root family exports preserve four inspection definitions in the 65-command aggregate
+not ok 27 - root family exports preserve four inspection definitions in the 65-command aggregate
+  ---
+  duration_ms: 4.994583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:1:995'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    68 !== 65
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 65
+  actual: 68
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:31:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: factory actual Shell dispatch: tac
+ok 28 - factory actual Shell dispatch: tac
+  ---
+  duration_ms: 3.871625
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: expand
+ok 29 - factory actual Shell dispatch: expand
+  ---
+  duration_ms: 1.187125
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: fold
+ok 30 - factory actual Shell dispatch: fold
+  ---
+  duration_ms: 0.924833
+  type: 'test'
+  ...
+# Subtest: factory actual Shell dispatch: strings
+ok 31 - factory actual Shell dispatch: strings
+  ---
+  duration_ms: 0.877709
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: tac
+ok 32 - plugin actual Shell dispatch: tac
+  ---
+  duration_ms: 0.833875
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: expand
+ok 33 - plugin actual Shell dispatch: expand
+  ---
+  duration_ms: 0.56
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: fold
+ok 34 - plugin actual Shell dispatch: fold
+  ---
+  duration_ms: 0.775833
+  type: 'test'
+  ...
+# Subtest: plugin actual Shell dispatch: strings
+ok 35 - plugin actual Shell dispatch: strings
+  ---
+  duration_ms: 1.370333
+  type: 'test'
+  ...
+# Subtest: aggregate preflights tac before installing any family
+ok 36 - aggregate preflights tac before installing any family
+  ---
+  duration_ms: 0.466
+  type: 'test'
+  ...
+# Subtest: aggregate preflights expand before installing any family
+ok 37 - aggregate preflights expand before installing any family
+  ---
+  duration_ms: 0.096417
+  type: 'test'
+  ...
+# Subtest: aggregate preflights fold before installing any family
+ok 38 - aggregate preflights fold before installing any family
+  ---
+  duration_ms: 0.070542
+  type: 'test'
+  ...
+# Subtest: aggregate preflights strings before installing any family
+ok 39 - aggregate preflights strings before installing any family
+  ---
+  duration_ms: 0.064833
+  type: 'test'
+  ...
+# Subtest: standalone and aggregate share one explicit replacement boundary
+not ok 40 - standalone and aggregate share one explicit replacement boundary
+  ---
+  duration_ms: 0.325208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:1:2883'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    69 !== 66
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 66
+  actual: 69
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/stream-inspection-public-author/public.test.ts:79:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: aggregate validates stream limits before registration
+ok 41 - aggregate validates stream limits before registration
+  ---
+  duration_ms: 0.073083
+  type: 'test'
+  ...
+# Subtest: stream family limits reach all four defaults without restricting other families
+ok 42 - stream family limits reach all four defaults without restricting other families
+  ---
+  duration_ms: 3.379542
+  type: 'test'
+  ...
+# Subtest: memory defaults preserve byte pipes and VFS publication
+ok 43 - memory defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 10.525333
+  type: 'test'
+  ...
+# Subtest: real defaults preserve byte pipes and VFS publication
+ok 44 - real defaults preserve byte pipes and VFS publication
+  ---
+  duration_ms: 19.591166
+  type: 'test'
+  ...
+# Subtest: registry-only fallback dispatches all four without an invocation stub
+ok 45 - registry-only fallback dispatches all four without an invocation stub
+  ---
+  duration_ms: 0.683958
+  type: 'test'
+  ...
+# Subtest: actual invoke retains literal argv, middleware, VFS and shared output budget
+ok 46 - actual invoke retains literal argv, middleware, VFS and shared output budget
+  ---
+  duration_ms: 1.232834
+  type: 'test'
+  ...
+# Subtest: default bundle leaves optional curl and SafeJS unavailable
+ok 47 - default bundle leaves optional curl and SafeJS unavailable
+  ---
+  duration_ms: 0.591708
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 43
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 545.829458

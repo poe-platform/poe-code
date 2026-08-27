@@ -1,0 +1,526 @@
+{
+  "root": "/tmp/sb-e-design-8VFTKK",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "architecture": "arm64",
+  "locale": "C",
+  "profiles": [
+    {
+      "name": "gnu53",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+    },
+    {
+      "name": "apple32",
+      "binary": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+    }
+  ],
+  "shebang": [
+    {
+      "profile": "gnu53",
+      "id": "kernel-spaces",
+      "shebang": "/tmp/sb-e-design-8VFTKK/recorder alpha beta",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=5\n0:32:2f746d702f73622d652d64657369676e2d385646544b4b2f7265636f72646572\n1:5:616c706861\n2:4:62657461\n3:8:2e2f736372697074\n4:4:7461696c\n",
+        "base64": "YXJnYz01CjA6MzI6MmY3NDZkNzAyZjczNjIyZDY1MmQ2NDY1NzM2OTY3NmUyZDM4NTY0NjU0NGI0YjJmNzI2NTYzNmY3MjY0NjU3MgoxOjU6NjE2YzcwNjg2MQoyOjQ6NjI2NTc0NjEKMzo4OjJlMmY3MzYzNzI2OTcwNzQKNDo0Ojc0NjE2OTZjCg=="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "gnu53",
+      "id": "kernel-quotes",
+      "shebang": "/tmp/sb-e-design-8VFTKK/recorder \"alpha beta\"",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=5\n0:32:2f746d702f73622d652d64657369676e2d385646544b4b2f7265636f72646572\n1:6:22616c706861\n2:5:6265746122\n3:8:2e2f736372697074\n4:4:7461696c\n",
+        "base64": "YXJnYz01CjA6MzI6MmY3NDZkNzAyZjczNjIyZDY1MmQ2NDY1NzM2OTY3NmUyZDM4NTY0NjU0NGI0YjJmNzI2NTYzNmY3MjY0NjU3MgoxOjY6MjI2MTZjNzA2ODYxCjI6NTo2MjY1NzQ2MTIyCjM6ODoyZTJmNzM2MzcyNjk3MDc0CjQ6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "gnu53",
+      "id": "env-e-recorder",
+      "shebang": "/usr/bin/env bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:8:2e2f736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjg6MmUyZjczNjM3MjY5NzA3NAozOjQ6NzQ2MTY5NmMK"
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "gnu53",
+      "id": "env-S-recorder",
+      "shebang": "/usr/bin/env -S bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:8:2e2f736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjg6MmUyZjczNjM3MjY5NzA3NAozOjQ6NzQ2MTY5NmMK"
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "gnu53",
+      "id": "direct-bash-e",
+      "shebang": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "",
+        "base64": ""
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "gnu53",
+      "id": "env-single-explicit",
+      "args": [
+        "bash -e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 127,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "",
+        "base64": ""
+      },
+      "stderr": {
+        "text": "env: bash -e: No such file or directory\n",
+        "base64": "ZW52OiBiYXNoIC1lOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+      }
+    },
+    {
+      "profile": "gnu53",
+      "id": "env-split-explicit",
+      "args": [
+        "bash",
+        "-e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:6:736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjY6NzM2MzcyNjk3MDc0CjM6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      }
+    },
+    {
+      "profile": "gnu53",
+      "id": "env-S-explicit",
+      "args": [
+        "-S",
+        "bash -e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-bhUIgT",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:6:736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjY6NzM2MzcyNjk3MDc0CjM6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      }
+    },
+    {
+      "profile": "apple32",
+      "id": "kernel-spaces",
+      "shebang": "/tmp/sb-e-design-8VFTKK/recorder alpha beta",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=5\n0:32:2f746d702f73622d652d64657369676e2d385646544b4b2f7265636f72646572\n1:5:616c706861\n2:4:62657461\n3:8:2e2f736372697074\n4:4:7461696c\n",
+        "base64": "YXJnYz01CjA6MzI6MmY3NDZkNzAyZjczNjIyZDY1MmQ2NDY1NzM2OTY3NmUyZDM4NTY0NjU0NGI0YjJmNzI2NTYzNmY3MjY0NjU3MgoxOjU6NjE2YzcwNjg2MQoyOjQ6NjI2NTc0NjEKMzo4OjJlMmY3MzYzNzI2OTcwNzQKNDo0Ojc0NjE2OTZjCg=="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "apple32",
+      "id": "kernel-quotes",
+      "shebang": "/tmp/sb-e-design-8VFTKK/recorder \"alpha beta\"",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=5\n0:32:2f746d702f73622d652d64657369676e2d385646544b4b2f7265636f72646572\n1:6:22616c706861\n2:5:6265746122\n3:8:2e2f736372697074\n4:4:7461696c\n",
+        "base64": "YXJnYz01CjA6MzI6MmY3NDZkNzAyZjczNjIyZDY1MmQ2NDY1NzM2OTY3NmUyZDM4NTY0NjU0NGI0YjJmNzI2NTYzNmY3MjY0NjU3MgoxOjY6MjI2MTZjNzA2ODYxCjI6NTo2MjY1NzQ2MTIyCjM6ODoyZTJmNzM2MzcyNjk3MDc0CjQ6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "apple32",
+      "id": "env-e-recorder",
+      "shebang": "/usr/bin/env bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:8:2e2f736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjg6MmUyZjczNjM3MjY5NzA3NAozOjQ6NzQ2MTY5NmMK"
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "apple32",
+      "id": "env-S-recorder",
+      "shebang": "/usr/bin/env -S bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:8:2e2f736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjg6MmUyZjczNjM3MjY5NzA3NAozOjQ6NzQ2MTY5NmMK"
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "apple32",
+      "id": "direct-bash-e",
+      "shebang": "/bin/bash -e",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script tail",
+        "shell"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "",
+        "base64": ""
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "apple32",
+      "id": "env-single-explicit",
+      "args": [
+        "bash -e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 127,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "",
+        "base64": ""
+      },
+      "stderr": {
+        "text": "env: bash -e: No such file or directory\n",
+        "base64": "ZW52OiBiYXNoIC1lOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+      }
+    },
+    {
+      "profile": "apple32",
+      "id": "env-split-explicit",
+      "args": [
+        "bash",
+        "-e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:6:736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjY6NzM2MzcyNjk3MDc0CjM6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      }
+    },
+    {
+      "profile": "apple32",
+      "id": "env-S-explicit",
+      "args": [
+        "-S",
+        "bash -e",
+        "script",
+        "tail"
+      ],
+      "cwd": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+      "env": {
+        "PATH": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP/roles",
+        "HOME": "/tmp/sb-e-design-8VFTKK/shebang-1n6FQP",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdout": {
+        "text": "argc=4\n0:4:62617368\n1:2:2d65\n2:6:736372697074\n3:4:7461696c\n",
+        "base64": "YXJnYz00CjA6NDo2MjYxNzM2OAoxOjI6MmQ2NQoyOjY6NzM2MzcyNjk3MDc0CjM6NDo3NDYxNjk2Ywo="
+      },
+      "stderr": {
+        "text": "",
+        "base64": ""
+      }
+    }
+  ],
+  "recorder": {
+    "source": "#include <stdio.h>\n#include <string.h>\nint main(int count, char **arguments) { printf(\"argc=%d\\n\", count); for (int index=0;index<count;index++) { printf(\"%d:%zu:\",index,strlen(arguments[index])); for (unsigned char *cursor=(unsigned char *)arguments[index];*cursor;cursor++) printf(\"%02x\",*cursor); putchar(10); } return 0; }\n",
+    "binary": "/tmp/sb-e-design-8VFTKK/recorder",
+    "sha256": "7253ce7cdbd7809e678eac74293247fb3699397d8ec889a69ce42f35602e87b5",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.4.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n"
+  },
+  "envTool": {
+    "path": "/usr/bin/env",
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+  },
+  "originalDesignEvidenceSHA256": "8103e2619fd61d9a545bcaee8d81612f04c24089b3c11910c5b5d7da141c2823"
+}

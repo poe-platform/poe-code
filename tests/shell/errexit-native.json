@@ -1,0 +1,2194 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "casesHash": "6a55d8cbe09f62d0a60977966432f7b48aa3ac8bc4424ebe79a439c180577a93",
+  "locale": "C",
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "rows": [
+        {
+          "name": "simple",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "disable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "flag-versus-context",
+          "mode": "bash",
+          "observation": {
+            "stdout": "b25ib2R5eWVz",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "and-or",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "function-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "if-body",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "while-until-negation",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-body",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "negated-function",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-normal",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-enables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keW9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-disables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-enables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-normal",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-option-isolation",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-default",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-enable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "c3RhdHVzPTEgdmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested-enable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-command-status",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "backtick-inheritance",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-stage",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-pipefail",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-last",
+          "mode": "bash",
+          "observation": {
+            "stdout": "ZGF0YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-disable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "exit-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-untested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-return",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-reset",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-sh-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "headerless-reset",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "parent-options",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cGFyZW50Om9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "arithmetic-status",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-ordered",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-alias",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ec",
+          "mode": "bash",
+          "observation": {
+            "stdout": "bmFtZWQ6Og==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ce",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-after-c",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ordered",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-es",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YXJnPS1hcmc6",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-default-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YmVmb3Jl",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-cursor",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-plus-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-terminator",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "simple",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "disable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "flag-versus-context",
+          "mode": "sh",
+          "observation": {
+            "stdout": "b25ib2R5eWVz",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "and-or",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "function-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "if-body",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "while-until-negation",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-body",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "negated-function",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-normal",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-enables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keW9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-disables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-enables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-normal",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-option-isolation",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-default",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-enable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "c3RhdHVzPTEgdmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested-enable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-command-status",
+          "mode": "sh",
+          "observation": {
+            "stdout": "dmFsdWU9YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "backtick-inheritance",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-stage",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-pipefail",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-last",
+          "mode": "sh",
+          "observation": {
+            "stdout": "ZGF0YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-disable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "exit-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-untested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-return",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-reset",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-sh-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "headerless-reset",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "parent-options",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cGFyZW50Om9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "arithmetic-status",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-ordered",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-alias",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ec",
+          "mode": "sh",
+          "observation": {
+            "stdout": "bmFtZWQ6Og==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ce",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-after-c",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ordered",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-es",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YXJnPS1hcmc6",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-default-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YmVmb3Jl",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-cursor",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-plus-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-terminator",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "rows": [
+        {
+          "name": "simple",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "disable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "flag-versus-context",
+          "mode": "bash",
+          "observation": {
+            "stdout": "b25ib2R5eWVz",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "and-or",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "function-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "if-body",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "while-until-negation",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-body",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-ignored-result",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "negated-function",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-normal",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-enables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-disables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-enables-option",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-normal",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-option-isolation",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-default",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-enable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "c3RhdHVzPTEgdmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested-enable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VldmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-command-status",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "backtick-inheritance",
+          "mode": "bash",
+          "observation": {
+            "stdout": "dmFsdWU9Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-stage",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-pipefail",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-last",
+          "mode": "bash",
+          "observation": {
+            "stdout": "ZGF0YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-disable",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "exit-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-untested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-return",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-reset",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-sh-tested",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "headerless-reset",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "parent-options",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cGFyZW50Om9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "arithmetic-status",
+          "mode": "bash",
+          "observation": {
+            "stdout": "QkFE",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-ordered",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-alias",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ec",
+          "mode": "bash",
+          "observation": {
+            "stdout": "bmFtZWQ6Og==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ce",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-after-c",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ordered",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-es",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YXJnPS1hcmc6",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-default-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "YmVmb3Jl",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-cursor",
+          "mode": "bash",
+          "observation": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-plus-e",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-terminator",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "simple",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "disable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "flag-versus-context",
+          "mode": "sh",
+          "observation": {
+            "stdout": "b25ib2R5eWVz",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "and-or",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "function-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "if-body",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "while-until-negation",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-body",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "loop-ignored-result",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "negated-function",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-normal",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-enables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-disables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "eval-enables-option",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-normal",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "subshell-option-isolation",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-default",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VldmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-enable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "c3RhdHVzPTEgdmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-tested-enable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VldmFsdWU9",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "substitution-command-status",
+          "mode": "sh",
+          "observation": {
+            "stdout": "dmFsdWU9YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "backtick-inheritance",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-stage",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-pipefail",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-last",
+          "mode": "sh",
+          "observation": {
+            "stdout": "ZGF0YQ==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "pipeline-disable",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "exit-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "return-untested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "source-return",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 7,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-reset",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-bash-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "new-sh-tested",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cmVzY3VlYWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "headerless-reset",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Y2hpbGRhZnRlcg==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "parent-options",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cGFyZW50Om9u",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "arithmetic-status",
+          "mode": "sh",
+          "observation": {
+            "stdout": "QkFE",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-ordered",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-alias",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ec",
+          "mode": "sh",
+          "observation": {
+            "stdout": "bmFtZWQ6Og==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ce",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-after-c",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "option-ordered",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-es",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YXJnPS1hcmc6",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-default-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "YmVmb3Jl",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "stdin-cursor",
+          "mode": "sh",
+          "observation": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W11bLWFyZ10=",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-plus-e",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keQ==",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "file-terminator",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        }
+      ]
+    }
+  ]
+}

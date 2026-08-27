@@ -1,0 +1,1327 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "importedRuntime": "file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+  "rows": [
+    {
+      "name": "simple",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "disable",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "flag-versus-context",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC0nCnNoZWxsOiAtYzogbGluZSAxOiBgZigpIHsgc2V0IC1lOyBjYXNlICQtIGluICplKikgcHJpbnRmIG9uOzsgZXNhYzsgZmFsc2U7IHByaW50ZiBib2R5OyB9OyBpZiBmOyB0aGVuIHByaW50ZiB5ZXM7IGZpOyBmYWxzZTsgcHJpbnRmIEJBRCcK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "and-or",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "group-ignored-result",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "function-ignored-result",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-ignored-result",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "if-body",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "while-until-negation",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "loop-body",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "loop-ignored-result",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "negated-function",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "eval-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-normal",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-enables-option",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC19JwpzaGVsbDogLWM6IGxpbmUgMTogYC4gLi9ib2R5IHx8IHRydWU7IGNhc2UgJHstfSBpbiAqZSopIHByaW50ZiBvbjs7IGVzYWM7IGZhbHNlOyBwcmludGYgQkFEJwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-disables-option",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "eval-enables-option",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-normal",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-option-isolation",
+      "mode": "bash",
+      "observation": {
+        "stdout": "YWZ0ZXI=",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-default",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-enable",
+      "mode": "bash",
+      "observation": {
+        "stdout": "c3RhdHVzPTIgdmFsdWU9",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-tested-enable",
+      "mode": "bash",
+      "observation": {
+        "stdout": "cmVzY3VldmFsdWU9",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-command-status",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "backtick-inheritance",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-stage",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-pipefail",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-last",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-disable",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "exit-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "return-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "return-untested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-return",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-bash-reset",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-bash-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-sh-tested",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "headerless-reset",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "parent-options",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC0nCnNoZWxsOiAtYzogbGluZSAxOiBgc2V0IC0tIHBhcmVudDsgc2V0IC1lOyBiYXNoIC1jICJzZXQgK2U7IGZhbHNlIiB8fCB0cnVlOyBwcmludGYgIiVzOiIgIiQxIjsgY2FzZSAkLSBpbiAqZSopIHByaW50ZiBvbjs7IGVzYWM7IGZhbHNlOyBwcmludGYgQkFEJwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "arithmetic-status",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-ordered",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-alias",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ec",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWVjOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ce",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWNlOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-after-c",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ordered",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-es",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWVzOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-default-e",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-cursor",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWVzOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-e",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-plus-e",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-terminator",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogLWU6IHVuc3VwcG9ydGVkIG9wdGlvbjsgc3VwcG9ydGVkIGZsYWdzIGFyZSAtYyBhbmQgLXMK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "simple",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "disable",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "flag-versus-context",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC0nCnNoZWxsOiAtYzogbGluZSAxOiBgZigpIHsgc2V0IC1lOyBjYXNlICQtIGluICplKikgcHJpbnRmIG9uOzsgZXNhYzsgZmFsc2U7IHByaW50ZiBib2R5OyB9OyBpZiBmOyB0aGVuIHByaW50ZiB5ZXM7IGZpOyBmYWxzZTsgcHJpbnRmIEJBRCcK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "and-or",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "group-ignored-result",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "function-ignored-result",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-ignored-result",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "if-body",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "while-until-negation",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "loop-body",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "loop-ignored-result",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "negated-function",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "eval-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-normal",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-enables-option",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC19JwpzaGVsbDogLWM6IGxpbmUgMTogYC4gLi9ib2R5IHx8IHRydWU7IGNhc2UgJHstfSBpbiAqZSopIHByaW50ZiBvbjs7IGVzYWM7IGZhbHNlOyBwcmludGYgQkFEJwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-disables-option",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "eval-enables-option",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-normal",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "subshell-option-isolation",
+      "mode": "sh",
+      "observation": {
+        "stdout": "YWZ0ZXI=",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-default",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-enable",
+      "mode": "sh",
+      "observation": {
+        "stdout": "c3RhdHVzPTIgdmFsdWU9",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-tested-enable",
+      "mode": "sh",
+      "observation": {
+        "stdout": "cmVzY3VldmFsdWU9",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "substitution-command-status",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "backtick-inheritance",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-stage",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-pipefail",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-last",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "pipeline-disable",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "exit-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "return-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "return-untested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "source-return",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-bash-reset",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-bash-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "new-sh-tested",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "headerless-reset",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "parent-options",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYC0nCnNoZWxsOiAtYzogbGluZSAxOiBgc2V0IC0tIHBhcmVudDsgc2V0IC1lOyBiYXNoIC1jICJzZXQgK2U7IGZhbHNlIiB8fCB0cnVlOyBwcmludGYgIiVzOiIgIiQxIjsgY2FzZSAkLSBpbiAqZSopIHByaW50ZiBvbjs7IGVzYWM7IGZhbHNlOyBwcmludGYgQkFEJwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "arithmetic-status",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-ordered",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-alias",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLS0gYXJndW1lbnRzLCAtbyBwaXBlZmFpbCwgK28gcGlwZWZhaWwK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ec",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lYzogdW5zdXBwb3J0ZWQgb3B0aW9uOyBzdXBwb3J0ZWQgZmxhZ3MgYXJlIC1jIGFuZCAtcwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ce",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1jZTogdW5zdXBwb3J0ZWQgb3B0aW9uOyBzdXBwb3J0ZWQgZmxhZ3MgYXJlIC1jIGFuZCAtcwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-after-c",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "option-ordered",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-es",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lczogdW5zdXBwb3J0ZWQgb3B0aW9uOyBzdXBwb3J0ZWQgZmxhZ3MgYXJlIC1jIGFuZCAtcwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-default-e",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "stdin-cursor",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lczogdW5zdXBwb3J0ZWQgb3B0aW9uOyBzdXBwb3J0ZWQgZmxhZ3MgYXJlIC1jIGFuZCAtcwo=",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-e",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-plus-e",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "file-terminator",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2g6IC1lOiB1bnN1cHBvcnRlZCBvcHRpb247IHN1cHBvcnRlZCBmbGFncyBhcmUgLWMgYW5kIC1zCg==",
+        "status": 2,
+        "marker": null
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "GNU-5.3",
+      "total": 108,
+      "failures": [
+        "bash/simple",
+        "bash/disable",
+        "bash/flag-versus-context",
+        "bash/and-or",
+        "bash/group-ignored-result",
+        "bash/function-ignored-result",
+        "bash/subshell-ignored-result",
+        "bash/if-body",
+        "bash/while-until-negation",
+        "bash/loop-body",
+        "bash/loop-ignored-result",
+        "bash/negated-function",
+        "bash/eval-tested",
+        "bash/source-tested",
+        "bash/source-normal",
+        "bash/source-enables-option",
+        "bash/source-disables-option",
+        "bash/eval-enables-option",
+        "bash/subshell-normal",
+        "bash/subshell-tested",
+        "bash/subshell-option-isolation",
+        "bash/substitution-default",
+        "bash/substitution-tested",
+        "bash/substitution-enable",
+        "bash/substitution-tested-enable",
+        "bash/substitution-command-status",
+        "bash/backtick-inheritance",
+        "bash/pipeline-stage",
+        "bash/pipeline-pipefail",
+        "bash/pipeline-tested",
+        "bash/pipeline-last",
+        "bash/pipeline-disable",
+        "bash/exit-tested",
+        "bash/return-tested",
+        "bash/return-untested",
+        "bash/source-return",
+        "bash/new-bash-reset",
+        "bash/new-bash-tested",
+        "bash/new-sh-tested",
+        "bash/headerless-reset",
+        "bash/parent-options",
+        "bash/arithmetic-status",
+        "bash/set-ordered",
+        "bash/set-alias",
+        "bash/option-ec",
+        "bash/option-ce",
+        "bash/option-after-c",
+        "bash/option-ordered",
+        "bash/stdin-es",
+        "bash/stdin-default-e",
+        "bash/stdin-cursor",
+        "bash/file-e",
+        "bash/file-plus-e",
+        "bash/file-terminator",
+        "sh/simple",
+        "sh/disable",
+        "sh/flag-versus-context",
+        "sh/and-or",
+        "sh/group-ignored-result",
+        "sh/function-ignored-result",
+        "sh/subshell-ignored-result",
+        "sh/if-body",
+        "sh/while-until-negation",
+        "sh/loop-body",
+        "sh/loop-ignored-result",
+        "sh/negated-function",
+        "sh/eval-tested",
+        "sh/source-tested",
+        "sh/source-normal",
+        "sh/source-enables-option",
+        "sh/source-disables-option",
+        "sh/eval-enables-option",
+        "sh/subshell-normal",
+        "sh/subshell-tested",
+        "sh/subshell-option-isolation",
+        "sh/substitution-default",
+        "sh/substitution-tested",
+        "sh/substitution-enable",
+        "sh/substitution-tested-enable",
+        "sh/substitution-command-status",
+        "sh/backtick-inheritance",
+        "sh/pipeline-stage",
+        "sh/pipeline-pipefail",
+        "sh/pipeline-tested",
+        "sh/pipeline-last",
+        "sh/pipeline-disable",
+        "sh/exit-tested",
+        "sh/return-tested",
+        "sh/return-untested",
+        "sh/source-return",
+        "sh/new-bash-reset",
+        "sh/new-bash-tested",
+        "sh/new-sh-tested",
+        "sh/headerless-reset",
+        "sh/parent-options",
+        "sh/arithmetic-status",
+        "sh/set-ordered",
+        "sh/set-alias",
+        "sh/option-ec",
+        "sh/option-ce",
+        "sh/option-after-c",
+        "sh/option-ordered",
+        "sh/stdin-es",
+        "sh/stdin-default-e",
+        "sh/stdin-cursor",
+        "sh/file-e",
+        "sh/file-plus-e",
+        "sh/file-terminator"
+      ]
+    },
+    {
+      "profile": "historical-3.2",
+      "total": 108,
+      "failures": [
+        "bash/simple",
+        "bash/disable",
+        "bash/flag-versus-context",
+        "bash/and-or",
+        "bash/group-ignored-result",
+        "bash/function-ignored-result",
+        "bash/subshell-ignored-result",
+        "bash/if-body",
+        "bash/while-until-negation",
+        "bash/loop-body",
+        "bash/loop-ignored-result",
+        "bash/negated-function",
+        "bash/eval-tested",
+        "bash/source-tested",
+        "bash/source-normal",
+        "bash/source-enables-option",
+        "bash/source-disables-option",
+        "bash/eval-enables-option",
+        "bash/subshell-normal",
+        "bash/subshell-tested",
+        "bash/subshell-option-isolation",
+        "bash/substitution-default",
+        "bash/substitution-tested",
+        "bash/substitution-enable",
+        "bash/substitution-tested-enable",
+        "bash/substitution-command-status",
+        "bash/backtick-inheritance",
+        "bash/pipeline-stage",
+        "bash/pipeline-pipefail",
+        "bash/pipeline-tested",
+        "bash/pipeline-last",
+        "bash/pipeline-disable",
+        "bash/exit-tested",
+        "bash/return-tested",
+        "bash/return-untested",
+        "bash/source-return",
+        "bash/new-bash-reset",
+        "bash/new-bash-tested",
+        "bash/new-sh-tested",
+        "bash/headerless-reset",
+        "bash/parent-options",
+        "bash/arithmetic-status",
+        "bash/set-ordered",
+        "bash/set-alias",
+        "bash/option-ec",
+        "bash/option-ce",
+        "bash/option-after-c",
+        "bash/option-ordered",
+        "bash/stdin-es",
+        "bash/stdin-default-e",
+        "bash/stdin-cursor",
+        "bash/file-e",
+        "bash/file-plus-e",
+        "bash/file-terminator",
+        "sh/simple",
+        "sh/disable",
+        "sh/flag-versus-context",
+        "sh/and-or",
+        "sh/group-ignored-result",
+        "sh/function-ignored-result",
+        "sh/subshell-ignored-result",
+        "sh/if-body",
+        "sh/while-until-negation",
+        "sh/loop-body",
+        "sh/loop-ignored-result",
+        "sh/negated-function",
+        "sh/eval-tested",
+        "sh/source-tested",
+        "sh/source-normal",
+        "sh/source-enables-option",
+        "sh/source-disables-option",
+        "sh/eval-enables-option",
+        "sh/subshell-normal",
+        "sh/subshell-tested",
+        "sh/subshell-option-isolation",
+        "sh/substitution-default",
+        "sh/substitution-tested",
+        "sh/substitution-enable",
+        "sh/substitution-tested-enable",
+        "sh/substitution-command-status",
+        "sh/backtick-inheritance",
+        "sh/pipeline-stage",
+        "sh/pipeline-pipefail",
+        "sh/pipeline-tested",
+        "sh/pipeline-last",
+        "sh/pipeline-disable",
+        "sh/exit-tested",
+        "sh/return-tested",
+        "sh/return-untested",
+        "sh/source-return",
+        "sh/new-bash-reset",
+        "sh/new-bash-tested",
+        "sh/new-sh-tested",
+        "sh/headerless-reset",
+        "sh/parent-options",
+        "sh/arithmetic-status",
+        "sh/set-ordered",
+        "sh/set-alias",
+        "sh/option-ec",
+        "sh/option-ce",
+        "sh/option-after-c",
+        "sh/option-ordered",
+        "sh/stdin-es",
+        "sh/stdin-default-e",
+        "sh/stdin-cursor",
+        "sh/file-e",
+        "sh/file-plus-e",
+        "sh/file-terminator"
+      ]
+    }
+  ]
+}

@@ -408,7 +408,7 @@ class Lexer {
       return;
     }
     this.position++;
-    if (["$", "!", "-"].includes(this.source[this.position] ?? "") || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
+    if (["$", "!"].includes(this.source[this.position] ?? "") || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
@@ -442,7 +442,7 @@ class Lexer {
       const parameterStart = this.position - 2;
       const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
       if (length) this.position++;
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#])/u.exec(this.source.slice(this.position))?.[0];
+      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
@@ -472,7 +472,7 @@ class Lexer {
       this.position++;
       parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) });
     } else {
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
+      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
         parts.push({ kind: "variable", name, quoted });

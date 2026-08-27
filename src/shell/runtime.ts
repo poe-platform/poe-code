@@ -150,11 +150,13 @@ export interface State {
   functionDepth: number;
   locals: Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>[];
   pipefail: boolean;
+  errexit?: boolean;
   isolated?: boolean;
   redirectAssignments?: ReadonlyMap<string, string>;
 }
 
 interface IO {
+  readonly execution?: { readonly ignoreErrexit: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
@@ -299,7 +301,9 @@ export class Runtime {
       for (let index = 0; index < list.pipelines.length; index++) {
         const operator = list.operators[index - 1];
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
-        state.status = await this.pipeline(list.pipelines[index]!, state, io);
+        const pipeline = list.pipelines[index]!;
+        const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
+        state.status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
       }
     }
     return script.lists.length ? state.status : 0;
@@ -372,6 +376,7 @@ export class Runtime {
         await Promise.all(pipes.map((pipe) => pipe.abort()));
       }
     }
+    if (pipeline.commands.length > 1) this.errexit(status, state, io);
     return pipeline.negate ? Number(status === 0) : status;
   }
 
@@ -383,7 +388,18 @@ export class Runtime {
     }
   }
 
-  async command(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+  errexit(status: number, state: State, io: IO): void {
+    this.signal.throwIfAborted();
+    if (status !== 0 && state.errexit && !io.execution?.ignoreErrexit) throw new Flow("exit", status);
+  }
+
+  async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+    const status = await this.executeCommand(command, state, io, fileShortcut);
+    if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic") this.errexit(status, state, io);
+    return status;
+  }
+
+  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     originalIO = activeIO(originalIO);
     originalIO.descriptors ??= new Map<number, Descriptor>([
       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
@@ -422,7 +438,7 @@ export class Runtime {
       if (command.kind === "group") return await this.script(command.body, state, io);
       if (command.kind === "if") {
         for (const branch of command.branches) {
-          if (await this.script(branch.condition, state, io) === 0) return await this.script(branch.body, state, io);
+          if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) return await this.script(branch.body, state, io);
         }
         return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
       }
@@ -461,7 +477,7 @@ export class Runtime {
         } else {
           while (true) {
             this.budget.loop();
-            const condition = await this.script(command.condition, state, io);
+            const condition = await this.script(command.condition, state, { ...io, execution: { ignoreErrexit: true } });
             if ((condition === 0) !== (command.kind === "while")) break;
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
@@ -477,16 +493,18 @@ export class Runtime {
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
       if (error instanceof HereDocumentSyntaxError) {
         await writeText(io.stderr, error.diagnostic);
+        this.errexit(1, state, io);
         return 1;
       }
-      if (errorCode(error) === "EPIPE") return 141;
+      if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
       try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
-      if (error instanceof CommandFailure) return error.status;
-      return 1;
+      const status = error instanceof CommandFailure ? error.status : 1;
+      this.errexit(status, state, io);
+      return status;
     } finally {
       for (const close of outputs) close();
       await Promise.all([...inputs].map((input) => input.close()));
@@ -547,6 +565,7 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
+        ...(io.execution === undefined ? {} : { execution: io.execution }),
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
         ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
@@ -796,7 +815,7 @@ export class Runtime {
           state.depth++;
           const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();
           state.locals.push(locals);
-          try { return { exitCode: await this.command(body, state, { ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
+          try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
           catch (error) {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
             throw error;
@@ -977,6 +996,7 @@ export class Runtime {
       cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
       positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
+      errexit: false,
     };
   }
 
@@ -984,17 +1004,19 @@ export class Runtime {
     const args = [...context.args];
     let commandString = false;
     let standardInput = false;
+    let errexit = false;
     while (args.length && /^[+-]/u.test(args[0]!)) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
-      if (!/^-[cs]+$/u.test(option)) {
-        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c and -s\n`);
+      if (!/^-[cse]+$|^\+e+$/u.test(option)) {
+        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e and +e\n`);
         return 2;
       }
       commandString ||= option.includes("c");
       standardInput ||= option.includes("s");
+      if (option.includes("e")) errexit = option.startsWith("-");
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false);
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeText(context.stderr, `${context.command}: -c: option requires an argument\n`);
@@ -1002,7 +1024,8 @@ export class Runtime {
     }
     const arg0 = commandString ? args.shift() ?? context.command : context.command;
     const child = this.processState(context, state, arg0, args);
-    const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
+    child.errexit = errexit;
+    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
     if (source !== undefined) {
       this.budget.source(Buffer.byteLength(source));
       return this.runCommandString(source, child, childIO);
@@ -1086,7 +1109,7 @@ export class Runtime {
     }
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = resolvePath(state.cwd, target);
@@ -1109,7 +1132,11 @@ export class Runtime {
         if (environmentInterpreter) {
           if (this.commands.get(environmentInterpreter)) throw new CommandFailure(`${target}: unsupported interpreter override: ${environmentInterpreter}`, 126);
           interpreterProfile = environmentInterpreter === "sh" ? "sh" : "bash";
-        } else if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+        } else {
+          const bash = /^(\/bin\/bash|\/usr\/bin\/bash)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
+          if (!bash) throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+          if (direct && bash[2]) errexit = bash[2].startsWith("-");
+        }
       }
     } catch (error) {
       this.signal.throwIfAborted();
@@ -1133,9 +1160,10 @@ export class Runtime {
       return error.exitCode;
     }
     const child = this.processState(context, state, target, args);
+    child.errexit = errexit;
     if (direct && !source.startsWith("#!")) child.profile = state.profile ?? "bash";
     if (direct && interpreterProfile) child.profile = interpreterProfile;
-    const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
+    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
     for (const unit of units) {
       for (const warning of unit.warnings ?? []) await writeText(context.stderr, `${target}: warning: ${warning}\n`);
@@ -1338,17 +1366,30 @@ export class Runtime {
       return 0;
     }
     if (command === "set") {
-      if (args[0] === "--") { state.positional = args.slice(1); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; return 0; }
-      if (args.length === 2 && (args[0] === "-o" || args[0] === "+o") && args[1] === "pipefail") {
-        state.pipefail = args[0] === "-o";
-        return 0;
+      let index = 0;
+      let positionals = false;
+      while (index < args.length) {
+        const option = args[index]!;
+        if (option === "--") { index++; positionals = true; break; }
+        if (option === "-") { index++; positionals = index < args.length; break; }
+        if (/^[-+]e+$/u.test(option)) { state.errexit = option.startsWith("-"); index++; continue; }
+        if ((option === "-o" || option === "+o") && (args[index + 1] === "pipefail" || args[index + 1] === "errexit")) {
+          if (args[index + 1] === "pipefail") state.pipefail = option === "-o";
+          else state.errexit = option === "-o";
+          index += 2;
+          continue;
+        }
+        if (/^[+-]/u.test(option)) {
+          await writeText(stderr, "set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n");
+          if (state.profile === "sh" && suppressSpecial) return 2;
+          throw new Flow("exit", 2);
+        }
+        positionals = true;
+        break;
       }
-      if (args.some((arg) => /^[+-]/u.test(arg))) {
-        await writeText(stderr, "set: unsupported shell option; supported forms are -- arguments, -o pipefail, +o pipefail\n");
-        if (state.profile === "sh" && suppressSpecial) return 2;
-        throw new Flow("exit", 2);
-      }
-      await writeText(stderr, "set: supported forms are -- arguments, -o pipefail, +o pipefail\n");
+      if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+      if (args.length) return 0;
+      await writeText(stderr, "set: supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n");
       return 2;
     }
     if (command === "shift") {
@@ -1525,6 +1566,7 @@ export class Runtime {
       const capture = new Capture();
       const child = cloneState(state);
       child.isolated = true;
+      if (state.profile !== "sh") child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
         child.variables[name] = value;
         child.exported.add(name);
@@ -1547,6 +1589,7 @@ export class Runtime {
       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)
+      : part.name === "-" ? state.errexit ? "e" : ""
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

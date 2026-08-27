@@ -1,0 +1,76 @@
+{
+  "recordedAt": "2026-08-27T15:17:48.667Z",
+  "role": "AUTHOR leaf; owned text handed from Curie",
+  "baseline": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "baselineTree": "278e8941d580403fb35a0336bab919fea35900dd",
+  "currentHead": "a8b1c7d25bb209a91767e369a0fa297b40de0551",
+  "expectedPromptHead": "0579a239b541f2c2a652da5f58eed1bd928ab8fb",
+  "status": "M src/shell/runtime.ts\n M tests/shell/env-shebang-host.test.ts\n M tests/shell/env-shebang.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/full-gate-20260827/package-only-8670/\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/\n?? tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/\n?? tests/shell-stress/env-shebang-author/guarded-completion/",
+  "index": "",
+  "ownedSourceDiff": "",
+  "committedProductDeltas": "M\tsrc/commands/column/column.ts\nM\tsrc/commands/column/internal.ts",
+  "inputs": [
+    {
+      "path": "src/commands/text.ts",
+      "sha256": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+      "baselineSha256": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "baselineSha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "baselineSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "baselineSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "baselineSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "baselineSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2"
+    },
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "baselineSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "baselineSha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    },
+    {
+      "path": "tests/commands/helpers.ts",
+      "sha256": "2ac2555ee51000aa885272340eba59db64f9738f4c771697d2cf19b7e5ebc463",
+      "baselineSha256": "2ac2555ee51000aa885272340eba59db64f9738f4c771697d2cf19b7e5ebc463"
+    },
+    {
+      "path": "tests/commands/core-sort/unkeyed-numeric-cache.test.ts",
+      "sha256": "b62d77b6797867fe0433bc23b2e7e6dcfcdc4239d12b910bef58b37b0678d6a8",
+      "baselineSha256": "b62d77b6797867fe0433bc23b2e7e6dcfcdc4239d12b910bef58b37b0678d6a8"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+      "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504",
+      "baselineSha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/ACCEPTANCE.md",
+      "sha256": "14b5687c812f9aabbb7d6a61b17f570f8dc07222da867f60e1eca4647f376993",
+      "baselineSha256": "14b5687c812f9aabbb7d6a61b17f570f8dc07222da867f60e1eca4647f376993"
+    }
+  ],
+  "reviewFreezeExists": false,
+  "reviewRead": false
+}

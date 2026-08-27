@@ -1,0 +1,48 @@
+{
+  "successful": true,
+  "commands": [
+    {
+      "label": "freeze-descriptions",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/cap-worker.mjs",
+        "--describe"
+      ],
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "label": "baseline-text-instrumented",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/cap-worker.mjs",
+        "/tmp/sort-key-author-caps-UFFVRl/baseline-text-instrumented"
+      ],
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "label": "candidate",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/cap-worker.mjs",
+        "/tmp/sort-key-author-caps-UFFVRl/candidate"
+      ],
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "label": "candidate-instrumented",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/cap-worker.mjs",
+        "/tmp/sort-key-author-caps-UFFVRl/candidate-instrumented"
+      ],
+      "status": 0,
+      "signal": null,
+      "closed": true
+    }
+  ],
+  "beforeAfterTreesMatch": true,
+  "scratchRemoved": true,
+  "remainingOwnedChildren": 0
+}

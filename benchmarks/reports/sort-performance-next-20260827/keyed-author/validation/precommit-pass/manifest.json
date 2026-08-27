@@ -1,0 +1,80 @@
+{
+  "mode": "precommit",
+  "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+  "archiveSha256": "866d9511c1c8fbdbd5c52820a64aad4c75c1c45a589565b220f98787842c8efa",
+  "overlays": {
+    "tests/commands/core-sort/single-numeric-key-cache.test.ts": "efe3c6f31c85b64b406cc5b551cc81b1a0b1e5b206bc9b8e8573762af38b8f61",
+    "src/commands/text.ts": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895"
+  },
+  "node": "v22.22.2",
+  "loadBefore": [
+    12.18994140625,
+    6.65185546875,
+    6.06787109375
+  ],
+  "receipts": [
+    {
+      "label": "extract",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/tmp/sort-key-author-check-5420jG/archive.tar",
+        "-C",
+        "/tmp/sort-key-author-check-5420jG/tree"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "tests",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/core-sort/single-numeric-key-cache.test.ts",
+        "tests/commands/core-sort/regressions.test.ts",
+        "tests/commands/core-sort/borrowed-buffer.test.ts",
+        "tests/commands/core-sort/unkeyed-numeric-cache.test.ts",
+        "tests/contracts/io.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    }
+  ],
+  "success": true,
+  "scratchRemoved": true,
+  "remainingOwnedChildren": 0,
+  "loadAfter": [
+    14.49658203125,
+    7.2216796875,
+    6.2724609375
+  ]
+}

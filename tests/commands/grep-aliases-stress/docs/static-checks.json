@@ -1,0 +1,23 @@
+{
+  "classification": "static-preparation-check-results-not-candidate-tests",
+  "checkedAt": "2026-08-27T14:28:25.871Z",
+  "node": "v22.22.2",
+  "checkCount": 10,
+  "checks": [
+    "26 native and 12 safety rows with unique frozen IDs; 17 exact byte fixtures",
+    "Original pre-native corpus and safety SHA-256 pins still match",
+    "Proposal snapshot byte-exact against permitted supplied contract",
+    "All native argv/stdin/file snapshots agree with original corpus; no timeouts, signals, launch errors or file effects",
+    "26 always-available goldens exactly preserve first native captures and stderr",
+    "16 ordinary outputs independently checked by hand-derived byte expectations, not product code",
+    "Profile denominator retained: 16 exact ordinary, 4 conflict, 6 explicit diagnostic/option rows",
+    "Executable, capture, exact recipe and provenance hashes consistent; no native subtree remains",
+    "Only prepared JSON/Markdown/TXT data exists under ownership; no tests or executable product imports",
+    "Temporary helper syntax checked with Node --check only; no product or candidate execution"
+  ],
+  "staticVerifierSourceSha256": "80dc6081eb5583dcef04c48187a9311628c37a2d633d9630e409b90d9b6c6849",
+  "candidateRuns": 0,
+  "productImports": 0,
+  "nativeRerunsDuringStaticChecks": 0,
+  "status": "passed"
+}

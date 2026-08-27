@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "classification": "pre-candidate-oracle-profile-data-not-typescript",
+  "candidateRuns": 0,
+  "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+  "rule": "Always compare and retain the exact native golden first. A separate bounded-profile result never changes an exact-native mismatch into a native pass. No stderr normalization, warning stripping, diagnostic deletion, or automatic baseline regeneration.",
+  "warningPolicy": "Native stderr remains raw. Every bounded product row forbids an added GNU obsolescence warning.",
+  "counts": {
+    "exactNativeProductExpectations": 16,
+    "explicitConflictContractExpectations": 4,
+    "diagnosticProfileExpectations": 6
+  },
+  "rows": [
+    {
+      "id": "N01",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N01"
+    },
+    {
+      "id": "N02",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N02"
+    },
+    {
+      "id": "N03",
+      "candidateProfile": "existing-bounded-E-F-conflict",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "egrep: ",
+      "requiredDiagnosticMessage": "conflicting matchers specified",
+      "nativeDifference": "BSD accepts the final explicit matcher choice; shared bounded grep rejects simultaneous E and F flags",
+      "evidence": "Shared grep option/UsageError contract read before candidate execution; alias proposal injects its initial flag"
+    },
+    {
+      "id": "N04",
+      "candidateProfile": "existing-bounded-E-F-conflict",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "fgrep: ",
+      "requiredDiagnosticMessage": "conflicting matchers specified",
+      "nativeDifference": "BSD accepts the final explicit matcher choice; shared bounded grep rejects simultaneous E and F flags",
+      "evidence": "Shared grep option/UsageError contract read before candidate execution; alias proposal injects its initial flag"
+    },
+    {
+      "id": "N05",
+      "candidateProfile": "unsupported-G-in-bounded-option-set",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "egrep: ",
+      "requiredErrorMeaning": "unsupported option",
+      "requiredOffendingOption": "G",
+      "nativeDifference": "BSD accepts -G; the inspected shared option list has no G",
+      "evidence": "Shared grep option contract, not author implementation or outputs"
+    },
+    {
+      "id": "N06",
+      "candidateProfile": "unsupported-G-in-bounded-option-set",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "fgrep: ",
+      "requiredErrorMeaning": "unsupported option",
+      "requiredOffendingOption": "G",
+      "nativeDifference": "BSD accepts -G; the inspected shared option list has no G",
+      "evidence": "Shared grep option contract, not author implementation or outputs"
+    },
+    {
+      "id": "N07",
+      "candidateProfile": "existing-bounded-E-F-conflict",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "egrep: ",
+      "requiredDiagnosticMessage": "conflicting matchers specified",
+      "nativeDifference": "BSD accepts the final explicit matcher choice; shared bounded grep rejects simultaneous E and F flags",
+      "evidence": "Shared grep option/UsageError contract read before candidate execution; alias proposal injects its initial flag"
+    },
+    {
+      "id": "N08",
+      "candidateProfile": "existing-bounded-E-F-conflict",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "fgrep: ",
+      "requiredDiagnosticMessage": "conflicting matchers specified",
+      "nativeDifference": "BSD accepts the final explicit matcher choice; shared bounded grep rejects simultaneous E and F flags",
+      "evidence": "Shared grep option/UsageError contract read before candidate execution; alias proposal injects its initial flag"
+    },
+    {
+      "id": "N09",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N09"
+    },
+    {
+      "id": "N10",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N10"
+    },
+    {
+      "id": "N11",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N11"
+    },
+    {
+      "id": "N12",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N12"
+    },
+    {
+      "id": "N13",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N13"
+    },
+    {
+      "id": "N14",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N14"
+    },
+    {
+      "id": "N15",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N15"
+    },
+    {
+      "id": "N16",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N16"
+    },
+    {
+      "id": "N17",
+      "candidateProfile": "bounded-alias-diagnostic",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "egrep: ",
+      "requiredErrorMeaning": "missing input file (ENOENT semantics)",
+      "requiredPath": "absent.txt",
+      "assertionBoundary": "Preserve full native and candidate stderr and classify exact text difference separately. Validate all listed fields and meaning; prefix-only or status-only assertions are insufficient. Pattern/option identifiers identify the failing input, not a guarantee that every engine echoes it verbatim.",
+      "nativeDifference": "Native wording is frozen, but bounded utility diagnostic wording is not asserted to be BSD libc wording"
+    },
+    {
+      "id": "N18",
+      "candidateProfile": "bounded-alias-diagnostic",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "egrep: ",
+      "requiredErrorMeaning": "invalid or unbalanced bracket expression",
+      "requiredPattern": "[",
+      "assertionBoundary": "Preserve full native and candidate stderr and classify exact text difference separately. Validate all listed fields and meaning; prefix-only or status-only assertions are insufficient. Pattern/option identifiers identify the failing input, not a guarantee that every engine echoes it verbatim.",
+      "nativeDifference": "Native wording is frozen, but bounded utility diagnostic wording is not asserted to be BSD libc wording"
+    },
+    {
+      "id": "N19",
+      "candidateProfile": "bounded-alias-diagnostic",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "fgrep: ",
+      "requiredErrorMeaning": "option requires a missing argument",
+      "requiredOption": "e",
+      "assertionBoundary": "Preserve full native and candidate stderr and classify exact text difference separately. Validate all listed fields and meaning; prefix-only or status-only assertions are insufficient. Pattern/option identifiers identify the failing input, not a guarantee that every engine echoes it verbatim.",
+      "nativeDifference": "Native wording is frozen, but bounded utility diagnostic wording is not asserted to be BSD libc wording"
+    },
+    {
+      "id": "N20",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N20"
+    },
+    {
+      "id": "N21",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N21"
+    },
+    {
+      "id": "N22",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N22"
+    },
+    {
+      "id": "N23",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N23"
+    },
+    {
+      "id": "N24",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N24"
+    },
+    {
+      "id": "N25",
+      "candidateProfile": "exact-native-golden-including-stderr",
+      "goldenId": "N25"
+    },
+    {
+      "id": "N26",
+      "candidateProfile": "bounded-alias-diagnostic",
+      "expectedStatus": 2,
+      "expectedStdoutHex": "",
+      "requiredDiagnosticPrefix": "fgrep: ",
+      "requiredErrorMeaning": "missing pattern file (ENOENT semantics)",
+      "requiredPath": "absent.patterns",
+      "assertionBoundary": "Preserve full native and candidate stderr and classify exact text difference separately. Validate all listed fields and meaning; prefix-only or status-only assertions are insufficient. Pattern/option identifiers identify the failing input, not a guarantee that every engine echoes it verbatim.",
+      "nativeDifference": "Native wording is frozen, but bounded utility diagnostic wording is not asserted to be BSD libc wording"
+    }
+  ]
+}

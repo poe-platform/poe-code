@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-native-golden-data-not-typescript",
+  "profile": "apple-bsd-grep-2.6.0-freebsd-darwin25.4-arm64-c-locale",
+  "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+  "origin": "First raw native run; complete second runs retained separately; no transformations",
+  "alwaysRunnable": "Read these bytes without spawning an oracle or importing author tests. Candidate execution still requires handoff.",
+  "warningProfile": {
+    "native": "No obsolescence warning observed in any of these BSD runs",
+    "product": "Proposed aliases intentionally emit no GNU obsolescence warning",
+    "gnu": "Unavailable; no native expectation fabricated",
+    "stderrTransformations": []
+  },
+  "rows": [
+    {
+      "id": "N01",
+      "status": 0,
+      "stdoutHex": "313a7265640a323a626c75650a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N02",
+      "status": 0,
+      "stdoutHex": "333a7265647c626c75650a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N03",
+      "status": 0,
+      "stdoutHex": "612b620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N04",
+      "status": 0,
+      "stdoutHex": "61620a616161620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N05",
+      "status": 0,
+      "stdoutHex": "612b620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N06",
+      "status": 0,
+      "stdoutHex": "612b620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N07",
+      "status": 0,
+      "stdoutHex": "612b620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N08",
+      "status": 0,
+      "stdoutHex": "61620a616161620a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N09",
+      "status": 0,
+      "stdoutHex": "616e740a6361740a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N10",
+      "status": 0,
+      "stdoutHex": "616e740a6361740a",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "patterns.txt": "616e740a6361740a",
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      }
+    },
+    {
+      "id": "N11",
+      "status": 0,
+      "stdoutHex": "616e740a6361740a",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      }
+    },
+    {
+      "id": "N12",
+      "status": 0,
+      "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N13",
+      "status": 0,
+      "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N14",
+      "status": 0,
+      "stdoutHex": "612e7478743a313a6869743a610a612e7478743a333a6869743a620a622e7478743a323a6869743a630a",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      }
+    },
+    {
+      "id": "N15",
+      "status": 0,
+      "stdoutHex": "287374616e6461726420696e707574293a313a6869743a737464696e0a622e7478743a323a6869743a630a",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "b.txt": "6e6f6e650a6869743a630a"
+      }
+    },
+    {
+      "id": "N16",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N17",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "65677265703a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N18",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "65677265703a20627261636b65747320285b205d29206e6f742062616c616e6365640a",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N19",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "66677265703a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20650a75736167653a206667726570205b2d6162636444454647486849694a4c6c4d6d6e4f6f70715253735556767758785a7a5d205b2d41206e756d5d205b2d42206e756d5d205b2d435b6e756d5d5d0a095b2d65207061747465726e5d205b2d662066696c655d205b2d2d62696e6172792d66696c65733d76616c75655d205b2d2d636f6c6f723d7768656e5d0a095b2d2d636f6e746578745b3d6e756d5d5d205b2d2d6469726563746f726965733d616374696f6e5d205b2d2d6c6162656c5d205b2d2d6c696e652d62756666657265645d0a095b2d2d6e756c6c5d205b7061747465726e5d205b66696c65202e2e2e5d0a",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N20",
+      "status": 0,
+      "stdoutHex": "ff6869740a686974fe0a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N21",
+      "status": 0,
+      "stdoutHex": "72656400626c756500",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N22",
+      "status": 0,
+      "stdoutHex": "6869743a6c6173740a",
+      "stderrHex": "",
+      "filesAfterHex": {}
+    },
+    {
+      "id": "N23",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "empty.patterns": ""
+      }
+    },
+    {
+      "id": "N24",
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      }
+    },
+    {
+      "id": "N25",
+      "status": 0,
+      "stdoutHex": "612e7478743a310a622e7478743a310a",
+      "stderrHex": "",
+      "filesAfterHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      }
+    },
+    {
+      "id": "N26",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "66677265703a20616273656e742e7061747465726e733a204e6f20737563682066696c65206f72206469726563746f72790a",
+      "filesAfterHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      }
+    }
+  ]
+}

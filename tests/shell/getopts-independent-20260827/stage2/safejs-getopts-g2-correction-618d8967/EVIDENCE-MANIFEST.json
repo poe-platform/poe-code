@@ -1,0 +1,173 @@
+{
+  "freezeCommit": "1cf6596a76c4dbeca77af8e3d71f93c4c12c5137",
+  "entries": [
+    {
+      "path": "child.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4764,
+      "sha256": "407b5412c53d159af21baafd925ee3ccf3988fa14231232b413695fe93545815"
+    },
+    {
+      "path": "common.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6725,
+      "sha256": "fcacabaa1d6f02c205de4c1f602625c14d641d1e5b44f222b75d8e8c8204d7ec"
+    },
+    {
+      "path": "evidence-v1",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "evidence-v1/private-after.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "evidence-v1/private-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "evidence-v1/RAW-MANIFEST.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 247,
+      "sha256": "0844deec110c5ebe681e62593e5e79e65a9af44ac11836c01fee76efcf4cf93a"
+    },
+    {
+      "path": "evidence-v1/RAW.json.gz.base64",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 209473,
+      "sha256": "8dba68ace94a0bd7f92b609cf82e0d9b82df6abe1b78b8bf27581a265f175c42"
+    },
+    {
+      "path": "evidence-v1/RESULTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4839,
+      "sha256": "f28ecf984d8a70015a7b09ab916388e29245260da71ebcecdb4f07caf812ebb6"
+    },
+    {
+      "path": "evidence-v1/SCRATCH-MANIFEST.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 295,
+      "sha256": "56b0c6542ec4fa2fe502d268820f7bae9ab53aff7ad6006904fdb5aec97fca72"
+    },
+    {
+      "path": "evidence-v1/SCRATCH.json.gz.base64",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 176829,
+      "sha256": "f1a301f41ef52b54910d04afa436ee391a09a251d88e60efe5907b9e2b7fa9eb"
+    },
+    {
+      "path": "execution.log",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 249,
+      "sha256": "3f123ffaaa4741c089609d05cd9d575eb783d5dc9939a004994559b49b4f5b4d"
+    },
+    {
+      "path": "FINAL-GUARDS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1898,
+      "sha256": "f0d2b4bb287ce5229e0b0b87218ed8924a492f3e274c340b32010527e93d1a04"
+    },
+    {
+      "path": "finish.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2839,
+      "sha256": "30a232f7776a82acd13906c61034533e2ee501056032f8384a3e1d7ae36b0d05"
+    },
+    {
+      "path": "FREEZE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6869,
+      "sha256": "874ea1ac6dabaae0cebe45039ba9c31d4fb37dfd334abe9958960cbbc6019d57"
+    },
+    {
+      "path": "G2-CORRECTION.diff",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1529,
+      "sha256": "ad10060596153c672ff153c66f93ce1c9ed11a9837508e0ae76d8313ed65757e"
+    },
+    {
+      "path": "G2.guest.txt",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2130,
+      "sha256": "9cee7f5958902a4a37f180c623f9e1e12469d6555eb72f426dbb0584b9dd27df"
+    },
+    {
+      "path": "preparation.log",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 109,
+      "sha256": "73dac711ae789e63b3ae2d6708a238a01fc3b043efaa29acca9b2057d5283871"
+    },
+    {
+      "path": "prepare.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8262,
+      "sha256": "96af08e97626896622b4c006525c98cc202316a02545bd562a734b46d697b24c"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4436,
+      "sha256": "42cc8ddc92e12a7a943b6699b15df154e0fe8ebdc850eb358766d0e7e20f310b"
+    },
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4907,
+      "sha256": "2621dc7b2a01d40a702d5793853478b40d0f54c6fadec48110dee9d477f37c80"
+    },
+    {
+      "path": "REPRODUCE.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2528,
+      "sha256": "ff46e024999c1f40140a474993fe32ebc3711e968ca828142989620bf3442113"
+    },
+    {
+      "path": "run.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8748,
+      "sha256": "44ff7f08bc8de81ff15ad589009bf698d062f5aee5e0b8f9fd37e9440db41b28"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2285,
+      "sha256": "00939748de6e17194494e5b92d7ef0a223304f3355ef1a20c9eb9e4d5cb625f4"
+    },
+    {
+      "path": "witness-loader.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1746,
+      "sha256": "590e6b001a365e030f72b41e2ee05adb0562a522b7244352d219b5ecad29f1c3"
+    }
+  ],
+  "scratchRemoved": true,
+  "additionsChecked": true
+}

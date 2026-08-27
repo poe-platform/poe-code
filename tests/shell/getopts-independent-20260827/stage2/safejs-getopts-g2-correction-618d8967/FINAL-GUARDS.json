@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-08-27T22:35:11.836Z",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+  "privateIndexSHA256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+  "privateSnapshotSHA256": "7fe0a52991ff9b30289a4d5e8f535cbbfe0c9f4b6b6f0217ef94739c618c951f",
+  "privateEligibleEntries": 264,
+  "privateMetadataRecords": 6,
+  "privateAddedEligiblePathsAndEmptyDirectoriesChecked": true,
+  "oldBoundary": {
+    "accepted": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+    "files": 302,
+    "entries": 314,
+    "inventorySHA256": "eec98044b2535c39d582cacc47d490a11a7b7eb3c3edbecb3ebf55c4f7f59723",
+    "onlyAuthorizedExclusion": "stage2/safejs-getopts-g2-correction-618d8967",
+    "additionsChecked": true,
+    "layers": [
+      {
+        "name": "review-618d8967",
+        "commit": "2dcefd4f26588f6dc662148e3713e41b09537333",
+        "files": 52,
+        "manifestSHA256": "5b113fecacc9baef67d6ca88195758e480dc4500749b7b23be7f1184c83d3e49"
+      },
+      {
+        "name": "safejs-getopts-followup-618d8967",
+        "commit": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+        "files": 45,
+        "manifestSHA256": "8e8e714e86e42f43367c71919997f32335e75a3c088660267e1ae46ae3e4d8db"
+      }
+    ],
+    "oldVerifiersModifiedOrInvoked": false
+  },
+  "protection": {
+    "protectedPaths": 243,
+    "sourcePaths": 2,
+    "currentLivePreservationPaths": 245,
+    "currentLiveHashInventorySHA256": "0b97b5b3cce63f8dbc708dbff9e8339ead8c9015bf8dd6ea519241986af2bdec",
+    "candidateProtectedHashesMatchBaseline": true,
+    "liveCandidateEqualityRequired": false,
+    "wholeLiveTreeClaim": false
+  },
+  "immutableSHA256": "09bfd499614e4a6ca6155d85e3a8c801f953848cbe2e16f4104dec73939fcdb2",
+  "foreignStagingBeforeEvidenceCommit": "",
+  "soleChildClosedNaturally": true,
+  "engineExecutionsDuringFinalGuard": 0
+}

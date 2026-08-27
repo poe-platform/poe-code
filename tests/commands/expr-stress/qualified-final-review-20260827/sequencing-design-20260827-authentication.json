@@ -1,0 +1,95 @@
+{
+  "ref": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+  "frozen": [
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/.gitignore",
+      "sha256": "b89b8c5f24ac8b34f94a35c01f1a4916e14b9217aaa23804294033f0fa0dad4d"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/capture.mjs",
+      "sha256": "451e28ded03b49a5640a94169fd35eeb554146df6d04ff9d87191a7ae01bcafe"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/cases.mjs",
+      "sha256": "fd5160e88daef8a9e53a4aa3bba98bca8e5fb49824be11965756511c0efae793"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/driver.mjs",
+      "sha256": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/freeze.mjs",
+      "sha256": "924c5495a77a7a8a0653a2e44a3c5a41170c7270987e821cf838b5bc8c123e5d"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/freeze/accepted-source.tar.gz",
+      "sha256": "b2de2b86a834f1b5c3ba7a98c347d3aa9668632ff3af2a073cf2c45c6b6bfef5"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/freeze/cases.json",
+      "sha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/freeze/receipt.json",
+      "sha256": "79f10c8d6e143798537868270d40dacad65a95f65de5824c98acc8bef1bcda5f"
+    }
+  ],
+  "laterCandidateEntries": [
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/DESIGN.md",
+      "sha256": "b2e9a4e78c22f6103273e65bef5f311799b8a4c784869d56e2421275739a28df"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/PRIMARY_SOURCES.json",
+      "sha256": "99fd30cb4d7168ef45a748da2ad87dadf4b39655c59998943e1a56acf890442f"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/REPORT.md",
+      "sha256": "6d7998fd9f87fd862b969a808e0f30d7ba3c5937036d4b6bfe86fbed5549ff6b"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/SEAL.json",
+      "sha256": "e887cb81fd5f8884e74d71c15e8767f5d2ed1e31a0a667edd193f569a6590340"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/build.json",
+      "sha256": "383a4d2cd2b4f0731635537b5e11659d15072375b1b64f01a89de68725fa6cda"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/cleanup.json",
+      "sha256": "f0f1812f3935556d4490f012573d33b8a2b5038a5e14dfdb528d7f3e8378d0ea"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/execution.json",
+      "sha256": "4dae0fed158cfd06473638a35accc0db3ffb15a9d8a7df865056680d641ca852"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/native-controls.json",
+      "sha256": "ee13883ba3562bdf9caa9a4c75dac9aa29721505f18f8238c003b7da5da7baf3"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/native-semantics.json",
+      "sha256": "f731ff89519429d2ab111c49ccf97deb9a7ddb258d259fcd8e48eb4cecd9593c"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/product.json",
+      "sha256": "b72d2ab3e990f112984330f018f1e211ba7d47ede1a9ac16ad6e172595121dce"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/source-after.json",
+      "sha256": "06c5415e84b67c8489ff2355d00c01ce4cade8fbd0513472f3aa0e0110e29aa4"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/source-before.json",
+      "sha256": "06c5415e84b67c8489ff2355d00c01ce4cade8fbd0513472f3aa0e0110e29aa4"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/summary.json",
+      "sha256": "40bd8b3f6ec9efd843d555a5b9ca02543de89d4dc30d459fae067789d2a8ed89"
+    },
+    {
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/seal.mjs",
+      "sha256": "7b2875ce23106b2d8bebc0af8674788f7f75e7e18ff234c95cc889d9c220e55b"
+    }
+  ]
+}

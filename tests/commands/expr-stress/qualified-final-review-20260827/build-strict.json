@@ -1,0 +1,19 @@
+{
+  "name": "build-strict",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/source/tsconfig.build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/source",
+  "started": "2026-08-27T19:33:55.312Z",
+  "finished": "2026-08-27T19:33:59.132Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

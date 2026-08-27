@@ -1,0 +1,113 @@
+{
+  "candidate": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "baseline": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "unchanged": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "baseline": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "candidate": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "baseline": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "candidate": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "baseline": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "candidate": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "baseline": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "candidate": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "baseline": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "candidate": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    }
+  ],
+  "unpromotedRepeatCommit": "c433d0230468889e825dfff680a5a729b45bd272",
+  "repeatCommitHasNoSrcChanges": true,
+  "noPatchApplied": true,
+  "prefixDiff": "diff --git a/src/commands/expr/evaluate.ts b/src/commands/expr/evaluate.ts\nindex 4d9e7cd3..f16cd166 100644\n--- a/src/commands/expr/evaluate.ts\n+++ b/src/commands/expr/evaluate.ts\n@@ -136,6 +136,7 @@ export async function evaluate(node: Node, budget: Budget, match: Matcher, activ\n   await budget.yield();\n   if (node.kind === \"literal\") return budget.encode(node.text);\n   if (node.kind === \"call\") {\n+    if (!active) return zero;\n     const values: Value[] = [];\n     for (const argument of node.args) values.push(await evaluate(argument, budget, match, active));\n     return call(node.operator, values, active, budget, match);\n",
+  "exprInputs": [
+    {
+      "path": "README.md",
+      "mode": 420,
+      "type": "file",
+      "bytes": 15803,
+      "sha256": "0da1befe61e8e55196e24b972ff0a5d7d4642c4a201968359a1daf01c650f0bd"
+    },
+    {
+      "path": "bre-worker.ts",
+      "mode": 420,
+      "type": "file",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "evaluate.ts",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7825,
+      "sha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9"
+    },
+    {
+      "path": "index.ts",
+      "mode": 420,
+      "type": "file",
+      "bytes": 4701,
+      "sha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d"
+    },
+    {
+      "path": "internal.ts",
+      "mode": 420,
+      "type": "file",
+      "bytes": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "syntax.ts",
+      "mode": 420,
+      "type": "file",
+      "bytes": 4046,
+      "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0"
+    }
+  ],
+  "disallowedAmbientOrHostImports": [],
+  "compiledWorkerStaticGraph": [
+    {
+      "path": "dist/commands/regex-execution/worker.js",
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ]
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.js",
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "imports": []
+    },
+    {
+      "path": "dist/commands/expr/bre-worker.js",
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ]
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js",
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "imports": [
+        "node:buffer"
+      ]
+    }
+  ],
+  "qualification": "Static import closure only, not proof about arbitrary computed host imports. Dynamic runtime confinement and zero dependency manifest recorded separately."
+}

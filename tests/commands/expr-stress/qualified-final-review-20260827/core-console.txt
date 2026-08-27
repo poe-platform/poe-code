@@ -1,0 +1,1 @@
+{"subcases":146,"failed":[],"destination":"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/source/tests/commands/expr-stress/diagnostics-candidate-review/replay/qualified-core"}

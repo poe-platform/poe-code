@@ -1,0 +1,13 @@
+{
+  "snapshotName": "production-first",
+  "job": "early-selection",
+  "label": "early-selection",
+  "time": "2026-08-27T06:11:54.928Z",
+  "risky": false,
+  "watchdogAfterReadyMs": 15000,
+  "outputCap": 65536,
+  "oldSpaceMb": 128,
+  "historical": "12 archived, prior revision 0/6; not rerun",
+  "reservation": "benign; no risk reservation consumed",
+  "harnessSha256": "01ab32f98bc51024a47b8c8b057241ca9b02f00151d9e869b4d956f0ec877f62"
+}

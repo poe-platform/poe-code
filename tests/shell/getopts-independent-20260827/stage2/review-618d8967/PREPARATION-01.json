@@ -8,6 +8,6 @@
   "classification": "Reviewer preparation defect, before any candidate execution or extraction",
   "correctionVersion": 2,
   "correction": "Remove nonexistent LICENSE pathspec; package.json files remains unchanged and full src/build closure remains selected. No invented license or product file.",
-  "cleanup": "Only the nine explicitly created empty preparation directories and their empty owned .work parent are removed with nonrecursive rmdir before exclusive retry. No files or foreign paths removed.",
+  "cleanup": "Only the eight explicitly created empty preparation directories and their empty owned .work parent are removed with nonrecursive rmdir before exclusive retry. No files or foreign paths removed.",
   "originalDriver": "Preserved in fc727249; correction is a separate commit, not a passing candidate test."
 }

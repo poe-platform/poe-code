@@ -48,12 +48,12 @@ for (const control of scripts) test(`frozen ${control.id}: installed public Shel
 
 test('I01/I02 regular routing, fresh exported defaults and no registry plugin growth', async () => {
   const { shell, commands } = setup({ env: { OPTIND: '7', OPTERR: '0' } });
-  const before = [...commands.names()];
+  const before = commands.list().map(command => command.name);
   commands.register({ name: 'host', async execute(context) { assert.equal(context.env.OPTIND, '1'); assert.equal(context.env.OPTERR, '1'); return { exitCode: 0 }; } });
   const result = await shell.exec('host; type -t getopts; getopts a opt -a; say "$opt:$OPTIND"');
   assert.equal(result.stdout, 'builtin\na:2\n');
   assert.equal(commands.has('getopts'), false);
-  assert.deepEqual([...commands.names()], [...before, 'host']);
+  assert.deepEqual(commands.list().map(command => command.name), [...before, 'host']);
   await shell.dispose();
 });
 

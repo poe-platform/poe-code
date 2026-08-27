@@ -49,6 +49,9 @@ fractional digits are truncated in magnitude, but a zero resulting fraction
 retains the floor-second integer (for example, -11 ms gives `-1.0` at precision
 one and `-0.01` at precision two). This deliberately preserves observed runtime
 behavior, not the current GNU manual's contrary minus-infinity rounding rule.
+Fractional epoch width also follows that executable's separate integer/fraction
+formatting, including trailing spaces for narrow widths: at 1 ms, `%3.3Y`
+produces `0.001` followed by two spaces. Those bytes count toward output limits.
 
 Timestamps are deterministic UTC at millisecond resolution, not GNU's full
 nanosecond rendering. The default report is a concise virtual metadata report,

@@ -77,6 +77,14 @@ function formatField(text: string, code: string, flags: string, width: number, p
     if (flags.includes("#")) text = code === "a" ? (text.startsWith("0") ? text : `0${text}`) : (code === "f" || code === "D") && nonzero ? `0x${text}` : text;
     if (epoch && !text.startsWith("-") && (flags.includes("+") || flags.includes(" "))) text = `${flags.includes("+") ? "+" : " "}${text}`;
   }
+  if (epoch && precision) {
+    const decimal = text.indexOf(".");
+    const integerWidth = width > precision + 2 && !flags.includes("-") ? width - precision - 1 : 0;
+    const integer = formatField(text.slice(0, decimal), code, flags, integerWidth, undefined, true, false);
+    const trailingWidth = integer.length < width && 1 < width - integer.length
+      ? Math.abs(width - integer.length - 1 - precision) : 0;
+    return Buffer.concat([integer, Buffer.from(text.slice(decimal)), Buffer.alloc(trailingWidth, 32)]);
+  }
   const encoded = Buffer.from(text);
   const bytes = !numeric && precision !== undefined ? encoded.subarray(0, precision) : encoded;
   const padding = Math.max(0, width - bytes.length);

@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "validatedAt": "2026-08-27T17:13:04.416Z",
+  "scope": "Freeze harness ONLY; no product candidate execution, no product mutation kills",
+  "checks": [
+    {
+      "name": "syntax:runner.mjs.data",
+      "args": [
+        "--check"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "syntax:correction-native.mjs.data",
+      "args": [
+        "--check"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "syntax:verify-seal.mjs.data",
+      "args": [
+        "--check"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "original-freeze-integrity",
+      "args": [
+        "-",
+        "verify"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "{\n  \"verified\": true,\n  \"inputCases\": 95,\n  \"observations\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"count\": 95\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"count\": 9\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"count\": 95\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"count\": 9\n    }\n  ],\n  \"appendProof\": false,\n  \"scope\": \"Exact manifest-listed files only; unrelated/new files are neither included nor certified. No candidate execution.\"\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "extension-default-readonly",
+      "args": [
+        "-"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "{\n  \"verified\": true,\n  \"manifestSha256\": \"e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198\",\n  \"counts\": {\n    \"cases\": 20,\n    \"gnuObservations\": 23,\n    \"appleObservations\": 23,\n    \"controls\": 24,\n    \"mutationSpecifications\": 32,\n    \"candidateControlsExecuted\": 0\n  },\n  \"appendProof\": false,\n  \"candidateAccepted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "extension-native-replay",
+      "args": [
+        "-",
+        "verify-native"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "{\n  \"mode\": \"verify-native\",\n  \"comparison\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 20,\n      \"diagnosticMatches\": 20,\n      \"strictMatches\": 20,\n      \"mismatches\": []\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 3,\n      \"diagnosticMatches\": 3,\n      \"strictMatches\": 3,\n      \"mismatches\": []\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 20,\n      \"diagnosticMatches\": 20,\n      \"strictMatches\": 20,\n      \"mismatches\": []\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 3,\n      \"diagnosticMatches\": 3,\n      \"strictMatches\": 3,\n      \"mismatches\": []\n    }\n  ],\n  \"controlsExecutedByComparator\": 0,\n  \"provenanceSelfReportNotAuthenticated\": false,\n  \"candidateAccepted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "correction-default-readonly",
+      "args": [
+        "-"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "{\n  \"mode\": \"verify\",\n  \"correctionInputs\": 1,\n  \"gnuObservations\": 1,\n  \"appleObservations\": 1,\n  \"candidateExecuted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "correction-native-replay",
+      "args": [
+        "-",
+        "verify-native"
+      ],
+      "expectedStatus": 0,
+      "status": 0,
+      "stdout": "{\n  \"mode\": \"verify-native\",\n  \"correctionInputs\": 1,\n  \"gnuObservations\": 1,\n  \"appleObservations\": 1,\n  \"candidateExecuted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "original-capture-overwrite-refused",
+      "args": [
+        "-",
+        "capture",
+        "native-20260827"
+      ],
+      "expectedStatus": 1,
+      "status": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: immutable capture already exists\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:210:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "correction-capture-overwrite-refused",
+      "args": [
+        "-",
+        "capture"
+      ],
+      "expectedStatus": 1,
+      "status": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: immutable correction already exists\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:95:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "synthetic-byte-mismatch-rejected",
+      "args": [
+        "-",
+        "compare",
+        "tests/commands/expr-stress/extension-review/frozen/.selfcheck-4Dpvl0/synthetic.json"
+      ],
+      "expectedStatus": 1,
+      "status": 1,
+      "stdout": "{\n  \"mode\": \"compare\",\n  \"comparison\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 19,\n      \"diagnosticMatches\": 20,\n      \"strictMatches\": 19,\n      \"mismatches\": [\n        {\n          \"reference\": {\n            \"id\": \"alternative-anchored-positive\",\n            \"caseSha256\": \"8957ad31ba2034b0fe3a3f97fc7011fde6d668d21e651e5ccd3365b78b3ebf43\",\n            \"argvUtf8Hex\": [\n              \"7a7a\",\n              \"3a\",\n              \"715c7c7a7a\"\n            ],\n            \"status\": 0,\n            \"signal\": null,\n            \"failure\": null,\n            \"stdoutBase64\": \"Mgo=\",\n            \"stderrBase64\": \"\"\n          },\n          \"observed\": {\n            \"id\": \"alternative-anchored-positive\",\n            \"caseSha256\": \"8957ad31ba2034b0fe3a3f97fc7011fde6d668d21e651e5ccd3365b78b3ebf43\",\n            \"argvUtf8Hex\": [\n              \"7a7a\",\n              \"3a\",\n              \"715c7c7a7a\"\n            ],\n            \"status\": 0,\n            \"signal\": null,\n            \"failure\": null,\n            \"stdoutBase64\": \"V1JPTkcK\",\n            \"stderrBase64\": \"\"\n          },\n          \"semantic\": false,\n          \"diagnostic\": true\n        }\n      ]\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 3,\n      \"diagnosticMatches\": 3,\n      \"strictMatches\": 3,\n      \"mismatches\": []\n    }\n  ],\n  \"controlsExecutedByComparator\": 0,\n  \"provenanceSelfReportNotAuthenticated\": true,\n  \"candidateAccepted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "synthetic-diagnostic-mismatch-rejected",
+      "args": [
+        "-",
+        "compare",
+        "tests/commands/expr-stress/extension-review/frozen/.selfcheck-4Dpvl0/synthetic.json"
+      ],
+      "expectedStatus": 1,
+      "status": 1,
+      "stdout": "{\n  \"mode\": \"compare\",\n  \"comparison\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 20,\n      \"diagnosticMatches\": 19,\n      \"strictMatches\": 19,\n      \"mismatches\": [\n        {\n          \"reference\": {\n            \"id\": \"class-parenthesis-not-capture\",\n            \"caseSha256\": \"d40a5fe9e9ef6c56ec0d90be52277aea1947ee415c9b958126bae891f66bef7f\",\n            \"argvUtf8Hex\": [\n              \"28\",\n              \"3a\",\n              \"5b285d\"\n            ],\n            \"status\": 2,\n            \"signal\": null,\n            \"failure\": null,\n            \"stdoutBase64\": \"\",\n            \"stderrBase64\": \"ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGluc3RlYWQgb2YgJ1soXScK\"\n          },\n          \"observed\": {\n            \"id\": \"class-parenthesis-not-capture\",\n            \"caseSha256\": \"d40a5fe9e9ef6c56ec0d90be52277aea1947ee415c9b958126bae891f66bef7f\",\n            \"argvUtf8Hex\": [\n              \"28\",\n              \"3a\",\n              \"5b285d\"\n            ],\n            \"status\": 2,\n            \"signal\": null,\n            \"failure\": null,\n            \"stdoutBase64\": \"\",\n            \"stderrBase64\": \"ZGlmZmVyZW50IGRpYWdub3N0aWMK\"\n          },\n          \"semantic\": true,\n          \"diagnostic\": false\n        }\n      ]\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 3,\n      \"diagnosticMatches\": 3,\n      \"strictMatches\": 3,\n      \"mismatches\": []\n    }\n  ],\n  \"controlsExecutedByComparator\": 0,\n  \"provenanceSelfReportNotAuthenticated\": true,\n  \"candidateAccepted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "synthetic-missing-row-rejected",
+      "args": [
+        "-",
+        "compare",
+        "tests/commands/expr-stress/extension-review/frozen/.selfcheck-4Dpvl0/synthetic.json"
+      ],
+      "expectedStatus": 1,
+      "status": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    'alternative-anchored-positive',\n    'alternative-anchored-negative',\n    'unescaped-parentheses-literal',\n    'escaped-backslash-before-parenthesis',\n...\n    'utf8-shifted-first-span',\n-   'combining-first-span'\n  ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:180:12\n    at Array.map (<anonymous>)\n    at compareProfiles (file:///Users/kjopek/Workspace/safe-bash/[eval1]:178:19)\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:238:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: [\n    'alternative-anchored-positive',\n    'alternative-anchored-negative',\n    'unescaped-parentheses-literal',\n    'escaped-backslash-before-parenthesis',\n    'class-parenthesis-not-capture',\n    'escaped-dot-positive',\n    'escaped-dot-negative',\n    'optional-first-unmatched',\n    'optional-without-capture',\n    'first-empty-before-tail',\n    'optional-first-no-match',\n    'repeated-first-last-iteration',\n    'nested-first-outer',\n    'backreference-negative',\n    'backreference-twice',\n    'longest-with-optional-suffix',\n    'longest-no-capture',\n    'utf8-whole-prefix-span',\n    'utf8-shifted-first-span'\n  ],\n  expected: [\n    'alternative-anchored-positive',\n    'alternative-anchored-negative',\n    'unescaped-parentheses-literal',\n    'escaped-backslash-before-parenthesis',\n    'class-parenthesis-not-capture',\n    'escaped-dot-positive',\n    'escaped-dot-negative',\n    'optional-first-unmatched',\n    'optional-without-capture',\n    'first-empty-before-tail',\n    'optional-first-no-match',\n    'repeated-first-last-iteration',\n    'nested-first-outer',\n    'backreference-negative',\n    'backreference-twice',\n    'longest-with-optional-suffix',\n    'longest-no-capture',\n    'utf8-whole-prefix-span',\n    'utf8-shifted-first-span',\n    'combining-first-span'\n  ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    }
+  ],
+  "readonlyInventoryUnchanged": true,
+  "inventoryFiles": 14,
+  "remainingOwnedScratch": [],
+  "nativeChildren": "Sequential native calls awaited close; no owned active children after command completion",
+  "counts": {
+    "newInitialInputs": 20,
+    "quotedCorrectionInputs": 1,
+    "gnuNativeObservations": 24,
+    "appleNativeObservations": 24,
+    "controlSpecifications": 24,
+    "mutationSpecifications": 32,
+    "candidateControlsExecuted": 0
+  },
+  "preCaptureDefects": [
+    {
+      "defect": "Control count preflight found23 while declared24",
+      "resolution": "Added missing explicit installed legacy transcript R04 before initial capture; no native evidence existed yet"
+    },
+    {
+      "defect": "Original bare-parenthesis bracket case reaches grammar error",
+      "resolution": "Preserved original receipt and inputs; separately froze quoted correction with disclosure"
+    }
+  ],
+  "originalIntegrity": "Original Git-pinned files verified unchanged; original95/104 GNU not executed against product",
+  "notes": [
+    "Synthetic comparator reports existed only in removed scratch, are not candidate observations and do not authenticate candidate execution.",
+    "No build, source test, installed-package execution or declaration validation was performed in this preparation leaf."
+  ]
+}

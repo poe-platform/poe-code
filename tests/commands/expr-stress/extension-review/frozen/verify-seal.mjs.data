@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { lstatSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+const base = join(process.cwd(), 'tests/commands/expr-stress/extension-review/frozen');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const manifest = JSON.parse(readFileSync(join(base, 'freeze-manifest.json'), 'utf8'));
+function inventory(directory, prefix = '') {
+  return readdirSync(directory).flatMap(name => {
+    const file = join(directory, name);
+    const relative = prefix ? `${prefix}/${name}` : name;
+    const stat = lstatSync(file);
+    assert(!stat.isSymbolicLink(), `symlink not allowed: ${relative}`);
+    return stat.isDirectory() ? inventory(file, relative) : [relative];
+  });
+}
+assert.deepEqual(inventory(base).filter(file => file !== 'freeze-manifest.json').sort(), manifest.files.map(entry => entry.path).sort());
+for (const entry of manifest.files) assert.equal(hash(readFileSync(join(base, entry.path))), entry.sha256, entry.path);
+console.log(JSON.stringify({ verified: true, manifestSha256: hash(readFileSync(join(base, 'freeze-manifest.json'))), files: manifest.files.length, addedFileDetection: true, scope: 'Only extension-review/frozen, excluding externally pinned seal itself', counts: manifest.counts, candidateExecuted: false }, null, 2));

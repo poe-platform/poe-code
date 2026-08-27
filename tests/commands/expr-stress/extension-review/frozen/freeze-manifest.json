@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-27T17:13:38.971Z",
+  "sourceBaseline": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "originalFreezeCommit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+  "initialNativeManifestSha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198",
+  "files": [
+    {
+      "path": "ADDENDUM.md",
+      "sha256": "8125965baffbfb4fc23746cf0b81515b73f4cbf7b0f2a3297008cb6fe77f2e6b"
+    },
+    {
+      "path": "README.md",
+      "sha256": "6f29774d0dfaa6c75dfcc7154a8eb6db4b9a208e4b6540b6b7469e37cd7b7711"
+    },
+    {
+      "path": "controls.json",
+      "sha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c"
+    },
+    {
+      "path": "correction-input.json",
+      "sha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5"
+    },
+    {
+      "path": "correction-native.mjs.data",
+      "sha256": "472b7dcd18b1d7eaa8c480751a910db44112d4267eaf848f85d4c8fb29ff61f3"
+    },
+    {
+      "path": "evidence/native-20260827/manifest.json",
+      "sha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198"
+    },
+    {
+      "path": "evidence/native-20260827/oracle.json",
+      "sha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08"
+    },
+    {
+      "path": "evidence/quoted-parenthesis-20260827/oracle.json",
+      "sha256": "4366b45060a74a59b4c3772227062ee4ae4efec8ce9953a814463bb468386e4e"
+    },
+    {
+      "path": "evidence/validation-20260827.json",
+      "sha256": "7997dc52a5a7326c021a5c979f80be98a62f86badf83fe5687af5852050b05dd"
+    },
+    {
+      "path": "inputs.json",
+      "sha256": "4a02ebb53184ed13aa7627b322c7f87ea00389601f6acc5bc81feb234d520108"
+    },
+    {
+      "path": "mutations.json",
+      "sha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c"
+    },
+    {
+      "path": "primary-sources.json",
+      "sha256": "6aa5dce418af4c1887e2c8d648cfa541b6765dbcffc6630d13172b392da83103"
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "79af9a119dcc71054d09a4a1ff17bce563633899d31ef1bd0b9153eae9148b87"
+    },
+    {
+      "path": "runner.mjs.data",
+      "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11"
+    },
+    {
+      "path": "verify-seal.mjs.data",
+      "sha256": "87703aaaa07e99cd6c3248dd6ba5dda948894d87e17de4e54fd5b02e96d24de9"
+    }
+  ],
+  "counts": {
+    "initialInputs": 20,
+    "quotedCorrectionInputs": 1,
+    "totalNewInputs": 21,
+    "gnuNativeObservations": 24,
+    "appleNativeObservations": 24,
+    "controlSpecifications": 24,
+    "mutationSpecifications": 32,
+    "originalInputsSeparate": 95,
+    "originalGnuObservationsSeparate": 104,
+    "candidateControlsExecuted": 0
+  },
+  "scope": "Immutable preparation evidence only. Native initial20 and quoted correction1 remain distinct. No candidate accepted.",
+  "verification": "verify-seal enumerates added files/symlinks in owned freeze subtree; seal hash externally pinned in handoff. Other source/test trees are not append-proof certified."
+}

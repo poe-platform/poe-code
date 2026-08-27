@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-27T17:08:20.306Z",
+  "sourceBaseline": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "baselineSrcTreeGitId": "d29d1fa08c683bc800c750cfe587b1ca7014fc6f",
+  "originalCommit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+  "originalFiles": [
+    {
+      "path": "tests/commands/expr-stress/frozen/README.md",
+      "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/controls.json",
+      "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+      "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+      "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+      "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/inputs.json",
+      "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+      "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+    },
+    {
+      "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+      "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+    }
+  ],
+  "baselineFiles": [
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "role": "immutable shared source/public contract context"
+    },
+    {
+      "path": "tests/commands/regex-execution/executor.test.ts",
+      "sha256": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/commands.test.ts",
+      "sha256": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "sha256": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "sha256": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "sha256": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/public.test.ts",
+      "sha256": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/grep-aliases/aliases.test.ts",
+      "sha256": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/grep-aliases/safety.test.ts",
+      "sha256": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/search/rg.test.ts",
+      "sha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    },
+    {
+      "path": "tests/commands/search/safety.test.ts",
+      "sha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "role": "regression inventory pin; not claimed executed or fully audited"
+    }
+  ],
+  "designBinding": {
+    "path": "/tmp/expr-extension-design.md",
+    "sha256": "1098bde0a6b906d0734e8a3d297abc8b3d4aadd66fb5e37c00c9cba9d8181bde",
+    "use": "approved transport API binding only; no author expected answers or candidate source used"
+  },
+  "ownership": {
+    "owner": "actual delegated INDEPENDENT EXTENSION REVIEW PREPARATION LEAF",
+    "writeScope": "tests/commands/expr-stress/extension-review/frozen/**",
+    "delegation": false,
+    "productEdits": false,
+    "originalFreezeEdits": false
+  },
+  "statusAtPreparation": " M src/commands/expr/index.ts\n M src/commands/expr/internal.ts\n M src/commands/regex-execution/client.ts\n M src/commands/regex-execution/protocol.ts\n M src/commands/regex-execution/worker.ts\n M tests/commands/expr/contracts.test.ts\n?? benchmarks/reports/tree-charset-20260827/\n?? src/commands/expr/bre-worker.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/\n?? tests/commands/expr-stress/extension-review/\n?? tests/commands/expr-stress/nonregex-review/\n?? tests/commands/expr/regex-cases.ts\n?? tests/commands/expr/regex-limits.test.ts\n?? tests/commands/expr/regex-native.test.ts\n?? tests/commands/expr/regex-protocol.test.ts\n?? tests/commands/expr/tsconfig.json\n?? tests/commands/grep-aliases-stress/settlement-v2-independent/REPORT.md\n?? tests/commands/grep-aliases-stress/settlement-v2-independent/inspect-results.mjs\n?? tests/commands/grep-aliases-stress/settlement-v2-independent/verify-capture.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/aliases-column-public-independent-20260827/\n",
+  "candidate": null,
+  "candidateExecution": false,
+  "nonclaims": [
+    "Pins authenticate immutable content, not an append-proof tree.",
+    "Inventory hashes do not prove every test was read, executed or typechecked.",
+    "No claim of 72 hours or product completion."
+  ]
+}

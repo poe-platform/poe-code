@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "selection": "20 literal argv inputs, no original95 duplicates; three encoding inputs additionally run in UTF-8. Expected bytes come only from pinned native receipts, never the candidate or JavaScript regex.",
+  "cases": [
+    {"id":"alternative-anchored-positive","group":"anchor","argv":["zz",":","q\\|zz"],"purpose":"Positive second alternative at offset zero; rejects blanket refusal."},
+    {"id":"alternative-anchored-negative","group":"anchor","argv":["xzz",":","q\\|zz"],"purpose":"Every alternative anchored, not just first branch."},
+    {"id":"unescaped-parentheses-literal","group":"capture-syntax","argv":["(ab)",":","(ab)"],"purpose":"Literal parentheses do not make hasCapture true."},
+    {"id":"escaped-backslash-before-parenthesis","group":"capture-syntax","argv":["\\(ab)",":","\\\\(ab)"],"purpose":"Even backslash parity before literal parenthesis; substring detection is insufficient."},
+    {"id":"class-parenthesis-not-capture","group":"capture-syntax","argv":["(",":","[(]"],"purpose":"Bracket member is not a group opener."},
+    {"id":"escaped-dot-positive","group":"escaping","argv":["a.b",":","a\\.b"],"purpose":"BRE escaped literal survives wire bytes."},
+    {"id":"escaped-dot-negative","group":"escaping","argv":["axb",":","a\\.b"],"purpose":"Lost escape must not become wildcard."},
+    {"id":"optional-first-unmatched","group":"capture-state","argv":["z",":","\\(a\\)\\?z"],"purpose":"Syntactic first group exists although it does not participate."},
+    {"id":"optional-without-capture","group":"capture-state","argv":["z",":","a\\?z"],"purpose":"Same overall match, but capture absent; must return length."},
+    {"id":"first-empty-before-tail","group":"capture-state","argv":["z",":","\\(a*\\)z"],"purpose":"Participating empty span differs from unmatched/null capture."},
+    {"id":"optional-first-no-match","group":"capture-state","argv":["q",":","\\(a\\)\\?z"],"purpose":"No overall match still carries syntactic capture presence."},
+    {"id":"repeated-first-last-iteration","group":"capture-state","argv":["abac",":","\\(a.\\)*"],"purpose":"Repeated first capture is not whole overall span or first iteration."},
+    {"id":"nested-first-outer","group":"capture-state","argv":["abc",":","\\(a\\(b\\)c\\)"],"purpose":"First syntactic opener is outer group, not first closer."},
+    {"id":"backreference-negative","group":"backreference","argv":["abac",":","\\(ab\\)\\1$"],"purpose":"A parsed backreference must compare subject bytes, not become literal/dot."},
+    {"id":"backreference-twice","group":"backreference","argv":["ababab",":","\\(ab\\)\\1\\1$"],"purpose":"Repeated backreference consumption with first capture preserved."},
+    {"id":"longest-with-optional-suffix","group":"longest","argv":["aaa",":","\\(a\\|aa\\)a\\?"],"purpose":"Whole-match longest selection before capture result."},
+    {"id":"longest-no-capture","group":"longest","argv":["aaaa",":","a\\|aaaa"],"purpose":"No-capture longest length, not JavaScript alternative order."},
+    {"id":"utf8-whole-prefix-span","group":"encoding","argv":["Aé😀Z",":","A.."],"purpose":"C bytes versus UTF-8 scalar length; whole span not UTF-16 units."},
+    {"id":"utf8-shifted-first-span","group":"encoding","argv":["Aé😀Z",":","Aé\\(.\\)"],"purpose":"Nonzero first-capture byte start after multibyte prefix."},
+    {"id":"combining-first-span","group":"encoding","argv":["éZ",":","\\(e.\\)"],"purpose":"Scalar sequence not grapheme; C may split UTF-8."}
+  ]
+}

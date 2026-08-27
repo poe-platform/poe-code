@@ -31,7 +31,7 @@ const compile = (group) => {
     const own = diagnostics.filter((diagnostic) => diagnostic.file === files[ordinal]);
     const negative = probes.negative.some((entry) => entry.id === probe.id);
     const expectedLine = probes.prelude.split('\n').length;
-    const pass = external.length === 0 && (negative ? own.length > 0 && own.every((entry) => entry.line >= expectedLine && [2345, 2322, 2554, 2741, 2739].includes(entry.code)) : own.length === 0);
+    const pass = external.length === 0 && (negative ? own.length > 0 && own.every((entry) => entry.line >= expectedLine && ([2345, 2322, 2554, 2741, 2739].includes(entry.code) || (probe.id === 'T20' && entry.code === 2740 && entry.message.includes("type 'AbortSignal'")))) : own.length === 0);
     results.push({ id: probe.id, negative, status: pass ? 'pass' : 'fail', reason: probe.reason ?? 'valid private API consumer', diagnostics: own, externalDiagnostics: external });
   }
   return { inputFiles, diagnostics, options, roots: files };

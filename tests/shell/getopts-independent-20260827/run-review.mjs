@@ -161,7 +161,8 @@ for (const mutation of mutations) {
   if (load.status !== 0) { mutationResults.push({ id: mutation.id, status: 'invalid-load', loadStatus: load.status }); continue; }
   const run = await runHarness(mutation.id, module, 'mutation', mutation.controls);
   const failures = run.result?.results.filter((result) => result.status === 'fail') ?? [];
-  const meaningful = failures.filter((result) => result.error?.name === 'AssertionError' || result.error?.message?.startsWith('watchdog:'));
+  const baselinePasses = new Set(sourceRun.result?.results.filter((result) => result.status === 'pass').map((result) => result.id));
+  const meaningful = failures.filter((result) => baselinePasses.has(result.id) && (result.error?.name === 'AssertionError' || result.error?.message?.startsWith('watchdog:')));
   mutationResults.push({ id: mutation.id, status: meaningful.length ? 'killed' : run.result ? 'survived' : 'infrastructure-failure', controls: mutation.controls,
     originalSha256: sha256(sourceBlob), mutantSha256: sha256(Buffer.from(text)), loadPassed: true, counts: run.result?.counts ?? null, meaningfulFailures: meaningful.map((entry) => ({ id: entry.id, error: entry.error })) });
   console.log('mutation', mutation.id, mutationResults.at(-1).status);

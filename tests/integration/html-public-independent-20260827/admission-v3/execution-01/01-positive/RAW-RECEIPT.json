@@ -1,0 +1,255 @@
+{
+  "control": "positive",
+  "started": "2026-08-27T23:42:04.673Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/worker.mjs",
+    "positive",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive/tmp",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "freeze": "eb56ed1eff6e7061aa219fb4877bc2382cf15a27",
+  "manifestSha256": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+  "signalsSent": [],
+  "messages": [
+    {
+      "type": "ready",
+      "producer": {
+        "pid": 20049,
+        "ppid": 20048,
+        "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "execArgv": [
+          "--max-old-space-size=96",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/producer-observer.mjs"
+        ],
+        "memory": {
+          "baseline": {
+            "rss": 45105152,
+            "heapTotal": 5652480,
+            "heapUsed": 4851032,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "fieldwisePeaks": {
+            "rss": 45105152,
+            "heapTotal": 5652480,
+            "heapUsed": 4851032,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "latest": {
+            "rss": 45105152,
+            "heapTotal": 5652480,
+            "heapUsed": 4851032,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "samples": 0,
+          "fieldsUnit": "bytes",
+          "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+        }
+      }
+    },
+    {
+      "type": "receipt",
+      "control": "positive",
+      "failed": false,
+      "code": null
+    }
+  ],
+  "unexpected": [],
+  "deadlineMs": 45000,
+  "naturalConsumerClose": true,
+  "ready": true,
+  "receiptForwarded": true,
+  "timeoutTriggered": false,
+  "resourceBoundary": null,
+  "producerPid": 20049,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "pid": 20048,
+  "forwardedFailureCode": null,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "finished": "2026-08-27T23:42:06.233Z",
+  "membersAtClose": [],
+  "remainingGroupMembers": [],
+  "consumerState": {
+    "pid": 20048,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "producerState": {
+    "pid": 20049,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "consumer": {
+    "value": {
+      "control": "positive",
+      "pid": 20048,
+      "ppid": 20018,
+      "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "execArgv": [
+        "--max-old-space-size=96"
+      ],
+      "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+      "assertionState": "not evaluated; persisted before coordinator assertions",
+      "proposedExitCode": 0,
+      "failure": null,
+      "result": {
+        "bytes": 1073872896,
+        "chunks": 16386,
+        "maxChunkBytes": 65536,
+        "maxProducerChunkBytes": 65536,
+        "maxRssBytes": 117309440,
+        "maxPendingConsumers": 1,
+        "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+        "process": {
+          "status": 0,
+          "signal": null,
+          "stderr": "{\"emitted\":1073872896,\"drains\":16203}\n",
+          "timedOut": false,
+          "stderrOverflow": false
+        }
+      },
+      "memory": {
+        "baseline": {
+          "rss": 46071808,
+          "heapTotal": 5914624,
+          "heapUsed": 5108808,
+          "external": 2096033,
+          "arrayBuffers": 21724
+        },
+        "fieldwisePeaks": {
+          "rss": 117342208,
+          "heapTotal": 10108928,
+          "heapUsed": 6598240,
+          "external": 35967119,
+          "arrayBuffers": 33767835
+        },
+        "latest": {
+          "rss": 117342208,
+          "heapTotal": 10108928,
+          "heapUsed": 5855216,
+          "external": 20041909,
+          "arrayBuffers": 17908161
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "chunks": 16386,
+        "bytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "observedSha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "retainedAllocations": 0,
+      "thresholdBytes": 268435456,
+      "operator": "<",
+      "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    "error": null
+  },
+  "producer": {
+    "value": {
+      "pid": 20049,
+      "ppid": 20048,
+      "status": 0,
+      "signal": null,
+      "memory": {
+        "baseline": {
+          "rss": 45105152,
+          "heapTotal": 5652480,
+          "heapUsed": 4851032,
+          "external": 1962447,
+          "arrayBuffers": 16655
+        },
+        "fieldwisePeaks": {
+          "rss": 56836096,
+          "heapTotal": 7487488,
+          "heapUsed": 5574096,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "latest": {
+          "rss": 56836096,
+          "heapTotal": 7487488,
+          "heapUsed": 5100264,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "writes": 16386,
+        "acceptedBytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "falseWrites": 16203,
+        "drains": 16203,
+        "pendingDrains": 0,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 0
+      },
+      "scope": "producer only; accepted writes are not a claim of delivered bytes"
+    },
+    "error": null
+  },
+  "operationSucceeded": true,
+  "supervisorMemoryExcluded": {
+    "baseline": {
+      "rss": 54542336,
+      "heapTotal": 7487488,
+      "heapUsed": 5701176,
+      "external": 3348599,
+      "arrayBuffers": 1201825
+    },
+    "fieldwisePeaks": {
+      "rss": 56000512,
+      "heapTotal": 8437760,
+      "heapUsed": 6669584,
+      "external": 3374963,
+      "arrayBuffers": 1202825
+    },
+    "latest": {
+      "rss": 56000512,
+      "heapTotal": 8437760,
+      "heapUsed": 6669584,
+      "external": 2450197,
+      "arrayBuffers": 278059
+    },
+    "samples": 3,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "assertionState": "not evaluated; all available numeric and process outcomes durable first",
+  "outputHashes": {
+    "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

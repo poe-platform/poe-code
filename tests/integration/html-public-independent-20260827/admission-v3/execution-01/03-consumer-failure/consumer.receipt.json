@@ -1,0 +1,71 @@
+{
+  "control": "consumer-failure",
+  "pid": 20087,
+  "ppid": 20018,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+  "assertionState": "not evaluated; persisted before coordinator assertions",
+  "proposedExitCode": 17,
+  "failure": {
+    "name": "Error",
+    "code": "V3_CONSUMER_FAILURE",
+    "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+    "stack": "Error: CONTROL_BOUNDARY:V3_CONSUMER_FAILURE\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/worker.mjs:20:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/worker.mjs:50:73)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/core.mjs:169:13)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/worker.mjs:31:12",
+    "process": {
+      "status": 1,
+      "signal": null,
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v22.22.2\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "result": null,
+  "memory": {
+    "baseline": {
+      "rss": 46284800,
+      "heapTotal": 5914624,
+      "heapUsed": 5108896,
+      "external": 2096033,
+      "arrayBuffers": 21724
+    },
+    "fieldwisePeaks": {
+      "rss": 50200576,
+      "heapTotal": 6963200,
+      "heapUsed": 5384632,
+      "external": 3199409,
+      "arrayBuffers": 1065661
+    },
+    "latest": {
+      "rss": 50200576,
+      "heapTotal": 6963200,
+      "heapUsed": 5262176,
+      "external": 3199409,
+      "arrayBuffers": 1065661
+    },
+    "samples": 3,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "chunks": 16,
+    "bytes": 1048576,
+    "maxChunkBytes": 65536,
+    "pending": 0,
+    "maxPending": 1,
+    "pendingBytes": 0,
+    "maxPendingBytes": 65536
+  },
+  "observedSha256": "9bc1b2a288b26af7257a36277ae3816a7d4f16e89c1e7e77d0a5c48bad62b360",
+  "mutation": {
+    "steps": 0,
+    "retainedBytes": 0,
+    "touchedByte": null
+  },
+  "retainedAllocations": 0,
+  "thresholdBytes": 268435456,
+  "operator": "<",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+}

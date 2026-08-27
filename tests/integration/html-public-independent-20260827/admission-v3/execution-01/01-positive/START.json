@@ -1,0 +1,34 @@
+{
+  "control": "positive",
+  "started": "2026-08-27T23:42:04.673Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/worker.mjs",
+    "positive",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive/tmp",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/execution-01/01-positive/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "freeze": "eb56ed1eff6e7061aa219fb4877bc2382cf15a27",
+  "manifestSha256": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+  "signalsSent": [],
+  "messages": [],
+  "unexpected": [],
+  "deadlineMs": 45000,
+  "naturalConsumerClose": false,
+  "ready": false,
+  "receiptForwarded": false,
+  "timeoutTriggered": false,
+  "resourceBoundary": null,
+  "producerPid": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 0
+}

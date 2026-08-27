@@ -1,0 +1,36 @@
+{
+  "pid": 20068,
+  "ppid": 20067,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/producer-observer.mjs"
+  ],
+  "memory": {
+    "baseline": {
+      "rss": 45531136,
+      "heapTotal": 5652480,
+      "heapUsed": 4851032,
+      "external": 1962447,
+      "arrayBuffers": 16655
+    },
+    "fieldwisePeaks": {
+      "rss": 45531136,
+      "heapTotal": 5652480,
+      "heapUsed": 4851032,
+      "external": 1962447,
+      "arrayBuffers": 16655
+    },
+    "latest": {
+      "rss": 45531136,
+      "heapTotal": 5652480,
+      "heapUsed": 4851032,
+      "external": 1962447,
+      "arrayBuffers": 16655
+    },
+    "samples": 0,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  }
+}

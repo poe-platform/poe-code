@@ -20,7 +20,7 @@ await withService(process.argv[2], async ({ output, endpoint, credentials, bucke
     trace.push(entry);
     return nativeRequest(options, response => { entry.status = response.statusCode; entry.responseHeaders = response.headers; callback(response); });
   };
-  const options = { endpoint, region: "us-east-1", credentials, request, allowInsecureHttp: true,
+  const options = { endpoint, region: "us-east-1", credentials, request, allowInsecureHttp: true, listUrlEncoding: "form",
     verifiedConditionalOperations: { put: true, copy: false, delete: false } };
   const transport = createS3HttpTransport(options);
   const fallback = createS3HttpTransport({ ...options, enableCopy: false });

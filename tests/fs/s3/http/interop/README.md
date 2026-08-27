@@ -21,6 +21,7 @@ node tests/fs/s3/http/interop/prepare.mjs
 # Use the exact temporary binary path printed by prepare:
 node tests/fs/s3/http/interop/guards.mjs /tmp/safe-bash-minio-download-XXXXXX/minio
 node tests/fs/s3/http/interop/run.mjs /tmp/safe-bash-minio-download-XXXXXX/minio
+node tests/fs/s3/http/interop/run.mjs /tmp/safe-bash-minio-download-XXXXXX/minio fallback
 ```
 
 `prepare.mjs` verifies the official checksum against the checked-in digest and
@@ -40,6 +41,22 @@ export wiring. Existing Shell/VFS APIs use public `virtual-bash` exports. Every
 run records source/test hashes, build output, raw transport requests and results.
 No whole-repository suite is run. `.mjs` checks are explicitly invoked, not silent
 skips in the normal `.test.ts` suite.
+
+The optional `fallback` cohort adds actual service positive/negative checks for
+bounded GET/conditional-PUT copies: stale/missing source and destination
+predicates, competing writes after destination observation, abort after source
+headers, byte limits, metadata replacement/self-copy and unverified-PUT refusal.
+Race injection uses the documented async credential-provider seam before the
+next signed request; native response callbacks are forwarded immediately.
+The raw competing writes are independently signed and recorded. These tests
+distinguish deliberate competitor effects from forbidden fallback publication.
+
+The MinIO transport fixture explicitly selects `listUrlEncoding: "form"` based
+on the recorded `EncodingType=url` response `space+%2B%25`. No original flow
+assertion changes with this profile selection. The transport default remains
+percent decoding for other providers; no provider-name or endpoint inference is
+used. The runner now records whether HTTP sources match their pinned commit and
+whether the live HTTP source hashes stay unchanged during isolated validation.
 
 ## Measured provider profile
 
@@ -61,11 +78,32 @@ The guard suite is **13/17**, exits1 and retains all four unsafe-provider failur
 Positive acceptance alone is never proof of a guard. No HEAD/unconditional
 mutation workaround or fabricated atomic rename capability is permitted.
 
-The expanded transport/workflow cohort is **15/18** at the recorded source
+The historical expanded transport/workflow cohort is **15/18** at the recorded source
 snapshot: LIST misdecodes a space as `+`, and ordinary same-view Shell copies to
 existing/missing targets fail with native COPY disabled. Those remain required
 positive reds, not capability skips. See `evidence/checkpoint/REPORT.md` for exact
 source hashes, intermediate harness corrections and remaining owner actions.
+
+The unchanged eighteen assertions now pass **18/18** on committed HTTP source
+`42bffab57cbaccbf08648527fc88d85e21a2ee4a`, with only the explicit form-decoding
+configuration delta. Both same-view Shell copies succeed. The additional actual
+bounded-copy cohort passes **14/14**, including stale predicates, concurrent
+source/destination changes, cancellation and no-publication controls. See
+`evidence/final-acceptance/REPORT.md` for raw intermediate/final observations and
+source/fixture hashes. The old checkpoint is unchanged.
+
+Native provider `verifiedConditionalOperations.copy` remains false. With native
+COPY disabled, the effective bounded `copyObject` method now truthfully advertises
+`conditionalCopy: true` based on verified PUT and guarded snapshot acquisition.
+The native-COPY-enabled control still advertises false. Source predicates protect
+snapshot acquisition, not later destination publication; this is neither an
+atomic copy nor a snapshot/ABA guarantee. Conditional DELETE remains false.
+
+These runs use the isolated direct HTTP module. They do not establish the newly
+requested typed public-package factory consumer: its author fixture and real
+export-map wiring were not yet available at this checkpoint. That separate
+actual-service usability acceptance remains required, without changing exports
+in this harness or pretending an undefined comparison resolver is usable.
 
 ## Authority and limits
 

@@ -1,0 +1,70 @@
+{
+  "binary": "/tmp/safe-bash-minio-download-vbA02J/minio",
+  "binaryRemoved": true,
+  "services": [
+    {
+      "cohort": "intermediate-17-of-18",
+      "pid": 7965,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:39:40.510Z"
+    },
+    {
+      "cohort": "initial-fallback-10-of-14",
+      "pid": 13710,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:42:39.980Z"
+    },
+    {
+      "cohort": "corrected-fallback-14-of-14",
+      "pid": 14942,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:44:03.021Z"
+    },
+    {
+      "cohort": "repeated-native-guards-13-of-17",
+      "pid": 18411,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:45:25.605Z"
+    },
+    {
+      "cohort": "committed-17-of-18",
+      "pid": 27262,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:49:29.732Z"
+    },
+    {
+      "cohort": "final-18-of-18",
+      "pid": 32469,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:52:59.285Z"
+    },
+    {
+      "cohort": "final-fallback-14-of-14",
+      "pid": 32637,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:53:01.817Z"
+    }
+  ],
+  "time": "2026-08-27T03:55:27.931Z"
+}

@@ -1,0 +1,31 @@
+Split capture repair leaf author, 2026-08-27.
+Ownership confirmed from current assignment: only native.test.ts, native-errors.test.ts,
+new tests/commands/split/native-capture.ts and native-capture.test.ts, and NEW
+tests/commands/split-stress/native-capture-repair/author-20260827 evidence.
+All four proposed new paths checked absent. Existing unrelated working/index changes untouched.
+Read applicable ../AGENTS.md and AGENTS.md, current test/helper/split implementation,
+and reference 5f7fe5d72f031db6cbacc76d9bfefcba2f58d03e; no nested scoped rules found.
+Proposed bounded scope: replace every committed-evidence write in the two owned
+native test files with a shared explicit VIRTUAL_BASH_SPLIT_CAPTURE=1 helper.
+Each report gets a fresh OS-temp directory; no output destination argument;
+reject repository temp roots, symlink redirects, changed directory identity,
+existing output files, and path-valued/invalid environment switches.
+Move their native scratch work to guarded OS temp on success AND failure.
+Keep original fixture vectors, pinned oracle identities, catches/skips and semantic
+assertions unchanged. Preserve failed scratch and report its path; default mismatch
+reports remain visible in TAP rather than rewriting any historical evidence.
+Focused regression exercises actual canonical tests, explicit captures, guards,
+and isolated harness-only failure injection; no product mutations or broad gate.
+Candidate source-equivalent TEST/HARNESS commit precedes separate new evidence commit.
+Original Frozen8670 mutated archive is not opened, rewritten, or qualified here.
+Implementation ready for final scoped validation. Default failures emit lossless
+base64 JSON diagnostics (avoids TAP backslash escaping), explicit capture emits
+unique retained JSON paths. Scratch-retention after hooks cover abrupt failures.
+Initial tsc attempt exposed ProcessEnv inference in new regression; corrected.
+Initial regression: 5 pass / 4 fail from counting the tsx cache as harness scratch.
+Installed tsx implementation confirms TSX_DISABLE_CACHE; disabled in regression
+children only (no assertion relaxation). Next regression: 9 pass / 0 fail / 0 skip.
+Original canonical pair: 4 pass / 0 fail / 0 skip. Final rerun follows base64 fix.
+Known OUT OF SCOPE writers observed, not edited or run: split/edge.test.ts,
+split/stress.test.ts and split/dangling-native.test.ts. Other split integration
+tests also create repository scratch. This scoped repair does not certify a full gate.

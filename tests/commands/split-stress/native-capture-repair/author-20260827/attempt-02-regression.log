@@ -1,0 +1,131 @@
+{"command":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-reporter=tap","tests/commands/split/native-capture.test.ts"],"status":1,"signal":null,"error":null}
+TAP version 13
+# Subtest: native capture is off by default, including serialization and filesystem effects
+ok 1 - native capture is off by default, including serialization and filesystem effects
+  ---
+  duration_ms: 31.2615
+  type: 'test'
+  ...
+# Subtest: explicit native capture returns distinct retained paths and exact report bytes
+ok 2 - explicit native capture returns distinct retained paths and exact report bytes
+  ---
+  duration_ms: 3.133958
+  type: 'test'
+  ...
+# Subtest: native capture rejects path-valued switches and invalid report names
+ok 3 - native capture rejects path-valued switches and invalid report names
+  ---
+  duration_ms: 18.67875
+  type: 'test'
+  ...
+# Subtest: native scratch and capture reject repository temp roots, including symlink aliases
+ok 4 - native scratch and capture reject repository temp roots, including symlink aliases
+  ---
+  duration_ms: 19.186166
+  type: 'test'
+  ...
+# Subtest: native capture refuses overwrites, output symlinks, and replaced destination directories
+ok 5 - native capture refuses overwrites, output symlinks, and replaced destination directories
+  ---
+  duration_ms: 8.861625
+  type: 'test'
+  ...
+# Subtest: actual native harness success, capture off, preserves repository evidence
+not ok 6 - actual native harness success, capture off, preserves repository evidence
+  ---
+  duration_ms: 1378.027791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:1:5866'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:195:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual native harness success, capture on, preserves repository evidence
+not ok 7 - actual native harness success, capture on, preserves repository evidence
+  ---
+  duration_ms: 1528.228666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:1:5866'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:195:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual native harness injected mismatch, capture off, preserves repository evidence
+not ok 8 - actual native harness injected mismatch, capture off, preserves repository evidence
+  ---
+  duration_ms: 1401.102166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:1:5866'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:195:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+# Subtest: actual native harness injected mismatch, capture on, preserves repository evidence
+not ok 9 - actual native harness injected mismatch, capture on, preserves repository evidence
+  ---
+  duration_ms: 1423.63125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:1:5866'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    8 !== 7
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 7
+  actual: 8
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/native-capture.test.ts:195:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+1..9
+# tests 9
+# suites 0
+# pass 5
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5939.592541

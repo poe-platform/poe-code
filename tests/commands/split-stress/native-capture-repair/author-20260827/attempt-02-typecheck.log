@@ -1,0 +1,1 @@
+{"command":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","node_modules/typescript/bin/tsc","-p","tests/commands/split/tsconfig.json","--noEmit"],"status":0,"signal":null,"error":null}

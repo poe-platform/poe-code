@@ -1,0 +1,6 @@
+Command: node_modules/.bin/tsc -p tests/commands/split/tsconfig.json --noEmit
+Exit: 2
+Verbatim diagnostics transcribed from the initial terminal result, not retained process stdout:
+tests/commands/split/native-capture.test.ts(164,18): error TS2339: Property 'NODE_TEST_CONTEXT' does not exist on type '{ TMPDIR: string; TMP: string; TEMP: string; }'.
+tests/commands/split/native-capture.test.ts(165,18): error TS2339: Property 'VIRTUAL_BASH_SPLIT_CAPTURE' does not exist on type '{ TMPDIR: string; TMP: string; TEMP: string; }'.
+tests/commands/split/native-capture.test.ts(166,24): error TS2339: Property 'VIRTUAL_BASH_SPLIT_CAPTURE' does not exist on type '{ TMPDIR: string; TMP: string; TEMP: string; }'.

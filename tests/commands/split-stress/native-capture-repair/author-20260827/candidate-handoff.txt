@@ -1,0 +1,54 @@
+SPLIT TEST/HARNESS CANDIDATE READY FOR DIFFERENT VERIFIER
+commit: 46abd8792bee106b0a339a3e37f238604a2405ba
+Candidate changes exactly four owned TEST/HARNESS paths; no product/root/package edits:
+  tests/commands/split/native.test.ts
+  tests/commands/split/native-errors.test.ts
+  tests/commands/split/native-capture.ts
+  tests/commands/split/native-capture.test.ts
+
+Test-only helper API:
+  createNativeScratch(context: Pick<TestContext, "after" | "diagnostic">): Promise<string>
+  createNativeCapture(name): Promise<{directory, path, write(report): Promise<string>}>
+  captureNativeReport(context, name, report, failed=false): Promise<string | undefined>
+Names: gnu9.7-darwin, apple-bsd, gnu-errors, native-profile-differences.
+Env switch: VIRTUAL_BASH_SPLIT_CAPTURE=1 explicitly retains one JSON report per fresh
+OS-temp directory. Undefined means no report writes; all other values reject.
+No destination path argument or env output path; createNativeCapture is an explicitly
+invoked internal test-helper factory, not a public product contract.
+TAP diagnostic: # split native capture: <unique absolute JSON path>
+Default failure diagnostic: # split native failure <name> (base64): <JSON encoded base64>
+Failure scratch diagnostic: # split native scratch retained: <unique absolute directory>
+Successful native scratch is removed by original cleanup; failed scratch is retained.
+Repo-temp roots (including symlink aliases), invalid report names, existing output
+files/symlinks, and changed/symlink destination directories reject without overwrite.
+Guards do not promise security against hostile concurrent host-JS namespace races.
+
+Native prerequisites unchanged:
+GNU tool tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split
+  GNU coreutils 9.7, Darwin; sha256 cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958
+Apple tool /usr/bin/split
+  sha256 7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91
+Runtime checked: Node v22.22.2; use installed tsx/typescript, no new dependencies.
+Missing binaries retain original skips; a present changed binary fails qualification.
+
+Runner commands from /Users/kjopek/Workspace/safe-bash:
+  env -u VIRTUAL_BASH_SPLIT_CAPTURE node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/commands/split/native.test.ts tests/commands/split/native-errors.test.ts
+  VIRTUAL_BASH_SPLIT_CAPTURE=1 node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/commands/split/native.test.ts tests/commands/split/native-errors.test.ts
+  env -u VIRTUAL_BASH_SPLIT_CAPTURE node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/commands/split/native-capture.test.ts
+  node_modules/.bin/tsc -p tests/commands/split/tsconfig.json --noEmit
+Author final results: canonical 4 pass/0 fail/0 skip; capture same 4 pass/0 fail/0 skip;
+regression 9 pass/0 fail/0 skip; scoped TypeScript pass. Regression reruns are not new
+native corpus coverage; harness-only fault injections assert 3 failures/1 pass in
+copied test files (expected/fixture/oracle/product code unchanged).
+All 5 original tracked latest JSON hashes and all other tracked split evidence hashes
+unchanged. All 4 explicit captures byte-identical to their original historical reports.
+Final raw logs/capture path list: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-author-final-hxUVQx
+Baseline hashes: /tmp/safe-bash-split-capture-repair-before.json
+
+ROOT: launch DIFFERENT verifier now for concurrent canonical+capture execution and
+adversarial guards, using this candidate. No broad wholegate run authorized here.
+Separate NEW author evidence commit is being prepared; no original evidence changed.
+Frozen8670 wholegate17454pass12fail0skip remains UNQUALIFIED; original mutated archive
+untouched. OUT OF SCOPE writers remain in edge.test.ts, stress.test.ts and
+ dangling-native.test.ts; other split tests also create repo scratch. Do not claim
+all split/full-gate writer elimination, native/Linux parity, superiority or completion.

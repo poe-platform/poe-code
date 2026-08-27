@@ -75,6 +75,21 @@ periodically to observe cancellation.
 
 ## Supported patch subset
 
+- `-s`, `--quiet`, and `--silent` suppress routine file progress and per-hunk
+  status (including successful offset/fuzz details), following the pinned GNU
+  quiet controls. Failed-hunk counts, reject destinations, automatic-reversal
+  warnings, deletion conflicts, and error diagnostics remain visible. Quiet
+  does not change application, dry-run, reverse, atomic, safety or limit policy;
+  without a quiet flag, existing output is unchanged. Focused author controls
+  are in `tests/commands/diff-patch/patch-quiet.test.ts`. This is not closure of
+  the archived routed-five benchmark: native-only dry-run scratch directories
+  remain a separate benchmark-profile issue.
+  One explicit diagnostic difference remains: GNU quiet suppresses the
+  deletion-conflict warning while exiting 1; this implementation retains
+  `Not deleting file ... as content differs from patch` to preserve failure
+  diagnostics. Native status and file effects agree in the bounded control;
+  its quiet stdout is not an exact GNU match.
+
 - Unified, normal, and context patches are autodetected from stdin,
   `-i FILE` / `--input=FILE`, or `--input FILE`; `-i -` means stdin.
   Autodetection supports mixed-format sections in one input.

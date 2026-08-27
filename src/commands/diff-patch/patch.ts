@@ -7,10 +7,10 @@ import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-format
 import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type AuthorizedPatch, type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
 
-interface PatchFlags { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; force: boolean; backup: boolean; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
+interface PatchFlags { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
 
 function flags(args: readonly string[]): PatchFlags {
-  const result: PatchFlags = { input: "-", reverse: false, dryRun: false, atomic: false, force: false, backup: true, fuzz: 2, ignoreWhitespace: false, removeEmpty: false };
+  const result: PatchFlags = { input: "-", reverse: false, dryRun: false, atomic: false, quiet: false, force: false, backup: true, fuzz: 2, ignoreWhitespace: false, removeEmpty: false };
   const operands: string[] = [];
   const select = (format: PatchFormat) => {
     result.format = format;
@@ -27,6 +27,7 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--") literal = true;
     else if (arg === "--dry-run") result.dryRun = true;
     else if (arg === "--atomic") result.atomic = true;
+    else if (arg === "--quiet" || arg === "--silent") result.quiet = true;
     else if (arg === "--force") result.force = true;
     else if (arg === "--batch") continue;
     else if (arg === "--no-backup-if-mismatch") result.backup = false;
@@ -48,6 +49,7 @@ function flags(args: readonly string[]): PatchFlags {
     else for (let offset = 1; offset < arg.length; offset++) {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
+      else if (flag === "s") result.quiet = true;
       else if (flag === "f") result.force = true;
       else if (flag === "t") continue;
       else if (flag === "E") result.removeEmpty = true;
@@ -206,6 +208,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   let publishing = false;
   let activePath: string | undefined;
   const status = async (text: string) => {
+    if (!text) return;
     budget.output(text);
     if (options.atomic) messages.push(text);
     else await writeBytes(context.stdout, Buffer.from(text), context.signal);
@@ -259,10 +262,11 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
       ...(backupPath === undefined ? {} : { backupPath }),
       ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd) : [] };
-    let message = `${options.dryRun ? "checking" : "patching"} file ${name}\n`;
+    let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${name}\n`;
     if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
     for (const outcome of outcomes) {
       if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
+      if (options.quiet) continue;
       if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
       else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${Math.abs(outcome.offset) === 1 ? "line" : "lines"})` : ""}.\n`;
     }
@@ -306,7 +310,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
   }
   if (!options.dryRun) await pruneDirectories(parents, budget);
-  if (options.atomic) await writeBytes(context.stdout, Buffer.from(messages.join("")), context.signal);
+  if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, Buffer.from(messages.join("")), context.signal);
   if (progress?.error) throw progress.error;
   return exitCode;
 }

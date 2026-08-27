@@ -1,0 +1,74 @@
+TAP version 13
+# Subtest: native-data manifest records complete classification and six exact raw payload hashes
+ok 1 - native-data manifest records complete classification and six exact raw payload hashes
+  ---
+  duration_ms: 0.957625
+  type: 'test'
+  ...
+# Subtest: root compiler configuration contains only the approved raw-data and five captured-type exclusions
+ok 2 - root compiler configuration contains only the approved raw-data and five captured-type exclusions
+  ---
+  duration_ms: 0.134083
+  type: 'test'
+  ...
+# Subtest: approved captured-type classification retains explicit current-consumer typing routes
+ok 3 - approved captured-type classification retains explicit current-consumer typing routes
+  ---
+  duration_ms: 36.805958
+  type: 'test'
+  ...
+# Subtest: compiler-policy mutations cannot add exclusions or weaken current-source coverage
+not ok 4 - compiler-policy mutations cannot add exclusions or weaken current-source coverage
+  ---
+  duration_ms: 7.320833
+  type: 'test'
+  location: '/private/tmp/compiler-policy-independent-gXirBb/source/tests/plugins/qualified-current-release-native-data/controls.test.ts:1:4640'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception (AssertionError): unknown exclusion'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'AssertionError'
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/compiler-policy-independent-gXirBb/source/tests/plugins/qualified-current-release-native-data/controls.test.ts:97:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: five captured type files are data but current contracts and adjacent sources still compile
+ok 5 - five captured type files are data but current contracts and adjacent sources still compile
+  ---
+  duration_ms: 693.745125
+  type: 'test'
+  ...
+# Subtest: copied root config includes canonical source, test, helper and artifact neighbors
+ok 6 - copied root config includes canonical source, test, helper and artifact neighbors
+  ---
+  duration_ms: 420.742292
+  type: 'test'
+  ...
+# Subtest: identical undefined symbols outside the exact subtree remain real TS2304 errors
+ok 7 - identical undefined symbols outside the exact subtree remain real TS2304 errors
+  ---
+  duration_ms: 239.343
+  type: 'test'
+  ...
+# Subtest: actual npm script excludes future native test data without excluding neighboring tests/helpers
+ok 8 - actual npm script excludes future native test data without excluding neighboring tests/helpers
+  ---
+  duration_ms: 612.338875
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2136.760584

@@ -1,0 +1,32 @@
+{
+  "kind": "independent-exact-config-fixture-review",
+  "entries": {
+    "NATIVE-INVENTORY.json": "5f601d77d874966369ee118edbc798c696ecc448bf018026588c0513eac3e0ce",
+    "README.md": "d446214decc91a43d5cfd29c7e1a2bb9751983529e928a2786cdb6ba31ad8636",
+    "attempt-1/": "directory",
+    "attempt-1/AFTER.json": "0c6d42c016e011885d5523ed93002340c9c5e417d08d497cfd45bd5be85c79e5",
+    "attempt-1/BEFORE.json": "0c6d42c016e011885d5523ed93002340c9c5e417d08d497cfd45bd5be85c79e5",
+    "attempt-1/RESULT.json": "c242e81dee2bb899138539989461a485679144fcbcdbf4f0ff0bd909e0140bf3",
+    "attempt-1/missing-route-mutant.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/missing-route-mutant.stdout.txt": "7a60732ac4a2b18af6c6a835dda460aef919bd1da3e689d943547566d7d06c77",
+    "attempt-1/mutant-extra-current-source.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/mutant-extra-current-source.stdout.txt": "5357d4afe5b105fa2fe27d1419f41cdc80fca55fb3d766e147dc3890e6eb8855",
+    "attempt-1/mutant-lookalike-capture-path.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/mutant-lookalike-capture-path.stdout.txt": "e78570e01f3dccb51b1d5b518b616f5154bc5e70eb21528d7ecc784cd4e0f202",
+    "attempt-1/mutant-sixth-flat-capture.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/mutant-sixth-flat-capture.stdout.txt": "48323264c9ff6cdf70f8729aea2a8f5a862b5265edc5c31869fa8ac7b3fd81ed",
+    "attempt-1/mutant-strict-null-disabled.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/mutant-strict-null-disabled.stdout.txt": "d0bc83668433dc9df8f5aa9c254ea757bcaf587417d136dc8c300ffd9e66d49d",
+    "attempt-1/original-five.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/original-five.stdout.txt": "3ed5605c2690f300aeb77abb376a75c5d214891053d033050800ae47bea25403",
+    "attempt-1/revised-eight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/revised-eight.stdout.txt": "c9e6fd5a6572bc82c58a0348f8125d8565cdefeace71cf5f01765372ef38b36b",
+    "attempt-1/self-comparison-mutant.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/self-comparison-mutant.stdout.txt": "78ab9cb0b7fb96eefc325046b2ee80100dc9c473d6668a6bd54a1abeb1d209a7",
+    "attempt-1/strict-types.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/strict-types.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-inventory.mjs": "cb8e72990cba150f44ba44532e3a88a591a24c9b028602c0ea362c2599ba803a",
+    "run.mjs": "ac61383763eb29a67d0d3bd79780ab2a2a2c31729035955da7f6d41545b6c9c0",
+    "verify.mjs": "c28fc3bfea700146fbd6e78c8c87020cf8d71809faf59ccd16b3f2478711410b"
+  }
+}

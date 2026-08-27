@@ -1,0 +1,32 @@
+2026-08-27 — delegated leaf; FREEZE/DESIGN ONLY, no prototype or native execution.
+Owned: tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/**.
+Minimal contradiction found in immutable v4 prose versus review C1:
+P=\(a*\)*\1 on aaaa: A=[aa]+ref aa, B=[a][a][a]+ref a.
+Both whole spans [0,4). Static outer repeat aggregate A=[0,2), B=[0,3).
+44eed610 HNODE visits that semantic repeat before its body; HTREE compares
+the current repeat span before its children. Both therefore prefer B.
+e38a68af C1 requires A by first-body 2>1. That expectation cannot follow
+from those definitions with their stated all-repeat-node AST mapping.
+A capture wrapper is not the enclosing repeat aggregate or its body list.
+Removing only that aggregate changes the comparator, not its name; removing
+all repeat aggregates with END preferred loses uncaptured a* prefixes.
+Will freeze <=12 finite supplied-history/control groups and two literal
+aggregate-bearing hierarchy variants (static NODE and dynamic TREE), explicitly
+predicting this C1 conflict, not pretending all six discrepancies can green.
+Rules: whole earliest/longest; completed span earliest-start/latest-end;
+participating body > initial Absent; after an identical participating prefix,
+END > further occurrence; NODE finishes static occurrence tables before children;
+TREE finishes each dynamic subtree before the next iteration. Wrappers alias
+their semantic body for ranking, while retaining capture enter/close lifetimes.
+Both preserve uncaptured prefix extents; W4 distinguishes NODE from TREE.
+Precise blocker: root must authorize changing aggregate precedence or C1's
+first-body expectation (and specify any changed END rule). No chosen policy.
+Finite permissive histories and LOCAL-TAIL-HYPOTHESIS stay separate alternatives.
+P/aaa [aaa][] changes capture env and is NOT an equivalent cycle. Narrow root a
+stays fixed; literal variants with permissive tails conflict with it.
+TEMP retains a descendant until THAT descendant reentry; Issue8 D/abab rejects
+the retained-b witness, a deliberate experimental departure. No new native run.
+Same v4 limits; pre-admission work/allocation/state/depth/comparison accounting,
+refusal after incumbent, no early pc/pos/env merge. Historical137 remains a
+future worker obligation; initial c3e40f8b live guard/source untouched.
+This is an early reasoning checkpoint, not sealed inputs or execution evidence.

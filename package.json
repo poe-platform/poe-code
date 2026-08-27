@@ -38,6 +38,10 @@
       "types": "./dist/commands/table-text/index.d.ts",
       "import": "./dist/commands/table-text/index.js"
     },
+    "./commands/stream-inspection": {
+      "types": "./dist/commands/stream-inspection/index.d.ts",
+      "import": "./dist/commands/stream-inspection/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

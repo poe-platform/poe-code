@@ -9,6 +9,7 @@ import { createDiffPatchCommands, type DiffPatchOptions } from "../commands/diff
 import { createMetadataCommands, type MetadataCommandsOptions } from "../commands/metadata/index.js";
 import { createArchiveCommands, type ArchiveCommandsOptions } from "../commands/archive/index.js";
 import { createTableTextCommands, type TableTextCommandsOptions } from "../commands/table-text/index.js";
+import { createStreamInspectionCommands, type StreamInspectionCommandsOptions } from "../commands/stream-inspection/index.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
@@ -20,6 +21,7 @@ export interface AgentCommandsOptions {
   readonly metadata?: Omit<MetadataCommandsOptions, "replace">;
   readonly archive?: Omit<ArchiveCommandsOptions, "replace">;
   readonly tableText?: Omit<TableTextCommandsOptions, "replace">;
+  readonly streamInspection?: Omit<StreamInspectionCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -43,6 +45,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createMetadataCommands({ ...options.metadata }),
     ...createArchiveCommands({ ...options.archive }),
     ...createTableTextCommands({ ...options.tableText }),
+    ...createStreamInspectionCommands({ ...options.streamInspection }),
   );
   return new CommandRegistry(commands).list();
 }

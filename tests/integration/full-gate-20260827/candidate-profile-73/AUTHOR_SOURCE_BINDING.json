@@ -1,0 +1,116 @@
+{
+  "format": "scoped-gate-infrastructure-author-source-v1",
+  "revision": "522e8e273573517ab8b854636bdd4589ee696c28",
+  "role": "Infrastructure review inputs only; not root whole-product candidate approval",
+  "sourceCommits": [
+    "1ebc9d71607b8b9f73bd65bd75ca91fed430ae89",
+    "7d1cebf615d805f7f0077c0f9150fbe87462c1b1",
+    "5c2a3744c98e9d0a5e1ab267122a9e5050f32d2e",
+    "0abce3946ed6d677d8cf29bf2a1dc74937986ddd",
+    "522e8e273573517ab8b854636bdd4589ee696c28"
+  ],
+  "files": [
+    {
+      "path": "tests/commands/grep-aliases/consumer.mts",
+      "gitBlob": "72bfdf67fba91e3de998e74e4ec66a467692fb0c",
+      "sha256": "4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac"
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "gitBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+      "sha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "gitBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+      "sha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/candidate-profile-73/consumer.mts.fixture",
+      "gitBlob": "1053a6b395e4fd9071652cf31effaaccadc05162",
+      "sha256": "329193885968623687607868e867bc7e4dc86a3c6be7cf84da5675098d14998e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/candidate-profile-73/controls.test.mjs",
+      "gitBlob": "a47b96acd55097dc2280cdfc0449ab37d87f5d21",
+      "sha256": "93dcd1981cb3491bd030f3575131c1f5d303eb2f6a01f9e572c3b21ba95f2ac8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs",
+      "gitBlob": "eb406a5f507cc53a246cc6b528085929f21b4353",
+      "sha256": "b53d744be3d0589b194b5435e2237885da6bf8b1b0de8f09b34e5de7a8f149ab"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs",
+      "gitBlob": "1107bcc6741d679ef8e62e3c81f5c15b7524412a",
+      "sha256": "d97e812b7d61d705b7c761cae4835e18c77486c305a372c114b107aa98347945"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+      "gitBlob": "904868caf99ea655b1dc4339d62c296fdccdf935",
+      "sha256": "ce5f115da6112939a6f792d1ac673d9b578e668412f01a85239af8c1c0a9fdc2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/consumer-inventory-73/run.mjs",
+      "gitBlob": "44c4c98791296ab8ce365c32e21397d874490b69",
+      "sha256": "1e565169ccfd469dc0fa5b951e2dc52680fdfab790e7af9711d7962aab22426e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/integrity-73/controls.test.mjs",
+      "gitBlob": "792f0c988792dcc1a8127daaaefe1b681f523850",
+      "sha256": "0c01d6d625de447e25d5e8e9208b4d068ae2f6a6a13fa15e8e785f3ba460d287"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/integrity-73/mutations.mjs",
+      "gitBlob": "d4bc785278e4c22ab40d294d2e9763cd9f13f2aa",
+      "sha256": "58af6f02fcb615ea20002e67479096ec4ad4b0d3a65fabbd5cb037c990991bc4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/integrity-73/runner-controls.test.mjs",
+      "gitBlob": "f344c30b20101901af8c5729f733d35dc95cfdaa",
+      "sha256": "06f0188c2207f663977fc1394e2ced019ad0744137a28e20d6e9cfc30b79bc8c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/integrity-73/tree.mjs",
+      "gitBlob": "75a34c683d236922e4f04dacf83f69b22bf7eebf",
+      "sha256": "5af624e28e38c4001f6b77dbc1c153292e667da28d1a07aa851f31a6150f06a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/native-recovery-73/controls.test.mjs",
+      "gitBlob": "f5209f67e194ec32b4e754cfedd0a7d7bd82852c",
+      "sha256": "d9586af673f6fb51b3a56a9028f1cc7b6a64628cc880c96ee10a6ae81391c300"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/native-recovery-73/recover.mjs",
+      "gitBlob": "4f9f524a9e16301af29587119a8b558f424774ca",
+      "sha256": "97652ad9a662612bc55964926e721c4cb217f59b2dc777b995737d3b0d744ace"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/registry-73-migration/run.mjs",
+      "gitBlob": "cde49d4c078d8d3aa6dd3e3a46c9f7b1dc71a90e",
+      "sha256": "00a2fa63ceafff98d9ab8f932c9d6f30c6171bde23124faa0f8f705dd8de6321"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "gitBlob": "24e88d8d7e26652e39a24abd4bf9147637b9c63f",
+      "sha256": "4b9e9d5ce9d5c2418edb0c8ec7ffcac0da42fa4c21a0632e547d202aae890837"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-column.mts",
+      "gitBlob": "d69eeb626b490aa3ad3ec5519f20e57162b74172",
+      "sha256": "c74ed7b2dd94ca0bbd236db5f7a2f843f082313aa673fa69abf4ca99a8c13f3a"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "gitBlob": "02d0c38730e93073d7173c2fe6ab78f2dddd9ce3",
+      "sha256": "8d34b142bf2680a89a6b1c8bbe9e3ffcaf02b8ae5afdbc8a7a3427a20e2c704e"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "gitBlob": "241eed71557db50b777b51797211bfaceb31e7e5",
+      "sha256": "0c5771090524c84ee9e415fb61e5cf9f0cf80e4546bd7566649cacd6ebb23aa5"
+    }
+  ],
+  "productCalibration": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+  "fullGateLaunched": false
+}

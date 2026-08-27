@@ -2175,3 +2175,64 @@ that any implementation, command, fixture, or test currently exists.
   tests/integration/full-gate-20260827/readiness-73/README.md and INVENTORY.json.
   No build, suite, service, private engine or package execution; root production
   files and foreign changes preserved. No superiority or release claim.
+
+### 2026-08-27 18:22 UTC —73 gate-infrastructure author handoff, no whole gate
+
+- Root relays independent public integration316b7efe on exact3dc0ac26:56/56
+  frozen checks plus4/4 regex propagation, strict/negative types,22 manifest
+  controls and138 retired workers. The omitted-README packaging discrepancy was
+  rejected, separate from the successful exact-pack observations. Durability
+  seal7f3ad2f5 preserves the604-byte raw commit and reachable14-path sources
+  cb940da6/0bd5c20b+base0123: twice reconstructed exact commit/tree from isolated
+  reachable-only object databases, fresh994dca packs match,4 negatives. No new
+  refs; relocated harness paths were syntax-checked only, not new runtime proof.
+  Earlier entries saying public review pending are historical observations.
+- Root relays tree charsetf1a90436 accepted scoped: finala67ae4e8/0021a38a,
+  main92d1dacd/native259d983a/mutants2748e2a.139 candidate/77 baseline;26/34→31/34
+  exactly five connector fixes,15 counts,11 literal-native cases each source and
+  moved package,762 files/176 loads/8 mutants. The earlier70-name isolated source
+  and later73 integration remain separate. Holdouts were post-source, three
+  native differences and old strict recipe remain; no full tree parity inferred.
+- Exact accepted rg4298efd4… recovered from two retained authenticated copies;
+  installed5d24e1af… has the same15.2.0 string, not the same bytes. Cause of the
+  binary change remains unestablished. No expected-hash rebaseline/install/global
+  replacement. Source1ebc9d71/evidenced4ed8322:7/7 controls and actual49/49 base
+  asset assessment with explicit recovered RG_NATIVE_BIN. Expr/du are separate
+  prerequisites, not silently included in the old49 claim.
+- Two canonical registry fixtures migrate only six title/count tokens70→73:
+  source7d1cebf6/evidence710ae52f. Whole original files24/26, revised26/26,
+  precise count mutant24/26. A first negative generator also changed a hex
+  literal and produced22/26; its harness defect and raw attempt remain preserved.
+- Inventory source5c2a3744/evidencefcf661e8 individually classifies eleven inputs:
+  six hash/source/package-bound historical captures, two maintained consumers,
+  three imported declarations. New current-column retains meaningful types and
+  awaited runtime behavior; maintained alias changes only two public imports.
+  All179 prior entries unchanged;191 entries configure22 strict/19 runtime/3
+  negative groups. Only the three new strict/runtime groups actually ran here,
+  plus11 fail-closed/type/source-denial controls, not the entire configured set.
+- Consumer attempt01 retained a canonical-temp-path permission defect; attempt02
+  correctly exposed source3dc predating zero-capbb7f5972. No consumer expectation
+  change. Explicit committedc355751f attempts03/04 pass3/3 new groups+11 controls;
+  attempt04 adds73 names/27 imports/6 workflows/strict public types. Package SHA
+  53ab62a59574d79607692ab2d67a22f8825bf7a68b1aa17b59392c9d7cf7bf0a differs
+  from manifest691426f4… by artifact type.84 raw files/hash manifest retained;
+  execution temp trees removed. Scoped build/consumer success is not acceptance
+  of all pending source in c355, nor selection of a next whole-gate candidate.
+- Integrity source0abce394/evidencebb4c152e adds deterministic added/removed/
+  changed/symlink inventories before/after child phases, sealing legitimate
+  source/build/install setup outputs. Capture outputs move to unique OS temp;
+  staged rg is no longer overwritten by ambient rg.34/34 controls+2 detected
+  mutants; actual whole runner unexecuted. Before/after checks do not detect
+  restored transient writes or imply an atomic snapshot/universal host sandbox.
+- Profile source522e8e27/evidencef18117aa generates only explicit full-SHA DRAFT
+  receipts from Git blobs; HEAD/live overlays/rehashed omissions/native changes
+  reject.23/23 controls (prior19 retained). Historical c355 calibration matches
+  exact244 cleanup inputs/600 canonical paths and honestly reports its old11
+  unknown inputs. No new root-selected cohort or launch; old8670 driver remains
+  bound8670. Meitner's0895926b review is next. Expr/du/overlay and owned-output
+  TEMP work remain separate pending scopes unless root supplies later acceptance.
+- Handoff and exact source-file binding:
+  tests/integration/full-gate-20260827/candidate-profile-73/HANDOFF.md.
+  No fullgate, service, actual private engine, dependency change or product edit
+  in this corrective infrastructure task. Original8670 raw17454/12/0 remains
+  unqualified and its package cohort separate; no rescoring/superiority claim.

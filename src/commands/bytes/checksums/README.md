@@ -38,10 +38,21 @@ options without `--check`, and binary/text/zero options with `--check`, are
 usage errors. Unknown options, option arguments such as `--check=yes`, abbreviated
 long options, `--tag`, `--help`, and `--version` are rejected, not ignored.
 
-`cksum` implements the POSIX CRC utility, not GNU's modern multi-algorithm
-interface. Its only options are `-z`/`--zero` (a GNU extension) and `--`.
-It deliberately rejects `--check`, `--algorithm`, and digest-mode options.
-POSIX legacy CRC output is not a supported GNU verification format either.
+`cksum` defaults to POSIX CRC and accepts `-a`/`--algorithm` with crc, md5,
+sha1, sha224, sha256, sha384 or sha512. Explicit hash algorithms use GNU tagged
+output, including filename escaping; `-z`/`--zero` preserves literal names with
+NUL termination. All algorithms use the same bounded streaming/cancellation
+path, never buffering a complete input. Other algorithms, checksum verification,
+tag-selection, binary/text selectors and output-length options remain rejected.
+This is not the complete modern GNU interface. Existing SHA/MD5 command
+verification behavior and default CRC bytes/length output are unchanged.
+
+`tests/commands/bytes/checksums/algorithms-native.json` freezes28 exact GNU9.7
+observations with executable identity, covering seven algorithms, stdin/files,
+binary octets, escaping and NUL output. Each runs at three chunk sizes, plus
+pre-read rejection and blocked-input cancellation. The old rejection assertion
+for `--algorithm=crc` becomes rejection of an unknown algorithm; explicit CRC
+acceptance is independently covered, not removed from testing.
 
 ## Formats and verification
 

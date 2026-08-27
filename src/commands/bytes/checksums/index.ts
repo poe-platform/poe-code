@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "../../../contracts/index.js";
-import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError } from "../../internal.js";
+import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "../../internal.js";
 
 const blockBytes = 64 * 1024;
 const manifestLineBytes = 64 * 1024;
 const filenameBytes = 16 * 1024;
 const maxLength = (1n << 64n) - 1n;
 const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-type Algorithm = "sha256" | "sha1" | "md5" | "crc";
+type Algorithm = "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5" | "crc";
 type ReportMode = "normal" | "quiet" | "status" | "warn";
 
 interface Settings {
@@ -24,6 +24,13 @@ interface InputState { stdinUsed: boolean }
 interface ReadProgress { hasData: boolean }
 interface Digest { hex: string; length: bigint }
 interface Entry { digest: string; filename: string }
+
+function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
+  const parsed = options(args, "a:z", { algorithm: "a", zero: "z" });
+  const algorithm = value(parsed, "a") ?? "crc";
+  if (!["crc", "md5", "sha1", "sha224", "sha256", "sha384", "sha512"].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
+  return { algorithm: algorithm as Algorithm, settings: { operands: parsed.operands, binary: false, check: false, zero: parsed.flags.has("z"), strict: false, ignoreMissing: false, report: "normal" } };
+}
 
 function parse(args: readonly string[], algorithm: Algorithm): Settings {
   const settings: Settings = { operands: [], binary: false, check: false, zero: false, strict: false, ignoreMissing: false, report: "normal" };
@@ -161,7 +168,7 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
   try { line = utf8.decode(bytes); } catch { return undefined; }
   if (line.endsWith("\r")) line = line.slice(0, -1);
   if (line === "" || line.startsWith("#")) return "skip";
-  const digits = algorithm === "sha256" ? 64 : algorithm === "sha1" ? 40 : 32;
+  const digits = { sha512: 128, sha384: 96, sha256: 64, sha224: 56, sha1: 40, md5: 32, crc: 0 }[algorithm];
   const match = new RegExp(`^[ \\t]*(\\\\?)([a-fA-F0-9]{${digits}})[ \\t][ *](.+)$`, "su").exec(line);
   if (!match) return undefined;
   let filename = match[3]!;
@@ -230,24 +237,28 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
 
 function command(name: string, algorithm: Algorithm): CommandDefinition {
   return define(name, async context => {
-    const settings = parse(context.args, algorithm);
+    const selected = name === "cksum" ? parseCksum(context.args) : { algorithm, settings: parse(context.args, algorithm) };
+    const selectedAlgorithm = selected.algorithm;
+    const settings = selected.settings;
     const state: InputState = { stdinUsed: false };
     let failed = false;
     for (const filename of settings.operands.length ? settings.operands : ["-"]) {
       context.signal.throwIfAborted();
       if (settings.check) {
-        try { if (!await verify(context, filename, algorithm, settings, state)) failed = true; }
+        try { if (!await verify(context, filename, selectedAlgorithm, settings, state)) failed = true; }
         catch (error) { await diagnostic(context, error); failed = true; }
         continue;
       }
       let result: Digest;
-      try { result = await digest(source(context, filename, state), algorithm, context.signal); }
+      try { result = await digest(source(context, filename, state), selectedAlgorithm, context.signal); }
       catch (error) { await diagnostic(context, error); failed = true; continue; }
       const delimiter = settings.zero ? "\0" : "\n";
-      if (algorithm === "crc") await output(context, `${result.hex} ${result.length}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
+      if (selectedAlgorithm === "crc") await output(context, `${result.hex} ${result.length}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
       else {
         const display = settings.zero ? { prefix: "", name: filename } : escaped(filename);
-        await output(context, `${display.prefix}${result.hex} ${settings.binary ? "*" : " "}${display.name}${delimiter}`);
+        await output(context, name === "cksum"
+          ? `${display.prefix}${selectedAlgorithm.toUpperCase()} (${display.name}) = ${result.hex}${delimiter}`
+          : `${display.prefix}${result.hex} ${settings.binary ? "*" : " "}${display.name}${delimiter}`);
       }
     }
     return { exitCode: failed ? 1 : 0 };

@@ -63,7 +63,7 @@ See the nested guides for exact parsing, output, and failure behavior:
 | `sha256sum` | `-b`/`--binary`, `-t`/`--text`, `-c`/`--check`, `-z`/`--zero`, `--quiet`, `--status`, `-w`/`--warn`, `--strict`, `--ignore-missing`. Multiple inputs or manifests. |
 | `sha1sum` | Same flags and verification rules as `sha256sum`; SHA-1 compatibility utility. |
 | `md5sum` | Same flags and verification rules as `sha256sum`; MD5 compatibility utility. |
-| `cksum` | `-z`/`--zero` only, apart from `--`; POSIX CRC and byte count, not the modern GNU multi-algorithm/check interface. |
+| `cksum` | POSIX CRC/byte count by default; `-a`/`--algorithm` crc, md5, sha1, sha224, sha256, sha384, sha512; explicit hashes use GNU tagged output. `-z`/`--zero` and `--` supported. Other algorithms and modern check/format/length selectors remain unsupported. |
 | `gzip` | `-c`/`--stdout`/`--to-stdout`, `-d`/`--decompress`/`--uncompress`, `-k`/`--keep`, `-f`/`--force`, `-t`/`--test`, `-1` through `-9`, `--fast`, `--best`, `-n`/`--no-name`, `-h`/`--help`. Named operands default to file output. |
 | `gunzip` | Same options as `gzip`, with decompression enabled by default. |
 | `zcat` | Same options as `gzip`, with decompression and stdout enabled by default. |

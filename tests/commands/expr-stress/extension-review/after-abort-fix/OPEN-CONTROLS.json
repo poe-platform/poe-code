@@ -1,0 +1,779 @@
+{
+  "schema": 1,
+  "source": "27a7793526830768484885afba5832bf8bb248b5",
+  "status": "BLOCKED: prerequisite prior committed execution-harness receipt absent at deadline",
+  "candidateExecutionCount": 0,
+  "passCount": 0,
+  "counts": {
+    "originalSafetySpecifications": 16,
+    "originalShellWorkflows": 7,
+    "originalBoundedReDoSInputs": 4,
+    "extensionBoundarySpecifications": 24,
+    "extensionMutationSpecifications": 32
+  },
+  "countsAreNotIndependentExecutedTests": true,
+  "obligations": [
+    {
+      "id": "original/direct-zero-stdin-reads",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/await-stdout-backpressure",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/sink-rejection",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/preabort-and-midflight",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/cleanup-ownership",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/arg-byte-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/digit-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/node-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/depth-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/work-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/output-boundary",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/required-regex-worker",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/bounded-redos",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/short-circuit-worker-admission",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/unicode-contract",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/no-host-effects",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/increment-capture-pipeline",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/version-parse-pipeline",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/false-last-pipeline-status",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/false-upstream-default-status",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/false-upstream-pipefail",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/arithmetic-error-and-status",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/vfs-build-artifact",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "collection": "shellWorkflows",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P01-envelope-dispatch",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P02-result-shape",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P03-span-validation",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P04-state-consistency",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P05-byte-span-roundtrip",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P06-owned-request-bytes",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P07-cache-and-response-isolation",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/P08-worker-request-rejection",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L01-zero-admission",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L02-registration-order",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L03-registration-throw",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L04-late-acquisition-rejection",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L05-admission-budgets",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L06-startup-timeout",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L07-active-timeout",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L08-exact-abort-reasons",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L09-termination-latch",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L10-callerabort-and-natural-close",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L11-work-and-error-categories",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/L12-worker-only-compile",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/R01-legacy-protocol-unchanged",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/R02-installed-standalone",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/R03-original-separate-denominators",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "extension/R04-installed-legacy-transcript",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+      "specificationSha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c",
+      "collection": "controls",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M01",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M02",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M03",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M04",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M05",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M06",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M07",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M08",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M09",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M10",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M11",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M12",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M13",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M14",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M15",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M16",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M17",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M18",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M19",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M20",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M21",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M22",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M23",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M24",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M25",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M26",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M27",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M28",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M29",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M30",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M31",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "mutations/M32",
+      "specification": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+      "specificationSha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c",
+      "collection": "mutations",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true,
+      "scope": "Every setup, expected outcome, bound, fixture variant, lifecycle ordering and mutation requirement in this immutable specification remains unexecuted by this leaf."
+    },
+    {
+      "id": "original/bounded-redos/input-1",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "inputSha256": "e85c98eea9a5847b14cf4940bb0e210199650a7a13ae635851a9d98e94e1237b",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true
+    },
+    {
+      "id": "original/bounded-redos/input-2",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "inputSha256": "210b1e436c58a2d5df97b352501c54600c34ec1e92a74fbc33fe5f1f01b59c38",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true
+    },
+    {
+      "id": "original/bounded-redos/input-3",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "inputSha256": "a20552a9509baf0c59b9b4a4247a4e393bc7c9cfdabd5789974cb8569c63de40",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true
+    },
+    {
+      "id": "original/bounded-redos/input-4",
+      "specification": "tests/commands/expr-stress/frozen/controls.json",
+      "specificationSha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec",
+      "inputSha256": "0aeb6d4c0048344c8df8d3d77334e115edd92455ba8726b790c4c9925693fb38",
+      "status": "UNEXECUTED",
+      "allSubrequirementsUnexecuted": true
+    }
+  ],
+  "additionalUnexecuted": [
+    "Original unchanged GNU104 corpus: 95 C + 9 en_US.UTF-8; Apple separate.",
+    "Extension unchanged GNU23 corpus: 20 C + 3 en_US.UTF-8; Apple separate.",
+    "Separate quoted-correction1 comparison.",
+    "Immutable source archive/build/pack/offline install/move and authenticated standalone installed module/worker execution.",
+    "Strict installed declaration compilation without skipLibCheck and plain Node execution.",
+    "Independent fully typed EventTarget/AbortSignal consumer through moved installed client, including structural undefined rejection.",
+    "Moved-installed old undefined-abort and postMessage-undefined regressions; native undefined/0/null/false/empty/Error controls.",
+    "Existing scoped canonical regressions on archived candidate including author 111-case test and overlapping 377-case focused cohort.",
+    "Source/installed/frozen pre/post inventories spanning actual candidate execution and append-entry checks.",
+    "Exact owned worker-created/terminated counts before safety cleanup during candidate execution.",
+    "Bounded watchdog containment; no product main-thread compile/match, host eval, or product subprocess.",
+    "Original driver hashes, precise allowed binding deltas and revised realpath/deferred-call/80ms-versus-500ms harness profiles."
+  ],
+  "notEvidence": [
+    "No author pass count is independently reproduced.",
+    "Local native AbortController controls do not satisfy installed-client cancellation controls.",
+    "Frozen manifest checks are integrity verification, not native replay or candidate acceptance."
+  ]
+}

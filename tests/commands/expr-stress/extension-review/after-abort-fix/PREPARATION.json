@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "status": "PREPARATION ONLY; awaiting committed prior harness receipt",
+  "preparedAt": "2026-08-27T17:57:10.002Z",
+  "waitBeganAt": "2026-08-27T17:55:16Z",
+  "waitDeadline": "2026-08-27T18:00:16Z",
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "oldSource": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "candidateSourceTree": "a68ba3a650473e23a96511535cec0d4833688da8",
+  "authorFixEvidence": "33b580db854b578c41cb73435e2b0dd280350503",
+  "sourceDelta": [
+    {
+      "status": "A",
+      "path": "src/commands/du/README.md",
+      "before": null,
+      "after": "3f04d3e13a6be19f6fa6a730a1b15504d8d8dc5f383052d92c5b14fc1434d22a"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/arguments.ts",
+      "before": null,
+      "after": "a777c2575100dbe305dd7376b525727cc213039eda90b659d323841ed05bf041"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/budget.ts",
+      "before": null,
+      "after": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/du.ts",
+      "before": null,
+      "after": "6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/format.ts",
+      "before": null,
+      "after": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/index.ts",
+      "before": null,
+      "after": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7"
+    },
+    {
+      "status": "A",
+      "path": "src/commands/du/options.ts",
+      "before": null,
+      "after": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253"
+    },
+    {
+      "status": "M",
+      "path": "src/commands/regex-execution/client.ts",
+      "before": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+      "after": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    }
+  ],
+  "sourceAttribution": [
+    "27a7793526830768484885afba5832bf8bb248b5 fix(regex): preserve explicit undefined rejection outcomes",
+    "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3 feat(du): add bounded metadata-only usage command and scoped tests"
+  ],
+  "packageAndLockDiff": "",
+  "prerequisites": [
+    {
+      "name": "gnu",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "expected": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "actual": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+    },
+    {
+      "name": "archive",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "expected": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "actual": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+    },
+    {
+      "name": "source",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr.c",
+      "expected": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+      "actual": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0"
+    }
+  ],
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "priorReceiptPresent": false,
+  "candidateExecuted": false,
+  "priorDirtyHarnessReadOrCopied": false,
+  "notes": [
+    "Both frozen verify commands passed; these are evidence-integrity checks, not candidate execution.",
+    "Native GNU9.7/Darwin pins matched locally; no Linux profile asserted.",
+    "Source delta includes seven new du files from another owner plus client.ts completion changes.",
+    "Native AbortController.abort(undefined) produces AbortError; native zero/null/false/empty/Error preserve reason identity in local controls.",
+    "Primary WHATWG DOM and Node globals documentation consulted through web.run; no synthetic undefined reason is claimed native.",
+    "Unrelated index/worktree changes preserved."
+  ]
+}

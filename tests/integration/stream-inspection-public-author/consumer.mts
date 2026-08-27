@@ -38,7 +38,7 @@ assert.equal(names.length, 74);
 assert.equal(new Set(names).size, 74);
 assert.equal(names.at(-1), "html-to-markdown");
 assert.deepEqual(names.slice(56, 60), ["tac", "expand", "fold", "strings"]);
-assert.deepEqual(names.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column"]);
+assert.deepEqual(names.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown"]);
 assert.equal(names.includes("curl"), false);
 assert.equal(names.includes("safejs"), false);
 const results: { mode: string; command: string; stdoutHex: string }[] = [];

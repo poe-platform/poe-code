@@ -1851,7 +1851,7 @@
     },
     {
       "path": "tests/integration/stream-inspection-public-author/consumer.mts",
-      "sha256": "74f404811e23a7819fc57dda763c9ee26156071326428b22335c6a0c579fe25d",
+      "sha256": "8dbc02f3dac7606a021961015591ab739efe99b31050f47be2bd65c980be9082",
       "classification": "current",
       "group": "stream-inspection",
       "reason": "unchanged public consumer; strict declarations and emitted runtime",

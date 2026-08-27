@@ -112,8 +112,6 @@ capture. Online primary GNU Diffutils manual pages consulted on August 27, 2026:
 The pinned implementation/runtime, not an assumed interpretation of hunk
 coordinates or a different host profile, establishes the repeated-hunk result.
 
-## Reproduction
-
 ## Separate fixture-only correction and final checks
 
 Source/regression commit: `d841ece8fcc6a3333ad4de49fd94e9059f9b35fa`.

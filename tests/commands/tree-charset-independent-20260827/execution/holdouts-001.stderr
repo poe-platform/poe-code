@@ -1,0 +1,29 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash/dist/shell/shell.js:148
+                        throw new TypeError("Invalid environment entry");
+                              ^
+
+TypeError: Invalid environment entry
+    at #execute (file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash/dist/shell/shell.js:148:31)
+    at async Shell.exec (file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash/dist/shell/shell.js:97:22)
+    at async shellRun (file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/consumer.mjs:45:16)
+    at async file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/consumer.mjs:125:15
+
+Node.js v22.22.2
+
+
+1 !== 0
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/harness/run.mjs:38:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-08-27T01:18:28.387Z",
+  "fixtureCommit": "0a1167d",
+  "controlCommit": "faf6dd1",
+  "snapshot": "/Users/kjopek/Workspace/safe-bash/tests/commands/table-text-stress/.snapshot-acceptance-kEI2DS",
+  "snapshotSourceHead": "d7a81792ddb1ae92fff83916125f7af37e425566",
+  "sourceSha256": {
+    "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+    "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+  },
+  "readonlyAuthorSha256": {
+    "tests/commands/table-text/AUTHOR_HANDOFF.md": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99",
+    "tests/commands/table-text/author-verification.json": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476",
+    "tests/commands/table-text/buffer-ownership-regression.json": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+    "tests/commands/table-text/cases.ts": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+    "tests/commands/table-text/contracts.test.ts": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+    "tests/commands/table-text/differential.test.ts": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+    "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+    "tests/commands/table-text/helpers.ts": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+    "tests/commands/table-text/integration.test.ts": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+    "tests/commands/table-text/oracle.ts": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de"
+  },
+  "evidenceSha256": {
+    "initial-inputs.json": "2ea20d57c41334fab085e0615a01837190c1d2f5bfcdbed3f106e24f9b51c41d",
+    "first-discrepancy.json": "80b63700c51ed605b3c6fa6b29819f92972f39462cae017666b5c864dd81506f",
+    "frozen-corpus.json": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166",
+    "original-red.json": "70e084c0889bc41e813802634606e7a583bf18ff52aa16ad9513e0e0721ba6ea",
+    "acceptance.json": "1e668e5688ba53499266e9ec32f63b8b6f641886e14ddf9fe211718b653c73b0",
+    "acceptance-final.json": "b004ea982b85bdf507630931419389bbe21141fbbdeeb97341d398076a2c5644",
+    "mutation-evidence.json": "7c8638154f20b391c1a07f012e14bf73f468d1f0a3111e35cb784ec6bf922d5a",
+    "mutation-final.json": "8d6a05eabf0d6cc723bdcf4922c47f612de15e521d81d0330133b22c67bb9c82",
+    "closure.json": "4953ab6f1781737c5af162ef756d72062994e9423dcb8eecb0e771dccccfbe2a",
+    "isolated-acceptance.json": "a3f3d2670e62412769aad0adbe5fb746249887fba9d1de2770332bbe51cf9116",
+    "README.md": "6df48d0e15604890574a3d3072c53ded2da9660ee7238de1b7f07ec2bdc42585"
+  },
+  "productionFixes": [],
+  "nativeProfile": "GNU coreutils 9.7 LC_ALL=C; different build than author; archive/manual match",
+  "finalCounts": {
+    "independentNode": 104,
+    "independentNativeWorkloadCalls": 71,
+    "independentVersionCalls": 3,
+    "independentNativeMatches": 70,
+    "independentNativeDisagreements": 1,
+    "authorNode": 311,
+    "authorNativeWorkloadCalls": 216,
+    "authorVersionCalls": 3,
+    "scopedNoEmitExitCode": 0
+  },
+  "preliminaryMutationControls": {
+    "baselinePass": 4,
+    "bufferRegressionFailures": 3,
+    "sharedCursorRegressionFailures": 1,
+    "finalReviewerApproval": false
+  },
+  "allRecordedNativePhases": {
+    "firstWorkloads": 1,
+    "captureWorkloads": 71,
+    "exploratoryWorkloads": 71,
+    "movingAcceptanceOneWorkloads": 287,
+    "movingAcceptanceFinalWorkloads": 287,
+    "isolatedAcceptanceWorkloads": 287,
+    "totalWorkloads": 1004,
+    "totalVersionProbes": 18
+  },
+  "cleanup": {
+    "rootVerifiedSentinelFixtures": 285,
+    "snapshotVerifiedSentinelFixtures": 71,
+    "ignoredSnapshotCopiesRetained": true,
+    "sharedOracleUntouched": true
+  },
+  "sourceChangesRequestedFromRoot": [],
+  "remaining": [
+    "different-agent final review and controls",
+    "independent positive remote/wrapper workflows",
+    "exhaustive streaming failure/cancellation boundaries",
+    "broader options, locales and native platforms"
+  ],
+  "limitations": [
+    "historical six built-package checks not repeated",
+    "no current-worktree green claim",
+    "known GNU comm shared-stdin disagreement retained",
+    "no full parity, superiority, duration or completion claim"
+  ]
+}

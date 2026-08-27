@@ -1,0 +1,258 @@
+{
+  "createdAt": "2026-08-27T02:09:23.067Z",
+  "checks": [
+    {
+      "label": "integrity-tests",
+      "cmd": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/shell-stress/expanded-kernel/replay.test.ts"
+      ],
+      "status": 0,
+      "stdout": "TAP version 13\n# Subtest: oracle expectations and fixtures equal the immutable benchmark commit\nok 1 - oracle expectations and fixtures equal the immutable benchmark commit\n  ---\n  duration_ms: 25.232\n  type: 'test'\n  ...\n# Subtest: all seven frozen recipes remain complete and byte-identical\nok 2 - all seven frozen recipes remain complete and byte-identical\n  ---\n  duration_ms: 0.105\n  type: 'test'\n  ...\n# Subtest: execution and comparison helpers are unmodified frozen harness copies\nok 3 - execution and comparison helpers are unmodified frozen harness copies\n  ---\n  duration_ms: 1.505416\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 133.803167\n",
+      "stderr": ""
+    },
+    {
+      "label": "scoped-test-types",
+      "cmd": "./node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "--strict",
+        "--target",
+        "es2022",
+        "--module",
+        "nodenext",
+        "--moduleResolution",
+        "nodenext",
+        "--types",
+        "node",
+        "--skipLibCheck",
+        "tests/shell-stress/expanded-kernel/replay.test.ts"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "equality": [
+    {
+      "id": "kernel/type/type",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/executable-file/executable-file",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/env-shebang/env-shebang",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/source/source",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/dot/dot",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/eval/eval",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    },
+    {
+      "id": "kernel/parameter/parameter",
+      "fields": [
+        {
+          "field": "stdout",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "stderr",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "exitCode",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        },
+        {
+          "field": "entries",
+          "unchangedFromFrozen": true,
+          "sameAcrossReplays": true
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "currentVsFrozen": 0,
+    "denominator": 7,
+    "gnu53": {
+      "nativeVsFrozen": 7,
+      "currentVsNative": 0,
+      "denominator": 7
+    },
+    "bash32": {
+      "nativeVsFrozen": 7,
+      "currentVsNative": 0,
+      "denominator": 7
+    }
+  },
+  "guards": [
+    true,
+    true
+  ],
+  "controls": [
+    {
+      "label": "gnu53",
+      "pass": true
+    },
+    {
+      "label": "bash32",
+      "pass": true
+    }
+  ],
+  "sealedHead": "b5ec52a0d3ff16da47e814729f72153f9b09b926",
+  "sealedShell": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "sealedSourceCount": 156,
+  "sealedSourceImports": 130,
+  "cleanup": {
+    "workspaceRemoved": true,
+    "liveChildren": 0,
+    "processGroupsAbsent": true
+  },
+  "evidenceSha256": {
+    "corpus.json": "7474a5a4a54f25ab57a3f5afb2575261cec182e885bf630902c4934e3078f36f",
+    "replay-20260827.json": "2b9c78aee2a3aa03580dc91f08b8fbe4d271500517c129541d5f669f06c00ee9",
+    "replay-sealed-20260827.json": "afbeeab2872b86b69f5a47fe3fc30eb0216e44c342ba888fa976f2af0d6a1b69"
+  }
+}

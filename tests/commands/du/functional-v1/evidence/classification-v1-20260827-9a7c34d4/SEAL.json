@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "sealedAt": "2026-08-27T18:09:02.781Z",
+  "originalDirectory": "/tmp/du-native-difference-classification-4ijivX",
+  "sourceCommit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+  "authorEvidenceCommit": "f2d6f710d9e0b9481957ff302bba90a0f11c9bad",
+  "independentEvidenceCommit": "19cc7e8c3567b521e04159010efe32da5673b5b4",
+  "liveHeadAtSeal": "cbe60769058bbe53a8c0121c8bb18a0fd8f27ff1",
+  "files": {
+    "REPORT.md": {
+      "sourcePath": "/tmp/du-native-difference-classification-4ijivX/REPORT.md",
+      "bytes": 56499,
+      "sha256": "d4f0e48688f6700a0dce7b1f784405565eccd65e2ba31bf8b4dad43bf09a265f"
+    },
+    "VALIDATION.txt": {
+      "sourcePath": "/tmp/du-native-difference-classification-4ijivX/VALIDATION.txt",
+      "bytes": 999,
+      "sha256": "01ec62978f9662fc267f69357c24e7f3ea287ff492f19d1e55c234927242a7c5"
+    },
+    "raw-cases.json": {
+      "sourcePath": "/tmp/du-native-difference-classification-4ijivX/raw-cases.json",
+      "bytes": 53878,
+      "sha256": "085d3b69358da499d953478d94c3a48a68e96627138f4a95b8a61a3becdfcc18"
+    }
+  },
+  "sourceAudit": {
+    "src/commands/du/arguments.ts": {
+      "committedSha256": "a777c2575100dbe305dd7376b525727cc213039eda90b659d323841ed05bf041",
+      "liveAtSealSha256": "a777c2575100dbe305dd7376b525727cc213039eda90b659d323841ed05bf041"
+    },
+    "src/commands/du/format.ts": {
+      "committedSha256": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1",
+      "liveAtSealSha256": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1"
+    },
+    "src/commands/du/du.ts": {
+      "committedSha256": "6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2",
+      "liveAtSealSha256": "6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2"
+    },
+    "src/commands/du/budget.ts": {
+      "committedSha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+      "liveAtSealSha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971"
+    },
+    "src/fs/real/index.ts": {
+      "committedSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "liveAtSealSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a"
+    },
+    "src/shell/shell.ts": {
+      "committedSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "liveAtSealSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+    },
+    "src/shell/runtime.ts": {
+      "committedSha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "liveAtSealSha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06"
+    },
+    "tests/commands/du/helpers.ts": {
+      "committedSha256": "0d721aeb1a602794f22dca7874cad1f64efab21db27df022b7499e9e31d4f802",
+      "liveAtSealSha256": "0d721aeb1a602794f22dca7874cad1f64efab21db27df022b7499e9e31d4f802"
+    },
+    "tests/commands/du/capture-native.mjs": {
+      "committedSha256": "c687b8de8a1e655697322c803af93dc799b250191f7543d2120543d7faf68794",
+      "liveAtSealSha256": "c687b8de8a1e655697322c803af93dc799b250191f7543d2120543d7faf68794"
+    },
+    "tests/commands/du/capture-comparison.mjs": {
+      "committedSha256": "9bd08d6b8a3c05e02125ad8e8e0fcf418b48c7c0735724ff22d18bc075d28048",
+      "liveAtSealSha256": "9bd08d6b8a3c05e02125ad8e8e0fcf418b48c7c0735724ff22d18bc075d28048"
+    }
+  },
+  "recheckedCaptureHashes": {
+    "tests/commands/du/evidence/native-P1ILRO/profile.json": "f3c76252370ed72020de8ae6ede90093b0bdb098047c359f2deb088b4e4f8653",
+    "tests/commands/du/native-profile.json": "f3c76252370ed72020de8ae6ede90093b0bdb098047c359f2deb088b4e4f8653",
+    "tests/commands/du/evidence/comparison-zAVfBj/results.json": "8f9a3feef4a8e3d4070d737f7089d4e4c7e176de5cf16a8ecb9c3a5219c852aa",
+    "tests/commands/du/independent/evidence/review-MduamP/independent.json": "aae689ff0b3316f35663122ac3d7e1c1a43686644f082967168ca8b893907c5b",
+    "tests/commands/du/independent/evidence/review-MduamP/manifest.json": "41f48affa3a297893cdb04b523272379cd061a227413a843e9b975efc6657989",
+    "tests/commands/du/independent/evidence/review-MduamP/built-files.json": "0aa6f31e650a9d3ab6314787abd5b55a02d3fe4b85ee31497c23b0f8adef8857",
+    "tests/commands/du/evidence/SHA256.json": "59f8effd98cc7fef00c44ff536bf39bd3e87e3d156a35642de1c71368fe62d79"
+  },
+  "oracle": {
+    "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+    "versionFirstLine": "du (GNU coreutils) 9.7",
+    "binarySha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "duCSourceSha256": "3cd1c0120881ba28da3345b1324e9d146f948a95db6ce2900ba27b3fe8f45bf9"
+  },
+  "counts": {
+    "originalCases": 87,
+    "originalExact": 72,
+    "originalDifferent": 15,
+    "originalSameStatusStdoutDifferentDiagnostic": 12,
+    "originalEnvironmentBehaviorDifferences": 2,
+    "originalNamespaceBehaviorDifferences": 1,
+    "newCases": 115,
+    "newExact": 112,
+    "newOrderingDifferences": 3,
+    "classifiedDifferences": 18
+  },
+  "qualification": "Exact-byte preservation of the supplied historical classification. Ten pinned Git source hashes, seven referenced captures and the oracle binary are rechecked; the original broader 257-input audit and native runs are preserved, not rerun. No policy is approved by this seal."
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: scaffold only: independent cohort has exactly five adapted plus eleven new intentions
+ok 1 - scaffold only: independent cohort has exactly five adapted plus eleven new intentions
+  ---
+  duration_ms: 0.708959
+  type: 'test'
+  ...
+# Subtest: scaffold only: observation guard rejects stage abort and zero starts
+ok 2 - scaffold only: observation guard rejects stage abort and zero starts
+  ---
+  duration_ms: 0.685
+  type: 'test'
+  ...
+# Subtest: scaffold only: shared-data guard rejects byte loss and premature return
+ok 3 - scaffold only: shared-data guard rejects byte loss and premature return
+  ---
+  duration_ms: 0.382708
+  type: 'test'
+  ...
+# Subtest: scaffold only: effect guard rejects suppressed diagnostic and lost file
+ok 4 - scaffold only: effect guard rejects suppressed diagnostic and lost file
+  ---
+  duration_ms: 0.275875
+  type: 'test'
+  ...
+# Subtest: scaffold only: curl guard rejects premature cancellation and missing file
+ok 5 - scaffold only: curl guard rejects premature cancellation and missing file
+  ---
+  duration_ms: 0.383917
+  type: 'test'
+  ...
+# Subtest: scaffold only: deadline bounds opaque promise without treating timeout as success
+ok 6 - scaffold only: deadline bounds opaque promise without treating timeout as success
+  ---
+  duration_ms: 12.32075
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.3445

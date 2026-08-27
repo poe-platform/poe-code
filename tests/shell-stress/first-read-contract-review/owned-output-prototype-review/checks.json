@@ -1,0 +1,190 @@
+{
+  "createdAt": "2026-08-27T09:47:52.746Z",
+  "productExecuted": false,
+  "scaffoldUnitChecks": 6,
+  "runs": [
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/freeze.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.199Z",
+      "durationMs": 24,
+      "pid": 85469,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-1.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "prep-check-1.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/support.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.224Z",
+      "durationMs": 25,
+      "pid": 85470,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-2.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "prep-check-2.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.249Z",
+      "durationMs": 26,
+      "pid": 85472,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-3.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "prep-check-3.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/scaffold-check.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.275Z",
+      "durationMs": 24,
+      "pid": 85474,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-4.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "prep-check-4.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/finalize-prep.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.299Z",
+      "durationMs": 24,
+      "pid": 85481,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-5.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "prep-check-5.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/freeze.mjs",
+        "verify"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.323Z",
+      "durationMs": 339,
+      "pid": 85482,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-6.stdout.data",
+        "bytes": 137,
+        "sha256": "e0ecdc2f8170568187d8a8fb1b4eee6654162f58e0699cb27463ee85a8606ba3"
+      },
+      "stderr": {
+        "path": "prep-check-6.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    },
+    {
+      "classification": "scaffold-only-not-product-test",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--test",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype-review/scaffold-check.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "startedAt": "2026-08-27T09:47:52.662Z",
+      "durationMs": 83,
+      "pid": 85553,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "prep-check-7.stdout.data",
+        "bytes": 1437,
+        "sha256": "94de192a8971a5f62b54321275fcc9fff978f2b7a30a594b9455aadba544b083"
+      },
+      "stderr": {
+        "path": "prep-check-7.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "synchronouslyReaped": true
+    }
+  ]
+}

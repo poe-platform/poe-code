@@ -1,0 +1,134 @@
+{
+  "phase1": {
+    "originalCommit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+    "originalManifestSHA256": "8eb422447a70167cda4b32c350c91ee8fceb0843dce78ebae898baac596eea59",
+    "files": 179,
+    "entries": 182,
+    "excludedSubtrees": [
+      "stage2"
+    ],
+    "originalBytesAndMembershipMatch": true,
+    "checksAddedEntriesOutsideSidecar": true
+  },
+  "baseline": {
+    "observedAt": "2026-08-27T20:13:31.746Z",
+    "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+    "reads": {
+      "src/shell/runtime.ts": {
+        "bytes": 108731,
+        "sha256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+        "committedSHA256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+        "matchesCommit": true
+      },
+      "src/shell/shell.ts": {
+        "bytes": 10644,
+        "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+        "committedSHA256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+        "matchesCommit": true
+      },
+      "src/shell/parser.ts": {
+        "bytes": 36304,
+        "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+        "committedSHA256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+        "matchesCommit": true
+      },
+      "src/shell/arithmetic.ts": {
+        "bytes": 9922,
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committedSHA256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matchesCommit": true
+      },
+      "src/shell/types.ts": {
+        "bytes": 2178,
+        "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committedSHA256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matchesCommit": true
+      },
+      "src/contracts/command.md": {
+        "bytes": 8066,
+        "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+        "committedSHA256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+        "matchesCommit": true
+      },
+      "src/contracts/command.ts": {
+        "bytes": 2923,
+        "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "committedSHA256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "matchesCommit": true
+      },
+      "src/contracts/io.ts": {
+        "bytes": 7663,
+        "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+        "committedSHA256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+        "matchesCommit": true
+      },
+      "tests/shell/getopts/AUTHOR_HANDOFF.md": {
+        "bytes": 5201,
+        "sha256": "e512df0a8e7e71b36e4f49f3944bd9d01237476b00a98ffd177547bb1645ee8d",
+        "committedSHA256": "e512df0a8e7e71b36e4f49f3944bd9d01237476b00a98ffd177547bb1645ee8d",
+        "matchesCommit": true
+      },
+      "tests/shell/getopts/README.md": {
+        "bytes": 6278,
+        "sha256": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16",
+        "committedSHA256": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16",
+        "matchesCommit": true
+      },
+      "tests/shell/getopts/evidence/design-v1/archive.json": {
+        "bytes": 334271,
+        "sha256": "c48b8cee0be966b3e4fdbaa146c007b3da45d0228f2c0a7f99ac2166613ec198",
+        "committedSHA256": "c48b8cee0be966b3e4fdbaa146c007b3da45d0228f2c0a7f99ac2166613ec198",
+        "matchesCommit": true
+      }
+    },
+    "registration": "notregistered",
+    "builtinDispatcher": false,
+    "declare": false,
+    "typeset": false,
+    "names": [
+      ":",
+      "true",
+      "false",
+      "pwd",
+      "cd",
+      "set",
+      "shift",
+      "export",
+      "local",
+      "unset",
+      "read",
+      "exit",
+      "return",
+      "break",
+      "continue",
+      "command",
+      "type",
+      "readonly",
+      "echo",
+      "printf",
+      "test",
+      "[",
+      ".",
+      "source",
+      "eval"
+    ],
+    "status": " M tests/integration/owned-output-production-independent-20260827/candidate-v1/core-cases.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/run-case.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/approved-profile-fixtures-20260827/\n?? tests/commands/expr-stress/output-emergency-review-20260827/\n?? tests/commands/expr-stress/repeat-policy-handoff-20260827/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/ATTEMPT-01.md\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/NEIGHBORS.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/adjacent-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/common.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run01/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run02/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run03/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run04/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/seal.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/setup.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/\n?? tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/seal-failed-replay.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/network-cases.mjs\n?? tests/shell/getopts-independent-20260827/stage2/capture-01/\n",
+    "staged": "",
+    "productExecutions": 0
+  },
+  "frozen": {
+    "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+    "manifestSHA256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3",
+    "fileCount": 12,
+    "scripts": 16,
+    "invariants": 12
+  },
+  "cleanup": {
+    "allChildrenClosed": true,
+    "noScratchCreated": true,
+    "fixtureFilesUnchanged": true,
+    "nativeProcessCount": 34,
+    "nativeScenarioInvocations": 32,
+    "identityInvocations": 2
+  }
+}

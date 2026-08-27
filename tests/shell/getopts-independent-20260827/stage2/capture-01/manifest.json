@@ -1,0 +1,27 @@
+{
+  "after.json": {
+    "type": "file",
+    "bytes": 6672,
+    "sha256": "97903c639e705a82cd1ee62da843f1fa225656652996b0087215495b26497d07"
+  },
+  "bash32.json": {
+    "type": "file",
+    "bytes": 51697,
+    "sha256": "27b1fc517b3deb882eb9eda5a7754a9e9c6fb1078d967d9e1eab71625acccb2d"
+  },
+  "bash53.json": {
+    "type": "file",
+    "bytes": 52819,
+    "sha256": "e6a54e03cf3c5e7daf0deb452476457bbb4e149e9bd5c4babddbdb251e985378"
+  },
+  "before.json": {
+    "type": "file",
+    "bytes": 6396,
+    "sha256": "6238872541494a20acb99200fab408f9bd14596af72006c8557d1437262548f3"
+  },
+  "summary.json": {
+    "type": "file",
+    "bytes": 967,
+    "sha256": "d8fb4bfb96b6c52516bb3294902a85b897b40e3ec0c51acbde2afb02b0f7da69"
+  }
+}

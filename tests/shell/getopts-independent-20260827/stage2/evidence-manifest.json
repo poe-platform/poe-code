@@ -1,0 +1,140 @@
+{
+  "format": "stage2-complete-sidecar-inventory-v1",
+  "sealedAt": "2026-08-27T20:16:09.352Z",
+  "freeze": {
+    "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+    "manifestSHA256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3",
+    "fileCount": 12,
+    "scripts": 16,
+    "invariants": 12
+  },
+  "phase1": {
+    "originalCommit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+    "originalManifestSHA256": "8eb422447a70167cda4b32c350c91ee8fceb0843dce78ebae898baac596eea59",
+    "files": 179,
+    "entries": 182,
+    "excludedSubtrees": [
+      "stage2"
+    ],
+    "originalBytesAndMembershipMatch": true,
+    "checksAddedEntriesOutsideSidecar": true
+  },
+  "entries": {
+    "CORRECTIONS.md": {
+      "type": "file",
+      "bytes": 3507,
+      "sha256": "f321eb57b60964bf1690125b073f80513e927def64cb8f6d2a8444cb205295dd"
+    },
+    "FREEZE.md": {
+      "type": "file",
+      "bytes": 3720,
+      "sha256": "e4bec8de8cf5069f10b16c86a4ed292f72dacd11c1b0ee6d01600e69fcd33383"
+    },
+    "README.md": {
+      "type": "file",
+      "bytes": 4596,
+      "sha256": "96004b8f8e971dcdb61c33166e558fc0fda5b4a55c392a729c954d97f9bde18c"
+    },
+    "RESULT.md": {
+      "type": "file",
+      "bytes": 6129,
+      "sha256": "899da61f85d2caf60374df117e2e57541f0197599f71e877c52d42d3d28ea044"
+    },
+    "baseline.json": {
+      "type": "file",
+      "bytes": 6109,
+      "sha256": "1187b748a3dd2f03cb4f152c2b9280a0fdc8f353e64d543ccb250086cd8b6593"
+    },
+    "capture-01": {
+      "type": "directory"
+    },
+    "capture-01/after.json": {
+      "type": "file",
+      "bytes": 6672,
+      "sha256": "97903c639e705a82cd1ee62da843f1fa225656652996b0087215495b26497d07"
+    },
+    "capture-01/bash32.json": {
+      "type": "file",
+      "bytes": 51697,
+      "sha256": "27b1fc517b3deb882eb9eda5a7754a9e9c6fb1078d967d9e1eab71625acccb2d"
+    },
+    "capture-01/bash53.json": {
+      "type": "file",
+      "bytes": 52819,
+      "sha256": "e6a54e03cf3c5e7daf0deb452476457bbb4e149e9bd5c4babddbdb251e985378"
+    },
+    "capture-01/before.json": {
+      "type": "file",
+      "bytes": 6396,
+      "sha256": "6238872541494a20acb99200fab408f9bd14596af72006c8557d1437262548f3"
+    },
+    "capture-01/manifest.json": {
+      "type": "file",
+      "bytes": 724,
+      "sha256": "333a84779aa819b73e1210baf5660f7d4f2bca2236bc9708079f380193777c8b"
+    },
+    "capture-01/summary.json": {
+      "type": "file",
+      "bytes": 967,
+      "sha256": "d8fb4bfb96b6c52516bb3294902a85b897b40e3ec0c51acbde2afb02b0f7da69"
+    },
+    "capture.mjs": {
+      "type": "file",
+      "bytes": 5063,
+      "sha256": "935aca7997a166002fd435cdf01a57916376ceb0ff6a4518bb068a1e24e00c87"
+    },
+    "completion.json": {
+      "type": "file",
+      "bytes": 8344,
+      "sha256": "eaff4817e850429b884480e2cf099e914186e1465e449c7c78dc156315db87e4"
+    },
+    "corpus.mjs": {
+      "type": "file",
+      "bytes": 12422,
+      "sha256": "6be0ae0f6bfaf96606837f67183e5f5df7ba0debb9ccd1449a1cc292da8dab71"
+    },
+    "fixtures": {
+      "type": "directory"
+    },
+    "fixtures/reset-input.data": {
+      "type": "file",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "fixtures/shared-source.data": {
+      "type": "file",
+      "bytes": 44,
+      "sha256": "893ea17cc9dfa7704cea985ee5c7c50201cfe9f8b2501fc2b04276c6f86d019b"
+    },
+    "freeze-manifest.json": {
+      "type": "file",
+      "bytes": 7631,
+      "sha256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3"
+    },
+    "invariants.json": {
+      "type": "file",
+      "bytes": 9523,
+      "sha256": "853a01496f1beea6401e21d09791db6584921082debd4a2acd2074314e266bff"
+    },
+    "lib.mjs": {
+      "type": "file",
+      "bytes": 7800,
+      "sha256": "470e07efe9461fd653d55a1c70c117ea8a74601b0b21eae4e61e6ec300cf2ba9"
+    },
+    "prepare.mjs": {
+      "type": "file",
+      "bytes": 2101,
+      "sha256": "b06805e0d56d18d2d6a58870c94dbe6b8088e96c47f3627f15750bcd033f6491"
+    },
+    "sources.json": {
+      "type": "file",
+      "bytes": 2842,
+      "sha256": "70dfc1a99acef0800261319c6ff0eaf4241bf3a5f4db1ba6f9dadc3da3a98db2"
+    },
+    "verify.mjs": {
+      "type": "file",
+      "bytes": 2972,
+      "sha256": "07cf7db51a823fccee921e5417a42d3aa4fb7470e99f264771e18e0730e66f5a"
+    }
+  }
+}

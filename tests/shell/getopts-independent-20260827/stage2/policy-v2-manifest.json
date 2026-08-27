@@ -1,0 +1,65 @@
+{
+  "format": "stage2-getopts-policy-supplement-manifest-v2",
+  "version": 2,
+  "date": "2026-08-27",
+  "authority": "Explicit root policy-record assignment; no runtime authorization",
+  "documents": {
+    "POLICY-v2.md": {
+      "bytes": 6393,
+      "sha256": "53ddd9f06e91918239dfb6dd08ce0d300a376e4058beddaff50274a0fe06f88a"
+    },
+    "policy-invariants-v2.json": {
+      "bytes": 6069,
+      "sha256": "5da98f2f76bf3c31baf6a0cddb5477173c9efe75035cb4fd51dd304e2f7c6af6"
+    }
+  },
+  "priorSeals": {
+    "phase1": {
+      "commit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+      "manifest": "../review-manifest.json",
+      "sha256": "8eb422447a70167cda4b32c350c91ee8fceb0843dce78ebae898baac596eea59",
+      "originalFiles": 179,
+      "originalEntries": 182,
+      "excludedSubtreesRelativeToPhase1": ["stage2"]
+    },
+    "stage2": {
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "manifest": "evidence-manifest.json",
+      "sha256": "2810268b574d643be05fab252b92877d7385d2fec67eb8831f33e1ae90e25235",
+      "originalFiles": 23,
+      "originalEntries": 25,
+      "freezeCommit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+      "freezeManifest": "freeze-manifest.json",
+      "freezeManifestSHA256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3"
+    }
+  },
+  "appendAllowlistRelativeToStage2": [
+    "POLICY-v2.md",
+    "policy-invariants-v2.json",
+    "policy-v2-manifest.json"
+  ],
+  "preservation": {
+    "method": "Metadata-only Git blob/seal SHA256 and byte-length authentication plus recursive live/committed file-and-directory membership comparison; include original manifests through their commit binding",
+    "phase1Exclusion": "Only stage2 subtree",
+    "stage2Exclusion": "Only the three exact appendAllowlistRelativeToStage2 file paths, not a subtree or wildcard",
+    "detectUnexpectedAddedEntries": true,
+    "originalBytesAndMembershipMatchedBeforeAuthoring": true,
+    "requireRecheckAfterAuthoringAndCommit": true,
+    "oldExactTreeVerifiers": "Unchanged; not invoked and not claimed passing with append files",
+    "indexBeforeTree": "7d68f498cfc487b2d6ee46ef38c1e232e87e289c",
+    "indexBeforeStageEntriesSHA256": "e9a60fe066fb72739d6ced229c6dec3823dae6669406a82d6364ae515f913fd0",
+    "indexHashEncoding": "Raw git ls-files --stage -z output",
+    "indexBeforeStagedDiffEmpty": true,
+    "concurrentIndexChange": "Foreign entries changed between the initial snapshot and precommit review; staged diff remained empty. Preserve these concurrent commits rather than restoring the initial index.",
+    "precommitReviewIndexSHA256": "8b6b91c57edfea3a74dc8641768866b66f4e907f7b14e8879a45b76a603fc352",
+    "indexAfterRequirement": "Snapshot immediately before staging and after commit; compare non-owned stage entries across that interval, recording any concurrent changes without reverting them. Commit explicit owned paths with --only and preserve foreign staging."
+  },
+  "pendingAuthorInspection": {
+    "D02": "Exact existing Shell budget/checkpoint API and cadence mapping before numeric exhaustion expectations; no new counter or per-byte command charging",
+    "D03": "Exact existing merge/replaceEnv visible-binding effects and child/invoke lifecycle for omitted/explicit environments and effective OPTIND overlay change/removal"
+  },
+  "selfBinding": "Final Git commit binds this manifest's own bytes; no circular self-hash",
+  "validationBoundary": "JSON structure, exact policy coverage and content/metadata integrity only; no tests, runtime/source inspection, candidate/native execution, reruns, implementation or fixture expansion",
+  "runtimeIntegration": "WITHHELD until explicit Sagan release PLUS root Stage2 authorization",
+  "stopCondition": "Checkpoint then STOP until root Stage2 resume"
+}

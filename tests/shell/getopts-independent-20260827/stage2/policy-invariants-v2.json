@@ -1,0 +1,77 @@
+{
+  "format": "stage2-getopts-policy-invariants-v2",
+  "version": 2,
+  "date": "2026-08-27",
+  "authority": "Explicit root Phase1 acceptance and Stage2 D01-D03 decisions supplied to the bounded documentation leaf",
+  "classification": "Policy supplement only; not native observations, executable fixtures, measured passes or runtime authorization",
+  "document": "POLICY-v2.md",
+  "phase1Acceptance": {
+    "status": "ROOT ACCEPTS scoped Phase1",
+    "candidate": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+    "evidenceCommit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+    "P03": "Exact out-of-range expectation error; original failure preserved",
+    "R01-R03": "Three separate supplemental passes, not replacements for original P03",
+    "T20": "Corrected TS2740 restricted diagnostic",
+    "preservedHistory": ["237/238", "original 27/28"],
+    "allGreenRescore": false
+  },
+  "supersession": {
+    "scope": "New fail-fast, failed-assignment and prefix-restoration decisions supersede conflicting earlier proposed native-equality expectations only",
+    "specific": "I03 preliminary ordinary prefix-restoration synchronization yields to D01 exact saved binding/hidden-state restoration",
+    "unchanged": "All original policy/invariant documents, freezes, manifests, verifiers, evidence, N05/N13 oracle errors and cohorts; normal nonfailure measured ordering"
+  },
+  "decisions": [
+    {
+      "id": "D01",
+      "status": "resolved root policy; no runtime authorization",
+      "references": ["I03", "I05", "I12", "N04", "N14"],
+      "assertions": [
+        "Existing checked-write FAIL-FAST at first readonly/name write failure preserves all already committed scanner/OPTIND actions, stops later writes and performs no rollback.",
+        "Readonly OPTARG uses attempted checked set/unset, never loses value/attribute, and failure prevents reaching the result-name binding; status/error follows existing readonly builtin mapping including EOF.",
+        "Normal nonfailure ordering remains measured; native failure-path equality is intentionally not required.",
+        "Failed external assignment/export/read/prefix installation does not reset hidden state; the reset hook fires only after successful installation.",
+        "Same-scope temporary-prefix restoration restores EXACT saved visible binding plus hidden state on success/failure/abort, not an additional ordinary assignment/reset."
+      ]
+    },
+    {
+      "id": "D02",
+      "status": "root policy accepted; exact existing API/cadence mapping pending author inspection",
+      "references": ["I07", "I08", "I09", "I12", "N16"],
+      "assertions": [
+        "Preserve the existing Shell budget object and normal builtin command/expansion charges; no invented global work counter or per-byte command charge.",
+        "A clearly documented helper-internal work limit may be per-invocation; global shared command/expansion/time limits must not reset.",
+        "Shared ShellLimitError, sink errors and caller reasons propagate with identity/existing mapping, not usage errors.",
+        "Diagnostics are awaited; silence mode performs zero writes. On blocked/rejected diagnostic only earlier published scanner state persists, later OPTIND/OPTARG/name writes remain unperformed, and there is no undo."
+      ],
+      "pendingAuthorInspection": "Identify exact existing budget/checkpoint APIs and cadence, normal builtin command/expansion charges and any documented helper-internal work-limit mapping to shared command/expansion/time accounting before freezing numeric exhaustion expectations; no guessed API/counter/cadence or typed fixture."
+    },
+    {
+      "id": "D03",
+      "status": "root ownership policy accepted; exact merge/replaceEnv binding effects pending author inspection",
+      "references": ["I04", "I10"],
+      "assertions": [
+        "Follow existing child-visible environment/ownership rules and deep-clone the hidden cursor.",
+        "Mere unchanged environment/middleware forwarding is not assignment even if the object is copied; effective OPTIND overlay change/removal reconciles only child state.",
+        "Script assignment OPTIND=1 can reset even if equal; host environment forwarding has no new imperative parent-reset channel.",
+        "Parent and siblings remain unchanged on all settlements; exact merge/replaceEnv binding effects must be derived by the author from existing runtime, not invented by fixtures."
+      ],
+      "pendingAuthorInspection": "Derive existing merge/replaceEnv visible-binding effects for omitted/explicit environments and effective OPTIND change/removal through the actual child/invoke lifecycle; preserve existing invocation contracts without guessed replacement effects."
+    }
+  ],
+  "preservedAuthority": [
+    "I06: ASCII options only; Unicode argument values allowed; no native byte-option emulation.",
+    "I05: readonly OPTARG value/attribute never bypassed or deleted, including EOF; intentional native divergence.",
+    "Native N12-N15 errors/statuses/partial effects remain observations, not automatically approved product behavior.",
+    "Original N05/N13 errors and original cohorts remain: Stage2 Darwin Bash5.3 14/16 matched and Bash3.2 9/16 against selected5.3 expectations; not candidate passes or retroactive all-green scores.",
+    "Twelve original host/profile controls remain definitions with zero executions."
+  ],
+  "authorization": {
+    "runtimeIntegration": "WITHHELD",
+    "requiresBoth": ["Explicit Sagan release of runtime.ts/shell.ts", "Root Stage2 authorization"],
+    "concurrentCommitsAreRelease": false,
+    "unsupportedNotNewlyAuthorized": ["builtin", "declare", "typeset"],
+    "noNew": ["public APIs", "public limits", "status codes", "global work counter", "counter cadence", "guessed replaceEnv effects", "framework", "executable fixtures"],
+    "thisCheckpoint": "Metadata/content integrity checks only; no runtime/source inspection, tests, native cohorts, candidate execution, implementation or fixture expansion",
+    "stopCondition": "Checkpoint then STOP until root Stage2 resume"
+  }
+}

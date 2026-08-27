@@ -1,0 +1,152 @@
+ADMISSION-V3 STREAM CONTROL/HARNESS OVERLAY — 2026-08-27
+
+AUTHORITY / HOLD
+Separate root-authorized control repair, not an old-run rescore or admission.
+Actual34 remains HELD pending different admission review accepted by root.
+Raman's independent d28083dd43c7d1b513ec195b38df2f7fd3e15b48 result remains
+HOLD34/35. Author39/39 is author-only. The independent positive RSS failure's
+numeric value is unrecoverable and exact cause UNKNOWN. Pre-fixture resident
+pages are a plausible confounder, NOT established cause; no unbounded stdout
+collector was found. The sealed single diagnostic is not an old-case pass.
+Original52 author raw capture still lacks original frozen-runner rejection;
+none is recovered or fabricated. All three v2 development admission failures
+and path-scoped reconstruction/missing-raw qualifications remain unchanged.
+
+OWNERSHIP / INPUTS
+Only new admission-v3 files. No original18 fixture, admission-v2, diagnosis,
+product, package, config, AGENTS, private repository, branch or ref edits.
+PIN.json binds exact v2 commit/seal/core/producer/control and sealed diagnosis,
+plus the independent supervisor's actual --max-old-space-size=96 profile.
+Candidate/source/tree/archive/pack bindings are provenance ONLY: no product
+imports, archive reads/replay, build, npm, materialization or reconstruction.
+The full v2 core.mjs and stream-fixture.mjs are copied byte-for-byte from Git,
+authenticated against v2 SEAL.json, never patched. Both copied SHA256 values
+must equal the original committed hashes at preflight and postflight.
+All hashStream/hashProcess, materializer/path/link/hash code remains identical.
+Only hashProcess is invoked here. No genuine core defect is claimed or fixed.
+
+EXPLICIT METRIC / OBSERVABILITY
+Positive assertion is an ABSOLUTE strict current sampled RSS <268435456 bytes
+for one dedicated fresh consumer PROCESS using the unchanged v2 core.
+It is not an allocation delta, a thread metric, a process.resourceUsage lifetime
+high-water, or a whole-verifier/process-tree RSS bound. No baseline subtraction,
+threshold increase, forced GC, hidden retry or historical failure waiver.
+The independent consumer is freshly spawned before any tree/materializer/prefix
+controls. Its module imports, observer, PIN parsing, hashing and consumption
+all count toward its current RSS. Earliest baseline means after observer imports,
+not OS-exec startup. New full telemetry does NOT subtract this setup baseline.
+Native core samples at stream entry/every256 chunks/successful final hash.
+Additional consumer samples occur at baseline, before-stream, first-consume,
+every256 chunks, blocked timeout, each mutant allocation and stream settlement.
+Both the native positive maximum AND observed consumer fieldwise RSS peak must
+satisfy the unchanged strict threshold. Samples cannot bound unobserved peaks.
+Producer is a different process and is accounted separately without an invented
+256MiB assertion. Supervisor memory is recorded separately and explicitly NOT
+waived as a total-verifier claim: no total-verifier bound is tested here.
+All five memory fields are bytes: rss, heapUsed, heapTotal, external, arrayBuffers.
+Fieldwise maxima are not necessarily simultaneous. No host-load isolation claim.
+
+Positive uses real 1,073,872,896 bytes (1GiB+128KiB) of 0x61, generated in
+16,386 writes of65,536 bytes, same SHA256 as v2 in PIN.json. Transport may split
+or coalesce raw fragments, so observed consumer chunk count is recorded, not
+falsely equated to producer write count. Core slices at65,536 and rejects raw
+fragments above1,048,576. Awaited consumer pending/bytes are independently counted;
+incremental observer hash retains no chunks. No main-process allocation stress.
+Producer preload forwards stdout.write with original receiver/arguments/return;
+records accepted bytes/writes, false writes/drain events, writableLength samples
+and writableHighWaterMark. It preserves the producer buffer/data/drain loop.
+Sampled queue lengths are Node observations, not kernel occupancy or absolute
+queue bounds. Consumer pendingBytes is callback-owned bytes, not readableLength.
+On SIGTERM only, preload durably writes a final producer receipt then re-raises
+SIGTERM; this disclosed telemetry lifecycle addition leaves normal fixture bytes
+and natural exit behavior unchanged. Core still owns producer kill/wait/close.
+
+FINITE DECLARED RECIPE — EXACTLY ONE ATTEMPT EACH, IN ORDER
+1 positive: fresh consumer/producer, full unchanged over1GiB data/digest, genuine
+  slow awaited consumer via setImmediate; both natural status0, no forced kill.
+2 producer-exit7: same full data/digest, original producer's existing exit7 arg;
+  core STREAM_PROCESS must reach coordinator as worker exit17, not an import or
+  parse failure; producer must have naturally exited7 and no live process remains.
+3 consumer-failure: callback throws V3_CONSUMER_FAILURE after16 real chunks;
+  core must terminate/reap active producer, worker must forward exact failure and
+  naturally exit17; coordinator records operationSucceeded=false, not product pass.
+4 timeout: callback blocks after16 real chunks, sends timeout-ready; parent timer
+  after250ms sends V3_TIMEOUT, releases callback with that exact error, core reaps
+  producer, worker persists receipt and naturally exits17. This is intentional
+  cooperative cancellation, NOT a positive product outcome or assertion-only test.
+5 allocation-mutant: ONLY dedicated consumer allocates/touches/retains8MiB of0x5a
+  per callback, in addition to real stream consumption. Each allocation is sampled,
+  fsynced and IPC-handshaken before the next allocation. Parent detects sampled
+  RSS >=268435456, fsyncs RESOURCE-BOUNDARY, stops further allocations, sends
+  V3_RSS_LIMIT. Core kills/reaps producer; worker durably records complete failure
+  receipt and remains alive retaining allocations. Parent persists BEFORE-KILL,
+  then really sends consumer SIGTERM and awaits close. SIGTERM death is REQUIRED;
+  an assertion-only rejection is insufficient. This is an intentionally killed
+  harness-mutant, NOT a natural positive product result.
+
+Mutant bounded envelope: at most40 allocations =335544320 retained bytes,45s
+whole-control deadline,3s cooperative cleanup grace then emergency SIGTERM and
+3s escalation to SIGKILL. Expected sampled RSS overshoot must be <67108864 bytes
+above boundary. No next8MiB allocation is admitted after observed crossing.
+This is stepwise supervised detection, not an OS continuous hard-RSS guarantee;
+incidental native overhead/unobserved peaks are not bounded by the8MiB step.
+Failure to reach boundary before allocation cap, oversized measured overshoot,
+emergency fallback, missing receipt, parse/import errors, unexpected statuses,
+live/zombie producer/consumer or group members all FAIL the control. No relabeling.
+All controls have45s deadlines and emergency process-group cleanup. Parent records
+error/close, all messages and signals; waits direct child close; checks group via
+pinned ps and consumer/producer PID absence via signal0. Normal receipt implies
+core awaited producer close. Any post-close orphan requires kill and a failed
+control. Producer SIGTERM and consumer SIGTERM are distinguished in raw receipts.
+Arbitrary supervisor SIGKILL, OS failure or disk failure cannot guarantee durable
+final telemetry; missing fields are failures, never invented numbers or passes.
+
+RECEIPTS / FAILURE POLICY
+Fresh unique output directory; writes are exclusive. Baseline/samples, producer
+start/final receipt, consumer final receipt, parent RAW-RECEIPT and mutation
+boundary/before-kill events are persisted BEFORE coordinator assertions. Journals
+and JSON receipts fsync before returning. Assertions write a separate VERDICT;
+failure cannot discard already persisted numeric/status evidence. Consumer errors
+retain observed bytes/chunks/hash and memory even when native core returns no
+metrics. Supervisor RAW-RECEIPT records missing/corrupt child artifacts explicitly.
+operationSucceeded=false on every deliberate negative; expected-control-outcome
+only says the control detected the intended boundary. No negative is a product pass.
+Unexpected failure stops the remaining recipe; no fix/reexecution until root review.
+Postflight and evidence sealing still occur, even when the recipe is not green.
+
+FREEZE / REPLAY
+FIRST explicit-only Git commit freezes this entire recipe, expectations, tools,
+provenance, selfcheck history and MANIFEST.json before any control runs. The recipe
+manifest hashes every other recipe file; its own SHA256 and FIRST commit are supplied
+as exact CLI inputs and bound in PRE/POST/evidence. No circular self-hash.
+Pinned tools: exact Node executable/version/platform/arch/OS release, Git and ps.
+Parent/worker/producer all use pinned Node; children have --max-old-space-size=96.
+Child env is explicit PATH/HOME/TMPDIR/locale/TZ, no ambient NODE_OPTIONS/preloads.
+Producer receives only that env plus its explicit owned telemetry directory.
+
+From this repository, after reviewing/authenticating the committed recipe files:
+  NODE=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node
+  V3=tests/integration/html-public-independent-20260827/admission-v3
+  "$NODE" "$V3/recipe/coordinator.mjs" "$FREEZE_COMMIT" "$MANIFEST_SHA256" \
+    "$V3/execution-01" >"$V3/execution-01.stdout.data" \
+    2>"$V3/execution-01.stderr.data"
+  STATUS=$?
+  printf '%s\n' "$STATUS" >"$V3/execution-01.exit.data"
+The one authorized author execution uses precisely execution-01. Root/Raman may
+replay only after review in a new nonexisting owned directory, changing the output
+path and companion capture names, never overwriting evidence. Preserve frozen
+recipe bytes from FIRST commit; do not cherry-pick/rebase original history or
+create branches/refs. Tool mismatch is a blocker, not permission to update pins.
+Replay needs only small committed recipe/historical Git objects; not candidate
+runtime/full archive. Copied core is the immutable overlay base, not live v2.
+Unrelated worktree/index edits neither enter nor veto this committed-input gate.
+Pre/post compare exact recipe files plus directory inventory (including added
+empty directories); also authenticate selected committed historical inputs/tools.
+No claim of whole-repository append-proof checking or checking all TS fixtures.
+
+SECOND explicit-only evidence commit contains raw captures, numeric receipts,
+checks/statuses/report and evidence manifest binding FIRST commit and recipe
+manifest SHA256. No source edits after frozen execution even if it fails.
+Stop here. Four later materializer/reconstruction controls, full410 build/pack
+reproduction, positive materialization/reconstruction and actual34 are NOT run.
+Root routes Raman independent review; author does not approve admission.

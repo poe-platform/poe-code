@@ -1,0 +1,54 @@
+{
+  "records": [
+    {
+      "name": "initial-cold-original31",
+      "stdoutArtifactByteExact": true,
+      "stdoutBytes": 245994,
+      "stdoutSha256": "09632cb381c80881cfb871af349cb371bb8917748303ff477f87a8106b60efc7",
+      "capturedStderr": {
+        "base64": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrTextArtifact": {
+        "bytes": 1,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "formattingOnlyNewline": true
+      }
+    },
+    {
+      "name": "initial-qualified-original31",
+      "stdoutArtifactByteExact": true,
+      "stdoutBytes": 81886,
+      "stdoutSha256": "785b62babdb93352926bf91d8b117ca4f366012067e21e88ee18174405d7a0da",
+      "capturedStderr": {
+        "base64": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrTextArtifact": {
+        "bytes": 1,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "formattingOnlyNewline": true
+      }
+    },
+    {
+      "name": "final-qualified-original31",
+      "stdoutArtifactByteExact": true,
+      "stdoutBytes": 82891,
+      "stdoutSha256": "5590b5fafe628be6f190d15a42c5429c88fee2513fa93e0e9d347eed633f71a9",
+      "capturedStderr": {
+        "base64": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrTextArtifact": {
+        "bytes": 1,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "formattingOnlyNewline": true
+      }
+    }
+  ],
+  "disclosure": "All three original-cohort TAP stdout files match their pre-save captured SHA256 byte-for-byte. Their captured stderr hashes equal SHA256(empty); the text-artifact writer added one formatting newline to each empty .stderr.txt. Original artifacts retained unchanged; exact empty captured stderr is represented here explicitly. This artifact-formatting defect is not product stderr, a changed test result or native oracle behavior.",
+  "formatCheck": "Full staged diff-check flags19 preserved whitespace-only lines in final raw TAP; code/docs/JSON excluding *.tap.txt pass the same check. Raw TAP is not reformatted."
+}

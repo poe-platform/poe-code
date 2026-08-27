@@ -1,0 +1,34 @@
+{
+  "reportPath": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/acceptance-result.json",
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "reportSha256": "5573568706ec3891f27f38e094648538ed1cde99741a25c1bf6d7179450ef467",
+  "source": {
+    "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+    "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+    "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+    "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+    "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "src/commands/diff-patch/patch.ts": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+    "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "src/commands/diff-patch/unified.ts": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5"
+  },
+  "aggregate": "7943828f6a3cda1626a0cd6685b4e1950f75b5fae690fa16977b1451a0b8f75d",
+  "reportedTotals": {
+    "tests": 3758,
+    "passed": 3758,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "censusGroups": 17,
+  "independentRuntimeRerun": false,
+  "limitation": "Independent verification of committed report/source binding and reported census arithmetic only. Author3758 results are not promoted to independent fullgate/runtime acceptance. Original3750pass8fail preserved."
+}

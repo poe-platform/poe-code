@@ -1,0 +1,78 @@
+{
+  "at": "2026-08-27T07:11:43.743Z",
+  "reviewWindowStartedAt": "2026-08-27T06:30:59.532Z",
+  "wallClockMinutes": 40.736866666666664,
+  "removed": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch",
+  "removedTopLevel": [
+    "final-corrected",
+    "final-original",
+    "initial",
+    "isolated-build",
+    "mutation-original-matcher",
+    "mutation-overrestrictive-matcher",
+    "tsx-501"
+  ],
+  "retainedHostAssets": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+      "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+      "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+      "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+      "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+      "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+      "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+    }
+  ],
+  "scope": "Only this reviewer generated scratch/snapshot/native/build artifacts removed; symlink targets not followed. No foreign native artifacts or root dist targeted. Wall-clock review window, not active-work/72-hour claim."
+}

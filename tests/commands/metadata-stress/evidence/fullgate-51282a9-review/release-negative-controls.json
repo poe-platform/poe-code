@@ -1,0 +1,124 @@
+{
+  "results": [
+    {
+      "label": "missing copied native cache",
+      "args": [
+        "tests/commands/metadata-stress/canonical-env/runner.mjs",
+        "release"
+      ],
+      "status": 78,
+      "signal": null,
+      "stdout": "{\n  \"status\": \"setup-unavailable\",\n  \"executedTests\": 0,\n  \"issues\": [\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join\",\n      \"code\": \"ENOENT\"\n    },\n    {\n      \"kind\": \"unavailable\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch\",\n      \"code\": \"ENOENT\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "report": {
+        "status": "setup-unavailable",
+        "executedTests": 0,
+        "issues": [
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+            "code": "ENOENT"
+          },
+          {
+            "kind": "unavailable",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+            "code": "ENOENT"
+          }
+        ]
+      }
+    },
+    {
+      "label": "wrong copied stat pin",
+      "args": [
+        "tests/commands/metadata-stress/canonical-env/runner.mjs",
+        "release"
+      ],
+      "status": 78,
+      "signal": null,
+      "stdout": "{\n  \"status\": \"setup-unavailable\",\n  \"executedTests\": 0,\n  \"issues\": [\n    {\n      \"kind\": \"identity-mismatch\",\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat\",\n      \"expected\": \"9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea\",\n      \"actual\": \"042d5d5f6e353a6d0be6a6cc88b0f7aa6d56abfca558fa8ad80e6676a5328dea\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "report": {
+        "status": "setup-unavailable",
+        "executedTests": 0,
+        "issues": [
+          {
+            "kind": "identity-mismatch",
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+            "expected": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+            "actual": "042d5d5f6e353a6d0be6a6cc88b0f7aa6d56abfca558fa8ad80e6676a5328dea"
+          }
+        ]
+      }
+    }
+  ],
+  "before": {
+    "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+    "mode": 33261
+  },
+  "after": {
+    "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+    "mode": 33261
+  },
+  "helperSha256": "9d30a9d14c8e6ac279e1e9272cbb0eb77703f321e23ffc3edf85f0580bd6d0ca",
+  "method": "Only copied disposable native assets withheld/corrupted and restored; no original host cache, historical evidence, fixture or product edits. Exact release CLI fails78 with zero tests for each control. Repeated prerequisites controls, not extra semantic coverage."
+}

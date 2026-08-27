@@ -1,0 +1,542 @@
+{
+  "completedAt": "2026-08-27T07:08:03.774Z",
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "tree": "354716c69ce261b3f6f3ecfa94abec9ef22ca888",
+  "reviewedInputsUnchanged": 894,
+  "extra": [
+    {
+      "path": "tests/commands/diff-patch/DIFF-GNU-TESTS.md",
+      "sha256": "7a7411e9a061f11a82bbd106dbd62f050beb9e6795a92ea9778e2cafce8c80da"
+    },
+    {
+      "path": "tests/commands/diff-patch/cancellation.test.ts",
+      "sha256": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0"
+    },
+    {
+      "path": "tests/commands/diff-patch/diff-formats.test.ts",
+      "sha256": "b4cdc5907e82abb90d690a495de3c98cd0223df1d8672b472943ed8d65df8e8e"
+    },
+    {
+      "path": "tests/commands/diff-patch/diff-gnu-options.test.ts",
+      "sha256": "5a33c0409a0b9264f9026c0b4bf7a396a7110da963c5cd313bf209db30e0dc4f"
+    },
+    {
+      "path": "tests/commands/diff-patch/diff.test.ts",
+      "sha256": "49c8cc5606237fa1fea4c2aedf9b9b896d6fdcffe5331bfca99ff9944cb82dd5"
+    },
+    {
+      "path": "tests/commands/diff-patch/helpers.ts",
+      "sha256": "9a8244aabef7fcdb13747ae85dd7c05f4f99dd512a64c198931ac33c129e4991"
+    },
+    {
+      "path": "tests/commands/diff-patch/hunk-regressions.test.ts",
+      "sha256": "6a9a5fbf7ef96c90341ddba90698b240d99e20670e65e1f94a50430e84264975"
+    },
+    {
+      "path": "tests/commands/diff-patch/native-helper.test.ts",
+      "sha256": "acf15f4f3028be1c6bc6fb4596655ff421a6a49e98170eb4cbfe9745e71b11a9"
+    },
+    {
+      "path": "tests/commands/diff-patch/options-regressions.test.ts",
+      "sha256": "efdf8195cd39783916b3a070746102f1253606fed801d3f4ba8c1d56a6f6497d"
+    },
+    {
+      "path": "tests/commands/diff-patch/parser-reference-evidence.json",
+      "sha256": "54558b7e2c4380f424777a617d7548a03ffc6e612bbf366a5a0b8552532d5e34"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-absolute.test.ts",
+      "sha256": "5f4f3ff1337cddbd99dd0b878e306221406b97be1c391fef99b668ae309ef46f"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+      "sha256": "ff631df5c0f1a6b2dadbc0b35266e39c95fe6f8d99db4cc8cdb7eeaf59dc22a5"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+      "sha256": "6cce68187f8871c28908788cde48d8fb530be8b2deee459171b1f57dd3cf2c12"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-commit-followup.test.ts",
+      "sha256": "fb13bc9e57fd28a57f2f5b24d9ea8ca6012149bc238e6e13f55297c7e25e7b33"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-editflows.test.ts",
+      "sha256": "2cf78494ab4bc246cf1fd16351e3299cb6285a8095e75e847437ce1237a11696"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-empty.test.ts",
+      "sha256": "61025c5581605cfad4d57187b0faf9d38a938fad4a516ed1bd07f12220736874"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "sha256": "722a21bde6b3c88feada4f1ecbabca66808918abc4f994ca1d059e243bc177a1"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-formats.test.ts",
+      "sha256": "ebb0f8a075139c8eb10d756d52ac75ac679a7a9ee6b9b5081e5254917e8b05d8"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+      "sha256": "eb3ef7724673d188965c1a7581b041bb32ea702f13731f47d1c5e5238e3edf7f"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-gnu-native.ts",
+      "sha256": "fa754e3d45c5da0e9dbb4af6d87515638c007616daf98ae38ea910405d4a9bb5"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+      "sha256": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-gnu-reference.ts",
+      "sha256": "ab035c7e43640020e456b93bea30a2bc7476f325a7906582a978aa5193e74494"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+      "sha256": "492437e8867cc68addf224992f5b716e59d933f96aad5c2232b22944ecf49943"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+      "sha256": "2f3b8593104989c29e95a21d3befd71a36cc8d847b59cd70eb610cb8cad24598"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+      "sha256": "3290c9bc775303a24fb449d84ee777d5ef8ae3174992a1cc680d137c656d3e05"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+      "sha256": "586abd7e74a60b4dfedacc1074a9ba19bafe88215fd2e34009796f4f45668517"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-parser.test.ts",
+      "sha256": "9c2fd583cba0d57c29fb0f4bac869f03c13befd2a277226245cef2d50022a3b5"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-quiet.test.ts",
+      "sha256": "c42ae03030a5672b6e07435d7a142612bdfcd431f68bcadcecc9826f4ba95aa0"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+      "sha256": "b3d367e3c0eb0b92eaea338b948d0bf541fee6934c557cacf42a57c7cb5f213e"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-strip-followup.test.ts",
+      "sha256": "dd47ea6fd15d471ccc8051b172b1ff077ae1584362d4f1534365b0560d9f9c51"
+    },
+    {
+      "path": "tests/commands/diff-patch/patch.test.ts",
+      "sha256": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/README.md",
+      "sha256": "0c1e8fe148e689d6eeafc337b3e0a70aace4a695e9b722cbc2f598766773b35c"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/capture-native.mjs",
+      "sha256": "f74089ddcfdbcdc12eecbe40030cc53b4ddf7e01dce57a3228017a123e0d5424"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts",
+      "sha256": "2a60f66ed9684b715ed3b9bccbc88566853f0a89fb238dc0a732c1dff12594a2"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/native-evidence.json",
+      "sha256": "aefedc80e8cda88e8f5ccaab02bdadf4989cbb6ce51136ee955203be7f29898d"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/native-interpose.c",
+      "sha256": "968d21fbdeef92d73ced0c56440265e40d298aa1660dadce503c60201a2fca84"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/original70.json",
+      "sha256": "d9fcf133b50ca6dded1403d388c5da80e4fff39fd80c6afdda4180053abe09ec"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/run.mjs",
+      "sha256": "060212b2fe6bb63cc65eb84d0e1012c459ff0126fd38afd1e204af476f6ed741"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/tsconfig.json",
+      "sha256": "ad018abf3da713470f5892e1fce1c20e6297ef7a2b4cfaf5318980305fff1708"
+    },
+    {
+      "path": "tests/commands/diff-patch/pruning-consumer/verification.json",
+      "sha256": "85331e949ca6e7e4ee8577480938aa077bfbf40e290c444ccb51fc12f7f7d7e9"
+    },
+    {
+      "path": "tests/commands/diff-patch/safety.test.ts",
+      "sha256": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd"
+    },
+    {
+      "path": "tests/commands/diff-patch/shell.test.ts",
+      "sha256": "8a3e90195ae0f9044d3d9bb052dbde1014065f0f54900c3580b2e730c8ae11f9"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/independent.review.ts",
+      "sha256": "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/tsconfig.scoped.json",
+      "sha256": "e63d7fb388fc1a0ab4fb5278a321611c1e2b8c0073bc14097912eaf6ed1ec489"
+    }
+  ],
+  "natives": [
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "copied": true,
+      "expected": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "actual": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "sourceAfter": {
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+      "copied": true,
+      "expected": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "actual": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "sourceAfter": {
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+      "copied": true,
+      "expected": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+      "actual": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+      "sourceAfter": {
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+      "copied": true,
+      "expected": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+      "actual": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+      "sourceAfter": {
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+      "copied": true,
+      "expected": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+      "actual": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+      "sourceAfter": {
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "copied": true,
+      "expected": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "actual": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "sourceAfter": {
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "mode": 33188
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "copied": true,
+      "expected": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "actual": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "sourceAfter": {
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "copied": true,
+      "expected": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+      "actual": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+      "sourceAfter": {
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+      "copied": true,
+      "expected": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+      "actual": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+      "sourceAfter": {
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "copied": true,
+      "expected": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+      "actual": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+      "sourceAfter": {
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "copied": true,
+      "expected": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+      "actual": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+      "sourceAfter": {
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "copied": true,
+      "expected": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+      "actual": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+      "sourceAfter": {
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "copied": true,
+      "expected": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+      "actual": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+      "sourceAfter": {
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "target": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "copied": false,
+      "expected": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "actual": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "sourceAfter": {
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "mode": 33261
+      },
+      "targetAfter": {
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "mode": 33261
+      }
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+      "copied": true,
+      "expected": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+      "actual": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+      "sourceAfter": {
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "mode": 33188
+      },
+      "targetAfter": {
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "mode": 33188
+      }
+    }
+  ],
+  "patchDiffPins": [
+    {
+      "profile": "gnu",
+      "tool": "diff",
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+      "dialect": "gnu",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+    },
+    {
+      "profile": "gnu",
+      "tool": "patch",
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    {
+      "profile": "apple-calibration",
+      "tool": "diff",
+      "path": "/usr/bin/diff",
+      "realpath": "/usr/bin/diff",
+      "version": "Apple diff (based on FreeBSD diff)",
+      "dialect": "bsd",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+    },
+    {
+      "profile": "apple-calibration",
+      "tool": "patch",
+      "path": "/usr/bin/patch",
+      "realpath": "/usr/bin/patch",
+      "version": "patch 2.0-12u11-Apple",
+      "dialect": "apple-patch-2.0-12u11",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+    }
+  ],
+  "originalFailureNames": [
+    "quoted-path security: quoted ancestor symlink",
+    "GNU default: normal/-E/apply",
+    "GNU default: normal/--remove-empty-files/apply",
+    "GNU default: context/-E/apply",
+    "GNU default: context/--remove-empty-files/apply",
+    "GNU default: unified/-E/apply",
+    "GNU default: unified/--remove-empty-files/apply",
+    "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+    "all seven original author artifacts retain their handoff hashes"
+  ],
+  "helpers": [
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/additional-checks.mjs",
+      "sha256": "2aaf0873776bc610919b859503abf519ace4b3ff1915b781b3994e717177d83f"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/evaluate.mjs",
+      "sha256": "c5318506b855914589dc5ceb4bba62325a775f1bea69887600a21300dd69f067"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-run.mjs",
+      "sha256": "1538d8afe2516211c50c3a0bc2039ee4e8d6132bd6f0e47bead00f0c1647d29b"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/freeze.mjs",
+      "sha256": "6470ac08d158deade0b0e686fb984d2d9e1725b00a5e3fc88bb1fd4fe3958193"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutations.mjs",
+      "sha256": "2ab11abd0c51a34838c49cc3e3aea4747fbc6ccd0492e6e81e1220e9a65cb856"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/ordinary-evaluate.mjs",
+      "sha256": "2e4c9dbe06c344a88a7c1a56f6ac189fb2befe39066f40b529f2442d2e7326c2"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/ordinary-probe.mjs",
+      "sha256": "63d90f19b95c826f58fa015d81a1d4bef6e2b28aeb18db2390eafb365ad4b076"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/probe.mjs",
+      "sha256": "b7016a41f0ff1feb4825662be659a3f0f4858c29f659703749b821b032c56016"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/receipt.mjs",
+      "sha256": "c6e4ca7dd1cf3bdd0a276a372e6416abcf580427f450edc9679db73e573c18d8"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/replay.mjs",
+      "sha256": "02d1a75fd78c7ce4a249f429683b4e040072b10e06a517b9c7dd651620a164a3"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/type-wiring.mjs",
+      "sha256": "4e21730618111d501da3e702324f9850d57f553f96517f2688157051388b125a"
+    },
+    {
+      "path": "tests/commands/metadata-stress/evidence/fullgate-51282a9-review/audit.mjs",
+      "sha256": "37fa60e23c4d25319a8a5c21a477cb765a33696dfbedcae8bf4774d449df29ea"
+    },
+    {
+      "path": "tests/commands/metadata-stress/evidence/fullgate-51282a9-review/final-controls.mjs",
+      "sha256": "d9daa604399db0f4993c8fa0275f98a3fa70014e63f9216a6e7901a0facbd320"
+    },
+    {
+      "path": "tests/commands/metadata-stress/evidence/fullgate-51282a9-review/git-unavailable-control.mjs",
+      "sha256": "d4d2457c786d98a3233132e085b699a6aa5897872e2a9cb988b8be49203ff2fe"
+    }
+  ],
+  "tools": [
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  ],
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64",
+    "kernel": "25.4.0"
+  },
+  "rootHeadAtCompletion": "ba200fec275dbda8c30cc368252cd61b6d42527c",
+  "indexBeforeFinalCommit": "",
+  "worktreeBeforeFinalCommit": " M src/commands/grep.ts\n M src/commands/regex-execution/client.ts\n M src/commands/regex-execution/matching.ts\n M src/commands/regex-execution/protocol.ts\n M src/commands/regex-execution/worker.ts\n M src/commands/search/glob.ts\n M src/commands/search/rg.ts\n M src/commands/search/walk.ts\n M tests/stress/regex-execution/production-continuation-review/EXPECTATIONS.md\n M tests/stress/regex-execution/production-continuation-review/child.mjs\n M tests/stress/regex-execution/production-continuation-review/guard.mjs\n?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/additional-checks.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/author3758-evidence-authentication.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-author-signed-matcher-controls.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-corrected-diff-targets.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-corrected-evaluation.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-corrected-native-product.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-corrected31.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-gate.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-isolated-build.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-mandatory-metadata-table-release.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-mandatory-setup-check.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-mutation-controls.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-ordinary-evaluation.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-ordinary-native-product.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-original-source-binding.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-post-replay-manifest.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-qualified-original31.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-qualified-original31.stderr.txt\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-qualified-original31.tap.txt\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-setup-provenance-controls.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-ts7053-wiring.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/final-unchanged-matcher164.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/initial-ordinary-native-product.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutation-original-matcher-evaluation.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutation-original-matcher-native-product.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutation-overrestrictive-matcher-evaluation.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutation-overrestrictive-matcher-native-product.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/ordinary-evaluate.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/ordinary-probe.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/receipt.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/evidence/fullgate-51282a9-review/final-adversarial-controls.json\n?? tests/commands/metadata-stress/evidence/fullgate-51282a9-review/git-unavailable-control.mjs\n?? tests/commands/metadata-stress/evidence/fullgate-51282a9-review/git-unavailable-release.json\n?? tests/commands/regex-execution/continuation/.gitignore\n?? tests/commands/regex-execution/continuation/after-build.json\n?? tests/commands/regex-execution/continuation/after-controls.json\n?? tests/commands/regex-execution/continuation/author-cohort.json\n?? tests/commands/regex-execution/continuation/bounded-build.json\n?? tests/commands/regex-execution/continuation/bounded-tests.json\n?? tests/commands/regex-execution/continuation/final-build.json\n?? tests/commands/regex-execution/continuation/glob.test.ts\n?? tests/commands/regex-execution/continuation/tsconfig.json\n?? tests/commands/regex-execution/continuation/types.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/rmdir-real-service/list-oracle-review/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo/\n?? tests/shell-stress/canonical-profile-migration/.candidate-C-jWPzgO/\n?? tests/shell-stress/canonical-profile-migration/.candidate-FINAL-T42B3X/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/canonical-profile-review/acceptance-audit.mjs\n?? tests/shell-stress/canonical-profile-review/acceptance-input-audit.json\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/regex-execution/production-continuation-review/evidence/baseline/errors-claim.json\n?? tests/stress/regex-execution/production-continuation-review/evidence/baseline/errors.json\n",
+  "limitation": "Source acceptance binds the frozen commit, not the later mutable repository HEAD. Extra author3758 report authenticated but not independently rerun; project release wiring remains pending."
+}

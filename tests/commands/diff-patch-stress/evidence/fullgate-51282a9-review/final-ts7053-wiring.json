@@ -1,0 +1,30 @@
+{
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "priorFix": "cf1d1f0a5eb3e63022132b3414dc6b8b9624b760",
+  "priorProof": "83124c351cf9d16e78fcf8706c39360d6fd20981",
+  "source": "tests/commands/stream-next-stress/independent.review.ts",
+  "sourceSha256": "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae",
+  "configs": [
+    {
+      "path": "tsconfig.json",
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08",
+      "includesReviewerSource": true
+    },
+    {
+      "path": "tests/commands/stream-next-stress/tsconfig.scoped.json",
+      "sha256": "e63d7fb388fc1a0ab4fb5278a321611c1e2b8c0073bc14097912eaf6ed1ec489",
+      "includesReviewerSource": true
+    }
+  ],
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tests/commands/stream-next-stress/tsconfig.scoped.json"
+  ],
+  "status": 0,
+  "stdout": "",
+  "stderr": "",
+  "signal": null,
+  "scope": "Final existing type wiring and scoped noEmit only; no suite edits, runtime suite execution or root dist output"
+}

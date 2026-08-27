@@ -1,0 +1,34 @@
+{
+  "records": [
+    {
+      "name": "repeated hunk",
+      "initialVirtualStatus": 1,
+      "finalVirtualStatus": 1,
+      "gnuStatus": 1,
+      "appleStatus": 2,
+      "exactGnuStreamsStatusTypedNamespace": true,
+      "virtualModesAndLinksPreserved": true
+    },
+    {
+      "name": "repeated hunk second matching line control",
+      "initialVirtualStatus": 0,
+      "finalVirtualStatus": 0,
+      "gnuStatus": 0,
+      "appleStatus": 2,
+      "exactGnuStreamsStatusTypedNamespace": true,
+      "virtualModesAndLinksPreserved": true
+    },
+    {
+      "name": "repeated hunk later matching line control",
+      "initialVirtualStatus": 0,
+      "finalVirtualStatus": 1,
+      "gnuStatus": 1,
+      "appleStatus": 2,
+      "exactGnuStreamsStatusTypedNamespace": true,
+      "virtualModesAndLinksPreserved": true
+    }
+  ],
+  "passed": 3,
+  "failed": 0,
+  "coverage": "Three existing repeated-hunk inputs rerun in ordinary/default-backup profile, not three new corpus cases. Atomic profile is separately recorded. Full native modes/link counts/identities retained without pretending Darwin and virtual directory nlink conventions match."
+}

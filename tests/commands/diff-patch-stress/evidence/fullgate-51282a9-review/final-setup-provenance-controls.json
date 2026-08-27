@@ -1,0 +1,15 @@
+{
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/metadata-stress/canonical-env/setup.test.mjs",
+    "tests/commands/metadata-stress/canonical-env/provenance-controls.test.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: immutable snapshot and all seven Git commit/path blobs match original evidence\nok 1 - immutable snapshot and all seven Git commit/path blobs match original evidence\n  ---\n  duration_ms: 244.228583\n  type: 'test'\n  ...\n# Subtest: changed captured bytes fail authentication, not silently rebaselined\nok 2 - changed captured bytes fail authentication, not silently rebaselined\n  ---\n  duration_ms: 1.082417\n  type: 'test'\n  ...\n# Subtest: incorrect recorded Git blob fails even when source SHA256 is intact\nok 3 - incorrect recorded Git blob fails even when source SHA256 is intact\n  ---\n  duration_ms: 0.621\n  type: 'test'\n  ...\n# Subtest: changed oracle record cannot authenticate unchanged captured source\nok 4 - changed oracle record cannot authenticate unchanged captured source\n  ---\n  duration_ms: 0.101041\n  type: 'test'\n  ...\n# Subtest: different commit or removed author file cannot rebind the captured set\nok 5 - different commit or removed author file cannot rebind the captured set\n  ---\n  duration_ms: 0.380375\n  type: 'test'\n  ...\n# Subtest: current author files are observed separately from authenticated history\nok 6 - current author files are observed separately from authenticated history\n  ---\n  duration_ms: 0.327459\n  type: 'test'\n  ...\n# Subtest: existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\nok 7 - existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\n  ---\n  duration_ms: 44.451917\n  type: 'test'\n  ...\n# Subtest: missing primary cache is unavailable, never native/product pass or skip\nok 8 - missing primary cache is unavailable, never native/product pass or skip\n  ---\n  duration_ms: 0.591042\n  type: 'test'\n  ...\n# Subtest: wrong host profile refuses execution despite intact bytes\nok 9 - wrong host profile refuses execution despite intact bytes\n  ---\n  duration_ms: 4.22325\n  type: 'test'\n  ...\n# Subtest: Apple system stat is not a replacement for the second pinned GNU build\nok 10 - Apple system stat is not a replacement for the second pinned GNU build\n  ---\n  duration_ms: 4.172875\n  type: 'test'\n  ...\n# Subtest: native qualification does not inherit hostile locale or timezone variables\nok 11 - native qualification does not inherit hostile locale or timezone variables\n  ---\n  duration_ms: 43.998125\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 345.470375\n",
+  "stderr": ""
+}

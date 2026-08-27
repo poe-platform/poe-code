@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-27",
+  "freezeCommit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+  "freezeTree": "4abec3e42e1f07d6b8c60a1d316e3f9a3e816b4c",
+  "candidateCommit": "373437cf84424939e1792470805cdd9e60bd3898",
+  "candidateTree": "8e9037f29aa030406cffb7595371041c91c08ae7",
+  "candidateSource": {
+    "gitBlob": "3b7b55abc14718c0e23aa0c352af392b967a4905",
+    "sha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5"
+  },
+  "preCandidateBaseline": {
+    "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+    "exit": 1,
+    "retried": false,
+    "reason": "missing activateChildCancellation export",
+    "semanticFailureClaimed": false
+  },
+  "initialCandidate": {
+    "extensionRuntime": { "exit": 0, "pass": 22, "fail": 0 },
+    "extensionStrict": { "exit": 2, "rawFailureFile": "initial-candidate-type-failure.txt" },
+    "extensionTypeNegative": { "exit": 2, "rawFailureFile": "initial-candidate-type-failure.txt" },
+    "isolatedBuild": { "exit": 2, "rawFailureFile": "initial-candidate-type-failure.txt" }
+  },
+  "final": [
+    {
+      "name": "extension-runtime",
+      "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+      "exit": 0,
+      "pass": 22,
+      "fail": 0
+    },
+    {
+      "name": "success-replay-supplement-runtime",
+      "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/supplement-v1/activation-replay.test.ts",
+      "exit": 0,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "name": "unchanged-stage1-runtime",
+      "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/cancellation.test.ts",
+      "exit": 0,
+      "pass": 22,
+      "fail": 0
+    },
+    {
+      "name": "unchanged-stage1-repair-runtime",
+      "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts",
+      "exit": 0,
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "name": "extension-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.strict.json",
+      "exit": 0
+    },
+    {
+      "name": "extension-type-negative",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.type-negative.json",
+      "exit": 0
+    },
+    {
+      "name": "success-replay-supplement-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/supplement-v1/tsconfig.strict.json",
+      "exit": 0
+    },
+    {
+      "name": "unchanged-stage1-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.strict.json",
+      "exit": 0
+    },
+    {
+      "name": "unchanged-stage1-type-negative",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.type-negative.json",
+      "exit": 0
+    },
+    {
+      "name": "isolated-helper-build",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.build.json",
+      "exit": 0,
+      "emittedJsSha256": "ec46b8c9aab1be5c4c388828027511cd701db4a35b9b98bfda452f4c38740f58",
+      "emittedDeclarationSha256": "a15924621b222bfaa5fffd8aebed3b7aaedd0110ec36b84eb621111d9b37d123"
+    },
+    {
+      "name": "isolated-helper-import",
+      "command": "node --input-type=module -e <verify the three emitted function exports>",
+      "exit": 0,
+      "exports": [
+        "prepareChildCancellation",
+        "activateChildCancellation",
+        "selectRuntimeCancellationOutcome"
+      ]
+    }
+  ],
+  "resourceClosure": {
+    "signalListenerCountsChecked": true,
+    "parentCapacityReacquiredAfterRollback": true,
+    "ownedBuildOutputRemoved": true,
+    "allChildCommandsExited": true
+  },
+  "notRun": [
+    "broad npm test",
+    "root typecheck or typecheck:all",
+    "independent Stage1 cohort",
+    "moved/source-case-12 cohort",
+    "Poincare Stage2 freeze 98f400c4 plus R08v3",
+    "native cohort",
+    "actual Runtime/Shell integration"
+  ]
+}
+

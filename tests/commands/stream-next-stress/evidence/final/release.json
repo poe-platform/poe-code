@@ -1,0 +1,44 @@
+{
+  "sourceCommit": "72f780d0dbe73f71702c89c33d29aa614170c403",
+  "rootRelease": "ROOT FINAL SOURCE RELEASE: BOTH FRESH FIXERS CLOSED/actualcode0 verified (split6621,seq38769); originalauthors also CLOSED. Freeze committed source72f780d0dbe73f71702c89c33d29aa614170c403. Verify ancestry09ae82b3ee422038f21c26619788bf47de4888f7 /6dbb2465d3973eb001666c0cf4f9ef25d8af9ded split and72f780d seq. All five source-only modules, root/public/default integration remainsNOTauthorized, actualdefaults60.\nSource fixes ONLY: split stable dangling output target creation retainswx/identity; seq extraformatdirective diagnostic includes suppliedoperand/reason. Seq SHA256da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198. Split sixTSdigest8e4f559d779dead7205a56e75286642980ed2930d4629f5c13a6beefac88206d algorithm sorted path+NUL+SHA256bytes+newline. Fixer reports at /tmp/safe-bash-stream-next-{split,format}-fixer-result.txt; independent finalcases remainunchanged, no borrowing authorcases into82.\nRUN FINAL now on isolated committed snapshot, not mutableworkingtree: unchanged82inputs/153 nativecontrols, bothMemory+Real,3workflowsbothbackends, corrected16contractgroups and originalrecord, diagnosticv2+selfchecks/mutations separately, independent previouslyfrozen postdiscoverydangling regression. Preserve initial1c745c3 strict122/164/weak164/164/strong162/164, contracts15/16helperfault and corrected16/16, originaldanglingfailures. Report finalstrict/strong/weak and exactsourcehashes; remainingstrictdiagnosticgaps are not fullnativeparity.\nRoot authorizes final snapshot ID via this separate marker; initialreview.ready and initial evidence remainhistorical. If runner requires originalmarker path input, change only launch configuration explicitly/evidence, not fixture/native/profile classifiers. Read runner-accounting note; supply mandatory standalone releaseverification command without /tmp dependency forfutureuser, optional nativeenv prerequisites never fakepass. Current TS7053/rename change report actualnoEmit and fullgate-discovery impact.\nCommit only ownedtests/commands/stream-next-stress/**, finaldurable handoff/evidence, clean only yourcreatedscratch. Exit normally immediately after coherentfinalreport /tmp/safe-bash-stream-next-reviewer-result.txt; no wait/SIGSTOP/watchers. No source/fullgateconfig/canonicalfix edits, no newcorpusbreadth. Root starts separately assigned canonicalfullgateworkers; immutablefinalsnapshot isolatesyourreview.\n",
+  "diagnosticAuthorization": "Root authorizes a SEPARATE stronger diagnostic-meaning classifier discovered before product execution. Preserve original frozen policy and original selected counts, exact strict/raw/native inputs byte-for-byte. New profile must be named/versioned, with native meaning plus operand for ENOENT/EISDIR/invalid-option/value/conflicting modes; generic command-name or path token alone insufficient. Record pre-exposure discovery from needs-root, no oracle-picking. Run/report original-selected, strengthened-semantic, and strict separately; never call old weak classifier full semantic parity. Mutation controls should demonstrate wrong errno meaning fails new classifier without inflating native input count. No product edits, no expanded tool corpus.\nSplit fresh fixer session6621 is working only author-disclosed dangling-symlink gap against its own native regressions; your initial source remains pinned1c745c3 immutable. Report initial other failures promptly for routing; do not wait for fixer to finish initial replay. Do not share frozen hidden inputs with fixer absent concrete failure need. Root will release final rerun after actual fixer closure.\n",
+  "harnessCorrectionAuthorization": "Root acknowledges initial immutable1c745c3 outcomes: per-adapter61/82strict,82/82weak-original-selected, all status/stdout/namespace effects match; workflows6/6; contracts15/16 with predispatch helper assumption, not product failure. Preserve original logs/hashes/results.\nSeparate stronger diagnostic-meaning profile was authorized in /tmp/safe-bash-stream-next-reviewer-diagnostic-profile.ready; read it now. No original classifier/native/corpus rewrites.\nAuthorize separate TEST-ONLY correction for the concrete optionalfs.compareEntry assumption, using actual optional contract and truthful existing identity evidence. Do not weaken alias/capability assertions or synthesize disjoint identity from path strings. If required proof unavailable, report capability gap rather than force green. Archive old helper/15of16 result and specify zero product execution for failed predispatch group. Corrected16group result separate; source fix counts remain unchanged. No wider corpus expansion.\nSplit fixer6621 has confirmed dangling symlink cause and is preserving baseline/nativecontrols before source fix; no other source failure routed yet. Continue independent separate dangling native/source regression and report exact profile including namespace links/target bytes. Final rerun release will follow fixer actualCLOSED. Do not wait for closed original authors.\n",
+  "runnerAccounting": "Root notes independent.test.ts -> independent.review.ts boundary change (83124c3 report). Treat as explicit TEST HARNESS/runner change, not product fix or unchanged globalgate. Preserve old bytes/result and prove rename content identity. Final handoff MUST give exact reproducible mandatory release-verification command, no preexisting /tmp marker requirement for another verifier, sourcecommit/API inputs explicit. Native prerequisites/profile checks fail clearly when missing, not silent skip; zero product execution before setup failure accounted. Core global *.test.ts may no longer run this suite; state that gap and route exact additive root-config wiring request to Plato in report, root files remain read-only. Do not call renamed test exclusion passing release evidence. Run all frozen82+3workflows+16contracts+separate dangling on immutable final source and report counts unchanged. No broader infrastructure redesign.\n",
+  "apis": {
+    "format": {
+      "module": "src/commands/stream-format/index.ts",
+      "factory": "createStreamFormatCommands",
+      "plugin": "streamFormatCommands",
+      "commands": [
+        "seq",
+        "nl",
+        "rev",
+        "unexpand"
+      ]
+    },
+    "split": {
+      "module": "src/commands/split/index.ts",
+      "factory": "createSplitCommands",
+      "plugin": "splitCommands",
+      "commands": [
+        "split"
+      ]
+    },
+    "defaults": 60,
+    "scope": "source-only; no public package/subpath export proof"
+  },
+  "requiredAncestors": [
+    "d74ca02",
+    "98a28f1",
+    "4244e9a",
+    "1836795",
+    "09ae82b3ee422038f21c26619788bf47de4888f7",
+    "6dbb2465d3973eb001666c0cf4f9ef25d8af9ded",
+    "72f780d0dbe73f71702c89c33d29aa614170c403"
+  ],
+  "splitDigest": "8e4f559d779dead7205a56e75286642980ed2930d4629f5c13a6beefac88206d",
+  "expectedSourceHashes": {
+    "src/commands/stream-format/seq.ts": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198"
+  },
+  "prerequisites": "Pinned GNU9.7-on-Darwin and Apple binaries and OS/locale from frozen/native.json; existing local TypeScript dev compiler, Node>=22; no install/build of native references. Missing/changed prerequisite fails before product execution."
+}

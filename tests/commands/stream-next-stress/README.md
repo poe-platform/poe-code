@@ -55,10 +55,13 @@ remain 60; no whole-project, full-backend, performance, superiority, or duration
 completion claim is made. Plato's frozen `e36dab2` gate and the old diagnostic
 cohorts are unrelated and untouched.
 
-The prepared source harness is launched only through:
+The mandatory source release verification is:
 
 ```sh
-node tests/commands/stream-next-stress/run-source.mjs
+node tests/commands/stream-next-stress/run-source.mjs \
+  --release-file tests/commands/stream-next-stress/evidence/final/release.json \
+  --source-commit 72f780d0dbe73f71702c89c33d29aa614170c403 \
+  --verify-release
 ```
 
 Its source is `independent.review.ts`, deliberately not a `*.test.ts` auto-glob
@@ -87,3 +90,9 @@ profile and synthetic wrong-error/wrong-operand mutation controls. Original raw
 inputs, expected results, strict counts and weak-selected counts remain unchanged.
 The separately disclosed dangling-output regression is not part of the original
 82-input independent cohort.
+
+Final results, remaining strict differences, changed global-test discovery,
+exact root/Plato additive release-job request, and `/tmp`-independent reproduction
+are in `FINAL_HANDOFF.md`. Global `*.test.ts` tests alone do not execute this
+guarded immutable review; the mandatory command must remain a separate release
+check. This is not a skipped-test pass or full-project gate claim.

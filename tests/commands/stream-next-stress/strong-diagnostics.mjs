@@ -5,7 +5,9 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const owned = dirname(fileURLToPath(import.meta.url));
-const authorization = readFileSync('/tmp/safe-bash-stream-next-reviewer-diagnostic-profile.ready', 'utf8');
+const authorizationPath = process.argv[4] ?? '/tmp/safe-bash-stream-next-reviewer-diagnostic-profile.ready';
+const authorizationDocument = readFileSync(authorizationPath, 'utf8');
+const authorization = authorizationPath.endsWith('.json') ? JSON.parse(authorizationDocument).diagnosticAuthorization : authorizationDocument;
 assert.match(authorization, /authorizes a SEPARATE stronger/u);
 const inputPath = resolve(process.argv[2] ?? join(owned, 'evidence/initial/results.json'));
 const outputPath = resolve(process.argv[3] ?? join(owned, '.private/strong-diagnostics.json'));
@@ -94,3 +96,4 @@ const report = { profile: 'diagnostic-meaning-v2', measuredAt: new Date().toISOS
   limitations: 'Separate root-authorized stricter profile. Native inputs/raw expectations/strict and original weak-selected outcomes unchanged. Synthetic classifier mutations are not new native or product input coverage. Secondary Apple profiles are not relabeled primary GNU semantics.' };
 writeFileSync(outputPath, JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify({ summary: report.summary, failures: rows.filter(row => !row.strengthened), nativeSelfChecks: nativeSelfChecks.length, rejectedMutations: mutations.length, outputPath }, null, 2));
+process.exitCode = rows.every(row => row.strengthened) ? 0 : 1;

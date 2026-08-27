@@ -1,0 +1,10 @@
+$ git diff --cached --check -- tests/shell-stress/env-shebang-author/guarded-expectation-correction
+Exit status: 2. Commit was not attempted by the failed && chain.
+attempt-02/test-only.patch:8: trailing whitespace (raw Git context line)
+attempt-02/test-only.patch:29: trailing whitespace; new blank line at EOF (raw Git context line)
+attempt-03/independent-prior-47-of-48.tap:188: trailing whitespace (original assertion diagnostic)
+attempt-03/independent-prior-47-of-48.tap:190: trailing whitespace (original assertion diagnostic)
+attempt-03/test-only.patch:8: trailing whitespace (raw Git context line)
+attempt-03/test-only.patch:29: trailing whitespace; new blank line at EOF (raw Git context line)
+These captured artifact bytes are intentionally preserved, not normalized or waived as a full-tree whitespace pass.
+Authored files and the test-only patch are checked separately before committing.

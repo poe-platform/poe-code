@@ -1,0 +1,187 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const owned = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(owned, "../../../..");
+const sourceCommit = "ea409a6b49d5c1523e3238f0384048218b559c4c";
+const testCommit = "f6a3fa75280bd4d925027e62498aa67b5d9785dc";
+const evidenceCommit = "ee7d909c0379ca1237f729f55a0a22fbe35aa8f7";
+const testPath = "tests/shell/env-shebang.test.ts";
+const hostPath = "tests/shell/env-shebang-host.test.ts";
+const configPath = "tests/shell-stress/env-shebang-author/guarded-completion/tsconfig.scoped.json";
+const pinPath = "tests/shell-stress/env-split-author/native-frozen.json";
+const runName = process.argv[2];
+assert.match(runName ?? "", /^attempt-[0-9]+$/u);
+const output = path.join(owned, runName);
+fs.mkdirSync(output);
+const scratch = fs.mkdtempSync(path.join(owned, ".candidate-"));
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const readHash = file => hash(fs.readFileSync(file));
+const report = { sourceCommit, testCommit, evidenceCommit, startedAt: new Date().toISOString(), scratch, commands: [] };
+const children = [];
+const save = (name, value) => fs.writeFileSync(path.join(output, name), value);
+const git = (...args) => {
+  const result = spawnSync("git", args, { cwd: root, timeout: 30000, maxBuffer: 32 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr?.toString());
+  return result.stdout;
+};
+const blob = (commit, name) => git("show", `${commit}:${name}`);
+const census = (directory, excluded = []) => {
+  const entries = {};
+  const walk = (current, relative = "") => {
+    for (const name of fs.readdirSync(current).sort()) {
+      if (relative === "" && excluded.includes(name)) continue;
+      const key = relative ? `${relative}/${name}` : name;
+      const absolute = path.join(current, name);
+      const stat = fs.lstatSync(absolute);
+      assert.equal(stat.isSymbolicLink(), false, `Unexpected input symlink: ${key}`);
+      if (stat.isDirectory()) {
+        entries[key] = { kind: "directory" };
+        walk(absolute, key);
+      } else {
+        assert.equal(stat.isFile(), true, `Unexpected input type: ${key}`);
+        entries[key] = { kind: "file", mode: stat.mode & 0o777, sha256: readHash(absolute) };
+      }
+    }
+  };
+  walk(directory);
+  return entries;
+};
+const run = (name, executable, args, options = {}) => {
+  const result = spawnSync(executable, args, {
+    cwd: scratch, env: { ...process.env, TMPDIR: path.join(scratch, "tmp"), TSX_DISABLE_CACHE: "1" },
+    timeout: 120000, killSignal: "SIGKILL", maxBuffer: 32 * 1024 * 1024, detached: true, ...options,
+  });
+  if (result.pid) children.push(result.pid);
+  save(`${name}.stdout`, result.stdout ?? Buffer.alloc(0));
+  save(`${name}.stderr`, result.stderr ?? Buffer.alloc(0));
+  report.commands.push({ name, executable, args, cwd: scratch, pid: result.pid, status: result.status,
+    signal: result.signal, error: result.error?.message ?? null,
+    stdoutSha256: hash(result.stdout ?? ""), stderrSha256: hash(result.stderr ?? "") });
+  assert.equal(result.error, undefined, `${name}: ${result.error?.message}`);
+  assert.equal(result.signal, null, `${name}: signal`);
+  assert.equal(result.status, 0, `${name}: ${result.stderr?.toString()}`);
+  return result.stdout;
+};
+let failure;
+try {
+  report.runnerSha256 = readHash(fileURLToPath(import.meta.url));
+  report.host = { platform: process.platform, architecture: process.arch, nodeVersion: process.version,
+    nodeExecutable: process.execPath, nodeSha256: readHash(process.execPath) };
+  report.sourceTree = git("rev-parse", `${sourceCommit}:src`).toString().trim();
+  report.testCommitPaths = git("diff-tree", "--no-commit-id", "--name-only", "-r", testCommit).toString().trim().split("\n");
+  assert.deepEqual(report.testCommitPaths, [testPath]);
+  report.unrelatedCommittedSourceChanges = git("diff", "--name-only", sourceCommit, testCommit, "--", "src").toString().trim().split("\n").filter(Boolean);
+  save("test-only.patch", git("show", "--format=", testCommit, "--", testPath));
+  report.originalTestSha256 = hash(blob(sourceCommit, testPath));
+  report.correctedTestSha256 = hash(blob(testCommit, testPath));
+  assert.equal(report.originalTestSha256, "fa3920c0e09cf2c614540a0a804cc36d60d73da1e8bdf14d590c1e262de78129");
+  assert.equal(report.correctedTestSha256, "ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341");
+  report.protectedInputs = {};
+  for (const name of ["src/shell/runtime.ts", "src/commands/execution.ts", "src/commands/env-split.ts", "src/shell/parser.ts", hostPath, pinPath]) {
+    const accepted = hash(blob(sourceCommit, name));
+    const committed = hash(blob(testCommit, name));
+    const live = readHash(path.join(root, name));
+    report.protectedInputs[name] = { accepted, committed, live };
+    assert.equal(committed, accepted, name);
+    assert.equal(live, accepted, name);
+  }
+  const originalTapPath = "tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap";
+  const originalTap = blob(evidenceCommit, originalTapPath);
+  report.originalAuthorEvidence = { commit: evidenceCommit, path: originalTapPath, sha256: hash(originalTap) };
+  assert.match(originalTap.toString(), /# tests 48\n# suites 0\n# pass 47\n# fail 1/u);
+  const reviewBase = "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1";
+  report.independentReview = {};
+  for (const suffix of ["", "-controls", "-audit"]) {
+    const relative = `${reviewBase}${suffix}/report.json`;
+    const bytes = fs.readFileSync(path.join(root, relative));
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, `${reviewBase}${suffix}/manifest.json`), "utf8"));
+    assert.equal(hash(bytes), manifest.files["report.json"]);
+    const data = JSON.parse(bytes);
+    assert.equal(data.sourceCommit ?? data.candidate, sourceCommit);
+    const item = { path: relative, sha256: hash(bytes), archiveSha256: data.archiveSha256 ?? null };
+    if (suffix === "") item.counts = data.counts;
+    if (suffix === "-audit") { item.qualification = data.qualification; item.controls = data.controls; }
+    if (suffix === "-controls") {
+      item.author = { status: data.controls.author.status, invocation: data.controls.author.invocation };
+      save("independent-prior-47-of-48.tap", data.controls.author.stdout);
+      save("independent-prior-47-of-48.stderr", data.controls.author.stderr);
+      assert.equal(data.controls.author.status, 1);
+      assert.match(data.controls.author.stdout, /# tests 48\n# suites 0\n# pass 47\n# fail 1/u);
+    }
+    report.independentReview[suffix || "frozen"] = item;
+  }
+  const archivePaths = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", testPath, hostPath, "tests/shell/helpers.ts", pinPath];
+  const archive = git("archive", "--format=tar", sourceCommit, "--", ...archivePaths);
+  report.archive = { commit: sourceCommit, paths: archivePaths, sha256: hash(archive) };
+  run("extract", "tar", ["-xf", "-", "-C", scratch], { input: archive });
+  assert.equal(readHash(path.join(scratch, testPath)), report.originalTestSha256);
+  fs.writeFileSync(path.join(scratch, testPath), blob(testCommit, testPath));
+  fs.mkdirSync(path.dirname(path.join(scratch, configPath)), { recursive: true });
+  fs.writeFileSync(path.join(scratch, configPath), blob(evidenceCommit, configPath));
+  report.scopedConfig = { commit: evidenceCommit, path: configPath, sha256: readHash(path.join(scratch, configPath)) };
+  const toolRoots = ["tsx", "typescript", "@types/node", "esbuild", `@esbuild/${process.platform}-${process.arch}`];
+  const toolCensus = () => Object.fromEntries(toolRoots.map(name => [name, census(path.join(root, "node_modules", name))]));
+  report.toolsBefore = toolCensus();
+  report.toolVersions = Object.fromEntries(toolRoots.map(name => [name, JSON.parse(fs.readFileSync(path.join(root, "node_modules", name, "package.json"), "utf8")).version]));
+  fs.symlinkSync(path.join(root, "node_modules"), path.join(scratch, "node_modules"), "dir");
+  fs.mkdirSync(path.join(scratch, "tmp"));
+  const pins = JSON.parse(fs.readFileSync(path.join(scratch, pinPath), "utf8"));
+  const nativeCensus = () => [...pins.envProfiles, ...pins.bashProfiles].map(pin => {
+    const actual = readHash(pin.binary);
+    assert.equal(actual, pin.sha256, pin.name);
+    return { ...pin, actual };
+  });
+  report.nativeBefore = nativeCensus();
+  report.inputsBefore = census(scratch, ["node_modules", "dist", "tmp"]);
+  run("build", process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json"]);
+  report.distBefore = census(path.join(scratch, "dist"));
+  const tap = run("author-48", process.execPath, ["--import", "tsx", "--test", testPath, hostPath]).toString();
+  report.counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => {
+    const match = tap.match(new RegExp(`^# ${name} (\\d+)$`, "m"));
+    assert.ok(match, `Missing TAP count: ${name}`);
+    return [name, Number(match[1])];
+  }));
+  assert.deepEqual(report.counts, { tests: 48, pass: 48, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+  const titles = text => [...text.matchAll(/^# Subtest: (.+)$/gm)].map(match => match[1]);
+  const oldTitle = "registry, function and PATH names cannot hijack the reserved interpreter";
+  const newTitle = "reserved interpreter resists hijacks while exact registered targets execute";
+  assert.deepEqual(titles(tap), titles(originalTap.toString()).map(title => title === oldTitle ? newTitle : title));
+  report.same48CaseTitles = true;
+  run("strict", process.execPath, ["node_modules/typescript/bin/tsc", "-p", configPath]);
+  report.inputsAfter = census(scratch, ["node_modules", "dist", "tmp"]);
+  assert.deepEqual(report.inputsAfter, report.inputsBefore);
+  assert.deepEqual(census(path.join(scratch, "dist")), report.distBefore);
+  report.nativeAfter = nativeCensus();
+  assert.deepEqual(report.nativeAfter, report.nativeBefore);
+  assert.deepEqual(toolCensus(), report.toolsBefore);
+  report.integrity = { archivedInputsUnchanged: true, distUnchanged: true, toolsUnchanged: true, nativeUnchanged: true,
+    newEntriesDetected: "Input census compares files and directories recursively and rejects symlinks; top-level dist, node_modules and tmp excluded. Dist and named tool packages checked separately; temporary cache contents excluded." };
+  report.passed = true;
+} catch (error) {
+  failure = error;
+  report.passed = false;
+  report.failure = error.stack ?? String(error);
+} finally {
+  report.cleanup = children.map(pid => {
+    let remaining = false;
+    try { process.kill(-pid, 0); remaining = true; } catch (error) { if (error.code !== "ESRCH") throw error; }
+    if (remaining) process.kill(-pid, "SIGKILL");
+    return { pid, groupAbsentAtSettlement: !remaining, cleanupKill: remaining };
+  });
+  fs.rmSync(scratch, { recursive: true, force: true });
+  report.scratchAbsent = !fs.existsSync(scratch);
+  report.finishedAt = new Date().toISOString();
+  if (report.cleanup.some(item => !item.groupAbsentAtSettlement)) {
+    report.passed = false;
+    failure ??= new Error("Owned process group required cleanup; inspect evidence");
+  }
+  save("report.json", `${JSON.stringify(report, null, 2)}\n`);
+  save("manifest.json", `${JSON.stringify({ files: Object.fromEntries(fs.readdirSync(output).sort().map(name => [name, readHash(path.join(output, name))])) }, null, 2)}\n`);
+}
+if (failure) throw failure;
+console.log(JSON.stringify({ output, counts: report.counts, integrity: report.integrity, cleanup: report.cleanup, scratchAbsent: report.scratchAbsent }, null, 2));

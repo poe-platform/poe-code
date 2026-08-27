@@ -1,0 +1,9 @@
+Source-path inspection after successful test-only commit f6a3fa75280bd4d925027e62498aa67b5d9785dc:
+$ shasum -a 256 tests/shell/env-shebang.test.ts src/shell/runtime.ts src/commands/core.ts src/commands/env-split.ts src/shell/parser.ts
+ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341  tests/shell/env-shebang.test.ts
+4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06  src/shell/runtime.ts
+shasum: src/commands/core.ts: No such file or directory
+b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4  src/commands/env-split.ts
+10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e  src/shell/parser.ts
+Exit status: 1. This is a failed path-inspection command, not a test run.
+Subsequent read-only lookup identifies the env implementation at src/commands/execution.ts.

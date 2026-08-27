@@ -1,0 +1,39 @@
+{
+  "capturedAt": "2026-08-27T15:34:33.614Z",
+  "scope": "Exact files and directories under this owned evidence directory, excluding this manifest itself; includes appended inert snapshots. Prior per-attempt manifests are unchanged.",
+  "directories": [
+    "attempt-01",
+    "attempt-02",
+    "attempt-03"
+  ],
+  "files": {
+    "README.md": "d971536f2082603c04bf507a642e375c3fd4ddbd375028313a63e2b37a3667e4",
+    "attempt-01/manifest.json": "b658dd5825928f7cf57674a7daf19cc7c59604bbcfb18d69f5fefbafb60e9e02",
+    "attempt-01/report.json": "b5522d4aadecaa1cd293cc0fa5349bd1002367f78783c1087063de6a244ee97b",
+    "attempt-01/runner.inert.data": "6ca8d87c7a395d2fc34729794a152df627eaddd82f2442e1adbd49424529d9e9",
+    "attempt-02/independent-prior-47-of-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/independent-prior-47-of-48.tap": "fc412f2f0c42aff4a74a5f9e2615c7790f9f1c5b39e7d2be7593ea5cdef916bc",
+    "attempt-02/manifest.json": "4c251ebef25ec0350c05b214369cdc402f54001efbc4ac8cc997cb038f1d5b71",
+    "attempt-02/report.json": "f1cf8b1565d7861db80c2036d39deb83eaa4d5c3b2806a1b0987785307b2ed0e",
+    "attempt-02/runner.inert.data": "722089d2cb52b8b27e49836390a1998972c421abf3a6293542841f51a185b1a6",
+    "attempt-02/test-only.patch": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "attempt-03/author-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/author-48.stdout": "1719bc44276d2b591e746af3c6b943866c2c9fadf2e8e35417e05717565787c9",
+    "attempt-03/build.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/extract.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/extract.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/independent-prior-47-of-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/independent-prior-47-of-48.tap": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+    "attempt-03/manifest.json": "58e2bdac2bf9f98051cb70a50f710e904514ec1239533d17cfcbcb5a58067912",
+    "attempt-03/report.json": "34b1df76d49f7af39058a63e1111e886c51df956ef4370f5e5936802eb09f808",
+    "attempt-03/strict.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/strict.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/test-only.patch": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "immutable-review-binding.json": "3158c566cc5b25e512143085cfdbec2b35dd3fbad7156c47066a700c4348cd41",
+    "pre-attempt.log": "823aba8b2ec4da4223ef55dd8bc6bd37cf2efc7f8e006a1bd30628cf5a771919",
+    "verify.mjs": "6cbb23faa23494d070ccb5a43d857c9c4ae2011630e28c575f54fe9113e476e5",
+    "evidence-whitespace-check.log": "7f436169f5e70d0eb92bf6eb62f9fc5a084d50c17355e3f6be1fd35d19d9ee81"
+  },
+  "validationNote": "Full raw-evidence whitespace check reports preserved Git context and original failure-diagnostic whitespace; see evidence-whitespace-check.log. Authored files are checked separately."
+}

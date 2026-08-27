@@ -21,7 +21,8 @@ export async function workerHits(regex: RegExp, text: string, all: boolean): Pro
     let client = sessions.get(key);
     if (!client) {
       if (sessions.size >= 4) throw new Error("TEST_SESSION_CAP");
-      client = new Client([{ source: regex.source, flags: regex.flags as Descriptor["flags"] }], new Capacity());
+      const flags: Descriptor["flags"] = regex.unicode ? regex.ignoreCase ? "gui" : "gu" : regex.ignoreCase ? "gi" : "g";
+      client = new Client([{ source: regex.source, flags }], new Capacity());
       sessions.set(key, client);
     }
     return (await client.batch([{ text, all }])).hits[0]!;

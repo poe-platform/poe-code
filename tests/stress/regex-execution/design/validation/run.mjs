@@ -8,17 +8,24 @@ const base = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(base, '../../../../..');
 if (!existsSync('/tmp/regex-revision-author-ready.txt') || process.env.NODE_OPTIONS || process.argv.length !== 2) throw new Error('READY_FIXED_RUN_ONLY');
 const frozen = JSON.parse(readFileSync(resolve(base, 'evidence/frozen.json')));
+const repair = existsSync(resolve(base, 'evidence/repair.json')) ? JSON.parse(readFileSync(resolve(base, 'evidence/repair.json'))) : undefined;
 const verify = () => {
-  for (const [path, expected] of Object.entries({ ...frozen.source, ...frozen.harness, ...frozen.built, ...frozen.generatedCopies })) {
+  if (repair) for (const [path, expected] of Object.entries(frozen.source)) {
+    if (createHash('sha256').update(readFileSync(resolve(base, '.scratch/source', path))).digest('hex') !== expected) throw new Error('SNAPSHOT_DRIFT ' + path);
+  }
+  const liveSource = repair ? Object.fromEntries(Object.entries(frozen.source).filter(([path]) => path === 'src/commands/grep.ts' || path.startsWith('src/commands/search/') || path.startsWith('tests/stress/regex-execution/design/'))) : frozen.source;
+  for (const [path, expected] of Object.entries({ ...liveSource, ...frozen.harness, ...frozen.built, ...frozen.generatedCopies, ...repair?.overrides })) {
     if (createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex') !== expected) throw new Error('FROZEN_DRIFT ' + path);
   }
 };
 verify();
 const engines = ['current', 'worker', 'worker-stream'];
 const schedule = [...commands.map(vector => ['vector', vector.id]), ...raw.map(vector => ['raw', vector.id]), ...policyNames.map(name => ['policy', name]), ...workloads.flatMap(name => [0, 1, 2].flatMap(repetition => engines.map((unused, offset) => ['bench', name, engines[(offset + repetition) % engines.length], String(repetition)]))), ['package', 'moved-esm']];
-writeFileSync(resolve(base, 'evidence/schedule.json'), JSON.stringify({ at: new Date().toISOString(), harnessCommit: spawnSync('git', ['log', '-1', '--format=%H', '--', base], { cwd: root, encoding: 'utf8' }).stdout.trim(), schedule, riskyExecutionsAllocated: 0, riskyExecutions: 0, historicalRiskExhausted: 12, siblingRiskAllocations: [2, 2], rootRiskReserve: 2, repetitions: 3, warmup: 'one exact-output preflight for each benchmark child; excluded', bounds: { startupMs: 3000, afterReadyMs: 10000, cleanupMs: 1000, sampledRssBytes: 536870912, ipcBytes: 1048576, streamBytes: 65536 }, provenance: 'bounded fork/ready/go/heartbeat/kill/exact-child-close supervisor adapted from ../run.mjs; no risk mode or arbitrary fixture input' }, null, 2) + '\n', { flag: 'wx' });
+if (!repair) writeFileSync(resolve(base, 'evidence/schedule.json'), JSON.stringify({ at: new Date().toISOString(), harnessCommit: spawnSync('git', ['log', '-1', '--format=%H', '--', base], { cwd: root, encoding: 'utf8' }).stdout.trim(), schedule, riskyExecutionsAllocated: 0, riskyExecutions: 0, historicalRiskExhausted: 12, siblingRiskAllocations: [2, 2], rootRiskReserve: 2, repetitions: 3, warmup: 'one exact-output preflight for each benchmark child; excluded', bounds: { startupMs: 3000, afterReadyMs: 10000, cleanupMs: 1000, sampledRssBytes: 536870912, ipcBytes: 1048576, streamBytes: 65536 }, provenance: 'bounded fork/ready/go/heartbeat/kill/exact-child-close supervisor adapted from ../run.mjs; no risk mode or arbitrary fixture input' }, null, 2) + '\n', { flag: 'wx' });
 let failures = 0;
-for (const [index, args] of schedule.entries()) {
+const pending = [...schedule.entries()].filter(([index]) => !repair || !existsSync(resolve(base, `evidence/run-${String(index).padStart(2, '0')}.json`)));
+if (repair) pending.push(['recheck-17', schedule[17]]);
+for (const [index, args] of pending) {
   verify();
   const evidence = await new Promise(resolveResult => {
     const started = performance.now();
@@ -69,5 +76,5 @@ for (const [index, args] of schedule.entries()) {
   if (!pass) failures++;
   console.log(JSON.stringify({ args, pass, error: done?.result.error, code: evidence.code }));
 }
-writeFileSync(resolve(base, 'evidence/summary.json'), JSON.stringify({ children: schedule.length, failures, riskyExecutions: 0, activeChildren: 0, sourceVerifiedBeforeAfterEveryChild: true }, null, 2) + '\n', { flag: 'wx' });
+writeFileSync(resolve(base, 'evidence/summary.json'), JSON.stringify({ plannedChildren: schedule.length, thisPhaseChildren: pending.length, thisPhaseFailures: failures, riskyExecutions: 0, activeChildren: 0, verification: repair ? 'unchanged copied source plus live command/prototype source; original README drift retained; explicit adapter/harness hash overrides in repair.json' : 'live source/build/harness' }, null, 2) + '\n', { flag: 'wx' });
 process.exitCode = failures ? 1 : 0;

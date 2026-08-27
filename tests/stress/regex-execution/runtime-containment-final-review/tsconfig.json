@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "checkJs": false,
+    "types": [],
+    "outDir": ".temporary/compiled",
+    "rootDir": ".",
+    "noEmitOnError": true
+  },
+  "files": ["child.mjs", "observe.mjs", "benign-entry.mjs"]
+}

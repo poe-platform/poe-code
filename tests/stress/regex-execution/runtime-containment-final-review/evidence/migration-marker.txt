@@ -1,0 +1,26 @@
+CORRECTED COMPILED BENIGN COHORT READY, 2026-08-27T09:08:46.249Z
+fixture_commit 8d0909ff3cf29290051e3d91dc3205e629ef6bda
+fixture_correction_commit 5a93969794e749db31b636dc90ecf9a352c42242
+fixture_sha256 f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22
+original_fixture_sha256 34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007
+runtime_commit 1b133a8662a32ee84524794842074c9c98d5f6c3
+registration_commit 01aa1bffe0568cc6787d5ff8e0331e024a787385
+messageerror_fixture_commit 10273352f8d65d929cbf5a23e69119414dacee60
+prior_evidence_commit c3a364761091a79af9bbd74af7fa5d09356966c3
+source_freeze_sha256 ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e
+build_manifest_sha256 9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9
+verified_snapshot /Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified
+source_files 216; emitted_files 704; frozen_build_status 0; no live product source/dist
+corrected_compiled_groups 9/9; original_prepared_groups remains 7/8; independent_positive_variants remains 16 across 4 groups
+command node --unhandled-rejections=strict tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/run.mjs corrected-compiled-r1
+result tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/corrected-compiled-r1-result.json
+result_sha256 7009c39ab51a2cff3dce60b7dde3167accee306dd644de0204dd8b0fe027d479
+child_pid 85178; exit 0; signal null; watchdog/kill false; exact_child_absent true; IPC disconnected; stdout/stderr closed and empty
+observer public_boundaries 51; workers 2, exited, termination awaited, zero final listeners; scoped public exec listener/worker checks passed
+original-five historical compiled5/5 packed5/5 accepted, not rerun; five custom first-read controls separate
+old12 historical, not rerun; NEW6 ALL UNUSED; author riskConsumed 0; no pathological or independent6 execution
+packed corrected cohort NOT run by author; DIFFERENT verifier owns tests/stress/regex-execution/runtime-containment-final-review/** and sixTOTAL budget/execution; root must relay separate risk approval after both benign passes
+user baseline benchmark17.784vs15.617 retained; no performance claim
+fixture-only commits are two scoped commits (correction + one exact-identity strengthening), not one combined commit. Concurrent verifier commit a3d3f773bac699bd11ac37f53694004cc4842797 restored unchanged after mistaken amendment; no foreign files changed.
+evidence_commit 6d1beb36ea7bf65e3956496ca3b66998f9cafd12
+final_owned_status CLEAN; exact child PID 85178 absent at final handoff; foreign verifier original commit restored unchanged

@@ -1,0 +1,77 @@
+diff --git a/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs b/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs
+index b3dfc98..c5ce0c2 100644
+--- a/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs
++++ b/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs
+@@ -85,7 +85,7 @@ await check('public:primary-error-and-abort-during-drain-identities', async () =
+   for (const caller of ['none', 0, false, '', { code: 'ENOENT' }]) {
+     const instance = shell();
+     const controller = new AbortController();
+-    const primary = new Error('selected execution failure');
++    const primary = new api.ShellLimitError('maxCommands');
+     const gate = deferred();
+     const started = deferred();
+     let cleanups = 0;
+@@ -103,11 +103,62 @@ await check('public:primary-error-and-abort-during-drain-identities', async () =
+     assert.equal(result.resolved, false);
+     assert.equal(result.error, caller === 'none' ? primary : caller);
+     assert.equal(cleanups, 2);
+-    assert.deepEqual(Object.keys(primary), []);
++    assert.deepEqual(Object.keys(primary), ['limit', 'name']);
++    assert.equal(primary.limit, 'maxCommands');
++    assert.equal(primary.name, 'ShellLimitError');
+     variants.push(caller);
+   }
+   return { variants };
+ });
++await check('public:ordinary-handler-throw-result-and-cleanup-identities', async () => {
++  const variants = [];
++  for (const errors of [0, 1, 2]) {
++    const instance = shell();
++    const primary = new Error('selected execution failure');
++    const failures = [new Error('secondary cleanup failure'), new Error('other secondary cleanup failure')];
++    const gate = deferred();
++    const started = deferred();
++    let cleanups = 0;
++    let stdout = '';
++    let stderr = '';
++    instance.register({ name: 'owned', execute(context) {
++      if (errors) context.registerCleanup(async () => { cleanups++; started.release(); await gate.promise; throw failures[0]; });
++      if (errors === 2) context.registerCleanup(() => { cleanups++; throw failures[1]; });
++      throw primary;
++    } });
++    const running = track(instance.exec('owned', errors ? {
++      stdout: { write(chunk) { stdout += new TextDecoder().decode(chunk); } },
++      stderr: { write(chunk) { stderr += new TextDecoder().decode(chunk); } },
++    } : {}));
++    if (errors) {
++      await within(started.promise);
++      await stillPending(running);
++      gate.release();
++    }
++    const result = await within(running);
++    assert.equal(result.resolved, errors === 0);
++    if (errors === 0) {
++      assert.equal(result.value.exitCode, 1);
++      assert.equal(result.value.stdout, '');
++      assert.equal(result.value.stderr, 'shell: line 1: selected execution failure\n');
++    } else {
++      assert.equal(stdout, '');
++      assert.equal(stderr, 'shell: line 1: selected execution failure\n');
++      if (errors === 1) assert.equal(result.error, failures[0]);
++      else {
++        assert.ok(result.error instanceof AggregateError);
++        assert.equal(result.error.message, 'Invocation cleanup failed');
++        assert.equal(result.error.errors.length, 2);
++        assert.deepEqual(new Set(result.error.errors), new Set(failures));
++        for (const failure of failures) assert.ok(result.error.errors.includes(failure));
++      }
++    }
++    assert.equal(cleanups, errors);
++    assert.deepEqual(Object.keys(primary), []);
++    variants.push({ errors, resolved: result.resolved, cleanups });
++  }
++  return { variants };
++});
+ await check('public:nested-abort-late-admission-before-child-work', async () => {
+   const instance = shell();
+   const controller = new AbortController();

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ScreenBuffer } from "../../dashboard/buffer.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import type { ExplorerLayout } from "../layout.js";
@@ -9,6 +9,10 @@ import { dumpScreen, fixtureState, renderStateSnapshot } from "./test-fixtures.j
 import { cellWidth } from "./text.js";
 
 describe("explorer list renderer", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("snapshots list states", () => {
     expect(renderStateSnapshot(fixtureState({ dirty: REGION_LIST }))).toMatchSnapshot("wide list");
     expect(renderStateSnapshot(fixtureState({ dirty: REGION_LIST, cursor: 3 }))).toMatchSnapshot(
@@ -110,6 +114,49 @@ describe("explorer list renderer", () => {
     expect(output).not.toContain("🈀");
     const cells = Array.from({ length: screen.width }, (_, index) => screen.get(index, 1));
     expect(cells.filter((cell) => cell.ch && cell.style.underline).map((cell) => cell.ch)).toEqual(["😀"]);
+  });
+
+  it.each([
+    ["a", "İab", undefined, [1], ["a"]],
+    ["i", "İab", undefined, [0], ["İ"]],
+    ["\u0307", "İab", undefined, [0], ["İ"]],
+    ["😀", "İ😀b", undefined, [1, 2], ["😀"]],
+    ["\u0301", "İE\u0301b", undefined, [2], ["E\u0301"]],
+    ["ς", "İΟΣ", undefined, [2], ["Σ"]],
+    ["x", "İ", "x", [2], []]
+  ] as const)("underlines original cells for folded %s in %s / %s", (filter, title, subtitle, positions, highlighted) => {
+    const initial = fixtureState({ rows: [{ id: "match", title, subtitle }], selected: new Set() });
+    const { state } = step(initial, {
+      type: "key", key: { ch: filter, ctrl: false, meta: false, shift: false }
+    });
+    const screen = new ScreenBuffer(36, 3);
+
+    renderList(state, screen, listLayout(36, 3));
+
+    expect(state.filtered).toEqual([0]);
+    expect(state.matchPositions.get(0)).toEqual(positions);
+    const cells = Array.from({ length: screen.width }, (_, index) => screen.get(index, 1));
+    expect(cells.filter((cell) => cell.ch && cell.style.underline).map((cell) => cell.ch)).toEqual(highlighted);
+    expect(stripAnsi(dumpScreen(screen))).toContain(title);
+  });
+
+  it.each([
+    ["tr", "a", "I\u0307ab", [2], "a"],
+    ["lt", "a", "I\u0301ab", [2], "a"],
+    ["lt", "i", "I\u0301ab", [0, 1], "I\u0301"]
+  ] as const)("underlines original cells after %s casing for %s in %s", (locale, filter, title, positions, highlighted) => {
+    const lowerCase = String.prototype.toLocaleLowerCase;
+    vi.spyOn(String.prototype, "toLocaleLowerCase").mockImplementation(function (this: string) {
+      return lowerCase.call(this, locale);
+    });
+    const state = fixtureState({ rows: [{ id: "match", title }], filter, selected: new Set() });
+    const screen = new ScreenBuffer(36, 3);
+
+    renderList(state, screen, listLayout(36, 3));
+
+    expect(state.matchPositions.get(0)).toEqual(positions);
+    const cells = Array.from({ length: screen.width }, (_, index) => screen.get(index, 1));
+    expect(cells.filter((cell) => cell.ch && cell.style.underline).map((cell) => cell.ch)).toEqual([highlighted]);
   });
 
   it.each([

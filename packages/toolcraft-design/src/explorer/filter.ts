@@ -1,3 +1,4 @@
+import { graphemes } from "../dashboard/terminal-width.js";
 import type { Row } from "./state.js";
 
 export interface FilterMatch {
@@ -33,7 +34,11 @@ export function filterRows(
     const match = matchSubsequence(preparedQuery, preparedText);
 
     if (match !== undefined) {
-      matches.push({ index, ...match });
+      matches.push({
+        index,
+        ...match,
+        positions: text === preparedText ? match.positions : projectPositions(text, match.positions)
+      });
     }
   });
 
@@ -49,6 +54,39 @@ function searchableText(row: Row): string {
 
 function stripAnsi(value: string): string {
   return value.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+function projectPositions(text: string, positions: readonly number[]): number[] {
+  const projected: number[] = [];
+  let originalOffset = 0;
+  let foldedOffset = 0;
+  let matchIndex = 0;
+
+  for (const segment of graphemes(text)) {
+    const foldedLength = segment.toLocaleLowerCase().length;
+    const firstMatch = matchIndex;
+
+    while (matchIndex < positions.length && positions[matchIndex] < foldedOffset + foldedLength) {
+      if (segment.length === foldedLength) {
+        projected.push(originalOffset + positions[matchIndex] - foldedOffset);
+      }
+      matchIndex += 1;
+    }
+
+    if (matchIndex > firstMatch && segment.length !== foldedLength) {
+      for (let offset = 0; offset < segment.length; offset += 1) {
+        projected.push(originalOffset + offset);
+      }
+    }
+
+    if (matchIndex === positions.length) {
+      break;
+    }
+    originalOffset += segment.length;
+    foldedOffset += foldedLength;
+  }
+
+  return projected;
 }
 
 function matchSubsequence(query: string, text: string): Omit<FilterMatch, "index"> | undefined {

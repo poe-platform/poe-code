@@ -73,6 +73,12 @@ describe("explorer import boundaries", () => {
     expect(isTestFile("test-fixtures.ts")).toBe(true);
     expect(isTestFile("runtime.ts")).toBe(false);
   });
+
+  it("allows only the filter leaf to reuse the pure grapheme helper", () => {
+    expect(validateEdge({ source: "filter.ts", target: "dashboard/terminal-width.ts", typeOnly: false })).toEqual([]);
+    expect(validateEdge({ source: "jobs.ts", target: "dashboard/terminal-width.ts", typeOnly: false })).not.toEqual([]);
+    expect(validateEdge({ source: "filter.ts", target: "dashboard/terminal.ts", typeOnly: false })).not.toEqual([]);
+  });
 });
 
 async function listSourceFiles(directory: string): Promise<string[]> {
@@ -149,6 +155,10 @@ function validateEdge(edge: ImportEdge): string[] {
   }
 
   if (edge.source === "theme.ts" && edge.target === "internal/theme-detect.ts") {
+    return [];
+  }
+
+  if (edge.source === "filter.ts" && edge.target === "dashboard/terminal-width.ts") {
     return [];
   }
 

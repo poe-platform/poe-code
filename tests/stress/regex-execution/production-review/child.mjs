@@ -15,12 +15,14 @@ let peak = 0;
 const NativeWorker = workerThreads.Worker;
 workerThreads.Worker = class ObservedWorker extends NativeWorker {
   constructor(url, options) {
+    const createdAt = performance.now();
     super(url, options);
     const record = { url: String(url), options, exited: false, terminationCalls: 0, refAtEnd: null, worker: this };
     workers.push(record);
     active++;
     peak = Math.max(peak, active);
     this.once('exit', code => { record.exited = true; record.exitCode = code; active--; });
+    if (job === 'benchmark') this.once('message', message => { if (message?.ready === true) record.startupMs = performance.now() - createdAt; });
     const terminate = this.terminate.bind(this);
     this.terminate = async () => { record.terminationCalls++; const result = await terminate(); record.terminationAwaited = true; return result; };
   }
@@ -152,11 +154,12 @@ async function benchmark() {
         const result = {};
         for (const variant of repeat % 2 ? ['production', 'baseline'] : ['baseline', 'production']) {
           const selected = variant === 'baseline' ? baselineApi : api;
+          const priorWorkers = workers.length;
           const start = performance.now();
           const shell = new selected.Shell({ fs: new selected.MemoryFileSystem() }).use(selected.agentCommands());
           const output = await shell.exec(command, { stdin: input });
           await shell.dispose();
-          result[variant] = { milliseconds: performance.now() - start, output: vector(output) };
+          result[variant] = { milliseconds: performance.now() - start, output: vector(output), workerStartupMs: workers.slice(priorWorkers).map(worker => worker.startupMs) };
         }
         await caseCheck(`${size}-${command}-${repeat}`, async () => { assert.deepEqual(result.production.output, result.baseline.output); return result; });
       }

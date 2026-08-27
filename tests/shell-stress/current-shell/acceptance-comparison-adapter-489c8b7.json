@@ -1,0 +1,9 @@
+{
+  "helper": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/compare.ts",
+  "originalSha256": "e74dad80dbe97855d8dcd272771d5eb44dbb1ddd97a08ca44c793ad78e991b18",
+  "adaptedSha256": "7c5b829a7db707e1279326dbd4cbec5a6fe2f10edf925fd691ef44e700db944c",
+  "replacement": {
+    "from": "import { owned, save, sha256 } from \"./support.js\";",
+    "to": "Owned evidence output adapter only; every comparison/assertion unchanged."
+  }
+}

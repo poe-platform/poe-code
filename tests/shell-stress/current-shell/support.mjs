@@ -29,7 +29,11 @@ export async function sourceGuard() {
 
 export function runChild(executable, args, options = {}) {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(executable, args, { cwd: options.cwd ?? root, env: options.env ?? environment, argv0: options.argv0, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
+    const trace = options.env?.CURRENT_SHELL_IMPORT_TRACE ?? process.env.CURRENT_SHELL_IMPORT_TRACE;
+    const tracing = executable === process.execPath && trace;
+    const childArgs = tracing ? ['--import', resolve(owned, 'acceptance-trace.mjs'), ...args] : args;
+    const env = tracing ? { ...(options.env ?? environment), CURRENT_SHELL_IMPORT_TRACE: trace } : options.env ?? environment;
+    const child = spawn(executable, childArgs, { cwd: options.cwd ?? root, env, argv0: options.argv0, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
     const stdout = [];
     const stderr = [];
     let timedOut = false;
@@ -51,7 +55,7 @@ export function runChild(executable, args, options = {}) {
       killGroup();
       let groupAlive = false;
       if (child.pid) { try { process.kill(-child.pid, 0); groupAlive = true; } catch (error) { if (error.code !== 'ESRCH') throw error; } }
-      resolveResult({ status, signal, timedOut, overflow, groupAlive, stdout: Buffer.concat(stdout).toString('base64'), stderr: Buffer.concat(stderr).toString('base64') });
+      resolveResult({ pid: child.pid, status, signal, timedOut, overflow, groupAlive, stdout: Buffer.concat(stdout).toString('base64'), stderr: Buffer.concat(stderr).toString('base64') });
     });
     child.stdin.end(options.stdin ?? '');
   });
@@ -79,5 +83,5 @@ export function patchJson(filename, value) {
   if (!path.startsWith('tests/shell-stress/current-shell/')) throw new Error('Output outside ownership');
   if (existsSync(resolve(root, path))) throw new Error(`Refusing to overwrite evidence: ${path}`);
   const content = `${JSON.stringify(value, null, 2)}\n`;
-  execFileSync('apply_patch', [], { cwd: root, input: `*** Begin Patch\n*** Add File: ${path}\n${content.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`, maxBuffer: 4 * 1024 * 1024 });
+  execFileSync(process.env.CURRENT_SHELL_APPLY_PATCH ?? 'apply_patch', [], { cwd: root, input: `*** Begin Patch\n*** Add File: ${path}\n${content.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`, maxBuffer: 4 * 1024 * 1024 });
 }

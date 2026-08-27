@@ -46,3 +46,9 @@ watchdog must pass first. Any watchdog/failure is preserved, not retried.
 
 Findings are reported before product fixes. Fixed-source verification freezes
 new exact hashes and retains failed-source results and harness corrections.
+
+Root's 2026-08-27 focused batching reminder adds two benign early-selection
+controls, not risk breadth: `rg -q '^a'` and `rg -m1 '^a'`, exact input
+`a\n12345\n`, explicit existing `maxLineBytes: 4`. Both must succeed before
+the later oversized record, with no stderr and stdout empty / `a\n` respectively.
+They run first against the original frozen baseline, never a new baseline.

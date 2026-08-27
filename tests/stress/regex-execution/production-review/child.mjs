@@ -134,6 +134,16 @@ async function lifecycle() {
     finally { await shell.dispose(); }
   });
 }
+async function earlySelection() {
+  for (const flag of ['-q', '-m1']) await caseCheck(`early-selection-before-later-line-budget-${flag}`, async () => {
+    const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.agentCommands({ search: { maxLineBytes: 4 } }));
+    try {
+      const result = await shell.exec(`rg ${flag} '^a'`, { stdin: 'a\n12345\n' });
+      assert.equal(result.exitCode, 0); assert.equal(result.stderr, ''); assert.equal(result.stdout, flag === '-q' ? '' : 'a\n');
+      return vector(result);
+    } finally { await shell.dispose(); }
+  });
+}
 async function benchmark() {
   const baselineApi = await import(pathToFileURL(resolve(owned, 'snapshots/baseline/dist/index.js')));
   for (const [size, input] of [['small', 'ab\ncd\n'.repeat(4)], ['medium', 'ab\ncd\n'.repeat(1000)]]) {
@@ -185,6 +195,7 @@ process.once('message', async message => {
     else if (job === 'lifecycle') await lifecycle();
     else if (job === 'benchmark') await benchmark();
     else if (job === 'transport') await (await import('./transport.mjs')).runTransport(snapshot, caseCheck);
+    else if (job === 'early-selection') await earlySelection();
     else if (job.startsWith('risk-')) await caseCheck(job, risk);
     else throw new Error(`unprepared job ${job}`);
     assert.equal(active, 0, 'zero live workers at final settlement');

@@ -1,0 +1,1564 @@
+{
+  "createdAt": "2026-08-27T18:33:57.178Z",
+  "profile": "GNU coreutils9.7 on Darwin, LC_ALL=C; Apple separately retained",
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+  "argv0": "expr",
+  "virtualLabel": "expr",
+  "identities": {
+    "executable": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "source": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+    "archive": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+    "apple": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+  },
+  "version": {
+    "exitCode": 0,
+    "stdoutHex": "657870722028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65205061726b65722c204a616d657320596f756e676d616e2c20616e64205061756c204567676572742e0a",
+    "stderr": ""
+  },
+  "rows": [
+    {
+      "id": "ambiguous-index-keyword",
+      "args": [
+        "index",
+        "index",
+        "a"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operands",
+      "args": [],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry 'expr --help' for more information.\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr --help' for more information.\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-rhs",
+      "args": [
+        "1",
+        "+"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-close",
+      "args": [
+        "(",
+        "1",
+        "+",
+        "2"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '2'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '2'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "trailing-token",
+      "args": [
+        "1",
+        "2"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '2'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '2'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-still-requires-rhs",
+      "args": [
+        "kept",
+        "|",
+        "1",
+        "+"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-still-requires-close",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "1"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '1'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '1'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-still-requires-keyword-args",
+      "args": [
+        "kept",
+        "|",
+        "substr",
+        "abc",
+        "1"
+      ],
+      "cohort": "original",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "class-parenthesis-not-capture",
+      "args": [
+        "(",
+        ":",
+        "[(]"
+      ],
+      "cohort": "extension",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '[(]'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '[(]'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "empty-after-end-options",
+      "args": [
+        "--"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry 'expr --help' for more information.\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr --help' for more information.\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "forced-token-missing",
+      "args": [
+        "+"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "length-missing",
+      "args": [
+        "length"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "apple": {
+        "exitCode": 0,
+        "stdoutHex": "6c656e6774680a",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "index-missing",
+      "args": [
+        "index",
+        "abc"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "match-missing",
+      "args": [
+        "match",
+        "abc"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "substr-missing",
+      "args": [
+        "substr",
+        "abc",
+        "2"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '2'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '2'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "open-only",
+      "args": [
+        "("
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "unexpected-close",
+      "args": [
+        ")"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "empty-group",
+      "args": [
+        "(",
+        ")"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "wrong-close",
+      "args": [
+        "(",
+        "1",
+        "2"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '2'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '2'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "nested-missing-close",
+      "args": [
+        "(",
+        "(",
+        "1",
+        ")"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after ')'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after ')'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "trailing-close",
+      "args": [
+        "(",
+        "1",
+        ")",
+        ")"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ')'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ')'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "rhs-close",
+      "args": [
+        "1",
+        "+",
+        ")"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "help-is-not-an-option-with-operands",
+      "args": [
+        "--help",
+        "x"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "version-is-not-an-option-with-operands",
+      "args": [
+        "--version",
+        "x"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-or-forced-token",
+      "args": [
+        "kept",
+        "|",
+        "+"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-and-prefix",
+      "args": [
+        "0",
+        "&",
+        "length"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "apple": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "skip-or-wrong-close",
+      "args": [
+        "kept",
+        "|",
+        "(",
+        "1",
+        "x"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-and-trailing",
+      "args": [
+        "0",
+        "&",
+        "1",
+        "x"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-invalid-regex-then-trailing",
+      "args": [
+        "kept",
+        "|",
+        "match",
+        "abc",
+        "[",
+        "extra"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'extra'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'extra'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-apostrophe",
+      "args": [
+        "1",
+        "a'b"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\'b'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\'b'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-backslash",
+      "args": [
+        "1",
+        "a\\b"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\\\b'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\\\b'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-newline",
+      "args": [
+        "1",
+        "a\nb"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\nb'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\nb'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-tab",
+      "args": [
+        "1",
+        "\t"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\t'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\t'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-control-bytes",
+      "args": [
+        "1",
+        "\u0001\u0007\b\u000b\f\r\u001b"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\001\\a\\b\\v\\f\\r\\033\\177'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\001\\a\\b\\v\\f\\r\\033\\177'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-utf8-bytes",
+      "args": [
+        "1",
+        "é😀"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\303\\251\\360\\237\\230\\200'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\303\\251\\360\\237\\230\\200'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-double-quote",
+      "args": [
+        "1",
+        "\""
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\"'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\"'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "quoted-empty",
+      "args": [
+        "1",
+        ""
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ''\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ''\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-after-empty",
+      "args": [
+        "index",
+        ""
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ''\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ''\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-after-newline",
+      "args": [
+        "index",
+        "+",
+        "a\nb"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a\\nb'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a\\nb'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: not a decimal number: 'index'\n"
+      }
+    },
+    {
+      "id": "close-after-apostrophe",
+      "args": [
+        "(",
+        "+",
+        "a'b"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a\\'b'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a\\'b'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "close-instead-of-backslash",
+      "args": [
+        "(",
+        "1",
+        "a\\b"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'a\\\\b'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'a\\\\b'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-|",
+      "args": [
+        "1",
+        "|"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '|'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '|'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-&",
+      "args": [
+        "1",
+        "&"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '&'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '&'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-<",
+      "args": [
+        "1",
+        "<"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-<=",
+      "args": [
+        "1",
+        "<="
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<='\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<='\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-=",
+      "args": [
+        "1",
+        "="
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '='\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '='\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-==",
+      "args": [
+        "1",
+        "=="
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '=='\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '=='\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-!=",
+      "args": [
+        "1",
+        "!="
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '!='\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '!='\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs->=",
+      "args": [
+        "1",
+        ">="
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>='\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>='\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs->",
+      "args": [
+        "1",
+        ">"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs--",
+      "args": [
+        "1",
+        "-"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '-'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '-'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-*",
+      "args": [
+        "1",
+        "*"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '*'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '*'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-/",
+      "args": [
+        "1",
+        "/"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-%",
+      "args": [
+        "1",
+        "%"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '%'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '%'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "missing-operator-rhs-:",
+      "args": [
+        "1",
+        ":"
+      ],
+      "cohort": "control",
+      "gnu": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "forced-index",
+      "args": [
+        "index",
+        "+",
+        "index",
+        "x"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "350a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "350a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: not a decimal number: 'index'\n"
+      }
+    },
+    {
+      "id": "forced-close",
+      "args": [
+        "+",
+        ")"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "290a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "290a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "help-after-end-options",
+      "args": [
+        "--",
+        "--help"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d68656c700a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d68656c700a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d68656c700a",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "version-after-end-options",
+      "args": [
+        "--",
+        "--version"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d76657273696f6e0a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d76657273696f6e0a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d76657273696f6e0a",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "skip-division",
+      "args": [
+        "kept",
+        "|",
+        "1",
+        "/",
+        "0"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: division by zero\n"
+      }
+    },
+    {
+      "id": "skip-noninteger",
+      "args": [
+        "0",
+        "&",
+        "x",
+        "+",
+        "y"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: not a decimal number: 'x'\n"
+      }
+    },
+    {
+      "id": "skip-regex",
+      "args": [
+        "kept",
+        "|",
+        "match",
+        "abc",
+        "["
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    },
+    {
+      "id": "skip-regex-and",
+      "args": [
+        "0",
+        "&",
+        "abc",
+        ":",
+        "["
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: brackets ([ ]) not balanced\n"
+      }
+    },
+    {
+      "id": "nested-closed",
+      "args": [
+        "(",
+        "(",
+        "1",
+        ")",
+        ")"
+      ],
+      "cohort": "valid-control",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "quoted-correction1",
+      "args": [
+        "+",
+        "(",
+        ":",
+        "[(]"
+      ],
+      "cohort": "correction",
+      "gnu": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "gnuAbsoluteArgv0": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "apple": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1646 @@
+TAP version 13
+# Subtest: C diagnostic original: ambiguous-index-keyword
+not ok 1 - C diagnostic original: ambiguous-index-keyword
+  ---
+  duration_ms: 2.426
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'a'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'a'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: C diagnostic original: missing-operands
+not ok 2 - C diagnostic original: missing-operands
+  ---
+  duration_ms: 0.321292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: missing operand\nTry 'expr --help' for more information.\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: missing operand
+    Try 'expr --help' for more information.
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: missing-rhs
+not ok 3 - C diagnostic original: missing-rhs
+  ---
+  duration_ms: 0.237792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '+'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '+'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: missing-close
+not ok 4 - C diagnostic original: missing-close
+  ---
+  duration_ms: 0.619542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' after '2'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' after '2'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: trailing-token
+not ok 5 - C diagnostic original: trailing-token
+  ---
+  duration_ms: 0.2475
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument '2'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument '2'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: skip-still-requires-rhs
+not ok 6 - C diagnostic original: skip-still-requires-rhs
+  ---
+  duration_ms: 0.12675
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '+'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '+'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: skip-still-requires-close
+not ok 7 - C diagnostic original: skip-still-requires-close
+  ---
+  duration_ms: 0.178959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' after '1'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' after '1'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic original: skip-still-requires-keyword-args
+not ok 8 - C diagnostic original: skip-still-requires-keyword-args
+  ---
+  duration_ms: 0.133875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '1'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '1'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic extension: class-parenthesis-not-capture
+not ok 9 - C diagnostic extension: class-parenthesis-not-capture
+  ---
+  duration_ms: 0.462959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' instead of '[(]'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' instead of '[(]'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: empty-after-end-options
+not ok 10 - C diagnostic control: empty-after-end-options
+  ---
+  duration_ms: 0.309583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: missing operand\nTry 'expr --help' for more information.\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: missing operand
+    Try 'expr --help' for more information.
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: forced-token-missing
+not ok 11 - C diagnostic control: forced-token-missing
+  ---
+  duration_ms: 0.127667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: missing operand after '+'\n"
+    - "expr: syntax error: missing argument after '+'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '+'
+    
+  actual: |-
+    expr: syntax error: missing operand after '+'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: length-missing
+not ok 12 - C diagnostic control: length-missing
+  ---
+  duration_ms: 0.078875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'length'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'length'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: index-missing
+not ok 13 - C diagnostic control: index-missing
+  ---
+  duration_ms: 0.093542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'abc'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'abc'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: match-missing
+not ok 14 - C diagnostic control: match-missing
+  ---
+  duration_ms: 0.072584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'abc'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'abc'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: substr-missing
+not ok 15 - C diagnostic control: substr-missing
+  ---
+  duration_ms: 0.068166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '2'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '2'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: open-only
+not ok 16 - C diagnostic control: open-only
+  ---
+  duration_ms: 0.068542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '('\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '('
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: unexpected-close
+ok 17 - C diagnostic control: unexpected-close
+  ---
+  duration_ms: 0.071708
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: empty-group
+ok 18 - C diagnostic control: empty-group
+  ---
+  duration_ms: 0.055166
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: wrong-close
+not ok 19 - C diagnostic control: wrong-close
+  ---
+  duration_ms: 0.078792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' instead of '2'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' instead of '2'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: nested-missing-close
+not ok 20 - C diagnostic control: nested-missing-close
+  ---
+  duration_ms: 0.073709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' after ')'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' after ')'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: trailing-close
+not ok 21 - C diagnostic control: trailing-close
+  ---
+  duration_ms: 0.076333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument ')'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument ')'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: rhs-close
+ok 22 - C diagnostic control: rhs-close
+  ---
+  duration_ms: 0.057875
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: help-is-not-an-option-with-operands
+not ok 23 - C diagnostic control: help-is-not-an-option-with-operands
+  ---
+  duration_ms: 0.073958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'x'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'x'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: version-is-not-an-option-with-operands
+not ok 24 - C diagnostic control: version-is-not-an-option-with-operands
+  ---
+  duration_ms: 0.159167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'x'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'x'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: skip-or-forced-token
+not ok 25 - C diagnostic control: skip-or-forced-token
+  ---
+  duration_ms: 0.118084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: missing operand after '+'\n"
+    - "expr: syntax error: missing argument after '+'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '+'
+    
+  actual: |-
+    expr: syntax error: missing operand after '+'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: skip-and-prefix
+not ok 26 - C diagnostic control: skip-and-prefix
+  ---
+  duration_ms: 0.097084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'length'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'length'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: skip-or-wrong-close
+not ok 27 - C diagnostic control: skip-or-wrong-close
+  ---
+  duration_ms: 0.082917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' instead of 'x'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' instead of 'x'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: skip-and-trailing
+not ok 28 - C diagnostic control: skip-and-trailing
+  ---
+  duration_ms: 0.100792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'x'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'x'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: skip-invalid-regex-then-trailing
+not ok 29 - C diagnostic control: skip-invalid-regex-then-trailing
+  ---
+  duration_ms: 0.118917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'extra'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'extra'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-apostrophe
+not ok 30 - C diagnostic control: quoted-apostrophe
+  ---
+  duration_ms: 0.448833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'a\\'b'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'a\'b'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-backslash
+not ok 31 - C diagnostic control: quoted-backslash
+  ---
+  duration_ms: 0.24775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'a\\\\b'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'a\\b'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-newline
+not ok 32 - C diagnostic control: quoted-newline
+  ---
+  duration_ms: 0.31175
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument 'a\\nb'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument 'a\nb'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-tab
+not ok 33 - C diagnostic control: quoted-tab
+  ---
+  duration_ms: 0.249792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument '\\t'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument '\t'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-control-bytes
+not ok 34 - C diagnostic control: quoted-control-bytes
+  ---
+  duration_ms: 0.206833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument '\\001\\a\\b\\v\\f\\r\\033\\177'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument '\001\a\b\v\f\r\033\177'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-utf8-bytes
+not ok 35 - C diagnostic control: quoted-utf8-bytes
+  ---
+  duration_ms: 0.272166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument '\\303\\251\\360\\237\\230\\200'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument '\303\251\360\237\230\200'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-double-quote
+not ok 36 - C diagnostic control: quoted-double-quote
+  ---
+  duration_ms: 0.289
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - `expr: syntax error: unexpected argument '"'\n`
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument '"'
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: quoted-empty
+not ok 37 - C diagnostic control: quoted-empty
+  ---
+  duration_ms: 0.189834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: unexpected argument\n'
+    - "expr: syntax error: unexpected argument ''\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: unexpected argument ''
+    
+  actual: |-
+    expr: syntax error: unexpected argument
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-after-empty
+not ok 38 - C diagnostic control: missing-after-empty
+  ---
+  duration_ms: 0.239792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after ''\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after ''
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-after-newline
+not ok 39 - C diagnostic control: missing-after-newline
+  ---
+  duration_ms: 0.241666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after 'a\\nb'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after 'a\nb'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: close-after-apostrophe
+not ok 40 - C diagnostic control: close-after-apostrophe
+  ---
+  duration_ms: 0.125833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' after 'a\\'b'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' after 'a\'b'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: close-instead-of-backslash
+not ok 41 - C diagnostic control: close-instead-of-backslash
+  ---
+  duration_ms: 0.273458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "expr: syntax error: expecting ')'\n"
+    - "expr: syntax error: expecting ')' instead of 'a\\\\b'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: expecting ')' instead of 'a\\b'
+    
+  actual: |-
+    expr: syntax error: expecting ')'
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-|
+not ok 42 - C diagnostic control: missing-operator-rhs-|
+  ---
+  duration_ms: 0.110708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '|'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '|'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-&
+not ok 43 - C diagnostic control: missing-operator-rhs-&
+  ---
+  duration_ms: 0.093125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '&'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '&'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-<
+not ok 44 - C diagnostic control: missing-operator-rhs-<
+  ---
+  duration_ms: 0.092125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '<'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '<'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-<=
+not ok 45 - C diagnostic control: missing-operator-rhs-<=
+  ---
+  duration_ms: 0.082083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '<='\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '<='
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-=
+not ok 46 - C diagnostic control: missing-operator-rhs-=
+  ---
+  duration_ms: 0.079084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '='\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '='
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-==
+not ok 47 - C diagnostic control: missing-operator-rhs-==
+  ---
+  duration_ms: 0.088584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '=='\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '=='
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-!=
+not ok 48 - C diagnostic control: missing-operator-rhs-!=
+  ---
+  duration_ms: 0.085416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '!='\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '!='
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs->=
+not ok 49 - C diagnostic control: missing-operator-rhs->=
+  ---
+  duration_ms: 0.078375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '>='\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '>='
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs->
+not ok 50 - C diagnostic control: missing-operator-rhs->
+  ---
+  duration_ms: 1.055333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '>'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '>'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs--
+not ok 51 - C diagnostic control: missing-operator-rhs--
+  ---
+  duration_ms: 0.094042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '-'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '-'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-*
+not ok 52 - C diagnostic control: missing-operator-rhs-*
+  ---
+  duration_ms: 0.096083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '*'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '*'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-/
+not ok 53 - C diagnostic control: missing-operator-rhs-/
+  ---
+  duration_ms: 0.063417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '/'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '/'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-%
+not ok 54 - C diagnostic control: missing-operator-rhs-%
+  ---
+  duration_ms: 0.061791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '%'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '%'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-:
+not ok 55 - C diagnostic control: missing-operator-rhs-:
+  ---
+  duration_ms: 0.059
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:515'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after ':'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after ':'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:15:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: diagnostic grammar control: forced-index
+ok 56 - diagnostic grammar control: forced-index
+  ---
+  duration_ms: 0.348542
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: forced-close
+ok 57 - diagnostic grammar control: forced-close
+  ---
+  duration_ms: 0.052083
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: help-after-end-options
+ok 58 - diagnostic grammar control: help-after-end-options
+  ---
+  duration_ms: 0.045667
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: version-after-end-options
+ok 59 - diagnostic grammar control: version-after-end-options
+  ---
+  duration_ms: 0.056042
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-division
+ok 60 - diagnostic grammar control: skip-division
+  ---
+  duration_ms: 0.053834
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-noninteger
+ok 61 - diagnostic grammar control: skip-noninteger
+  ---
+  duration_ms: 0.054333
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-regex
+ok 62 - diagnostic grammar control: skip-regex
+  ---
+  duration_ms: 0.05525
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-regex-and
+ok 63 - diagnostic grammar control: skip-regex-and
+  ---
+  duration_ms: 0.119291
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: nested-closed
+ok 64 - diagnostic grammar control: nested-closed
+  ---
+  duration_ms: 0.044292
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: quoted-correction1
+ok 65 - diagnostic grammar control: quoted-correction1
+  ---
+  duration_ms: 20.88225
+  type: 'test'
+  ...
+# Subtest: empty invocation guidance uses the registered virtual name and help remains virtual
+not ok 66 - empty invocation guidance uses the registered virtual name and help remains virtual
+  ---
+  duration_ms: 2.635375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:968'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: missing operand\nTry 'expr --help' for more information.\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: missing operand
+    Try 'expr --help' for more information.
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:30:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: skipped grammar errors submit no BRE requests or acquire stdin
+not ok 67 - skipped grammar errors submit no BRE requests or acquire stdin
+  ---
+  duration_ms: 0.182042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:1600'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'expr: syntax error: missing operand\n'
+    - "expr: syntax error: missing argument after '+'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    expr: syntax error: missing argument after '+'
+    
+  actual: |-
+    expr: syntax error: missing operand
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:45:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: diagnostic expansion stays within string, work, and output budgets
+not ok 68 - diagnostic expansion stays within string, work, and output budgets
+  ---
+  duration_ms: 0.295
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:1:2209'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-TeQ86h/tests/commands/expr/diagnostics-regression.test.ts:61:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: argument, numeric, node and depth refusals retain precedence and status
+ok 69 - argument, numeric, node and depth refusals retain precedence and status
+  ---
+  duration_ms: 0.513084
+  type: 'test'
+  ...
+# Subtest: diagnostic writes preserve backpressure and exact sink exception identity
+ok 70 - diagnostic writes preserve backpressure and exact sink exception identity
+  ---
+  duration_ms: 0.660625
+  type: 'test'
+  ...
+# Subtest: aborted diagnostics preserve the caller reason, including pending sink rejection
+ok 71 - aborted diagnostics preserve the caller reason, including pending sink rejection
+  ---
+  duration_ms: 1.648458
+  type: 'test'
+  ...
+1..71
+# tests 71
+# suites 0
+# pass 16
+# fail 55
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 239.702208

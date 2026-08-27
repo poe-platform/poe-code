@@ -25,7 +25,7 @@ language completeness from passing existing tests alone.
 - [x] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
 - [x] MCP: provide usable transport integration without requiring custom glue.
-- [ ] Environment: make capability configuration explicit and missing/denied
+- [x] Environment: make capability configuration explicit and missing/denied
       variables distinguishable without granting ambient host access.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
@@ -1462,6 +1462,26 @@ candidate `/tmp/safejs-env-replacement-consumer.N30nX3/project` on Node 18.18.2,
 22.22.2, and 24.14.0. The 12 SDK and six active-root crash matrices, 54 CLI cases,
 public types/installed smoke, and cleanup audit pass again. The preceding
 documentation-only Release run 33052303602 also completed successfully.
+
+### Verified environment patch
+
+- Commit `e85008c3947c58e3b144ff0e3e9014a3b0e4e609` passes 21,053 local tests,
+  with 41 skipped. Release run 33053268979 completed successfully. npm 10.0.1 and
+  GitHub tag v10.0.1 both identify that exact commit. npm published at
+  08:26:57.313 UTC on August 27, 2026; GitHub records 08:26:58 UTC.
+- The fresh exact-version consumer `/tmp/safejs-env-published-final.REUQnb`
+  independently passes the installed SDK/CLI smoke, strict public types,
+  shared-runtime check, 144 native/SDK cases, 432 ordinary completed restores,
+  64 host-record replacements and 64 corresponding restores, 24 fatal-budget
+  cases, and 64 concurrent runs. The extended matrix passes on Node 18.18.2,
+  22.22.2, and 24.14.0.
+- The published patch also passes 12 SDK SIGKILL/restores, 54 real-process CLI
+  cases with six completed restores, and six active root-CLI SIGKILL/restores.
+  Cleanup verifies all 153 removed outputs and six obsolete directories remain
+  absent, all five binaries are present, and all 19 consumer links are internal.
+  Environment is checked off again on this evidence, not on the earlier 10.0.0
+  results alone. The broader language goal and recorded checkpoint failures
+  remain open.
 
 ## Stale artifact cleanup
 

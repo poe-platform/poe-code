@@ -61,8 +61,8 @@ The prepared source harness is launched only through:
 node tests/commands/stream-next-stress/run-source.mjs
 ```
 
-The launcher rejects a missing/incomplete release or uncommitted author source,
-checks the original frozen hashes, snapshots actual source/config/lockfile/runtime
+The launcher rejects a missing/incomplete release, verifies the authorized
+immutable source commit and original frozen hashes, snapshots committed source/config/lockfile/runtime
 and compiler identity, and emits JavaScript into a unique owned private tree.
 Its scoped TypeScript build follows the harness's actual source dependencies;
 the test subprocess has no TSX loader, source fallback, or inherited Node options.
@@ -72,3 +72,11 @@ Apple observations, contracts, workflow outcomes, and before/after index state.
 The two backends are repeated executions of the same 82 inputs, not a doubled
 independent-input claim. Native sequential-stage workflows are compared to actual
 concurrent virtual pipelines; they do not establish native pipe backpressure.
+
+Initial gated outcomes and helper faults are preserved in
+`evidence/initial/REPORT.md`. The original selected diagnostic policy is weak;
+the root-authorized `strong-diagnostics.mjs` reports a separate versioned meaning
+profile and synthetic wrong-error/wrong-operand mutation controls. Original raw
+inputs, expected results, strict counts and weak-selected counts remain unchanged.
+The separately disclosed dangling-output regression is not part of the original
+82-input independent cohort.

@@ -12,6 +12,8 @@ const release = readFileSync(releasePath, 'utf8');
 if (!/CLOSED/u.test(release) || !/stream-format/u.test(release) || !/split/u.test(release) || !/[a-f0-9]{40}/u.test(release)) {
   throw new Error('BLOCKED: release must confirm CLOSED authors and source commits/hashes');
 }
+const sourceCommit = /Freeze source commit ([a-f0-9]{40})/u.exec(release)?.[1];
+if (!sourceCommit) throw new Error('BLOCKED: root must identify the immutable combined source commit');
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const manifest = JSON.parse(readFileSync(join(owned, 'frozen/manifest.json'), 'utf8'));
 for (const [path, hash] of Object.entries(manifest.files)) {
@@ -22,6 +24,12 @@ const git = args => {
   if (result.status !== 0) throw new Error(result.stderr);
   return result.stdout;
 };
+const committedBytes = path => {
+  const result = spawnSync('git', ['show', `${sourceCommit}:${path}`], { cwd: repository, maxBuffer: 8 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(result.stderr.toString());
+  return result.stdout;
+};
+for (const ancestor of ['d74ca02', '98a28f1', '4244e9a', '1836795']) git(['merge-base', '--is-ancestor', ancestor, sourceCommit]);
 const targetPaths = ['src/commands/stream-format', 'src/commands/split'];
 if (git(['diff', 'HEAD', '--', ...targetPaths]).trim() || git(['ls-files', '--others', '--exclude-standard', '--', ...targetPaths]).trim()) {
   throw new Error('BLOCKED: author source is not committed and closed');
@@ -31,24 +39,25 @@ const run = mkdtempSync(join(owned, '.private/review-'));
 const snapshot = join(run, 'snapshot');
 mkdirSync(snapshot);
 const files = [];
-const copyTree = relative => {
-  for (const entry of readdirSync(join(repository, relative), { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
-    const path = `${relative}/${entry.name}`;
-    if (entry.isDirectory()) copyTree(path);
-    else if (entry.isFile()) {
-      const buffer = readFileSync(join(repository, path));
-      files.push({ path, sha256: sha256(buffer), bytes: buffer.length });
-      mkdirSync(dirname(join(snapshot, path)), { recursive: true });
-      copyFileSync(join(repository, path), join(snapshot, path));
-    }
-  }
-};
-copyTree('src');
-for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json', 'tests/commands/stream-next-stress/independent.test.ts']) {
-  const buffer = readFileSync(join(repository, path));
+const committedPaths = git(['ls-tree', '-r', '--name-only', sourceCommit, '--', 'src']).trim().split('\n');
+for (const path of [...committedPaths, 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json']) {
+  const buffer = committedBytes(path);
   files.push({ path, sha256: sha256(buffer), bytes: buffer.length });
   mkdirSync(dirname(join(snapshot, path)), { recursive: true });
-  copyFileSync(join(repository, path), join(snapshot, path));
+  writeFileSync(join(snapshot, path), buffer);
+}
+const harnessPath = 'tests/commands/stream-next-stress/independent.test.ts';
+mkdirSync(dirname(join(snapshot, harnessPath)), { recursive: true });
+copyFileSync(join(repository, harnessPath), join(snapshot, harnessPath));
+const harnessSha256 = sha256(readFileSync(join(snapshot, harnessPath)));
+const splitSource = files.filter(file => file.path.startsWith('src/commands/split/') && file.path.endsWith('.ts')).sort((left, right) => left.path.localeCompare(right.path));
+const splitDigest = sha256(splitSource.map(file => `${file.path}\0${file.sha256}\n`).join(''));
+if (sourceCommit === '1c745c3a633c32a8e9d87dacfdf33fcadc00caf2') {
+  if (splitDigest !== '9b6f0f7ac5e57a950212bc4d96909ef1839848e37af9b13002237613b2e2a7f6') throw new Error('Split author digest mismatch in initial immutable snapshot');
+  const formatHandoff = readFileSync('/tmp/safe-bash-stream-next-format-result.txt', 'utf8');
+  for (const file of files.filter(file => file.path.startsWith('src/commands/stream-format/') && file.path.endsWith('.ts'))) {
+    if (!formatHandoff.includes(file.sha256)) throw new Error(`Format author hash mismatch: ${file.path}`);
+  }
 }
 const compiler = join(repository, 'node_modules/typescript/bin/tsc');
 const configuration = { extends: './tsconfig.json', compilerOptions: {
@@ -56,8 +65,8 @@ const configuration = { extends: './tsconfig.json', compilerOptions: {
   typeRoots: [join(repository, 'node_modules/@types')],
 }, include: ['tests/commands/stream-next-stress/independent.test.ts'], exclude: ['emitted', 'node_modules'] };
 writeFileSync(join(snapshot, 'tsconfig.review.json'), JSON.stringify(configuration, null, 2));
-const metadata = { startedAt: new Date().toISOString(), release, head: git(['rev-parse', 'HEAD']).trim(), status: git(['status', '--short']),
-  authorSourceCommits: targetPaths.map(path => ({ path, commit: git(['log', '-1', '--format=%H', '--', path]).trim() })),
+const metadata = { startedAt: new Date().toISOString(), release, sourceCommit, harnessPath, harnessSha256, splitDigest, head: git(['rev-parse', 'HEAD']).trim(), status: git(['status', '--short']),
+  authorSourceCommits: targetPaths.map(path => ({ path, commit: git(['log', '-1', '--format=%H', sourceCommit, '--', path]).trim() })),
   indexBefore: git(['diff', '--cached', '--name-only']), sourceFiles: files, sourceTreeSha256: sha256(JSON.stringify(files)),
   run, node: process.version, nodeExecutable: process.execPath, nodeSha256: sha256(readFileSync(process.execPath)), platform: process.platform, arch: process.arch,
   compilerSha256: sha256(readFileSync(compiler)), compilerLibrarySha256: sha256(readFileSync(join(repository, 'node_modules/typescript/lib/_tsc.js'))),

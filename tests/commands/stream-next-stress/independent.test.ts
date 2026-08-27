@@ -87,7 +87,7 @@ async function* fragmented(input: Uint8Array): ByteSource {
 }
 
 function compare(record: NativeRecord, actual: Actual, backend: string): Comparison {
-  const expected = { status: record.status, stdout: record.stdout, stderr: record.stderr, after: record.after };
+  const expected: Actual = { status: record.status, stdout: record.stdout, stderr: record.stderr, after: record.after };
   const mismatches = (Object.keys(expected) as (keyof Actual)[]).filter(key => JSON.stringify(expected[key]) !== JSON.stringify(actual[key]));
   const nativeDiagnostic = Buffer.from(expected.stderr, "base64").toString().toLowerCase();
   const actualDiagnostic = Buffer.from(actual.stderr, "base64").toString().toLowerCase();

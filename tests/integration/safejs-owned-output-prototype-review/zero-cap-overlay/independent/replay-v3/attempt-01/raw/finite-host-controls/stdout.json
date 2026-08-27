@@ -1,0 +1,168 @@
+{
+  "qualification": "Finite host-only controls of exact extracted observer; not guest or engine acceptance; unchanged fulfilled recorder excluded",
+  "childSha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4",
+  "observerSha256": "6b59c5cdd4179961b90fe6d4b26582509a5e0632fa25c6baecf898c7c6909925",
+  "guestExecutions": 0,
+  "productImports": 0,
+  "privateEngineImports": 0,
+  "results": [
+    {
+      "id": "fulfilled-ok",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "fulfilled-error-result",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "synchronous-call-throw",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "call-threw",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-threw",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-object-rejection",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-primitive-0",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "undefined",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-primitive-1",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": true
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-primitive-2",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "boolean",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-primitive-3",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "number",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    },
+    {
+      "id": "awaited-getter-reason",
+      "pass": true,
+      "calls": 1,
+      "finalizers": 1,
+      "sameReferenceOrPrimitive": true,
+      "getterReads": 0,
+      "outcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "events": [
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "finite-finally"
+      ]
+    }
+  ]
+}

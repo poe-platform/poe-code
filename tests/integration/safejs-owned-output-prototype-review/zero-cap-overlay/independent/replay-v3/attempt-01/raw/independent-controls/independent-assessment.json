@@ -1,0 +1,448 @@
+{
+  "cohort": "controls",
+  "rawRoot": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw",
+  "counts": {
+    "scheduled": 6,
+    "childrenLaunched": 6,
+    "engineRuns": 6,
+    "pass": 6,
+    "fail": 0,
+    "blocked": 0
+  },
+  "rows": [
+    {
+      "id": "Z01-open",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "200|0|0|6|12|0\ncurl:0\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "3230307c307c307c367c31327c300a6375726c3a300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 1,
+        "responseBodyChunks": 2,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z01-closed",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 141,
+          "stdout": "curl:141\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a3134310a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 1,
+        "responseBodyChunks": 2,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z02-open",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 22,
+          "stdout": "503|0|0|6|0|22\ncurl:22\n",
+          "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n"
+        },
+        "stdoutHex": "3530337c307c307c367c307c32320a6375726c3a32320a",
+        "stderrHex": "6375726c3a2028323229204854545020726573706f6e736520737461747573203530330a696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z02-closed",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 22,
+          "stdout": "curl:22\n",
+          "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a32320a",
+        "stderrHex": "6375726c3a2028323229204854545020726573706f6e736520737461747573203530330a696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z03-open",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 47,
+          "stdout": "307|0|0|6|0|47\ncurl:47\n",
+          "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n"
+        },
+        "stdoutHex": "3330377c307c307c367c307c34370a6375726c3a34370a",
+        "stderrHex": "6375726c3a2028343729204d6178696d756d207265646972656374732065786365656465640a696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z03-closed",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 47,
+          "stdout": "curl:47\n",
+          "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a34370a",
+        "stderrHex": "6375726c3a2028343729204d6178696d756d207265646972656374732065786365656465640a696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": {
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ]
+      }
+    }
+  ],
+  "imports": [
+    {
+      "journal": "Z01-closed.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "Z01-open.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "Z02-closed.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "Z02-open.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "Z03-closed.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "Z03-open.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    }
+  ],
+  "privateBeforeAfterExact": true,
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "allKnownChildrenClosed": true,
+  "authorParentStatus": "PASS",
+  "independentAllPass": true,
+  "noPromotion": true
+}

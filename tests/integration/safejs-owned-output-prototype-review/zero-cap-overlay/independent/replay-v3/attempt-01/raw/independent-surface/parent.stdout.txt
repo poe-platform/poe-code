@@ -1,0 +1,9 @@
+{"id":"01-supported-facades","outcome":"PASS","exit":7,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"02-direct-surface","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"03-namespace-spread","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"04-shell-module","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"05-missing-register-cleanup","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"06-missing-acquire","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"07-reflection-profile","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"08-function-spread-profile","outcome":"PASS","exit":1,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"task":"/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU","status":"EXECUTION_SETTLED","counts":{"executed":8,"pass":8,"fail":0,"invalid":0,"blocked":0,"conditionalExecuted":0},"privateUnchanged":true,"inputsUnchanged":true,"sharedUnchanged":true,"failures":[],"parent":{"pid":96974,"at":"2026-08-27T18:58:25.270Z","alive":true,"knownLiveChildren":[]}}

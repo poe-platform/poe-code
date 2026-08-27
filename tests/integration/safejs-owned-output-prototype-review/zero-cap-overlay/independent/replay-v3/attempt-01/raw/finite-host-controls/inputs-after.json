@@ -1,0 +1,20 @@
+{
+  "hostControlFreezeCommit": "d05932474728a93e416ecb23eb2a1c925571dfa9",
+  "runtimeExecutionFreezeCommit": "63d730a48ab0048fc16561164d6eeedb5f6cf1d1",
+  "inputs": [
+    {
+      "path": "surface/controls.mjs",
+      "bytes": 3806,
+      "sha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75"
+    },
+    {
+      "path": "surface/child.mjs",
+      "bytes": 13365,
+      "sha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  }
+}

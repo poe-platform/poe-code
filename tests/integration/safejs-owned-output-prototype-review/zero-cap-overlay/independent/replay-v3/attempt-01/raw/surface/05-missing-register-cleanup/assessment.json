@@ -1,0 +1,74 @@
+{
+  "id": "05-missing-register-cleanup",
+  "outcome": "PASS",
+  "category": "SUPPORTED_SURFACE",
+  "checks": [
+    {
+      "name": "runtimeCalls",
+      "pass": true
+    },
+    {
+      "name": "real metadata premise",
+      "pass": true
+    },
+    {
+      "name": "real public pipe signal identity",
+      "pass": true
+    },
+    {
+      "name": "host callback counters",
+      "pass": true
+    },
+    {
+      "name": "host failure absent",
+      "pass": true
+    },
+    {
+      "name": "cleanup failures",
+      "pass": true
+    },
+    {
+      "name": "unconditional no host capability identities",
+      "pass": true
+    },
+    {
+      "name": "shell rejection",
+      "pass": true
+    },
+    {
+      "name": "exit code",
+      "pass": true
+    },
+    {
+      "name": "stdout",
+      "pass": true
+    },
+    {
+      "name": "stderr",
+      "pass": true
+    },
+    {
+      "name": "collected accounted output",
+      "pass": true
+    },
+    {
+      "name": "engine ok",
+      "pass": true
+    },
+    {
+      "name": "exact return",
+      "pass": true
+    },
+    {
+      "name": "VFS bytes and complete namespace",
+      "pass": true
+    }
+  ],
+  "failures": 0,
+  "imports": {
+    "entries": 223,
+    "engineSourceFiles": 63,
+    "productFiles": 158,
+    "failures": []
+  }
+}

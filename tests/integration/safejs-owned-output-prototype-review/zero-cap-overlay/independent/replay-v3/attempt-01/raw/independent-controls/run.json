@@ -1,0 +1,25 @@
+{
+  "cohort": "controls",
+  "started": "2026-08-27T18:59:40.499129+00:00",
+  "status": "PASS",
+  "childrenLaunched": 6,
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/runtime/controls/run.mjs",
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw"
+  ],
+  "parentStarted": "2026-08-27T18:59:50.587348+00:00",
+  "parentClosed": "2026-08-27T19:00:28.002931+00:00",
+  "parentExitCode": 0,
+  "counts": {
+    "scheduled": 6,
+    "childrenLaunched": 6,
+    "engineRuns": 6,
+    "pass": 6,
+    "fail": 0,
+    "blocked": 0
+  },
+  "privateUnchanged": true,
+  "inputsUnchanged": true,
+  "finished": "2026-08-27T19:00:36.782441+00:00"
+}

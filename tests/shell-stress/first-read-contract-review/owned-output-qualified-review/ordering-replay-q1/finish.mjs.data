@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve,dirname } from 'node:path';
+const root='/Users/kjopek/Workspace/safe-bash';
+const task='/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL';
+const owned=resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1');
+const first=resolve(dirname(owned),'execution-q1');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const json=path=>JSON.parse(readFileSync(path));
+for(const name of ['acceptance.result.json','replay.stdout.data','replay.stderr.data','replay-exit.txt'])copyFileSync(resolve(task,name),resolve(owned,name));
+const report=json(resolve(owned,'acceptance.result.json'));
+const expected=json(resolve(owned,'expected32.json'));
+const firstReport=json(resolve(first,'first-corpus.result.json'));
+assert.deepEqual(report.runs.map(({id,parameter})=>({id,parameter})),expected.records.map(({id,parameter})=>({id,parameter})));
+assert.equal(report.runs.length,32);assert.equal(report.logical.length,12);
+const count=entries=>{const counts={PASS:0,FAIL:0,BLOCKED:0,UNRUN:0};for(const entry of entries){assert.ok(Object.hasOwn(counts,entry.status),entry.status);counts[entry.status]++;}return counts;};
+const absent=pid=>{try{process.kill(pid,0);return false;}catch(error){if(error.code==='ESRCH')return true;throw error;}};
+const children=report.runs.map(run=>{
+  const child=run.execution;assert.equal(child.reapedDirectChild,true);assert.equal(child.timedOut,false);assert.equal(child.oversized,false);assert.equal(child.residual,false);assert.equal(child.spawnError,null);assert.equal(child.signal,null);
+  const cleanup=run.observation.fixtureCleanup;assert.deepEqual(cleanup.failures,[]);assert.equal(cleanup.timers,0);assert.equal(cleanup.sockets,0);assert.equal(cleanup.tasks,0);
+  const closure={label:child.label,pid:child.pid,exitCode:child.exitCode,directAbsent:absent(child.pid),groupAbsent:absent(-child.pid),fixtureCleanup:cleanup};
+  assert.equal(closure.directAbsent,true);assert.equal(closure.groupAbsent,true);return closure;
+});
+const corrected=report.runs.filter(run=>run.parameter.startsWith('error-first')||run.parameter==='normal-close-synthetic-caller-undefined');
+assert.equal(corrected.length,3);
+for(const run of corrected){
+  const observation=run.observation;
+  assert.equal(observation.signalBinding.publicRejected,true);assert.equal(observation.signalBinding.publicReasonPresent,true);assert.equal(observation.signalBinding.localNormalClosePreserved,true);
+  assert.equal(observation.cooperativeCleanup.cleanupCalls,1);assert.equal(observation.cooperativeCleanup.pendingBeforeRelease,true);
+  if(run.parameter.startsWith('error-first'))assert.equal(observation.selectedExecution.reached,true);
+  else assert.deepEqual(observation.publicResult,{kind:'error',error:{serializationTag:'undefined'}});
+}
+const parameterCounts=count(report.runs),logicalCounts=count(report.logical);
+assert.deepEqual(parameterCounts,{PASS:32,FAIL:0,BLOCKED:0,UNRUN:0});assert.deepEqual(logicalCounts,{PASS:12,FAIL:0,BLOCKED:0,UNRUN:0});
+const qualification={at:new Date().toISOString(),scope:'one bounded correction replay, no production promotion',preRunCommits:['97909bec33c440e9917b13df188af1ad19700e23','13536dd8705cdbfc68a19da1549b21b069020f41'],productRounds:1,sourceFixes:0,logicalCounts,parameterCounts,original20:count(report.runs.slice(0,20)),targeted12:count(report.runs.slice(20)),firstRawCounts:count(firstReport.runs),firstConservativeCounts:{PASS:29,FAIL:0,BLOCKED:3,UNRUN:0},firstConservativeLogical:{PASS:11,FAIL:0,BLOCKED:1,UNRUN:0},corrections:corrected.map(run=>({id:run.id,parameter:run.parameter,status:run.status,old:firstReport.runs.find(old=>old.parameter===run.parameter),new:run})),nativeReruns:0,baselineComparisonsPreserved:{path:resolve(first,'comparison-first.result.json'),sha256:hash(readFileSync(resolve(first,'comparison-first.result.json')))},allChildrenReaped:true,allFixtureResourcesZero:true,safejsAudit:'NOT DONE; REQUIRED BEFORE PROMOTION',releaseQualification:false};
+writeFileSync(resolve(owned,'qualification.json'),JSON.stringify(qualification,null,2)+'\n');
+writeFileSync(resolve(owned,'child-closure.json'),JSON.stringify({at:new Date().toISOString(),children},null,2)+'\n');
+writeFileSync(resolve(owned,'error-order-journals.json'),JSON.stringify(corrected.map(run=>({id:run.id,parameter:run.parameter,events:run.observation.events,selectedExecution:run.observation.selectedExecution,caller:run.observation.callerAborted,publicResult:run.observation.publicResult,cleanup:run.observation.cooperativeCleanup})),null,2)+'\n');
+mkdirSync(resolve(owned,'raw'),{recursive:true});
+for(const run of report.runs){const name=`${run.id}-${run.parameter}`;writeFileSync(resolve(owned,'raw',name+'.stdout.data'),run.execution.stdout);writeFileSync(resolve(owned,'raw',name+'.stderr.data'),run.execution.stderr);}
+console.log(JSON.stringify({parameterCounts,logicalCounts,children:children.length,allReaped:true,fixtureResourcesZero:true,firstRawCounts:qualification.firstRawCounts}));

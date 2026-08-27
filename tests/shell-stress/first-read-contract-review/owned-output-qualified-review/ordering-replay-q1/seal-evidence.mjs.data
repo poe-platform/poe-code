@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+const owned='/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const walk=base=>readdirSync(base,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(base,entry.name)):[resolve(base,entry.name)]);
+const seal=JSON.parse(readFileSync(resolve(owned,'pre-run-seal.json')));
+for(const entry of seal.files)assert.equal(hash(readFileSync(resolve(owned,entry.path))),entry.sha256,entry.path);
+const files=walk(owned).filter(path=>!path.endsWith('/ARTIFACTS.json')).sort().map(path=>{const bytes=readFileSync(path);return {path:path.slice(owned.length+1),bytes:bytes.length,sha256:hash(bytes)};});
+writeFileSync(resolve(owned,'ARTIFACTS.json'),JSON.stringify({at:new Date().toISOString(),classification:'bounded Q1 ordering correction; inert code captures; exactly one acceptance round',files},null,2)+'\n');
+console.log(JSON.stringify({files:files.length,manifestSha256:hash(readFileSync(resolve(owned,'ARTIFACTS.json')))}));

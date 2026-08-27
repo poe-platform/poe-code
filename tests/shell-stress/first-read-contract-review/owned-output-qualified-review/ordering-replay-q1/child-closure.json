@@ -1,0 +1,453 @@
+{
+  "at": "2026-08-27T13:15:02.947Z",
+  "children": [
+    {
+      "label": "S01/original-local-pending-source",
+      "pid": 42871,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S02/original-mock-s3-pending-source",
+      "pid": 42875,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S03/original-loopback-body-withheld",
+      "pid": 42877,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S04/original-loopback-body-withheld",
+      "pid": 42879,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S05/original-loopback-headers-withheld",
+      "pid": 42882,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S06/upload-before-eof",
+      "pid": 42884,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S06/retained-reused-buffer",
+      "pid": 42885,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S06/awaited-write-backpressure",
+      "pid": 42886,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S07/stdout-only-request",
+      "pid": 42887,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S07/stdout-only-streaming-upload",
+      "pid": 42888,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S08/required-body-file-and-stdout-writeout",
+      "pid": 42889,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S08/stdout-body-and-required-header-file",
+      "pid": 42890,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S08/required-files-writeout-and-independent-stderr",
+      "pid": 42899,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S09/three-level-overlapping-cleanup-and-late-admission",
+      "pid": 42900,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S10/close-child-then-parent-with-live-sibling-effects",
+      "pid": 42901,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/caller-reason-zero",
+      "pid": 42902,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/io-error-before-caller-abort",
+      "pid": 42903,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/caller-abort-before-late-io-rejection",
+      "pid": 42904,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S12/opaque-read-late-resolve",
+      "pid": 42905,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S12/opaque-read-late-reject",
+      "pid": 42906,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/error-first-caller-error-cleanup-error",
+      "pid": 42907,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/error-first-caller-zero-cleanup-error",
+      "pid": 42909,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/caller-first-error-late-execution-zero",
+      "pid": 42910,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/normal-close-then-caller-zero",
+      "pid": 42911,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/normal-close-then-caller-default-undefined",
+      "pid": 42912,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/execution-undefined-cleanup-error",
+      "pid": 42913,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/cleanup-undefined-no-primary",
+      "pid": 42915,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/execution-error-cleanup-zero",
+      "pid": 42922,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/normal-close-synthetic-caller-undefined",
+      "pid": 42923,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S11/cleanup-zero-no-primary",
+      "pid": 42924,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S09/parent-abort-waits-admitted-child-cleanup",
+      "pid": 42926,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "label": "S10/closed-child-parent-error-sibling-effects",
+      "pid": 42927,
+      "exitCode": 0,
+      "directAbsent": true,
+      "groupAbsent": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    }
+  ]
+}

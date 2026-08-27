@@ -1,0 +1,1314 @@
+{
+  "at": "2026-08-27T13:15:02.945Z",
+  "scope": "one bounded correction replay, no production promotion",
+  "preRunCommits": [
+    "97909bec33c440e9917b13df188af1ad19700e23",
+    "13536dd8705cdbfc68a19da1549b21b069020f41"
+  ],
+  "productRounds": 1,
+  "sourceFixes": 0,
+  "logicalCounts": {
+    "PASS": 12,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "UNRUN": 0
+  },
+  "parameterCounts": {
+    "PASS": 32,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "UNRUN": 0
+  },
+  "original20": {
+    "PASS": 20,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "UNRUN": 0
+  },
+  "targeted12": {
+    "PASS": 12,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "UNRUN": 0
+  },
+  "firstRawCounts": {
+    "PASS": 31,
+    "FAIL": 0,
+    "BLOCKED": 1,
+    "UNRUN": 0
+  },
+  "firstConservativeCounts": {
+    "PASS": 29,
+    "FAIL": 0,
+    "BLOCKED": 3,
+    "UNRUN": 0
+  },
+  "firstConservativeLogical": {
+    "PASS": 11,
+    "FAIL": 0,
+    "BLOCKED": 1,
+    "UNRUN": 0
+  },
+  "corrections": [
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-error-cleanup-error",
+      "status": "PASS",
+      "old": {
+        "id": "S11",
+        "parameter": "error-first-caller-error-cleanup-error",
+        "status": "PASS",
+        "observation": {
+          "id": "S11",
+          "parameter": "error-first-caller-error-cleanup-error",
+          "status": "PASS",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact caller"
+            }
+          },
+          "operationClosed": true,
+          "cooperativeCleanup": {
+            "cleanupCalls": 1,
+            "registeredBeforeAcquisition": true,
+            "sharedCompletion": true,
+            "pendingBeforeRelease": true,
+            "secondary": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact cleanup"
+              }
+            }
+          },
+          "stageAborted": [
+            {
+              "command": "qualified-lifetime",
+              "aborted": true
+            }
+          ],
+          "callerAborted": {
+            "aborted": true,
+            "reason": {
+              "name": "Error",
+              "message": "independent exact caller"
+            },
+            "reasonPresent": true
+          },
+          "ownerAliveAtObservation": null,
+          "localThrown": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "localClose": {
+            "kind": "value",
+            "value": {
+              "serializationTag": "undefined"
+            }
+          },
+          "handlerOutcome": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "selectedExecution": {
+            "reached": false,
+            "boundary": "outer Shell syntax-diagnostic host ByteSink rejection; ordinary registry command throws normalize first"
+          },
+          "ownerReturnsAfterPublic": 1,
+          "observedBeforeTeardown": [
+            {
+              "kind": "actual-shell-stages",
+              "stages": [
+                {
+                  "command": "qualified-lifetime",
+                  "aborted": true,
+                  "reason": {
+                    "name": "Error",
+                    "message": "independent exact caller"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "input-owner",
+              "ownerAlive": false,
+              "calls": 0,
+              "returns": 1,
+              "pending": "pending"
+            },
+            {
+              "kind": "destination",
+              "consumerClosed": false,
+              "attempted": "",
+              "delivered": ""
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            }
+          ],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 1,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 2,
+              "name": "local.failure",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 3,
+              "name": "local.close",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 4,
+              "name": "cleanup.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 5,
+              "name": "owner.source.return",
+              "detail": {
+                "returns": 1,
+                "ownerAlive": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 6,
+              "name": "cleanup.release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 7,
+              "name": "owner.normal.finalization",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 8,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/error-first-caller-error-cleanup-error",
+          "pid": 80292,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"error-first-caller-error-cleanup-error\",\"status\":\"PASS\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact caller\"}},\"operationClosed\":true,\"cooperativeCleanup\":{\"cleanupCalls\":1,\"registeredBeforeAcquisition\":true,\"sharedCompletion\":true,\"pendingBeforeRelease\":true,\"secondary\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact cleanup\"}}},\"stageAborted\":[{\"command\":\"qualified-lifetime\",\"aborted\":true}],\"callerAborted\":{\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"},\"reasonPresent\":true},\"ownerAliveAtObservation\":null,\"localThrown\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"localClose\":{\"kind\":\"value\",\"value\":{\"serializationTag\":\"undefined\"}},\"handlerOutcome\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"selectedExecution\":{\"reached\":false,\"boundary\":\"outer Shell syntax-diagnostic host ByteSink rejection; ordinary registry command throws normalize first\"},\"ownerReturnsAfterPublic\":1,\"observedBeforeTeardown\":[{\"kind\":\"actual-shell-stages\",\"stages\":[{\"command\":\"qualified-lifetime\",\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"}}]},{\"kind\":\"input-owner\",\"ownerAlive\":false,\"calls\":0,\"returns\":1,\"pending\":\"pending\"},{\"kind\":\"destination\",\"consumerClosed\":false,\"attempted\":\"\",\"delivered\":\"\"},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null}],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":1,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":2,\"name\":\"local.failure\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":3,\"name\":\"local.close\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":4,\"name\":\"cleanup.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":5,\"name\":\"owner.source.return\",\"detail\":{\"returns\":1,\"ownerAlive\":true},\"phase\":\"observation\"},{\"sequence\":6,\"name\":\"cleanup.release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":7,\"name\":\"owner.normal.finalization\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":8,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      },
+      "new": {
+        "id": "S11",
+        "parameter": "error-first-caller-error-cleanup-error",
+        "status": "PASS",
+        "observation": {
+          "id": "S11",
+          "parameter": "error-first-caller-error-cleanup-error",
+          "status": "PASS",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact caller"
+            }
+          },
+          "operationClosed": true,
+          "cooperativeCleanup": {
+            "cleanupCalls": 1,
+            "registeredBeforeAcquisition": true,
+            "sharedCompletion": true,
+            "pendingBeforeRelease": true,
+            "secondary": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact cleanup"
+              }
+            }
+          },
+          "stageAborted": [
+            {
+              "command": "qualified-lifetime",
+              "aborted": true
+            },
+            {
+              "command": "ordering-selector",
+              "aborted": true
+            }
+          ],
+          "callerAborted": {
+            "aborted": true,
+            "reason": {
+              "name": "Error",
+              "message": "independent exact caller"
+            },
+            "reasonPresent": true
+          },
+          "ownerAliveAtObservation": null,
+          "localThrown": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "localClose": {
+            "kind": "value",
+            "value": {
+              "serializationTag": "undefined"
+            }
+          },
+          "selectedExecution": {
+            "reached": true,
+            "actualRejection": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact execution"
+              }
+            },
+            "boundary": "public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller"
+          },
+          "signalBinding": {
+            "synthetic": false,
+            "callerEvents": 1,
+            "onabortEvents": 1,
+            "publicRejected": true,
+            "publicReasonPresent": true,
+            "localNormalClosePreserved": true
+          },
+          "ownerReturnsAfterPublic": 1,
+          "observedBeforeTeardown": [
+            {
+              "kind": "actual-shell-stages",
+              "stages": [
+                {
+                  "command": "qualified-lifetime",
+                  "aborted": true,
+                  "reason": {
+                    "name": "Error",
+                    "message": "Pipeline consumer exited",
+                    "code": "EPIPE"
+                  }
+                },
+                {
+                  "command": "ordering-selector",
+                  "aborted": true,
+                  "reason": {
+                    "name": "Error",
+                    "message": "independent exact caller"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "input-owner",
+              "ownerAlive": false,
+              "calls": 0,
+              "returns": 1,
+              "pending": "pending"
+            },
+            {
+              "kind": "destination",
+              "consumerClosed": false,
+              "attempted": "",
+              "delivered": ""
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            }
+          ],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 1,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 2,
+              "name": "local.failure",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 3,
+              "name": "local.close",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 4,
+              "name": "cleanup.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 5,
+              "name": "selector.public-parser",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 6,
+              "name": "host.diagnostic",
+              "detail": "shell: Expected command at offset 0\n",
+              "phase": "observation"
+            },
+            {
+              "sequence": 7,
+              "name": "selected.sink.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 8,
+              "name": "selected.sink.rejected",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 9,
+              "name": "owner.source.return",
+              "detail": {
+                "returns": 1,
+                "ownerAlive": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 10,
+              "name": "caller.abort.request",
+              "detail": {
+                "reason": {
+                  "name": "Error",
+                  "message": "independent exact caller"
+                },
+                "reasonPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 11,
+              "name": "caller.event",
+              "detail": {
+                "reason": {
+                  "name": "Error",
+                  "message": "independent exact caller"
+                },
+                "reasonPresent": true,
+                "currentTargetSame": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 12,
+              "name": "cleanup.explicit-release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 13,
+              "name": "cleanup.release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 14,
+              "name": "cleanup.reject",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 15,
+              "name": "public.settled",
+              "detail": {
+                "kind": "error",
+                "errorPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 16,
+              "name": "cleanup.observed",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 17,
+              "name": "owner.normal.finalization",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 18,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/error-first-caller-error-cleanup-error",
+          "pid": 42907,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"error-first-caller-error-cleanup-error\",\"status\":\"PASS\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact caller\"}},\"operationClosed\":true,\"cooperativeCleanup\":{\"cleanupCalls\":1,\"registeredBeforeAcquisition\":true,\"sharedCompletion\":true,\"pendingBeforeRelease\":true,\"secondary\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact cleanup\"}}},\"stageAborted\":[{\"command\":\"qualified-lifetime\",\"aborted\":true},{\"command\":\"ordering-selector\",\"aborted\":true}],\"callerAborted\":{\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"},\"reasonPresent\":true},\"ownerAliveAtObservation\":null,\"localThrown\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"localClose\":{\"kind\":\"value\",\"value\":{\"serializationTag\":\"undefined\"}},\"selectedExecution\":{\"reached\":true,\"actualRejection\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"boundary\":\"public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller\"},\"signalBinding\":{\"synthetic\":false,\"callerEvents\":1,\"onabortEvents\":1,\"publicRejected\":true,\"publicReasonPresent\":true,\"localNormalClosePreserved\":true},\"ownerReturnsAfterPublic\":1,\"observedBeforeTeardown\":[{\"kind\":\"actual-shell-stages\",\"stages\":[{\"command\":\"qualified-lifetime\",\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"Pipeline consumer exited\",\"code\":\"EPIPE\"}},{\"command\":\"ordering-selector\",\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"}}]},{\"kind\":\"input-owner\",\"ownerAlive\":false,\"calls\":0,\"returns\":1,\"pending\":\"pending\"},{\"kind\":\"destination\",\"consumerClosed\":false,\"attempted\":\"\",\"delivered\":\"\"},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null}],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":1,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":2,\"name\":\"local.failure\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":3,\"name\":\"local.close\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":4,\"name\":\"cleanup.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":5,\"name\":\"selector.public-parser\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":6,\"name\":\"host.diagnostic\",\"detail\":\"shell: Expected command at offset 0\\n\",\"phase\":\"observation\"},{\"sequence\":7,\"name\":\"selected.sink.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":8,\"name\":\"selected.sink.rejected\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":9,\"name\":\"owner.source.return\",\"detail\":{\"returns\":1,\"ownerAlive\":true},\"phase\":\"observation\"},{\"sequence\":10,\"name\":\"caller.abort.request\",\"detail\":{\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"},\"reasonPresent\":true},\"phase\":\"observation\"},{\"sequence\":11,\"name\":\"caller.event\",\"detail\":{\"reason\":{\"name\":\"Error\",\"message\":\"independent exact caller\"},\"reasonPresent\":true,\"currentTargetSame\":true},\"phase\":\"observation\"},{\"sequence\":12,\"name\":\"cleanup.explicit-release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":13,\"name\":\"cleanup.release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":14,\"name\":\"cleanup.reject\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":15,\"name\":\"public.settled\",\"detail\":{\"kind\":\"error\",\"errorPresent\":true},\"phase\":\"observation\"},{\"sequence\":16,\"name\":\"cleanup.observed\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":17,\"name\":\"owner.normal.finalization\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":18,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      }
+    },
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-zero-cleanup-error",
+      "status": "PASS",
+      "old": {
+        "id": "S11",
+        "parameter": "error-first-caller-zero-cleanup-error",
+        "status": "PASS",
+        "observation": {
+          "id": "S11",
+          "parameter": "error-first-caller-zero-cleanup-error",
+          "status": "PASS",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": {
+            "kind": "error",
+            "error": 0
+          },
+          "operationClosed": true,
+          "cooperativeCleanup": {
+            "cleanupCalls": 1,
+            "registeredBeforeAcquisition": true,
+            "sharedCompletion": true,
+            "pendingBeforeRelease": true,
+            "secondary": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact cleanup"
+              }
+            }
+          },
+          "stageAborted": [
+            {
+              "command": "qualified-lifetime",
+              "aborted": true
+            }
+          ],
+          "callerAborted": {
+            "aborted": true,
+            "reason": 0,
+            "reasonPresent": true
+          },
+          "ownerAliveAtObservation": null,
+          "localThrown": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "localClose": {
+            "kind": "value",
+            "value": {
+              "serializationTag": "undefined"
+            }
+          },
+          "handlerOutcome": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "selectedExecution": {
+            "reached": false,
+            "boundary": "outer Shell syntax-diagnostic host ByteSink rejection; ordinary registry command throws normalize first"
+          },
+          "ownerReturnsAfterPublic": 1,
+          "observedBeforeTeardown": [
+            {
+              "kind": "actual-shell-stages",
+              "stages": [
+                {
+                  "command": "qualified-lifetime",
+                  "aborted": true,
+                  "reason": 0
+                }
+              ]
+            },
+            {
+              "kind": "input-owner",
+              "ownerAlive": false,
+              "calls": 0,
+              "returns": 1,
+              "pending": "pending"
+            },
+            {
+              "kind": "destination",
+              "consumerClosed": false,
+              "attempted": "",
+              "delivered": ""
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            }
+          ],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 1,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 2,
+              "name": "local.failure",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 3,
+              "name": "local.close",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 4,
+              "name": "cleanup.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 5,
+              "name": "owner.source.return",
+              "detail": {
+                "returns": 1,
+                "ownerAlive": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 6,
+              "name": "cleanup.release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 7,
+              "name": "owner.normal.finalization",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 8,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/error-first-caller-zero-cleanup-error",
+          "pid": 80293,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"error-first-caller-zero-cleanup-error\",\"status\":\"PASS\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":{\"kind\":\"error\",\"error\":0},\"operationClosed\":true,\"cooperativeCleanup\":{\"cleanupCalls\":1,\"registeredBeforeAcquisition\":true,\"sharedCompletion\":true,\"pendingBeforeRelease\":true,\"secondary\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact cleanup\"}}},\"stageAborted\":[{\"command\":\"qualified-lifetime\",\"aborted\":true}],\"callerAborted\":{\"aborted\":true,\"reason\":0,\"reasonPresent\":true},\"ownerAliveAtObservation\":null,\"localThrown\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"localClose\":{\"kind\":\"value\",\"value\":{\"serializationTag\":\"undefined\"}},\"handlerOutcome\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"selectedExecution\":{\"reached\":false,\"boundary\":\"outer Shell syntax-diagnostic host ByteSink rejection; ordinary registry command throws normalize first\"},\"ownerReturnsAfterPublic\":1,\"observedBeforeTeardown\":[{\"kind\":\"actual-shell-stages\",\"stages\":[{\"command\":\"qualified-lifetime\",\"aborted\":true,\"reason\":0}]},{\"kind\":\"input-owner\",\"ownerAlive\":false,\"calls\":0,\"returns\":1,\"pending\":\"pending\"},{\"kind\":\"destination\",\"consumerClosed\":false,\"attempted\":\"\",\"delivered\":\"\"},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null}],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":1,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":2,\"name\":\"local.failure\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":3,\"name\":\"local.close\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":4,\"name\":\"cleanup.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":5,\"name\":\"owner.source.return\",\"detail\":{\"returns\":1,\"ownerAlive\":true},\"phase\":\"observation\"},{\"sequence\":6,\"name\":\"cleanup.release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":7,\"name\":\"owner.normal.finalization\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":8,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      },
+      "new": {
+        "id": "S11",
+        "parameter": "error-first-caller-zero-cleanup-error",
+        "status": "PASS",
+        "observation": {
+          "id": "S11",
+          "parameter": "error-first-caller-zero-cleanup-error",
+          "status": "PASS",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": {
+            "kind": "error",
+            "error": 0
+          },
+          "operationClosed": true,
+          "cooperativeCleanup": {
+            "cleanupCalls": 1,
+            "registeredBeforeAcquisition": true,
+            "sharedCompletion": true,
+            "pendingBeforeRelease": true,
+            "secondary": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact cleanup"
+              }
+            }
+          },
+          "stageAborted": [
+            {
+              "command": "qualified-lifetime",
+              "aborted": true
+            },
+            {
+              "command": "ordering-selector",
+              "aborted": true
+            }
+          ],
+          "callerAborted": {
+            "aborted": true,
+            "reason": 0,
+            "reasonPresent": true
+          },
+          "ownerAliveAtObservation": null,
+          "localThrown": {
+            "kind": "error",
+            "error": {
+              "name": "Error",
+              "message": "independent exact execution"
+            }
+          },
+          "localClose": {
+            "kind": "value",
+            "value": {
+              "serializationTag": "undefined"
+            }
+          },
+          "selectedExecution": {
+            "reached": true,
+            "actualRejection": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact execution"
+              }
+            },
+            "boundary": "public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller"
+          },
+          "signalBinding": {
+            "synthetic": false,
+            "callerEvents": 1,
+            "onabortEvents": 1,
+            "publicRejected": true,
+            "publicReasonPresent": true,
+            "localNormalClosePreserved": true
+          },
+          "ownerReturnsAfterPublic": 1,
+          "observedBeforeTeardown": [
+            {
+              "kind": "actual-shell-stages",
+              "stages": [
+                {
+                  "command": "qualified-lifetime",
+                  "aborted": true,
+                  "reason": {
+                    "name": "Error",
+                    "message": "Pipeline consumer exited",
+                    "code": "EPIPE"
+                  }
+                },
+                {
+                  "command": "ordering-selector",
+                  "aborted": true,
+                  "reason": 0
+                }
+              ]
+            },
+            {
+              "kind": "input-owner",
+              "ownerAlive": false,
+              "calls": 0,
+              "returns": 1,
+              "pending": "pending"
+            },
+            {
+              "kind": "destination",
+              "consumerClosed": false,
+              "attempted": "",
+              "delivered": ""
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            }
+          ],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 1,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 2,
+              "name": "local.failure",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 3,
+              "name": "local.close",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 4,
+              "name": "cleanup.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 5,
+              "name": "selector.public-parser",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 6,
+              "name": "host.diagnostic",
+              "detail": "shell: Expected command at offset 0\n",
+              "phase": "observation"
+            },
+            {
+              "sequence": 7,
+              "name": "selected.sink.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 8,
+              "name": "selected.sink.rejected",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 9,
+              "name": "owner.source.return",
+              "detail": {
+                "returns": 1,
+                "ownerAlive": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 10,
+              "name": "caller.abort.request",
+              "detail": {
+                "reason": 0,
+                "reasonPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 11,
+              "name": "caller.event",
+              "detail": {
+                "reason": 0,
+                "reasonPresent": true,
+                "currentTargetSame": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 12,
+              "name": "cleanup.explicit-release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 13,
+              "name": "cleanup.release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 14,
+              "name": "cleanup.reject",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 15,
+              "name": "public.settled",
+              "detail": {
+                "kind": "error",
+                "errorPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 16,
+              "name": "cleanup.observed",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 17,
+              "name": "owner.normal.finalization",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 18,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/error-first-caller-zero-cleanup-error",
+          "pid": 42909,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"error-first-caller-zero-cleanup-error\",\"status\":\"PASS\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":{\"kind\":\"error\",\"error\":0},\"operationClosed\":true,\"cooperativeCleanup\":{\"cleanupCalls\":1,\"registeredBeforeAcquisition\":true,\"sharedCompletion\":true,\"pendingBeforeRelease\":true,\"secondary\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact cleanup\"}}},\"stageAborted\":[{\"command\":\"qualified-lifetime\",\"aborted\":true},{\"command\":\"ordering-selector\",\"aborted\":true}],\"callerAborted\":{\"aborted\":true,\"reason\":0,\"reasonPresent\":true},\"ownerAliveAtObservation\":null,\"localThrown\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"localClose\":{\"kind\":\"value\",\"value\":{\"serializationTag\":\"undefined\"}},\"selectedExecution\":{\"reached\":true,\"actualRejection\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact execution\"}},\"boundary\":\"public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller\"},\"signalBinding\":{\"synthetic\":false,\"callerEvents\":1,\"onabortEvents\":1,\"publicRejected\":true,\"publicReasonPresent\":true,\"localNormalClosePreserved\":true},\"ownerReturnsAfterPublic\":1,\"observedBeforeTeardown\":[{\"kind\":\"actual-shell-stages\",\"stages\":[{\"command\":\"qualified-lifetime\",\"aborted\":true,\"reason\":{\"name\":\"Error\",\"message\":\"Pipeline consumer exited\",\"code\":\"EPIPE\"}},{\"command\":\"ordering-selector\",\"aborted\":true,\"reason\":0}]},{\"kind\":\"input-owner\",\"ownerAlive\":false,\"calls\":0,\"returns\":1,\"pending\":\"pending\"},{\"kind\":\"destination\",\"consumerClosed\":false,\"attempted\":\"\",\"delivered\":\"\"},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null}],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":1,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":2,\"name\":\"local.failure\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":3,\"name\":\"local.close\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":4,\"name\":\"cleanup.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":5,\"name\":\"selector.public-parser\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":6,\"name\":\"host.diagnostic\",\"detail\":\"shell: Expected command at offset 0\\n\",\"phase\":\"observation\"},{\"sequence\":7,\"name\":\"selected.sink.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":8,\"name\":\"selected.sink.rejected\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":9,\"name\":\"owner.source.return\",\"detail\":{\"returns\":1,\"ownerAlive\":true},\"phase\":\"observation\"},{\"sequence\":10,\"name\":\"caller.abort.request\",\"detail\":{\"reason\":0,\"reasonPresent\":true},\"phase\":\"observation\"},{\"sequence\":11,\"name\":\"caller.event\",\"detail\":{\"reason\":0,\"reasonPresent\":true,\"currentTargetSame\":true},\"phase\":\"observation\"},{\"sequence\":12,\"name\":\"cleanup.explicit-release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":13,\"name\":\"cleanup.release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":14,\"name\":\"cleanup.reject\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":15,\"name\":\"public.settled\",\"detail\":{\"kind\":\"error\",\"errorPresent\":true},\"phase\":\"observation\"},{\"sequence\":16,\"name\":\"cleanup.observed\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":17,\"name\":\"owner.normal.finalization\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":18,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      }
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-synthetic-caller-undefined",
+      "status": "PASS",
+      "old": {
+        "id": "S11",
+        "parameter": "normal-close-synthetic-caller-undefined",
+        "status": "BLOCKED",
+        "observation": {
+          "id": "S11",
+          "parameter": "normal-close-synthetic-caller-undefined",
+          "status": "BLOCKED",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": null,
+          "operationClosed": null,
+          "cooperativeCleanup": null,
+          "stageAborted": null,
+          "callerAborted": {
+            "aborted": false,
+            "reason": null
+          },
+          "ownerAliveAtObservation": null,
+          "failure": {
+            "name": "Error",
+            "message": "Native AbortSignal.any requires genuine branded signals; Q1 does not authenticate a synthetic literal-undefined signal. Frozen criterion retained BLOCKED, not native default coverage.",
+            "code": "QUALIFIED_BINDING_UNBOUND"
+          },
+          "observedBeforeTeardown": [],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/normal-close-synthetic-caller-undefined",
+          "pid": 80324,
+          "exitCode": 2,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"normal-close-synthetic-caller-undefined\",\"status\":\"BLOCKED\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":null,\"operationClosed\":null,\"cooperativeCleanup\":null,\"stageAborted\":null,\"callerAborted\":{\"aborted\":false,\"reason\":null},\"ownerAliveAtObservation\":null,\"failure\":{\"name\":\"Error\",\"message\":\"Native AbortSignal.any requires genuine branded signals; Q1 does not authenticate a synthetic literal-undefined signal. Frozen criterion retained BLOCKED, not native default coverage.\",\"code\":\"QUALIFIED_BINDING_UNBOUND\"},\"observedBeforeTeardown\":[],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      },
+      "new": {
+        "id": "S11",
+        "parameter": "normal-close-synthetic-caller-undefined",
+        "status": "PASS",
+        "observation": {
+          "id": "S11",
+          "parameter": "normal-close-synthetic-caller-undefined",
+          "status": "PASS",
+          "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+          "publicResult": {
+            "kind": "error",
+            "error": {
+              "serializationTag": "undefined"
+            }
+          },
+          "operationClosed": true,
+          "cooperativeCleanup": {
+            "cleanupCalls": 1,
+            "registeredBeforeAcquisition": true,
+            "sharedCompletion": true,
+            "pendingBeforeRelease": true,
+            "secondary": {
+              "kind": "error",
+              "error": {
+                "name": "Error",
+                "message": "independent exact cleanup"
+              }
+            }
+          },
+          "stageAborted": [
+            {
+              "command": "qualified-lifetime",
+              "aborted": true
+            }
+          ],
+          "callerAborted": {
+            "aborted": true,
+            "reason": {
+              "serializationTag": "undefined"
+            },
+            "reasonPresent": true
+          },
+          "ownerAliveAtObservation": null,
+          "localThrown": {
+            "serializationTag": "undefined"
+          },
+          "localClose": {
+            "kind": "value",
+            "value": {
+              "serializationTag": "undefined"
+            }
+          },
+          "selectedExecution": {
+            "reached": false,
+            "actualRejection": {
+              "serializationTag": "undefined"
+            },
+            "boundary": "none"
+          },
+          "signalBinding": {
+            "synthetic": true,
+            "callerEvents": 1,
+            "onabortEvents": 1,
+            "publicRejected": true,
+            "publicReasonPresent": true,
+            "localNormalClosePreserved": true
+          },
+          "ownerReturnsAfterPublic": 1,
+          "observedBeforeTeardown": [
+            {
+              "kind": "actual-shell-stages",
+              "stages": [
+                {
+                  "command": "qualified-lifetime",
+                  "aborted": true,
+                  "reason": {
+                    "name": "AbortError",
+                    "message": "This operation was aborted",
+                    "code": 20
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "input-owner",
+              "ownerAlive": false,
+              "calls": 0,
+              "returns": 1,
+              "pending": "pending"
+            },
+            {
+              "kind": "destination",
+              "consumerClosed": false,
+              "attempted": "",
+              "delivered": ""
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            },
+            {
+              "kind": "explicit-operation",
+              "aborted": false,
+              "reason": null
+            }
+          ],
+          "fixtureCleanup": {
+            "failures": [],
+            "timers": 0,
+            "sockets": 0,
+            "tasks": 0,
+            "children": 0
+          },
+          "events": [
+            {
+              "sequence": 0,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 1,
+              "name": "operation.registerCleanup.before-admission",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 2,
+              "name": "local.close",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 3,
+              "name": "cleanup.enter",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 4,
+              "name": "caller.abort.request",
+              "detail": {
+                "reason": {
+                  "serializationTag": "undefined"
+                },
+                "reasonPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 5,
+              "name": "caller.event",
+              "detail": {
+                "reason": {
+                  "serializationTag": "undefined"
+                },
+                "reasonPresent": true,
+                "currentTargetSame": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 6,
+              "name": "owner.source.return",
+              "detail": {
+                "returns": 1,
+                "ownerAlive": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 7,
+              "name": "cleanup.explicit-release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 8,
+              "name": "cleanup.release",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 9,
+              "name": "cleanup.reject",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 10,
+              "name": "public.settled",
+              "detail": {
+                "kind": "error",
+                "errorPresent": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 11,
+              "name": "cleanup.observed",
+              "detail": {
+                "identity": true
+              },
+              "phase": "observation"
+            },
+            {
+              "sequence": 12,
+              "name": "owner.normal.finalization",
+              "detail": null,
+              "phase": "observation"
+            },
+            {
+              "sequence": 13,
+              "name": "fixture.teardown.begin",
+              "detail": null,
+              "phase": "teardown"
+            }
+          ]
+        },
+        "execution": {
+          "label": "S11/normal-close-synthetic-caller-undefined",
+          "pid": 42923,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "oversized": false,
+          "residual": false,
+          "spawnError": null,
+          "stdout": "BINDING_RESULT {\"id\":\"S11\",\"parameter\":\"normal-close-synthetic-caller-undefined\",\"status\":\"PASS\",\"sourceIdentity\":\"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\"publicResult\":{\"kind\":\"error\",\"error\":{\"serializationTag\":\"undefined\"}},\"operationClosed\":true,\"cooperativeCleanup\":{\"cleanupCalls\":1,\"registeredBeforeAcquisition\":true,\"sharedCompletion\":true,\"pendingBeforeRelease\":true,\"secondary\":{\"kind\":\"error\",\"error\":{\"name\":\"Error\",\"message\":\"independent exact cleanup\"}}},\"stageAborted\":[{\"command\":\"qualified-lifetime\",\"aborted\":true}],\"callerAborted\":{\"aborted\":true,\"reason\":{\"serializationTag\":\"undefined\"},\"reasonPresent\":true},\"ownerAliveAtObservation\":null,\"localThrown\":{\"serializationTag\":\"undefined\"},\"localClose\":{\"kind\":\"value\",\"value\":{\"serializationTag\":\"undefined\"}},\"selectedExecution\":{\"reached\":false,\"actualRejection\":{\"serializationTag\":\"undefined\"},\"boundary\":\"none\"},\"signalBinding\":{\"synthetic\":true,\"callerEvents\":1,\"onabortEvents\":1,\"publicRejected\":true,\"publicReasonPresent\":true,\"localNormalClosePreserved\":true},\"ownerReturnsAfterPublic\":1,\"observedBeforeTeardown\":[{\"kind\":\"actual-shell-stages\",\"stages\":[{\"command\":\"qualified-lifetime\",\"aborted\":true,\"reason\":{\"name\":\"AbortError\",\"message\":\"This operation was aborted\",\"code\":20}}]},{\"kind\":\"input-owner\",\"ownerAlive\":false,\"calls\":0,\"returns\":1,\"pending\":\"pending\"},{\"kind\":\"destination\",\"consumerClosed\":false,\"attempted\":\"\",\"delivered\":\"\"},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null},{\"kind\":\"explicit-operation\",\"aborted\":false,\"reason\":null}],\"fixtureCleanup\":{\"failures\":[],\"timers\":0,\"sockets\":0,\"tasks\":0,\"children\":0},\"events\":[{\"sequence\":0,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":1,\"name\":\"operation.registerCleanup.before-admission\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":2,\"name\":\"local.close\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":3,\"name\":\"cleanup.enter\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":4,\"name\":\"caller.abort.request\",\"detail\":{\"reason\":{\"serializationTag\":\"undefined\"},\"reasonPresent\":true},\"phase\":\"observation\"},{\"sequence\":5,\"name\":\"caller.event\",\"detail\":{\"reason\":{\"serializationTag\":\"undefined\"},\"reasonPresent\":true,\"currentTargetSame\":true},\"phase\":\"observation\"},{\"sequence\":6,\"name\":\"owner.source.return\",\"detail\":{\"returns\":1,\"ownerAlive\":true},\"phase\":\"observation\"},{\"sequence\":7,\"name\":\"cleanup.explicit-release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":8,\"name\":\"cleanup.release\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":9,\"name\":\"cleanup.reject\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":10,\"name\":\"public.settled\",\"detail\":{\"kind\":\"error\",\"errorPresent\":true},\"phase\":\"observation\"},{\"sequence\":11,\"name\":\"cleanup.observed\",\"detail\":{\"identity\":true},\"phase\":\"observation\"},{\"sequence\":12,\"name\":\"owner.normal.finalization\",\"detail\":null,\"phase\":\"observation\"},{\"sequence\":13,\"name\":\"fixture.teardown.begin\",\"detail\":null,\"phase\":\"teardown\"}]}\n",
+          "stderr": "",
+          "reapedDirectChild": true
+        }
+      }
+    }
+  ],
+  "nativeReruns": 0,
+  "baselineComparisonsPreserved": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/comparison-first.result.json",
+    "sha256": "a1ea25e4e300668dd3e4d1abd2c412aca176eb91166af48b388ab0fd84644604"
+  },
+  "allChildrenReaped": true,
+  "allFixtureResourcesZero": true,
+  "safejsAudit": "NOT DONE; REQUIRED BEFORE PROMOTION",
+  "releaseQualification": false
+}

@@ -1,0 +1,126 @@
+{
+  "name": "idle-error",
+  "pid": 66238,
+  "readyAt": 46.522249999999985,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1261,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 109.77758299999982
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 111.88687499999992
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 111.89783299999999
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "idle-error"
+    },
+    {
+      "type": "done",
+      "name": "idle-error",
+      "observations": [
+        {
+          "label": "automatic-before-manual-cleanup",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 21.450792000000003,
+              "workMs": 0.12462499999999466,
+              "terminationMs": 0.9257080000000002,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 0
+          }
+        }
+      ],
+      "elapsedMs": 62.332125000000005,
+      "heartbeats": 10,
+      "maxGap": 6.403542000000002,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 21.450792000000003,
+            "workMs": 0.12462499999999466,
+            "terminationMs": 0.9257080000000002,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ],
+      "memory": {
+        "rss": 59260928,
+        "heapTotal": 7749632,
+        "heapUsed": 5524944,
+        "external": 2155256,
+        "arrayBuffers": 18923
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

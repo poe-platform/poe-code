@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-wpbacI/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-wpbacI/tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

@@ -78,7 +78,8 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
     await fs.writeFile("/output/data", Buffer.from("old destination"));
     const original = await fs.stat("/output/data");
     let publications = 0;
-    const publish = fs.writeStream!.bind(fs);
+    const writeStream = fs.writeStream!;
+    const publish = writeStream.bind(fs);
     fs.writeStream = async (path, body, options) => { publications++; await publish(path, body, options); };
     const bytes = declaredHeader("data", 67_108_864 + Number(over));
     let pulls = 0;
@@ -100,7 +101,9 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
     assert.equal(returns, 1);
     assert.equal(publications, over ? 0 : 1);
     if (over) {
+      fs.writeStream = writeStream;
       const retained = await fs.stat("/output/data");
+      assert.deepEqual(retained, original);
       assert.equal(retained.identityScope, original.identityScope);
       assert.equal(retained.dev, original.dev);
       assert.equal(retained.ino, original.ino);

@@ -1,0 +1,147 @@
+{
+  "capturedAt": "2026-08-27T04:12:37.075Z",
+  "engineCalls": 0,
+  "originalHarnessCopies": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/assess.mjs",
+      "sha256": "ea568cd0d1524953190b119954556c8f8e67add3364d4a35026a25ff99e295e6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/audit-common.mjs",
+      "sha256": "f091a451e9bc9f54362be119bff9d064fcddf02a173f3ed315c17d24b0be8aa8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/cases.mjs",
+      "sha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/engine-child.mjs",
+      "sha256": "051fc2feadb94320dc39cb5fa3239d4069a7d6db2cc7d2d053769a1208ff6cc5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/execution-cases.mjs",
+      "sha256": "692b79e374aced4b5b071d9b94d9bd8cb47b7d65d81a93289805fcd57b4f056c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/freeze-execution.mjs",
+      "sha256": "bcb21efc1f4bb12b3dc4702ada4749a1d8d89ef971bd2eaf3be70f75a113fd94"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/prepare.mjs",
+      "sha256": "ed3cae99aa8d43b9e43195c6b76da2bd60a3baa1acee6fdbad5b46b975d6f3bb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/run.mjs",
+      "sha256": "98171eea9ef1d2c60ce509a78f4afa7970f93c9c4cebe1a4d54f8ba3cb92ad32"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/trace-loader.mjs",
+      "sha256": "860b1bfce860ab2992e897c61f76f18ae234cd8e534dd9b31739e8f3b06c79ed"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/trace-register.mjs",
+      "sha256": "fbf1bedceb9422748c9a1820a83cfa4f07ddb6fd29223ac6117729452e7947e5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-001/harness/verify-execution.mjs",
+      "sha256": "3b8484f27683a3f4e9967b31e00855e95b2df35742e806d332f845bf3af0cb3c"
+    }
+  ],
+  "primaryChanges": [
+    {
+      "id": "curl-positive",
+      "key": "effectiveScript",
+      "original": "curl -sS 'http://127.0.0.1:62941/fixture.txt' -o /fixture/download.txt",
+      "corrected": "curl -sS 'http://127.0.0.1:63131/fixture.txt' -o /fixture/download.txt"
+    },
+    {
+      "id": "curl-positive",
+      "key": "inputSha256",
+      "original": "9a490c76c3ae645cb308409d4bb33e5dcdc64908155c49014ed3944271d70319",
+      "corrected": "6eb4be7020cf0a392abf3fc2af724fbfd3cb73a840a66ed8523bb6d1d16787e6"
+    }
+  ],
+  "sourceUnchanged": true,
+  "newDiagnostics": [
+    {
+      "id": "mapfile-direct-diagnostic",
+      "name": "mapfile",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows.txt": {
+          "base64": "YWxwaGEKYmV0YQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "mapfile -t rows < rows.txt",
+      "targetArgv": null,
+      "expected": null,
+      "intent": "Direct reachability without array-expansion syntax, explicitly root-authorized after first harness-fault capture; no positive functional credit.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "operationalCredit": false,
+      "effectiveScript": "mapfile -t rows < rows.txt",
+      "budgetMs": 30000,
+      "inputSha256": "788c21589ae27b8e2d930484c250aa7298bfa4152f1b5a61d2851821a2b723e3"
+    },
+    {
+      "id": "readarray-direct-diagnostic",
+      "name": "readarray",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows.txt": {
+          "base64": "YWxwaGEKYmV0YQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "readarray -t rows < rows.txt",
+      "targetArgv": null,
+      "expected": null,
+      "intent": "Direct reachability without array-expansion syntax, explicitly root-authorized after first harness-fault capture; no positive functional credit.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "operationalCredit": false,
+      "effectiveScript": "readarray -t rows < rows.txt",
+      "budgetMs": 30000,
+      "inputSha256": "648787b614c4bf7a362a157c93b4e986cda333b9cd872076204cf7f4291b2dfe"
+    }
+  ],
+  "initialDeclaredAttempts": 132,
+  "correctedDeclaredAttempts": 136,
+  "rootRulings": [
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-run-root-response.txt",
+      "text": "Root ruling, 2026-08-27, before execution freeze:\nApprove creating /tmp and /home/user only as required infrastructure; do not create unused /fixture/tmp. Preserve shopt recipe and expected bytes unchanged. Record this explicit setup-only correction to the preparation plan in the execution delta. Do not alter historical prepared artifacts. Ensure namespace policy describes actual infrastructure rather than obsolete /fixture/tmp.\n\nNormative reporting update is mandatory before finalizing: read /tmp/safe-bash-baseline-coverage-normative-update.txt and committed tests/commands/core-regression-stress/NORMATIVE_PROFILES.md (1f2aa30). SGID six strict differences are GNU9.7/Darwin profile observations, not demonstrated POSIX defects; no permission API justified solely by these and no production SGID change. Env ordering is POSIX unspecified and captured native profile is Darwin/libSystem, not Linux. Preserve qualifiers in breadth reporting; no extra normative investigation/corpus expansion.\n\nContinue actual bounded execution promptly after this documented pre-freeze setup correction. No new target names or product edits.\n",
+      "sha256": "a7c50d0d81266166b47600011d3d29e9ebf1e01781eb40400c9ab78c6ef3b2ef"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-run-correction-response.txt",
+      "text": "ROOT AUTHORIZATION, bounded harness/config correction, 2026-08-27.\nRead request /tmp/safe-bash-baseline-coverage-run-correction-request.txt. Approve a NEW corrected attempt only, preserving attempt-001 inputs/harness/raw outputs/outcomes unchanged and completing its children normally. Attempt-001 is a harness-fault record, not an accepted product comparison.\n\n1. Await child IPC send completion callback before disconnect to preserve complete reports. Record failed/missing reports rather than counting them as product losses.\n2. Remove unsupported zero-valued ours network limit overrides, using documented supported defaults/positive values; preserve exact-URL GET authorization, fixed local response, no external requests/redirect fixture, no security downgrade. Record actual supported effective settings, not a zero-redirect claim where the public limit requires positive values.\n3. Apply already-approved /tmp and /home/user infrastructure, omit unused /fixture/tmp. Preserve original shopt script and expected bytes; record separate setup delta.\n4. Approve exactly TWO added pre-corrected-freeze reachability diagnostics: mapfile -t rows < rows.txt and readarray -t rows < rows.txt, same files. No positive coverage credit and no new targets. New corrected corpus remains 61 primary +7 diagnostics per engine, 136 attempts; initial 61+5/132 retained separately. Parser rejection before dispatch is not observed missing-handler execution.\n\nReuse existing source snapshot/hash 30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732, never moving live source. Preserve first harness source before modifications; freeze corrected harness/config/input delta before rerun. No expected-byte changes, feature/source edits, optional-runtime disable, install, host fallback, or unrelated expansion. Give exact actual first and corrected attempt counts with all setup faults explicit.\n\nIndependent measured reviewer is active, reads coverage-execution only, owns coverage-review/measured. It will examine this correction and wait for final closed-author release before independent replay. Route any further genuine harness/config issue explicitly; do not force-green. Latest normative 1f2aa30 qualifiers remain mandatory in reports.\n",
+      "sha256": "0dd674a16aa1812c76af36f0c6176f1fcf47833559c66920d656cf39f345ac37"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-run-freeze-response.txt",
+      "text": "ROOT supplemental pre-corrected-freeze coordination, 2026-08-27.\nIndependent reviewer found a configuration-binding concern in /tmp/safe-bash-baseline-measured-review-needs-root.txt: copied snapshot package.json/tsconfig.json hashes and effective tsx config binding need explicit evidence. Approve and require this narrow harness-only correction BEFORE corrected freeze: hash copied package/config, explicitly bind loader to the preserved snapshot tsconfig (e.g. supported TSX_TSCONFIG_PATH), record effective loader/config/cwd and resolution paths. Preserve exact product source snapshot 30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732. No live source regeneration or expected-byte change.\nIf a corrected attempt has already frozen or executed, do not retroactively rewrite its manifest; record concern and ask for a bounded next action before any further replay.\nCorrection denominator already authorized: 61 primary +7 reachability diagnostics per engine=136, initial132 separate. Reviewer is read-only to your artifacts and has not run engines. Please read its evolving needs-root report before final handoff; no independent replay until closed-author root release.\n",
+      "sha256": "81b0571c8a219ba974b8870e081ff2de647c9759e8fe3488f6880c8d5ab6c9b9"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-run-trace-response.txt",
+      "text": "ROOT supplemental correction authorization, 2026-08-27.\nRead appended trace/Worker concern in run-correction-request. Approve registering audit tracing only in the main engine-child module, not inherited --import preload, for the NEW corrected attempt. Keep baseline Worker execArgv/default defenses intact; do not patch baseline or disable protections. This is removal of possible harness interference, not a claim that the original timeout was proven caused by tracing.\nRetain original optional timeout/raw trace and label it inconclusive while harness faults existed. Record exact trace/worker observability boundary: actual captured module resolution versus static resolved worker/runtime assets; do not claim uncaptured worker reads were dynamically traced. Freeze corrected harness/config hashes before calls. No product/case expectation change or new target names. Other root correction and freeze-binding responses apply together.\n",
+      "sha256": "c85404d324e43a5d110f0b33385959cfd152b3ebf0b08721de93b0fbaf61a54a"
+    }
+  ],
+  "classificationRuling": {
+    "path": "/tmp/safe-bash-baseline-coverage-classification-response.txt",
+    "text": "ROOT reporting ruling, 2026-08-27; no source/corpus/expected-byte changes or extra author calls.\nRead corrected author and independent reviewer findings. Preserve all raw strict labels/bytes, supplement classifications transparently:\n- tree: unchanged strict display predicate fails (ASCII vs Unicode), but correct hierarchy/counts are semantic functionality. Treat this as display-profile/over-specific predicate difference, not absent tree or broadly partial utility. Do not re-freeze or retarget expected bytes. Separate from actual compopt/exec functional gaps.\n- js-exec: captured status0/stdout42-newline/empty stderr and completed VFS census prove guest execution here; remaining process cleanup required SIGTERM after grace. Keep lifecycle failure explicit and raw timeout label immutable. Not missing/disabled/startup failure/120s guest timeout; removing inherited trace did not establish cause. Root acknowledges135 normal children plus1 exceptional cleanup, allclosed, not136 normal. Independent replay may reproduce the same bounded cleanup behavior, no forced-normal exit/private worker patch/defense disable.\n- comparisonPolicy.namespace obsolete fixture/tmp wording: disclose frozen prose mismatch; actual setup omitted it per ruling. Do not rewrite frozen artifact.\n- baseline binary control differs in actual VFS bytes as well as terminal output, so not solely terminal-string boundary. Preserve exact bytes. No broad parity/superiority conclusion from this narrow control.\nAuthor finish report/validation and exact owned commit, close normally. Reviewer independently assess same artifacts and repeat only declared136 after finalclosed-author release. SGID/env normative qualifiers remain mandatory. All54 ours name dispatch gaps must distinguish primary47 observed missing from7 reached diagnostics; prerequisite parser failures alone are not dispatch evidence. Missing optional CLI names do not disprove nominal SafeJS companion API or claim runtime was installed.\n"
+  }
+}

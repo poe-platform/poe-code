@@ -1,0 +1,704 @@
+{
+  "capturedAt": "2026-08-27T04:26:24.498Z",
+  "ownership": "benchmarks/reports/baseline-only-20260827/coverage-review/measured",
+  "files": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/common.mjs",
+      "sha256": "dd8ea482cf2ac4d90d3814dd2df1541c865e65d49dc62b81095726f1dd7118d6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/after.json",
+      "sha256": "c0b267851d32eea4a8da1da52555a39a081fcbba3fa5a5edcc875e59460523c7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/before.json",
+      "sha256": "be39b95308a4a82d42e431c3c31febaf4864c75900c6c06c96ac1eb503900450"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/alias-positive.baseline.json",
+      "sha256": "0646112a4bc3b6289494fcbad890d6d7de92ec869c0a3db8cf13063d7faf2ea5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/alias-positive.ours.json",
+      "sha256": "f992568a12cd23fa3339bb5235b58d83ae3fc8aca61346d303236577f07467f8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/builtin-positive.baseline.json",
+      "sha256": "d43b5dc4fde1d9052d3229ce58b54be140fad4d7916a43fc1f849a28ea03bf9f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/builtin-positive.ours.json",
+      "sha256": "c38055554f6d1a1442181726f1a4d6188a715a22038b58feee4166f4f44e2317"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/clear-positive.baseline.json",
+      "sha256": "5db424cacf4929950a5d1ff919472f2a249de8489e8a3a8e2274e094b6002607"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/clear-positive.ours.json",
+      "sha256": "9caff82906d83dd7d64fdb14e7262c4ae35fe0af1d685fb9dd0cc12a8dc7079b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.baseline.json",
+      "sha256": "8814f11108169c7941f57c248fa389e6b0bf714bb8c600849707feba20ecf75a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.ours.json",
+      "sha256": "566adf3ef99e525e083d0f444cd6a1a3712ee29b62310a160ddc95735098a68a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compgen-positive.baseline.json",
+      "sha256": "1cbb297ed880f47ee0d3f231c3bedd1e27e90d9c4eb2e7c9cefc9a0a6df3afef"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compgen-positive.ours.json",
+      "sha256": "e4c567b1ea99460cac81d29d1f77666a1018a156e6335e714f851a92179cfa0b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/complete-positive.baseline.json",
+      "sha256": "708711479031f0182c003e193ed1584a8f91774d1d65873aea42f3797d948070"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/complete-positive.ours.json",
+      "sha256": "ff75d90ef0e151a3bff5e16c894c26434e7f58ba5c0d943433bf53f917039ed4"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compopt-direct-diagnostic.baseline.json",
+      "sha256": "bf8b5cd99892ce4f1f2ad94b527a709067d40c668402b9ece26f9a9b35de5ea8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compopt-direct-diagnostic.ours.json",
+      "sha256": "00fc236a1c60e0690c4c2b0fb972d0cde12cae099f7c7504c925aa2ccfafeb42"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compopt-positive.baseline.json",
+      "sha256": "58479cb18cacb2758bf7f51cef174ccf3ce8f8f96da49913cf35380ba0e2ed2b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/compopt-positive.ours.json",
+      "sha256": "f6a2aa6896c0efa2a6df9811e0c4453dc2fdd61a6c660615d927c13911cf70c2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/curl-positive.baseline.json",
+      "sha256": "ea965b0f0efd8a7e0fe1fc8876958c7a9bfd2b831946488fb742536860addf45"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/curl-positive.ours.json",
+      "sha256": "f8b047d676512a3d89496fc9af848ac323b08397694690d66389daea8b095511"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/date-positive.baseline.json",
+      "sha256": "a16fd992037103e48e9841626aafd23fba4a29892dcdde7ed78166c706e7558b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/date-positive.ours.json",
+      "sha256": "f5993cc795de82f4fee761a52658886df9a85f3b928f88063aef20193c391ed7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/declare-positive.baseline.json",
+      "sha256": "2d11b79736b9664e61d8386ff52159a66a0e0b3fd4b6e8ff030f4a55b6e75ab2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/declare-positive.ours.json",
+      "sha256": "925071dd65a424b969c0e16c25a0e161597241c446eaac91f24997c6dfd2117a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dirs-direct-diagnostic.baseline.json",
+      "sha256": "778c14baedc1785539ff13290577d710e99d3a2070598ea2c9613e38abf22636"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dirs-direct-diagnostic.ours.json",
+      "sha256": "a16292df8bb4af7c01956eec07a794c68a4452289e83295d81e4c153beb70657"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dirs-positive.baseline.json",
+      "sha256": "7113ffd90fea6f864500adc823d842a15d21f1c5e055a60bcc8076d8e3997e61"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dirs-positive.ours.json",
+      "sha256": "2880113a41b124dec47742771b90cc5ccc8e8b89dac8f154c7431778be7a0a05"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dot-positive.baseline.json",
+      "sha256": "16dab32931c924a4c0473176d815725722c4c1ad506ad8700d640953af833f24"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/dot-positive.ours.json",
+      "sha256": "38acdf3eac869b9fd72d23f3199a06531e72e3ed314c4f265994ccc5737ea4f5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/du-positive.baseline.json",
+      "sha256": "1ccd4be214de54b3d439b75e91876ddcfc5d322d90d20026e7ebb92fab393f50"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/du-positive.ours.json",
+      "sha256": "c3e821e89b495bd6678fe6c6f41947c81b3caeab2c68e8375152a6e2570adea2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/egrep-positive.baseline.json",
+      "sha256": "4202c6c41eb33aa2e152432b04d305ea8a4bd04831af2373035158fbe0305014"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/egrep-positive.ours.json",
+      "sha256": "e5664ad0c460b532664ca55ba5a934a9a7d06ed6edd6ac2fece408e350515d18"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/eval-positive.baseline.json",
+      "sha256": "778ec16c2773900bffa12ef24f942f95003c784c6bcc2c4dcba4edffb2d730fd"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/eval-positive.ours.json",
+      "sha256": "07aba6f4078ad75e24ae5ea3d39b4affe21477c17335b2af0bbd12753b467465"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/exec-positive.baseline.json",
+      "sha256": "267ca2b22a20b502b8cfeed4c318bcdafeadf43046f61cda7d88a0fb05e06589"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/exec-positive.ours.json",
+      "sha256": "7429af8f80648f41049808d7ceae8081022848e500a8c5222935f1fd7353161d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/expand-positive.baseline.json",
+      "sha256": "876efd9d05aaf61c9365cbfde82dfb89257735029516cad2070a53a4476844a1"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/expand-positive.ours.json",
+      "sha256": "fbb980859fbeed6922c83887d3cc8ab12ab12195ecc17bca0f5a4b32cc5e1698"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/expr-positive.baseline.json",
+      "sha256": "9081a7232fd9304098b85e3db2152a5b0114603f9dc51845ca8c587cf8dca882"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/expr-positive.ours.json",
+      "sha256": "f509a021bca1f1b5b723752bcd6204774b8496922acb7fc1af3d7ca52b51242c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/fgrep-positive.baseline.json",
+      "sha256": "65fa0e8dd60e36f3048a4c9fb0ee46008959eda403877cb32266596066112b3b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/fgrep-positive.ours.json",
+      "sha256": "68c894c5f49d424159705199102ed77c5b64e3c7afda71232c42de6e394a9333"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/file-positive.baseline.json",
+      "sha256": "c8ece802980df57a0432005df775dd2e2c6cf587020da45f08f7de144dc0737a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/file-positive.ours.json",
+      "sha256": "21d1eab652bb47e82173a8e285db985977fc66261343c6a435ccb9d6c20b47d7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/fold-positive.baseline.json",
+      "sha256": "f1f50edfac4a45b057c51448090cb0ca0788ee7f0d64ea349936bcd8820465eb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/fold-positive.ours.json",
+      "sha256": "8df7bfebe979853b9a9acb04ee262df1f180909f36526ade6ac8677e89c0caa7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.baseline.json",
+      "sha256": "9e11ca0a2018893112dcca9032d89bdb9245b8e7cdaebcd8e8f8bfa857221a77"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.ours.json",
+      "sha256": "435aa6de7f6890eceddcbeb2cfedd927d4a6fc0feef4d4756c622603f8befdf5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/hash-positive.baseline.json",
+      "sha256": "532888ffe36e167183920ff6f4dbd4853e2c503c39e743a699f5c8d3720d6997"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/hash-positive.ours.json",
+      "sha256": "027fec9aed03ebf57f48bf18dceef524a0116f374bcd51164aa5f88948a3caea"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/help-positive.baseline.json",
+      "sha256": "5f90b3f57c02f890318cffa1facf685fbc0b3206e86e5ce2f35f1c005cb1387d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/help-positive.ours.json",
+      "sha256": "889008669c590930ac56d9900d5da06ef87eddc842b018b262da899ba6e09dd6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/history-positive.baseline.json",
+      "sha256": "9509c597f7666a5cf4fa68cfedc3be6bb4d225bc4788b9aceb1c2688679549df"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/history-positive.ours.json",
+      "sha256": "ba9312d5e904614fadc7948b5e0de8b1f361f3016cbaa8ee3c7b4946b549861d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/hostname-positive.baseline.json",
+      "sha256": "3269900849b23cc900c7e035c17a28abe50c5aeabe8163a77315b04d63c5f712"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/hostname-positive.ours.json",
+      "sha256": "d1dc2fe1227e6f115328e38cae89c55815938e94876575327bfdcecd8824dbdd"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/html-to-markdown-positive.baseline.json",
+      "sha256": "831855faf839b4c249ae4d411c4be90fc3d237ff2183821c040f9288ef416eef"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/html-to-markdown-positive.ours.json",
+      "sha256": "79c96fa6a81ebfe7b31dec3b54e91eb0e8237776f4f6d08670214db708ba6eb4"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/js-exec-positive.baseline.json",
+      "sha256": "d732f2f8c2afd508edf98c9b7d8296eb6457bf7c3460eebca23d963e281a73f8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/js-exec-positive.ours.json",
+      "sha256": "aac16bc2f00edef302c1538d813ec13ddf3e381a8443f1d99364432114ac785a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/let-positive.baseline.json",
+      "sha256": "7513f8da645e30a93ea7d12e5c1db430652f2073a2c5dffb6e96531a42bd6fab"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/let-positive.ours.json",
+      "sha256": "4a9b6102e96a766c807c6b88c9f0d18d5b570ebda18d9078b265c0c6d076f795"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/mapfile-direct-diagnostic.baseline.json",
+      "sha256": "f01e82f3edcc233fdd1f57668e4b137c988f1c9c80ec23b9b2d30052c9975224"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/mapfile-direct-diagnostic.ours.json",
+      "sha256": "30e2c1a828a2233bea438c6230f11fff635cba761a4cb6b35fa664109bc193d3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/mapfile-positive.baseline.json",
+      "sha256": "a22e31ece449aa3f36dc893dfe47cb5f9b6a74a1f13265a6ae361dc5b4b1b78f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/mapfile-positive.ours.json",
+      "sha256": "4beb7e692625ad6941fcb71fe7099903d46346978c297d9b8caedabb14323498"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/nl-positive.baseline.json",
+      "sha256": "fd69deb6889c4d74dfd37fbd4ce512a57f3c306ca6fd3dc9c530fe65d7bcc56a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/nl-positive.ours.json",
+      "sha256": "6d2a69fc94ab0ad5bd72f10a75e1c0e61723957e2c7e9abfd89f41a40ce40b1d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/node-positive.baseline.json",
+      "sha256": "f62f050bd37cb4b57220f643a71af53990e7461bd61d1fe043e5c31b9687eac3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/node-positive.ours.json",
+      "sha256": "236850ca89a60184d53da700e9735e0b5b41cac4c5e2972760b4d7eb5e73b5ca"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/popd-direct-diagnostic.baseline.json",
+      "sha256": "fc01bab26e4e3eb9cba8370630cbba8981a0f4cb0acc6ab6f1b0e7907c0870c7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/popd-direct-diagnostic.ours.json",
+      "sha256": "3c2dad95eac486ede4d229073e7484fdc7366fb74e3ce624139c989650b408e7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/popd-positive.baseline.json",
+      "sha256": "47775214db0e11d9cb014b3f795ca41daa0c2e26c8a98c255aef734ab996da3e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/popd-positive.ours.json",
+      "sha256": "2b324a5bd9f7d2836c4e2056b7eee3d39e75fceacb880f5239a01ef5581bce20"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/printenv-positive.baseline.json",
+      "sha256": "4e757a2efd9107ddcdc5302b2f4240d5a3c4ec80aa1a684a6f23a3224c71cfc6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/printenv-positive.ours.json",
+      "sha256": "6cbb9ee8847203bdc1bbe54ec3f214114676e52eb83733b899c6af80c75b469d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/printf-positive.baseline.json",
+      "sha256": "89f053d38f3d91e2ccabc09a0253c11e55c1faf493d3f56ea24f26ec0c32cefe"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/printf-positive.ours.json",
+      "sha256": "feeaaca50d3d2b3ee15c5efd56ea923f432172cf22049746caf64816919f56ba"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/pushd-positive.baseline.json",
+      "sha256": "3da8f1eba4484fdc39caba94cce50e3f596b9014301064ec62be1e018f1deaf6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/pushd-positive.ours.json",
+      "sha256": "a39476ae9046b31a30ff5a58bed95d262fad124a07eaee51a95669d60d5e56a2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/python-positive.baseline.json",
+      "sha256": "9ca89dac17b93efaafc203ac2443a62ef1c2fdb668c0ec620e0fe94877f53279"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/python-positive.ours.json",
+      "sha256": "27010fb5902cfc569e5edb7442f020c9ea08369ec1a42a9fd726841a42bb95a5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/python3-positive.baseline.json",
+      "sha256": "0e13a1520dbb766f72419803175b0f58abeadba1d127bc7eebbc82ee4ca9f2bd"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/python3-positive.ours.json",
+      "sha256": "6b950251c72db5540b24d16258903b9390d199582a40f058d69a26b80544f20c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/readarray-direct-diagnostic.baseline.json",
+      "sha256": "1568295d17b8d3d74d6a92af3ec02bb6d4e75c252ceebef5c9b81439b30b4627"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/readarray-direct-diagnostic.ours.json",
+      "sha256": "cc180dafc5afcc0a313eb43b38fda35281224023e930be1ef48a677a2f9b5c35"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/readarray-positive.baseline.json",
+      "sha256": "bca38298ed275b73fe325e83ef38e3c9e2666fa308a502dccf8e7bf0ccfaa9db"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/readarray-positive.ours.json",
+      "sha256": "582f2dcb4af5b4d8a2882b6b497a362f80d3ba71733ea95ab9ecb0fdeb4082f6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/rev-positive.baseline.json",
+      "sha256": "d834ca19a2152b07330ee2dd76069226f4d72d7ecf28e2bfcc860fa1025a9904"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/rev-positive.ours.json",
+      "sha256": "e32fabb9018a7ca75814c77250bbb966a889964e3027e555b098c6551d8e9828"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/seq-positive.baseline.json",
+      "sha256": "c608cf68d0d5532a8e008e62b4fa54fdb35018b757554890e830398470fc70f8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/seq-positive.ours.json",
+      "sha256": "2d86c60fd6cfde9e04b0d66e04d929b6852edd1957a475896a5912148d5ca44c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/shopt-positive.baseline.json",
+      "sha256": "ed5057d57d6f76f4d9308a1220c64e328ee3117aa7a83e1327d98c5a0cc8e62e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/shopt-positive.ours.json",
+      "sha256": "2a0c5d6909f8db5bbf464966bf84a62a791c3f42f2cf6969c2cad41be5deb62b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/sleep-positive.baseline.json",
+      "sha256": "6bf6a606fbc364dfe20a78bfb089310e2e672170f40fd6528705acff0bee8aae"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/sleep-positive.ours.json",
+      "sha256": "856aaf36f6453443019f619f6f68b074d5471a5b2f324e7c34654f858f55e349"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/source-positive.baseline.json",
+      "sha256": "cfc2326a494d94e4ab66a51185948e619af937a694c6379a30e2f03614c5ade2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/source-positive.ours.json",
+      "sha256": "f13b4dc461797bafcdaf9ceab4895bea31c9b7f677d565fe9f9abe6cd6e20e5d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/split-positive.baseline.json",
+      "sha256": "46bc6bc6e8c44e35007141279af633753e162f849e6935cb42881e3847f5ec70"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/split-positive.ours.json",
+      "sha256": "08fcf29f8baf2ce9c265201612ebba41ac19914ae491a845343b326ee5cd3a9c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/sqlite3-positive.baseline.json",
+      "sha256": "26c0f1a50b4e4a85914a13fd9c1f684aa86b7d2df5e818426949bf6364cc4b7c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/sqlite3-positive.ours.json",
+      "sha256": "548912506b12a8c130a46d56e2b1d3c0283abffa5eea9a510e793911629dbdd1"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/strings-positive.baseline.json",
+      "sha256": "01fe231b363f4c9c98f0ccceb3c6970df5395ccb9e65316d2a47d464129c3cbe"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/strings-positive.ours.json",
+      "sha256": "ca985f6884daaf5559165e53f4dbe6e6a2535cb5bd2ed4607fea050b772f6591"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/tac-positive.baseline.json",
+      "sha256": "3d8eeed2cdf1c8b9b240fa8653bac4868789152f08a4a9260e919243ac72af51"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/tac-positive.ours.json",
+      "sha256": "988236d8d3f50f1e3d69d8dd4610cf34e034e57c6134b4d94744ca0ec3e6cfbb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/terminal-byte-control.baseline.json",
+      "sha256": "0f27e14d1f2b9032a31369bbf322608761170b0fbacc8cfbaba9c8b7839f1f94"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/terminal-byte-control.ours.json",
+      "sha256": "2223527b584787c424e6338643eadf956b9275663515f3b94c9633b345528504"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/time-positive.baseline.json",
+      "sha256": "55110e8899500ee760c6b63ee00944427b54c549e5846bb59e7d66ee98e1b8c2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/time-positive.ours.json",
+      "sha256": "6d72909f9dfd8406935b5cdece20a8a69c96b7ef1cc58f4b216ae0b6e975533a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/timeout-positive.baseline.json",
+      "sha256": "1ce48d60705fc6c510ce815ab975534cba337f677bf13784ff8afb9b06130283"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/timeout-positive.ours.json",
+      "sha256": "32a5c6a787e601b300201bfcd2cabad406d167d9526c6f85cf4aa2a4f8d7ff7e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/tree-positive.baseline.json",
+      "sha256": "ab25be844d8a4d927044a02b684f86e1f7235dede4d600a22e8dd91d4e1d948b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/tree-positive.ours.json",
+      "sha256": "d2d19b625a51aa06f98631ef72e5738ed6f69b8346f79e9aff74216083c8187d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/typeset-positive.baseline.json",
+      "sha256": "2570d70a5595b91bf2a16cbccb2d4f2c05f08617d47bb7672c192d991d027663"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/typeset-positive.ours.json",
+      "sha256": "21eb4e3815a29319c9e4207149f6dab0684f994624d8a3b49a40fa107618a5d7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unalias-direct-diagnostic.baseline.json",
+      "sha256": "72ddaf91befa56368aeb269464e0507c01aeda20c81f1001a83db3e66ca64ccd"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unalias-direct-diagnostic.ours.json",
+      "sha256": "8889cc400fec501f6e9afe0a0658c882ec6e174c28c45db895fa78ccf9a7929a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unalias-positive.baseline.json",
+      "sha256": "d22a1bb29ef38b2fd65c99ddd26da621866b9a99e488e681ea18ae12b01eee60"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unalias-positive.ours.json",
+      "sha256": "84dd8f7cf3298583dd2d87e436dddafb9aa81d67b6c9094c0a5b83b1ebf44a31"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unexpand-positive.baseline.json",
+      "sha256": "adf86ae1f864818453128b61cb6a134fc8ea7e859b7e0a7a584a3821d8c149f3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/unexpand-positive.ours.json",
+      "sha256": "7277ad4a1320bbcb6c596ada817b5cb1ab1e70e98b1792c385ac3cbe8c46db48"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/vfs-census-control.baseline.json",
+      "sha256": "dfd0eae964ba757e4ce4ba2010a625073bbf47d764890e5f12246537af9d3316"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/vfs-census-control.ours.json",
+      "sha256": "43ea85f1ffae67f562f5c6f65d934585d8aa7aead7e7427b923fd72b6a23bea6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/wait-direct-diagnostic.baseline.json",
+      "sha256": "ee817b93c6465d7539b9b692eb86a12005de9cfe834a8050ff564bbbff3d5b0e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/wait-direct-diagnostic.ours.json",
+      "sha256": "9d64588a20ab46bb85a5af6aae0125b7b0fed6f52f9a5159af58a522691e0572"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/wait-positive.baseline.json",
+      "sha256": "b172b363c8563e5466d0971eedcb5f608b5d38ad958b3a3cdc3d6b5030358f8d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/wait-positive.ours.json",
+      "sha256": "bd02788c4a1eadfa7d509da63507b2175fd5a664b0215f821d71aba171b71451"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/which-positive.baseline.json",
+      "sha256": "8045d789601c9ba58ee54a0bcbcdf7c4569b00ef1f82e7cd82496ad17475ac19"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/which-positive.ours.json",
+      "sha256": "ed313b2cb0bd855c7f4257c96f5b3cf13df5f4612d4ecc67f2adcf9e8c0eed36"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/whoami-positive.baseline.json",
+      "sha256": "a712b87fbde4c48eae58dff1d843abf6418062f1c16621ecb1e2081cd40d656d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/whoami-positive.ours.json",
+      "sha256": "93f11f9019f538382e5b016541216ee1bc076fecbda996f6e04c2ce6a05deba6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/xan-positive.baseline.json",
+      "sha256": "729cda8fc112c90a06cd83cb2bb26d6fe5e9a6c69f0084eed9643de10dd85652"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/xan-positive.ours.json",
+      "sha256": "dc9ed410b37963997a2f9aff6586da7b2f3a2eabf228b33f6be5f8409beb722b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/yq-positive.baseline.json",
+      "sha256": "3ff5502f8f7feeab36088eb25410ae99951b45b88e8253bafac5707178663ebf"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/yq-positive.ours.json",
+      "sha256": "6a17e7ea85c84bc13545a46c63f5e865d55cc977097d824406b6448c6e130846"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/results.json",
+      "sha256": "e26009ab6259db6703db9852420a27e8da2871c1c8eb2f7838942fa7e7a1ec29"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation-common.mjs",
+      "sha256": "7437f2c67cceb59603ab793f71ac5b54b91f2214dfd044093b2264424b31bf03"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation.mjs",
+      "sha256": "cadeafb4429603046ca84818c15dd1c2d5fc387ae7d22b4c6f13900598b163de"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/correction-audit.json",
+      "sha256": "593880bfe74e870ad5b33843a76f3f28e8499e938bb37d3ed17aae8b243c25e9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/final-checks.json",
+      "sha256": "b3f7c32ecc74477dc714d23a3560e53f67ea6943cb18c594413bbe54c969240b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/publisher-probe.txt",
+      "sha256": "9d57b56c11f05ee0def181c01526bd4e5f2fd40567b661e177b6a74e9288f31b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/after.json",
+      "sha256": "bb3f6b35bde7a475cce96ae24d9f27234a4b71d080d7b1252c10cfbd7c70dc8d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/before.json",
+      "sha256": "d63b5769a539bb6723c66f42bdb3fe794f58cea53ccf90e46ce1a072b4a64ae0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/harness/common.mjs",
+      "sha256": "dd8ea482cf2ac4d90d3814dd2df1541c865e65d49dc62b81095726f1dd7118d6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/harness/replay.mjs",
+      "sha256": "be7835c508eb936ceab4985ec08aaaeb2eedb7409f0de3d164475aea762132e6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/publication-failure.json",
+      "sha256": "570242d4abbc4e07304c73e43b4329c3d66958d114e90bbe6c4950271489d97f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.baseline.json",
+      "sha256": "0646112a4bc3b6289494fcbad890d6d7de92ec869c0a3db8cf13063d7faf2ea5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.ours.json",
+      "sha256": "f992568a12cd23fa3339bb5235b58d83ae3fc8aca61346d303236577f07467f8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.baseline.json",
+      "sha256": "d43b5dc4fde1d9052d3229ce58b54be140fad4d7916a43fc1f849a28ea03bf9f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.ours.json",
+      "sha256": "c38055554f6d1a1442181726f1a4d6188a715a22038b58feee4166f4f44e2317"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.baseline.json",
+      "sha256": "ea965b0f0efd8a7e0fe1fc8876958c7a9bfd2b831946488fb742536860addf45"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.ours.json",
+      "sha256": "f8b047d676512a3d89496fc9af848ac323b08397694690d66389daea8b095511"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.baseline.json",
+      "sha256": "89f053d38f3d91e2ccabc09a0253c11e55c1faf493d3f56ea24f26ec0c32cefe"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.ours.json",
+      "sha256": "feeaaca50d3d2b3ee15c5efd56ea923f432172cf22049746caf64816919f56ba"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.baseline.json",
+      "sha256": "0f27e14d1f2b9032a31369bbf322608761170b0fbacc8cfbaba9c8b7839f1f94"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.ours.json",
+      "sha256": "2223527b584787c424e6338643eadf956b9275663515f3b94c9633b345528504"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.baseline.json",
+      "sha256": "dfd0eae964ba757e4ce4ba2010a625073bbf47d764890e5f12246537af9d3316"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.ours.json",
+      "sha256": "43ea85f1ffae67f562f5c6f65d934585d8aa7aead7e7427b923fd72b6a23bea6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/results.json",
+      "sha256": "323bd9c294e4f9a8b20faecc7f4fc436cf9d788d93c5f02652ff339a2f305208"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay.mjs",
+      "sha256": "be7835c508eb936ceab4985ec08aaaeb2eedb7409f0de3d164475aea762132e6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/report.mjs",
+      "sha256": "7b71c7f71f3b60b164779fcbd65f5a007c29076e4da8b21744aabbfdc1d8c30f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/review-matrix.json",
+      "sha256": "4ca1c4120d9c3c8f57f4546850fc5935a26129f61b9f8331b752678d2680ce28"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/REVIEW.md",
+      "sha256": "b83ab24a51fee9039778493c991510b3a6770293514147c537fc6de907143174"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-attempt-001.json",
+      "sha256": "ab14af29d4de67f97d1dad0eff22d31bb64adcb014671dc45238c4d2d6ab6d6c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-attempt-002.json",
+      "sha256": "cc58fa5df37a4277924079c36c4461e0cab95cb42d12e76c878f16e1c54d7df1"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-audit.mjs",
+      "sha256": "acd18997d041ca0037cf4badca45ec89741bada62fc6c4960791da4ec1ab0fa0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/STATIC.md",
+      "sha256": "51651d901b2ec550c17203cc5d9a5b67cfd1925f621563e3bec0f339541247d9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/timing-and-api-observations.json",
+      "sha256": "4ec05a34899ebe4a0dbc1c64144032f33a575d1a8f235789f1b51e1d07bdba51"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/validation.json",
+      "sha256": "54574244db72ac65cb971fa626b6b8e73f0775147e1b14724cfe00d69385a23f"
+    }
+  ],
+  "authorCommit": "849dbf18b1e865c7d12927c11f0e20ba0555c540",
+  "uniqueCompleteResults": 136,
+  "totalLaunches": 137,
+  "lostCaptureLaunches": 1,
+  "sourceSubjectUnchanged": true,
+  "productOrDependencyEdits": false
+}

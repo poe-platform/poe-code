@@ -1,0 +1,1134 @@
+{
+  "counts": {
+    "declaredPrimary": 61,
+    "declaredDiagnostics": 7,
+    "declaredAttempts": 136,
+    "actualAttempts": 12,
+    "productExecCalls": 12,
+    "normalChildren": 12,
+    "agreement": 12,
+    "disagreement": 0
+  },
+  "parentError": {
+    "name": "AssertionError",
+    "message": "\n\n\nnull !== 0\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: \n\n\nnull !== 0\n\n    at publish (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-review/measured/common.mjs:21:10)\n    at file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay.mjs:136:5\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "agreement": [
+    {
+      "caseId": "printf-positive",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "printf-positive",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "terminal-byte-control",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "terminal-byte-control",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "partial-functionality",
+        "operationalCredit": false
+      },
+      "reviewer": {
+        "classification": "partial-functionality",
+        "operationalCredit": false
+      }
+    },
+    {
+      "caseId": "curl-positive",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "curl-positive",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "vfs-census-control",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "vfs-census-control",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "alias-positive",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "missing-handler",
+        "operationalCredit": false
+      },
+      "reviewer": {
+        "classification": "missing-handler",
+        "operationalCredit": false
+      }
+    },
+    {
+      "caseId": "alias-positive",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    },
+    {
+      "caseId": "builtin-positive",
+      "engine": "ours",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "missing-handler",
+        "operationalCredit": false
+      },
+      "reviewer": {
+        "classification": "missing-handler",
+        "operationalCredit": false
+      }
+    },
+    {
+      "caseId": "builtin-positive",
+      "engine": "baseline",
+      "exactChannelsAndStableNamespace": true,
+      "differences": [],
+      "author": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      },
+      "reviewer": {
+        "classification": "functional-positive",
+        "operationalCredit": true
+      }
+    }
+  ],
+  "observations": [
+    {
+      "caseId": "printf-positive",
+      "engine": "ours",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "YXNjaWk6Y29udHJvbAo=",
+              "actual": "YXNjaWk6Y29udHJvbAo="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "YXNjaWk6Y29udHJvbAo=",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.ours.json"
+    },
+    {
+      "caseId": "printf-positive",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "YXNjaWk6Y29udHJvbAo=",
+              "actual": "YXNjaWk6Y29udHJvbAo="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "YXNjaWk6Y29udHJvbAo=",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.baseline.json"
+    },
+    {
+      "caseId": "terminal-byte-control",
+      "engine": "ours",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "AH+A/w==",
+              "actual": "AH+A/w=="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: bytes",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: bytes",
+            "passes": true,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/bytes",
+            "before": null,
+            "after": {
+              "path": "/fixture/bytes",
+              "type": "file",
+              "mode": 438,
+              "base64": "AH+A/w=="
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/fixture/bytes",
+            "type": "file",
+            "mode": 438,
+            "base64": "AH+A/w=="
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "AH+A/w==",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.ours.json"
+    },
+    {
+      "caseId": "terminal-byte-control",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "partial-functionality",
+        "operationalCredit": false,
+        "expectationSatisfied": false,
+        "failures": [
+          "stdoutBase64",
+          "file bytes: bytes"
+        ],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": false,
+            "detail": {
+              "expected": "AH+A/w==",
+              "actual": "AH/CgMO/"
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: bytes",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: bytes",
+            "passes": false,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/bytes",
+            "before": null,
+            "after": {
+              "path": "/fixture/bytes",
+              "type": "file",
+              "mode": 420,
+              "base64": "AH/CgMO/"
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/fixture/bytes",
+            "type": "file",
+            "mode": 420,
+            "base64": "AH/CgMO/"
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "AH/CgMO/",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.baseline.json"
+    },
+    {
+      "caseId": "curl-positive",
+      "engine": "ours",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: download.txt",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: download.txt",
+            "passes": true,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/download.txt",
+            "before": null,
+            "after": {
+              "path": "/fixture/download.txt",
+              "type": "file",
+              "mode": 438,
+              "base64": "bG9vcGJhY2stZml4dHVyZQo="
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/fixture/download.txt",
+            "type": "file",
+            "mode": 438,
+            "base64": "bG9vcGJhY2stZml4dHVyZQo="
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.ours.json"
+    },
+    {
+      "caseId": "curl-positive",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: download.txt",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: download.txt",
+            "passes": true,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/download.txt",
+            "before": null,
+            "after": {
+              "path": "/fixture/download.txt",
+              "type": "file",
+              "mode": 420,
+              "base64": "bG9vcGJhY2stZml4dHVyZQo="
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/fixture/download.txt",
+            "type": "file",
+            "mode": 420,
+            "base64": "bG9vcGJhY2stZml4dHVyZQo="
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.baseline.json"
+    },
+    {
+      "caseId": "vfs-census-control",
+      "engine": "ours",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "bGlua2VkCg==",
+              "actual": "bGlua2VkCg=="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: control-output",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: control-output",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "preserve input: /fixture/control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "preserve input: /fixture/control-link",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial bytes: control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial mode: control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial symlink: control-link",
+            "passes": true,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/control-output",
+            "before": null,
+            "after": {
+              "path": "/fixture/control-output",
+              "type": "file",
+              "mode": 438,
+              "base64": "Y2Vuc3VzLW9r"
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/fixture/control-file",
+            "type": "file",
+            "mode": 384,
+            "base64": "bGlua2VkCg=="
+          },
+          {
+            "path": "/fixture/control-link",
+            "type": "symlink",
+            "mode": 511,
+            "target": "control-file"
+          },
+          {
+            "path": "/fixture/control-output",
+            "type": "file",
+            "mode": 438,
+            "base64": "Y2Vuc3VzLW9r"
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "bGlua2VkCg==",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.ours.json"
+    },
+    {
+      "caseId": "vfs-census-control",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "bGlua2VkCg==",
+              "actual": "bGlua2VkCg=="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: control-output",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "file bytes: control-output",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "preserve input: /fixture/control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "preserve input: /fixture/control-link",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial bytes: control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial mode: control-file",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "fixture initial symlink: control-link",
+            "passes": true,
+            "detail": null
+          }
+        ],
+        "effects": [
+          {
+            "path": "/fixture/control-output",
+            "before": null,
+            "after": {
+              "path": "/fixture/control-output",
+              "type": "file",
+              "mode": 420,
+              "base64": "Y2Vuc3VzLW9r"
+            }
+          }
+        ],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/fixture/control-file",
+            "type": "file",
+            "mode": 384,
+            "base64": "bGlua2VkCg=="
+          },
+          {
+            "path": "/fixture/control-link",
+            "type": "symlink",
+            "mode": 511,
+            "target": "control-file"
+          },
+          {
+            "path": "/fixture/control-output",
+            "type": "file",
+            "mode": 420,
+            "base64": "Y2Vuc3VzLW9r"
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "bGlua2VkCg==",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.baseline.json"
+    },
+    {
+      "caseId": "alias-positive",
+      "engine": "ours",
+      "assessment": {
+        "classification": "missing-handler",
+        "operationalCredit": false,
+        "expectationSatisfied": false,
+        "failures": [
+          "exit status",
+          "stdoutBase64",
+          "stderrBase64"
+        ],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": false,
+            "detail": {
+              "expected": 0,
+              "actual": 127
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": false,
+            "detail": {
+              "expected": "YWxpYXMtb2s=",
+              "actual": ""
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": false,
+            "detail": {
+              "expected": "",
+              "actual": "c2hlbGw6IGxpbmUgMTogYWxpYXM6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 127,
+        "rawStdoutBase64": "",
+        "rawStderrBase64": "c2hlbGw6IGxpbmUgMTogYWxpYXM6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.ours.json"
+    },
+    {
+      "caseId": "alias-positive",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "YWxpYXMtb2s=",
+              "actual": "YWxpYXMtb2s="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "YWxpYXMtb2s=",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.baseline.json"
+    },
+    {
+      "caseId": "builtin-positive",
+      "engine": "ours",
+      "assessment": {
+        "classification": "missing-handler",
+        "operationalCredit": false,
+        "expectationSatisfied": false,
+        "failures": [
+          "exit status",
+          "stdoutBase64",
+          "stderrBase64"
+        ],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": false,
+            "detail": {
+              "expected": 0,
+              "actual": 127
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": false,
+            "detail": {
+              "expected": "YnVpbHRpbi1vawo=",
+              "actual": ""
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": false,
+            "detail": {
+              "expected": "",
+              "actual": "c2hlbGw6IGxpbmUgMTogYnVpbHRpbjogY29tbWFuZCBub3QgZm91bmQK"
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 511
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 511
+          }
+        ],
+        "rawStatus": 127,
+        "rawStdoutBase64": "",
+        "rawStderrBase64": "c2hlbGw6IGxpbmUgMTogYnVpbHRpbjogY29tbWFuZCBub3QgZm91bmQK"
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.ours.json"
+    },
+    {
+      "caseId": "builtin-positive",
+      "engine": "baseline",
+      "assessment": {
+        "classification": "functional-positive",
+        "operationalCredit": true,
+        "expectationSatisfied": true,
+        "failures": [],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "YnVpbHRpbi1vawo=",
+              "actual": "YnVpbHRpbi1vawo="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          }
+        ],
+        "effects": [],
+        "fixtureState": [
+          {
+            "path": "/fixture",
+            "type": "directory",
+            "mode": 493
+          },
+          {
+            "path": "/tmp",
+            "type": "directory",
+            "mode": 493
+          }
+        ],
+        "rawStatus": 0,
+        "rawStdoutBase64": "YnVpbHRpbi1vawo=",
+        "rawStderrBase64": ""
+      },
+      "raw": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.baseline.json"
+    }
+  ],
+  "comparisonPolicy": "Exact public status/stdout/stderr bytes and entire stable root namespace before/after. Raw metadata retained; timestamps, opaque IDs, inode allocation, elapsed timings and host loader diagnostic PIDs are not repeat-equality fields. Both failing never means parity."
+}

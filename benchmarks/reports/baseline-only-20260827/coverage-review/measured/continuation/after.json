@@ -1,0 +1,213 @@
+{
+  "capturedAt": "2026-08-27T04:24:51.596Z",
+  "sourceSha256": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+  "dependencies": [
+    {
+      "directory": "node_modules",
+      "sha256": "2f972a7d0212bdfa8b0a5d17e40701effd1f998973acdb75c945516a497eec1c",
+      "files": 318
+    },
+    {
+      "directory": "benchmarks/node_modules",
+      "sha256": "f08e64c4d83b8f75c43c6cb788b27df27159866ae72fbdc2f81f5504979254d4",
+      "files": 3510
+    }
+  ],
+  "harness": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/audit-common.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/audit-common.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "f091a451e9bc9f54362be119bff9d064fcddf02a173f3ed315c17d24b0be8aa8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "cab53ffc60f6e0035c2f3fe56c5eca54d0bc07132c3cb10067ca9463ce483e63"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/execution-cases.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/execution-cases.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "aea93fbc1f2436033a18e4c4a08f3242ece70a8e17f76bcb1c044fff9e4ee301"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/freeze-execution.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/freeze-execution.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "a7f2d61d0d140a8dd15e688bce9a0e0c711b8c2f9a5c5a7979b15207bfb943b2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "ed3cae99aa8d43b9e43195c6b76da2bd60a3baa1acee6fdbad5b46b975d6f3bb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/run.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/run.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "a4604a6067537575a5794669fb05e0091c18f6f0efcbcefefe66ee1bff3e6570"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/trace-loader.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/trace-loader.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "860b1bfce860ab2992e897c61f76f18ae234cd8e534dd9b31739e8f3b06c79ed"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/trace-register.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/trace-register.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "fbf1bedceb9422748c9a1820a83cfa4f07ddb6fd29223ac6117729452e7947e5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "75142b714fc3b63120b0214ea9cff3be7c1e7d3c5f63069e050160822880f002"
+    }
+  ],
+  "assets": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "links": [],
+      "symlink": null,
+      "sha256": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232"
+    }
+  ],
+  "snapshotConfig": [
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/package.json",
+      "realpath": "/private/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/package.json",
+      "links": [
+        {
+          "path": "/tmp",
+          "target": "private/tmp",
+          "realpath": "/private/tmp"
+        }
+      ],
+      "symlink": null,
+      "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/tsconfig.json",
+      "realpath": "/private/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/tsconfig.json",
+      "links": [
+        {
+          "path": "/tmp",
+          "target": "private/tmp",
+          "realpath": "/private/tmp"
+        }
+      ],
+      "symlink": null,
+      "sha256": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "links": [],
+    "symlink": null,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "loadedIntegrity": true,
+  "unmatchedLoadedFiles": [],
+  "serverClosed": true,
+  "requests": []
+}

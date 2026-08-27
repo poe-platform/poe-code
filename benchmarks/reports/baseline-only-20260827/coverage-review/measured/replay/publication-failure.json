@@ -1,0 +1,36 @@
+{
+  "phase": "raw capture publication after returned child capture",
+  "caseId": "clear-positive",
+  "engine": "ours",
+  "originalParentPid": 72029,
+  "stalledPublisherPid": 72439,
+  "supervision": "/tmp/safe-bash-baseline-measured-review-supervision.txt",
+  "publisherSignal": "SIGTERM",
+  "parentExit": 0,
+  "serverClosed": true,
+  "durableCaptures": 12,
+  "launchedChildren": 13,
+  "confirmedProductExecCalls": 12,
+  "lostCaptureCount": 1,
+  "lostProductPhase": "Not durably retained; do not invent result, status, or normal exit.",
+  "existingResultsCountCaveat": "Original actualAttempts12 counts appended captures, not13 actual launches; original JSON preserved.",
+  "prefixAgreement": 12,
+  "smallPublisherProbe": "Succeeded with10s bound; no product invocation.",
+  "recoveryAuthorization": "ROOT bounded recovery authorization, 2026-08-27. Read live publication-blocker request; prior supervision authority applies.\n1. Re-check PID/PPID/command immediately, then terminate only still-owned stalled apply_patch publisher72439 if it remains blocked. Let parent72029 abort and close its fixture server normally; preserve all partial evidence, actual launch/call counts, original driver hashes, and the publication fault. No unrelated processes or SIGSTOP. This is not a product loss.\n2. If the already-serialized clear-positive.ours capture can be recovered exactly from the owned stalled publication request or another retained exact payload, preserve recovery provenance, validate its complete schema/input/source/census/result and count it once. Never reconstruct/invent missing channels or outcomes. Do not read unrelated process data.\n3. Authorize a new hash-recorded CONTINUATION driver/output under your owned measured subtree, with a bounded publication timeout using apply_patch. Preserve original driver/prefix immutable. Revalidate unchanged author849dbf1 source30f5cfb, inputs5a8dc009, child harness/config/dependencies/argv/env and same port before continuing. Each case is isolated: reuse only fully verified completed prefix captures, execute ONLY remaining declared cases. No new recipe/expectation/source/config changes. Document capture-driver delta separately from unchanged product subject.\n4. If and only if the attempted clear-positive.ours result cannot be recovered exactly, authorize ONE explicit repeat of that SAME frozen case in addition to remaining unexecuted cases. Retain its first lost-delivery attempt as unverified harness evidence; report original call plus repeat separately (up to137 total independent calls if13 were actually executed before abort). This is not permission to rerun any other completed row or the full136 again. If a different actual count/boundary is found, report it before further calls.\n5. Final completed cohort must still contain exactly136 distinct declared engine/case results. Report how many came from prefix/recovery/continuation, all attempts, driver hashes and known lifecycle exception. No broad all-normal/parity claim. Stop all owned replay/fixture processes on completion and close reviewer normally. Root already acknowledges JS guest success + cleanup failure and tree display-profile mismatch.\n",
+  "originalHarness": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "be7835c508eb936ceab4985ec08aaaeb2eedb7409f0de3d164475aea762132e6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/common.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-review/measured/common.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "dd8ea482cf2ac4d90d3814dd2df1541c865e65d49dc62b81095726f1dd7118d6"
+    }
+  ]
+}

@@ -44,7 +44,7 @@ let rg = readFileSync(resolve(source, 'src/commands/search/rg.ts'), 'utf8');
 rg = replace(rg, 'from "./matcher.js"', 'from "./validation-matcher.js"');
 rg = replace(rg, 'const matches = matcher.matches(', 'const matches = await matcher.matches(');
 writeFileSync(resolve(source, 'src/commands/search/validation-rg.ts'), rg);
-const config = { compilerOptions: { target: 'ES2023', module: 'NodeNext', moduleResolution: 'NodeNext', strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, skipLibCheck: true, types: ['node'], typeRoots: [resolve(root, 'node_modules/@types')], rootDir: source, outDir: resolve(scratch, 'built'), declaration: true }, include: [source + '/**/*.ts'] };
+const config = { compilerOptions: { target: 'ES2023', lib: ['ES2023'], module: 'NodeNext', moduleResolution: 'NodeNext', strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, skipLibCheck: true, types: ['node'], typeRoots: [resolve(root, 'node_modules/@types')], rootDir: source, outDir: resolve(scratch, 'built'), declaration: true }, include: [source + '/**/*.ts'] };
 writeFileSync(resolve(scratch, 'tsconfig.json'), JSON.stringify(config, null, 2));
 const compileArgs = [resolve(root, 'node_modules/typescript/bin/tsc'), '-p', resolve(scratch, 'tsconfig.json')];
 const result = spawnSync(process.execPath, compileArgs, { encoding: 'utf8', timeout: 90000, maxBuffer: 2 ** 20 });

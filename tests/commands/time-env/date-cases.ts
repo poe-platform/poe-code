@@ -49,4 +49,6 @@ export const dateCases: readonly DateCase[] = [
   { name: "C change-case flags", args: ["-d@0", "+%#P|%#Z|%#A"], stdout: "am|utc|THURSDAY\n" },
   { name: "Etc GMT label", args: ["-d@0", "+%Z %z"], env: { TZ: "Etc/GMT" }, stdout: "GMT +0000\n" },
   { name: "Z zone label", args: ["-d@0", "+%Z %z"], env: { TZ: "Z" }, stdout: "UTC +0000\n" },
+  { name: "IANA lower calendar endpoint", args: ["-d0000-01-01T12:00:00", "+%F %T %z"], env: { TZ: "America/New_York" }, stdout: "0000-01-01 12:00:00 -0456\n" },
+  { name: "IANA upper calendar endpoint", args: ["-d9999-12-31T12:00:00", "+%F %T %z"], env: { TZ: "America/New_York" }, stdout: "9999-12-31 12:00:00 -0500\n" },
 ];

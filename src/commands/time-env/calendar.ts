@@ -58,8 +58,8 @@ function sameFields(left: CalendarFields, right: CalendarFields): boolean {
     && left.hour === right.hour && left.minute === right.minute && left.second === right.second;
 }
 
-function checkCalendar(fields: CalendarFields): void {
-  if (fields.year < 0 || fields.year > 9999 || fields.month < 1 || fields.month > 12 || fields.day < 1 || fields.day > 31
+function checkCalendar(fields: CalendarFields, restrictYear = true): void {
+  if ((restrictYear && (fields.year < 0 || fields.year > 9999)) || fields.month < 1 || fields.month > 12 || fields.day < 1 || fields.day > 31
     || fields.hour < 0 || fields.hour > 23 || fields.minute < 0 || fields.minute > 59 || fields.second < 0 || fields.second > 59
     || !sameFields(fields, utcFields(utcMilliseconds(fields)))) throw new CommandFailure("invalid calendar date or time");
 }
@@ -97,6 +97,10 @@ export class TimeZone {
   }
 
   fields(instant: bigint): ZonedFields {
+    return this.observedFields(instant, true);
+  }
+
+  private observedFields(instant: bigint, restrictYear: boolean): ZonedFields {
     boundedInstant(instant);
     const seconds = floorDivide(instant, nanosecondsPerSecond);
     const milliseconds = Number(seconds * 1000n);
@@ -113,7 +117,7 @@ export class TimeZone {
       offset = (utcMilliseconds(fields) - milliseconds) / 1000;
       zone = parts.timeZoneName!;
     }
-    checkCalendar(fields);
+    checkCalendar(fields, restrictYear);
     return { ...fields, offset, zone };
   }
 
@@ -122,11 +126,11 @@ export class TimeZone {
     const wall = utcMilliseconds(fields);
     if (this.fixedOffset !== undefined) return boundedInstant(BigInt(wall) * 1000000n - BigInt(this.fixedOffset) * nanosecondsPerSecond + fraction);
     const offsets = new Set<number>();
-    for (const days of [-2, -1, 0, 1, 2]) offsets.add(this.fields(BigInt(wall + days * 86400000) * 1000000n).offset);
+    for (const days of [-2, -1, 0, 1, 2]) offsets.add(this.observedFields(BigInt(wall + days * 86400000) * 1000000n, false).offset);
     const candidates: bigint[] = [];
     for (const offset of offsets) {
       const candidate = BigInt(wall) * 1000000n - BigInt(offset) * nanosecondsPerSecond + fraction;
-      if (sameFields(this.fields(candidate), fields)) candidates.push(candidate);
+      if (sameFields(this.observedFields(candidate, false), fields)) candidates.push(candidate);
     }
     if (candidates.length === 0) throw new CommandFailure("nonexistent local time in virtual TZ");
     if (candidates.length !== 1) throw new CommandFailure("ambiguous local time; specify an explicit UTC offset");

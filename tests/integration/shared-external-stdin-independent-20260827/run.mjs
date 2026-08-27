@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { baseline, cases, controls } from "./cases.mjs";
 
-const fixtureCommit = "0ec75ef320ecaea9fc66e1ba952f3961c917685c";
+const fixtureCommit = "92f7626200d1509cf0efe17e4ee6c3d558f3a277";
 const repository = "/Users/kjopek/Workspace/safe-bash";
 const owned = "tests/integration/shared-external-stdin-independent-20260827";
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -127,7 +127,7 @@ try {
     assert.ok(corresponding && corresponding.sha256 === entry.sha256, `moved package not the build ${entry.path}`);
   }
   const runtime = { executable: await realpath(process.execPath), version: process.version, sha256: hash(await readFile(process.execPath)), npmCli, npmSha256: hash(await readFile(npmCli)), platform: process.platform, arch: process.arch };
-  await json("authentication.json", { baseline, fixtureCommit, runtime, scratch, source, consumer, archive: { command: archived.args, sha256: hash(await readFile(archivePath)), tree }, sourceOriginal, toolManifest, buildBefore, consumerBefore, pack: { ...pack, sha256: hash(tarBytes) }, appendProof: "full directory-entry/type/mode/file-byte inventory equality before/after including new entries; not merely original tracked path hashes", scope: "committed production source/config/README/AGENTS archive; 32 independently frozen probes; not a whole repository test gate" });
+  await json("authentication.json", { baseline, fixtureCommit, runtime, scratch, source, consumer, archive: { command: archived.args, sha256: hash(await readFile(archivePath)), tree }, sourceOriginal, toolManifest, buildBefore, consumerBefore, pack: { ...pack, sha256: hash(tarBytes) }, appendProof: "full directory-entry/type/mode/file-byte inventory equality before/after including new entries; not merely original tracked path hashes", scope: `committed production source/config/README/AGENTS archive; ${cases.length} independently frozen probes; not a whole repository test gate` });
   const rows = [];
   const loadManifests = [];
   const execute = async (id, mutant = "none") => {

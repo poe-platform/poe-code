@@ -4,6 +4,10 @@ Ownership is only this new subtree. Production APIs, exports, contracts, manifes
 the original matrix, fixtures, preflight, MockDav and historical evidence remain
 unchanged. This is resumed matrix/wrapper **author** work, not independent review.
 
+Measured successful checkpoint: see `AUTHOR_HANDOFF.md` and
+`evidence/author-corrected/gate.json`. Original/packed stock each measured 78/79,
+configured full matrix 79/79, and separate controls 22/22; earlier failures remain.
+
 ## Exact fixture delta
 
 `verify.mjs` freezes a committed revision and first builds it, strictly checks the

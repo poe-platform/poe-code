@@ -1,0 +1,56 @@
+# Independent next-stream source review
+
+Scope: the five source-only opt-in commands `seq`, `nl`, `rev`, `unexpand`,
+and `split`. This independent leaf does not modify production code, author
+fixtures, package exports, the default registry, or historical evidence.
+
+## Pre-exposure freeze
+
+`frozen/manifest.json` pins the input generator, native recorder and raw
+outcomes before any new author source/test exposure or product execution.
+The freeze contains 82 distinct command inputs, 71 GNU coreutils 9.7 controls
+on Darwin, 82 separate Apple controls, and three sequentially captured native
+pipeline workflows using GNU coreutils plus Apple rev. These are not 156
+independent product tests and are not a full compatibility gate.
+
+Each capture contains exact executable argv, controlled environment, stdin and
+file setup bytes, stdout/stderr/status, initial and final namespace with file
+bytes and symlink targets. Binaries are not vendored. The captured references
+include SHA-256, actual GNU version output, Darwin/macOS identity, Node identity,
+locale availability and the installed GNU 9.7 manual hash. The online manuals
+are rolling guidance, not a claim they match the installed binary release.
+There is no util-linux rev runtime evidence and no GNU/Linux claim.
+
+Existing public/contracts/ByteIO/Shell/Memory+Real APIs and the old stream
+module index/README were inspected read-only around 05:42–05:43 UTC on
+August 27, 2026. New author API proposals were permitted; unpublished source
+and author tests were not inspected before this freeze. Two initial coordination
+notes accidentally used anticipatory 05:44/05:45 labels; they are not duration
+evidence. The recorder's actual timestamp is authoritative.
+
+The native capture ran successfully, with zero execution-helper faults. That
+is **not a product pass**. `nl-invalid-blank-count` is a preserved misleading
+fixture name: both runtimes accept `-l 0`, and the actual success is frozen.
+Apple/GNU diagnostic, status, locale and destructive-alias differences remain
+separate profiles; expectations are not rewritten to match implementation.
+
+## Reproduction and release boundary
+
+Native-only capture, requiring the already available pinned references:
+
+```sh
+node tests/commands/stream-next-stress/capture-native.mjs
+```
+
+This writes a uniquely named `.private/native-*` directory and a proposed
+`apply_patch` publication; it never overwrites the frozen evidence. The original
+native scratch and any failed attempts remain private. Do not republish altered
+expectations without root authorization.
+
+Product execution must wait for both authors actually CLOSED and root's
+`/tmp/safe-bash-stream-next-review.ready` with source commit/hash evidence.
+Before that gate, only corpus/harness preparation is permitted. Source-only
+module imports do not establish public package/subpath support. Defaults must
+remain 60; no whole-project, full-backend, performance, superiority, or duration
+completion claim is made. Plato's frozen `e36dab2` gate and the old diagnostic
+cohorts are unrelated and untouched.

@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "kind": "STATIC_GIT_JSON_PROFILE_AUDIT",
+  "createdAt": "2026-08-27T05:20:18.570Z",
+  "productExecutions": 0,
+  "definitions": {
+    "original": {
+      "harness": "0294afb6e690433aed994868e5ed437ecf58ae48",
+      "evidence": "8e09db96b51248137648cd5fd6093e4bc08f2b59",
+      "path": "benchmarks/reports/expanded-20260827/native-corrected/native.json"
+    },
+    "scratch-aligned": {
+      "harness": "d1b10a375a13f031f9f604a64395cd507f21a071",
+      "evidence": "d1b10a375a13f031f9f604a64395cd507f21a071",
+      "path": "benchmarks/reports/expanded-20260827/native-scratch-aligned/native.json"
+    }
+  },
+  "profiles": {
+    "original": {
+      "goldenSha256": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+      "harnessFiles": {
+        "benchmarks/expanded/README.md": "b180ff8803dce1e5ac5357ce94ecd5846a84d842f71f638112ddf43d9ebd79bf",
+        "benchmarks/expanded/capture.mjs": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+        "benchmarks/expanded/common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+        "benchmarks/expanded/engine.mjs": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+        "benchmarks/expanded/harness.test.mjs": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+        "benchmarks/expanded/inventory.mjs": "2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd",
+        "benchmarks/expanded/native-controls.test.mjs": "02428c59d4af4e04ddac2a44dcfb460a226a549dd8bf67f851b8114627c9a3f6",
+        "benchmarks/expanded/native.mjs": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+        "benchmarks/expanded/recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+        "benchmarks/expanded/release.mjs": "d599a4bb33a08eaf54224ca671cb842b39a696d048205d1308e3b909beadbc14",
+        "benchmarks/expanded/run.mjs": "18f1e4264922e367c46535dcc332195ccaec875b8be6da27ff17d966a200d077",
+        "benchmarks/expanded/server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+        "benchmarks/expanded/session.mjs": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+        "benchmarks/expanded/transport.mjs": "f81d10edbc4f91cc815a1a20e2b35eea79f5bea30241f72189ccdacc25889ae2"
+      },
+      "sourceChecks": [
+        {
+          "file": "recipes.mjs",
+          "sha256": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94"
+        },
+        {
+          "file": "native.mjs",
+          "sha256": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7"
+        },
+        {
+          "file": "common.mjs",
+          "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+        },
+        {
+          "file": "server.mjs",
+          "sha256": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd"
+        },
+        {
+          "file": "capture.mjs",
+          "sha256": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be"
+        }
+      ],
+      "requiredFixtures": [
+        {
+          "path": "benchmarks/reports/expanded-20260827/native-first/native.json",
+          "sha256": "9bc0295c3a7b53f6bbc7cbc722039a04f85489e40735a75fb81e6171b83061d9",
+          "availableAtHarnessRevision": "9bc0295c3a7b53f6bbc7cbc722039a04f85489e40735a75fb81e6171b83061d9"
+        },
+        {
+          "path": "benchmarks/reports/expanded-20260827/native-corrected/native.json",
+          "sha256": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+          "availableAtHarnessRevision": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801"
+        }
+      ],
+      "testSourceSha256": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+      "testNames": [
+        "fixed corpus covers every authoritative default name three times",
+        "native-first observations preserve recipe hashes and intentional error exits",
+        "corrected native capture changes no recipe and matches capture sources",
+        "path projection leaves non-text bytes untouched",
+        "comparison detects each byte, status and filesystem field independently",
+        "snapshot includes empty directories and symlinks without following them",
+        "fixture path guard rejects absolute and traversing inputs"
+      ]
+    },
+    "scratch-aligned": {
+      "goldenSha256": "e305e1c3f3fa15e0f53699808c1cb20ea156c80b8ceff6d98835888ea5c57bb8",
+      "harnessFiles": {
+        "benchmarks/expanded/README.md": "30eb1f104fd4ca83730201e29305c720924e62b0ea45f623f579d80c3976fa86",
+        "benchmarks/expanded/analyze.mjs": "7d335d43dfa9c79cdc4a450a1c1de39e5f6b4e7e6984e2572f92d2bf39f64214",
+        "benchmarks/expanded/capture.mjs": "1940d23247d945166562768abbd97d50c127dd3c026323de8ab157559f7cc1f5",
+        "benchmarks/expanded/common.mjs": "c07b1f7f3eec500591cab8dda06ed247be040aeeee1e085533371fea28c3d9fe",
+        "benchmarks/expanded/engine.mjs": "c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323",
+        "benchmarks/expanded/harness.test.mjs": "f4ef537104e44be311fc792ed458fd17dadcda9b2addd26422bc308bcbdc6e80",
+        "benchmarks/expanded/inventory.mjs": "2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd",
+        "benchmarks/expanded/native-controls.test.mjs": "02428c59d4af4e04ddac2a44dcfb460a226a549dd8bf67f851b8114627c9a3f6",
+        "benchmarks/expanded/native.mjs": "14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055",
+        "benchmarks/expanded/recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+        "benchmarks/expanded/release.mjs": "d599a4bb33a08eaf54224ca671cb842b39a696d048205d1308e3b909beadbc14",
+        "benchmarks/expanded/run.mjs": "71fd5fcae65b0bff5ac7f5967c997cba4d5628c4a7c6b283ab60b22ac90d7fc6",
+        "benchmarks/expanded/scratch-control.mjs": "ead6472b3fddb57e5b9f190c702f5e66fa48bf42d72c93fec2271aea5fca6923",
+        "benchmarks/expanded/server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+        "benchmarks/expanded/session.mjs": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+        "benchmarks/expanded/sort-review.mjs": "39eefefb73401124340a56273a13708169fe4b45e7d5726683a9ed0652392817",
+        "benchmarks/expanded/transport.mjs": "f81d10edbc4f91cc815a1a20e2b35eea79f5bea30241f72189ccdacc25889ae2"
+      },
+      "sourceChecks": [
+        {
+          "file": "recipes.mjs",
+          "sha256": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94"
+        },
+        {
+          "file": "native.mjs",
+          "sha256": "14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055"
+        },
+        {
+          "file": "common.mjs",
+          "sha256": "c07b1f7f3eec500591cab8dda06ed247be040aeeee1e085533371fea28c3d9fe"
+        },
+        {
+          "file": "server.mjs",
+          "sha256": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd"
+        },
+        {
+          "file": "capture.mjs",
+          "sha256": "1940d23247d945166562768abbd97d50c127dd3c026323de8ab157559f7cc1f5"
+        }
+      ],
+      "requiredFixtures": [
+        {
+          "path": "benchmarks/reports/expanded-20260827/native-first/native.json",
+          "sha256": "9bc0295c3a7b53f6bbc7cbc722039a04f85489e40735a75fb81e6171b83061d9",
+          "availableAtHarnessRevision": "9bc0295c3a7b53f6bbc7cbc722039a04f85489e40735a75fb81e6171b83061d9"
+        },
+        {
+          "path": "benchmarks/reports/expanded-20260827/native-corrected/native.json",
+          "sha256": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+          "availableAtHarnessRevision": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801"
+        },
+        {
+          "path": "benchmarks/reports/expanded-20260827/native-scratch-aligned/native.json",
+          "sha256": "e305e1c3f3fa15e0f53699808c1cb20ea156c80b8ceff6d98835888ea5c57bb8",
+          "availableAtHarnessRevision": "e305e1c3f3fa15e0f53699808c1cb20ea156c80b8ceff6d98835888ea5c57bb8"
+        }
+      ],
+      "testSourceSha256": "f4ef537104e44be311fc792ed458fd17dadcda9b2addd26422bc308bcbdc6e80",
+      "testNames": [
+        "fixed corpus covers every authoritative default name three times",
+        "native-first observations preserve recipe hashes and intentional error exits",
+        "historical corrected native capture changes no recipe",
+        "aligned scratch profile preserves all recipes and changes exactly one native effect",
+        "path projection leaves non-text bytes untouched",
+        "comparison detects each byte, status and filesystem field independently",
+        "snapshot includes empty directories and symlinks without following them",
+        "fixture path guard rejects absolute and traversing inputs"
+      ]
+    }
+  },
+  "differences": [
+    {
+      "path": "$/createdAt",
+      "before": "2026-08-27T01:45:25.347Z",
+      "after": "2026-08-27T02:19:06.634Z",
+      "beforePresent": true,
+      "afterPresent": true
+    },
+    {
+      "path": "$/observations/145/entries/tmp",
+      "before": {
+        "type": "directory"
+      },
+      "after": null,
+      "beforePresent": true,
+      "afterPresent": false
+    },
+    {
+      "path": "$/projections/1",
+      "before": "native role-bin root to /usr/bin",
+      "after": "preexisting external native scratch to /tmp; TMPDIR=/tmp in both virtual engines",
+      "beforePresent": true,
+      "afterPresent": true
+    },
+    {
+      "path": "$/projections/2",
+      "before": "loopback origin to {{BASE}}",
+      "after": "native role-bin root to /usr/bin",
+      "beforePresent": true,
+      "afterPresent": true
+    },
+    {
+      "path": "$/projections/3",
+      "before": null,
+      "after": "loopback origin to {{BASE}}",
+      "beforePresent": false,
+      "afterPresent": true
+    },
+    {
+      "path": "$/sourceHashes/native.mjs",
+      "before": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+      "after": "14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055",
+      "beforePresent": true,
+      "afterPresent": true
+    },
+    {
+      "path": "$/sourceHashes/common.mjs",
+      "before": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "after": "c07b1f7f3eec500591cab8dda06ed247be040aeeee1e085533371fea28c3d9fe",
+      "beforePresent": true,
+      "afterPresent": true
+    },
+    {
+      "path": "$/sourceHashes/capture.mjs",
+      "before": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+      "after": "1940d23247d945166562768abbd97d50c127dd3c026323de8ab157559f7cc1f5",
+      "beforePresent": true,
+      "afterPresent": true
+    }
+  ],
+  "assertionReview": {
+    "comparatorUnchanged": true,
+    "engineDeltaOnlyPrecreatedScratch": true,
+    "unchangedModules": [
+      "recipes.mjs",
+      "session.mjs",
+      "inventory.mjs",
+      "server.mjs",
+      "transport.mjs"
+    ],
+    "replacement": "Historical corrected-source-to-CURRENT-harness check removed; this verifier checks old hashes against0294afb and aligned hashes againstd1b10a3. New test retains recipe/output/status assertions and requires exactly one empty tmp-directory delta. Required native-first/native-corrected/aligned fixtures verified from git without running tests.",
+    "patchSha256": "ddd0720cba955111284d2127a2377addef7e249fdd1814e7f802d7a168b44da9"
+  },
+  "result": "PASS_STATIC_PROFILE_DELTA_ONLY"
+}

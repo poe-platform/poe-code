@@ -1,0 +1,18 @@
+{
+  "at": "2026-08-27T04:54:41.320Z",
+  "head": "4af1b107d4b9449a2c4e7fed467d187448392fd5",
+  "status": "?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/stress/regex-execution/design/audit.mjs\n?? tests/stress/regex-execution/design/evidence/\n?? tests/stress/regex-execution/design/rebuild.json\n?? tests/stress/regex-execution/design/summary.json\n",
+  "changedComparedWithFreeze": [
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "frozenSha256": "2765633bc831d358bf8ee697e35420c89c2eb5b7315414ff9f7c87cdf4671bed",
+      "liveSha256": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "frozenSha256": "dcad00a607bd684925f11a896b051813e5f23ac33fb2b47eb59ec4412115526c",
+      "liveSha256": "7d18b9e91d8c447e1103cdf48fe7efd7af766655c05e059f2c59270daa3ede51"
+    }
+  ],
+  "notCreditedToReplay": true
+}

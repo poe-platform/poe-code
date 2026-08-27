@@ -1,0 +1,1604 @@
+[
+  {
+    "id": "command/echo/multiple",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "YWxwaGEgYmV0YQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 2.397541000000018,
+        "memory": {
+          "before": {
+            "rss": 125534208,
+            "heapTotal": 32555008,
+            "heapUsed": 13732440,
+            "external": 4365836,
+            "arrayBuffers": 87217
+          },
+          "after": {
+            "rss": 125681664,
+            "heapTotal": 32555008,
+            "heapUsed": 14010544,
+            "external": 4067391,
+            "arrayBuffers": 87228
+          },
+          "sampledPeak": {
+            "rss": 125681664,
+            "heapUsed": 14009384,
+            "external": 4365836
+          },
+          "processMaxRssKiB": 122736,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/echo/multiple",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "YWxwaGEgYmV0YQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 8.867125000000016,
+        "memory": {
+          "before": {
+            "rss": 173113344,
+            "heapTotal": 33439744,
+            "heapUsed": 15432184,
+            "external": 3933470,
+            "arrayBuffers": 144086
+          },
+          "after": {
+            "rss": 173834240,
+            "heapTotal": 33964032,
+            "heapUsed": 16559064,
+            "external": 4083942,
+            "arrayBuffers": 160485
+          },
+          "sampledPeak": {
+            "rss": 173834240,
+            "heapUsed": 16558448,
+            "external": 4083942
+          },
+          "processMaxRssKiB": 169760,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/cat/binary-stdin",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "AAEJCkF/gP8=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 1.9954999999999927,
+        "memory": {
+          "before": {
+            "rss": 124665856,
+            "heapTotal": 32030720,
+            "heapUsed": 13733528,
+            "external": 4356532,
+            "arrayBuffers": 87223
+          },
+          "after": {
+            "rss": 124796928,
+            "heapTotal": 32030720,
+            "heapUsed": 14017944,
+            "external": 4067386,
+            "arrayBuffers": 87223
+          },
+          "sampledPeak": {
+            "rss": 124796928,
+            "heapUsed": 14016784,
+            "external": 4356532
+          },
+          "processMaxRssKiB": 121872,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/cat/binary-stdin",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "AAEJCkF/woDDvw==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 10.884708000000018,
+        "memory": {
+          "before": {
+            "rss": 176717824,
+            "heapTotal": 33177600,
+            "heapUsed": 15433488,
+            "external": 3933476,
+            "arrayBuffers": 144092
+          },
+          "after": {
+            "rss": 177291264,
+            "heapTotal": 33701888,
+            "heapUsed": 16697128,
+            "external": 4116715,
+            "arrayBuffers": 193258
+          },
+          "sampledPeak": {
+            "rss": 177291264,
+            "heapUsed": 16696128,
+            "external": 4116715
+          },
+          "processMaxRssKiB": 173136,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "fail",
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/patch/apply",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "bmV3Cg=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 4.9690829999999835,
+        "memory": {
+          "before": {
+            "rss": 126402560,
+            "heapTotal": 33603584,
+            "heapUsed": 13757656,
+            "external": 4391005,
+            "arrayBuffers": 87305
+          },
+          "after": {
+            "rss": 126599168,
+            "heapTotal": 33603584,
+            "heapUsed": 14454880,
+            "external": 4067650,
+            "arrayBuffers": 87487
+          },
+          "sampledPeak": {
+            "rss": 126599168,
+            "heapUsed": 14453720,
+            "external": 4391005
+          },
+          "processMaxRssKiB": 123648,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/patch/apply",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+        "exitCode": 127,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 5.539874999999995,
+        "memory": {
+          "before": {
+            "rss": 175243264,
+            "heapTotal": 33439744,
+            "heapUsed": 15436928,
+            "external": 3933558,
+            "arrayBuffers": 144174
+          },
+          "after": {
+            "rss": 175882240,
+            "heapTotal": 33964032,
+            "heapUsed": 16312656,
+            "external": 3936559,
+            "arrayBuffers": 144174
+          },
+          "sampledPeak": {
+            "rss": 175882240,
+            "heapUsed": 16311496,
+            "external": 3936559
+          },
+          "processMaxRssKiB": 171760,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "fail",
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": false
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/chmod/numeric",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "cHJpdmF0ZQ=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 2.0546250000000157,
+        "memory": {
+          "before": {
+            "rss": 124911616,
+            "heapTotal": 32555008,
+            "heapUsed": 13750976,
+            "external": 4382700,
+            "arrayBuffers": 87238
+          },
+          "after": {
+            "rss": 125009920,
+            "heapTotal": 32555008,
+            "heapUsed": 14034520,
+            "external": 4067437,
+            "arrayBuffers": 87274
+          },
+          "sampledPeak": {
+            "rss": 125009920,
+            "heapUsed": 14033360,
+            "external": 4382700
+          },
+          "processMaxRssKiB": 122080,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/chmod/numeric",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "cHJpdmF0ZQ=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 10.19441599999999,
+        "memory": {
+          "before": {
+            "rss": 173408256,
+            "heapTotal": 33439744,
+            "heapUsed": 15437072,
+            "external": 3933491,
+            "arrayBuffers": 144107
+          },
+          "after": {
+            "rss": 174129152,
+            "heapTotal": 33964032,
+            "heapUsed": 16898312,
+            "external": 4104654,
+            "arrayBuffers": 176879
+          },
+          "sampledPeak": {
+            "rss": 174129152,
+            "heapUsed": 16897696,
+            "external": 4104654
+          },
+          "processMaxRssKiB": 170064,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/stat/fields",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "aW5wdXQ6Mzo2NDQK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "YWJj"
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 2.36262499999998,
+        "memory": {
+          "before": {
+            "rss": 124600320,
+            "heapTotal": 33341440,
+            "heapUsed": 13755768,
+            "external": 4345964,
+            "arrayBuffers": 87236
+          },
+          "after": {
+            "rss": 124715008,
+            "heapTotal": 33341440,
+            "heapUsed": 14092584,
+            "external": 4067413,
+            "arrayBuffers": 87250
+          },
+          "sampledPeak": {
+            "rss": 124715008,
+            "heapUsed": 14091424,
+            "external": 4345964
+          },
+          "processMaxRssKiB": 121792,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/stat/fields",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "aW5wdXQ6Mzo2NDQK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "YWJj"
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 11.373707999999993,
+        "memory": {
+          "before": {
+            "rss": 172523520,
+            "heapTotal": 33177600,
+            "heapUsed": 15436096,
+            "external": 3933489,
+            "arrayBuffers": 144105
+          },
+          "after": {
+            "rss": 173277184,
+            "heapTotal": 33701888,
+            "heapUsed": 17010704,
+            "external": 4116730,
+            "arrayBuffers": 193273
+          },
+          "sampledPeak": {
+            "rss": 173277184,
+            "heapUsed": 17010088,
+            "external": 4116730
+          },
+          "processMaxRssKiB": 169248,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/mktemp/file",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "NjAwCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "tmp": {
+            "type": "directory"
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 3.4636659999999893,
+        "memory": {
+          "before": {
+            "rss": 124895232,
+            "heapTotal": 32555008,
+            "heapUsed": 13742744,
+            "external": 4317614,
+            "arrayBuffers": 87295
+          },
+          "after": {
+            "rss": 125124608,
+            "heapTotal": 32555008,
+            "heapUsed": 14360488,
+            "external": 4067579,
+            "arrayBuffers": 87416
+          },
+          "sampledPeak": {
+            "rss": 125124608,
+            "heapUsed": 14359328,
+            "external": 4317614
+          },
+          "processMaxRssKiB": 122192,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/mktemp/file",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "YmFzaDogbWt0ZW1wOiBjb21tYW5kIG5vdCBmb3VuZApybTogY2Fubm90IHJlbW92ZSAnJzogSXMgYSBkaXJlY3RvcnkK",
+        "exitCode": 1,
+        "entries": {
+          "tmp": {
+            "type": "directory"
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 10.496250000000003,
+        "memory": {
+          "before": {
+            "rss": 172572672,
+            "heapTotal": 33701888,
+            "heapUsed": 15434632,
+            "external": 3933548,
+            "arrayBuffers": 144164
+          },
+          "after": {
+            "rss": 173473792,
+            "heapTotal": 34488320,
+            "heapUsed": 17304240,
+            "external": 4100393,
+            "arrayBuffers": 176936
+          },
+          "sampledPeak": {
+            "rss": 173473792,
+            "heapUsed": 17303624,
+            "external": 4100393
+          },
+          "processMaxRssKiB": 169408,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "fail",
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/sed/substitute",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "QQpiZXRhCkEK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 3.055082999999996,
+        "memory": {
+          "before": {
+            "rss": 123682816,
+            "heapTotal": 32817152,
+            "heapUsed": 13732264,
+            "external": 4352513,
+            "arrayBuffers": 87245
+          },
+          "after": {
+            "rss": 123863040,
+            "heapTotal": 32817152,
+            "heapUsed": 14204840,
+            "external": 4067408,
+            "arrayBuffers": 87245
+          },
+          "sampledPeak": {
+            "rss": 123863040,
+            "heapUsed": 14203680,
+            "external": 4352513
+          },
+          "processMaxRssKiB": 120960,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/sed/substitute",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "QQpiZXRhCkEK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 12.170124999999985,
+        "memory": {
+          "before": {
+            "rss": 172343296,
+            "heapTotal": 33439744,
+            "heapUsed": 15433568,
+            "external": 3933498,
+            "arrayBuffers": 144114
+          },
+          "after": {
+            "rss": 173277184,
+            "heapTotal": 34226176,
+            "heapUsed": 17256688,
+            "external": 4119974,
+            "arrayBuffers": 160536
+          },
+          "sampledPeak": {
+            "rss": 173277184,
+            "heapUsed": 17256072,
+            "external": 4119974
+          },
+          "processMaxRssKiB": 169248,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/jq/map",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "WzIsNCw2XQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 3.955874999999992,
+        "memory": {
+          "before": {
+            "rss": 124928000,
+            "heapTotal": 32555008,
+            "heapUsed": 13732368,
+            "external": 4382637,
+            "arrayBuffers": 87218
+          },
+          "after": {
+            "rss": 125239296,
+            "heapTotal": 32555008,
+            "heapUsed": 14338000,
+            "external": 4067388,
+            "arrayBuffers": 87225
+          },
+          "sampledPeak": {
+            "rss": 125239296,
+            "heapUsed": 14336840,
+            "external": 4382637
+          },
+          "processMaxRssKiB": 122336,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/jq/map",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "WzIsNCw2XQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 14.239333000000016,
+        "memory": {
+          "before": {
+            "rss": 172326912,
+            "heapTotal": 33439744,
+            "heapUsed": 15433392,
+            "external": 3933471,
+            "arrayBuffers": 144087
+          },
+          "after": {
+            "rss": 173342720,
+            "heapTotal": 34226176,
+            "heapUsed": 17444992,
+            "external": 4188745,
+            "arrayBuffers": 176867
+          },
+          "sampledPeak": {
+            "rss": 173342720,
+            "heapUsed": 17443992,
+            "external": 4188745
+          },
+          "processMaxRssKiB": 169296,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/tar/roundtrip",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          },
+          "out": {
+            "type": "directory"
+          },
+          "out/input": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 4.73791700000001,
+        "memory": {
+          "before": {
+            "rss": 122830848,
+            "heapTotal": 32292864,
+            "heapUsed": 13751632,
+            "external": 4341290,
+            "arrayBuffers": 87304
+          },
+          "after": {
+            "rss": 123174912,
+            "heapTotal": 32292864,
+            "heapUsed": 14711680,
+            "external": 4088340,
+            "arrayBuffers": 108177
+          },
+          "sampledPeak": {
+            "rss": 123174912,
+            "heapUsed": 14710520,
+            "external": 4341290
+          },
+          "processMaxRssKiB": 120304,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/tar/roundtrip",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          },
+          "out": {
+            "type": "directory"
+          },
+          "out/input": {
+            "type": "file",
+            "bytes": "AAEJCkF/gP8="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 31.70166599999999,
+        "memory": {
+          "before": {
+            "rss": 173342720,
+            "heapTotal": 33439744,
+            "heapUsed": 15437272,
+            "external": 3933557,
+            "arrayBuffers": 144173
+          },
+          "after": {
+            "rss": 182435840,
+            "heapTotal": 36388864,
+            "heapUsed": 24174576,
+            "external": 4364350,
+            "arrayBuffers": 362366
+          },
+          "sampledPeak": {
+            "rss": 182435840,
+            "heapUsed": 24173768,
+            "external": 4364350
+          },
+          "processMaxRssKiB": 178304,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/join/fields",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "MSBhbGljZSByZWQKMiBib2IgYmx1ZQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "left": {
+            "type": "file",
+            "bytes": "MSBhbGljZQoyIGJvYgo="
+          },
+          "right": {
+            "type": "file",
+            "bytes": "MSByZWQKMiBibHVlCg=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 2.7153749999999945,
+        "memory": {
+          "before": {
+            "rss": 121749504,
+            "heapTotal": 32555008,
+            "heapUsed": 13751680,
+            "external": 4325771,
+            "arrayBuffers": 87273
+          },
+          "after": {
+            "rss": 121913344,
+            "heapTotal": 32555008,
+            "heapUsed": 14232504,
+            "external": 4067509,
+            "arrayBuffers": 87346
+          },
+          "sampledPeak": {
+            "rss": 121913344,
+            "heapUsed": 14231344,
+            "external": 4325771
+          },
+          "processMaxRssKiB": 119056,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "command/join/fields",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "MSBhbGljZSByZWQKMiBib2IgYmx1ZQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "left": {
+            "type": "file",
+            "bytes": "MSBhbGljZQoyIGJvYgo="
+          },
+          "right": {
+            "type": "file",
+            "bytes": "MSByZWQKMiBibHVlCg=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 8.92874999999998,
+        "memory": {
+          "before": {
+            "rss": 173260800,
+            "heapTotal": 33439744,
+            "heapUsed": 15438064,
+            "external": 3933526,
+            "arrayBuffers": 144142
+          },
+          "after": {
+            "rss": 173998080,
+            "heapTotal": 34226176,
+            "heapUsed": 16764864,
+            "external": 4090003,
+            "arrayBuffers": 160576
+          },
+          "sampledPeak": {
+            "rss": 173998080,
+            "heapUsed": 16764248,
+            "external": 4090003
+          },
+          "processMaxRssKiB": 169936,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "network/curl/get",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "AP9BCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 5.186791999999997,
+        "memory": {
+          "before": {
+            "rss": 124665856,
+            "heapTotal": 32555008,
+            "heapUsed": 13737080,
+            "external": 4326099,
+            "arrayBuffers": 87215
+          },
+          "after": {
+            "rss": 125108224,
+            "heapTotal": 32555008,
+            "heapUsed": 14391856,
+            "external": 4067580,
+            "arrayBuffers": 87417
+          },
+          "sampledPeak": {
+            "rss": 125108224,
+            "heapUsed": 14391240,
+            "external": 4326099
+          },
+          "processMaxRssKiB": 122192,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "network/curl/get",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "AMO/QQo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 14.487541000000022,
+        "memory": {
+          "before": {
+            "rss": 172703744,
+            "heapTotal": 33701888,
+            "heapUsed": 15440680,
+            "external": 3933542,
+            "arrayBuffers": 144158
+          },
+          "after": {
+            "rss": 174063616,
+            "heapTotal": 34488320,
+            "heapUsed": 17433392,
+            "external": 4088478,
+            "arrayBuffers": 152464
+          },
+          "sampledPeak": {
+            "rss": 174063616,
+            "heapUsed": 17432776,
+            "external": 4088478
+          },
+          "processMaxRssKiB": 170016,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "fail",
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "network/curl/post-stdin",
+    "engine": "virtual-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "AAEJCkF/gP8=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 5.776124999999979,
+        "memory": {
+          "before": {
+            "rss": 121995264,
+            "heapTotal": 32555008,
+            "heapUsed": 13737264,
+            "external": 4363074,
+            "arrayBuffers": 87257
+          },
+          "after": {
+            "rss": 122437632,
+            "heapTotal": 32555008,
+            "heapUsed": 14501808,
+            "external": 4067638,
+            "arrayBuffers": 87475
+          },
+          "sampledPeak": {
+            "rss": 122437632,
+            "heapUsed": 14501192,
+            "external": 4363074
+          },
+          "processMaxRssKiB": 119568,
+          "sampleIntervalMs": 2
+        },
+        "capture": "native Uint8Array stdout/stderr"
+      },
+      "status": "pass",
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  },
+  {
+    "id": "network/curl/post-stdin",
+    "engine": "just-bash",
+    "plain": {
+      "id": 1,
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 1,
+        "entries": {},
+        "events": [],
+        "registryEvents": [],
+        "executeMs": 8.590792000000022,
+        "memory": {
+          "before": {
+            "rss": 172244992,
+            "heapTotal": 33439744,
+            "heapUsed": 15440760,
+            "external": 3933584,
+            "arrayBuffers": 144200
+          },
+          "after": {
+            "rss": 173064192,
+            "heapTotal": 34226176,
+            "heapUsed": 16811008,
+            "external": 4088410,
+            "arrayBuffers": 152396
+          },
+          "sampledPeak": {
+            "rss": 173064192,
+            "heapUsed": 16810392,
+            "external": 4088410
+          },
+          "processMaxRssKiB": 169024,
+          "sampleIntervalMs": 2
+        },
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      },
+      "status": "fail",
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      }
+    },
+    "pass": true
+  }
+]

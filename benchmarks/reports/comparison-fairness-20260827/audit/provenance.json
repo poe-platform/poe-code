@@ -1,0 +1,188 @@
+{
+  "capturedAt": "2026-08-27T04:47:48.440Z",
+  "packageClaim": "Pinned just-bash 3.4.2 only; no latest/dist-tag claim",
+  "requests": [
+    {
+      "url": "https://registry.npmjs.org/just-bash/3.4.2",
+      "status": 200,
+      "retrievedAt": "2026-08-27T04:47:47.482Z",
+      "bodySha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1"
+    },
+    {
+      "url": "https://api.github.com/repos/vercel-labs/just-bash/git/ref/tags/just-bash%403.4.2",
+      "status": 200,
+      "retrievedAt": "2026-08-27T04:47:47.716Z",
+      "bodySha256": "af9135f3c455c3a0770b5f8d198e3d03645a2aa82a2c51cd774d99fce9593b86"
+    },
+    {
+      "url": "https://api.github.com/repos/vercel-labs/just-bash/contents/packages/just-bash/package.json?ref=a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "status": 200,
+      "retrievedAt": "2026-08-27T04:47:47.885Z",
+      "bodySha256": "b18356baf1111c35614ec07fbb4b7bf896d3c10d775c82ff79b85617231c19bf"
+    }
+  ],
+  "registry": {
+    "name": "just-bash",
+    "version": "3.4.2",
+    "dist": {
+      "shasum": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+      "tarball": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "fileCount": 955,
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "signatures": [
+        {
+          "sig": "MEUCIQDpmnLN8KxNpkXugskT8RGCkBsIbr8YyzYz9vDF2ZHSkgIgc8v78qtaidyPqAZqeRH3DQWFyPgZYmjHx6bMvDqNHRk=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIB2ZwxuEFZzljg3+mH5ehJtZn7/S5nSBwR+r800wqitDAiEA794qgDB87LnmyaPVpcDd/DWoK5yDcE/mROmh8PFIHEU=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 22583023
+    },
+    "dependencies": {
+      "ini": "^6.0.0",
+      "diff": "^8.0.4",
+      "yaml": "^2.9.0",
+      "re2js": "^1.3.3",
+      "sql.js": "^1.14.1",
+      "undici": "^7.29.0",
+      "turndown": "^7.2.4",
+      "file-type": "^21.3.4",
+      "minimatch": "^10.2.6",
+      "papaparse": "^5.6.0",
+      "seek-bzip": "^2.0.0",
+      "smol-toml": "^1.8.0",
+      "modern-tar": "^0.7.7",
+      "sprintf-js": "^1.1.3",
+      "fast-xml-parser": "^5.10.1",
+      "quickjs-emscripten": "^0.32.0"
+    },
+    "optionalDependencies": {
+      "node-liblzma": "^2.2.0",
+      "@mongodb-js/zstd": "^7.0.0"
+    }
+  },
+  "github": {
+    "tag": "refs/tags/just-bash@3.4.2",
+    "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+    "manifestPath": "packages/just-bash/package.json",
+    "manifestVersion": "3.4.2"
+  },
+  "lock": {
+    "version": "3.4.2",
+    "resolved": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+    "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+    "dev": true,
+    "license": "Apache-2.0",
+    "dependencies": {
+      "diff": "^8.0.4",
+      "fast-xml-parser": "^5.10.1",
+      "file-type": "^21.3.4",
+      "ini": "^6.0.0",
+      "minimatch": "^10.2.6",
+      "modern-tar": "^0.7.7",
+      "papaparse": "^5.6.0",
+      "quickjs-emscripten": "^0.32.0",
+      "re2js": "^1.3.3",
+      "seek-bzip": "^2.0.0",
+      "smol-toml": "^1.8.0",
+      "sprintf-js": "^1.1.3",
+      "sql.js": "^1.14.1",
+      "turndown": "^7.2.4",
+      "undici": "^7.29.0",
+      "yaml": "^2.9.0"
+    },
+    "bin": {
+      "just-bash": "dist/bin/just-bash.js",
+      "just-bash-shell": "dist/bin/shell/shell.js"
+    },
+    "engines": {
+      "node": ">=20.18.1"
+    },
+    "optionalDependencies": {
+      "@mongodb-js/zstd": "^7.0.0",
+      "node-liblzma": "^2.2.0"
+    }
+  },
+  "fieldEquality": {
+    "name": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "version": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "type": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "main": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "types": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "dependencies": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "optionalDependencies": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    },
+    "engines": {
+      "registryInstalled": true,
+      "githubInstalled": true
+    }
+  },
+  "identities": {
+    "manifestSha256": {
+      "sha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+      "equalsExpandedHistorical": true
+    },
+    "bundleSha256": {
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "equalsExpandedHistorical": true
+    },
+    "lockSha256": {
+      "sha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70",
+      "equalsExpandedHistorical": true
+    }
+  },
+  "installedTree": {
+    "reference": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/manifest.json#dependencies",
+    "recordedTreeSha256": "f08e64c4d83b8f75c43c6cb788b27df27159866ae72fbdc2f81f5504979254d4",
+    "entriesCompared": 3510,
+    "currentEntries": 3510,
+    "mismatches": [],
+    "extraPaths": [],
+    "mainPackageFiles": 955
+  },
+  "tarball": {
+    "integrityEqualsRegistry": true,
+    "resolvedEqualsRegistry": true,
+    "permittedCacheRootsChecked": [
+      "/tmp/safe-bash-current-integration-69dbdy0m/npm-cache",
+      "/tmp/safe-bash-pax-deletion-independent-FEprCU/npm-cache",
+      "/tmp/safe-bash-pax-deletion-independent-SXbduM/npm-cache",
+      "/tmp/safe-bash-pax-deletion-independent-rv9Utk/npm-cache",
+      "/tmp/safe-bash-pax-independent-SC2fLX/npm-cache",
+      "/tmp/safe-bash-pax-independent-YKSbHc/npm-cache",
+      "/tmp/safe-bash-pax-independent-hTKEus/npm-cache"
+    ],
+    "cachedMatches": [],
+    "sriVerified": false,
+    "limit": "No cached matching tarball found in checked permitted /tmp cache roots; no package tarball download, install, home-cache/private access or signature/attestation verification. Metadata/lock equality and installed tree equality do not authenticate installed files against the original published tarball."
+  }
+}

@@ -1,0 +1,179 @@
+diff --git a/benchmarks/expanded/README.md b/benchmarks/expanded/README.md
+index 8a62cfa..ac30b6e 100644
+--- a/benchmarks/expanded/README.md
++++ b/benchmarks/expanded/README.md
+@@ -21,15 +21,20 @@ files. It records all source hashes, baseline bundle/manifest/isolated-lock
+ hashes, runtime details and moving worktree status. It does not run the global
+ product suite or certify the moving worktree.
+ 
+-The first native capture is immutable but superseded for acceptance by the
+-corrected native capture (`native-corrected/native.json`); see
++The first native capture is immutable. The historical corrected capture is
++`native-corrected/native.json`; see
+ `benchmarks/reports/expanded-20260827/ORACLE_CORRECTIONS.md` for the two harness
+ defects and unchanged recipes. The historical first capture is:
+ `benchmarks/reports/expanded-20260827/native-first/native.json`. All 224 functional
+ recipes and four performance recipes had their declared native exit status
+ before initial product scoring. Declared exit validity alone was insufficient;
+ the corrected capture adds independent launcher/path controls. Native errors intentionally expected by a recipe are
+-valid observations, not exclusions. To capture another explicitly separate native
++valid observations, not exclusions. The current default is a separately retained
++`native-scratch-aligned/native.json`: all engines receive a preexisting scratch
++directory outside the asserted fixture. All228 native stdout/stderr/status
++observations and recipes are unchanged; only patch dry-run's empty directory
++effect changes. See `benchmarks/reports/expanded-20260827/SCRATCH_PROFILE_DELTA.md`.
++The old scores are not retroactively changed. To capture another explicitly separate native
+ cohort with the installed, hashed oracles:
+ 
+ ```sh
+@@ -45,7 +50,7 @@ do not spawn processes. Fixtures use private temporary directories and loopback
+ HTTP, never external uploads or user files.
+ 
+ The runner accepts output, product revision, harness revision (default HEAD),
+-then native JSON path (default corrected capture). To hold product source fixed
++then native JSON path (default scratch-aligned capture). To hold product source fixed
+ while independently correcting the oracle harness:
+ 
+ ```sh
+@@ -67,7 +72,7 @@ timeouts, capture errors and both-engine failures. Pass means exact output bytes
+ stderr bytes, status and fixture-tree entries. Directories, symlink targets and
+ file bytes are included; selected permission recipes additionally compare mode
+ bits. Only temporary fixture roots, native role-bin paths and loopback origins
+-are projected, using byte-safe replacement. There is no error-message whitening,
++and the native scratch role are projected, using byte-safe replacement. There is no error-message whitening,
+ sort-to-green, content trimming or alternate product expectation.
+ 
+ The primary oracle is GNU Bash 5.3/coreutils 9.7, C locale, UTC; sed 4.9, gzip
+diff --git a/benchmarks/expanded/capture.mjs b/benchmarks/expanded/capture.mjs
+index d9a7c7b..f4cb3ad 100644
+--- a/benchmarks/expanded/capture.mjs
++++ b/benchmarks/expanded/capture.mjs
+@@ -17,7 +17,7 @@ try {
+   const report = { createdAt: new Date().toISOString(), primaryProfile: "GNU Bash5.3 and coreutils9.7, LC_ALL=C, TZ=UTC; other executable profiles individually recorded",
+     toolIdentities: profile.tools, recipeCount: corpus.length, performanceCount: performance.length,
+     recipes: corpus, performanceRecipes: performance, observations, invalidCount: invalid.length,
+-    projections: ["native temporary fixture root to /fixture", "native role-bin root to /usr/bin", "loopback origin to {{BASE}}"],
++    projections: ["native temporary fixture root to /fixture", "preexisting external native scratch to /tmp; TMPDIR=/tmp in both virtual engines", "native role-bin root to /usr/bin", "loopback origin to {{BASE}}"],
+     sourceHashes: Object.fromEntries(await Promise.all(["recipes.mjs", "native.mjs", "common.mjs", "server.mjs", "capture.mjs"].map(async path => [path, hash(await readFile(new URL(path, import.meta.url)))]))) };
+   await writeFile(resolve(output, "native.json"), JSON.stringify(report, null, 2) + "\n", { flag: "wx" });
+   console.log(JSON.stringify({ output, total: observations.length, invalid: invalid.map(({ id, exitCode, reason, stderr }) => ({ id, exitCode, reason, stderr: Buffer.from(stderr, "base64").toString() })) }, null, 2));
+diff --git a/benchmarks/expanded/common.mjs b/benchmarks/expanded/common.mjs
+index 0d595c7..c6dbb3a 100644
+--- a/benchmarks/expanded/common.mjs
++++ b/benchmarks/expanded/common.mjs
+@@ -4,7 +4,7 @@ import { posix } from "node:path";
+ export const fixtureRoot = "/fixture";
+ export const maximumBytes = 4 * 1024 * 1024;
+ export const fixedTime = 1_700_000_000_000;
+-export const environment = { PATH: "/usr/bin:/bin", HOME: fixtureRoot, LANG: "C", LC_ALL: "C", TZ: "UTC" };
++export const environment = { PATH: "/usr/bin:/bin", HOME: fixtureRoot, TMPDIR: "/tmp", LANG: "C", LC_ALL: "C", TZ: "UTC" };
+ export const hash = value => createHash("sha256").update(value).digest("hex");
+ export const encode = bytes => Buffer.from(bytes).toString("base64");
+ export const decode = bytes => Buffer.from(bytes, "base64");
+diff --git a/benchmarks/expanded/engine.mjs b/benchmarks/expanded/engine.mjs
+index 4a6785e..93ac1ac 100644
+--- a/benchmarks/expanded/engine.mjs
++++ b/benchmarks/expanded/engine.mjs
+@@ -20,6 +20,7 @@ try {
+ 
+ async function observe(specimen, baseUrl, instrument, warmup = 0) {
+   const fs = engine === "virtual-bash" ? library.createMemoryFileSystem() : new library.InMemoryFs();
++  await fs.mkdir("/tmp", { recursive: true });
+   await fs.mkdir(fixtureRoot, { recursive: true });
+   await fs.chmod(fixtureRoot, 0o755);
+   for (const path of specimen.directories) { const target = `${fixtureRoot}/${relativePath(path)}`; await fs.mkdir(target, { recursive: true }); await fs.chmod(target, 0o755); }
+diff --git a/benchmarks/expanded/harness.test.mjs b/benchmarks/expanded/harness.test.mjs
+index 45f7e5c..53c7b1c 100644
+--- a/benchmarks/expanded/harness.test.mjs
++++ b/benchmarks/expanded/harness.test.mjs
+@@ -24,11 +24,27 @@ test("native-first observations preserve recipe hashes and intentional error exi
+   assert.equal(hash(await readFile(new URL("recipes.mjs", import.meta.url))), gold.sourceHashes["recipes.mjs"]);
+ });
+ 
+-test("corrected native capture changes no recipe and matches capture sources", async () => {
++test("historical corrected native capture changes no recipe", async () => {
+   const gold = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-corrected/native.json", import.meta.url), "utf8"));
+   assert.equal(gold.invalidCount, 0);
+   for (const row of [...recipes(), ...performanceRecipes()]) assert.equal(gold.observations.find(observation => observation.id === row.id).recipeHash, hash(JSON.stringify(row)), row.id);
+-  for (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);
++});
++
++test("aligned scratch profile preserves all recipes and changes exactly one native effect", async () => {
++  const current = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-scratch-aligned/native.json", import.meta.url), "utf8"));
++  const previous = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-corrected/native.json", import.meta.url), "utf8"));
++  assert.equal(current.invalidCount, 0); assert.deepEqual(current.recipes, previous.recipes); assert.deepEqual(current.performanceRecipes, previous.performanceRecipes);
++  for (const [path, digest] of Object.entries(current.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);
++  const changed = [];
++  for (const row of current.observations) {
++    const old = previous.observations.find(observation => observation.id === row.id);
++    for (const field of ["recipeHash", "stdout", "stderr", "exitCode"]) assert.deepEqual(row[field], old[field], `${row.id}/${field}`);
++    if (JSON.stringify(row.entries) !== JSON.stringify(old.entries)) changed.push(row.id);
++  }
++  assert.deepEqual(changed, ["command/patch/dry-run"]);
++  const latest = current.observations.find(row => row.id === "command/patch/dry-run"), old = previous.observations.find(row => row.id === latest.id);
++  const { tmp, ...entries } = old.entries;
++  assert.deepEqual(tmp, { type: "directory" }); assert.deepEqual(latest.entries, entries);
+ });
+ 
+ test("path projection leaves non-text bytes untouched", () => {
+diff --git a/benchmarks/expanded/native.mjs b/benchmarks/expanded/native.mjs
+index 0c25b9a..29e9f0d 100644
+--- a/benchmarks/expanded/native.mjs
++++ b/benchmarks/expanded/native.mjs
+@@ -55,8 +55,9 @@ export async function prepareNative(repo) {
+ 
+ export async function observeNative(profile, specimen, baseUrl) {
+   const cwd = await mkdtemp(join(profile.workspace, "case-"));
+-  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: join(cwd, "tmp") };
+-  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(profile.bin), "/usr/bin"], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
++  const scratch = await mkdtemp(join(profile.workspace, "scratch-"));
++  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: scratch };
++  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(scratch), "/tmp"], [scratch, "/tmp"], [await realpath(profile.bin), "/usr/bin"], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
+   try {
+     await chmod(cwd, 0o755);
+     for (const path of specimen.directories) await mkdir(join(cwd, relativePath(path)), { recursive: true, mode: 0o755 });
+@@ -72,5 +73,5 @@ export async function observeNative(profile, specimen, baseUrl) {
+       stat: async path => { const info = await lstat(path); return { type: info.isSymbolicLink() ? "symlink" : info.isDirectory() ? "directory" : info.isFile() ? "file" : "other", mode: info.mode }; } }, specimen, cwd, replacements);
+     return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode,
+       entries, oracleValid: !result.reason && result.exitCode === specimen.nativeExit, reason: result.reason ?? null, signal: result.signal };
+-  } finally { await rm(cwd, { recursive: true, force: true }); }
++  } finally { await rm(cwd, { recursive: true, force: true }); await rm(scratch, { recursive: true, force: true }); }
+ }
+diff --git a/benchmarks/expanded/run.mjs b/benchmarks/expanded/run.mjs
+index a680c73..4b4e3fd 100644
+--- a/benchmarks/expanded/run.mjs
++++ b/benchmarks/expanded/run.mjs
+@@ -18,7 +18,7 @@ const harnessRevision = git("rev-parse", process.argv[4] ?? "HEAD");
+ const harnessRoot = dirname(fileURLToPath(import.meta.url));
+ const trackedHarness = git("ls-tree", "--name-only", harnessRevision, "benchmarks/expanded");
+ assert.ok(trackedHarness, "Commit the corpus and harness before scoring product outcomes");
+-const goldPath = resolve(process.argv[5] ?? "benchmarks/reports/expanded-20260827/native-corrected/native.json");
++const goldPath = resolve(process.argv[5] ?? "benchmarks/reports/expanded-20260827/native-scratch-aligned/native.json");
+ const goldBytes = await readFile(goldPath), gold = JSON.parse(goldBytes);
+ const corpus = recipes(), performanceCorpus = performanceRecipes();
+ for (const specimen of [...corpus, ...performanceCorpus]) assert.equal(gold.observations.find(row => row.id === specimen.id)?.recipeHash, hash(JSON.stringify(specimen)), `Native-first recipe changed: ${specimen.id}`);
+diff --git a/benchmarks/expanded/scratch-control.mjs b/benchmarks/expanded/scratch-control.mjs
+index 506e41e..b4c247e 100644
+--- a/benchmarks/expanded/scratch-control.mjs
++++ b/benchmarks/expanded/scratch-control.mjs
+@@ -13,7 +13,7 @@ try {
+   const external = join(profile.workspace, "preexisting-scratch"); await mkdir(external);
+   const observations = [];
+   for (const externalScratch of [false, true]) for (const command of [":", specimen.script]) {
+-    const script = `${externalScratch ? `export TMPDIR='${external}'; ` : ""}${check("before")}; ${command}; status=$?; ${check("after")}; exit "$status"`;
++    const script = `${externalScratch ? `export TMPDIR='${external}'; ` : 'export TMPDIR="$PWD/tmp"; '}${check("before")}; ${command}; status=$?; ${check("after")}; exit "$status"`;
+     observations.push({ externalScratch, command, script, ...await observeNative(profile, { ...specimen, script }) });
+   }
+   const [noop, patch, externalNoop, externalPatch] = observations;
+@@ -24,7 +24,10 @@ try {
+   assert.equal(Buffer.from(externalPatch.stdout, "base64").toString(), "before:present\nafter:present\n");
+   assert.deepEqual(externalNoop.entries, externalPatch.entries);
+   assert.deepEqual(await readdir(external), []);
+-  const report = { capturedAt: new Date().toISOString(), recipe: specimen, observations, tools: { bash: profile.tools.bash, patch: profile.tools.patch },
++  const alignedDefault = await observeNative(profile, specimen);
++  assert.deepEqual(alignedDefault.entries, externalNoop.entries);
++  assert.equal(alignedDefault.stdout, ""); assert.equal(alignedDefault.stderr, ""); assert.equal(alignedDefault.exitCode, 0);
++  const report = { capturedAt: new Date().toISOString(), recipe: specimen, observations, alignedDefault, tools: { bash: profile.tools.bash, patch: profile.tools.patch },
+     harnessHashes: Object.fromEntries(await Promise.all(["scratch-control.mjs", "native.mjs", "common.mjs", "recipes.mjs"].map(async path => [path, hash(await readFile(new URL(path, import.meta.url)))]))),
+     finding: "tmp is absent before command and after noop; native patch creates the empty directory because the harness supplied a nonexistent TMPDIR inside the fixture. With a preexisting external owned scratch directory, patch dry-run leaves exactly the same fixture namespace as noop. This is a real native effect of unequal harness scratch configuration, not a preexisting fixture artifact and not a product requirement to fabricate tmp.",
+     scope: "Controls only; no original native JSON, recipe or product result overwritten. Scratch profile correction requires a separate documented cohort." };

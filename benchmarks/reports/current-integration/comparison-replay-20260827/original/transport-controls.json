@@ -1,0 +1,160 @@
+{
+  "rows": [
+    {
+      "name": "invalid-utf8",
+      "script": "cat",
+      "input": "gP8=",
+      "expected": "gP8=",
+      "stdout": "woDDvw==",
+      "publicStdoutCodepoints": [
+        128,
+        255
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": false
+    },
+    {
+      "name": "invalid-utf8",
+      "script": "cat | base64",
+      "input": "gP8=",
+      "expected": "Z1A4PQo=",
+      "stdout": "Z1A4PQo=",
+      "publicStdoutCodepoints": [
+        103,
+        80,
+        56,
+        61,
+        10
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "invalid-utf8",
+      "script": "cat > output",
+      "input": "gP8=",
+      "expected": "",
+      "stdout": "",
+      "publicStdoutCodepoints": [],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true,
+      "output": "gP8=",
+      "fileBytesMatch": true
+    },
+    {
+      "name": "utf8",
+      "script": "cat",
+      "input": "w6nwn5iA",
+      "expected": "w6nwn5iA",
+      "stdout": "w6nwn5iA",
+      "publicStdoutCodepoints": [
+        233,
+        128512
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "utf8",
+      "script": "cat | base64",
+      "input": "w6nwn5iA",
+      "expected": "dzZud241aUEK",
+      "stdout": "dzZud241aUEK",
+      "publicStdoutCodepoints": [
+        119,
+        54,
+        110,
+        119,
+        110,
+        53,
+        105,
+        65,
+        10
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "utf8",
+      "script": "cat > output",
+      "input": "w6nwn5iA",
+      "expected": "",
+      "stdout": "",
+      "publicStdoutCodepoints": [],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true,
+      "output": "w6nwn5iA",
+      "fileBytesMatch": true
+    },
+    {
+      "name": "nul-ascii",
+      "script": "cat",
+      "input": "AEEK",
+      "expected": "AEEK",
+      "stdout": "AEEK",
+      "publicStdoutCodepoints": [
+        0,
+        65,
+        10
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "nul-ascii",
+      "script": "cat | base64",
+      "input": "AEEK",
+      "expected": "QUVFSwo=",
+      "stdout": "QUVFSwo=",
+      "publicStdoutCodepoints": [
+        65,
+        69,
+        69,
+        75,
+        10
+      ],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "nul-ascii",
+      "script": "cat > output",
+      "input": "AEEK",
+      "expected": "",
+      "stdout": "",
+      "publicStdoutCodepoints": [],
+      "stdoutKind": null,
+      "stdoutEncoding": null,
+      "exitCode": 0,
+      "stderr": "",
+      "pass": true,
+      "output": "AEEK",
+      "fileBytesMatch": true
+    }
+  ],
+  "interpretation": "Uninstrumented public API controls. stdinKind=bytes is confirmed by internal base64 and VFS bytes. Public stdoutAsBytes conversion follows exported stdoutKind/stdoutEncoding rather than guessing. A missing byte tag can cause terminal invalid-UTF8 mismatch while internal pipes/files remain correct. Such failures are API-boundary evidence, not proof cat/base64 internally corrupt bytes. No corrective encoding heuristic is applied."
+}

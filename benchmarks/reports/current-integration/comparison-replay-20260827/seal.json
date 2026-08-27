@@ -1,0 +1,12 @@
+{
+  "sealedAt": "2026-08-27T04:50:21.210Z",
+  "sourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+  "frozenFilesSha256": "a133f8cf113866657155396038293ff54fbb8767cf92c96372804ab775bafdc9",
+  "files": 4046,
+  "sourceFiles": 176,
+  "sourceNotRecopied": true,
+  "dependenciesNotRecopied": true,
+  "productEntry": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/src/index.ts",
+  "baselineEntry": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+  "allFrozenFilesRegular": true
+}

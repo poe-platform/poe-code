@@ -1,0 +1,504 @@
+{
+  "phase": "original",
+  "profile": {
+    "root": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original",
+    "harness": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/expanded",
+    "revision": "0294afb6e690433aed994868e5ed437ecf58ae48",
+    "goldPath": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/reports/expanded-20260827/native-corrected/native.json",
+    "hashes": {
+      "benchmarks/expanded/README.md": "b180ff8803dce1e5ac5357ce94ecd5846a84d842f71f638112ddf43d9ebd79bf",
+      "benchmarks/expanded/capture.mjs": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+      "benchmarks/expanded/common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "benchmarks/expanded/engine.mjs": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "benchmarks/expanded/harness.test.mjs": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+      "benchmarks/expanded/inventory.mjs": "2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd",
+      "benchmarks/expanded/native-controls.test.mjs": "02428c59d4af4e04ddac2a44dcfb460a226a549dd8bf67f851b8114627c9a3f6",
+      "benchmarks/expanded/native.mjs": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+      "benchmarks/expanded/recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+      "benchmarks/expanded/release.mjs": "d599a4bb33a08eaf54224ca671cb842b39a696d048205d1308e3b909beadbc14",
+      "benchmarks/expanded/run.mjs": "18f1e4264922e367c46535dcc332195ccaec875b8be6da27ff17d966a200d077",
+      "benchmarks/expanded/server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+      "benchmarks/expanded/session.mjs": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+      "benchmarks/expanded/transport.mjs": "f81d10edbc4f91cc815a1a20e2b35eea79f5bea30241f72189ccdacc25889ae2",
+      "benchmarks/reports/expanded-20260827/native-first/native.json": "9bc0295c3a7b53f6bbc7cbc722039a04f85489e40735a75fb81e6171b83061d9",
+      "benchmarks/reports/expanded-20260827/native-corrected/native.json": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801"
+    },
+    "oracle": {
+      "primaryProfile": "GNU Bash5.3 and coreutils9.7, LC_ALL=C, TZ=UTC; other executable profiles individually recorded",
+      "toolIdentities": {
+        "true": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+          "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6",
+          "versionExit": 0,
+          "versionStdout": "true (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "false": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+          "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab",
+          "versionExit": 1,
+          "versionStdout": "false (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "echo": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+          "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511",
+          "versionExit": 0,
+          "versionStdout": "echo (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Brian Fox and Chet Ramey.\n",
+          "versionStderr": ""
+        },
+        "pwd": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+          "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2",
+          "versionExit": 0,
+          "versionStdout": "pwd (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "basename": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+          "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b",
+          "versionExit": 0,
+          "versionStdout": "basename (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "dirname": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+          "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c",
+          "versionExit": 0,
+          "versionStdout": "dirname (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "printf": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+          "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a",
+          "versionExit": 0,
+          "versionStdout": "printf (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "mkdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+          "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0",
+          "versionExit": 0,
+          "versionStdout": "mkdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "touch": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+          "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc",
+          "versionExit": 0,
+          "versionStdout": "touch (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, Arnold Robbins, Jim Kingdon,\nDavid MacKenzie, and Randy Smith.\n",
+          "versionStderr": ""
+        },
+        "cp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+          "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5",
+          "versionExit": 0,
+          "versionStdout": "cp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "mv": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+          "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500",
+          "versionExit": 0,
+          "versionStdout": "mv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, David MacKenzie, and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "rm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+          "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e",
+          "versionExit": 0,
+          "versionStdout": "rm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Richard M. Stallman,\nand Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "rmdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+          "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d",
+          "versionExit": 0,
+          "versionStdout": "rmdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "ln": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+          "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef",
+          "versionExit": 0,
+          "versionStdout": "ln (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "readlink": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+          "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9",
+          "versionExit": 0,
+          "versionStdout": "readlink (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Dmitry V. Levin.\n",
+          "versionStderr": ""
+        },
+        "realpath": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+          "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+          "versionExit": 0,
+          "versionStdout": "realpath (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady.\n",
+          "versionStderr": ""
+        },
+        "ls": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+          "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3",
+          "versionExit": 0,
+          "versionStdout": "ls (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "cat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+          "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96",
+          "versionExit": 0,
+          "versionStdout": "cat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund and Richard M. Stallman.\n",
+          "versionStderr": ""
+        },
+        "head": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+          "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62",
+          "versionExit": 0,
+          "versionStdout": "head (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "tail": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+          "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956",
+          "versionExit": 0,
+          "versionStdout": "tail (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Ian Lance Taylor,\nand Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "wc": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+          "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+          "versionExit": 0,
+          "versionStdout": "wc (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "tee": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+          "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242",
+          "versionExit": 0,
+          "versionStdout": "tee (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, Richard M. Stallman, and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "tr": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+          "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c",
+          "versionExit": 0,
+          "versionStdout": "tr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "sort": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+          "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+          "versionExit": 0,
+          "versionStdout": "sort (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and Paul Eggert.\n",
+          "versionStderr": ""
+        },
+        "uniq": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+          "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184",
+          "versionExit": 0,
+          "versionStdout": "uniq (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "cut": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+          "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d",
+          "versionExit": 0,
+          "versionStdout": "cut (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat, David MacKenzie, and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "grep": {
+          "executable": "/usr/bin/grep",
+          "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+          "versionExit": 0,
+          "versionStdout": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD\n",
+          "versionStderr": ""
+        },
+        "test": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+          "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53",
+          "versionExit": 0,
+          "versionStdout": "",
+          "versionStderr": ""
+        },
+        "[": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+          "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c",
+          "versionExit": 0,
+          "versionStdout": "[ (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Kevin Braunsdorf and Matthew Bradburn.\n",
+          "versionStderr": ""
+        },
+        "env": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+          "versionExit": 0,
+          "versionStdout": "env (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard Mlynarik, David MacKenzie, and Assaf Gordon.\n",
+          "versionStderr": ""
+        },
+        "xargs": {
+          "executable": "/usr/bin/xargs",
+          "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+          "versionExit": 1,
+          "versionStdout": "",
+          "versionStderr": "xargs: unrecognized option `--version'\nusage: xargs [-0opt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]\n             [-J replstr] [-L number] [-n number [-x]] [-P maxprocs]\n             [-s size] [utility [argument ...]]\n"
+        },
+        "find": {
+          "executable": "/usr/bin/find",
+          "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4",
+          "versionExit": 1,
+          "versionStdout": "",
+          "versionStderr": "find: illegal option -- -\nusage: find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]\n       find [-H | -L | -P] [-EXdsx] -f path [path ...] [expression]\n"
+        },
+        "sed": {
+          "executable": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+          "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+          "versionExit": 0,
+          "versionStdout": "sed (GNU sed) 4.9\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jay Fenlason, Tom Lord, Ken Pizzini,\nPaolo Bonzini, Jim Meyering, and Assaf Gordon.\n\nThis sed program was built without SELinux support.\n\nGNU sed home page: <https://www.gnu.org/software/sed/>.\nGeneral help using GNU software: <htt",
+          "versionStderr": ""
+        },
+        "awk": {
+          "executable": "/usr/bin/awk",
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+          "versionExit": 0,
+          "versionStdout": "awk version 20200816\n",
+          "versionStderr": ""
+        },
+        "jq": {
+          "executable": "/usr/bin/jq",
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+          "versionExit": 0,
+          "versionStdout": "jq-1.7.1-apple\n",
+          "versionStderr": ""
+        },
+        "rg": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+          "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+          "versionExit": 0,
+          "versionStdout": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+          "versionStderr": ""
+        },
+        "base64": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+          "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+          "versionExit": 0,
+          "versionStdout": "base64 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+          "versionStderr": ""
+        },
+        "base32": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+          "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+          "versionExit": 0,
+          "versionStdout": "base32 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+          "versionStderr": ""
+        },
+        "xxd": {
+          "executable": "/usr/bin/xxd",
+          "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161",
+          "versionExit": 0,
+          "versionStdout": "",
+          "versionStderr": "xxd 2025-08-24 by Juergen Weigert et al.\n"
+        },
+        "od": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+          "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8",
+          "versionExit": 0,
+          "versionStdout": "od (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "sha256sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+          "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+          "versionExit": 0,
+          "versionStdout": "sha256sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+          "versionStderr": ""
+        },
+        "sha1sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+          "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+          "versionExit": 0,
+          "versionStdout": "sha1sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+          "versionStderr": ""
+        },
+        "md5sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+          "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+          "versionExit": 0,
+          "versionStdout": "md5sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+          "versionStderr": ""
+        },
+        "cksum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+          "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+          "versionExit": 0,
+          "versionStdout": "cksum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady and Q. Frank Xia.\n",
+          "versionStderr": ""
+        },
+        "gzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+          "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+          "versionExit": 0,
+          "versionStdout": "gzip 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nCopyright (C) 1993 Jean-loup Gailly.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jean-loup Gailly.\n",
+          "versionStderr": ""
+        },
+        "gunzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+          "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df",
+          "versionExit": 0,
+          "versionStdout": "gunzip (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+          "versionStderr": ""
+        },
+        "zcat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+          "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef",
+          "versionExit": 0,
+          "versionStdout": "zcat (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+          "versionStderr": ""
+        },
+        "diff": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+          "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+          "versionExit": 0,
+          "versionStdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+          "versionStderr": ""
+        },
+        "patch": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+          "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+          "versionExit": 0,
+          "versionStdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+          "versionStderr": ""
+        },
+        "chmod": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+          "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0",
+          "versionExit": 0,
+          "versionStdout": "chmod (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+          "versionStderr": ""
+        },
+        "stat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+          "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+          "versionExit": 0,
+          "versionStdout": "stat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Michael Meskes.\n",
+          "versionStderr": ""
+        },
+        "mktemp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+          "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322",
+          "versionExit": 0,
+          "versionStdout": "mktemp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Eric Blake.\n",
+          "versionStderr": ""
+        },
+        "tar": {
+          "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+          "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+          "versionExit": 0,
+          "versionStdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+          "versionStderr": ""
+        },
+        "paste": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+          "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc",
+          "versionExit": 0,
+          "versionStdout": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "comm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+          "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718",
+          "versionExit": 0,
+          "versionStdout": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "versionStderr": ""
+        },
+        "join": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+          "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e",
+          "versionExit": 0,
+          "versionStdout": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "versionStderr": ""
+        },
+        "bash": {
+          "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "versionExit": 0,
+          "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "versionStderr": ""
+        },
+        "sh": {
+          "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "versionExit": 0,
+          "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "versionStderr": ""
+        },
+        "curl": {
+          "executable": "/usr/bin/curl",
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+          "versionExit": 0,
+          "versionStdout": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+          "versionStderr": ""
+        }
+      },
+      "sourceHashes": {
+        "recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+        "native.mjs": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+        "common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+        "server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+        "capture.mjs": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be"
+      },
+      "projections": [
+        "native temporary fixture root to /fixture",
+        "native role-bin root to /usr/bin",
+        "loopback origin to {{BASE}}"
+      ]
+    }
+  },
+  "source": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product",
+  "baselineRoot": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/benchmarks/node_modules/just-bash",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/fixture",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/fixture",
+  "provider": "fresh in-memory filesystem per case for BOTH engines",
+  "maximumBytes": 4194304,
+  "productLimits": {
+    "maxOutputBytes": 4194304,
+    "maxCommands": 10000,
+    "maxLoopIterations": 10000,
+    "pipeHighWaterMark": 4096,
+    "signalMs": 5000
+  },
+  "baselineLimits": {
+    "maxOutputSize": 4194304,
+    "maxCommandCount": 10000,
+    "maxLoopIterations": 10000,
+    "maxExecutionTimeMs": 5000,
+    "signalMs": 5000,
+    "networkTimeoutMs": 4000
+  },
+  "sessionLimits": {
+    "startupMs": 15000,
+    "caseMs": 10000,
+    "heapMiB": 256
+  },
+  "unchangedHarness": "Committed engine/session/recipes/common/inventory/server/transport modules are byte-identical. New orchestration bypasses old archive/live-dependency setup and automatic performance; assertions, cases, order, and 24 neutrality controls preserved.",
+  "scratch": "Original virtual env omits TMPDIR and does not precreate /tmp; historical native TMPDIR was nonexistent fixture/tmp.",
+  "effects": "Exact fixture entries: byte content, types, symlink targets; mode only on declared mode recipes. No ownership/timestamp/outside-fixture equality claim.",
+  "hostEnvironment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/home",
+    "TMPDIR": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "REPLAY_FREEZE": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d",
+    "REPLAY_IMPORT_LOG": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison-replay-20260827/original/imports.jsonl",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  }
+}

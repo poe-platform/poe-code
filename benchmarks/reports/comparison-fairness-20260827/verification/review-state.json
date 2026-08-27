@@ -1,0 +1,56 @@
+{
+  "at": "2026-08-27T05:29:17.964Z",
+  "initialReadHead": "3d06ccfca0b5cd47ad28e07d3bf30a83bba256f8",
+  "beforeReviewHead": "81a0ab7ad6c6c1f9e0d2731bd74af603e3e789f7",
+  "finalObservedHead": "aef76d0cede4804513200ec71d572ca99240ca0f",
+  "freezeHead": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+  "freezeSourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+  "sourcePathsCompared": 176,
+  "currentLiveVersusFreeze": [
+    {
+      "path": "package.json",
+      "frozenSha256": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b",
+      "liveSha256": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1"
+    },
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "frozenSha256": "2765633bc831d358bf8ee697e35420c89c2eb5b7315414ff9f7c87cdf4671bed",
+      "liveSha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "frozenSha256": "481bc77d34ce1db7410e6e2c9fd5f49a0e287b025b8e9253d884dadb4ae3298c",
+      "liveSha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "frozenSha256": "45a2cbc6fbad9ee8f25a4d04cf57be2a907e46cbe30084daf27a0c9ac0b208a2",
+      "liveSha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "frozenSha256": "dcad00a607bd684925f11a896b051813e5f23ac33fb2b47eb59ec4412115526c",
+      "liveSha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    },
+    {
+      "path": "src/index.ts",
+      "frozenSha256": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613",
+      "liveSha256": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "frozenSha256": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "liveSha256": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045"
+    }
+  ],
+  "indexBeforeSha256": "3c3eb2e42616c3aa3411501483ef58107381b7407e905ddc3f9e7c3ec01aecd0",
+  "indexAfterSha256": "ca3360de88974d7922c895fa28b0d4b831b200b4eb5bd7e64d3ac8646e87092a",
+  "stagedBefore": "",
+  "stagedAfter": "",
+  "statusAfter": " M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n M tests/fs/webdav/real-service/server.py\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n?? tests/fs/webdav/real-service/consumer.mts\n?? tests/fs/webdav/real-service/evidence/apache-matrix-corrected/\n?? tests/fs/webdav/real-service/evidence/apache-matrix-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-second/\n?? tests/fs/webdav/real-service/evidence/apache-public-third/\n?? tests/fs/webdav/real-service/evidence/apache-raw-initial/\n?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/\n?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/\n?? tests/fs/webdav/real-service/example.mts\n?? tests/fs/webdav/real-service/https.mts\n?? tests/integration/full-gate-20260827/\n?? tests/shell/errexit-cases.ts\n?? tests/shell/errexit-design-native.json\n?? tests/shell/errexit-design-probes.mjs\n?? tests/shell/errexit-host.test.ts\n?? tests/shell/errexit-initial.json\n?? tests/shell/errexit-initial.tap\n?? tests/shell/errexit-native.json\n?? tests/shell/errexit-native.ts\n?? tests/shell/errexit.test.ts\n?? tests/stress/regex-execution/design/revision-review/REPORT.md\n?? tests/stress/regex-execution/design/validation/evidence/\n",
+  "ownership": "No stage/commit/reset; concurrent HEAD/index movement belongs to other owners. This verifier only wrote verification/** and /tmp.",
+  "ownedProductProcesses": 0,
+  "ownedBackgroundChildren": 0,
+  "ownedNativeFixtures": 0,
+  "preparationError": "First state artifact application exceeded OS argv (spawnSync apply_patch E2BIG). READY.json and prepared verifier backup were already created; no product execution or file content changes outside ownership. Retried with bounded digest rather than full ~1MB index base64."
+}

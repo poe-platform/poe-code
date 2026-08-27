@@ -1,0 +1,308 @@
+{
+  "phase": "scratch-aligned",
+  "finishedAt": "2026-08-27T04:51:25.599Z",
+  "denominator": 224,
+  "totals": {
+    "virtual-bash": {
+      "pass": 223,
+      "fail": 1,
+      "timeout": 0,
+      "harness-or-engine-error": 0,
+      "invalid-oracle": 0
+    },
+    "just-bash": {
+      "pass": 155,
+      "fail": 69,
+      "timeout": 0,
+      "harness-or-engine-error": 0,
+      "invalid-oracle": 0
+    }
+  },
+  "instrumentation": {
+    "total": 24,
+    "pass": 24
+  },
+  "dispatch": {
+    "reached": {
+      "virtual-bash": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "curl",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "readlink",
+        "realpath",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ],
+      "just-bash": [
+        "awk",
+        "base64",
+        "basename",
+        "bash",
+        "cat",
+        "chmod",
+        "comm",
+        "cp",
+        "curl",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mv",
+        "od",
+        "paste",
+        "printf",
+        "pwd",
+        "readlink",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "touch",
+        "tr",
+        "uniq",
+        "wc",
+        "xargs",
+        "zcat"
+      ]
+    },
+    "requiredUnshadowed": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "comm",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "join",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "paste",
+      "patch",
+      "printf",
+      "readlink",
+      "realpath",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha1sum",
+      "sha256sum",
+      "sort",
+      "stat",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "missingUnshadowed": [],
+    "curlCases": [
+      {
+        "id": "network/curl/get",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "http://127.0.0.1:57396/bytes"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/post-stdin",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "--data-binary",
+              "@-",
+              "http://127.0.0.1:57396/echo"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/post-file",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "--data-binary",
+              "@input",
+              "http://127.0.0.1:57396/echo"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/json",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "--json",
+              "{\"answer\":42}",
+              "http://127.0.0.1:57396/echo"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/redirect",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-sL",
+              "http://127.0.0.1:57396/redirect"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/output",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "-o",
+              "result",
+              "http://127.0.0.1:57396/bytes"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/fail-body",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "--fail-with-body",
+              "http://127.0.0.1:57396/missing"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "network/curl/auth-writeout",
+        "events": [
+          {
+            "name": "curl",
+            "args": [
+              "-s",
+              "-u",
+              "user:pass",
+              "-w",
+              "\\n%{http_code}\\n",
+              "http://127.0.0.1:57396/auth"
+            ]
+          }
+        ]
+      }
+    ],
+    "defaultCurlRegistered": false
+  },
+  "bothPass": 154,
+  "bothNonPass": [],
+  "performance": "Not run; functional elapsed/memory fields retained as raw historical observation shape only, not performance evidence.",
+  "lifecycle": "Pending outer supervisor gate; scores do not imply lifecycle pass."
+}

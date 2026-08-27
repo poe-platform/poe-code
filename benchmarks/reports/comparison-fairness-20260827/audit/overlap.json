@@ -1,0 +1,1315 @@
+{
+  "recordedAt": "2026-08-27T04:52:03.015Z",
+  "decision": "Retain separate tables; no additive union denominator or score",
+  "profiles": {
+    "expanded": {
+      "product": "git bd2cacb3a20403302fd0a49441932d5522793e56",
+      "oracle": "native-corrected mixed Darwin Bash5.3/GNU and Apple/BSD profile",
+      "cwd": "/fixture",
+      "env": "PATH /usr/bin:/bin; HOME /fixture; LANG/LC_ALL C; TZ UTC; original no virtual TMPDIR",
+      "timeLimitMs": 5000,
+      "commandLimit": 10000,
+      "effects": "exact final /fixture tree; selected mode bits; no root census",
+      "optional": "network only; real public network configuration to loopback"
+    },
+    "breadth": {
+      "productSourceSha256": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+      "oracle": "predetermined intent predicates, not native capture",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "budgets": {
+        "ordinaryMs": 30000,
+        "optionalMs": 120000,
+        "childGraceMs": 10000,
+        "maxOutputBytes": 4194304,
+        "maxCensusBytes": 33554432,
+        "maxEntries": 4096,
+        "maxDepth": 32
+      },
+      "commandLimit": 100,
+      "effects": "whole-root raw before/after census; selected requirements/input preservation, not equal cross-engine effects",
+      "optional": "explicit JS/Python/sqlite profiles, injected baseline SecureFetch for loopback control"
+    }
+  },
+  "counts": {
+    "expandedRecipes": 224,
+    "breadthPrimary": 61,
+    "breadthTargets": 54,
+    "breadthDiagnostics": 7,
+    "mappingRows": 68,
+    "relatedRecipeRows": 42,
+    "exactScriptTextMatches": []
+  },
+  "rules": [
+    "Candidate relations are manual case/recipe inspection, not an exhaustive proof of semantic disjointness.",
+    "No script/name-count dedup is sufficient: differing expected effects, fixtures, provider/profile, frozen source and aliases matter.",
+    "python/python3, declare/typeset, mapfile/readarray share semantic intents within breadth; their separate name-compatible dispatch evidence cannot be inflated into independent capabilities.",
+    "A future union requires one aligned frozen product/dependency/profile, predeclared equivalence classes and exact common predicates, with diagnostic, informational and lifecycle-failing rows separate. No such union is computed here."
+  ],
+  "rows": [
+    {
+      "breadthId": "alias-positive",
+      "command": "alias",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "95a3060827835528cd3fab73a7f4ab639b2337f1b29fd39fe49ec86aa1515d7c",
+      "recipe": "alias greet='printf alias-ok' && shopt -s expand_aliases && eval greet",
+      "expandedCandidates": [
+        {
+          "id": "kernel/eval/eval",
+          "command": "eval",
+          "recipe": "VALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+          "recipeSha256": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb"
+        }
+      ],
+      "relationship": "Alias definition/expansion composes eval; expanded eval only interpolates a variable, with no alias configuration.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "builtin-positive",
+      "command": "builtin",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "a9bfdc2db3ab96d242e12c7d2082ca1fbb9aac5b5126c6c689d462f4be83e492",
+      "recipe": "builtin printf '%s\\n' builtin-ok",
+      "expandedCandidates": [
+        {
+          "id": "kernel/command/command",
+          "command": "command",
+          "recipe": "echo(){ printf function; }; command echo external",
+          "recipeSha256": "1d2ae33df9bdf9eb6678449901b05c7defa71cd54af6419809ea343e0e7c6409"
+        }
+      ],
+      "relationship": "Both bypass a function, but builtin selects builtin dispatch while command selects general dispatch; not interchangeable.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "clear-positive",
+      "command": "clear",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "d0b672bc95bcff4f89b197053067ca6ed345ab4f8be173351a768c4a283c6796",
+      "recipe": "clear",
+      "expandedCandidates": [],
+      "relationship": "Terminal clear escape output has no expanded recipe.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "column-positive",
+      "command": "column",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "557b803851325321d445e5dfef809a44251160e54e933a4634753a86d863e8ee",
+      "recipe": "column -t -s , -o '|' input.csv",
+      "expandedCandidates": [
+        {
+          "id": "command/paste/parallel",
+          "command": "paste",
+          "recipe": "paste left right",
+          "recipeSha256": "bc98126893f91ca1a4ae5cca93a27a5a699c94d278a852dba2330c36dd05f52d"
+        }
+      ],
+      "relationship": "Both tabulate text; column width/alignment differs from paste record merging.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "compgen-positive",
+      "command": "compgen",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "8445ad75a305b704c38cdaed9d597fcb0071a44783491265d4ba342aa8cae1d2",
+      "recipe": "compgen -W 'alpha alpine beta' al",
+      "expandedCandidates": [
+        {
+          "id": "kernel/glob/glob",
+          "command": "glob",
+          "recipe": "printf '<%s>\\n' *.txt",
+          "recipeSha256": "df97844efe877b8f7b4a5c5b06508ae24e8c7a5b88c778a8c2839fde2cab18fb"
+        }
+      ],
+      "relationship": "Prefix completion from an explicit word list differs from filesystem glob expansion.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "complete-positive",
+      "command": "complete",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "5c27041f504a9472ad5ac592545797a124bb6be7063247ff05dc8d1ae6869bac",
+      "recipe": "complete -W 'alpha beta' deploy && complete -p deploy",
+      "expandedCandidates": [],
+      "relationship": "No completion-specification roundtrip in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "compopt-positive",
+      "command": "compopt",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "91b02b51c58b2147704422a6920dddfa87653f39dcba5b707e856290b99b5886",
+      "recipe": "complete -W 'alpha beta' deploy && compopt -o nospace deploy && compopt deploy",
+      "expandedCandidates": [],
+      "relationship": "No completion-option mutation/query in expanded; primary prerequisite failure plus direct diagnostic kept separate.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "date-positive",
+      "command": "date",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "91e3ed20441d54980454b8d1efe67db44cd718c36cfe86cb489984ca60af9d84",
+      "recipe": "date -u -d @0 '+%Y-%m-%dT%H:%M:%SZ'",
+      "expandedCandidates": [
+        {
+          "id": "command/stat/timestamp",
+          "command": "stat",
+          "recipe": "stat -c '%Y:%y' input",
+          "recipeSha256": "f42833ba53f826a572450b6fdfc1e9b362200dbe824501cd98e25c578b5ed75f"
+        }
+      ],
+      "relationship": "Explicit epoch formatting and file timestamp formatting share formatting concerns but use different source data/options.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "declare-positive",
+      "command": "declare",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "f3162ee8c8a95255a3c63fb8d0d9f2b3fa1b60fda6f3f1fd0f08cfebe18a9039",
+      "recipe": "declare -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/arithmetic/arithmetic",
+          "command": "arithmetic",
+          "recipe": "VALUE=3; printf '%s' \"$((VALUE*7+2))\"",
+          "recipeSha256": "a57a49b738ed4cda9694af2f794b4f28b239eafea0b82ebe91a1842cbb240e7f"
+        },
+        {
+          "id": "kernel/local/local",
+          "command": "local",
+          "recipe": "VALUE=outer; f(){ local VALUE=inner; printf '%s\\n' \"$VALUE\"; }; f; printf '%s\\n' \"$VALUE\"",
+          "recipeSha256": "dd1e420f7b4a73e32bdc786fff00b832e61b55e1fd37c669ca3ff5561ad02251"
+        }
+      ],
+      "relationship": "Integer declaration with assignment evaluation differs from arithmetic expansion and local scoping.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "dirs-positive",
+      "command": "dirs",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "360942aedf12996dad5dd47651cd8384f6d812fd29484f0cc7f32acfdef1918e",
+      "recipe": "pushd /fixture/sub > /fixture/push-output && dirs -p",
+      "expandedCandidates": [
+        {
+          "id": "kernel/cd/cd",
+          "command": "cd",
+          "recipe": "mkdir nested; cd nested; pwd",
+          "recipeSha256": "e112ef348f5b3020c8b73d75c6096f6cc0a670a73f56309cf2fde97b4992a68d"
+        }
+      ],
+      "relationship": "Directory stack print after pushd differs from simple cwd change.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "du-positive",
+      "command": "du",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "c7cab415ae6517b60161bed271954d88d1c3f330c46b7feaf0e88c2fb5e7639e",
+      "recipe": "du data.txt",
+      "expandedCandidates": [
+        {
+          "id": "command/stat/fields",
+          "command": "stat",
+          "recipe": "stat -c '%n:%s:%a' input",
+          "recipeSha256": "df4ba8aa976102a1a3623ed56a90ccf7ca1644d64643449bb0345aa401291b49"
+        },
+        {
+          "id": "command/wc/bytes",
+          "command": "wc",
+          "recipe": "wc -c",
+          "recipeSha256": "6ca23fb303551ce5abbcb6904588090a624fe64b32b8a69b0ffb2407625d181d"
+        }
+      ],
+      "relationship": "Allocation/usage reporting is not stat logical size or byte counting.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "egrep-positive",
+      "command": "egrep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "b83931e3df279044eaf0c9e7d581da1474509ac8a749a94ee3795792db04c996",
+      "recipe": "egrep '^(red|blue)$' colors",
+      "expandedCandidates": [
+        {
+          "id": "command/grep/extended-number",
+          "command": "grep",
+          "recipe": "grep -En '^(alpha|beta)$'",
+          "recipeSha256": "68f4d2950981282bc0ca541147a9b87693bd9f461f075ab788c87c64ed842cc2"
+        }
+      ],
+      "relationship": "Extended-regex matching overlaps; alias dispatch, pattern/input and line-number option differ. Cannot count alias as wholly new semantics or identical recipe.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "exec-positive",
+      "command": "exec",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "576a9551bc3a3db1381774acc6262d0edc32b03fa38738f653d74abb55cb8c62",
+      "recipe": "exec printf '%s\\n' exec-ok; target_status=$?; printf 'unexpected-tail\\n' > /fixture/after-exec; exit \"$target_status\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/exit/exit",
+          "command": "exit",
+          "recipe": "printf before; exit 7; printf after",
+          "recipeSha256": "21cf63a52a6ec26fcf23496174e8910f820c0f1ffbee43a694e3d1779c49a4b6"
+        },
+        {
+          "id": "kernel/command/command",
+          "command": "command",
+          "recipe": "echo(){ printf function; }; command echo external",
+          "recipeSha256": "1d2ae33df9bdf9eb6678449901b05c7defa71cd54af6419809ea343e0e7c6409"
+        }
+      ],
+      "relationship": "Command execution that suppresses tail effects differs from exit alone or function bypass; forbidden after-exec file catches the distinction.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "expand-positive",
+      "command": "expand",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "fa224a9096818a176518b264856d57d9edb0416364144444f8e1d4fb00bc8809",
+      "recipe": "expand -t 4 tabs",
+      "expandedCandidates": [],
+      "relationship": "No tab-to-space tab-stop conversion recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "expr-positive",
+      "command": "expr",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "86a57b5b7d1b4028f38832d99a3fc4025674ba2f02fb4ffc948e0b14954da5d6",
+      "recipe": "expr 7 + 5",
+      "expandedCandidates": [
+        {
+          "id": "kernel/arithmetic/arithmetic",
+          "command": "arithmetic",
+          "recipe": "VALUE=3; printf '%s' \"$((VALUE*7+2))\"",
+          "recipeSha256": "a57a49b738ed4cda9694af2f794b4f28b239eafea0b82ebe91a1842cbb240e7f"
+        }
+      ],
+      "relationship": "Integer addition overlaps arithmetic capability, but external-style expr argv/output/status differs from shell arithmetic expansion.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "fgrep-positive",
+      "command": "fgrep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "1e8eb71f65fc01bc4e71cf13f3bc9acb443c069e14e71cfee17b7ba4c56a4673",
+      "recipe": "fgrep 'a.b' literals",
+      "expandedCandidates": [
+        {
+          "id": "command/grep/fixed",
+          "command": "grep",
+          "recipe": "grep -F 'a.b'",
+          "recipeSha256": "3b8666199f1fd496ca4b21427ef986ca8308830afc65da3cec3f22766aeb7ff0"
+        }
+      ],
+      "relationship": "Fixed-string search overlaps; alias dispatch and concrete inputs/output differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "file-positive",
+      "command": "file",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "5468fc45aa336b0b83b6c0fba09f94656ee45a5c02deb2c5d530d6004382e2f5",
+      "recipe": "file -b note.txt",
+      "expandedCandidates": [
+        {
+          "id": "command/stat/fields",
+          "command": "stat",
+          "recipe": "stat -c '%n:%s:%a' input",
+          "recipeSha256": "df4ba8aa976102a1a3623ed56a90ccf7ca1644d64643449bb0345aa401291b49"
+        }
+      ],
+      "relationship": "Content-based file description differs from stat metadata reporting.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "fold-positive",
+      "command": "fold",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "84bf60fdb53bfb363cc77b29ed2aa99ad20af27f54bbd59894212ec7b77d3bc7",
+      "recipe": "fold -w 4 lines",
+      "expandedCandidates": [],
+      "relationship": "No line-width wrapping recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "getopts-positive",
+      "command": "getopts",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "3ea9e621f6218e0c77ec2d49672c842186d5731a7086c3c183eb885ceb5ea6da",
+      "recipe": "getopts 'n:' option -n value && printf '%s:%s:%s\\n' \"$option\" \"$OPTARG\" \"$OPTIND\"",
+      "expandedCandidates": [],
+      "relationship": "No option-parser state/OPTARG/OPTIND recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "hash-positive",
+      "command": "hash",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "2b653073fa31e617df660a28644a837c98820ddc754b5e2e31693a112e071516",
+      "recipe": "hash -p /bin/echo echo && hash -t echo && echo hash-ok",
+      "expandedCandidates": [
+        {
+          "id": "kernel/type/type",
+          "command": "type",
+          "recipe": "type -t printf; type -t cat; f(){ :; }; type -t f",
+          "recipeSha256": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7"
+        }
+      ],
+      "relationship": "Hash map insertion/retrieval is distinct from type classification; neither proves hashed executable dispatch.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "help-positive",
+      "command": "help",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "eec744d631d5c54149f23f31a20b447ca24a5c2e2956a02fbac929733f3b1782",
+      "recipe": "help printf > /fixture/help.txt",
+      "expandedCandidates": [],
+      "relationship": "Documentation output, explicitly excluded from operational positives.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "history-positive",
+      "command": "history",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "0637a663c5d89584a01562d295d0084120e28249a78299c76039cb1216f4a911",
+      "recipe": "history -c && history",
+      "expandedCandidates": [],
+      "relationship": "No history clear/list recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "hostname-positive",
+      "command": "hostname",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "a26351e344d556d8d9085e1e7d26af3b78a59b5f352e1f204fbc6166889ae675",
+      "recipe": "hostname",
+      "expandedCandidates": [],
+      "relationship": "No hostname output recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "html-to-markdown-positive",
+      "command": "html-to-markdown",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "805e719963515971bd38e2277e99876887a1e16184cdedc4ab3f556d2116dba3",
+      "recipe": "html-to-markdown page.html",
+      "expandedCandidates": [],
+      "relationship": "No HTML-to-Markdown conversion recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "let-positive",
+      "command": "let",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "c538509cd3fa5d4df694d09ff9d8fd02014d633785925414d35e0f44b3062c0c",
+      "recipe": "count=6; let 'count+=7' && printf '%s\\n' \"$count\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/arithmetic/arithmetic",
+          "command": "arithmetic",
+          "recipe": "VALUE=3; printf '%s' \"$((VALUE*7+2))\"",
+          "recipeSha256": "a57a49b738ed4cda9694af2f794b4f28b239eafea0b82ebe91a1842cbb240e7f"
+        }
+      ],
+      "relationship": "State-mutating arithmetic command differs from arithmetic substitution.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "mapfile-positive",
+      "command": "mapfile",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "ab2530fe86650331df276368f90009093ec6cb3f47518913bd97aefcc1726b57",
+      "recipe": "mapfile -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/read/read",
+          "command": "read",
+          "recipe": "IFS=: read -r left right; printf '<%s><%s>' \"$left\" \"$right\"",
+          "recipeSha256": "3aa959d55c8bf6b84c51b6609580651c86df53520f719247a631e90d88ea249e"
+        },
+        {
+          "id": "kernel/pipeline-stdin/pipeline-stdin",
+          "command": "pipeline-stdin",
+          "recipe": "read -r value; printf '%s\\n' \"$value\" | cat",
+          "recipeSha256": "d0327cbfc5a32dcfcf3ffdb2d2cd4585da8985a20bfd2ac7534491733cbf45ca"
+        }
+      ],
+      "relationship": "Array population from lines differs from one-record read; direct diagnostic isolates dispatch from unsupported later array expansion.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "nl-positive",
+      "command": "nl",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "5e7b8fa03fc2dccfd5ce139855acabbdf216e8278a15815b9500efa41e147245",
+      "recipe": "nl -ba -w 1 -s ':' lines",
+      "expandedCandidates": [
+        {
+          "id": "command/cat/number",
+          "command": "cat",
+          "recipe": "cat -n input",
+          "recipeSha256": "0d149a3ead98aef6a6e44e075e5e5f690f16242af795b00edc61e07eb64b6298"
+        }
+      ],
+      "relationship": "Line numbering overlaps, but blank-line selection, width/separator options and exact fixture differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "popd-positive",
+      "command": "popd",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "daed285149b8a9c9ef9fe092c06894ec59be2317c4146a5e67ea3d3d0cf770ac",
+      "recipe": "pushd /fixture/sub > /fixture/push-output && popd > /fixture/pop-output && pwd",
+      "expandedCandidates": [
+        {
+          "id": "kernel/cd/cd",
+          "command": "cd",
+          "recipe": "mkdir nested; cd nested; pwd",
+          "recipeSha256": "e112ef348f5b3020c8b73d75c6096f6cc0a670a73f56309cf2fde97b4992a68d"
+        }
+      ],
+      "relationship": "Push/pop directory stack restoration differs from one cd.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "printenv-positive",
+      "command": "printenv",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "bac2be05910cda092e6f76a7de1e14d0a28e3552ee2c2dac0fb39c25542ec1e7",
+      "recipe": "printenv COVERAGE_VALUE",
+      "expandedCandidates": [
+        {
+          "id": "command/env/clean",
+          "command": "env",
+          "recipe": "env -i A=1 B=2",
+          "recipeSha256": "735a772e493abe756e723eb9fd5ca8bec8e1c0722ae6f97e76d2763fb701affd"
+        },
+        {
+          "id": "kernel/export/export",
+          "command": "export",
+          "recipe": "export VALUE=kept; bash -c 'printf %s \"$VALUE\"'",
+          "recipeSha256": "325b6b8769262f1521e41d7f0dc90806910c0cea14f0a1919fe3f16f2cbd46a8"
+        }
+      ],
+      "relationship": "Named environment lookup overlaps export visibility, not full enumeration or clean-env dispatch.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "pushd-positive",
+      "command": "pushd",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "5f3a2c6179cf7eeac476ce19d559070f4a3d0383b0072c6c6645ed3a66bda1ff",
+      "recipe": "pushd /fixture/sub > /fixture/push-output && pwd",
+      "expandedCandidates": [
+        {
+          "id": "kernel/cd/cd",
+          "command": "cd",
+          "recipe": "mkdir nested; cd nested; pwd",
+          "recipeSha256": "e112ef348f5b3020c8b73d75c6096f6cc0a670a73f56309cf2fde97b4992a68d"
+        }
+      ],
+      "relationship": "Directory stack push differs from cwd-only change.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "readarray-positive",
+      "command": "readarray",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "011f6d05fd8934fd7151706cf3fee378ffe5d37abda39a2339d88c1ce741a46d",
+      "recipe": "readarray -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/read/read",
+          "command": "read",
+          "recipe": "IFS=: read -r left right; printf '<%s><%s>' \"$left\" \"$right\"",
+          "recipeSha256": "3aa959d55c8bf6b84c51b6609580651c86df53520f719247a631e90d88ea249e"
+        }
+      ],
+      "relationship": "Array population alias shares breadth mapfile recipe semantics; not a new independent algorithm; absent compatible name remains a separate dispatch observation.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "rev-positive",
+      "command": "rev",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "618a0c79f9718ca88312bb4ef91372f8a8676a896a7bb09d1bc814be613a5dca",
+      "recipe": "rev lines",
+      "expandedCandidates": [],
+      "relationship": "No within-line character reversal recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "seq-positive",
+      "command": "seq",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "7bfe6f7f97258161b5a20b0b649cc773117e6c3f7553bda1e0cfd7761e96c2c9",
+      "recipe": "seq 2 3 8",
+      "expandedCandidates": [
+        {
+          "id": "kernel/while/while",
+          "command": "while",
+          "recipe": "VALUE=0; while [ \"$VALUE\" -lt 3 ]; do printf '%s' \"$VALUE\"; VALUE=$((VALUE+1)); done",
+          "recipeSha256": "fe1787c0d39a4a48dbd62e0028c01e9d7d565a2b6e0ba125e4ac4a18c0a4dcc6"
+        }
+      ],
+      "relationship": "Number-sequence generation relates to loop output, but step/range/CLI status differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "shopt-positive",
+      "command": "shopt",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "ed0f81425febf07feea4deada76dbf76becc6e228eac99c2b8061ebeea9fcbca",
+      "recipe": "shopt -s dotglob && printf '%s\\n' *",
+      "expandedCandidates": [
+        {
+          "id": "kernel/glob/glob",
+          "command": "glob",
+          "recipe": "printf '<%s>\\n' *.txt",
+          "recipeSha256": "df97844efe877b8f7b4a5c5b06508ae24e8c7a5b88c778a8c2839fde2cab18fb"
+        }
+      ],
+      "relationship": "dotglob changes hidden-file inclusion; expanded only ordinary *.txt expansion.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "sleep-positive",
+      "command": "sleep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "eac21117bad870a1e92c70cff9dcc1752fd240c9020ee553f19819d0721853a5",
+      "recipe": "sleep 0.02",
+      "expandedCandidates": [],
+      "relationship": "No product delay recipe in expanded; host deadlines do not count as sleep coverage.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "split-positive",
+      "command": "split",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "022d4313164f945c4e2cce24e3cfb8e617880ab3d88250fc8683194ae0d4cbf0",
+      "recipe": "split -l 2 rows part-",
+      "expandedCandidates": [
+        {
+          "id": "command/head/lines",
+          "command": "head",
+          "recipe": "head -n 2",
+          "recipeSha256": "ffd1b3123b5996a7fc8ebaae6de786adcbbcc6ceaffb59e710439cff6da3052b"
+        },
+        {
+          "id": "command/tail/lines",
+          "command": "tail",
+          "recipe": "tail -n 2",
+          "recipeSha256": "c6cdd8c43ca390d54d25fa177ab27e9ce29a9abd2c4727d8f35656e1259b02e7"
+        }
+      ],
+      "relationship": "Multiple partition file publication differs from output-only head/tail slicing.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "sqlite3-positive",
+      "command": "sqlite3",
+      "cohort": "historical-unmeasured",
+      "configuration": "sqlite",
+      "inputSha256": "fdbbd70227694474404465a8ad9d1d94c34abcbf85552df708f328cc219d7569",
+      "recipe": "sqlite3 /fixture/data.db 'CREATE TABLE items(name TEXT, value INTEGER); INSERT INTO items VALUES (\"alpha\", 2), (\"beta\", 3); SELECT sum(value) FROM items;'",
+      "expandedCandidates": [],
+      "relationship": "No SQL execution/database publication recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "strings-positive",
+      "command": "strings",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "be2225eddd6fb237a2a61fce9689187b8de985e163d0d3107ab6eba7d59b7fab",
+      "recipe": "strings -n 4 blob",
+      "expandedCandidates": [],
+      "relationship": "No binary printable-run extraction recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "tac-positive",
+      "command": "tac",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "3b5c9d4f26e6f11741c59cde731b63787700d90973ae9e456514b38dbfc88469",
+      "recipe": "tac rows",
+      "expandedCandidates": [],
+      "relationship": "No reverse-record-order recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "time-positive",
+      "command": "time",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "fc56ec17d8fff0851b8549e90c8d49d734329e11047fcb4ecf29c28a5c172c1f",
+      "recipe": "command time -f completed printf '%s\\n' timed",
+      "expandedCandidates": [],
+      "relationship": "No command time formatting recipe; harness performance measurement is not command coverage.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "timeout-positive",
+      "command": "timeout",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "0f909f54310dd771d177c7b5f557860f9c4a3e6712ab5d4e1bdce258cb9fe7d8",
+      "recipe": "timeout 5 printf '%s\\n' bounded",
+      "expandedCandidates": [],
+      "relationship": "No command timeout wrapper recipe; harness abort deadline is not command coverage.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "tree-positive",
+      "command": "tree",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "663875a73c52040deffdd3c0015842c913ffaf809332c21a3a47ccc0538c9db2",
+      "recipe": "tree tree-input",
+      "expandedCandidates": [
+        {
+          "id": "command/find/name",
+          "command": "find",
+          "recipe": "find tree -type f -name '*.ts' | sort",
+          "recipeSha256": "bec3471823063f372c6cafedbae507f692dceb8e89cbbafc68706d4f78a36166"
+        },
+        {
+          "id": "command/find/nul",
+          "command": "find",
+          "recipe": "find tree -type f -print0 | sort -z",
+          "recipeSha256": "55bc52a03604d5392e0f34cd5509bfa67666040b75b203c3cf90cfb310d8e811"
+        }
+      ],
+      "relationship": "Recursive listing overlaps traversal; connector display/counts and filters differ. Strict prepared Unicode display mismatch retained.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "typeset-positive",
+      "command": "typeset",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "588e0ddb532bcb96a603d4fe589f0348fca95a7a2a2a86a7810cc96d381aaf36",
+      "recipe": "typeset -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/arithmetic/arithmetic",
+          "command": "arithmetic",
+          "recipe": "VALUE=3; printf '%s' \"$((VALUE*7+2))\"",
+          "recipeSha256": "a57a49b738ed4cda9694af2f794b4f28b239eafea0b82ebe91a1842cbb240e7f"
+        }
+      ],
+      "relationship": "Integer declaration overlaps breadth declare; separate alias dispatch, not independent arithmetic capability.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "unalias-positive",
+      "command": "unalias",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "aba1f56ced64ec16a7e47c805f512588ed6598e115b8c9f73f7c85d2eaf69853",
+      "recipe": "alias echo='printf alias-active' && shopt -s expand_aliases && eval 'echo' && unalias echo && eval 'echo restored'",
+      "expandedCandidates": [
+        {
+          "id": "kernel/eval/eval",
+          "command": "eval",
+          "recipe": "VALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+          "recipeSha256": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb"
+        }
+      ],
+      "relationship": "Before/after alias removal composes eval; expanded eval has no alias lifecycle.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "unexpand-positive",
+      "command": "unexpand",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "7fbadb96af991933d59ca09e85cbde2a5fd9844d48c97f29af84accc16241dfd",
+      "recipe": "unexpand -a -t 4 spaces",
+      "expandedCandidates": [],
+      "relationship": "No space-to-tab tab-stop conversion recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "wait-positive",
+      "command": "wait",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "6cef264ca890d94fb6408472d72742d8d23e1c425134df9c1f652f7a8b1c0b61",
+      "recipe": "printf 'child-done\\n' > /fixture/child.txt & wait",
+      "expandedCandidates": [],
+      "relationship": "Background-child wait recipe absent; documentation/no-op limitation excludes operational credit.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "which-positive",
+      "command": "which",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "caeb23511f48e14faf3ca9241a8cf2563a804bdaecb71b53d6b693c80426813e",
+      "recipe": "which echo",
+      "expandedCandidates": [
+        {
+          "id": "kernel/type/type",
+          "command": "type",
+          "recipe": "type -t printf; type -t cat; f(){ :; }; type -t f",
+          "recipeSha256": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7"
+        }
+      ],
+      "relationship": "Executable-path lookup overlaps classification but is not builtin/function classification.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "whoami-positive",
+      "command": "whoami",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "69cefbafce5be302644a7db3f052778e35edfd71f08ea0a279189698f9c9d09b",
+      "recipe": "whoami",
+      "expandedCandidates": [],
+      "relationship": "No current user-name recipe in expanded.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "xan-positive",
+      "command": "xan",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "80c216230bb8b0a9686e47f4632e4595b3ba303590a19f7490964607aa8bd915",
+      "recipe": "xan select name rows.csv",
+      "expandedCandidates": [
+        {
+          "id": "command/cut/fields",
+          "command": "cut",
+          "recipe": "cut -d: -f2,3",
+          "recipeSha256": "c1a6f8e1303feb78f66ed19a8c65bca7c39af19fc4648e770c82ffe202064524"
+        }
+      ],
+      "relationship": "CSV header-based selection is not delimiter field selection; quoting/header semantics differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "yq-positive",
+      "command": "yq",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "inputSha256": "45482363c7caa89817b1d5e4a7bb3d3e751f2ab3324e986986d535933b86b82c",
+      "recipe": "yq -o json '.items[1].name' data.yaml",
+      "expandedCandidates": [
+        {
+          "id": "command/jq/map",
+          "command": "jq",
+          "recipe": "jq -c 'map(. * 2)'",
+          "recipeSha256": "233df3be28138cfaec028e900872b8221beeae8b89f073868b19b8eabae9f20d"
+        }
+      ],
+      "relationship": "YAML parsing/query-to-JSON differs from JSON-only map transform.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "js-exec-positive",
+      "command": "js-exec",
+      "cohort": "additional-optional",
+      "configuration": "javascript",
+      "inputSha256": "abb0f1a3512c6708492f7f4c9f91972b495f6901c0c0289b379cd5b04a4cc816",
+      "recipe": "js-exec -c 'console.log(6 * 7)'",
+      "expandedCandidates": [],
+      "relationship": "Explicit JS runtime profile absent in expanded; guest success and exceptional child cleanup retained.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "node-positive",
+      "command": "node",
+      "cohort": "additional-optional",
+      "configuration": "javascript",
+      "inputSha256": "4a48054a00690eae8de42717dfbcaa393a04a0b7365b67b56a245062526690c0",
+      "recipe": "node -e 'console.log(6 * 7)'",
+      "expandedCandidates": [],
+      "relationship": "Diagnostic stub, not JS runtime parity; no optional-runtime expanded recipe.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "python-positive",
+      "command": "python",
+      "cohort": "additional-optional",
+      "configuration": "python",
+      "inputSha256": "fb1e18d1b0d8988044d419f059867867cd92cf37f126367124ad04e62b767bd9",
+      "recipe": "python -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+      "expandedCandidates": [],
+      "relationship": "Explicit Python runtime plus file effect absent in expanded; shares breadth python3 intent but separate alias dispatch.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "python3-positive",
+      "command": "python3",
+      "cohort": "additional-optional",
+      "configuration": "python",
+      "inputSha256": "5fc76537d851eaabeaeb40bf45cabf0bff5e2beea712613f448879016232448c",
+      "recipe": "python3 -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+      "expandedCandidates": [],
+      "relationship": "Explicit Python runtime plus file effect absent in expanded; not independent semantic algorithm from python alias.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "dot-positive",
+      "command": ".",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "inputSha256": "5a19c2941e0dfd87b523c556a34b018ef1a839a6b30e425817c55c290d4a0b00",
+      "recipe": ". /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/dot/dot",
+          "command": "dot",
+          "recipe": ". ./script; printf '%s' \"$VALUE\"",
+          "recipeSha256": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0"
+        }
+      ],
+      "relationship": "Both source a file into parent shell; path, fixture, variable name and newline/output assertions differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "source-positive",
+      "command": "source",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "inputSha256": "b860681599422a28728abc8c02146ae42bcecf8b78e714026436340a14dab221",
+      "recipe": "source /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/source/source",
+          "command": "source",
+          "recipe": "source script; printf '%s' \"$VALUE\"",
+          "recipeSha256": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0"
+        }
+      ],
+      "relationship": "Both source a file into parent shell; path, fixture, variable name and newline/output assertions differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "eval-positive",
+      "command": "eval",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "inputSha256": "0fb7a91070cb0eeed7fd8a86c12e8c01b39af2a7990dd1de3eae5591cced069f",
+      "recipe": "eval 'VALUE=loaded' && printf '%s\\n' \"$VALUE\"",
+      "expandedCandidates": [
+        {
+          "id": "kernel/eval/eval",
+          "command": "eval",
+          "recipe": "VALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+          "recipeSha256": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb"
+        }
+      ],
+      "relationship": "Both eval shell text; breadth tests persistent assignment, expanded tests expanded printf output.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "printf-positive",
+      "command": "printf",
+      "cohort": "shared-control",
+      "configuration": "default",
+      "inputSha256": "0ca4946151daa1f66a95df8fc74c86037f153813bcdba912b1b0f00172099122",
+      "recipe": "printf 'ascii:%s\\n' control",
+      "expandedCandidates": [
+        {
+          "id": "command/printf/formats",
+          "command": "printf",
+          "recipe": "printf '%s:%04d:%x\\n' value 7 255",
+          "recipeSha256": "11f27c292cb88a8bab7a885cb537d6a9f2d213c72945f196a857a7e04648a0d5"
+        },
+        {
+          "id": "command/printf/reuse",
+          "command": "printf",
+          "recipe": "printf '<%s>\\n' one two three",
+          "recipeSha256": "8434942a39ea1b574a4e8b739e4186fbf1d6ed41c0937b447311fd8f4bc85e4a"
+        }
+      ],
+      "relationship": "Shared ASCII formatting control, differing formats/inputs; cannot count as new baseline-only capability.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "terminal-byte-control",
+      "command": "printf",
+      "cohort": "shared-control",
+      "configuration": "default",
+      "inputSha256": "1a04b236a306a7aeef6ed2d6ab9408fbd271a2d3a05a67863e396fbb9fe4b141",
+      "recipe": "printf '\\000\\177\\200\\377' > bytes && cat bytes",
+      "expandedCandidates": [
+        {
+          "id": "command/printf/binary",
+          "command": "printf",
+          "recipe": "printf '\\000\\377A\\n'",
+          "recipeSha256": "233510ee7cc10d19c3ad3e1942184385243d1c0abe6c84f8e5bb74b83d6c11ab"
+        },
+        {
+          "id": "command/cat/binary-stdin",
+          "command": "cat",
+          "recipe": "cat",
+          "recipeSha256": "232d53a341e8c9c97fdfe2f7028e8fff048bd61f38d156960d991480729f01fd"
+        },
+        {
+          "id": "composition/binary-roundtrip/binary-roundtrip",
+          "command": "binary-roundtrip",
+          "recipe": "base64 | base64 -d | gzip -n -c | gunzip -c | tee restored",
+          "recipeSha256": "b3cccc80c7f14b7a9537091ededfa950385d669f5d014dd78f3d97150418c762"
+        }
+      ],
+      "relationship": "Generated NUL/high bytes written to file then read differs from input-byte cat and encode/compress pipelines. Related byte-boundary coverage, not a duplicate or proof of pipe corruption.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "curl-positive",
+      "command": "curl",
+      "cohort": "shared-optional-control",
+      "configuration": "loopback-network",
+      "inputSha256": "6eb4be7020cf0a392abf3fc2af724fbfd3cb73a840a66ed8523bb6d1d16787e6",
+      "recipe": "curl -sS '{{BASE}}/fixture.txt' -o /fixture/download.txt",
+      "expandedCandidates": [
+        {
+          "id": "network/curl/output",
+          "command": "curl",
+          "recipe": "curl -s -o result '{{BASE}}/bytes'",
+          "recipeSha256": "3f4a00a19881d35ffba9a668f28fcf376e408c1e17e5b27f7ae15e44e43d9695"
+        },
+        {
+          "id": "network/curl/get",
+          "command": "curl",
+          "recipe": "curl -s '{{BASE}}/bytes'",
+          "recipeSha256": "4131258c9e582bb26ef0512c85e713c56c2bd773d7238f7611f4f526d478d42a"
+        }
+      ],
+      "relationship": "Shared explicit network command; breadth downloads text via injected baseline fetch, expanded downloads binary via native network policy. Endpoint, bytes, providers and effect predicates differ.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "vfs-census-control",
+      "command": "printf",
+      "cohort": "shared-control",
+      "configuration": "default",
+      "inputSha256": "6ab64642ba53d5c7fc7daf42ef211406d466c045b91ed4759cc101ee129cb2ab",
+      "recipe": "printf '%s' census-ok > control-output && cat control-link",
+      "expandedCandidates": [
+        {
+          "id": "command/stat/follow",
+          "command": "stat",
+          "recipe": "ln -s input alias; stat -L -c '%s:%a' alias",
+          "recipeSha256": "0308a99bfb7ece20d7a255721c09b184142f65a30ef795c4017196ec7d6c2f43"
+        },
+        {
+          "id": "kernel/stderr-redirect/stderr-redirect",
+          "command": "stderr-redirect",
+          "recipe": "printf error >&2; printf good > output; cat output",
+          "recipeSha256": "32ca4a0b83fb44d0ca0d506b943be0035e2f1e1a62c934276f2af4b4fbf03315"
+        }
+      ],
+      "relationship": "Output file and preexisting symlink read exercises census; not native stat-follow or redirect equivalence. Whole-root census vs fixture-only comparator differs.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "compopt-direct-diagnostic",
+      "command": "compopt",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "8222847f83e40739e8baeace3d412e6656a321a78679a2d206cbea9d8ac413fb",
+      "recipe": "compopt -o nospace deploy",
+      "expandedCandidates": [],
+      "relationship": "Reachability-only diagnostic for compopt; never positive union credit. No completion-option mutation/query in expanded; primary prerequisite failure plus direct diagnostic kept separate.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "dirs-direct-diagnostic",
+      "command": "dirs",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "79daa23ae8a1ef6b2c26258f06487749546ac3cdb72a568554babc6e2a19e2d9",
+      "recipe": "dirs -p",
+      "expandedCandidates": [
+        {
+          "id": "kernel/cd/cd",
+          "command": "cd",
+          "recipe": "mkdir nested; cd nested; pwd",
+          "recipeSha256": "e112ef348f5b3020c8b73d75c6096f6cc0a670a73f56309cf2fde97b4992a68d"
+        }
+      ],
+      "relationship": "Reachability-only diagnostic for dirs; never positive union credit. Directory stack print after pushd differs from simple cwd change.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "popd-direct-diagnostic",
+      "command": "popd",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "f669e36fb41f0260e1deb6637ac618326b25357bf986d491f7dfe7fc15b12b65",
+      "recipe": "popd",
+      "expandedCandidates": [
+        {
+          "id": "kernel/cd/cd",
+          "command": "cd",
+          "recipe": "mkdir nested; cd nested; pwd",
+          "recipeSha256": "e112ef348f5b3020c8b73d75c6096f6cc0a670a73f56309cf2fde97b4992a68d"
+        }
+      ],
+      "relationship": "Reachability-only diagnostic for popd; never positive union credit. Push/pop directory stack restoration differs from one cd.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "unalias-direct-diagnostic",
+      "command": "unalias",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "bc05257e2ae1a337941beb19a89085efe9d998dcdf8d1dfe72d25349b20ee351",
+      "recipe": "unalias echo",
+      "expandedCandidates": [
+        {
+          "id": "kernel/eval/eval",
+          "command": "eval",
+          "recipe": "VALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+          "recipeSha256": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb"
+        }
+      ],
+      "relationship": "Reachability-only diagnostic for unalias; never positive union credit. Before/after alias removal composes eval; expanded eval has no alias lifecycle.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "wait-direct-diagnostic",
+      "command": "wait",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "5bd8059e10b9f2f9ec0092bb9ebb88c6d0c8423ed18e3a81a36f8232bffaae41",
+      "recipe": "wait",
+      "expandedCandidates": [],
+      "relationship": "Reachability-only diagnostic for wait; never positive union credit. Background-child wait recipe absent; documentation/no-op limitation excludes operational credit.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "mapfile-direct-diagnostic",
+      "command": "mapfile",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "788c21589ae27b8e2d930484c250aa7298bfa4152f1b5a61d2851821a2b723e3",
+      "recipe": "mapfile -t rows < rows.txt",
+      "expandedCandidates": [
+        {
+          "id": "kernel/read/read",
+          "command": "read",
+          "recipe": "IFS=: read -r left right; printf '<%s><%s>' \"$left\" \"$right\"",
+          "recipeSha256": "3aa959d55c8bf6b84c51b6609580651c86df53520f719247a631e90d88ea249e"
+        },
+        {
+          "id": "kernel/pipeline-stdin/pipeline-stdin",
+          "command": "pipeline-stdin",
+          "recipe": "read -r value; printf '%s\\n' \"$value\" | cat",
+          "recipeSha256": "d0327cbfc5a32dcfcf3ffdb2d2cd4585da8985a20bfd2ac7534491733cbf45ca"
+        }
+      ],
+      "relationship": "Reachability-only diagnostic for mapfile; never positive union credit. Array population from lines differs from one-record read; direct diagnostic isolates dispatch from unsupported later array expansion.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    },
+    {
+      "breadthId": "readarray-direct-diagnostic",
+      "command": "readarray",
+      "cohort": "direct-diagnostic",
+      "configuration": "default",
+      "inputSha256": "648787b614c4bf7a362a157c93b4e986cda333b9cd872076204cf7f4291b2dfe",
+      "recipe": "readarray -t rows < rows.txt",
+      "expandedCandidates": [
+        {
+          "id": "kernel/read/read",
+          "command": "read",
+          "recipe": "IFS=: read -r left right; printf '<%s><%s>' \"$left\" \"$right\"",
+          "recipeSha256": "3aa959d55c8bf6b84c51b6609580651c86df53520f719247a631e90d88ea249e"
+        }
+      ],
+      "relationship": "Reachability-only diagnostic for readarray; never positive union credit. Array population alias shares breadth mapfile recipe semantics; not a new independent algorithm; absent compatible name remains a separate dispatch observation.",
+      "sameProfile": false,
+      "semanticDuplicateResolved": false,
+      "unionCredit": 0
+    }
+  ]
+}

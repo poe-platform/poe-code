@@ -1,0 +1,12 @@
+{
+  "status": "setup-failure-before-any-case",
+  "command": "node benchmarks/reports/current-integration/comparison-replay-20260827/prepare.mjs",
+  "error": "Error: spawnSync git ENOBUFS at prepare.mjs:10:26 and prepare.mjs:95:90",
+  "failedGitArgs": ["show", "8e09db9:benchmarks/reports/expanded-20260827/native-first/native.json"],
+  "reason": "Node execFileSync default buffer was too small for the immutable historical native-first JSON. No oracle missing or invalid; no fixture/case executed.",
+  "partialStdoutBytes": 1114112,
+  "childPid": 65814,
+  "childSignal": "SIGTERM",
+  "retained": "Existing location.json/source-manifest.json/dependency-manifest.json and partial frozen profile remain intact. Source and verified dependencies were fully copied before this error; do not recopy or refreeze.",
+  "resolution": "New owned seal.mjs resumes only unfinished harness/golden copying with explicit 64MiB git buffer, verifies existing partial bytes and source/dependency manifests. Historical modules/goldens are unchanged. No scoring retry."
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "classification": "historical raw outcomes and immutable bindings; never a current canonical score",
+  "originalAuthorCapture": {
+    "sourceCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+    "evidenceCorrection": "adba1ea8c95dbaf8e4f4330d306d1d411d085b44",
+    "status": 1,
+    "counts": { "tests": 6, "pass": 1, "fail": 5, "skipped": 0, "cancelled": 0 },
+    "innerDeadlineMs": 1200,
+    "outerDeadlineMs": 3000,
+    "rawOriginalTapSHA256": "59d753ea2049f9a6f7d28b33641b03d8005b3a70f1f4c60bbdabba07f9fdf508",
+    "rows": [
+      { "scenario": "first-read-head-zero", "processStatus": 0, "rawChildStdout": "first-read-head-zero: passed\n{\"scenario\":\"first-read-head-zero\",\"active\":0,\"reads\":0,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"command.settled:head:0\"]}\n", "deadlineDiagnostic": null },
+      { "scenario": "first-read-local", "processStatus": 1, "rawChildStdout": "{\"scenario\":\"first-read-local\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n", "deadlineDiagnostic": "Error: DEADLINE: first-read-local (1200ms)" },
+      { "scenario": "first-read-s3", "processStatus": 1, "rawChildStdout": "{\"scenario\":\"first-read-s3\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n", "deadlineDiagnostic": "Error: DEADLINE: first-read-s3 (1200ms)" },
+      { "scenario": "first-read-webdav", "processStatus": 1, "rawChildStdout": "{\"scenario\":\"first-read-webdav\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:PROPFIND:/dav/input\",\"http.response.close:PROPFIND:finished=true\",\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n", "deadlineDiagnostic": "Error: DEADLINE: first-read-webdav (1200ms)" },
+      { "scenario": "first-read-curl-body", "processStatus": 1, "rawChildStdout": "{\"scenario\":\"first-read-curl-body\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n", "deadlineDiagnostic": "Error: DEADLINE: first-read-curl-body (1200ms)" },
+      { "scenario": "first-read-curl-headers", "processStatus": 1, "rawChildStdout": "{\"scenario\":\"first-read-curl-headers\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n", "deadlineDiagnostic": "Error: DEADLINE: first-read-curl-headers (1200ms)" }
+    ]
+  },
+  "curieFrozenEbaObservation": {
+    "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+    "classification": "observer evidence only; original canonical result remains unchanged",
+    "originalObservationFileSHA256": {
+      "repeat1": {
+        "first-read-head-zero": "70956000bd005de2fc5ebd72f8f0fe2dfc3e7a1a39834960ab1a1a04473ac04e",
+        "first-read-local": "957834b3addcb031a6f40457ee7c92f61e9b9bbb8e4c478ffe39e109b602f1de",
+        "first-read-s3": "27dc43a9336860820e44e0920bf51d739c506b2f7b3b7f32a8d82b876b8d4106",
+        "first-read-webdav": "97d84302f038239dafecfe530d6ae6df6dddbf32e9057520b3e79e123c8075e0",
+        "first-read-curl-body": "9cb35ff5a53284fa2fae3e200d13839166afd2f73eb39552f229d4cf452655f2",
+        "first-read-curl-headers": "a0c3e6602454b358a117e9738c1cb3b9a4e56b8633dd0ff266cfc07b9418743b"
+      },
+      "repeat2": {
+        "first-read-head-zero": "90cf547b9786d29f66f7278a8883764af2e0b63fa609146679ba9af9a5407c85",
+        "first-read-local": "d7ff8381af352d68f4539b48ca8b87500c8a8ddeb2a904d4018e09bbb67838e8",
+        "first-read-s3": "b1dfe0e410cd5ead057be3ba05233aa7d523539883031127eaf5e6cd3ca156ef",
+        "first-read-webdav": "7f456450dd68b0f31f93cd50d9156c3b47d5dcbaa0b5ae5dceeb41fcd7127151",
+        "first-read-curl-body": "796b4baf7857dd61abc016143e506a020873463140a0b8a3c86fcbc048fd5038",
+        "first-read-curl-headers": "d5393160f88ba96804e3e9ada76e8dc3e463e8a432e14dcc861c83f34e66058f"
+      }
+    },
+    "boundaryFacts": {
+      "first-read-head-zero": "public status0; reads0; return1; caller live",
+      "first-read-local": "not settled at1200ms; active1/read1/return0; only later labelled teardown caller abort releases it",
+      "first-read-s3": "public status0; owned operation EPIPE; return1/active0; caller and cat live",
+      "first-read-webdav": "GET fetch rejected/settled before public; GET response not acquired; passive remote close after public and before dispose",
+      "first-read-curl-body": "transport cleanup and ClientRequest close before public; no HttpResponse acquired; passive remote close",
+      "first-read-curl-headers": "same acquisition-stage request cleanup; no headers and no HttpResponse acquired; passive remote close"
+    }
+  }
+}

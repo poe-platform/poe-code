@@ -1,0 +1,54 @@
+{
+  "at": "2026-08-27T03:29:19.102Z",
+  "beforeAnyExistingTestEdit": true,
+  "files": {
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/.gitignore": {
+      "sha256": "c740db8c5771bc53deca3faf16465ffd78a57c5bc6df70143f0a8f422fb469ab",
+      "bytes": 10
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/README.md": {
+      "sha256": "1ee3d340697f3f8acfd6efde479539599cb84115fa96804050c56feb09c11691",
+      "bytes": 7516
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/archive-manifest.json": {
+      "sha256": "6a299770d955e27c2c0b603a37e49bc46629b49e5f652b549e469d344f577040",
+      "bytes": 50007
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/archive.mjs": {
+      "sha256": "584057b9afc44e31e419d86eb8baef62d49c69e28eaf16385c2f18fb0ed92c38",
+      "bytes": 11353
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/red-original104.stdout": {
+      "sha256": "2dbc96a9e755d56ed5dbcea8b3ada1434a50bfa5d695589956ef84d95348cee2",
+      "bytes": 17279
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/red-original311-current-helper.stdout": {
+      "sha256": "657207f07b6d5c54cc4d20de3f486bc6d7923d7c4589e65176bd4c7ffe3fa949",
+      "bytes": 63571
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/corpus.test.ts.txt": {
+      "sha256": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5",
+      "bytes": 1523
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/differential.test.ts.txt": {
+      "sha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "bytes": 2285
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/red-validation.json": {
+      "sha256": "f886acf09f70f6751b8f8d25934688ee55339fbf0df7bd390d3f029dd05996fc",
+      "bytes": 159806
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/repros.json": {
+      "sha256": "33a77383cb8299f2a33befd86b566a14b7f21ff0e54cd81ee9228925f3e74185",
+      "bytes": 76299
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/run.mjs": {
+      "sha256": "b4f55b57fd67d95cc47a33d6db9332f04c6c6bb61728d3545df2756c6614e4dd",
+      "bytes": 6789
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/tsconfig.json": {
+      "sha256": "5c40d7168a7d8954477894da5b4fe695b0128bc6c81d3688518c9944c1534721",
+      "bytes": 190
+    }
+  }
+}

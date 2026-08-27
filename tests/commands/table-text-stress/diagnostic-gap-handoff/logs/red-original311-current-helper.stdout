@@ -1,0 +1,1901 @@
+TAP version 13
+# Subtest: fresh numeric/split pipelines: memory
+ok 1 - fresh numeric/split pipelines: memory
+  ---
+  duration_ms: 27.322042
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: real
+ok 2 - fresh numeric/split pipelines: real
+  ---
+  duration_ms: 34.1345
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: s3
+ok 3 - fresh numeric/split pipelines: s3
+  ---
+  duration_ms: 22.972042
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: webdav
+ok 4 - fresh numeric/split pipelines: webdav
+  ---
+  duration_ms: 107.617542
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: mount
+ok 5 - fresh numeric/split pipelines: mount
+  ---
+  duration_ms: 45.053709
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: overlay
+ok 6 - fresh numeric/split pipelines: overlay
+  ---
+  duration_ms: 14.254583
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: memory stdin, files and coding pipeline
+ok 7 - split aggregate dispatch: memory stdin, files and coding pipeline
+  ---
+  duration_ms: 30.999375
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: real stdin, files and coding pipeline
+ok 8 - split aggregate dispatch: real stdin, files and coding pipeline
+  ---
+  duration_ms: 30.4045
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: s3 stdin, files and coding pipeline
+ok 9 - split aggregate dispatch: s3 stdin, files and coding pipeline
+  ---
+  duration_ms: 17.403584
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: webdav stdin, files and coding pipeline
+ok 10 - split aggregate dispatch: webdav stdin, files and coding pipeline
+  ---
+  duration_ms: 86.72125
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: mount stdin, files and coding pipeline
+ok 11 - split aggregate dispatch: mount stdin, files and coding pipeline
+  ---
+  duration_ms: 27.997375
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: overlay stdin, files and coding pipeline
+ok 12 - split aggregate dispatch: overlay stdin, files and coding pipeline
+  ---
+  duration_ms: 28.651792
+  type: 'test'
+  ...
+# Subtest: paste: invalid bytes survive one-byte chunks
+ok 13 - paste: invalid bytes survive one-byte chunks
+  ---
+  duration_ms: 1.967292
+  type: 'test'
+  ...
+# Subtest: paste: caller cancellation is exact, including errno-shaped reasons
+ok 14 - paste: caller cancellation is exact, including errno-shaped reasons
+  ---
+  duration_ms: 0.394709
+  type: 'test'
+  ...
+# Subtest: paste: pending reads cancel and close with no unhandled rejection
+ok 15 - paste: pending reads cancel and close with no unhandled rejection
+  ---
+  duration_ms: 2.787125
+  type: 'test'
+  ...
+# Subtest: paste: producer exceptions retain failure and cleanup
+ok 16 - paste: producer exceptions retain failure and cleanup
+  ---
+  duration_ms: 2.449291
+  type: 'test'
+  ...
+# Subtest: paste: unsupported locale is explicit where ordering is required
+ok 17 - paste: unsupported locale is explicit where ordering is required
+  ---
+  duration_ms: 0.755583
+  type: 'test'
+  ...
+# Subtest: comm: invalid bytes survive one-byte chunks
+ok 18 - comm: invalid bytes survive one-byte chunks
+  ---
+  duration_ms: 0.780959
+  type: 'test'
+  ...
+# Subtest: comm: caller cancellation is exact, including errno-shaped reasons
+ok 19 - comm: caller cancellation is exact, including errno-shaped reasons
+  ---
+  duration_ms: 0.129209
+  type: 'test'
+  ...
+# Subtest: comm: pending reads cancel and close with no unhandled rejection
+ok 20 - comm: pending reads cancel and close with no unhandled rejection
+  ---
+  duration_ms: 1.024459
+  type: 'test'
+  ...
+# Subtest: comm: producer exceptions retain failure and cleanup
+ok 21 - comm: producer exceptions retain failure and cleanup
+  ---
+  duration_ms: 0.449292
+  type: 'test'
+  ...
+# Subtest: comm: unsupported locale is explicit where ordering is required
+ok 22 - comm: unsupported locale is explicit where ordering is required
+  ---
+  duration_ms: 0.36
+  type: 'test'
+  ...
+# Subtest: join: invalid bytes survive one-byte chunks
+ok 23 - join: invalid bytes survive one-byte chunks
+  ---
+  duration_ms: 0.777042
+  type: 'test'
+  ...
+# Subtest: join: caller cancellation is exact, including errno-shaped reasons
+ok 24 - join: caller cancellation is exact, including errno-shaped reasons
+  ---
+  duration_ms: 0.09675
+  type: 'test'
+  ...
+# Subtest: join: pending reads cancel and close with no unhandled rejection
+ok 25 - join: pending reads cancel and close with no unhandled rejection
+  ---
+  duration_ms: 4.5865
+  type: 'test'
+  ...
+# Subtest: join: producer exceptions retain failure and cleanup
+ok 26 - join: producer exceptions retain failure and cleanup
+  ---
+  duration_ms: 0.847
+  type: 'test'
+  ...
+# Subtest: join: unsupported locale is explicit where ordering is required
+ok 27 - join: unsupported locale is explicit where ordering is required
+  ---
+  duration_ms: 0.20025
+  type: 'test'
+  ...
+# Subtest: bounded input quota fails explicitly
+ok 28 - bounded input quota fails explicitly
+  ---
+  duration_ms: 0.149833
+  type: 'test'
+  ...
+# Subtest: bounded chunk quota fails explicitly
+ok 29 - bounded chunk quota fails explicitly
+  ---
+  duration_ms: 0.16625
+  type: 'test'
+  ...
+# Subtest: bounded record quota fails explicitly
+ok 30 - bounded record quota fails explicitly
+  ---
+  duration_ms: 0.087959
+  type: 'test'
+  ...
+# Subtest: bounded output quota fails explicitly
+ok 31 - bounded output quota fails explicitly
+  ---
+  duration_ms: 0.081209
+  type: 'test'
+  ...
+# Subtest: bounded file quota fails explicitly
+ok 32 - bounded file quota fails explicitly
+  ---
+  duration_ms: 0.053792
+  type: 'test'
+  ...
+# Subtest: bounded field quota fails explicitly
+ok 33 - bounded field quota fails explicitly
+  ---
+  duration_ms: 0.283625
+  type: 'test'
+  ...
+# Subtest: bounded argument quota fails explicitly
+ok 34 - bounded argument quota fails explicitly
+  ---
+  duration_ms: 0.048334
+  type: 'test'
+  ...
+# Subtest: bounded join group byte quota fails explicitly
+ok 35 - bounded join group byte quota fails explicitly
+  ---
+  duration_ms: 0.195583
+  type: 'test'
+  ...
+# Subtest: bounded join group record quota fails explicitly
+ok 36 - bounded join group record quota fails explicitly
+  ---
+  duration_ms: 0.242875
+  type: 'test'
+  ...
+# Subtest: invalid limits fail at plugin construction
+ok 37 - invalid limits fail at plugin construction
+  ---
+  duration_ms: 0.186083
+  type: 'test'
+  ...
+# Subtest: paste shares one stdin cursor and owns returned chunk bytes
+ok 38 - paste shares one stdin cursor and owns returned chunk bytes
+  ---
+  duration_ms: 0.799334
+  type: 'test'
+  ...
+# Subtest: paste: records retain Buffer fragments after producer reuse
+ok 39 - paste: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 0.276125
+  type: 'test'
+  ...
+# Subtest: comm: records retain Buffer fragments after producer reuse
+ok 40 - comm: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 0.466625
+  type: 'test'
+  ...
+# Subtest: join: records retain Buffer fragments after producer reuse
+ok 41 - join: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 0.3505
+  type: 'test'
+  ...
+# Subtest: empty chunk producers cannot starve cancellation or step limits
+ok 42 - empty chunk producers cannot starve cancellation or step limits
+  ---
+  duration_ms: 13.588209
+  type: 'test'
+  ...
+# Subtest: paste awaits writes before reading another record
+ok 43 - paste awaits writes before reading another record
+  ---
+  duration_ms: 0.289542
+  type: 'test'
+  ...
+# Subtest: blocked output cancellation propagates and releases its VFS input signal
+ok 44 - blocked output cancellation propagates and releases its VFS input signal
+  ---
+  duration_ms: 1.314625
+  type: 'test'
+  ...
+# Subtest: downstream EPIPE cancels owned VFS transfer without aborting caller
+ok 45 - downstream EPIPE cancels owned VFS transfer without aborting caller
+  ---
+  duration_ms: 0.463709
+  type: 'test'
+  ...
+# Subtest: bounded readFile fallback passes a limit and signal
+ok 46 - bounded readFile fallback passes a limit and signal
+  ---
+  duration_ms: 0.283292
+  type: 'test'
+  ...
+# Subtest: join Cartesian expansion is bounded by output quota
+ok 47 - join Cartesian expansion is bounded by output quota
+  ---
+  duration_ms: 0.46425
+  type: 'test'
+  ...
+# Subtest: suppressed comm output still enforces bounded work
+ok 48 - suppressed comm output still enforces bounded work
+  ---
+  duration_ms: 0.520125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: uneven parallel
+ok 49 - frozen GNU 9.7 paste: uneven parallel
+  ---
+  duration_ms: 5.988375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial
+ok 50 - frozen GNU 9.7 paste: serial
+  ---
+  duration_ms: 0.674125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: repeated file independent cursors
+ok 51 - frozen GNU 9.7 paste: repeated file independent cursors
+  ---
+  duration_ms: 0.725667
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters ","
+ok 52 - frozen GNU 9.7 paste: parallel delimiters ","
+  ---
+  duration_ms: 0.724
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters ","
+ok 53 - frozen GNU 9.7 paste: serial delimiters ","
+  ---
+  duration_ms: 1.432375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "%_"
+ok 54 - frozen GNU 9.7 paste: parallel delimiters "%_"
+  ---
+  duration_ms: 0.439917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "%_"
+ok 55 - frozen GNU 9.7 paste: serial delimiters "%_"
+  ---
+  duration_ms: 0.364
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters ""
+ok 56 - frozen GNU 9.7 paste: parallel delimiters ""
+  ---
+  duration_ms: 0.281959
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters ""
+ok 57 - frozen GNU 9.7 paste: serial delimiters ""
+  ---
+  duration_ms: 0.737083
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "\\\\0"
+ok 58 - frozen GNU 9.7 paste: parallel delimiters "\\\\0"
+  ---
+  duration_ms: 0.795125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "\\\\0"
+ok 59 - frozen GNU 9.7 paste: serial delimiters "\\\\0"
+  ---
+  duration_ms: 0.351667
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "\\\\n\\\\t"
+ok 60 - frozen GNU 9.7 paste: parallel delimiters "\\\\n\\\\t"
+  ---
+  duration_ms: 0.36875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "\\\\n\\\\t"
+ok 61 - frozen GNU 9.7 paste: serial delimiters "\\\\n\\\\t"
+  ---
+  duration_ms: 0.326792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "\\\\b\\\\f\\\\r\\\\v"
+ok 62 - frozen GNU 9.7 paste: parallel delimiters "\\\\b\\\\f\\\\r\\\\v"
+  ---
+  duration_ms: 2.239417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "\\\\b\\\\f\\\\r\\\\v"
+ok 63 - frozen GNU 9.7 paste: serial delimiters "\\\\b\\\\f\\\\r\\\\v"
+  ---
+  duration_ms: 0.466916
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "\\\\\\\\"
+ok 64 - frozen GNU 9.7 paste: parallel delimiters "\\\\\\\\"
+  ---
+  duration_ms: 0.414209
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "\\\\\\\\"
+ok 65 - frozen GNU 9.7 paste: serial delimiters "\\\\\\\\"
+  ---
+  duration_ms: 0.234459
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "\\\\q"
+ok 66 - frozen GNU 9.7 paste: parallel delimiters "\\\\q"
+  ---
+  duration_ms: 0.348417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "\\\\q"
+ok 67 - frozen GNU 9.7 paste: serial delimiters "\\\\q"
+  ---
+  duration_ms: 0.647167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: parallel delimiters "é"
+ok 68 - frozen GNU 9.7 paste: parallel delimiters "é"
+  ---
+  duration_ms: 0.447333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial delimiters "é"
+ok 69 - frozen GNU 9.7 paste: serial delimiters "é"
+  ---
+  duration_ms: 0.25875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin empty
+ok 70 - frozen GNU 9.7 paste: shared stdin empty
+  ---
+  duration_ms: 0.105292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin empty
+ok 71 - frozen GNU 9.7 paste: serial stdin empty
+  ---
+  duration_ms: 0.083583
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin blank
+ok 72 - frozen GNU 9.7 paste: shared stdin blank
+  ---
+  duration_ms: 0.203666
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin blank
+ok 73 - frozen GNU 9.7 paste: serial stdin blank
+  ---
+  duration_ms: 0.104792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin incomplete
+ok 74 - frozen GNU 9.7 paste: shared stdin incomplete
+  ---
+  duration_ms: 0.113792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin incomplete
+ok 75 - frozen GNU 9.7 paste: serial stdin incomplete
+  ---
+  duration_ms: 0.138
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin carriage
+ok 76 - frozen GNU 9.7 paste: shared stdin carriage
+  ---
+  duration_ms: 0.11475
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin carriage
+ok 77 - frozen GNU 9.7 paste: serial stdin carriage
+  ---
+  duration_ms: 0.11675
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin binary
+ok 78 - frozen GNU 9.7 paste: shared stdin binary
+  ---
+  duration_ms: 0.117417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin binary
+ok 79 - frozen GNU 9.7 paste: serial stdin binary
+  ---
+  duration_ms: 0.167292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: shared stdin unicode
+ok 80 - frozen GNU 9.7 paste: shared stdin unicode
+  ---
+  duration_ms: 0.136208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial stdin unicode
+ok 81 - frozen GNU 9.7 paste: serial stdin unicode
+  ---
+  duration_ms: 0.155458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: zero records
+ok 82 - frozen GNU 9.7 paste: zero records
+  ---
+  duration_ms: 0.228709
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: serial zero records
+ok 83 - frozen GNU 9.7 paste: serial zero records
+  ---
+  duration_ms: 0.150792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: default stdin
+ok 84 - frozen GNU 9.7 paste: default stdin
+  ---
+  duration_ms: 0.117625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: mixed stdin cursor
+ok 85 - frozen GNU 9.7 paste: mixed stdin cursor
+  ---
+  duration_ms: 0.234084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: literal path
+ok 86 - frozen GNU 9.7 paste: literal path
+  ---
+  duration_ms: 0.111792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: missing parallel file
+ok 87 - frozen GNU 9.7 paste: missing parallel file
+  ---
+  duration_ms: 0.239292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: missing serial file continues
+ok 88 - frozen GNU 9.7 paste: missing serial file continues
+  ---
+  duration_ms: 0.197
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: invalid trailing escape
+ok 89 - frozen GNU 9.7 paste: invalid trailing escape
+  ---
+  duration_ms: 0.088791
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: invalid flag
+ok 90 - frozen GNU 9.7 paste: invalid flag
+  ---
+  duration_ms: 0.056333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns all
+ok 91 - frozen GNU 9.7 comm: columns all
+  ---
+  duration_ms: 0.753416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals all
+ok 92 - frozen GNU 9.7 comm: totals all
+  ---
+  duration_ms: 10.585125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -1
+ok 93 - frozen GNU 9.7 comm: columns -1
+  ---
+  duration_ms: 0.440417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -1
+ok 94 - frozen GNU 9.7 comm: totals -1
+  ---
+  duration_ms: 0.354334
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -2
+ok 95 - frozen GNU 9.7 comm: columns -2
+  ---
+  duration_ms: 0.249208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -2
+ok 96 - frozen GNU 9.7 comm: totals -2
+  ---
+  duration_ms: 0.252917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -3
+ok 97 - frozen GNU 9.7 comm: columns -3
+  ---
+  duration_ms: 0.219917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -3
+ok 98 - frozen GNU 9.7 comm: totals -3
+  ---
+  duration_ms: 0.251959
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -12
+ok 99 - frozen GNU 9.7 comm: columns -12
+  ---
+  duration_ms: 0.196625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -12
+ok 100 - frozen GNU 9.7 comm: totals -12
+  ---
+  duration_ms: 0.252167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -13
+ok 101 - frozen GNU 9.7 comm: columns -13
+  ---
+  duration_ms: 0.202458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -13
+ok 102 - frozen GNU 9.7 comm: totals -13
+  ---
+  duration_ms: 0.264209
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -23
+ok 103 - frozen GNU 9.7 comm: columns -23
+  ---
+  duration_ms: 0.212416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -23
+ok 104 - frozen GNU 9.7 comm: totals -23
+  ---
+  duration_ms: 0.273834
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: columns -123
+ok 105 - frozen GNU 9.7 comm: columns -123
+  ---
+  duration_ms: 0.176625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: totals -123
+ok 106 - frozen GNU 9.7 comm: totals -123
+  ---
+  duration_ms: 0.202041
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: output delimiter "|"
+ok 107 - frozen GNU 9.7 comm: output delimiter "|"
+  ---
+  duration_ms: 0.304875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: output delimiter "::"
+ok 108 - frozen GNU 9.7 comm: output delimiter "::"
+  ---
+  duration_ms: 0.321708
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: output delimiter ""
+ok 109 - frozen GNU 9.7 comm: output delimiter ""
+  ---
+  duration_ms: 0.343958
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: output delimiter "é"
+ok 110 - frozen GNU 9.7 comm: output delimiter "é"
+  ---
+  duration_ms: 0.415375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: empty
+ok 111 - frozen GNU 9.7 comm: empty
+  ---
+  duration_ms: 0.11925
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: tail
+ok 112 - frozen GNU 9.7 comm: tail
+  ---
+  duration_ms: 0.16075
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: blanks
+ok 113 - frozen GNU 9.7 comm: blanks
+  ---
+  duration_ms: 4.04425
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: binary
+ok 114 - frozen GNU 9.7 comm: binary
+  ---
+  duration_ms: 0.319042
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: emptyLeft
+ok 115 - frozen GNU 9.7 comm: emptyLeft
+  ---
+  duration_ms: 0.209791
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: NUL records and totals
+ok 116 - frozen GNU 9.7 comm: NUL records and totals
+  ---
+  duration_ms: 0.272916
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: stdin left
+ok 117 - frozen GNU 9.7 comm: stdin left
+  ---
+  duration_ms: 0.270375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: stdin right
+ok 118 - frozen GNU 9.7 comm: stdin right
+  ---
+  duration_ms: 0.26775
+  type: 'test'
+  ...
+# Subtest: explicit GNU duplicate-close disagreement comm: shared stdin
+not ok 119 - explicit GNU duplicate-close disagreement comm: shared stdin
+  ---
+  duration_ms: 1.391042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/table-text/differential.test.ts:1:486'
+  failureType: 'testCodeFailure'
+  error: |-
+    comm: -: Bad file descriptor
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/table-text/differential.test.ts:21:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted paired 
+ok 120 - frozen GNU 9.7 comm: unsorted paired 
+  ---
+  duration_ms: 0.333542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted unpaired 
+ok 121 - frozen GNU 9.7 comm: unsorted unpaired 
+  ---
+  duration_ms: 0.245875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted empty side 
+ok 122 - frozen GNU 9.7 comm: unsorted empty side 
+  ---
+  duration_ms: 0.189042
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted paired --check-order
+ok 123 - frozen GNU 9.7 comm: unsorted paired --check-order
+  ---
+  duration_ms: 0.359584
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted unpaired --check-order
+ok 124 - frozen GNU 9.7 comm: unsorted unpaired --check-order
+  ---
+  duration_ms: 0.494625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted empty side --check-order
+ok 125 - frozen GNU 9.7 comm: unsorted empty side --check-order
+  ---
+  duration_ms: 0.1915
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted paired --nocheck-order
+ok 126 - frozen GNU 9.7 comm: unsorted paired --nocheck-order
+  ---
+  duration_ms: 0.20075
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted unpaired --nocheck-order
+ok 127 - frozen GNU 9.7 comm: unsorted unpaired --nocheck-order
+  ---
+  duration_ms: 0.216459
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: unsorted empty side --nocheck-order
+ok 128 - frozen GNU 9.7 comm: unsorted empty side --nocheck-order
+  ---
+  duration_ms: 0.182333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: literal files
+ok 129 - frozen GNU 9.7 comm: literal files
+  ---
+  duration_ms: 0.16925
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: missing file
+ok 130 - frozen GNU 9.7 comm: missing file
+  ---
+  duration_ms: 0.148416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: too few files
+ok 131 - frozen GNU 9.7 comm: too few files
+  ---
+  duration_ms: 0.084375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability 
+ok 132 - frozen GNU 9.7 join: pairability 
+  ---
+  duration_ms: 0.940458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -a1
+ok 133 - frozen GNU 9.7 join: pairability -a1
+  ---
+  duration_ms: 0.645542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -a2
+ok 134 - frozen GNU 9.7 join: pairability -a2
+  ---
+  duration_ms: 0.4915
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -a1,-a2
+ok 135 - frozen GNU 9.7 join: pairability -a1,-a2
+  ---
+  duration_ms: 7.872834
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -v1
+ok 136 - frozen GNU 9.7 join: pairability -v1
+  ---
+  duration_ms: 0.233167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -v2
+ok 137 - frozen GNU 9.7 join: pairability -v2
+  ---
+  duration_ms: 0.158167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: pairability -v1,-v2
+ok 138 - frozen GNU 9.7 join: pairability -v1,-v2
+  ---
+  duration_ms: 0.42925
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: format 0
+ok 139 - frozen GNU 9.7 join: format 0
+  ---
+  duration_ms: 0.552209
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: format 1.2,2.2
+ok 140 - frozen GNU 9.7 join: format 1.2,2.2
+  ---
+  duration_ms: 0.478291
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: format 0,2.2,1.2
+ok 141 - frozen GNU 9.7 join: format 0,2.2,1.2
+  ---
+  duration_ms: 0.411542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: format 0 1.3 2.3
+ok 142 - frozen GNU 9.7 join: format 0 1.3 2.3
+  ---
+  duration_ms: 0.42525
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: format auto
+ok 143 - frozen GNU 9.7 join: format auto
+  ---
+  duration_ms: 0.424417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: alternate key fields
+ok 144 - frozen GNU 9.7 join: alternate key fields
+  ---
+  duration_ms: 0.247084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: shared key field
+ok 145 - frozen GNU 9.7 join: shared key field
+  ---
+  duration_ms: 0.200375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: ASCII folded keys
+ok 146 - frozen GNU 9.7 join: ASCII folded keys
+  ---
+  duration_ms: 0.148542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: blank splitting
+ok 147 - frozen GNU 9.7 join: blank splitting
+  ---
+  duration_ms: 0.191334
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: empty lines and missing key
+ok 148 - frozen GNU 9.7 join: empty lines and missing key
+  ---
+  duration_ms: 0.12
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: missing second key
+ok 149 - frozen GNU 9.7 join: missing second key
+  ---
+  duration_ms: 0.099416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: empty comma fields
+ok 150 - frozen GNU 9.7 join: empty comma fields
+  ---
+  duration_ms: 0.17075
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: NUL fields
+ok 151 - frozen GNU 9.7 join: NUL fields
+  ---
+  duration_ms: 0.122291
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: whole records
+ok 152 - frozen GNU 9.7 join: whole records
+  ---
+  duration_ms: 0.114542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: zero record whitespace
+ok 153 - frozen GNU 9.7 join: zero record whitespace
+  ---
+  duration_ms: 0.241167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: zero records comma fields
+ok 154 - frozen GNU 9.7 join: zero records comma fields
+  ---
+  duration_ms: 1.706291
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: incomplete final records
+ok 155 - frozen GNU 9.7 join: incomplete final records
+  ---
+  duration_ms: 0.298084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: UTF8 payload bytes
+ok 156 - frozen GNU 9.7 join: UTF8 payload bytes
+  ---
+  duration_ms: 0.219584
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: stdin left
+ok 157 - frozen GNU 9.7 join: stdin left
+  ---
+  duration_ms: 0.305542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: stdin right
+ok 158 - frozen GNU 9.7 join: stdin right
+  ---
+  duration_ms: 0.300083
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: both stdin invalid
+ok 159 - frozen GNU 9.7 join: both stdin invalid
+  ---
+  duration_ms: 0.086166
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header 
+ok 160 - frozen GNU 9.7 join: header 
+  ---
+  duration_ms: 0.289709
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header -oauto
+ok 161 - frozen GNU 9.7 join: header -oauto
+  ---
+  duration_ms: 0.285
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header -o,0,2.2,1.2
+ok 162 - frozen GNU 9.7 join: header -o,0,2.2,1.2
+  ---
+  duration_ms: 0.398334
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: auto variable field lengths
+ok 163 - frozen GNU 9.7 join: auto variable field lengths
+  ---
+  duration_ms: 0.312084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header with empty right
+ok 164 - frozen GNU 9.7 join: header with empty right
+  ---
+  duration_ms: 0.173084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted paired 
+ok 165 - frozen GNU 9.7 join: unsorted paired 
+  ---
+  duration_ms: 0.179667
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted unpaired 
+ok 166 - frozen GNU 9.7 join: unsorted unpaired 
+  ---
+  duration_ms: 0.208416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted empty side 
+ok 167 - frozen GNU 9.7 join: unsorted empty side 
+  ---
+  duration_ms: 0.195208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted paired --check-order
+ok 168 - frozen GNU 9.7 join: unsorted paired --check-order
+  ---
+  duration_ms: 0.192833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted unpaired --check-order
+ok 169 - frozen GNU 9.7 join: unsorted unpaired --check-order
+  ---
+  duration_ms: 0.217084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted empty side --check-order
+ok 170 - frozen GNU 9.7 join: unsorted empty side --check-order
+  ---
+  duration_ms: 0.171833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted paired --nocheck-order
+ok 171 - frozen GNU 9.7 join: unsorted paired --nocheck-order
+  ---
+  duration_ms: 0.207417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted unpaired --nocheck-order
+ok 172 - frozen GNU 9.7 join: unsorted unpaired --nocheck-order
+  ---
+  duration_ms: 0.21175
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unsorted empty side --nocheck-order
+ok 173 - frozen GNU 9.7 join: unsorted empty side --nocheck-order
+  ---
+  duration_ms: 0.177875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: invalidField
+ok 174 - frozen GNU 9.7 join: invalidField
+  ---
+  duration_ms: 0.078959
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: invalidOutput
+ok 175 - frozen GNU 9.7 join: invalidOutput
+  ---
+  duration_ms: 0.071583
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: invalidDelimiter
+ok 176 - frozen GNU 9.7 join: invalidDelimiter
+  ---
+  duration_ms: 0.062333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: missingArgument
+ok 177 - frozen GNU 9.7 join: missingArgument
+  ---
+  duration_ms: 0.066458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: unknown
+ok 178 - frozen GNU 9.7 join: unknown
+  ---
+  duration_ms: 0.059875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: literal files
+ok 179 - frozen GNU 9.7 join: literal files
+  ---
+  duration_ms: 0.179791
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 0
+ok 180 - frozen GNU 9.7 comm: seed 0
+  ---
+  duration_ms: 0.240958
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 0
+ok 181 - frozen GNU 9.7 join: seed 0
+  ---
+  duration_ms: 0.500917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 0
+ok 182 - frozen GNU 9.7 paste: seed 0
+  ---
+  duration_ms: 0.378708
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 1
+ok 183 - frozen GNU 9.7 comm: seed 1
+  ---
+  duration_ms: 0.447833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 1
+ok 184 - frozen GNU 9.7 join: seed 1
+  ---
+  duration_ms: 0.801125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 1
+ok 185 - frozen GNU 9.7 paste: seed 1
+  ---
+  duration_ms: 0.477834
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 2
+ok 186 - frozen GNU 9.7 comm: seed 2
+  ---
+  duration_ms: 0.658208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 2
+ok 187 - frozen GNU 9.7 join: seed 2
+  ---
+  duration_ms: 2.03875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 2
+ok 188 - frozen GNU 9.7 paste: seed 2
+  ---
+  duration_ms: 0.978333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 3
+ok 189 - frozen GNU 9.7 comm: seed 3
+  ---
+  duration_ms: 0.757958
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 3
+ok 190 - frozen GNU 9.7 join: seed 3
+  ---
+  duration_ms: 32.476584
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 3
+ok 191 - frozen GNU 9.7 paste: seed 3
+  ---
+  duration_ms: 0.874083
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 4
+ok 192 - frozen GNU 9.7 comm: seed 4
+  ---
+  duration_ms: 0.793541
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 4
+ok 193 - frozen GNU 9.7 join: seed 4
+  ---
+  duration_ms: 0.76925
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 4
+ok 194 - frozen GNU 9.7 paste: seed 4
+  ---
+  duration_ms: 0.436875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 5
+ok 195 - frozen GNU 9.7 comm: seed 5
+  ---
+  duration_ms: 0.430083
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 5
+ok 196 - frozen GNU 9.7 join: seed 5
+  ---
+  duration_ms: 1.274417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 5
+ok 197 - frozen GNU 9.7 paste: seed 5
+  ---
+  duration_ms: 0.332625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 6
+ok 198 - frozen GNU 9.7 comm: seed 6
+  ---
+  duration_ms: 0.367084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 6
+ok 199 - frozen GNU 9.7 join: seed 6
+  ---
+  duration_ms: 1.305417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 6
+ok 200 - frozen GNU 9.7 paste: seed 6
+  ---
+  duration_ms: 0.680625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 7
+ok 201 - frozen GNU 9.7 comm: seed 7
+  ---
+  duration_ms: 0.556834
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 7
+ok 202 - frozen GNU 9.7 join: seed 7
+  ---
+  duration_ms: 1.02025
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 7
+ok 203 - frozen GNU 9.7 paste: seed 7
+  ---
+  duration_ms: 0.517625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 8
+ok 204 - frozen GNU 9.7 comm: seed 8
+  ---
+  duration_ms: 0.198084
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 8
+ok 205 - frozen GNU 9.7 join: seed 8
+  ---
+  duration_ms: 0.737125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 8
+ok 206 - frozen GNU 9.7 paste: seed 8
+  ---
+  duration_ms: 5.632709
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 9
+ok 207 - frozen GNU 9.7 comm: seed 9
+  ---
+  duration_ms: 0.462542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 9
+ok 208 - frozen GNU 9.7 join: seed 9
+  ---
+  duration_ms: 0.763167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 9
+ok 209 - frozen GNU 9.7 paste: seed 9
+  ---
+  duration_ms: 0.4505
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 10
+ok 210 - frozen GNU 9.7 comm: seed 10
+  ---
+  duration_ms: 0.18725
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 10
+ok 211 - frozen GNU 9.7 join: seed 10
+  ---
+  duration_ms: 0.269417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 10
+ok 212 - frozen GNU 9.7 paste: seed 10
+  ---
+  duration_ms: 0.226792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 11
+ok 213 - frozen GNU 9.7 comm: seed 11
+  ---
+  duration_ms: 0.33825
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 11
+ok 214 - frozen GNU 9.7 join: seed 11
+  ---
+  duration_ms: 0.995666
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 11
+ok 215 - frozen GNU 9.7 paste: seed 11
+  ---
+  duration_ms: 0.36625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 12
+ok 216 - frozen GNU 9.7 comm: seed 12
+  ---
+  duration_ms: 0.19175
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 12
+ok 217 - frozen GNU 9.7 join: seed 12
+  ---
+  duration_ms: 0.973125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 12
+ok 218 - frozen GNU 9.7 paste: seed 12
+  ---
+  duration_ms: 0.749208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 13
+ok 219 - frozen GNU 9.7 comm: seed 13
+  ---
+  duration_ms: 0.445709
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 13
+ok 220 - frozen GNU 9.7 join: seed 13
+  ---
+  duration_ms: 0.75225
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 13
+ok 221 - frozen GNU 9.7 paste: seed 13
+  ---
+  duration_ms: 0.438375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 14
+ok 222 - frozen GNU 9.7 comm: seed 14
+  ---
+  duration_ms: 0.255292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 14
+ok 223 - frozen GNU 9.7 join: seed 14
+  ---
+  duration_ms: 4.803666
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 14
+ok 224 - frozen GNU 9.7 paste: seed 14
+  ---
+  duration_ms: 0.350542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 15
+ok 225 - frozen GNU 9.7 comm: seed 15
+  ---
+  duration_ms: 0.288833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 15
+ok 226 - frozen GNU 9.7 join: seed 15
+  ---
+  duration_ms: 3.412458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 15
+ok 227 - frozen GNU 9.7 paste: seed 15
+  ---
+  duration_ms: 0.556708
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 16
+ok 228 - frozen GNU 9.7 comm: seed 16
+  ---
+  duration_ms: 0.412459
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 16
+ok 229 - frozen GNU 9.7 join: seed 16
+  ---
+  duration_ms: 1.403166
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 16
+ok 230 - frozen GNU 9.7 paste: seed 16
+  ---
+  duration_ms: 0.629542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 17
+ok 231 - frozen GNU 9.7 comm: seed 17
+  ---
+  duration_ms: 0.359917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 17
+ok 232 - frozen GNU 9.7 join: seed 17
+  ---
+  duration_ms: 0.572708
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 17
+ok 233 - frozen GNU 9.7 paste: seed 17
+  ---
+  duration_ms: 0.309417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 18
+ok 234 - frozen GNU 9.7 comm: seed 18
+  ---
+  duration_ms: 0.193875
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 18
+ok 235 - frozen GNU 9.7 join: seed 18
+  ---
+  duration_ms: 0.424667
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 18
+ok 236 - frozen GNU 9.7 paste: seed 18
+  ---
+  duration_ms: 0.421584
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 19
+ok 237 - frozen GNU 9.7 comm: seed 19
+  ---
+  duration_ms: 0.416208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 19
+ok 238 - frozen GNU 9.7 join: seed 19
+  ---
+  duration_ms: 0.553333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 19
+ok 239 - frozen GNU 9.7 paste: seed 19
+  ---
+  duration_ms: 0.337292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 20
+ok 240 - frozen GNU 9.7 comm: seed 20
+  ---
+  duration_ms: 0.278625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 20
+ok 241 - frozen GNU 9.7 join: seed 20
+  ---
+  duration_ms: 0.821458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 20
+ok 242 - frozen GNU 9.7 paste: seed 20
+  ---
+  duration_ms: 0.513208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 21
+ok 243 - frozen GNU 9.7 comm: seed 21
+  ---
+  duration_ms: 5.190833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 21
+ok 244 - frozen GNU 9.7 join: seed 21
+  ---
+  duration_ms: 0.677917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 21
+ok 245 - frozen GNU 9.7 paste: seed 21
+  ---
+  duration_ms: 0.476
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 22
+ok 246 - frozen GNU 9.7 comm: seed 22
+  ---
+  duration_ms: 0.23225
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 22
+ok 247 - frozen GNU 9.7 join: seed 22
+  ---
+  duration_ms: 1.128542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 22
+ok 248 - frozen GNU 9.7 paste: seed 22
+  ---
+  duration_ms: 0.344333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: seed 23
+ok 249 - frozen GNU 9.7 comm: seed 23
+  ---
+  duration_ms: 0.384666
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: seed 23
+ok 250 - frozen GNU 9.7 join: seed 23
+  ---
+  duration_ms: 0.690833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: seed 23
+ok 251 - frozen GNU 9.7 paste: seed 23
+  ---
+  duration_ms: 0.310458
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: whole record output list
+ok 252 - frozen GNU 9.7 join: whole record output list
+  ---
+  duration_ms: 0.159042
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: repeated output lists
+ok 253 - frozen GNU 9.7 join: repeated output lists
+  ---
+  duration_ms: 0.371667
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: auto then output list
+ok 254 - frozen GNU 9.7 join: auto then output list
+  ---
+  duration_ms: 0.434292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: output list then auto
+ok 255 - frozen GNU 9.7 join: output list then auto
+  ---
+  duration_ms: 0.33625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: incompatible delimiters
+ok 256 - frozen GNU 9.7 join: incompatible delimiters
+  ---
+  duration_ms: 0.159459
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: identical repeated delimiters
+ok 257 - frozen GNU 9.7 join: identical repeated delimiters
+  ---
+  duration_ms: 0.194542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header with empty left
+ok 258 - frozen GNU 9.7 join: header with empty left
+  ---
+  duration_ms: 0.178958
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: empty fields formatted replacement
+ok 259 - frozen GNU 9.7 join: empty fields formatted replacement
+  ---
+  duration_ms: 0.235416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: large absent key
+ok 260 - frozen GNU 9.7 join: large absent key
+  ---
+  duration_ms: 0.165334
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 join: header empty fields
+ok 261 - frozen GNU 9.7 join: header empty fields
+  ---
+  duration_ms: 0.317208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: incompatible delimiters
+ok 262 - frozen GNU 9.7 comm: incompatible delimiters
+  ---
+  duration_ms: 0.096542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 comm: identical repeated delimiters
+ok 263 - frozen GNU 9.7 comm: identical repeated delimiters
+  ---
+  duration_ms: 0.222125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 paste: repeated delimiters
+ok 264 - frozen GNU 9.7 paste: repeated delimiters
+  ---
+  duration_ms: 0.158375
+  type: 'test'
+  ...
+# Subtest: live pinned GNU 9.7 reproduces every frozen observation
+ok 265 - live pinned GNU 9.7 reproduces every frozen observation
+  ---
+  duration_ms: 1183.599
+  type: 'test'
+  ...
+# Subtest: table plugin registers only missing names and preflights replacement atomically
+ok 266 - table plugin registers only missing names and preflights replacement atomically
+  ---
+  duration_ms: 1.15175
+  type: 'test'
+  ...
+# Subtest: memory: actual shell header/outer join/cut/paste pipeline
+ok 267 - memory: actual shell header/outer join/cut/paste pipeline
+  ---
+  duration_ms: 27.471042
+  type: 'test'
+  ...
+# Subtest: real: actual shell header/outer join/cut/paste pipeline
+ok 268 - real: actual shell header/outer join/cut/paste pipeline
+  ---
+  duration_ms: 62.421
+  type: 'test'
+  ...
+# Subtest: readonly wrapper permits pure table composition without mutations
+ok 269 - readonly wrapper permits pure table composition without mutations
+  ---
+  duration_ms: 3.430875
+  type: 'test'
+  ...
+# Subtest: actual bounded downstream pipeline closes a large paste input
+ok 270 - actual bounded downstream pipeline closes a large paste input
+  ---
+  duration_ms: 2.069833
+  type: 'test'
+  ...
+# Subtest: file byte streams preserve literal relative and symbolic VFS paths
+ok 271 - file byte streams preserve literal relative and symbolic VFS paths
+  ---
+  duration_ms: 0.491291
+  type: 'test'
+  ...
+# Subtest: directory input fails without treating it as an empty file
+ok 272 - directory input fails without treating it as an empty file
+  ---
+  duration_ms: 0.622667
+  type: 'test'
+  ...
+# Subtest: memory:ENOENT
+ok 273 - memory:ENOENT
+  ---
+  duration_ms: 13.375167
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6Im1lbW9yeTpFTk9FTlQiLCJzb3VyY2UiOiJjYXQgPCBtaXNzaW5nLnR4dCIsInJldmlzaW9uIjoid29ya3RyZWUiLCJuYXRpdmVDYWxscyI6MCwiZGlyZWN0IjpbeyJvcGVyYXRpb24iOiJhY2Nlc3MoNCkiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoiYWNjZXNzIn0seyJvcGVyYXRpb24iOiJyZWFkRmlsZSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJyZWFkRmlsZSJ9LHsib3BlcmF0aW9uIjoic3RhdCIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJzdGF0In1dLCJiZWZvcmVTaGEyNTYiOiJjYzA5MGJkMmZiYjQyMmQ4ZTc2ZmUzMTk3OWYzMWJjNzJmNjI1Y2MzN2M4ODA1ZDIzYzQ5NTA5NzhmMDk1NDYxIiwibmFtZXNwYWNlIjpbIi8iLCIvd29yayIsIi93b3JrL2NoYW5nZS5kaWZmIiwiL3dvcmsvY29uZmlnLmpzb24iLCIvd29yay9lbXB0eS50eHQiLCIvd29yay9uZXcudHh0IiwiL3dvcmsvb2xkLnR4dCIsIi93b3JrL3BheWxvYWQuYmluIiwiL3dvcmsvc3JjIiwiL3dvcmsvc3JjL3Rhc2tzLnR4dCIsIi93b3JrL3RhcmdldC50eHQiXSwiZXJyb3JMb2dIZXgiOiI2MzYxNzQzYTIwNDU0ZTRmNDU0ZTU0M2EyMDZlNmYyMDczNzU2MzY4MjA2NjY5NmM2NTIwNmY3MjIwNjQ2OTcyNjU2Mzc0NmY3Mjc5MmMyMDcyNjU2MTY0NTM3NDcyNjU2MTZkMjAyNzJmNzc2ZjcyNmIyZjZkNjk3MzczNjk2ZTY3MmU3NDc4NzQyNzBhIiwicmVzdWx0Ijp7InN0YXR1cyI6MSwic3Rkb3V0SGV4IjoiIiwic3RkZXJySGV4IjoiNzM2ODY1NmM2YzNhMjA2YzY5NmU2NTIwMzEzYTIwNmQ2OTczNzM2OTZlNjcyZTc0Nzg3NDNhMjA0ZTZmMjA3Mzc1NjM2ODIwNjY2OTZjNjUyMDZmNzIyMDY0Njk3MjY1NjM3NDZmNzI3OTBhIn0sIm9ic2VydmVkIjpbeyJvcGVyYXRpb24iOiJhY2Nlc3MiLCJ0YXJnZXQiOiIvd29yay9taXNzaW5nLnR4dCIsIm1vZGUiOjQsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJhY2Nlc3MifV0sImFmdGVyU2hhMjU2IjoiNmIzMWUzNzg2MTNhMjU0NGI0YjA1ZDA0N2MwMGFjMmJlOWI0NTdjY2JiYjdiYzNmYzcwNTQ2NTg1NDc2NTJhYiIsImJlZm9yZVJlZGlyZWN0U2hhMjU2IjoiNmIzMWUzNzg2MTNhMjU0NGI0YjA1ZDA0N2MwMGFjMmJlOWI0NTdjY2JiYjdiYzNmYzcwNTQ2NTg1NDc2NTJhYiIsInRhcmdldEhleCI6IjYxNmM3MDY4NjEwYTYyNjU3NDYxMGEiLCJtaXNzaW5nQWJzZW50Ijp0cnVlLCJmYWlsdXJlcyI6W10sInN0YXR1cyI6IlBBU1MifQ==
+# Subtest: real:ENOENT
+ok 274 - real:ENOENT
+  ---
+  duration_ms: 53.99
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6InJlYWw6RU5PRU5UIiwic291cmNlIjoiY2F0IDwgbWlzc2luZy50eHQiLCJyZXZpc2lvbiI6Indvcmt0cmVlIiwibmF0aXZlQ2FsbHMiOjAsImRpcmVjdCI6W3sib3BlcmF0aW9uIjoiYWNjZXNzKDQpIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6ImFjY2VzcyJ9LHsib3BlcmF0aW9uIjoicmVhZEZpbGUiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoicmVhZEZpbGUifSx7Im9wZXJhdGlvbiI6InN0YXQiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoic3RhdCJ9XSwiYmVmb3JlU2hhMjU2IjoiY2MwOTBiZDJmYmI0MjJkOGU3NmZlMzE5NzlmMzFiYzcyZjYyNWNjMzdjODgwNWQyM2M0OTUwOTc4ZjA5NTQ2MSIsIm5hbWVzcGFjZSI6WyIvIiwiL3dvcmsiLCIvd29yay9jaGFuZ2UuZGlmZiIsIi93b3JrL2NvbmZpZy5qc29uIiwiL3dvcmsvZW1wdHkudHh0IiwiL3dvcmsvbmV3LnR4dCIsIi93b3JrL29sZC50eHQiLCIvd29yay9wYXlsb2FkLmJpbiIsIi93b3JrL3NyYyIsIi93b3JrL3NyYy90YXNrcy50eHQiLCIvd29yay90YXJnZXQudHh0Il0sImVycm9yTG9nSGV4IjoiNjM2MTc0M2EyMDQ1NGU0ZjQ1NGU1NDNhMjA2ZTZmMjA3Mzc1NjM2ODIwNjY2OTZjNjUyMDZmNzIyMDY0Njk3MjY1NjM3NDZmNzI3OTJjMjA3MjY1NjE2NDUzNzQ3MjY1NjE2ZDIwMjcyZjc3NmY3MjZiMmY2ZDY5NzM3MzY5NmU2NzJlNzQ3ODc0MjcwYSIsInJlc3VsdCI6eyJzdGF0dXMiOjEsInN0ZG91dEhleCI6IiIsInN0ZGVyckhleCI6IjczNjg2NTZjNmMzYTIwNmM2OTZlNjUyMDMxM2EyMDZkNjk3MzczNjk2ZTY3MmU3NDc4NzQzYTIwNGU2ZjIwNzM3NTYzNjgyMDY2Njk2YzY1MjA2ZjcyMjA2NDY5NzI2NTYzNzQ2ZjcyNzkwYSJ9LCJvYnNlcnZlZCI6W3sib3BlcmF0aW9uIjoiYWNjZXNzIiwidGFyZ2V0IjoiL3dvcmsvbWlzc2luZy50eHQiLCJtb2RlIjo0LCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoiYWNjZXNzIn1dLCJhZnRlclNoYTI1NiI6IjZiMzFlMzc4NjEzYTI1NDRiNGIwNWQwNDdjMDBhYzJiZTliNDU3Y2NiYmI3YmMzZmM3MDU0NjU4NTQ3NjUyYWIiLCJiZWZvcmVSZWRpcmVjdFNoYTI1NiI6IjZiMzFlMzc4NjEzYTI1NDRiNGIwNWQwNDdjMDBhYzJiZTliNDU3Y2NiYmI3YmMzZmM3MDU0NjU4NTQ3NjUyYWIiLCJ0YXJnZXRIZXgiOiI2MTZjNzA2ODYxMGE2MjY1NzQ2MTBhIiwibWlzc2luZ0Fic2VudCI6dHJ1ZSwiZmFpbHVyZXMiOltdLCJzdGF0dXMiOiJQQVNTIn0=
+# Subtest: s3:ENOENT
+ok 275 - s3:ENOENT
+  ---
+  duration_ms: 21.144291
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6InMzOkVOT0VOVCIsInNvdXJjZSI6ImNhdCA8IG1pc3NpbmcudHh0IiwicmV2aXNpb24iOiJ3b3JrdHJlZSIsIm5hdGl2ZUNhbGxzIjowLCJkaXJlY3QiOlt7Im9wZXJhdGlvbiI6ImFjY2Vzcyg0KSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJzdGF0In0seyJvcGVyYXRpb24iOiJyZWFkRmlsZSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJzdGF0In0seyJvcGVyYXRpb24iOiJzdGF0IiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6InN0YXQifV0sImJlZm9yZVNoYTI1NiI6ImNjMDkwYmQyZmJiNDIyZDhlNzZmZTMxOTc5ZjMxYmM3MmY2MjVjYzM3Yzg4MDVkMjNjNDk1MDk3OGYwOTU0NjEiLCJuYW1lc3BhY2UiOlsiLyIsIi93b3JrIiwiL3dvcmsvY2hhbmdlLmRpZmYiLCIvd29yay9jb25maWcuanNvbiIsIi93b3JrL2VtcHR5LnR4dCIsIi93b3JrL25ldy50eHQiLCIvd29yay9vbGQudHh0IiwiL3dvcmsvcGF5bG9hZC5iaW4iLCIvd29yay9zcmMiLCIvd29yay9zcmMvdGFza3MudHh0IiwiL3dvcmsvdGFyZ2V0LnR4dCJdLCJlcnJvckxvZ0hleCI6IjYzNjE3NDNhMjA0NTRlNGY0NTRlNTQzYTIwNmU2ZjIwNzM3NTYzNjgyMDY2Njk2YzY1MjA2ZjcyMjA2NDY5NzI2NTYzNzQ2ZjcyNzkyYzIwNzI2NTYxNjQ1Mzc0NzI2NTYxNmQyMDI3MmY3NzZmNzI2YjJmNmQ2OTczNzM2OTZlNjcyZTc0Nzg3NDI3MGEiLCJyZXN1bHQiOnsic3RhdHVzIjoxLCJzdGRvdXRIZXgiOiIiLCJzdGRlcnJIZXgiOiI3MzY4NjU2YzZjM2EyMDZjNjk2ZTY1MjAzMTNhMjA2ZDY5NzM3MzY5NmU2NzJlNzQ3ODc0M2EyMDRlNmYyMDczNzU2MzY4MjA2NjY5NmM2NTIwNmY3MjIwNjQ2OTcyNjU2Mzc0NmY3Mjc5MGEifSwib2JzZXJ2ZWQiOlt7Im9wZXJhdGlvbiI6ImFjY2VzcyIsInRhcmdldCI6Ii93b3JrL21pc3NpbmcudHh0IiwibW9kZSI6NCwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6InN0YXQifV0sImFmdGVyU2hhMjU2IjoiNmIzMWUzNzg2MTNhMjU0NGI0YjA1ZDA0N2MwMGFjMmJlOWI0NTdjY2JiYjdiYzNmYzcwNTQ2NTg1NDc2NTJhYiIsImJlZm9yZVJlZGlyZWN0U2hhMjU2IjoiNmIzMWUzNzg2MTNhMjU0NGI0YjA1ZDA0N2MwMGFjMmJlOWI0NTdjY2JiYjdiYzNmYzcwNTQ2NTg1NDc2NTJhYiIsInRhcmdldEhleCI6IjYxNmM3MDY4NjEwYTYyNjU3NDYxMGEiLCJtaXNzaW5nQWJzZW50Ijp0cnVlLCJmYWlsdXJlcyI6W10sInN0YXR1cyI6IlBBU1MifQ==
+# Subtest: webdav:ENOENT
+ok 276 - webdav:ENOENT
+  ---
+  duration_ms: 157.154333
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6IndlYmRhdjpFTk9FTlQiLCJzb3VyY2UiOiJjYXQgPCBtaXNzaW5nLnR4dCIsInJldmlzaW9uIjoid29ya3RyZWUiLCJuYXRpdmVDYWxscyI6MCwiZGlyZWN0IjpbeyJvcGVyYXRpb24iOiJhY2Nlc3MoNCkiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoiUFJPUEZJTkQifSx7Im9wZXJhdGlvbiI6InJlYWRGaWxlIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6IlBST1BGSU5EIn0seyJvcGVyYXRpb24iOiJzdGF0IiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6IlBST1BGSU5EIn1dLCJiZWZvcmVTaGEyNTYiOiJjYzA5MGJkMmZiYjQyMmQ4ZTc2ZmUzMTk3OWYzMWJjNzJmNjI1Y2MzN2M4ODA1ZDIzYzQ5NTA5NzhmMDk1NDYxIiwibmFtZXNwYWNlIjpbIi8iLCIvd29yayIsIi93b3JrL2NoYW5nZS5kaWZmIiwiL3dvcmsvY29uZmlnLmpzb24iLCIvd29yay9lbXB0eS50eHQiLCIvd29yay9uZXcudHh0IiwiL3dvcmsvb2xkLnR4dCIsIi93b3JrL3BheWxvYWQuYmluIiwiL3dvcmsvc3JjIiwiL3dvcmsvc3JjL3Rhc2tzLnR4dCIsIi93b3JrL3RhcmdldC50eHQiXSwiZXJyb3JMb2dIZXgiOiI2MzYxNzQzYTIwNDU0ZTRmNDU0ZTU0M2EyMDU3NjU2MjQ0NDE1NjIwNDg1NDU0NTAyMDczNzQ2MTc0NzU3MzIwMzQzMDM0MmMyMDUwNTI0ZjUwNDY0OTRlNDQyMDI3MmY3NzZmNzI2YjJmNmQ2OTczNzM2OTZlNjcyZTc0Nzg3NDI3MGEiLCJyZXN1bHQiOnsic3RhdHVzIjoxLCJzdGRvdXRIZXgiOiIiLCJzdGRlcnJIZXgiOiI3MzY4NjU2YzZjM2EyMDZjNjk2ZTY1MjAzMTNhMjA2ZDY5NzM3MzY5NmU2NzJlNzQ3ODc0M2EyMDRlNmYyMDczNzU2MzY4MjA2NjY5NmM2NTIwNmY3MjIwNjQ2OTcyNjU2Mzc0NmY3Mjc5MGEifSwib2JzZXJ2ZWQiOlt7Im9wZXJhdGlvbiI6ImFjY2VzcyIsInRhcmdldCI6Ii93b3JrL21pc3NpbmcudHh0IiwibW9kZSI6NCwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6IlBST1BGSU5EIn1dLCJhZnRlclNoYTI1NiI6IjgyN2YyOWIyNzY1OWJkM2YzMjEyNzZmMmViY2NjYjZhNDA0YzgwZmU1YTZlNDlkMjY2Y2MxZjhjMDc5M2YzZGMiLCJiZWZvcmVSZWRpcmVjdFNoYTI1NiI6IjgyN2YyOWIyNzY1OWJkM2YzMjEyNzZmMmViY2NjYjZhNDA0YzgwZmU1YTZlNDlkMjY2Y2MxZjhjMDc5M2YzZGMiLCJ0YXJnZXRIZXgiOiI2MTZjNzA2ODYxMGE2MjY1NzQ2MTBhIiwibWlzc2luZ0Fic2VudCI6dHJ1ZSwiZmFpbHVyZXMiOltdLCJzdGF0dXMiOiJQQVNTIn0=
+# Subtest: mount:ENOENT
+ok 277 - mount:ENOENT
+  ---
+  duration_ms: 49.306458
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6Im1vdW50OkVOT0VOVCIsInNvdXJjZSI6ImNhdCA8IG1pc3NpbmcudHh0IiwicmV2aXNpb24iOiJ3b3JrdHJlZSIsIm5hdGl2ZUNhbGxzIjowLCJkaXJlY3QiOlt7Im9wZXJhdGlvbiI6ImFjY2Vzcyg0KSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJhY2Nlc3MifSx7Im9wZXJhdGlvbiI6InJlYWRGaWxlIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6InJlYWRGaWxlIn0seyJvcGVyYXRpb24iOiJzdGF0IiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6InN0YXQifV0sImJlZm9yZVNoYTI1NiI6IjEwNDAwY2Q2YjkwZDJkYmNjMzEyNTA0ZmUxMmMxN2U5NWJkMzU3YzU4YmQzOGU4MTViNDc2ZWRhN2IzYzczNjgiLCJuYW1lc3BhY2UiOlsiLyIsIi9vYmplY3RzIiwiL29iamVjdHMvc2VlZC5iaW4iLCIvd29yayIsIi93b3JrL2NoYW5nZS5kaWZmIiwiL3dvcmsvY29uZmlnLmpzb24iLCIvd29yay9lbXB0eS50eHQiLCIvd29yay9uZXcudHh0IiwiL3dvcmsvb2xkLnR4dCIsIi93b3JrL3BheWxvYWQuYmluIiwiL3dvcmsvc3JjIiwiL3dvcmsvc3JjL3Rhc2tzLnR4dCIsIi93b3JrL3RhcmdldC50eHQiXSwiZXJyb3JMb2dIZXgiOiI2MzYxNzQzYTIwNDU0ZTRmNDU0ZTU0M2EyMDZlNmYyMDczNzU2MzY4MjA2NjY5NmM2NTIwNmY3MjIwNjQ2OTcyNjU2Mzc0NmY3Mjc5MmMyMDcyNjU2MTY0NTM3NDcyNjU2MTZkMjAyNzJmNzc2ZjcyNmIyZjZkNjk3MzczNjk2ZTY3MmU3NDc4NzQyNzBhIiwicmVzdWx0Ijp7InN0YXR1cyI6MSwic3Rkb3V0SGV4IjoiIiwic3RkZXJySGV4IjoiNzM2ODY1NmM2YzNhMjA2YzY5NmU2NTIwMzEzYTIwNmQ2OTczNzM2OTZlNjcyZTc0Nzg3NDNhMjA0ZTZmMjA3Mzc1NjM2ODIwNjY2OTZjNjUyMDZmNzIyMDY0Njk3MjY1NjM3NDZmNzI3OTBhIn0sIm9ic2VydmVkIjpbeyJvcGVyYXRpb24iOiJhY2Nlc3MiLCJ0YXJnZXQiOiIvd29yay9taXNzaW5nLnR4dCIsIm1vZGUiOjQsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVOT0VOVCIsInBhdGgiOiIvd29yay9taXNzaW5nLnR4dCIsInN5c2NhbGwiOiJhY2Nlc3MifV0sImFmdGVyU2hhMjU2IjoiYzY3ZDM5OGQ4NzhiN2QxNTYwMjI2OGM5OTI2MDQ0MDEyNzQ5NWU2YTY5MzQ1NGVmNzNkMTg1MzUyYzFhNzNlOSIsImJlZm9yZVJlZGlyZWN0U2hhMjU2IjoiYzY3ZDM5OGQ4NzhiN2QxNTYwMjI2OGM5OTI2MDQ0MDEyNzQ5NWU2YTY5MzQ1NGVmNzNkMTg1MzUyYzFhNzNlOSIsInRhcmdldEhleCI6IjYxNmM3MDY4NjEwYTYyNjU3NDYxMGEiLCJtaXNzaW5nQWJzZW50Ijp0cnVlLCJmYWlsdXJlcyI6W10sInN0YXR1cyI6IlBBU1MifQ==
+# Subtest: overlay:ENOENT
+ok 278 - overlay:ENOENT
+  ---
+  duration_ms: 54.629625
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6Im92ZXJsYXk6RU5PRU5UIiwic291cmNlIjoiY2F0IDwgbWlzc2luZy50eHQiLCJyZXZpc2lvbiI6Indvcmt0cmVlIiwibmF0aXZlQ2FsbHMiOjAsImRpcmVjdCI6W3sib3BlcmF0aW9uIjoiYWNjZXNzKDQpIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6Im92ZXJsYXkifSx7Im9wZXJhdGlvbiI6InJlYWRGaWxlIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRU5PRU5UIiwicGF0aCI6Ii93b3JrL21pc3NpbmcudHh0Iiwic3lzY2FsbCI6Im92ZXJsYXkifSx7Im9wZXJhdGlvbiI6InN0YXQiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoib3ZlcmxheSJ9XSwiYmVmb3JlU2hhMjU2IjoiY2MwOTBiZDJmYmI0MjJkOGU3NmZlMzE5NzlmMzFiYzcyZjYyNWNjMzdjODgwNWQyM2M0OTUwOTc4ZjA5NTQ2MSIsIm5hbWVzcGFjZSI6WyIvIiwiL3dvcmsiLCIvd29yay9jaGFuZ2UuZGlmZiIsIi93b3JrL2NvbmZpZy5qc29uIiwiL3dvcmsvZW1wdHkudHh0IiwiL3dvcmsvbmV3LnR4dCIsIi93b3JrL29sZC50eHQiLCIvd29yay9wYXlsb2FkLmJpbiIsIi93b3JrL3NyYyIsIi93b3JrL3NyYy90YXNrcy50eHQiLCIvd29yay90YXJnZXQudHh0Il0sImVycm9yTG9nSGV4IjoiNjM2MTc0M2EyMDQ1NGU0ZjQ1NGU1NDNhMjA2ZTZmMjA3Mzc1NjM2ODIwNjY2OTZjNjUyMDZmNzIyMDY0Njk3MjY1NjM3NDZmNzI3OTJjMjA2Zjc2NjU3MjZjNjE3OTIwMjcyZjc3NmY3MjZiMmY2ZDY5NzM3MzY5NmU2NzJlNzQ3ODc0MjcwYSIsInJlc3VsdCI6eyJzdGF0dXMiOjEsInN0ZG91dEhleCI6IiIsInN0ZGVyckhleCI6IjczNjg2NTZjNmMzYTIwNmM2OTZlNjUyMDMxM2EyMDZkNjk3MzczNjk2ZTY3MmU3NDc4NzQzYTIwNGU2ZjIwNzM3NTYzNjgyMDY2Njk2YzY1MjA2ZjcyMjA2NDY5NzI2NTYzNzQ2ZjcyNzkwYSJ9LCJvYnNlcnZlZCI6W3sib3BlcmF0aW9uIjoiYWNjZXNzIiwidGFyZ2V0IjoiL3dvcmsvbWlzc2luZy50eHQiLCJtb2RlIjo0LCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFTk9FTlQiLCJwYXRoIjoiL3dvcmsvbWlzc2luZy50eHQiLCJzeXNjYWxsIjoib3ZlcmxheSJ9XSwiYWZ0ZXJTaGEyNTYiOiJiMzU1MWUwZTZlNjljMDkyZWNkMDlkNzEzMzJhZmYzZjRmYWVmZWQ1YzE2MzkxOTE5NjgxZjExY2NhZjUzZDc2IiwiYmVmb3JlUmVkaXJlY3RTaGEyNTYiOiJiMzU1MWUwZTZlNjljMDkyZWNkMDlkNzEzMzJhZmYzZjRmYWVmZWQ1YzE2MzkxOTE5NjgxZjExY2NhZjUzZDc2IiwidGFyZ2V0SGV4IjoiNjE2YzcwNjg2MTBhNjI2NTc0NjEwYSIsIm1pc3NpbmdBYnNlbnQiOnRydWUsImZhaWx1cmVzIjpbXSwic3RhdHVzIjoiUEFTUyJ9
+# Subtest: readonly:truncate:EROFS
+ok 279 - readonly:truncate:EROFS
+  ---
+  duration_ms: 1.185125
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6InJlYWRvbmx5OnRydW5jYXRlOkVST0ZTIiwic291cmNlIjoicHJpbnRmICdjaGFuZ2VkJyA+IHRhcmdldC50eHQiLCJyZXZpc2lvbiI6Indvcmt0cmVlIiwibmF0aXZlQ2FsbHMiOjAsImRpcmVjdCI6W3sib3BlcmF0aW9uIjoid3JpdGVGaWxlKGVtcHR5LHcpIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRVJPRlMiLCJwYXRoIjoiL3dvcmsvdGFyZ2V0LnR4dCIsInN5c2NhbGwiOiJ3cml0ZUZpbGUifSx7Im9wZXJhdGlvbiI6IndyaXRlRmlsZShjaGFuZ2VkLHcpIiwidHlwZSI6IkZzRXJyb3IiLCJjb2RlIjoiRVJPRlMiLCJwYXRoIjoiL3dvcmsvdGFyZ2V0LnR4dCIsInN5c2NhbGwiOiJ3cml0ZUZpbGUifV0sImJlZm9yZVNoYTI1NiI6ImNjMDkwYmQyZmJiNDIyZDhlNzZmZTMxOTc5ZjMxYmM3MmY2MjVjYzM3Yzg4MDVkMjNjNDk1MDk3OGYwOTU0NjEiLCJuYW1lc3BhY2UiOlsiLyIsIi93b3JrIiwiL3dvcmsvY2hhbmdlLmRpZmYiLCIvd29yay9jb25maWcuanNvbiIsIi93b3JrL2VtcHR5LnR4dCIsIi93b3JrL25ldy50eHQiLCIvd29yay9vbGQudHh0IiwiL3dvcmsvcGF5bG9hZC5iaW4iLCIvd29yay9zcmMiLCIvd29yay9zcmMvdGFza3MudHh0IiwiL3dvcmsvdGFyZ2V0LnR4dCJdLCJyZXN1bHQiOnsic3RhdHVzIjoxLCJzdGRvdXRIZXgiOiIiLCJzdGRlcnJIZXgiOiI3MzY4NjU2YzZjM2EyMDZjNjk2ZTY1MjAzMTNhMjA3NDYxNzI2NzY1NzQyZTc0Nzg3NDNhMjA1MjY1NjE2NDJkNmY2ZTZjNzkyMDY2Njk2YzY1MjA3Mzc5NzM3NDY1NmQwYSJ9LCJvYnNlcnZlZCI6W3sib3BlcmF0aW9uIjoid3JpdGVGaWxlIiwidGFyZ2V0IjoiL3dvcmsvdGFyZ2V0LnR4dCIsImJ5dGVzSGV4IjoiIiwiZmxhZyI6InciLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFUk9GUyIsInBhdGgiOiIvd29yay90YXJnZXQudHh0Iiwic3lzY2FsbCI6IndyaXRlRmlsZSJ9XSwiYWZ0ZXJTaGEyNTYiOiJjYzA5MGJkMmZiYjQyMmQ4ZTc2ZmUzMTk3OWYzMWJjNzJmNjI1Y2MzN2M4ODA1ZDIzYzQ5NTA5NzhmMDk1NDYxIiwiYmVmb3JlUmVkaXJlY3RTaGEyNTYiOiJjYzA5MGJkMmZiYjQyMmQ4ZTc2ZmUzMTk3OWYzMWJjNzJmNjI1Y2MzN2M4ODA1ZDIzYzQ5NTA5NzhmMDk1NDYxIiwidGFyZ2V0SGV4IjoiNjE2YzcwNjg2MTBhNjI2NTc0NjEwYSIsIm1pc3NpbmdBYnNlbnQiOnRydWUsImZhaWx1cmVzIjpbXSwic3RhdHVzIjoiUEFTUyJ9
+# Subtest: readonly:append:EROFS
+ok 280 - readonly:append:EROFS
+  ---
+  duration_ms: 0.916916
+  type: 'test'
+  ...
+# EVIDENCE eyJpZCI6InJlYWRvbmx5OmFwcGVuZDpFUk9GUyIsInNvdXJjZSI6InByaW50ZiAnY2hhbmdlZCcgPj4gdGFyZ2V0LnR4dCIsInJldmlzaW9uIjoid29ya3RyZWUiLCJuYXRpdmVDYWxscyI6MCwiZGlyZWN0IjpbeyJvcGVyYXRpb24iOiJ3cml0ZUZpbGUoZW1wdHksYSkiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFUk9GUyIsInBhdGgiOiIvd29yay90YXJnZXQudHh0Iiwic3lzY2FsbCI6IndyaXRlRmlsZSJ9LHsib3BlcmF0aW9uIjoiYXBwZW5kRmlsZShjaGFuZ2VkKSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVST0ZTIiwicGF0aCI6Ii93b3JrL3RhcmdldC50eHQiLCJzeXNjYWxsIjoiYXBwZW5kRmlsZSJ9XSwiYmVmb3JlU2hhMjU2IjoiY2MwOTBiZDJmYmI0MjJkOGU3NmZlMzE5NzlmMzFiYzcyZjYyNWNjMzdjODgwNWQyM2M0OTUwOTc4ZjA5NTQ2MSIsIm5hbWVzcGFjZSI6WyIvIiwiL3dvcmsiLCIvd29yay9jaGFuZ2UuZGlmZiIsIi93b3JrL2NvbmZpZy5qc29uIiwiL3dvcmsvZW1wdHkudHh0IiwiL3dvcmsvbmV3LnR4dCIsIi93b3JrL29sZC50eHQiLCIvd29yay9wYXlsb2FkLmJpbiIsIi93b3JrL3NyYyIsIi93b3JrL3NyYy90YXNrcy50eHQiLCIvd29yay90YXJnZXQudHh0Il0sInJlc3VsdCI6eyJzdGF0dXMiOjEsInN0ZG91dEhleCI6IiIsInN0ZGVyckhleCI6IjczNjg2NTZjNmMzYTIwNmM2OTZlNjUyMDMxM2EyMDc0NjE3MjY3NjU3NDJlNzQ3ODc0M2EyMDUyNjU2MTY0MmQ2ZjZlNmM3OTIwNjY2OTZjNjUyMDczNzk3Mzc0NjU2ZDBhIn0sIm9ic2VydmVkIjpbeyJvcGVyYXRpb24iOiJ3cml0ZUZpbGUiLCJ0YXJnZXQiOiIvd29yay90YXJnZXQudHh0IiwiYnl0ZXNIZXgiOiIiLCJmbGFnIjoiYSIsInR5cGUiOiJGc0Vycm9yIiwiY29kZSI6IkVST0ZTIiwicGF0aCI6Ii93b3JrL3RhcmdldC50eHQiLCJzeXNjYWxsIjoid3JpdGVGaWxlIn1dLCJhZnRlclNoYTI1NiI6ImNjMDkwYmQyZmJiNDIyZDhlNzZmZTMxOTc5ZjMxYmM3MmY2MjVjYzM3Yzg4MDVkMjNjNDk1MDk3OGYwOTU0NjEiLCJiZWZvcmVSZWRpcmVjdFNoYTI1NiI6ImNjMDkwYmQyZmJiNDIyZDhlNzZmZTMxOTc5ZjMxYmM3MmY2MjVjYzM3Yzg4MDVkMjNjNDk1MDk3OGYwOTU0NjEiLCJ0YXJnZXRIZXgiOiI2MTZjNzA2ODYxMGE2MjY1NzQ2MTBhIiwibWlzc2luZ0Fic2VudCI6dHJ1ZSwiZmFpbHVyZXMiOltdLCJzdGF0dXMiOiJQQVNTIn0=
+# Subtest: aggregate definitions are exactly the nine delivered families, each registered once
+ok 281 - aggregate definitions are exactly the nine delivered families, each registered once
+  ---
+  duration_ms: 3.053875
+  type: 'test'
+  ...
+# Subtest: collision with printf leaves the entire host registry untouched
+ok 282 - collision with printf leaves the entire host registry untouched
+  ---
+  duration_ms: 0.301375
+  type: 'test'
+  ...
+# Subtest: collision with sed leaves the entire host registry untouched
+ok 283 - collision with sed leaves the entire host registry untouched
+  ---
+  duration_ms: 0.1565
+  type: 'test'
+  ...
+# Subtest: collision with jq leaves the entire host registry untouched
+ok 284 - collision with jq leaves the entire host registry untouched
+  ---
+  duration_ms: 0.075625
+  type: 'test'
+  ...
+# Subtest: collision with rg leaves the entire host registry untouched
+ok 285 - collision with rg leaves the entire host registry untouched
+  ---
+  duration_ms: 0.068709
+  type: 'test'
+  ...
+# Subtest: collision with gzip leaves the entire host registry untouched
+ok 286 - collision with gzip leaves the entire host registry untouched
+  ---
+  duration_ms: 0.057542
+  type: 'test'
+  ...
+# Subtest: collision with patch leaves the entire host registry untouched
+ok 287 - collision with patch leaves the entire host registry untouched
+  ---
+  duration_ms: 0.054541
+  type: 'test'
+  ...
+# Subtest: collision with chmod leaves the entire host registry untouched
+ok 288 - collision with chmod leaves the entire host registry untouched
+  ---
+  duration_ms: 0.21025
+  type: 'test'
+  ...
+# Subtest: collision with stat leaves the entire host registry untouched
+ok 289 - collision with stat leaves the entire host registry untouched
+  ---
+  duration_ms: 0.175416
+  type: 'test'
+  ...
+# Subtest: collision with mktemp leaves the entire host registry untouched
+ok 290 - collision with mktemp leaves the entire host registry untouched
+  ---
+  duration_ms: 0.286834
+  type: 'test'
+  ...
+# Subtest: collision with tar leaves the entire host registry untouched
+ok 291 - collision with tar leaves the entire host registry untouched
+  ---
+  duration_ms: 0.074958
+  type: 'test'
+  ...
+# Subtest: collision with paste leaves the entire host registry untouched
+ok 292 - collision with paste leaves the entire host registry untouched
+  ---
+  duration_ms: 0.092958
+  type: 'test'
+  ...
+# Subtest: collision with comm leaves the entire host registry untouched
+ok 293 - collision with comm leaves the entire host registry untouched
+  ---
+  duration_ms: 0.088291
+  type: 'test'
+  ...
+# Subtest: collision with join leaves the entire host registry untouched
+ok 294 - collision with join leaves the entire host registry untouched
+  ---
+  duration_ms: 0.062208
+  type: 'test'
+  ...
+# Subtest: explicit replacement affects all families once and preserves unrelated commands
+ok 295 - explicit replacement affects all families once and preserves unrelated commands
+  ---
+  duration_ms: 0.235417
+  type: 'test'
+  ...
+# Subtest: invalid eager family limits install no commands
+ok 296 - invalid eager family limits install no commands
+  ---
+  duration_ms: 0.056209
+  type: 'test'
+  ...
+# Subtest: definitions fallback resolves nested argv across families without a shell
+ok 297 - definitions fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 5.427916
+  type: 'test'
+  ...
+# Subtest: plugin fallback resolves nested argv across families without a shell
+ok 298 - plugin fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 0.994542
+  type: 'test'
+  ...
+# Subtest: plugin fallback can resolve host commands outside the aggregate
+ok 299 - plugin fallback can resolve host commands outside the aggregate
+  ---
+  duration_ms: 0.166083
+  type: 'test'
+  ...
+# Subtest: custom fallback applies only without the shell invocation hook
+ok 300 - custom fallback applies only without the shell invocation hook
+  ---
+  duration_ms: 2.99525
+  type: 'test'
+  ...
+# Subtest: aggregate forwards text limits without rewriting them
+ok 301 - aggregate forwards text limits without rewriting them
+  ---
+  duration_ms: 0.536833
+  type: 'test'
+  ...
+# Subtest: aggregate forwards structured limits without rewriting them
+ok 302 - aggregate forwards structured limits without rewriting them
+  ---
+  duration_ms: 0.620792
+  type: 'test'
+  ...
+# Subtest: aggregate forwards search limits without rewriting them
+ok 303 - aggregate forwards search limits without rewriting them
+  ---
+  duration_ms: 0.362917
+  type: 'test'
+  ...
+# Subtest: aggregate forwards diffPatch limits without rewriting them
+ok 304 - aggregate forwards diffPatch limits without rewriting them
+  ---
+  duration_ms: 2.392042
+  type: 'test'
+  ...
+# Subtest: aggregate forwards metadata limits without rewriting them
+ok 305 - aggregate forwards metadata limits without rewriting them
+  ---
+  duration_ms: 1.354459
+  type: 'test'
+  ...
+# Subtest: aggregate forwards archive limits without rewriting them
+ok 306 - aggregate forwards archive limits without rewriting them
+  ---
+  duration_ms: 2.106541
+  type: 'test'
+  ...
+# Subtest: aggregate forwards tableText limits without rewriting them
+ok 307 - aggregate forwards tableText limits without rewriting them
+  ---
+  duration_ms: 0.948708
+  type: 'test'
+  ...
+# Subtest: search defaultInput remains an explicit family override
+ok 308 - search defaultInput remains an explicit family override
+  ---
+  duration_ms: 0.828916
+  type: 'test'
+  ...
+# Subtest: README aggregate example and binary pipelines use the actual shell
+ok 309 - README aggregate example and binary pipelines use the actual shell
+  ---
+  duration_ms: 17.908958
+  type: 'test'
+  ...
+# Subtest: aggregate tar streams binary archives through the actual VFS pipeline
+ok 310 - aggregate tar streams binary archives through the actual VFS pipeline
+  ---
+  duration_ms: 4.698666
+  type: 'test'
+  ...
+# Subtest: aggregate table-text composes with existing cut and virtual files
+ok 311 - aggregate table-text composes with existing cut and virtual files
+  ---
+  duration_ms: 5.862375
+  type: 'test'
+  ...
+1..311
+# tests 311
+# suites 0
+# pass 310
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1540.965834

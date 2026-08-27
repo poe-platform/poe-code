@@ -155,7 +155,7 @@ export async function collect(source: ByteSource, signal: AbortSignal, limit = b
     signal.throwIfAborted();
     size += chunk.length;
     if (size > limit) throw new FsError("EFBIG", { message: `buffer limit exceeded (${limit} bytes)` });
-    chunks.push(chunk.slice());
+    chunks.push(new Uint8Array(chunk));
   }
   return concatenate(chunks, size);
 }
@@ -179,7 +179,7 @@ export async function* lines(source: ByteSource, separator = 10): AsyncGenerator
       start = offset + 1;
     }
     if (start < chunk.length) {
-      pending.push(chunk.slice(start));
+      pending.push(new Uint8Array(chunk.subarray(start)));
       size += chunk.length - start;
       if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
     }

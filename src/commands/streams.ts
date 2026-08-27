@@ -40,7 +40,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
   })();
   for await (const chunk of records) {
     context.signal.throwIfAborted();
-    pending.push(chunk.slice());
+    pending.push(new Uint8Array(chunk));
     size += chunk.length;
     if (bytes) {
       let excess = Math.max(0, size - count);

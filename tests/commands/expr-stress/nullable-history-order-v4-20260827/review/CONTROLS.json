@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "frozenBeforeModelInspection": true,
+  "scope": "Eight independent supplied-history controls, not regex matching completeness or native acceptance. Adapt representation only after author seal; never change expected policy silently.",
+  "inputsCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "inputsManifestSha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+  "normativeCommit": "44eed610",
+  "controls": [
+    {
+      "id": "C1-order-not-enumeration",
+      "sources": ["P-aaaa", "P-aaa"],
+      "witness": "P/aaaa: A=[aa] then reference aa, B=[a][a][a] then reference a, C=[a][a] then reference a (overall 3), D=[a] then reference a (overall 2). All spans must derive from consecutive consumed bytes, not final capture sorting alone.",
+      "required": "Within the author's explicitly declared history profile, whole longest precedes subhistory comparison; A precedes B under either normative candidate's first-body-span priority. Permuting all candidates must preserve winner and pair ordering; verify reflexivity/equivalence, sign symmetry and transitivity on these four histories. No firstDFS selection."
+    },
+    {
+      "id": "C2-uncaptured-prefix",
+      "sources": ["prefix-star", "prefix-interval", "nested-prefix"],
+      "witness": "For a*(a*)/aaa, equal whole spans with uncaptured prefix lengths 3,2,0 and capture lengths 0,1,3 respectively. For bounded a{0,2}(a*) the maximum legal prefix is 2. Nested prefix retains the same local ordering inside its containing capture.",
+      "required": "Rank the earlier uncaptured AST prefix before the later capture; never substitute capture-only sorting. Reject an over-max bounded prefix. Expose rather than guess missing AST/context support."
+    },
+    {
+      "id": "C3-malformed-structure",
+      "sources": ["P-aaa", "nested-prefix"],
+      "witness": "Mutate one otherwise valid supplied history with negative start, end beyond subject, start>end, noninteger position, capture completion outside its actual originating parent occurrence, wrong parent/slot, or an unclosed capture.",
+      "required": "Reject/refuse each malformed history before ranking or publication. A retained descendant outside the FINAL parent but inside its ORIGIN parent remains legal in TEMP; do not confuse it with malformed nesting. No malformed span can manufacture root a."
+    },
+    {
+      "id": "C4-branch-local-lifetime",
+      "sources": ["D-abab", "descendant-reentered", "descendant-reentered-empty", "open-self-reference"],
+      "witness": "D/abab: [ab][a] then retained b is TEMP-admissible. A sibling actual child entry invalidates its old completion while open; successful empty reentry installs empty; failed reentry must not mutate the skip sibling. Actual later nonempty reentry replaces origin.",
+      "required": "Skip and ancestor reentry alone preserve child completion; actual child reentry alone invalidates it. Backreference reads must bind the correct completed occurrence, never open/absent. Label Issue8 D/abab rejection versus TEMP acceptance as deliberate conflict."
+    },
+    {
+      "id": "C5-empty-admissibility-not-cycle",
+      "sources": ["Q-empty", "required-child-empty", "required-empty-after-prefix", "P-aaa", "normative W5"],
+      "witness": "Exact-two empty occurrences are distinct required ordinals; nested required repeat activations restart counts. P/aaa [aaa][] followed by empty reference consumes 3 but changes completion from aaa to empty, unlike [aaa].",
+      "required": "Require the full local minimum even at one position; reject/refuse too few occurrences. Ancestor/prefix progress cannot suppress fresh child required empties. P's optional postproductive empty may be excluded only by a separately named experimental admissibility rule, not claimed equivalent-cycle pruning. Root completed a is conditional on that rule."
+    },
+    {
+      "id": "C6-context-end-absent-empty",
+      "sources": ["absent-zero-repeat", "completed-empty-reference", "normative W4", "normative W5"],
+      "witness": "Absent capture is not completed empty; END of repeat list is not an absent child within an extant iteration. W4 A outer spans [2,2] with first inner empty versus B [2,1,1] with first inner length2 separates HNODE and HTREE. Equal-position required occurrences retain parent/ordinal identity.",
+      "required": "Declare which contextual alignment and iteration-versus-descendant precedence the model implements; test W4 against that declared profile, not a universal expectation. Alpha-renaming activation IDs must not change rank. Reject duplicate/wrong contextual ordinals instead of flattening them into equal offsets."
+    },
+    {
+      "id": "C7-exhaustion-after-incumbent",
+      "sources": ["P-aaaa", "P-aaa"],
+      "witness": "Supply a valid first acceptance then remaining histories, with insufficient work, insufficient cumulative allocation, and cancellation before/during later replay/comparison. Also exercise initial zero budget.",
+      "required": "Return refusal/error on every exhausted run including after incumbent, never publish best-so-far. Charge replay, comparison, and newly admitted representations. State synchronous cancellation and opaque work limits; model counters do not prove worker retirement/cleanup."
+    },
+    {
+      "id": "C8-no-lossy-history-merge",
+      "sources": ["normative W3", "P-aaaa"],
+      "witness": "Normative W3 on (a*)*/aaaa: [aaa][a] versus [aa][a][a] have equal whole endpoint and final captured a at [3,4), but different first body lengths. They remain distinct comparator operands despite identical final environment. P's distinct final captures are a separate pair.",
+      "required": "Preserve first-history distinction and prefer length3 first body under both named normative profiles. No state/position/final-register-only merging without a suffix-compatible proof for this backreference profile. If the model has no merging, record that limitation rather than claim engine pruning safety."
+    }
+  ]
+}

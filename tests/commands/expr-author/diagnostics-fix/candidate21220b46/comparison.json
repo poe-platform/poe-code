@@ -1,0 +1,838 @@
+{
+  "createdAt": "2026-08-27T18:36:37.999Z",
+  "nativeReceiptSha256": "a28063d5070a060ca8af164a2f4d0523c420a36e009074bf608038904161ac1b",
+  "virtualLabel": "expr",
+  "counts": {
+    "original": {
+      "total": 8,
+      "semantic": 8,
+      "exactDiagnostic": 8,
+      "strict": 8
+    },
+    "extension": {
+      "total": 1,
+      "semantic": 1,
+      "exactDiagnostic": 1,
+      "strict": 1
+    },
+    "control": {
+      "total": 46,
+      "semantic": 46,
+      "exactDiagnostic": 46,
+      "strict": 46
+    },
+    "valid-control": {
+      "total": 9,
+      "semantic": 9,
+      "exactDiagnostic": 9,
+      "strict": 9
+    },
+    "correction": {
+      "total": 1,
+      "semantic": 1,
+      "exactDiagnostic": 1,
+      "strict": 1
+    }
+  },
+  "observations": [
+    {
+      "id": "ambiguous-index-keyword",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operands",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry 'expr --help' for more information.\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-rhs",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-close",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '2'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "trailing-token",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '2'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-still-requires-rhs",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-still-requires-close",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after '1'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-still-requires-keyword-args",
+      "cohort": "original",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "class-parenthesis-not-capture",
+      "cohort": "extension",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '[(]'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "empty-after-end-options",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: missing operand\nTry 'expr --help' for more information.\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "forced-token-missing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "length-missing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "index-missing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "match-missing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'abc'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "substr-missing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '2'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "open-only",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "unexpected-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "empty-group",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "wrong-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of '2'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "nested-missing-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after ')'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "trailing-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ')'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "rhs-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "help-is-not-an-option-with-operands",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "version-is-not-an-option-with-operands",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-or-forced-token",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '+'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-and-prefix",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-or-wrong-close",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-and-trailing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-invalid-regex-then-trailing",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'extra'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-apostrophe",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\'b'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-backslash",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\\\b'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-newline",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument 'a\\nb'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-tab",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\t'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-control-bytes",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\001\\a\\b\\v\\f\\r\\033\\177'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-utf8-bytes",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\\303\\251\\360\\237\\230\\200'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-double-quote",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument '\"'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-empty",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: unexpected argument ''\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-after-empty",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ''\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-after-newline",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after 'a\\nb'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "close-after-apostrophe",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a\\'b'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "close-instead-of-backslash",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'a\\\\b'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-|",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '|'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-&",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '&'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-<",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-<=",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '<='\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-=",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '='\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-==",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '=='\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-!=",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '!='\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs->=",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>='\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs->",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '>'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs--",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '-'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-*",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '*'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-/",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-%",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after '%'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "missing-operator-rhs-:",
+      "cohort": "control",
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "forced-index",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "350a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "forced-close",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "290a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "help-after-end-options",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d68656c700a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "version-after-end-options",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d2d76657273696f6e0a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-division",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-noninteger",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-regex",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6b6570740a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "skip-regex-and",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "300a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "nested-closed",
+      "cohort": "valid-control",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    },
+    {
+      "id": "quoted-correction1",
+      "cohort": "correction",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "310a",
+        "stderr": ""
+      },
+      "semantic": true,
+      "exactDiagnostic": true,
+      "strict": true
+    }
+  ],
+  "outsideScopeEvaluationOrder": {
+    "args": [
+      "1",
+      "/",
+      "0",
+      "extra"
+    ],
+    "native": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: division by zero\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: syntax error: unexpected argument 'extra'\n"
+    },
+    "classification": "AST-first parser versus native interleaved evaluation; recorded separately, not a focused parity pass"
+  }
+}

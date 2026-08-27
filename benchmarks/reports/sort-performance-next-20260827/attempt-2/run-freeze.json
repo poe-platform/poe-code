@@ -1,0 +1,25 @@
+{
+  "frozenBeforeChildren": "2026-08-27T14:42:07.256Z",
+  "initialWorkloadSha256": "68f97f237a1bdd493daf1ecd41e4de6b03e9f0e9b2a90a16b946a31792df29af",
+  "activeWorkloadSha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504",
+  "correction": "Before any execution, source inspection corrected only missing-file diagnostic syscall open to readStream; original freeze preserved in workloads.initial.json. Status and effects unchanged.",
+  "tools": {
+    "node": "v22.22.2",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "harnessHashes": {
+    "prepare.mjs": "ff6b0d10e2035ae8d1b61d7817b064f1ba4ae8028d0f274d5f3709256fedca93",
+    "instrument.mjs": "18431aaef72981f2dc204b6603e8766e66f0324159c7538dc8f6263c04fd7595",
+    "worker.mjs": "d4d8685529676fa207efcb3dd19639687c1580f37e7a4b33c47dc930c0fffbc1",
+    "run.mjs": "56d172356987f053ba5f5d1ecc6038ec8ad3f36f8846adf0d16591be7cffa132"
+  },
+  "startup": "Fresh process/import and fresh Shell/VFS per specimen; setup is not counted; no warmups, CPU sampling or walltime recording.",
+  "scope": "Counters alter text.ts and internal.ts only in isolated copy; all other product originals authenticated. TypeScript isolated transpilation, not build/typecheck qualification.",
+  "loadBefore": [
+    4.45849609375,
+    5.001953125,
+    5.5224609375
+  ]
+}

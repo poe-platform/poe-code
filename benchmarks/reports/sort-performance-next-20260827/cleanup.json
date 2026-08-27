@@ -1,0 +1,24 @@
+{
+  "completedAt": "2026-08-27T14:40:58.271Z",
+  "successful": false,
+  "children": [
+    {
+      "variant": "control",
+      "pid": 71451,
+      "closed": true,
+      "forced": false,
+      "outputBytes": 1103,
+      "code": 1,
+      "signal": null
+    }
+  ],
+  "beforeAfterTreesMatch": true,
+  "scratchRemoved": true,
+  "remainingOwnedChildren": [],
+  "loadAfter": [
+    4.06884765625,
+    5.189453125,
+    5.63623046875
+  ],
+  "observedFinalHead": "f6e07510c2e8b511c96a20edc87c9c1d0a524da6"
+}

@@ -1,0 +1,534 @@
+{
+  "preparedAt": "2026-08-27T23:57:39.657Z",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "candidate": "e422ad06b3470477b7f9323c89289d2963a00407",
+  "parent": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+  "tree": "ddb1b6e628b9d011652b73f2021ff3cb0245efbf",
+  "initialHead": "71bf8b4d30f015459bb4e888114e5eb6d323eae8",
+  "initialStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/html-public-independent-20260827/admission-v3.1/\n?? tests/integration/native-data-tap-independent-20260827/\n",
+  "initialIndex": "",
+  "exactDelta": "diff --git a/tests/plugins/qualified-current-release-native-data/controls.test.ts b/tests/plugins/qualified-current-release-native-data/controls.test.ts\nindex b198e3b0..6b74276b 100644\n--- a/tests/plugins/qualified-current-release-native-data/controls.test.ts\n+++ b/tests/plugins/qualified-current-release-native-data/controls.test.ts\n@@ -194,7 +194,7 @@ test(\"actual npm script excludes future native test data without excluding neigh\n     const discovery = globSync(\"tests/**/*.test.ts\", { cwd: copy.directory }).sort();\n     assert.equal(discovery.length, 7);\n     assert.ok(data.every(path => discovery.includes(path)));\n-    const result = run(copy.directory, \"npm\", [\"test\"]);\n+    const result = run(copy.directory, \"npm\", [\"test\", \"--\", \"--test-reporter=tap\"]);\n     assert.equal(result.status, 0, result.stdout + result.stderr);\n     assert.match(result.stdout, /# tests 5\\b/u);\n     assert.match(result.stdout, /# pass 5\\b/u);\n@@ -202,7 +202,7 @@ test(\"actual npm script excludes future native test data without excluding neigh\n     for (const index of neighbors.keys()) assert.match(result.stdout, new RegExp(`neighbor-${index}`, \"u\"));\n     assert.doesNotMatch(result.stdout + result.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);\n     const original = JSON.parse(readFileSync(join(owned, \"before-02.json\"), \"utf8\")) as { before: { testScript: string } };\n-    copy.write(\"package.json\", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript } }));\n+    copy.write(\"package.json\", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript.replace(\"--test \", \"--test --test-reporter=tap \") } }));\n     const unfiltered = run(copy.directory, \"npm\", [\"test\"]);\n     assert.equal(unfiltered.status, 1);\n     assert.match(unfiltered.stdout + unfiltered.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);\n",
+  "minimality": "Only the two exact reporter argv replacements; all other tracked paths, assertions, expected bytes, statuses, synthetic fixture strings and fourteen staged originals unchanged.",
+  "fixture": {
+    "path": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+    "beforeSha256": "8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562",
+    "sha256": "f1a94e3a45750bd66ce3118a27664922599124abca0a303279b5143fa8b9dc92",
+    "names": [
+      "native-data manifest records complete classification and six exact raw payload hashes",
+      "root compiler configuration contains only approved raw-data, captured types and fourteen staged DU inputs",
+      "approved captured-type classification retains explicit current-consumer typing routes",
+      "compiler-policy mutations cannot add exclusions or weaken current-source coverage",
+      "five captured type files are data but current contracts and adjacent sources still compile",
+      "copied root config includes canonical source, test, helper and artifact neighbors",
+      "identical undefined symbols outside the exact subtree remain real TS2304 errors",
+      "actual npm script excludes future native test data without excluding neighboring tests/helpers"
+    ]
+  },
+  "dependencyClosure": "13 actual fixture reads/imports plus package-lock.json for tooling binding, not full committed tree. No product source runtime imported. consumers.mjs imports nothing; four current TS consumer files are read for nonempty presence only.",
+  "inputs": [
+    {
+      "path": "package-lock.json",
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "package.json",
+      "bytes": 4577,
+      "sha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d",
+      "blob": "d13ac785bc177b1b4343b3fabeaa795d06118bb6",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "bytes": 14518,
+      "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58",
+      "blob": "dcdb56d0ffb6d0d3d821a71ea92f10f78a2fc357",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "bytes": 2166,
+      "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+      "blob": "f5d6fb2a295bdcf124c67c3da0b71456e6916c49",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "bytes": 10779,
+      "sha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196",
+      "blob": "1d99dd4b28068bc4ee03e4c247db48a06c2adefe",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/before-02.json",
+      "bytes": 3060611,
+      "sha256": "cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1",
+      "blob": "b0186701fc430be3821658fd2e313c1c2608f02f",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/classification.json",
+      "bytes": 28936,
+      "sha256": "f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864",
+      "blob": "ac67eb45f43a64e98794ef42b22d279f3c69753d",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+      "bytes": 15745,
+      "sha256": "f1a94e3a45750bd66ce3118a27664922599124abca0a303279b5143fa8b9dc92",
+      "blob": "6b74276b312d8ae3da194efcfb007adb878d7f1f",
+      "unchangedFromParent": false
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2145,
+      "sha256": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af",
+      "blob": "0054247216915edb1207224a5113329dd50d61e9",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/captured-types.json",
+      "bytes": 2896,
+      "sha256": "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f",
+      "blob": "9ead388709d284b91f9ab19c25d84546675c0753",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "bytes": 9141,
+      "sha256": "dd907b3f09da229685d5275be73160d0fd5f93eb6b9bc499793349a32e21e9d6",
+      "blob": "f2a3b54930d5cf90526217f78baf5edbc5440e7a",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/staged-types.json",
+      "bytes": 9736,
+      "sha256": "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43",
+      "blob": "8f75e34f94435e1b322eeb3dcb6ca7ee4219f9b0",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/shell-stress/env-split-consumer/packed-public-types.ts",
+      "bytes": 1305,
+      "sha256": "b74f06923b0b9aeb4139f611218a02a5421f300326dae88070fb7dbf76049a95",
+      "blob": "b7133f13c0f25fb84f839a497dd36b493f3b3b73",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 2920,
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "blob": "6a5f0688c7e8ac1d63d62eef915997d2fcca31b6",
+      "unchangedFromParent": true
+    }
+  ],
+  "stagedInputs": [
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "role": "reusable-template",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "role": "reusable-template",
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "role": "reusable-template",
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "unchangedFromParent": true
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "unchangedFromParent": true
+    }
+  ],
+  "scripts": {
+    "candidate": {
+      "benchmark": "node --import tsx benchmarks/run.ts",
+      "build": "tsc -p tsconfig.build.json",
+      "typecheck": "node scripts/typecheck.mjs",
+      "typecheck:all": "node scripts/typecheck.mjs --build",
+      "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+      "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+      "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+      "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+      "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+      "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+    },
+    "historicalTest": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "liveEqualsCandidate": false
+  },
+  "assertions": {
+    "filtered": [
+      "status === 0",
+      "/# tests 5\\b/u",
+      "/# pass 5\\b/u",
+      "canonical-test-and-helper and neighbor-0..3",
+      "no NATIVE_DATA_MUST_NOT_EXECUTE"
+    ],
+    "historical": [
+      "status === 1",
+      "NATIVE_DATA_MUST_NOT_EXECUTE",
+      "/# tests 7\\b/u",
+      "/# fail 2\\b/u"
+    ],
+    "diagnosticBytes": "Original TS2322/TS2304 exact diagnostic arrays retained, not normalized or relaxed"
+  },
+  "author": {
+    "commit": "6bc7a360beb98264044932a838c3d8763b746d25",
+    "manifestSha256": "a42ab6ba3aae76ec5d4a266d85f209cefeae1000984a410bfdf4dd8f18e319b0",
+    "rawFileSha256": "2a37e65e1328e2b75b57dd8051f3ff6d9d8150c87eebc902e7f6227cbcbe2180",
+    "authenticatedEntries": 31,
+    "toolsMatched": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+      },
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+        "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+      }
+    ],
+    "reportedCommandsNotIndependentScores": [
+      {
+        "name": "baseline-node22",
+        "status": 0,
+        "expected": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 22
+      },
+      {
+        "name": "baseline-node24",
+        "status": 1,
+        "expected": 1,
+        "counts": {
+          "tests": 8,
+          "pass": 7,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 20
+      },
+      {
+        "name": "candidate-node22",
+        "status": 0,
+        "expected": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 22
+      },
+      {
+        "name": "candidate-node24",
+        "status": 0,
+        "expected": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 35
+      },
+      {
+        "name": "remove-current-reporter-node24",
+        "status": 1,
+        "expected": 1,
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 14
+      },
+      {
+        "name": "remove-historical-reporter-node24",
+        "status": 1,
+        "expected": 1,
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "hostStarts": 29
+      }
+    ],
+    "originalSetupFailureRetained": "fail"
+  },
+  "prior": {
+    "commit": "397894e0833a84fcd86d34102548faa78e9d988d",
+    "path": "tests/integration/du-type-workflow-independent-20260827/receipts/commands/unchanged-canonical-fixture-node24.json.gz",
+    "sha256": "1282101926b5b4565bf90bf3b718a344ea0784a5c7b271ac1661d4fe65d8bac6",
+    "historicalNode24": "7/8; not rescored",
+    "receiptKeys": [
+      "name",
+      "executable",
+      "args",
+      "cwd",
+      "startedAt",
+      "finishedAt",
+      "status",
+      "signal",
+      "stdout",
+      "stderr"
+    ]
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "bytes": 54,
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "bytes": 6213092,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "bytes": 1601,
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    }
+  ],
+  "runtimeVersions": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2",
+      "npmVersion": "10.9.7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "version": "v24.11.1",
+      "npmVersion": "10.9.7"
+    }
+  ],
+  "membership": [
+    {
+      "path": "node_modules/@esbuild/darwin-arm64",
+      "version": "0.28.2",
+      "resolved": "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.28.2.tgz",
+      "integrity": "sha512-n4KqkOQrraxHJcgjM1RvwbigfQKIKJVpM7xp+KsxiyUSrRdIXnt73VhrPAx0fV44hgfmIVKjxMN9J1t5jySVkw==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/package.json",
+        "bytes": 382,
+        "sha256": "4e652c9e4410daf03da852a664940153601fac397233cdcf276b4b1a312454b9"
+      }
+    },
+    {
+      "path": "node_modules/@types/node",
+      "version": "22.20.1",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+      "integrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/package.json",
+        "bytes": 4274,
+        "sha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+      }
+    },
+    {
+      "path": "node_modules/esbuild",
+      "version": "0.28.2",
+      "resolved": "https://registry.npmjs.org/esbuild/-/esbuild-0.28.2.tgz",
+      "integrity": "sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/package.json",
+        "bytes": 3980,
+        "sha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+      }
+    },
+    {
+      "path": "node_modules/fsevents",
+      "version": "2.3.3",
+      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz",
+      "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/fsevents/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/fsevents/package.json",
+        "bytes": 1348,
+        "sha256": "500839fcc76f6c5efcb454e6614b23c26775e75e1140619fff9ca64c291aec2b"
+      }
+    },
+    {
+      "path": "node_modules/tsx",
+      "version": "4.23.12",
+      "resolved": "https://registry.npmjs.org/tsx/-/tsx-4.23.12.tgz",
+      "integrity": "sha512-FDf4L4sYzKtzWYhU/Xm0AQFdTjdIxNo9ElTf2mxXM6k8YMHXzYUe4yODVaXP4V9uMFbVg8c0qyBccK2OOxb45Q==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+        "bytes": 1601,
+        "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+      }
+    },
+    {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+      "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+        "bytes": 3620,
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      }
+    },
+    {
+      "path": "node_modules/undici-types",
+      "version": "6.21.0",
+      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz",
+      "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==",
+      "metadata": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/package.json",
+        "bytes": 1193,
+        "sha256": "11f873b423b96a5ad444a099685ca6b9de1379dcd83fd8d368e757ddb53658e4"
+      }
+    }
+  ],
+  "npm": {
+    "root": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "package": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/package.json",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/package.json",
+      "bytes": 6706,
+      "sha256": "9845f841112330e2ac0b6714afd0bb488328ecb2631eda7bff73a2b222bfdd2b"
+    },
+    "version": "10.9.7"
+  },
+  "toolInventories": {
+    "file": "preexecution-tooling.json.gz",
+    "payloadSha256": "ab01db5286505fc495eef2c7c01b1d4018085405427498feb7056132743c832b",
+    "toolingEntries": 366,
+    "npmEntries": 2556
+  },
+  "toolAuthenticationLimits": "All installed dependency metadata checked against exact candidate lock, full bytes/membership frozen including additions. Lock integrity strings are provenance metadata, not reverified tarball digests. External Node/OS dynamic libraries not inventoried.",
+  "policySha256": "6877f7f1ed87e18a7d1f21e5d05d178a9b91ae30340d5dd82df3a4865a1fbec7",
+  "noFixtureTestsExecuted": true
+}

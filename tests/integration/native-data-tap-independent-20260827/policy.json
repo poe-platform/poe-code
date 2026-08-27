@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "candidate": "e422ad06b3470477b7f9323c89289d2963a00407",
+  "authorEvidence": "6bc7a360beb98264044932a838c3d8763b746d25",
+  "priorIndependent": "397894e0833a84fcd86d34102548faa78e9d988d",
+  "scope": "Independent eight-test native-data fixture replay, not DU workflow, product acceptance, full gate, or whole-tree qualification",
+  "freeze": "Before any fixture execution, commit this policy, preparation program, exact selected Git-input inventory, authenticated historical receipt bindings and full installed tooling inventories. Materialize only the 13 actual fixture dependencies plus candidate package-lock.json in unique /tmp regular-file trees. No live source/config inputs; no AGENTS/history/native archive copies.",
+  "cohorts": ["Unchanged candidate canonical file on installed Node22", "Unchanged candidate canonical file on installed Node24"],
+  "cohortAcceptance": "Each must naturally exit 0 with exactly the frozen eight names, 8 tests / 8 pass / 0 fail / 0 skipped / 0 todo / 0 cancelled. Observe actual nested npm captures: filtered status0 TAP5/pass5; historical status1 TAP7/fail2 and deliberate marker. Preserve every existing byte/diagnostic/count assertion unchanged.",
+  "controls": [
+    {"name": "remove-current-tap-node24", "mutation": "Only isolated current npm argv loses -- --test-reporter=tap", "prediction": "Focused canonical test fails at unchanged TAP5 assertion; actual child naturally succeeds with local default SPEC, not TAP. Unexpected behavior is retained, not silently reinterpreted."},
+    {"name": "historical-tap-after-glob-node24", "mutation": "Only isolated historical script appends --test-reporter=tap after its positional glob", "prediction": "Order may be unsupported or accepted. Retain exact child argv/stdout/stderr/status and assertion outcome. If accepted, explicitly say so; never manufacture an order failure."},
+    {"name": "historical-forced-spec-node24", "mutation": "Only isolated historical pre-glob reporter changes tap to spec", "prediction": "Focused canonical test fails unchanged TAP7 assertion while actual historical child still has the two intentional data failures. This is the second meaningful detector even if after-glob TAP is accepted."},
+    {"name": "guard-added-entry-and-byte-mutation", "mutation": "Add then remove a file, and separately mutate then restore config bytes in a disposable guard-only /tmp tree", "prediction": "Whole selected-tree inventory detects both differences, including newly added entries; original inventory restored. Not a product test."}
+  ],
+  "defaultReporter": "Outer driver TAP is explicit only for machine-readable receipts; NODE_OPTIONS must not force any reporter. Observe default Node policy only for these installed local non-TTY nested profiles; no broad Node version parity claim.",
+  "instrumentation": "Startup plus spawnSync observer records actual nested captures and child identity without altering results or reporter. Sanitize environment, pin selected node and npm CLI through isolated PATH shims, use distinct empty npm user/global configs. Record source and tool trees before/after including added entries.",
+  "bounds": {"perRunMilliseconds": 180000, "outerOutputBytes": 8388608, "traceBytes": 16777216, "fixtureChildMilliseconds": 60000, "fixtureChildOutputBytes": 4194304},
+  "cleanup": "Own detached process group per run; natural closure and no surviving observed/group children required. Timeout, output kill, or leaked child is failure even if cleaned afterward. Retain failed setup/raw receipts; never overwrite retries. Remove only own temporary materialization after sealing raw evidence.",
+  "history": "Original independent Node22 8/8 and Node24 7/8 remain historical, distinct from author evidence and this new candidate replay. No old fourteen-input workflow rerun or semantic rebaseline.",
+  "limitations": "Selected dependency closure, not complete committed-tree archive. Four consumer source files are presence/route checks, not their compilation/runtime acceptance. Tool membership/hash checks authenticate installed files, not registry tarball integrity or universal package execution semantics. Host OS libraries remain ambient. No installs or dependency changes."
+}

@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",
-    "@poe-code/frontmatter": "*"
+    "@poe-code/frontmatter": "*",
+    "tiny-mcp-client": "*"
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && node ../../scripts/set-bin-executable.mjs",

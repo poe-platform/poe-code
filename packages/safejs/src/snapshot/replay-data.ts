@@ -161,6 +161,7 @@ export function decodeReplayData(
   options: {
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
+    onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
   } = {}
 ): SandboxValue {
   validateSnapshotData(input);
@@ -234,7 +235,7 @@ export function decodeReplayData(
         restored.set(id, capability);
         return capability;
       }
-      return createSandboxClosure({
+      const copy = createSandboxClosure({
         ...capability,
         boundTarget: capability.boundTarget,
         cancellationSignal: capability.cancellationSignal,
@@ -253,6 +254,8 @@ export function decodeReplayData(
           return properties as Record<string, SandboxValue>;
         }
       });
+      options.onCapabilityRestored?.(capability, copy);
+      return copy;
     }
     if (kind === "map") {
       const result = createSandboxMap();

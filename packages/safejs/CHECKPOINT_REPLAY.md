@@ -154,7 +154,14 @@ callback execution traces also consume the aggregate data budget.
 
 ## Execution compatibility
 
-New run snapshots carry `executionSemantics: "jobs-v4"`. Promise jobs run after
+The current marker also covers registered host methods returned by factories:
+they retain their existing identity and can be rebound from snapshots without
+recreating connections. Published poe-code 8.0.1 (`jobs-v4`) returns false for
+`(await get()) === method` when `get` returns the registered `method`; the current
+runtime returns true. Managed MCP clients use those stable capabilities and
+run-scoped cleanup. Older snapshots are rejected before effects, not migrated.
+
+New run snapshots carry `executionSemantics: "jobs-v5"`. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their

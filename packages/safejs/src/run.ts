@@ -1,4 +1,5 @@
 import { hashSource } from "./parse/hash.js";
+import { withRunResources } from "./interp/resources.js";
 import { createReplayableRandom } from "./random.js";
 import {
   attachErrorSpan,
@@ -163,7 +164,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   const lifecycle = { hostCallbackDepth: 0 };
   const dumpController = createDumpController(lifecycle);
   const promiseTracker = createSandboxPromiseRejectionTracker();
-  const result = withSandboxPromiseRejectionTracker(promiseTracker, async () => {
+  const execute = async () => {
     const promiseReplay = new PromiseReplay(options.snapshot?.promiseReplay);
     return promiseReplayContext.run(promiseReplay, async () => {
       const deactivateOtelSink = activateOtelSink(options.otelSink);
@@ -275,8 +276,10 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             if (!isSandboxClosure(binding))
               throw new TypeError("Invalid initial promise operation.");
             return binding.call([]) as SandboxPromise;
-          }
+          },
+          hostCalls.rebindHostCapability.bind(hostCalls)
         );
+        hostCalls.validateHostCapabilities();
         budget.setRetainedDataUsage(
           initialInputs,
           measureSandboxData(
@@ -469,7 +472,10 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         deactivateOtelSink();
       }
     });
-  });
+  };
+  const result = withRunResources(options.signal, () =>
+    withSandboxPromiseRejectionTracker(promiseTracker, execute)
+  );
 
   return attachDumpController(result, dumpController);
 }

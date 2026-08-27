@@ -53,6 +53,8 @@ const hostOperationReplayHandlers = new WeakMap<
 >();
 
 type HostBridgeOptions = {
+  registerCapabilities?: boolean;
+  capabilityPath?: readonly string[];
   budget: Budget;
   hostCalls?: HostCallJournal;
   moduleId?: string;
@@ -101,13 +103,20 @@ export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
   options: HostBridgeOptions
 ): Record<string, SandboxValue> {
+  options = { ...options, registerCapabilities: true };
   const state = { seen: new WeakMap<object, SandboxValue>() };
   const copied = Object.fromEntries(
     Object.entries(bindings).map(([name, value]) => [
       name,
       typeof value === "function"
-        ? wrapCallerInjectedFunction(name, value, options, state)
-        : copyHostValueToSandbox(value, [], { ...options, operation: name }, state, "<root>")
+        ? wrapCallerInjectedFunction(name, value, { ...options, capabilityPath: [name] }, state)
+        : copyHostValueToSandbox(
+            value,
+            [],
+            { ...options, operation: name, capabilityPath: [name] },
+            state,
+            "<root>"
+          )
     ])
   );
   options.budget.provisionDataUsage(measureSandboxData(Object.values(copied)));
@@ -120,7 +129,7 @@ function wrapCallerInjectedFunction(
   options: HostBridgeOptions,
   state: { seen: WeakMap<object, SandboxValue> }
 ): SandboxValue {
-  const existing = state.seen.get(value);
+  const existing = state.seen.get(value) ?? options.hostCalls?.nativeClosures.get(value);
   if (existing !== undefined) return existing;
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
@@ -240,6 +249,16 @@ function wrapCallerInjectedFunction(
     name: bindingName,
     properties: (closure) => {
       state.seen.set(value, closure);
+      if (options.registerCapabilities) {
+        options.hostCalls?.registerHostCapability(
+          JSON.stringify([
+            options.moduleId ?? "<bindings>",
+            ...(options.capabilityPath ?? [bindingName])
+          ]),
+          closure,
+          value
+        );
+      }
       return (
         copyFunctionProperties(callable, [], options, state, options.operation ?? bindingName) ?? {}
       );
@@ -471,7 +490,7 @@ function copyHostResultToSandbox(
   const value = copyHostValueToSandbox(
     result,
     stackFrames,
-    options,
+    { ...options, registerCapabilities: false },
     {
       seen: new WeakMap()
     },
@@ -876,7 +895,7 @@ function copyHostValueToSandbox(
       copy[index] = copyHostValueToSandbox(
         descriptor.value,
         stackFrames,
-        options,
+        { ...options, capabilityPath: [...(options.capabilityPath ?? []), String(index)] },
         state,
         `${path}[${index}]`
       );
@@ -895,9 +914,22 @@ function copyHostValueToSandbox(
     state.seen.set(value, copy);
     budget.allocateCollectionEntries(value.size);
     for (const [key, entry] of value) {
+      const ordinal = copy.entries.size;
       copy.entries.set(
-        copyHostValueToSandbox(key, stackFrames, options, state, `${path}.<key>`),
-        copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`)
+        copyHostValueToSandbox(
+          key,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), `key:${ordinal}`] },
+          state,
+          `${path}.<key>`
+        ),
+        copyHostValueToSandbox(
+          entry,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), `value:${ordinal}`] },
+          state,
+          `${path}.<value>`
+        )
       );
     }
     return copy;
@@ -914,7 +946,16 @@ function copyHostValueToSandbox(
     budget.allocateCollectionEntries(value.size);
     for (const entry of value) {
       copy.values.add(
-        copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`)
+        copyHostValueToSandbox(
+          entry,
+          stackFrames,
+          {
+            ...options,
+            capabilityPath: [...(options.capabilityPath ?? []), String(copy.values.size)]
+          },
+          state,
+          `${path}.<value>`
+        )
       );
     }
     return copy;
@@ -949,7 +990,7 @@ function copyHostValueToSandbox(
         value: copyHostValueToSandbox(
           descriptor.value,
           stackFrames,
-          options,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
           state,
           joinPath(path, key)
         )
@@ -1053,7 +1094,7 @@ function copyFunctionProperties(
     properties[key] = copyHostValueToSandbox(
       descriptor.value,
       stackFrames,
-      options,
+      { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
       state,
       joinPath(path, key)
     );

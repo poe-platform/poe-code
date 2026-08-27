@@ -1437,6 +1437,31 @@ describe("harness command", () => {
     );
   });
 
+  it("registers named MCP capabilities only with an explicit config", async () => {
+    vol.writeFileSync(
+      "/repo/mcp.json",
+      JSON.stringify({ servers: { docs: { command: "never-start-this" } } })
+    );
+    let modules: SafeJSModuleRecord | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      modules = options.modulesFor(
+        {},
+        { filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      return { ok: true, returnValue: "done" };
+    });
+    await runHarnessCommand(["harness", "run", "harness.md", "--mcp-config", "mcp.json"]);
+    await expect(
+      runSafeJS(
+        'import {servers,server} from "mcp"; return [Object.keys(servers),server("docs")];',
+        { modules: modules! }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [["docs"], { name: "docs" }]
+    });
+  });
+
   it("registers fs rooted at the harness directory when --fs is given", async () => {
     vol.fromJSON({
       "/repo/nested/harness.md": "---\nkind: test\nversion: 1\n---\n",

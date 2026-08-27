@@ -10,9 +10,10 @@ and the same-basename `.ajs` file, validates Markdown frontmatter against the
 `.ajs` `schema` export, lints the `.ajs` source, then executes the default export
 with real agent spawns.
 
-`npx --package poe-code poe-safejs <path>` is only a stub dry-runner. It uses canned agent
+`npx --package poe-code poe-safejs <path>` uses canned agent
 responses and is good for syntax, lint, schema, frontmatter, and control-flow
 checks before paying for real spawns. It does not prove real model behavior.
+Explicit `--fs` and `--mcp-config` capabilities are real, not stubs.
 
 ## Pair Layout
 
@@ -58,6 +59,14 @@ are returned in input order. Per-call `check: true` still rejects; with
 The retry policy runs before the result policy, including unchecked calls.
 
 ## Supported JavaScript
+
+Both runners accept `--mcp-config <json-path>` with a host-owned `servers` map
+of named stdio (`command`, optional `args`, `cwd`, `env`) or HTTP (`url`, optional
+`headers`) configurations. Scripts use `import {servers} from "mcp"` or
+`await client(server("name"))`; they cannot choose arbitrary commands or URLs.
+Connections are lazy and closed after each run. Stdio environments are empty
+unless explicitly configured. Tool calls are effectful: uncertain pending calls
+require reconciliation, not blind reissue on resume.
 
 Linted harness files support arrows, ordinary functions (including async
 functions), synchronous generators, closures over `const`, `let`, parameters, and imports,

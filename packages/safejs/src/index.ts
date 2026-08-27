@@ -74,4 +74,7 @@ export { makeHarnessModule } from "./modules/harness.js";
 export { makeLogModule } from "./modules/log.js";
 export { makeMetricModule } from "./modules/metric.js";
 export { makeMcpModule } from "./modules/mcp.js";
+export { parseMcpConfig } from "./modules/mcp-transport.js";
+export type { McpModuleOptions, McpServerConfig } from "./modules/mcp-transport.js";
+export type { ManagedMcpClient, ManagedMcpModule, McpNamedServerHandle } from "./modules/mcp.js";
 export { makeTimeModule } from "./modules/time.js";

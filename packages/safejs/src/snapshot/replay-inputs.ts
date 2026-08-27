@@ -22,7 +22,8 @@ export type ReplayInputs = {
 export function prepareReplayInputs(
   current: ReplayInputs,
   saved?: unknown,
-  preparePromise?: (promise: SandboxPromise | undefined, id: string) => SandboxPromise
+  preparePromise?: (promise: SandboxPromise | undefined, id: string) => SandboxPromise,
+  onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void
 ): {
   values: ReplayInputs;
   snapshot: ReplayData;
@@ -105,6 +106,7 @@ export function prepareReplayInputs(
   assertReplayInputShape(validated);
   const restored = decodeReplayData(saved, {
     resolveCapability,
+    onCapabilityRestored,
     resolvePromise: (id) => {
       const value = readCapability(id);
       if (!promises.has(id) && preparePromise !== undefined)

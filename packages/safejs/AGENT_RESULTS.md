@@ -80,7 +80,7 @@ capabilities. Error data cannot export functions or promises, and arrays cannot
 invoke accessors while being copied. Payloads obey string, array, depth, and
 aggregate-data budgets; catching a checked failure cannot bypass those limits.
 
-Snapshots use `jobs-v4`; incompatible `jobs-v3` snapshots are rejected before
+Snapshots use `jobs-v5`; incompatible earlier snapshots are rejected before
 effects, not migrated or silently reinterpreted. See `CHECKPOINT_REPLAY.md`.
 
 Lifecycle `spawn.failed` events include `checked`: true for rejecting failures,

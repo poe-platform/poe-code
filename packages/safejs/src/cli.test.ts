@@ -41,6 +41,40 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("SafeJS CLI", () => {
+  it("registers only explicitly configured MCP servers", async () => {
+    vol.fromJSON({
+      "/repo/script.ajs":
+        'import {servers,server} from "mcp"; return [Object.keys(servers),server("docs")];',
+      "/repo/mcp.json": JSON.stringify({ servers: { docs: { command: "never-start-this" } } })
+    });
+    const stdout = createSink();
+    const stderr = createSink();
+    expect(
+      await runCli(["--mcp-config", "mcp.json", "script.ajs"], { cwd: "/repo", stdout, stderr })
+    ).toBe(0);
+    expect(JSON.parse(stdout.output()).returnValue).toEqual([["docs"], { name: "docs" }]);
+    expect(stderr.output()).toBe("");
+    expect(
+      await runCli(["script.ajs"], { cwd: "/repo", stdout: createSink(), stderr: createSink() })
+    ).toBe(1);
+  });
+
+  it("accepts the same MCP options through the CLI SDK", async () => {
+    vol.fromJSON({
+      "/repo/script.ajs": 'import {servers} from "mcp"; return Object.keys(servers);'
+    });
+    const stdout = createSink();
+    expect(
+      await runCli(["script.ajs"], {
+        cwd: "/repo",
+        stdout,
+        stderr: createSink(),
+        mcp: { servers: { docs: { command: "never-start-this" } } }
+      })
+    ).toBe(0);
+    expect(JSON.parse(stdout.output()).returnValue).toEqual(["docs"]);
+  });
+
   beforeEach(() => {
     vol.reset();
     vol.mkdirSync("/repo", { recursive: true });

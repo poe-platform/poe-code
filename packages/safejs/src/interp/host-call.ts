@@ -105,8 +105,10 @@ export class HostCallJournal {
   private retainedSize = 0;
   private readonly outcomeSizes = new Map<string, number>();
   private readonly capabilities = new Map<string, SandboxClosure>();
+  private readonly requiredHostCapabilities = new Set<string>();
   private readonly capabilityIds = new WeakMap<SandboxClosure, string>();
   readonly nativeClosures = new WeakMap<object, SandboxClosure>();
+  private readonly hostSources = new WeakMap<SandboxClosure, object>();
   private readonly encodedOutcomes = new Map<
     string,
     { status: "fulfilled" | "rejected"; data: ReplayData }
@@ -137,7 +139,12 @@ export class HostCallJournal {
   ) {
     this.recordedReplay = replay !== undefined;
     if (replay !== undefined) {
-      const replayRecords = restoreReplayCalls(replay, this.encodedOutcomes, this.callbackSizes);
+      const replayRecords = restoreReplayCalls(
+        replay,
+        this.encodedOutcomes,
+        this.callbackSizes,
+        this.requiredHostCapabilities
+      );
       const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
       validateRestoredRecords(records, restoredRunId, sourceHash);
       for (const record of records) {
@@ -366,6 +373,33 @@ export class HostCallJournal {
     this.nativeClosures.set(native, closure);
   }
 
+  registerHostCapability(path: string, closure: SandboxClosure, native: object): void {
+    const identity = `host:${path}`;
+    const existing = this.capabilities.get(identity);
+    if (existing !== undefined && existing !== closure)
+      throw new TypeError(`Conflicting replay capability '${identity}'.`);
+    this.capabilities.set(identity, closure);
+    if (!this.capabilityIds.has(closure)) this.capabilityIds.set(closure, identity);
+    if (!this.nativeClosures.has(native)) this.nativeClosures.set(native, closure);
+    this.hostSources.set(closure, native);
+  }
+
+  rebindHostCapability(original: SandboxClosure, restored: SandboxClosure): void {
+    const identity = this.capabilityIds.get(original);
+    const source = this.hostSources.get(original);
+    if (identity === undefined || source === undefined) return;
+    this.capabilities.set(identity, restored);
+    this.capabilityIds.set(restored, identity);
+    this.nativeClosures.set(source, restored);
+    this.hostSources.set(restored, source);
+  }
+
+  validateHostCapabilities(): void {
+    for (const identity of this.requiredHostCapabilities) {
+      if (!this.capabilities.has(identity)) throw new UnresolvedReplayCapabilityError(identity);
+    }
+  }
+
   waitForCapability(id: string): Promise<void> {
     if (this.capabilities.has(id)) return Promise.resolve();
     const owner = id.slice(0, id.lastIndexOf("/function/"));
@@ -496,7 +530,8 @@ function copyOutcome(outcome: HostCallOutcome): HostCallOutcome {
 function restoreReplayCalls(
   input: unknown,
   encodedOutcomes: Map<string, { status: "fulfilled" | "rejected"; data: ReplayData }>,
-  callbackSizes: Map<string, number>
+  callbackSizes: Map<string, number>,
+  requiredHostCapabilities = new Set<string>()
 ): HostCallRecord[] {
   validateSnapshotData(input);
   if (
@@ -529,7 +564,27 @@ function restoreReplayCalls(
       );
     }
   }
-  const resolveCapability = (id: string) => capabilities.get(id);
+  const resolveCapability = (id: string) => {
+    if (!capabilities.has(id) && id.startsWith("host:")) {
+      const path: unknown = JSON.parse(id.slice(5));
+      if (
+        !Array.isArray(path) ||
+        path.length < 2 ||
+        path.some((value) => typeof value !== "string")
+      )
+        throw new TypeError("Invalid host capability identity.");
+      requiredHostCapabilities.add(id);
+      capabilities.set(
+        id,
+        createSandboxClosure({
+          call: () => {
+            throw new TypeError("Host capability has not been reconstructed.");
+          }
+        })
+      );
+    }
+    return capabilities.get(id);
+  };
   return input.calls.map((entry, index) => {
     if (entry === null || typeof entry !== "object" || Array.isArray(entry))
       throw new TypeError("Invalid replay call.");

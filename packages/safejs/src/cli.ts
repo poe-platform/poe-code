@@ -15,6 +15,8 @@ import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js"
 import { makeAgentModule } from "./modules/agent.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule, type FsModuleOptions } from "./modules/fs.js";
+import { makeMcpModule } from "./modules/mcp.js";
+import { parseMcpConfig, type McpModuleOptions } from "./modules/mcp-transport.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
@@ -49,6 +51,7 @@ export type WriteMarkdownFile = (
 
 export type RunCliOptions = {
   cwd?: string;
+  mcp?: McpModuleOptions;
   modulesFor?: (
     frontmatter: Record<string, unknown>,
     meta: HarnessMeta,
@@ -73,6 +76,7 @@ type ParsedArgs = {
   fix: boolean;
   fs: boolean;
   fsRoot?: string;
+  mcpConfig?: string;
   dataSize?: number;
   maxSteps?: number;
   restorePath?: string;
@@ -131,6 +135,7 @@ export async function runCli(
 
         return await runScriptFile(filepath, parsed, {
           cwd,
+          mcp: options.mcp,
           modulesFor: options.modulesFor,
           process: options.process ?? process,
           readFile: options.readFile ?? readFile,
@@ -183,6 +188,12 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 
     if (arg === "--fs-root") {
       parsed.fsRoot = readFlagValue(argv, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--mcp-config") {
+      parsed.mcpConfig = readFlagValue(argv, index, arg);
       index += 1;
       continue;
     }
@@ -277,6 +288,7 @@ async function runScriptFile(
   parsed: ParsedArgs,
   options: {
     cwd: string;
+    mcp: McpModuleOptions | undefined;
     modulesFor: RunCliOptions["modulesFor"];
     brokenPipe: BrokenPipeState;
     process: CliProcess;
@@ -300,6 +312,20 @@ async function runScriptFile(
     stderr: options.stderr,
     stdout: options.stdout
   });
+  let mcp = options.mcp;
+  if (parsed.mcpConfig !== undefined) {
+    if (mcp !== undefined) throw new TypeError("Pass MCP options or --mcp-config, not both.");
+    const configPath = path.resolve(options.cwd, parsed.mcpConfig);
+    mcp = parseMcpConfig(await options.readFile(configPath, "utf8"), dirname(configPath));
+  }
+  if (mcp !== undefined) {
+    const registry = new Map(
+      runtime.registry instanceof Map ? runtime.registry : Object.entries(runtime.registry)
+    );
+    if (registry.has("mcp")) throw new TypeError("MCP is already registered by modulesFor.");
+    registry.set("mcp", makeMcpModule(mcp));
+    runtime.registry = registry;
+  }
   const modules = excludeHarnessModule(runtime.registry, loaded.isRawScript);
   let executableSource = loaded.executableSource;
   const lintResult = parsed.fix
@@ -645,6 +671,7 @@ function createUsage(): string {
     "                        git, and metric stubs this runner bundles",
     "  --fs-root <path>      directory --fs confines the script to (default: the script's",
     "                        directory)",
+    "  --mcp-config <path>   register named MCP servers from an explicit JSON config",
     "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
     "  --restore <path>      restore from a snapshot before running",
     "  --max-steps <n>       cap interpreter step budget",

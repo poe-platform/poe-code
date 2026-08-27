@@ -116,12 +116,12 @@ Letting an LLM call MCP tools turn-by-turn is expensive, slow, and non-determini
 ```js
 import { client, server } from "mcp";
 
-const fs = await client(server({ command: "mcp-fs", args: ["--root", "/tmp/work"] }));
+const fs = await client(server("files"));
 const tools = await fs.tools();
 const result = await fs.tool("read_file", { path: "/tmp/work/notes.md" });
 ```
 
-The host wires up the actual transport via a `connectMcp` callback (see [`src/modules/mcp.ts`](src/modules/mcp.ts)). The script composes tool calls.
+The host grants named stdio or HTTP servers through `makeMcpModule({ servers, requestTimeoutMs?, closeTimeoutMs?, maxToolPages?, signal?, fetch?, spawn? })` or either CLI's `--mcp-config <path>`. Connections are lazy and cleaned up per run; see [`MCP.md`](MCP.md) for configuration, environment policy, methods, and replay.
 
 ### 3. Sandboxed user scripting
 
@@ -175,7 +175,7 @@ Registered by the caller via the factory functions exported from the package. No
 | `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                |
 | `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                                 |
 | `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                                           |
-| `mcp`     | `makeMcpModule(connectMcp)`            | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                                        |
+| `mcp`     | `makeMcpModule({ servers, ...options })` | Named stdio/HTTP clients: `tools()`, `tool(name, args)`, `toolBatch(calls)`, `close()`; custom connectors remain supported |
 | `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                               |
 | `fs`      | `makeFsModule({ root?, fs? })`         | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module) |
 | `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                               |
@@ -322,7 +322,6 @@ no module bodies to inspect.
 ## Gotchas
 
 - **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
-- **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
 - **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no partial-result fallback; choose budgets that fit the workload or wrap the run in your own retry policy.
 

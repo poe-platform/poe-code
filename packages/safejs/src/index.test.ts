@@ -106,6 +106,7 @@ describe("@poe-code/safejs public exports", () => {
       "makeTimeModule",
       "noopOtelSink",
       "parse",
+      "parseMcpConfig",
       "parseModule",
       "registerPendingHostCallPolicy",
       "restore",

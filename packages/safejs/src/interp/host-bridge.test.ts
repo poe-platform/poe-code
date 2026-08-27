@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { run } from "../run.js";
+import { dump } from "../dump.js";
 import { Budget } from "./budget.js";
 import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import {
@@ -13,6 +14,82 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it("preserves one host function identity across bindings and module aliases", async () => {
+    const method = () => 7;
+    const source = 'import {method} from "host"; return [method===alias,(await get())===method];';
+    const options = {
+      bindings: { alias: method, get: async () => method },
+      modules: { host: { method } }
+    };
+    const first = await run(source, options);
+    expect(first.returnValue).toEqual([true, true]);
+    await expect(
+      run(source, { ...options, snapshot: JSON.parse(await dump(first)) })
+    ).resolves.toMatchObject({ returnValue: [true, true] });
+  });
+
+  it("keeps host capability paths distinct for dotted keys and collection entries", async () => {
+    const left = () => "left";
+    const right = () => "right";
+    const modules = {
+      host: {
+        "a.b": { c: left },
+        a: { b: { c: right } },
+        map: new Map([
+          ["left", left],
+          ["right", right]
+        ]),
+        set: new Set([left, right]),
+        get: async () => [left, right]
+      }
+    };
+    const source =
+      'import {get} from "host"; const [left,right]=await get(); return [left(),right()];';
+    const first = await run(source, { modules });
+    expect(first.returnValue).toEqual(["left", "right"]);
+    await expect(
+      run(source, { modules, snapshot: JSON.parse(await dump(first)) })
+    ).resolves.toMatchObject({ returnValue: ["left", "right"] });
+  });
+
+  it.each(["map", "set"])("registers separate host methods in a %s", async (kind) => {
+    const left = () => "left";
+    const right = () => "right";
+    const values =
+      kind === "map"
+        ? new Map([
+            ["left", left],
+            ["right", right]
+          ])
+        : new Set([left, right]);
+    const modules = { host: { values, get: async () => [left, right] } };
+    const source =
+      'import {get} from "host"; const [left,right]=await get(); return [left(),right()];';
+    const first = await run(source, { modules });
+    await expect(
+      run(source, { modules, snapshot: JSON.parse(await dump(first)) })
+    ).resolves.toMatchObject({ returnValue: ["left", "right"] });
+  });
+
+  it("replays returned methods that are already registered host capabilities", async () => {
+    const read = vi.fn(async () => 7);
+    const service = { read };
+    const modules = { host: { services: { main: service }, client: async () => service } };
+    const source =
+      'import {client} from "host"; const service=await client(); return await service.read();';
+    const first = await run(source, { modules });
+    const snapshot = JSON.parse(await dump(first));
+    await expect(run(source, { modules, snapshot })).resolves.toMatchObject({
+      ok: true,
+      returnValue: 7
+    });
+    expect(read).toHaveBeenCalledTimes(1);
+    await expect(
+      run(source, { modules: { host: { client: async () => service } }, snapshot })
+    ).rejects.toThrow(/capability/i);
+    expect(read).toHaveBeenCalledTimes(1);
+  });
+
   it("does not invoke array accessors while copying aggregate failures", async () => {
     const accessor = vi.fn(() => "host secret");
     const failure = new AggregateError([], "failed");

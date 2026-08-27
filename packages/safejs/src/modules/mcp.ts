@@ -1,3 +1,14 @@
+import { McpError } from "tiny-mcp-client";
+import { hostErrorData } from "../error/shape.js";
+import { declareHostOperation } from "../interp/host-bridge.js";
+import { runResources } from "../interp/resources.js";
+import {
+  connectMcpTransport,
+  normalizeMcpOptions,
+  type ManagedMcpConnection,
+  type McpModuleOptions
+} from "./mcp-transport.js";
+
 export type McpModuleServerHandle = {
   command: string;
   args?: string[];
@@ -65,16 +76,136 @@ const DEFAULT_TOOL_BATCH_CONCURRENCY = 4;
 
 export type ConnectMcp = (server: McpModuleServerHandle) => Promise<McpConnection> | McpConnection;
 
-export function makeMcpModule(connectMcp: ConnectMcp): {
+export type McpNamedServerHandle = { name: string };
+export type ManagedMcpClient = McpModuleClient & { close(): Promise<void> };
+export type ManagedMcpModule = {
+  servers: Record<string, ManagedMcpClient>;
+  server(name: string): McpNamedServerHandle;
+  client(handle: McpNamedServerHandle | string): Promise<ManagedMcpClient>;
+};
+
+type CustomMcpModule = {
   server(server: McpModuleServerHandle): McpModuleServerHandle;
   client(handle: McpModuleServerHandle): Promise<McpModuleClient>;
-} {
+};
+
+export function makeMcpModule(options: McpModuleOptions): ManagedMcpModule;
+export function makeMcpModule(connectMcp: ConnectMcp): CustomMcpModule;
+export function makeMcpModule(
+  connectMcp: ConnectMcp | McpModuleOptions
+): CustomMcpModule | ManagedMcpModule {
+  if (typeof connectMcp !== "function") {
+    const options = normalizeMcpOptions(connectMcp);
+    const servers = Object.create(null) as Record<string, ManagedMcpClient>;
+    for (const [name, config] of Object.entries(options.servers)) {
+      const connections = new WeakMap<object, ManagedMcpConnection>();
+      const directScope = {};
+      const connection = () => {
+        const scope = runResources.getStore();
+        scope?.signal.throwIfAborted();
+        options.signal?.throwIfAborted();
+        const owner = scope ?? directScope;
+        let current = connections.get(owner);
+        if (current === undefined) {
+          current = connectMcpTransport(config, options, scope?.signal);
+          connections.set(owner, current);
+          scope?.add(current.close);
+        }
+        return current.ready;
+      };
+      const invoke = async <Result>(
+        operation: (client: Awaited<ReturnType<typeof connection>>) => Promise<Result>
+      ): Promise<Result> => {
+        try {
+          const result = await operation(await connection());
+          runResources.getStore()?.signal.throwIfAborted();
+          options.signal?.throwIfAborted();
+          return result;
+        } catch (error) {
+          runResources.getStore()?.signal.throwIfAborted();
+          options.signal?.throwIfAborted();
+          if (error instanceof McpError) {
+            hostErrorData.set(error, {
+              code: error.code,
+              ...(error.data === undefined ? {} : { data: error.data })
+            });
+          }
+          throw error;
+        }
+      };
+      servers[name] = {
+        tools: declareHostOperation(
+          async () =>
+            invoke(async (client) => {
+              const tools: McpModuleTool[] = [];
+              const cursors = new Set<string>();
+              let pages = 0;
+              let cursor: string | undefined;
+              do {
+                const result = await client.listTools(
+                  cursor === undefined ? undefined : { cursor }
+                );
+                pages += 1;
+                tools.push(...normalizeToolsResult(result));
+                cursor = result.nextCursor;
+                if (cursor !== undefined) {
+                  if (typeof cursor !== "string" || cursors.has(cursor))
+                    throw new Error("MCP tools pagination did not advance.");
+                  cursors.add(cursor);
+                  if (pages >= options.maxToolPages!)
+                    throw new Error("MCP tools page limit exceeded.");
+                }
+              } while (cursor !== undefined);
+              return tools;
+            }),
+          "re-issue"
+        ),
+        tool: declareHostOperation(async (toolName: string, args?: unknown) => {
+          const request = createNullRecord({
+            name: readNonEmptyTrimmedString(toolName, "MCP tool name"),
+            ...(args === undefined ? {} : { arguments: readToolArguments(args) })
+          });
+          return invoke((client) => client.callTool(request));
+        }, "read-side-effect"),
+        toolBatch: declareHostOperation(async (calls: McpModuleToolCall[]) => {
+          const normalized = readToolBatchCalls(calls);
+          if (normalized.length === 0) return [];
+          return invoke((client) => executeToolBatch(client, normalized));
+        }, "read-side-effect"),
+        close: declareHostOperation(async () => {
+          const owner = runResources.getStore() ?? directScope;
+          const current = connections.get(owner);
+          if (current !== undefined) {
+            await current.close();
+            connections.delete(owner);
+          }
+        }, "re-issue")
+      };
+    }
+    const readName = (value: unknown): string => {
+      const name = readNonEmptyString(value, "MCP server name");
+      if (!Object.hasOwn(servers, name)) throw new Error(`MCP server '${name}' is not configured.`);
+      return name;
+    };
+    return {
+      servers,
+      server(name: string) {
+        return createNullRecord({ name: readName(name) });
+      },
+      async client(handle: McpNamedServerHandle | string) {
+        if (typeof handle === "string") return servers[readName(handle)];
+        if (!isRecord(handle) || Object.keys(handle).length !== 1 || !Object.hasOwn(handle, "name"))
+          throw new TypeError("MCP client requires a named server handle.");
+        return servers[readName(getOwnProperty(handle, "name"))];
+      }
+    };
+  }
   return {
-    server(server) {
+    server(server: McpModuleServerHandle) {
       return normalizeServerHandle(server);
     },
 
-    async client(handle) {
+    async client(handle: McpModuleServerHandle) {
       const connection = validateConnection(await connectMcp(normalizeServerHandle(handle)));
 
       return {
@@ -82,7 +213,7 @@ export function makeMcpModule(connectMcp: ConnectMcp): {
           return normalizeToolsResult(await connection.listTools());
         },
 
-        async tool(name, args) {
+        async tool(name: string, args?: unknown) {
           return connection.callTool(
             createNullRecord({
               name: readNonEmptyTrimmedString(name, "MCP tool name"),
@@ -91,7 +222,7 @@ export function makeMcpModule(connectMcp: ConnectMcp): {
           );
         },
 
-        async toolBatch(calls) {
+        async toolBatch(calls: McpModuleToolCall[]) {
           return executeToolBatch(connection, readToolBatchCalls(calls));
         }
       };

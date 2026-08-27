@@ -22,7 +22,7 @@ language completeness from passing existing tests alone.
       requiring callers to remember an extra option.
 - [x] Promise construction: implement sandboxed executors, settlement, chaining,
       rejection handling, budgets, and snapshot behavior.
-- [ ] Agent failures: provide explicit checked/unchecked result handling with
+- [x] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
 - [ ] MCP: provide usable transport integration without requiring custom glue.
 - [ ] Environment: make capability configuration explicit and missing/denied
@@ -1149,6 +1149,119 @@ Released in poe-code 7.0.2:
 - The unhandled CLI failure snapshot from visual testing was archived at
   `/tmp/safejs-agent-cli-state.djWI5i/state.tar.gz` before removal. The unrelated
   terminal-pilot font assets remain untouched.
+- Released the packaging fix as `poe-code 8.0.1`: implementation commit
+  `f6fd29f7`, metadata regression commit `44131b6b`, successful Release run
+  `33043430657`. npm gitHead and GitHub tag both resolve to
+  `44131b6b9152539afa4b1c117ffabe9b7f05add5`; npm publication was
+  August 27, 2026 at 05:55:13 UTC. CI build, package lint, full tests, and
+  installed SDK/CLI smoke tests all pass.
+- The first push correctly stopped on two metadata expectations listing the
+  former exports and binaries. Updated the allowlists and added exact export
+  targets/bin checks; the focused 14 tests and full pre-push suite then pass:
+  20,978 passed, 41 skipped. No hooks were bypassed.
+- A fresh exact-version npm consumer at `/tmp/safejs-published-final.cMte0m`
+  independently passes three public entrypoints, shared runtime identity,
+  checked-error replay, 480 native cases/960 restores, 480 cancellation cases,
+  12 observer cases, 54 CLI cases/90 restores, and 120 entrypoint cases across
+  402 processes. All 19 installation symlinks resolve within this consumer;
+  none points to the repository or another external dependency tree.
+- Public-entrypoint smoke tests pass on Node 18.18.2, 18.20.8, 20.20.0,
+  22.22.2, and 24.14.0, including the published consumer. The candidate's full
+  entrypoint matrix also passes on Node 18.18.2, 20.20.0, and 24.14.0:
+  1,206 processes with no mismatches. The Node 18.18.2 result/replay matrix and
+  Node 24.14.0 CLI matrix pass independently.
+- Final budget stress passes 120 result-payload cases with zero catch escapes
+  and 360 fatal-Promise cases with zero effects, 360 cleanups, and zero pending
+  escapes. The published binary screenshot was inspected. All 153 removed
+  files and six obsolete directories remain absent locally and in the installed
+  release; the local package inventory has 3,336 entries and all five binaries.
+- These checks close the agent-result policy and standalone packaging item,
+  not the remaining language-completeness checklist or snapshot migration.
+
+## MCP transport integration — release validation
+
+Replace the mandatory custom connector with an opt-in host configuration of
+named stdio or HTTP servers. Scripts may select only those names; command,
+environment, endpoint, and authorization details stay on the host. Keep custom
+connector injection compatible. Never register MCP without explicit SDK options
+or a CLI configuration flag, and never inherit the parent's complete environment
+for a configured child process.
+
+Use the existing tiny-mcp-client protocol implementation. Connect lazily, share
+each connection within one run, isolate concurrent runs, and close connections
+after success, failure, cancellation, and resource exhaustion. Bound shutdown,
+including unresponsive HTTP termination and children ignoring SIGTERM. SDK users
+outside a run can close their clients explicitly. Both CLIs accept the same
+configuration shape as the SDK, resolving relative paths from the config file.
+
+Pre-register named client capabilities so completed replay can rebind methods
+without opening transports. Tool calls are effectful: replay completed results,
+and require reconciliation rather than silently reissuing an uncertain call.
+Add failing tests for capability denial, protocol exchange, cancellation,
+cleanup, parallel-run isolation, and checkpoint restore before implementation.
+Exercise stdio and local HTTP in external stress scripts, with no live LLMs or
+paid services. Repeat clean-consumer and stale-artifact audits before release.
+
+### Implemented and verified locally
+
+- Added named stdio/HTTP configuration, SDK/CLI parity, empty-by-default child
+  environments, redirect rejection, bounded request/body/shutdown lifetimes,
+  pagination limits, per-run connection ownership, and JSON-RPC error payloads.
+  Both CLIs require explicit `--mcp-config`; custom connectors remain compatible.
+- TDD exposed missing returned-host-method replay identities. Added registered
+  capability rebinding, preserving aliases across bindings and modules. Further
+  tests caught dotted-key and Map/Set path collisions and a restored-input clone
+  identity mismatch. Structured capability paths and rebinding fix those cases.
+- Execution semantics advance to `jobs-v5`. An actual published 8.0.1 consumer
+  returns false for a shared host function imported and injected under aliases;
+  the corrected runtime returns true. Its valid `jobs-v4` snapshot is rejected
+  before effects. This is explicit incompatibility, not snapshot migration.
+- Focused suites pass 3,938 tests, with 39 skips. Unit tests cover active and early
+  cancellation, stalled response bodies, unresponsive HTTP DELETE, SIGTERM
+  escalation, parallel ownership, pagination, forged handles, and uncertain
+  effect reconciliation. The existing installed SDK/CLI CI smoke now exercises
+  managed MCP, completed replay, and shared cleanup ownership.
+- `/tmp/safejs-mcp-matrix.mjs` compares four script families with native JS at
+  widths 1, 8, and 32, using ordinary, prototype-named, and Unicode server names.
+  Each run passes 72 stdio/HTTP cases, 144 completed restores, and 20 cancellation
+  cases; all 82 child processes exit and all 82 HTTP sessions terminate. It passes
+  against both workspace output and an isolated installed archive, including
+  Node 18.18.2 and 24.14.0 in addition to Node 22.22.2.
+- `/tmp/safejs-mcp-crash.mjs` passes 12 actual SIGKILL/restart cases at widths
+  1, 8, 32, and 128. The installed archive independently passes the same matrix,
+  with zero repeated tool effects and no remaining child processes. These are
+  checkpointed windows, not a claim of exactly-once effects for arbitrary crashes.
+- `/tmp/safejs-mcp-failures.mjs` passes 24 payload-budget cases and 12 protocol,
+  process-exit, and request-timeout cases against the isolated archive. No fatal
+  budget escapes into catch, and no child process remains alive.
+- Promise regression passes 2,916 native cases/5,832 restores; fatal-Promise
+  stress passes 360 cases with zero effects or pending escapes and 360 cleanups.
+  Agent-result regression passes 480 cases/960 restores, 480 cancellations,
+  12 observer cases, and 120 payload-budget cases with zero catch escapes.
+- The clean consumer at `/tmp/safejs-mcp-consumer.ZXjSVx/project` passes three
+  public entrypoints, strict TypeScript checks, and the exact updated installed
+  SDK/CLI smoke script. All 19 symlinks resolve within the consumer. The archive
+  contains 3,350 entries and all five binaries. Screenshots of standalone MCP,
+  root harness MCP (zero agent spawns), and the new help option were inspected.
+- Updated the SafeJS skill template and synced all six installed copies. All
+  67 workspace tasks pass a forced build, followed by a cache-hit/root bundle
+  build. ESLint, typechecks, workflow lint, and all 17 package-lint rules pass.
+  Cleanup still verifies 153 removed files and six obsolete directories absent
+  locally and in the installed archive; unrelated terminal-pilot assets remain.
+
+### Manual release QA
+
+1. Run the focused suites and the three MCP stress scripts named above.
+2. Run the native Promise, fatal-budget, and agent-result regression matrices.
+3. Inspect both CLI screenshots and the new help option; use only the local
+   stdio fixture, never a paid provider or a live LLM.
+4. Pack and install as a dependency in a fresh consumer, without repository
+   node_modules links. Repeat MCP matrices and public-entrypoint/type checks.
+5. Run `/tmp/safejs-cleanup-audit.mjs <consumer-directory>` after forced/cache-hit
+   builds and again against the exact published version.
+6. Commit this item, push main normally, and monitor Release to success. Verify
+   npm gitHead and the GitHub tag, then repeat the isolated-consumer checks before
+   marking the MCP checklist item complete.
 
 ## Stale artifact cleanup
 

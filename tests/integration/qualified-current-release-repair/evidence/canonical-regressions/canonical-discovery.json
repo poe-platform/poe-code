@@ -1,0 +1,14 @@
+{
+  "name": "canonical-discovery",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict';import{globSync}from'node:fs';const files=globSync('tests/**/*.test.ts',{exclude:path=>path==='tests/commands/regex-execution/continuation/artifacts/native'});assert.ok(files.includes(\"tests/integration/qualified-current-release-repair/coverage.test.ts\"));console.log(JSON.stringify({fixture:\"tests/integration/qualified-current-release-repair/coverage.test.ts\",discovered:true,scope:'exact npm glob on selected frozen copy, not whole-suite execution'}));"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-regressions-5h7axC",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"fixture\":\"tests/integration/qualified-current-release-repair/coverage.test.ts\",\"discovered\":true,\"scope\":\"exact npm glob on selected frozen copy, not whole-suite execution\"}\n",
+  "stderr": ""
+}

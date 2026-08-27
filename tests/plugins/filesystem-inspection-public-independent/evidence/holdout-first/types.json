@@ -1,0 +1,14 @@
+{
+  "name": "types",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-h15wka/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-h15wka/moved/consumer.json"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-h15wka/moved",
+  "status": 2,
+  "signal": null,
+  "stdout": "consumer.mts(88,27): error TS2379: Argument of type '{ capabilities: { streamingRead: false; readOnly: false; symlinks: true; hardlinks: true; permissions: true; timestamps: true; atomicRename: true; streamingWrite: true; }; readStream: undefined; readFile(): Promise<...>; }' is not assignable to parameter of type 'Partial<FileSystem>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'readStream' are incompatible.\n    Type 'undefined' is not assignable to type '(path: string, options?: ReadStreamOptions | undefined) => ByteSource'.\n",
+  "stderr": ""
+}

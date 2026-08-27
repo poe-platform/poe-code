@@ -1959,3 +1959,33 @@ that any implementation, command, fixture, or test currently exists.
   copy before producer advance/finalization; slice/subarray are views; completed
   awaited transient writes do not require blanket copies. No arbitrary mutation
   safety, new lease API, full native parity, superiority or72-hour completion.
+
+### Independent tree/file public review and release runtime repair
+
+- Different integration reviewer replayed frozen79316dfe: unchanged199/199,
+  packed13/13 twice, two adjacent consumers, six negative types/five denials.
+  New independent11/11 public controls, six negative types/five denials pass;
+  packc61274d0 matches the author. Exact70 defaults, typed option/limit forwarding,
+  authoritative replacement, VFS pipelines/refusals and source denial verified.
+  No full native parity claim. First own TS2379 wrapper-input error retained;
+  only the fixture's optional-override input type changed, not expectations.
+- Curie862fdc54 accepted all original20 inventory classifications but found two
+  execution holes. Repairc3fbda6279028fd2bde9f6d967970870ff7546aa separates the
+  self-contained injected-fetch atomic consumer from real TLS-only inputs and
+  adds mandatory canonical-runtime/count validation before/after execution.
+  Broad empty-prefix escape removed without changing the177-entry census.
+- Frozen repair:18 strict groups/16 emitted programs pass, including unchanged
+  atomic runtime (one configured removal, three final PROPFIND observations),
+  WebDAV13/13 plus20 controls/3mutant kills, S3 constructor6/6 and exact2+5 type
+  diagnostics. New canonical regressions24/24 and scoped strict types pass.
+  Actual runner: declared sentinel rejects; omitted runtime rejects before any
+  work; missing actual result record rejects. Two guard-removal mutants detected.
+- Candidate includes byte7a517cec/7d7dce7c and rmdir3bf672f; src/package/lock/README
+  bytes match79316dfe. Uncommitted env-S work excluded. Harness541f2758 is separate
+  from evidence. Owned scratch cleaned, foreign staging/scopes untouched.
+- Preserve847dfd7 exit0 as incomplete execution coverage, not complete release
+  acceptance. No original historical inputs/expectations rewritten, no product
+  patch/dependency/private access. Curie must independently verify this repair;
+  root decides the next full-gate/comparison run. Evidence and exact reproduction
+  are in tests/integration/qualified-current-release-repair and
+  tests/plugins/filesystem-inspection-public-independent. No whole gate rerun.

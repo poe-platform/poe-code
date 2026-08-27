@@ -1,0 +1,16 @@
+{
+  "name": "unpack",
+  "command": [
+    "/usr/bin/tar",
+    "-xf",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/packages/virtual-bash-0.0.0.tgz",
+    "--strip-components=1",
+    "-C",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/staged-consumer/node_modules/virtual-bash"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

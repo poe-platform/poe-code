@@ -1,0 +1,938 @@
+{
+  "candidate": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+  "harnessCommit": "541f275843c2d06ab78500f559898e766973031a",
+  "ancestors": [
+    {
+      "ref": "7a517cec",
+      "commit": "7a517cecab21d9fbff204df01a6a2ad2712a7673",
+      "included": true
+    },
+    {
+      "ref": "7d7dce7c",
+      "commit": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+      "included": true
+    },
+    {
+      "ref": "3bf672f",
+      "commit": "3bf672f722da2bdf1591ed112290b702987bf63a",
+      "included": true
+    },
+    {
+      "ref": "1ad428ed",
+      "commit": "1ad428edb7bce7d30f081c0e9bd4332eb280c677",
+      "included": true
+    },
+    {
+      "ref": "2ae131a9",
+      "commit": "2ae131a9c2a1944957eea124ef90b4cd68a551b8",
+      "included": true
+    },
+    {
+      "ref": "79316dfe",
+      "commit": "79316dfe792d9342eda2cedff503f98f431778c4",
+      "included": true
+    }
+  ],
+  "sourceDeltaFromPublicCandidate": "",
+  "inventoryCounts": {
+    "current": 29,
+    "declaration": 4,
+    "frozen-oracle": 1,
+    "frozen-evidence": 141,
+    "negative-types": 2
+  },
+  "classifications": [
+    {
+      "path": "tests/commands/regex-execution/continuation/package-consumer.mts",
+      "classification": "current",
+      "sha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3"
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/product-consumer.mts",
+      "classification": "current",
+      "sha256": "98002da21b35415d69181b33fed9a2011a8dea758fd63407d0e17a8d488bb36d"
+    },
+    {
+      "path": "tests/commands/regex-execution/package-consumer.mts",
+      "classification": "current",
+      "sha256": "a3d27cd3208a139758543299cfb1646ce27786d978f0cb7afa515f86b237f1f2"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+      "classification": "declaration",
+      "sha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+      "classification": "declaration",
+      "sha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+      "classification": "declaration",
+      "sha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7"
+    },
+    {
+      "path": "tests/commands/time-env-stress/consumer.mts",
+      "classification": "frozen-oracle",
+      "sha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "classification": "frozen-evidence",
+      "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "classification": "frozen-evidence",
+      "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "classification": "negative-types",
+      "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+      "classification": "current",
+      "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "classification": "negative-types",
+      "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+      "classification": "current",
+      "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273"
+    },
+    {
+      "path": "tests/fs/s3/constructor-comparison/consumer.mts",
+      "classification": "current",
+      "sha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383"
+    },
+    {
+      "path": "tests/fs/s3/http-independent/public-workflow.mts",
+      "classification": "current",
+      "sha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf"
+    },
+    {
+      "path": "tests/fs/s3/http/author/public-consumer.mts",
+      "classification": "current",
+      "sha256": "190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd"
+    },
+    {
+      "path": "tests/fs/s3/rmdir-independent/public-consumer.mts",
+      "classification": "current",
+      "sha256": "d409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "classification": "current",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "classification": "current",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "classification": "current",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "classification": "current",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/consumer.test.mts",
+      "classification": "current",
+      "sha256": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/example.mts",
+      "classification": "current",
+      "sha256": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/provider.mts",
+      "classification": "current",
+      "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/types.mts",
+      "classification": "current",
+      "sha256": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/independent.mts",
+      "classification": "current",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+      "classification": "current",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/consumer.mts",
+      "classification": "current",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "6d5191014fa83b3a9d62bb7c9ec6d7bc61f690a377a45f2579385dc516ca6224"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "55d83eb7dca8c1a364f7312a7e015163a6f6653c516b68bc6d9e631b38930ebb"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/example.mts",
+      "classification": "current",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/https.mts",
+      "classification": "current",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/phase2-consumer.mts",
+      "classification": "current",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/release-timestamp-independent/independent.test.mts",
+      "classification": "current",
+      "sha256": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "sha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "sha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/feasibility.mts",
+      "classification": "current",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+      "classification": "current",
+      "sha256": "719046b74bf7fb6ae2f20ef5a7b011e73c5346367eeabf5becf787b5055fbb9d"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+      "classification": "current",
+      "sha256": "e4ab1b52cfd29465fa064dea6b1ff5cb6e5648463aace59beec41e5eaee1468e"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/support.d.mts",
+      "classification": "declaration",
+      "sha256": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/package-consumer.mts",
+      "classification": "current",
+      "sha256": "f885b55a6a280729b109084ae36885167135f3e753052f98aa01b4f206dd39cc"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/package-consumer.mts",
+      "classification": "current",
+      "sha256": "b2d369407771c8f6760adff58fa2eff193879f1932c545870831a7d19fd84675"
+    }
+  ],
+  "old847Qualification": "exit0 retained, incomplete execution coverage",
+  "productionAndHistoricalFixturesChanged": false,
+  "envS": "uncommitted execution.ts/env-split.ts excluded from this frozen source; no current worktree gate claim",
+  "sourceTreeSha256": "277877db7082772bf22026d1f77532ce0ba491677442033bb7043107490b165a",
+  "testTreeSha256": "733bb83b5a3ca87888d343e9d241bbef4b9c3df7e83a86af511a066d8ce5fbdd",
+  "harnessSha256": "6b8ad8a01f40824743408a904c7c846f9129da481910eaa118f40240c510298e",
+  "packageInputMatch": "79316dfe source/manifest/lock/README/TS configs identical"
+}

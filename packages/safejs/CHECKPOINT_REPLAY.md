@@ -154,18 +154,26 @@ callback execution traces also consume the aggregate data budget.
 
 ## Execution compatibility
 
-New run snapshots carry `executionSemantics: "jobs-v2"`. Promise jobs run after
+New run snapshots carry `executionSemantics: "jobs-v3"`. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their
 receiver, ignore settlement attempts after the first, and finish their current
 synchronous invocation before await continuations execute.
 
-The `jobs-v2` marker also covers the callable `Promise` constructor, its shared
+The `jobs-v3` marker includes the callable `Promise` constructor, its shared
 prototype methods and receiver checks, and identity-preserving cancellation at
 host boundaries. `jobs-v1` snapshots from poe-code 5.0.0 are incompatible: even
 unchanged source such as `return typeof Promise` observes a different global.
 They are rejected before host operations, not silently replayed under new rules.
+
+The marker also covers function-scoped var/parameter bindings and separate body
+environments when parameter expressions exist. `jobs-v2` snapshots from poe-code
+6.0.0 can produce different results for unchanged source: a closure created in a
+default parameter must not capture a subsequently declared body var. Published
+6.0.0 fixtures reproduce this difference and three formerly failing redeclaration
+cases. Such snapshots are rejected before any host effects, rather than silently
+replayed with the corrected bindings. This remains rejection, not migration.
 
 These corrections change execution ordering, not the parsed source hash. An
 upgrade probe against poe-code 4.0.71 reproduced both changed results and stalled

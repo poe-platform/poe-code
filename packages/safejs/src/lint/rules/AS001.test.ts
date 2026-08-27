@@ -59,50 +59,9 @@ describe("AS001", () => {
 
     expect(AS001("new Example()")).toEqual([]);
 
-    expect(AS001("this.value")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: this.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 5, offset: 4 }
-        }
-      }
-    ]);
-
-    expect(AS001("var value = 1")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: var.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 4, offset: 3 }
-        }
-      }
-    ]);
-
-    expect(AS001("switch (value) { case 1: break; }")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: switch.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 7, offset: 6 }
-        }
-      }
-    ]);
+    expect(AS001("this.value")).toEqual([]);
+    expect(AS001("var value = 1")).toEqual([]);
+    expect(AS001("switch (value) { case 1: break; default: break; }")).toEqual([]);
 
     expect(AS001("with (context) value")).toEqual([
       {
@@ -291,8 +250,8 @@ describe("AS001", () => {
     expect(messages("const done = true;\nFunction('return 1')")).toEqual([
       "Disallowed syntax: Function."
     ]);
-    expect(messages("export default () => () => this.value;")).toEqual([
-      "Disallowed syntax: this."
+    expect(messages("export default () => () => eval(value);")).toEqual([
+      "Disallowed syntax: eval."
     ]);
   });
 

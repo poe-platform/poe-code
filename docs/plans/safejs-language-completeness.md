@@ -20,7 +20,7 @@ language completeness from passing existing tests alone.
       silently restoring incompatible execution state or repeating side effects.
 - [x] Randomness: make default randomness resumable and deterministic without
       requiring callers to remember an extra option.
-- [ ] Promise construction: implement sandboxed executors, settlement, chaining,
+- [x] Promise construction: implement sandboxed executors, settlement, chaining,
       rejection handling, budgets, and snapshot behavior.
 - [ ] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
@@ -827,6 +827,22 @@ Validation executed after these fixes:
 No constructor release has been made at this checkpoint. Passing these gates is
 evidence for this item, not proof that the full language-completeness goal is done.
 
+### Constructor release verification
+
+- Committed as `0de207aff8e7313353a3e291c2c02006dc3b6876`
+  (`feat(safejs)!: implement sandbox Promise constructors`) after integrating seven
+  newer main commits. Normal commit hooks passed. The integrated workspace/root
+  build, typecheck, and ESLint passed again.
+- Pushed to main with normal hooks: package lint passed and the full repository
+  suite passed 20,851 tests with 41 skipped across 917 passing files and three
+  skipped files. No hook bypass or local npm publish.
+- GitHub Release run `33034898845` completed successfully, including build,
+  signature audit, package lint, unit tests, smoke checks, and publication.
+  GitHub published tag `v6.0.0` at `2026-08-27T03:08:26Z`.
+  `npm view poe-code@latest version gitHead --json` returned `6.0.0` and the exact
+  commit above. The breaking release requires `jobs-v2`; old snapshots must use
+  their original runtime. This is compatibility rejection, not migration.
+
 ### Remaining constructor-adjacent work
 
 - AS011 still rejects direct `prototype`/`constructor` access in harness source.
@@ -838,10 +854,133 @@ evidence for this item, not proof that the full language-completeness goal is do
   remain open. The `await 0` lint warning also says a non-promise await has no
   effect, despite its scheduling effect; include that diagnostic in syntax parity.
 
+## Syntax parity work in progress
+
+This is a separate, unreleased item after the verified constructor release.
+
+- Added native-execution and completed-replay regressions for var hoisting,
+  shared loop captures, switch/default fallthrough, method and lexical `this`,
+  top-level nested awaits, primitive-await scheduling, and generators. The first
+  run had nine lint failures and five passing controls. Host-escape restrictions
+  and missing-async diagnostics remain required.
+- Removed the `var`/`switch`/`this` bans and stopped treating switch `default:` as
+  a forbidden label. Removed obsolete AS008 and AS-AWAIT-NON-PROMISE scanners and
+  their old restriction tests instead of leaving no-op rules. Legacy diagnostic
+  names remain recognized for existing suppression comments. Missing-async
+  validation continues to own genuinely invalid non-async awaits.
+- A six-family stress matrix exposed a false unused-binding warning: the
+  AS006/AS007 visitor skipped constructor arguments and switch bodies. Three
+  failing tests now cover reads in constructors/discriminants and unused case
+  bindings. The visitor handles constructor arguments and shared switch scope;
+  all 14 focused AS006/AS007 tests pass.
+- Native stress passes 96 cases and 192 completed restores across six families,
+  widths 0/1/16/128, LF/CRLF, and cancellation off/on. Separate-process CLI stress
+  passes 36 cases and 108 processes across widths 1/32/256 and raw/three-fence
+  Markdown. JSON CLI comparisons normalize JSON's negative-zero representation;
+  the native matrix uses structured cloning rather than losing that distinction.
+- The last green expanded suite passed 3,666 tests with 39 skipped, before the
+  subsequent read-visitor fix and var-scoping regressions below. It is not a green
+  gate for the current worktree. The root CLI screenshot was generated and
+  inspected; inspection found a real error despite the screenshot wrapper
+  successfully saving an image. Do not count that screenshot as passed.
+
+### Var failures found during the syntax audit
+
+The initial `lint.syntax-parity.test.ts` run had 17 passes and three failures:
+
+1. AS003 loses a function-scoped `var` binding after its for loop. The root CLI
+   screenshot fails with `Unknown identifier 'index'` when returning the loop's
+   final index. Fix scope analysis; do not change the valid fixture to use let or
+   move the declaration merely to avoid the error.
+2. AS003 does not hoist var declarations from nested blocks into their containing
+   function/module scope. Runtime and completed replay match native execution,
+   but lint rejects the valid references.
+3. Runtime rejects `function read(value) { var value; return value; }` with
+   `Cannot redeclare binding 'value' in the same scope.` Native execution returns
+   the parameter. Fix parameter/var binding identity, including initializers,
+   captures, shadowing, and replay, rather than suppressing the error.
+
+### Var environment corrections — August 27, 2026
+
+Those three failures are corrected without changing the valid fixtures:
+
+- Parser, runtime, and lint share binding-name and hoisted-var traversal. Var
+  declarations in nested blocks, loops, switches, and catch/finally clauses belong
+  to their containing function; traversal stops at nested function boundaries.
+  AS003 and AS006/AS007 also visit constructor arguments, switches, sequence and
+  update expressions, and tagged templates instead of skipping their reads.
+- Parameters initialize mutable var-compatible bindings while retaining their
+  temporal dead zones during parameter initialization. Simple parameters and
+  body vars share bindings. When parameter expressions exist, the body gets a
+  separate var environment, copying same-name parameter values only for body var
+  declarations. Default-created closures retain the parameter/outer environment.
+  Computed destructuring keys, rest parameters, async functions, and generators
+  have native-reference coverage.
+- Function-body declarations are mutable and support parameter redeclarations and
+  last-declaration-wins behavior. Nested lexical blocks still reject duplicate
+  function declarations. The top-level runnable snippet keeps its function-body
+  behavior, including function/var redeclarations.
+- Parser scope tracking distinguishes lexical, parameter, function, and simple
+  catch bindings. It rejects lexical/var collisions in either declaration order,
+  including dead branches and loop bodies, before any host effects. Destructured
+  catch bindings remain lexical; simple catch/var shadowing remains valid.
+  Duplicate arrow parameters are rejected for expression and block bodies.
+- The native test setup initially included two `var arguments` declarations that
+  strict JavaScript itself rejects. They were replaced with valid default-closure
+  uses of the arguments object; those fixtures are not reported as runtime fixes.
+
+Evidence so far:
+
+1. Expanded SafeJS/agent-harness tests pass 3,722 with 39 skipped. Focused coverage
+   includes 23 function-var environment cases, 20 declaration-scope validation
+   cases, and 26 lint/runtime/replay parity cases. A final mechanical consolidation
+   of binding-name traversal then passed the full workspace/root build; repeat
+   the test gate on that final worktree before release.
+2. Native script stress passes 160 cases and 320 completed restores across ten
+   families, widths 0/1/16/128, LF/CRLF, and cancellation off/on. The four added
+   families cover parameter environments, computed bindings, mutable function
+   redeclarations, and catch/var shadowing.
+3. Hard-crash stress passes 24 SIGKILL/restart cases: default-parameter closures,
+   loop vars, catch vars, and mutable function declarations; widths 1/32/256;
+   host sidecar present/missing. Every external effect occurs exactly once.
+   The first fixture attempt omitted the required frontmatter argument and was
+   rejected by the harness signature check; correcting that fixture is not a
+   runtime fix.
+4. An archive of published poe-code 6.0.0 reproduces four changed outcomes for
+   unchanged source. Before the compatibility fix, the new runtime silently
+   accepted an old snapshot and changed its result. Red unit and archive probes
+   now pass with `jobs-v3`: all four old `jobs-v2` snapshots fail with
+   `SnapshotValidationError` at `$.executionSemantics` before host effects.
+   This requires a breaking release and still does not provide migration.
+
+Final pre-commit gates passed on the consolidated implementation:
+
+- SafeJS/agent-harness: 3,722 passed, 39 skipped; opt-in parser/snapshot fuzz:
+  9 passed, 5 skipped. Root typecheck and ESLint pass, as do all 17 package-lint
+  rules. The full workspace/root build and subsequent screenshot build each
+  complete all 67 workspace tasks.
+- Native syntax: 160 cases and 320 restores; standalone CLI: 60 cases and 180
+  separate processes; hard-crash recovery: all 24 cases pass again. Native promise
+  ordering: 2,916 comparisons and 5,832 completed restores, zero mismatches.
+  Fatal-budget stress: all 360 cases pass with zero escaped effects and 360
+  awaited cleanups. All four published-6.0.0 upgrade fixtures still reject safely.
+- Regenerated and inspected the unchanged 256-iteration root CLI fixture. It now
+  passes, showing iterations/checksum/hoistedIndex with zero agent spawns and no
+  misleading primitive-await warning. The former AS003 screenshot failure is
+  fixed by scope analysis, not by changing the fixture.
+- Rechecked the six obsolete package output directories and four deleted-rule
+  output files: all remain absent. Unrelated user assets remain untouched.
+
+Commit/push and GitHub publication verification remain pending at this checkpoint.
+General prototypes, migration, and the remaining delivery checklist stay open.
+
 ## Stale artifact cleanup
 
 - Removed ignored `dist` / `.turbo` output from obsolete `agent-maestro`,
   `agent-script`, and `runner-e2b` package directories; workspace builds pass.
+- Removed four leftover generated `.js`/`.d.ts` files for the deleted AS008 and
+  AS-AWAIT-NON-PROMISE scanners from SafeJS dist. These ignored build artifacts
+  are not staged or committed.
 - An empty, inactive rebase marker dated June 13, 2026 prevented integration of
   newer main commits. Archived it to
   `/tmp/poe-stale-rebase.oKpckf/rebase-merge.tar.gz`, then used `git rebase --quit`,

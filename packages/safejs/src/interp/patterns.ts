@@ -22,7 +22,7 @@ import {
 
 type Pattern = VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement;
 
-export type PatternTarget = { kind: VariableDeclarationKind } | { assign: true };
+export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
 export type PatternContext = {
   evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
@@ -68,7 +68,7 @@ function bindIdentifier(
   target: PatternTarget,
   scope: Scope
 ): void {
-  if ("assign" in target || target.kind === "var") {
+  if ("assign" in target || (target.kind === "var" && target.initialize !== true)) {
     if ("assign" in target) {
       const binding = scope.lookup(pattern.name);
       if (!binding.found) {

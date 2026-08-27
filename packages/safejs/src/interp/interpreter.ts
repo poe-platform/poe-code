@@ -1322,7 +1322,9 @@ function isParseResult(value: unknown): value is ParseResult {
 
 function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
   const scope =
-    node === context.rootNode || context.generatorResume !== undefined
+    node === context.rootNode ||
+    node === context.functionBody ||
+    context.generatorResume !== undefined
       ? context.scope
       : context.scope.child();
   const blockContext = {
@@ -1336,12 +1338,17 @@ function createBlockContext(node: BlockStatement, context: EvaluationContext): E
 }
 
 function predeclareBlockBindings(node: BlockStatement, context: EvaluationContext): void {
-  predeclareStatementListBindings(node.body, context);
+  predeclareStatementListBindings(
+    node.body,
+    context,
+    node === context.functionBody || node === context.rootNode
+  );
 }
 
 function predeclareStatementListBindings(
   statements: readonly import("../parse.js").Statement[],
-  context: EvaluationContext
+  context: EvaluationContext,
+  functionBody = false
 ): void {
   const { scope } = context;
   const names = new Set<string>();
@@ -1349,7 +1356,7 @@ function predeclareStatementListBindings(
   for (const statement of statements) {
     if (statement.type === "FunctionDeclaration") {
       const name = statement.id.name;
-      if (names.has(name)) {
+      if (names.has(name) && !(functionBody && scope.getOwnBindingKind(name) === "var")) {
         throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
       }
 
@@ -1365,7 +1372,7 @@ function predeclareStatementListBindings(
       }
 
       names.add(name);
-      scope.declare(name, "const", closure);
+      scope.declare(name, functionBody ? "var" : "let", closure);
       continue;
     }
 

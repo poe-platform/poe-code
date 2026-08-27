@@ -1,5 +1,5 @@
 export const DUMP_FORMAT_VERSION = 1;
-export const EXECUTION_SEMANTICS = "jobs-v2";
+export const EXECUTION_SEMANTICS = "jobs-v3";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";

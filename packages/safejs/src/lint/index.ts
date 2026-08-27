@@ -3,14 +3,12 @@ import { AS003 } from "./rules/AS003.js";
 import { AS004 } from "./rules/AS004.js";
 import { AS005 } from "./rules/AS005.js";
 import { AS006_007 } from "./rules/AS006-007.js";
-import { AS008 } from "./rules/AS008.js";
 import { AS009 } from "./rules/AS009.js";
 import { AS010 } from "./rules/AS010.js";
 import { AS011 } from "./rules/AS011.js";
 import { AS013 } from "./rules/AS013.js";
 import { AS015 } from "./rules/AS015.js";
 import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
-import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_DESTRUCTURE_NULL_DEFAULT } from "./rules/AS-destructure-null-default.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import type { DefaultExportSignature } from "./rules/AS-export-import-meta.js";
@@ -75,14 +73,12 @@ const RULES: readonly LintRule[] = [
   AS_UNUSED_IMPORT,
   AS006_007,
   AS_MISSING_ASYNC,
-  AS008,
   AS009,
   AS010,
   AS011,
   AS013,
   AS015,
   AS_IMPORT_CYCLE,
-  AS_AWAIT_NON_PROMISE,
   AS_FLOATING_PROMISE,
   AS_ASYNC_NOT_NEEDED,
   AS_JSDOC_TYPE,

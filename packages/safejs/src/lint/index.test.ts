@@ -145,10 +145,10 @@ describe("lint", () => {
     expect(codes).toContain("AS-UNREACHABLE");
   });
 
-  it("includes AS-AWAIT-NON-PROMISE diagnostics", () => {
+  it("accepts a primitive await as a scheduling boundary", () => {
     const source = "await 1;";
 
-    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-AWAIT-NON-PROMISE");
+    expect(lint(source)).toEqual([]);
   });
 
   it("includes AS-FLOATING-PROMISE diagnostics", () => {

@@ -1,15 +1,10 @@
 import type {
-  ArrayPattern,
   ArrowFunctionExpression,
-  AssignmentPattern,
   AwaitExpression,
   BlockStatement,
   FunctionDeclaration,
   FunctionExpression,
-  Identifier,
-  ObjectPattern,
   ParseResult,
-  RestElement,
   SourceSpan
 } from "../parse.js";
 import { createGeneratorChannel, type GeneratorCompletion } from "./generator.js";
@@ -27,6 +22,11 @@ import { runAsyncPrefix, suspendJob } from "./jobs.js";
 import { awaitSandboxValue } from "./cancel.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
+import {
+  boundIdentifiers,
+  containsParameterExpression,
+  hoistedVarDeclarations
+} from "../parse/bindings.js";
 import {
   createSandboxArguments,
   createSandboxClosure,
@@ -61,6 +61,7 @@ export type AsyncEvaluationContext = {
   onSuspend?: () => void;
   captureReplayState?: () => unknown;
   rootNode?: ParseResult;
+  functionBody?: BlockStatement;
   restoredLoopIterations: Map<number, LoopIterationSnapshot>;
   resumeTarget?: { nodeId?: number };
   scope: Scope;
@@ -240,6 +241,7 @@ function createGeneratorClosure(
       const channel = createGeneratorChannel(async (generatorYield) => {
         const result = await evaluateNode(node.body, {
           ...closureContext,
+          functionBody: node.body,
           generatorYield: (value, yieldNodeId) => {
             generator.state = "suspended";
             return generatorYield(value, yieldNodeId);
@@ -311,6 +313,7 @@ async function executeClosure(
 
   const result = await evaluateNode(node.body, {
     ...context,
+    functionBody: node.body.type === "BlockStatement" ? node.body : undefined,
     scope
   });
 
@@ -343,8 +346,22 @@ async function createClosureScope(
     scope.declare("arguments", "let", createSandboxArguments(args));
   }
   await bindParameters(node.params, args, scope, context, evaluateNode);
-  hoistVarDeclarations(node.body, scope);
-  return scope;
+  const bodyScope = node.params.some(containsParameterExpression)
+    ? scope.child({}, { functionBoundary: true })
+    : scope;
+  hoistVarDeclarations(node.body, bodyScope);
+  if (bodyScope !== scope) {
+    for (const declaration of hoistedVarDeclarations([node.body])) {
+      for (const declarator of declaration.declarations) {
+        for (const identifier of boundIdentifiers(declarator.id)) {
+          if (!scope.hasOwnBinding(identifier.name)) continue;
+          const parameter = scope.lookup(identifier.name);
+          if (parameter.found) bodyScope.assign(identifier.name, parameter.value);
+        }
+      }
+    }
+  }
+  return bodyScope;
 }
 
 function isBlockBody(
@@ -361,8 +378,8 @@ async function bindParameters(
   evaluateNode: EvaluateAsyncNode
 ): Promise<void> {
   for (const param of params) {
-    for (const name of getParameterBindingNames(param)) {
-      scope.predeclare(name, "let");
+    for (const identifier of boundIdentifiers(param)) {
+      scope.predeclare(identifier.name, "var");
     }
   }
 
@@ -371,7 +388,7 @@ async function bindParameters(
     if (param.type === "RestElement") {
       const rest = args.slice(index);
       context.budget.allocateArrayLength(rest.length);
-      const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+      const binding = await bindPattern(param, rest, { kind: "var", initialize: true }, scope, {
         evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
       });
       if (!binding.ok) {
@@ -385,9 +402,15 @@ async function bindParameters(
       return;
     }
 
-    const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
-      evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
-    });
+    const binding = await bindPattern(
+      param,
+      args[index],
+      { kind: "var", initialize: true },
+      scope,
+      {
+        evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
+      }
+    );
     if (!binding.ok) {
       if (binding.result.kind === "error") {
         throw binding.result.error;
@@ -396,37 +419,6 @@ async function bindParameters(
         throw binding.result.value;
       }
     }
-  }
-}
-
-function getParameterBindingNames(
-  pattern:
-    | Identifier
-    | AssignmentPattern
-    | ArrayPattern
-    | ObjectPattern
-    | RestElement
-    | import("../parse.js").MemberExpression
-): string[] {
-  switch (pattern.type) {
-    case "Identifier":
-      return [pattern.name];
-    case "MemberExpression":
-      return [];
-    case "AssignmentPattern":
-      return getParameterBindingNames(pattern.left);
-    case "RestElement":
-      return getParameterBindingNames(pattern.argument);
-    case "ArrayPattern":
-      return pattern.elements.flatMap((element) =>
-        element === null ? [] : getParameterBindingNames(element)
-      );
-    case "ObjectPattern":
-      return pattern.properties.flatMap((property) =>
-        property.type === "RestElement"
-          ? getParameterBindingNames(property)
-          : getParameterBindingNames(property.value)
-      );
   }
 }
 

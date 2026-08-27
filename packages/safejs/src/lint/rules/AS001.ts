@@ -211,7 +211,12 @@ class AS001Scanner {
           nextSignificantChar
         );
 
-        if (canStartStatement && nextSignificantChar === ":" && !this.isLoopLabelStart()) {
+        if (
+          canStartStatement &&
+          nextSignificantChar === ":" &&
+          token.value !== "default" &&
+          !this.isLoopLabelStart()
+        ) {
           this.report(
             "label",
             token.start,
@@ -290,9 +295,6 @@ class AS001Scanner {
       case "class":
       case "eval":
       case "Function":
-      case "switch":
-      case "this":
-      case "var":
       case "with":
         this.report(token.value, token.start, token.end);
         return;

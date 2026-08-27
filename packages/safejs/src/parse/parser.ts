@@ -1,3 +1,4 @@
+import { boundIdentifiers } from "./bindings.js";
 import { tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
 import { formatParseError } from "./format-error.js";
@@ -627,6 +628,9 @@ function parseExpressionTokens(tokens: Token[]): Expression {
   return new Parser(tokens).parseExpressionOnly();
 }
 
+type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
+type ParserScope = Map<string, ParserBindingKind>;
+
 class Parser {
   private index = 0;
   private breakableDepth = 0;
@@ -634,9 +638,13 @@ class Parser {
   private ifStatementDepth = 0;
   private loopDepth = 0;
   private generatorBody = false;
-  private readonly scopes: Array<Map<string, Position>> = [new Map()];
+  private readonly scopes: ParserScope[] = [new Map()];
+  private readonly functionScopes = new WeakSet<ParserScope>();
+  private readonly varNames = new WeakMap<ParserScope, Set<string>>();
 
-  constructor(private readonly tokens: Token[]) {}
+  constructor(private readonly tokens: Token[]) {
+    this.functionScopes.add(this.scopes[0]!);
+  }
 
   parseTopLevel(): ParseResult {
     if (this.isExportToken(this.currentToken())) {
@@ -808,8 +816,13 @@ class Parser {
     isAsync: boolean,
     params: ArrowFunctionExpression["params"]
   ): ArrowFunctionExpression {
+    this.withScope(() => {
+      for (const param of params) {
+        for (const identifier of boundIdentifiers(param)) this.declareBinding(identifier);
+      }
+    });
     this.expectPunctuator("=>");
-    const body = this.parseArrowFunctionBody();
+    const body = this.parseArrowFunctionBody(params);
     return {
       type: "ArrowFunctionExpression",
       async: isAsync,
@@ -853,17 +866,34 @@ class Parser {
     }
   }
 
-  private parseArrowFunctionBody(): BlockStatement | Expression {
+  private parseArrowFunctionBody(
+    params: ArrowFunctionExpression["params"]
+  ): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.withFunctionContext(false, () => this.parseBlockStatement());
+      return this.withFunctionContext(false, () => this.parseBlockStatement(params));
     }
 
     return this.withFunctionContext(false, () => this.parseExpression().node);
   }
 
-  private parseBlockStatement(): BlockStatement {
+  private parseBlockStatement(
+    params?: ArrowFunctionExpression["params"],
+    catchParam?: CatchClause["param"]
+  ): BlockStatement {
     const start = this.expectPunctuator("{");
-    return this.withScope(() => this.parseBlockStatementBody(start));
+    return this.withScope(() => {
+      for (const param of params ?? []) {
+        for (const identifier of boundIdentifiers(param)) {
+          this.declareBinding(identifier, "parameter");
+        }
+      }
+      if (catchParam !== undefined) {
+        for (const identifier of boundIdentifiers(catchParam)) {
+          this.declareBinding(identifier, catchParam.type === "Identifier" ? "catch" : "lexical");
+        }
+      }
+      return this.parseBlockStatementBody(start);
+    }, params !== undefined);
   }
 
   private parseBlockStatementBody(start: Token): BlockStatement {
@@ -1519,7 +1549,7 @@ class Parser {
       param = this.parseBindingTarget();
       this.expectPunctuator(")");
     }
-    const body = this.parseBlockStatement();
+    const body = this.parseBlockStatement(undefined, param);
     return {
       type: "CatchClause",
       param,
@@ -1544,6 +1574,10 @@ class Parser {
       const declarator = this.parseVariableDeclarator(kindToken.value);
       if (kindToken.value !== "var") {
         this.declarePatternBindings(declarator.id);
+      } else {
+        for (const identifier of boundIdentifiers(declarator.id)) {
+          this.declareVarBinding(identifier);
+        }
       }
       declarations.push(declarator);
       const comma = this.consumePunctuator(",");
@@ -1570,18 +1604,18 @@ class Parser {
       );
     }
     const id = this.parseBindingIdentifier();
-    this.declareBinding(id);
+    this.declareBinding(id, "function");
     const params = this.withScope(() => {
       const parsedParams = this.parseArrowParameters();
       for (const param of parsedParams) {
-        for (const identifier of collectBindingIdentifiers(param)) {
+        for (const identifier of boundIdentifiers(param)) {
           this.declareBinding(identifier);
         }
       }
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement());
+    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionDeclaration",
@@ -2721,14 +2755,14 @@ class Parser {
     const params = this.withScope(() => {
       const parsedParams = this.parseArrowParameters();
       for (const param of parsedParams) {
-        for (const identifier of collectBindingIdentifiers(param)) {
+        for (const identifier of boundIdentifiers(param)) {
           this.declareBinding(identifier);
         }
       }
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement());
+    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionExpression",
@@ -3016,13 +3050,13 @@ class Parser {
     const params = this.withScope(() => {
       const parsedParams = this.parseArrowParameters();
       for (const param of parsedParams) {
-        for (const identifier of collectBindingIdentifiers(param)) {
+        for (const identifier of boundIdentifiers(param)) {
           this.declareBinding(identifier);
         }
       }
       return parsedParams;
     });
-    const body = this.withFunctionContext(false, () => this.parseBlockStatement());
+    const body = this.withFunctionContext(false, () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionExpression",
@@ -3604,8 +3638,10 @@ class Parser {
     }
   }
 
-  private withScope<T>(callback: () => T): T {
-    this.scopes.push(new Map());
+  private withScope<T>(callback: () => T, functionBody = false): T {
+    const scope: ParserScope = new Map();
+    if (functionBody) this.functionScopes.add(scope);
+    this.scopes.push(scope);
     try {
       return callback();
     } finally {
@@ -3614,24 +3650,49 @@ class Parser {
   }
 
   private declarePatternBindings(pattern: ArrayPattern | Identifier | ObjectPattern): void {
-    for (const identifier of collectBindingIdentifiers(pattern)) {
+    for (const identifier of boundIdentifiers(pattern)) {
       this.declareBinding(identifier);
     }
   }
 
-  private declareBinding(identifier: Identifier): void {
+  private declareBinding(identifier: Identifier, kind: ParserBindingKind = "lexical"): void {
     const scope = this.scopes[this.scopes.length - 1];
     if (scope === undefined) {
       return;
     }
 
-    if (scope.has(identifier.name)) {
+    const existing = scope.get(identifier.name);
+    const variableFunction = kind === "function" && this.functionScopes.has(scope);
+    if (
+      (existing !== undefined &&
+        !(variableFunction && (existing === "function" || existing === "parameter"))) ||
+      (!variableFunction && this.varNames.get(scope)?.has(identifier.name))
+    ) {
       throw new Error(
         `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
       );
     }
 
-    scope.set(identifier.name, identifier.span.start);
+    scope.set(identifier.name, kind);
+  }
+
+  private declareVarBinding(identifier: Identifier): void {
+    for (let index = this.scopes.length - 1; index >= 0; index--) {
+      const scope = this.scopes[index]!;
+      const existing = scope.get(identifier.name);
+      if (existing === "lexical" || (existing === "function" && !this.functionScopes.has(scope))) {
+        throw new Error(
+          `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
+        );
+      }
+      let names = this.varNames.get(scope);
+      if (names === undefined) {
+        names = new Set();
+        this.varNames.set(scope, names);
+      }
+      names.add(identifier.name);
+      if (this.functionScopes.has(scope)) return;
+    }
   }
 
   private consumePunctuator(value: string): Token | undefined {
@@ -3744,37 +3805,6 @@ function createIdentifierName(token: Token): Identifier {
     name: token.value,
     span: createTokenSpan(token)
   };
-}
-
-function collectBindingIdentifiers(
-  pattern:
-    | AssignmentPattern
-    | ArrayPattern
-    | Identifier
-    | MemberExpression
-    | ObjectPattern
-    | RestElement
-): Identifier[] {
-  switch (pattern.type) {
-    case "Identifier":
-      return [pattern];
-    case "MemberExpression":
-      return [];
-    case "AssignmentPattern":
-      return collectBindingIdentifiers(pattern.left);
-    case "RestElement":
-      return collectBindingIdentifiers(pattern.argument);
-    case "ArrayPattern":
-      return pattern.elements.flatMap((element) =>
-        element === null ? [] : collectBindingIdentifiers(element)
-      );
-    case "ObjectPattern":
-      return pattern.properties.flatMap((property) =>
-        property.type === "RestElement"
-          ? collectBindingIdentifiers(property)
-          : collectBindingIdentifiers(property.value)
-      );
-  }
 }
 
 function createLoopLabelFields(labels: string[] | undefined): {

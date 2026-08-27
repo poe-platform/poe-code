@@ -24,6 +24,7 @@ import {
   type LogicalExpression,
   type MemberExpression,
   type Module,
+  type NewExpression,
   type ObjectExpression,
   type ObjectPattern,
   type Property,
@@ -31,6 +32,7 @@ import {
   type SourceSpan,
   type SpreadElement,
   type Statement,
+  type SwitchStatement,
   type TemplateLiteral,
   type ThrowStatement,
   type TryStatement,
@@ -40,6 +42,7 @@ import {
   type WhileStatement
 } from "../../parse/parser.js";
 import { KNOWN_RUNTIME_GLOBALS } from "./known-globals.js";
+import { hoistedVarDeclarations } from "../../parse/bindings.js";
 
 export type Diagnostic = {
   code: "AS003";
@@ -121,6 +124,9 @@ class AS003Scanner {
       case "TryStatement":
         this.visitTryStatement(node);
         return;
+      case "SwitchStatement":
+        this.visitSwitchStatement(node);
+        return;
       case "VariableDeclaration":
         this.visitVariableDeclaration(node);
         return;
@@ -145,8 +151,14 @@ class AS003Scanner {
     }
   }
 
-  private visitBlock(node: BlockStatement): void {
-    this.withScope(this.collectBlockBindings(node.body), () => {
+  private visitBlock(node: BlockStatement, functionBody = false): void {
+    const bindings = this.collectBlockBindings(node.body);
+    if (functionBody) {
+      for (const declaration of hoistedVarDeclarations(node.body)) {
+        bindings.push(...this.collectDeclarationBindings(declaration));
+      }
+    }
+    this.withScope(bindings, () => {
       for (const statement of node.body) {
         this.visitStatement(statement);
       }
@@ -167,7 +179,9 @@ class AS003Scanner {
 
   private visitForStatement(node: ForStatement): void {
     const bindings =
-      node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
+      node.init?.type === "VariableDeclaration" && node.init.kind !== "var"
+        ? this.collectDeclarationBindings(node.init)
+        : [];
     this.withScope(bindings, () => {
       if (node.init !== undefined) {
         if (node.init.type === "VariableDeclaration") {
@@ -188,7 +202,9 @@ class AS003Scanner {
 
   private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     const bindings =
-      node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
+      node.left.type === "VariableDeclaration" && node.left.kind !== "var"
+        ? this.collectDeclarationBindings(node.left)
+        : [];
     this.withScope(bindings, () => {
       if (node.left.type === "VariableDeclaration") {
         this.visitVariableDeclaration(node.left);
@@ -203,6 +219,19 @@ class AS003Scanner {
   private visitWhileStatement(node: WhileStatement | DoWhileStatement): void {
     this.visitExpression(node.test);
     this.visitStatement(node.body);
+  }
+
+  private visitSwitchStatement(node: SwitchStatement): void {
+    this.visitExpression(node.discriminant);
+    this.withScope(
+      this.collectBlockBindings(node.cases.flatMap((switchCase) => switchCase.consequent)),
+      () => {
+        for (const switchCase of node.cases) {
+          if (switchCase.test !== undefined) this.visitExpression(switchCase.test);
+          for (const statement of switchCase.consequent) this.visitStatement(statement);
+        }
+      }
+    );
   }
 
   private visitTryStatement(node: TryStatement): void {
@@ -283,7 +312,18 @@ class AS003Scanner {
         this.visitAssignmentExpression(node);
         return;
       case "CallExpression":
+      case "NewExpression":
         this.visitCallExpression(node);
+        return;
+      case "SequenceExpression":
+        for (const expression of node.expressions) this.visitExpression(expression);
+        return;
+      case "UpdateExpression":
+        this.visitExpression(node.argument);
+        return;
+      case "TaggedTemplateExpression":
+        this.visitExpression(node.tag);
+        this.visitTemplateLiteral(node.quasi);
         return;
       case "TemplateLiteral":
         this.visitTemplateLiteral(node);
@@ -304,7 +344,7 @@ class AS003Scanner {
       }
 
       if (node.body.type === "BlockStatement") {
-        this.visitBlock(node.body);
+        this.visitBlock(node.body, true);
       } else {
         this.visitExpression(node.body);
       }
@@ -369,7 +409,7 @@ class AS003Scanner {
     this.visitExpression(node.right);
   }
 
-  private visitCallExpression(node: CallExpression): void {
+  private visitCallExpression(node: CallExpression | NewExpression): void {
     this.visitExpression(node.callee);
     for (const argument of node.arguments) {
       if (argument.type === "SpreadElement") {
@@ -566,6 +606,9 @@ class AS003Scanner {
 
   private collectModuleBindings(body: Statement[]): Binding[] {
     const bindings: Binding[] = [];
+    for (const declaration of hoistedVarDeclarations(body)) {
+      bindings.push(...this.collectDeclarationBindings(declaration));
+    }
     for (const statement of body) {
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
@@ -575,7 +618,7 @@ class AS003Scanner {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
-      if (statement.type === "VariableDeclaration") {
+      if (statement.type === "VariableDeclaration" && statement.kind !== "var") {
         bindings.push(...this.collectDeclarationBindings(statement));
         continue;
       }
@@ -592,7 +635,7 @@ class AS003Scanner {
       if (statement.type === "FunctionDeclaration") {
         bindings.push({ kind: "let", name: statement.id.name });
       }
-      if (statement.type === "VariableDeclaration") {
+      if (statement.type === "VariableDeclaration" && statement.kind !== "var") {
         bindings.push(...this.collectDeclarationBindings(statement));
       }
     }

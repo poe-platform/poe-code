@@ -4650,8 +4650,13 @@ describe("interpret", () => {
       interpret(block(parse("let value = 1"), parse("var value = 2")))
     ).rejects.toThrowError("Cannot redeclare binding 'value' in the same scope.");
     await expect(
-      interpret(block(parse("const run = (value) => { var value = 2; }"), parse("run(1)")))
-    ).rejects.toThrowError("Cannot redeclare binding 'value' in the same scope.");
+      interpret(
+        block(
+          parse("const run = (value) => { var value = 2; return value; }"),
+          parse("return run(1)")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: 2 });
   });
 
   it("matches switch cases strictly and falls through", async () => {

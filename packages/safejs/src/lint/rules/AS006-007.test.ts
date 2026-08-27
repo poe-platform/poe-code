@@ -6,6 +6,21 @@ describe("AS006_007", () => {
   const warningNames = (source: string) =>
     AS006_007(source).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
 
+  it.each([
+    "const values = []; return new Set(values);",
+    "const input = 2; switch (input) { case 2: return 42; default: return 0; }"
+  ])("counts reads in supported expressions: %s", (source) => {
+    expect(AS006_007(source)).toEqual([]);
+  });
+
+  it("checks switch case bindings in their shared lexical scope", () => {
+    expect(
+      warningNames(
+        "switch (2) { case 1: const unused = 1; break; case 2: const value = 2; return value; }"
+      )
+    ).toEqual(["unused"]);
+  });
+
   it("does not report unused imports because AS-UNUSED-IMPORT owns them", () => {
     const source = [
       'import value from "api";',

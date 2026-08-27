@@ -31,7 +31,10 @@ const expectedDirectories = new Set(Object.keys(state.installed).flatMap(path =>
 assert.deepEqual([...installed.directories].sort(), [...expectedDirectories].sort());
 assert.equal(hash(readFileSync(state.tarball)), state.packageSHA256);
 const frozen = hash(git(repo, ['show', '07bb6a79ef46bb121d02261bdc5f9072b7491049:tests/integration/owned-output-production-independent-20260827/CASES.json'])); assert.equal(state.frozenCasesSHA256, frozen);
-const sourcePaths = query(['diff', '--name-only', state.baseline, state.candidate, '--', 'src']).trim().split('\n'); assert.equal(sourcePaths.length, 9);
+const sourcePaths = query(['diff-tree', '--no-commit-id', '--name-only', '-r', state.candidate, '--', 'src']).trim().split('\n'); assert.equal(sourcePaths.length, 9);
+const interveningPaths = query(['diff', '--name-only', state.baseline, state.candidate, '--', 'src']).trim().split('\n').filter(path => !sourcePaths.includes(path));
+assert.deepEqual(interveningPaths, ['src/commands/expr/README.md', 'src/commands/expr/evaluate.ts', 'src/commands/expr/index.ts', 'src/commands/expr/internal.ts']);
+assert.equal(query(['diff', '--name-only', state.baseline, state.candidate + '^', '--', ...sourcePaths]).trim(), '', 'Owned parent blobs must equal baseline');
 assert.equal(hash(git(repo, ['diff', '--binary', '--no-ext-diff', state.baseline, state.candidate, '--', ...sourcePaths])), state.patchSHA256);
 const streamsBefore = query(['show', state.baseline + ':src/commands/streams.ts']), streamsAfter = query(['show', state.candidate + ':src/commands/streams.ts']);
 const cat = '    define("cat",', suffix = '    headTail("head"), headTail("tail"),';
@@ -86,7 +89,7 @@ for (const path of paths) if (path.startsWith('execution-1787862355851/') && pat
 const summary = {
   capturedAt: new Date().toISOString(), status: 'SCOPED_ACCEPTANCE_NOT_PROMOTION', candidate: state.candidate, tree: state.candidateTree,
   baseline: state.baseline, patchSHA256: state.patchSHA256, packageSHA256: state.packageSHA256, packageJsonSHA256: state.packageJsonSHA256,
-  sourcePaths, archivedInputs: Object.keys(source).length, installedFiles: Object.keys(state.installed).length,
+  sourcePaths, interveningPathsNotApprovedByThisReview: interveningPaths, archivedInputs: Object.keys(source).length, installedFiles: Object.keys(state.installed).length,
   authenticatedLoadedPackageModules: Object.fromEntries(loaded), frozenCasesSHA256: frozen,
   harnessCommit: query(['log', '-1', '--format=%H', '--', relative(repo, own)]).trim(), harness,
   observations: { unchangedHoldouts: { pass: 36, fail: 0, skip: 0 }, publicTypes: { positive: 1, negative: 8, identity: 1 }, bindingControls: 11, mutantsDetected: 7, actualSafeJsProfiles: { pass: 25, fail: 0, skipped: 0, surfaceDialectRejections: 2 }, legacy: legacy.rows[0].counts, originalFirstRead: legacy.rows[1].counts },
@@ -96,6 +99,6 @@ const payload = Buffer.from(JSON.stringify({ summary, files })); const compresse
 const manifest = { payloadSHA256: hash(payload), gzipSHA256: hash(compressed), bytes: payload.length, gzipBytes: compressed.length, files: Object.fromEntries(Object.entries(files).map(([name, encoded]) => [name, hash(Buffer.from(encoded, 'base64'))])), harness };
 for (const [name, text] of [['EVIDENCE.json.gz.base64', compressed.toString('base64') + '\n'], ['MANIFEST.json', JSON.stringify(manifest, null, 2) + '\n'], ['CHECKPOINT.json', JSON.stringify(summary, null, 2) + '\n']]) {
   const path = join(own, name); assert(!existsSync(path), 'Never overwrite prior evidence');
-  execFileSync('apply_patch', ['*** Begin Patch\n*** Add File: ' + path + '\n' + text.trimEnd().split('\n').map(line => '+' + line).join('\n') + '\n*** End Patch\n'], { maxBuffer: 8 * 1024 * 1024 });
+  execFileSync('apply_patch', [], { input: '*** Begin Patch\n*** Add File: ' + path + '\n' + text.trimEnd().split('\n').map(line => '+' + line).join('\n') + '\n*** End Patch\n', maxBuffer: 8 * 1024 * 1024 });
 }
 console.log(JSON.stringify({ ...summary.observations, files: paths.size, evidenceBytes: payload.length, compressedBytes: compressed.length, candidate: state.candidate }));

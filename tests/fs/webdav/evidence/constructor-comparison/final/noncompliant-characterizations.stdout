@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: NONCOMPLIANT characterization: Mock metadata with local content routing to-remote
+ok 1 - NONCOMPLIANT characterization: Mock metadata with local content routing to-remote
+  ---
+  duration_ms: 16.174667
+  type: 'test'
+  ...
+# {"classification":"host binding violation, NOT compliant workflow success","direction":"to-remote","effects":["PUT"],"source":[99,111,110,116,114,97,99,116,32,118,105,111,108,97,116,105,111,110,32,100,97,109,97,103,101,100,32,115,111,117,114,99,101]}
+# Subtest: NONCOMPLIANT characterization: Mock metadata with local content routing from-remote
+ok 2 - NONCOMPLIANT characterization: Mock metadata with local content routing from-remote
+  ---
+  duration_ms: 2.929042
+  type: 'test'
+  ...
+# {"classification":"host binding violation, NOT compliant workflow success","direction":"from-remote","effects":["GET"],"source":[99,111,110,116,114,97,99,116,32,118,105,111,108,97,116,105,111,110,32,100,97,109,97,103,101,100,32,115,111,117,114,99,101]}
+# Subtest: NONCOMPLIANT characterization: inherited Mock identity with different local writeStream backing
+ok 3 - NONCOMPLIANT characterization: inherited Mock identity with different local writeStream backing
+  ---
+  duration_ms: 3.787334
+  type: 'test'
+  ...
+# {"classification":"host binding violation, NOT compliant workflow success","effects":["writeStream"],"source":[99,111,110,116,114,97,99,116,32,118,105,111,108,97,116,105,111,110,32,100,97,109,97,103,101,100,32,115,111,117,114,99,101]}
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.908834

@@ -22,8 +22,6 @@ export interface WebDavFileSystemOptions {
   readonly maxEntries?: number;
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
-  readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
-    => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
 }
 
 const timestampNamespace = "urn:virtual-bash:metadata";
@@ -119,9 +117,6 @@ export class WebDavFileSystem implements FileSystem {
 
   constructor(options: WebDavFileSystemOptions) {
     if (typeof options.fetch !== "function") throw new FsError("EINVAL", { message: "an explicit fetch transport is required" });
-    if (options.compareEntry !== undefined && typeof options.compareEntry !== "function") {
-      throw new FsError("EINVAL", { message: "compareEntry must be a function" });
-    }
     try {
       validateUrlText(options.baseUrl);
       this.base = new URL(options.baseUrl);
@@ -150,7 +145,7 @@ export class WebDavFileSystem implements FileSystem {
     this.overwritePolicy = options.overwritePolicy ?? "lock";
     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
-    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison, options.compareEntry);
+    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison);
     registerEntryAuthority(this, compareWebDavResources);
   }
 

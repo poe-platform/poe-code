@@ -1,0 +1,157 @@
+[
+  {
+    "name": "build",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ]
+  },
+  {
+    "name": "webdav-all",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/webdav/append.test.ts",
+      "tests/fs/webdav/body-integrity.test.ts",
+      "tests/fs/webdav/constructor-comparison.test.ts",
+      "tests/fs/webdav/fetch-cancellation.test.ts",
+      "tests/fs/webdav/listing-budget.test.ts",
+      "tests/fs/webdav/lock-cancellation.test.ts",
+      "tests/fs/webdav/lock-multistatus.test.ts",
+      "tests/fs/webdav/operation-authority.test.ts",
+      "tests/fs/webdav/replacement.test.ts",
+      "tests/fs/webdav/resource-id.test.ts",
+      "tests/fs/webdav/review-regressions.test.ts",
+      "tests/fs/webdav/rmdir.test.ts",
+      "tests/fs/webdav/stream-http.test.ts",
+      "tests/fs/webdav/streams.test.ts",
+      "tests/fs/webdav/timestamps.test.ts",
+      "tests/fs/webdav/trusted-binding.test.ts",
+      "tests/fs/webdav/uploads.test.ts",
+      "tests/fs/webdav/webdav.test.ts",
+      "tests/fs/webdav/xml.test.ts"
+    ]
+  },
+  {
+    "name": "original-webdav15",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern=webdav",
+      "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+    ]
+  },
+  {
+    "name": "webdav-conformance",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern=^webdav:|^independent conformance source provenance$|^conformance source state remained stable during suite$",
+      "tests/fs/conformance/shared.test.ts"
+    ]
+  },
+  {
+    "name": "types",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "src/fs/webdav/index.ts",
+      "src/fs/webdav/resource-id.ts",
+      "src/fs/webdav/webdav.ts",
+      "src/fs/webdav/xml.ts",
+      "tests/fs/webdav/append.test.ts",
+      "tests/fs/webdav/binding-violations.test.ts",
+      "tests/fs/webdav/body-integrity.test.ts",
+      "tests/fs/webdav/constructor-comparison.test.ts",
+      "tests/fs/webdav/consumer/consumer.test.ts",
+      "tests/fs/webdav/consumer/example.ts",
+      "tests/fs/webdav/consumer/provider.ts",
+      "tests/fs/webdav/fetch-cancellation.test.ts",
+      "tests/fs/webdav/listing-budget.test.ts",
+      "tests/fs/webdav/lock-cancellation.test.ts",
+      "tests/fs/webdav/lock-multistatus.test.ts",
+      "tests/fs/webdav/mock.ts",
+      "tests/fs/webdav/operation-authority.test.ts",
+      "tests/fs/webdav/property-fixture.ts",
+      "tests/fs/webdav/replacement.test.ts",
+      "tests/fs/webdav/resource-id.test.ts",
+      "tests/fs/webdav/review-regressions.test.ts",
+      "tests/fs/webdav/rmdir.test.ts",
+      "tests/fs/webdav/stream-http.test.ts",
+      "tests/fs/webdav/streams.test.ts",
+      "tests/fs/webdav/timestamps.test.ts",
+      "tests/fs/webdav/trusted-binding.test.ts",
+      "tests/fs/webdav/uploads.test.ts",
+      "tests/fs/webdav/webdav.test.ts",
+      "tests/fs/webdav/xml.test.ts"
+    ]
+  },
+  {
+    "name": "noncompliant-characterizations",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/webdav/binding-violations.test.ts"
+    ]
+  },
+  {
+    "name": "consumer-types",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "--rootDir",
+      "tests/fs/webdav/consumer",
+      "--outDir",
+      "consumer-out",
+      "tests/fs/webdav/consumer/example.ts",
+      "tests/fs/webdav/consumer/provider.ts",
+      "tests/fs/webdav/consumer/consumer.test.ts"
+    ]
+  },
+  {
+    "name": "built-consumer",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--test",
+      "consumer-out/consumer.test.js"
+    ]
+  }
+]

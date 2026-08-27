@@ -1,0 +1,9 @@
+{
+  "phase": "baseline",
+  "pin": "36f3f3e5d957308bbb082497a8b7cbcff8a3941e",
+  "requiredCore": "0bee8e7",
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "5a7d79698318a1f9bcb86d17fd90b95fc58fa4b17dcb69e9c494f497d542665c",
+  "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/shell/runtime.ts\n M src/shell/types.ts\n M tests/commands/archive-stress/limits-effects.test.ts\n M tests/commands/archive-stress/native.test.ts\n M tests/commands/metadata/stat.test.ts\n?? tests/commands/archive-stress/b02-observation-evidence/\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell-stress/env-replacement/contract-types.ts\n?? tests/shell-stress/env-replacement/focused-types.json\n?? tests/shell-stress/env-replacement/pre-ready-corrected.json\n?? tests/shell-stress/env-replacement/pre-ready-red.json\n?? tests/shell-stress/env-replacement/product.mjs\n?? tests/shell-stress/env-replacement/replay.mjs\n?? tests/shell/env-replacement-README.md\n?? tests/shell/env-replacement-bounds.test.ts\n?? tests/shell/env-replacement-bounds.ts\n?? tests/shell/env-replacement-native-initial.json\n?? tests/shell/env-replacement-native.json\n?? tests/shell/env-replacement-native.ts\n?? tests/shell/env-replacement-red.txt\n?? tests/shell/env-replacement-validation.json\n?? tests/shell/env-replacement-verify.mjs\n?? tests/shell/env-replacement.test.ts\n"
+}

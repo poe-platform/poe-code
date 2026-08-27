@@ -1,0 +1,9 @@
+{
+  "phase": "corrected",
+  "pin": "21d78a4073ce5ab03079985b44888026c45564ec",
+  "requiredCore": "0bee8e7",
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "58c6b07c8fc48f21b225e5d3d5668a654d2f0d3c13afd25bbc7e38d1ed327746",
+  "status": " M src/commands/table-text/comm.ts\n M src/commands/table-text/internal.ts\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n M tests/fs/webdav/operation-authority.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/quiet-postfix-review/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/shared-stdin-fix/\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/s3/constructor-comparison.test.ts\n?? tests/fs/s3/constructor-comparison/\n?? tests/fs/webdav/constructor-comparison.test.ts\n?? tests/fs/webdav/consumer/\n"
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "final",
+  "pin": "8cb42b8a68236b99417fbdc350d8fbdb13b0d215",
+  "requiredCore": "0bee8e7",
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "be4c06866d29b41d1f3eb27e575f02cb5228cd9ba97146b770b762f9010bcafa",
+  "status": " M src/fs/s3/COMPARISON.md\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/fs/webdav/README.md\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n M tests/fs/webdav/operation-authority.test.ts\n?? src/fs/s3/SDK_COMPARISON.md\n?? tests/commands/core-regression-stress/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-seal-final/final-audit.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/full-structured.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/global-types.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/scoped-types.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/target-and-byte-assertions.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/tsconfig.json\n?? tests/commands/structured-stress/jq-grammar-seal-final/validate.mjs\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/authority-trust-review/\n?? tests/fs/s3/constructor-comparison.test.ts\n?? tests/fs/s3/constructor-comparison/\n?? tests/fs/webdav/constructor-comparison.test.ts\n?? tests/fs/webdav/consumer/\n?? tests/shell-stress/env-replacement/acceptance-954f230.json\n?? tests/shell-stress/env-replacement/acceptance-guard-audit.json\n?? tests/shell-stress/env-replacement/acceptance.mjs\n?? tests/shell-stress/env-replacement/output-budget-evidence/\n?? tests/shell-stress/env-replacement/output-budget-provenance.json\n?? tests/shell-stress/env-replacement/ready-954f230.json\n"
+}

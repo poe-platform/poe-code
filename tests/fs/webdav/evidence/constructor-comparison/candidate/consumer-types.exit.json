@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "--target",
+    "ES2023",
+    "--lib",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--rootDir",
+    "tests/fs/webdav/consumer",
+    "--outDir",
+    "consumer-out",
+    "tests/fs/webdav/consumer/example.ts",
+    "tests/fs/webdav/consumer/provider.ts",
+    "tests/fs/webdav/consumer/consumer.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-constructor-8tiSAh/candidate/archive",
+  "start": "2026-08-27T02:52:16.007Z",
+  "end": "2026-08-27T02:52:16.484Z",
+  "status": 0,
+  "signal": null
+}

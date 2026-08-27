@@ -199,9 +199,5 @@ test("explicit forwarding to the base method stays unknown without recursive met
   const view = new ForwardingAuthority({ baseUrl, fetch: mock.fetch });
   assert.equal(await compareEntries(view, "/source", view, "/target"), "unknown");
   assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
-  assert.equal(mock.requests.length, 6);
-  assert.equal(mock.requests.filter(request => {
-    const body = request.init.body instanceof Uint8Array ? new TextDecoder().decode(request.init.body) : String(request.init.body);
-    return body.includes("resource-id");
-  }).length, 2);
+  assert.equal(mock.requests.length, 4);
 });

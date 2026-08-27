@@ -405,50 +405,10 @@ distinctness. The original comparison function reference is retained solely for
 dynamic dispatch, never as identity eligibility. Recursive forwarding to base
 negotiation stays unknown; known complete aliases retain precedence.
 
-### Application-supplied comparison callback
-
-The optional constructor `compareEntry` accepts the existing
-`FileSystem["compareEntry"]` arguments and promise result. Its explicit `this`
-type is `FileSystem`; use a normal function to access the actual WebDAV backend
-receiver. The public `remote.compareEntry(...)` remains the negotiation entrypoint,
-not the supplied callback itself. Wrappers resolve the followed paths and actual
-peer backend before calling the callback, forwarding `options.signal`.
-
-A late explicit replacement of the public method takes precedence over that
-backend's constructor callback. Each distinct operand's selected callback runs
-at most once. Complete scoped identities take the shared fast path without
-callbacks. Otherwise callbacks run before the built-in resource query, so a late
-permission error or cancellation remains observable even for a protocol alias.
-Invalid answers and conflicting explicit answers fail with `EIO`.
-
-| Built-in result | Selected explicit aggregate | Result |
-| --- | --- | --- |
-| `same` | `distinct` | `EIO` |
-| `same` | `same` or `unknown` | `same` |
-| Not proven `same` | Callback supplied | Explicit aggregate |
-| Any | No callback supplied | Built-in result |
-
-In particular, explicit `same` remains authoritative over fallback `distinct`,
-and explicit `unknown` never revives fallback `distinct`. A separate peer
-authority still participates in normal shared negotiation. The post-callback
-resource queries preserve built-in alias proof without recursively invoking
-the public negotiation method. Query errors and cancellation still propagate.
-
-`tests/fs/webdav/consumer/example.ts` is a typed, public-package-only integration:
-an application resolver maps recognized views to their actual backing filesystem
-and followed path, then compares genuine scoped metadata. Its accompanying
-consumer runs existing-target `cp` and `mv` in both directions over serialized
-loopback HTTP, without MockDav response markers or private imports. The host
-must actually know those mappings and preserve them across content operations;
-URL/client identifiers, protocol differences and ETags are not backing identity.
-Unrecognized or insufficiently identified mappings return `unknown`. This is
-point-in-time metadata, not a lock, lease, transaction or pathname-race guarantee.
-
 HTTP serialization and Response cloning do not transmit private Map provenance.
 They can still support the separate strict resource-ID WebDAV-to-WebDAV path.
-Generic HTTP/SDK providers without a recognized binding or a truthful application
-callback remain an open mixed-store integration requirement; owned Mock responses
-and the bounded loopback example are not proof of all real servers.
+Generic HTTP/SDK providers without a recognized binding remain an open mixed-store
+integration requirement; owned Mock responses are not proof of all real servers.
 
 The owned `tests/fs/webdav/mock.ts` intentionally gains resource-id capability.
 Its files remain an ordinary Map with existing byte/namespace behavior. Resource

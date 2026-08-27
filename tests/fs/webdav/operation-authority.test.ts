@@ -125,3 +125,73 @@ test("declining inherited authority does not suppress an explicit external peer 
   assert.equal(calls, 1);
   assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
 });
+
+for (const timing of ["subclass-before", "instance-after"] as const) {
+  test(`explicit WebDAV comparison override remains authoritative ${timing}`, async () => {
+    const mock = provider();
+    const calls: string[] = [];
+    class ExplicitView extends WebDavFileSystem {}
+    const compare = async (path: string, peer: FileSystem, peerPath: string) => {
+      calls.push(`${path}:${peerPath}`);
+      assert.equal(peer, normal);
+      return "same";
+    };
+    if (timing === "subclass-before") Object.defineProperty(ExplicitView.prototype, "compareEntry", { value: compare });
+    const view = new ExplicitView({ baseUrl, fetch: mock.fetch });
+    if (timing === "instance-after") Object.defineProperty(view, "compareEntry", { value: compare });
+    const normal = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
+    assert.equal(await compareEntries(normal, "/target", view, "/source"), "same");
+    assert.deepEqual(calls, ["/source:/target"]);
+    assert.equal(getOwnedWebDavEntry(await resolveEntryView(view, "/source")), undefined);
+    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+  });
+}
+
+test("explicit WebDAV overrides are queried once each and conflicts fail before effects", async () => {
+  const mock = provider();
+  const first = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
+  const second = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
+  const calls: string[] = [];
+  Object.defineProperty(first, "compareEntry", { value: async () => { calls.push("first"); return "same"; } });
+  Object.defineProperty(second, "compareEntry", { value: async () => { calls.push("second"); return "distinct"; } });
+  await assert.rejects(compareEntries(first, "/source", second, "/target"), error => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, "EIO");
+    return true;
+  });
+  assert.deepEqual(calls, ["first", "second"]);
+  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+  assert.deepEqual(mock.files.get("/source"), sourceBytes);
+  assert.deepEqual(mock.files.get("/target"), targetBytes);
+});
+
+test("explicit WebDAV authority invalid answers and cancellation preserve typed errors", async () => {
+  const mock = provider();
+  const first = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
+  const second = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
+  Object.defineProperty(first, "compareEntry", { configurable: true, value: async () => "invalid" });
+  await assert.rejects(compareEntries(first, "/source", second, "/target"), error => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, "EIO");
+    return true;
+  });
+  const controller = new AbortController();
+  const reason = new FsError("ENOENT");
+  Object.defineProperty(first, "compareEntry", { value: async () => { controller.abort(reason); return "same"; } });
+  let peerCalls = 0;
+  Object.defineProperty(second, "compareEntry", { value: async () => { peerCalls++; return "same"; } });
+  await assert.rejects(compareEntries(first, "/source", second, "/target", { signal: controller.signal }), error => error === reason);
+  assert.equal(peerCalls, 0);
+  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+});
+
+test("explicit forwarding to the base method stays unknown without recursive metadata negotiation", async () => {
+  const mock = provider();
+  class ForwardingAuthority extends WebDavFileSystem {
+    override compareEntry(...args: Parameters<WebDavFileSystem["compareEntry"]>) { return super.compareEntry(...args); }
+  }
+  const view = new ForwardingAuthority({ baseUrl, fetch: mock.fetch });
+  assert.equal(await compareEntries(view, "/source", view, "/target"), "unknown");
+  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+  assert.equal(mock.requests.length, 4);
+});

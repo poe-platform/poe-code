@@ -383,6 +383,10 @@ instance after subclass overrides. Checks run before and after metadata queries;
 both operands are rechecked before returning protocol proof. Unmodified subclasses
 retain support; method overrides do not inherit base authority. Only validated
 metadata observations are associated with the provider store.
+An explicitly replaced `compareEntry` supplies separate external authority; it
+does not inherit protocol/private-store proof. The internal terminal dispatcher
+honors each such operand callback once, validates answers/conflicts and preserves
+errors/cancellation. Forwarding recursively to the base negotiation stays unknown.
 Nothing is published as a FileStat inode/scope or a public registry/trust flag.
 Other backend owners still must recognize their own actual closed storage before
 using this descriptor; its presence does not automatically authorize mixed copies.

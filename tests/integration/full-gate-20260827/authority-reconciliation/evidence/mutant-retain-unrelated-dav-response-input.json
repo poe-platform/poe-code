@@ -1,0 +1,10 @@
+{
+  "name": "retain-unrelated-dav-response",
+  "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+  "before": "if (init.method !== \"PROPFIND\" || response.status !== 207) return response;",
+  "after": "if (response) return response;",
+  "catches": "WebDAV honest local-data fetch",
+  "beforeSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+  "afterSha256": "4151fd83ddee7103bcb2493cf25e01f7178d9b91145c6eb673b8e66ebe5fd7bb",
+  "temporarySnapshotOnly": true
+}

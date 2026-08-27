@@ -1,0 +1,37 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "corrected-types.json"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 41271,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1010,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 41271,
+      "parent": 41187,
+      "group": 41271,
+      "born": "Thu Aug 27 01:29:29 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc --noEmit -p corrected-types.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "failures": [],
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

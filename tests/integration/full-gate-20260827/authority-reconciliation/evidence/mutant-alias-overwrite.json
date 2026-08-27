@@ -1,0 +1,97 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 52259,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 668,
+  "timeoutMs": 120000,
+  "outputBytes": 43010,
+  "observed": [
+    {
+      "pid": 52259,
+      "parent": 51418,
+      "group": 52259,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52266,
+      "parent": 52259,
+      "group": 52259,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52311,
+      "parent": 52259,
+      "group": 52259,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 52333,
+      "parent": 52311,
+      "group": 52259,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 52355,
+      "parent": 52259,
+      "group": 52259,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 66,
+    "fail": 19,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "memory subclass-before buffered: faithful writer preserves qualified copy and alias rejection",
+    "memory prototype-before buffered: faithful writer preserves qualified copy and alias rejection",
+    "memory own-after buffered: faithful writer preserves qualified copy and alias rejection",
+    "memory prototype-after buffered: faithful writer preserves qualified copy and alias rejection",
+    "memory subclass-before streamed: faithful writer preserves qualified copy and alias rejection",
+    "memory prototype-before streamed: faithful writer preserves qualified copy and alias rejection",
+    "memory own-after streamed: faithful writer preserves qualified copy and alias rejection",
+    "memory prototype-after streamed: faithful writer preserves qualified copy and alias rejection",
+    "s3 subclass-before buffered: faithful writer preserves qualified copy and alias rejection",
+    "s3 prototype-before buffered: faithful writer preserves qualified copy and alias rejection",
+    "s3 own-after buffered: faithful writer preserves qualified copy and alias rejection",
+    "s3 prototype-after buffered: faithful writer preserves qualified copy and alias rejection",
+    "s3 subclass-before streamed: faithful writer preserves qualified copy and alias rejection",
+    "s3 prototype-before streamed: faithful writer preserves qualified copy and alias rejection",
+    "s3 own-after streamed: faithful writer preserves qualified copy and alias rejection",
+    "s3 prototype-after streamed: faithful writer preserves qualified copy and alias rejection",
+    "S3 actual shared store through different clients/prefixes: aliases and qualified copies",
+    "S3 faithful subclass and late content decorator retain fresh backing authority",
+    "WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies"
+  ],
+  "stdoutSha256": "1e223520502e8c39ebc899e38ca0f8ad57c22d7262be2b9d34c3aa88d03e708a",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

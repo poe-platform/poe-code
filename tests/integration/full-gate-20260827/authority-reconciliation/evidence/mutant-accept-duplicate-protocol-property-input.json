@@ -1,0 +1,10 @@
+{
+  "name": "accept-duplicate-protocol-property",
+  "path": "tests/fs/mount/identity-authority-review/authority.test.ts",
+  "before": "if (identifiers.length !== 1 || !/^urn:uuid:[0-9a-f-]{36}$/.test(identifiers[0]!)) return undefined;",
+  "after": "if (identifiers.length === 0 || !/^urn:uuid:[0-9a-f-]{36}$/.test(identifiers[0]!)) return undefined;",
+  "catches": "WebDAV resource-id protocol fixture",
+  "beforeSha256": "eed3c1129a9a90c5775dd224b38c7a97c73bc4c5137ba64a3dca2afc942c927d",
+  "afterSha256": "9c2b174bdec9f1b0577fde57a0973ce4677610037c3607b8b1fe13ac663057c7",
+  "temporarySnapshotOnly": true
+}

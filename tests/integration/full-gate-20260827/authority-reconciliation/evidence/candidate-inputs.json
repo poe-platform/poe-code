@@ -1,0 +1,5 @@
+{
+  "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts": "bb86af5825083c5dab5d5291151fd1b8333233cab57468ccad27a868bea5fbd1",
+  "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts": "55d0e7fbdf74b23376ea69424710494ae5abd4f8af327f22e0854c9072c58416",
+  "tests/fs/mount/identity-authority-review/authority.test.ts": "c72b2fd3eeabce9d8eada754020e90343a8cdf0736086e3448a63ce631ecd25b"
+}

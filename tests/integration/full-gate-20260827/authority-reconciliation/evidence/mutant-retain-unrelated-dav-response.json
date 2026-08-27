@@ -1,0 +1,80 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 53176,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 734,
+  "timeoutMs": 120000,
+  "outputBytes": 32332,
+  "observed": [
+    {
+      "pid": 53176,
+      "parent": 51418,
+      "group": 53176,
+      "born": "Thu Aug 27 01:31:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 53180,
+      "parent": 53176,
+      "group": 53176,
+      "born": "Thu Aug 27 01:31:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 53197,
+      "parent": 53176,
+      "group": 53176,
+      "born": "Thu Aug 27 01:31:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 53209,
+      "parent": 53176,
+      "group": 53176,
+      "born": "Thu Aug 27 01:31:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    },
+    {
+      "pid": 53212,
+      "parent": 53209,
+      "group": 53176,
+      "born": "Thu Aug 27 01:31:52 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 83,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "WebDAV honest local-data fetch omits unrelated private and protocol identity",
+    "WebDAV honest remapper cannot authorize truncating an unproven aliased local source"
+  ],
+  "stdoutSha256": "ecb709afd66fef0284c165bce0bf4512df84fd90992969087122aeff08309ed1",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

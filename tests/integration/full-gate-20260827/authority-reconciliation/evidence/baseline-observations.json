@@ -1,0 +1,267 @@
+{
+  "classification": "historical-observation-not-safety-acceptance",
+  "observations": [
+    {
+      "name": "memory-subclass-before-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-prototype-before-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-own-after-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-prototype-after-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-subclass-before-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-prototype-before-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-own-after-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-prototype-after-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-subclass-before-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-prototype-before-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-own-after-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-prototype-after-buffer",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-subclass-before-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-prototype-before-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-own-after-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-prototype-after-stream",
+      "data": {
+        "answer": "distinct",
+        "error": "EIO",
+        "effects": [
+          "misrouted-write"
+        ],
+        "source": "d3Jvbmcgcm91dGUgZGFtYWdlZCBzb3VyY2U=",
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "memory-explicit-late-error",
+      "data": {
+        "compareError": "EACCES",
+        "compareQueries": 1,
+        "copyError": "EACCES",
+        "copyQueries": 1,
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "s3-explicit-late-error",
+      "data": {
+        "compareError": "EACCES",
+        "compareQueries": 1,
+        "copyError": "EACCES",
+        "copyQueries": 1,
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "webdav-explicit-late-error",
+      "data": {
+        "compareError": "EACCES",
+        "compareQueries": 1,
+        "copyError": "EACCES",
+        "copyQueries": 1,
+        "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+      }
+    },
+    {
+      "name": "split-s3-copy",
+      "data": {
+        "result": "distinct",
+        "code": "EIO",
+        "effects": [
+          "GET",
+          "PUT"
+        ],
+        "source": "partial S3 write hit source"
+      }
+    },
+    {
+      "name": "split-dav-comparison",
+      "data": {
+        "result": "distinct",
+        "effects": []
+      }
+    },
+    {
+      "name": "split-dav-copy",
+      "data": {
+        "code": "EIO",
+        "effects": [
+          "PUT"
+        ],
+        "source": "partial remote write hit local source"
+      }
+    },
+    {
+      "name": "subclass-dav-copy",
+      "data": {
+        "result": "distinct",
+        "code": "EIO",
+        "effects": [
+          "writeStream"
+        ],
+        "source": "subclass destination damaged source"
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 41198,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 695,
+  "timeoutMs": 120000,
+  "outputBytes": 30426,
+  "observed": [
+    {
+      "pid": 41198,
+      "parent": 41187,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 41200,
+      "parent": 41198,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 41202,
+      "parent": 41198,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 41204,
+      "parent": 41202,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 41208,
+      "parent": 41198,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    },
+    {
+      "pid": 41211,
+      "parent": 41208,
+      "group": 41198,
+      "born": "Thu Aug 27 01:29:27 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 85,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "stdoutSha256": "581cc30b46328cd56ded516d30d70a3ac57df126d7b2c16b2aaec9eb7921a998",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

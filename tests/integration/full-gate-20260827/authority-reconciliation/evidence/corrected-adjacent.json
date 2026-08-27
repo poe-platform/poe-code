@@ -1,0 +1,94 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/core-ordering.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "tests/fs/authority-trust-review/authority.test.ts",
+    "tests/fs/s3/constructor-comparison.test.ts",
+    "tests/fs/webdav/constructor-comparison.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 41249,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1175,
+  "timeoutMs": 120000,
+  "outputBytes": 95687,
+  "observed": [
+    {
+      "pid": 41249,
+      "parent": 41187,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/core-ordering.test.ts tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts tests/fs/mount/identity-compatibility-review/compatibility.test.ts tests/fs/authority-trust-review/authority.test.ts tests/fs/s3/constructor-comparison.test.ts tests/fs/webdav/constructor-comparison.test.ts"
+    },
+    {
+      "pid": 41251,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/authority-trust-review/authority.test.ts"
+    },
+    {
+      "pid": 41254,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "(node)"
+    },
+    {
+      "pid": 41256,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "(node)"
+    },
+    {
+      "pid": 41258,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+    },
+    {
+      "pid": 41263,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:28 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/s3/constructor-comparison.test.ts"
+    },
+    {
+      "pid": 41265,
+      "parent": 41249,
+      "group": 41249,
+      "born": "Thu Aug 27 01:29:29 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/webdav/constructor-comparison.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 112,
+    "pass": 112,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "stdoutSha256": "ad854f05e0ae8ccfb4ba8a814edd8eccedb76495c1a9ea420ff382b9d707157f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,84 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/copy-identity.test.ts",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 32711,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 691,
+  "timeoutMs": 120000,
+  "outputBytes": 11504,
+  "observed": [
+    {
+      "pid": 32711,
+      "parent": 32656,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/copy-identity.test.ts tests/fs/mount/copy-identity-guards.test.ts tests/fs/overlay/copy-identity.test.ts"
+    },
+    {
+      "pid": 32713,
+      "parent": 32711,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/copy-identity-guards.test.ts"
+    },
+    {
+      "pid": 32715,
+      "parent": 32713,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 32719,
+      "parent": 32711,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/copy-identity.test.ts"
+    },
+    {
+      "pid": 32721,
+      "parent": 32719,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 32723,
+      "parent": 32711,
+      "group": 32711,
+      "born": "Thu Aug 27 01:28:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/overlay/copy-identity.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 53,
+    "pass": 53,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "stdoutSha256": "54a18a465f6eedec35ed1195e6c1851b8b012d92fabd22daf4a8b354fd22d55d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

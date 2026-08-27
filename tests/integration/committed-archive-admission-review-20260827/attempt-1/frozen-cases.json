@@ -1,0 +1,36 @@
+{
+  "status": "planned, not executed; awaiting author source handoff",
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "newModeFlag": null,
+  "reuse": [
+    "tests/integration/full-gate-20260827/combined-8670ebe8/controls.mjs",
+    "tests/integration/full-gate-20260827/preflight-repair/preflight.test.mjs",
+    "tests/integration/native-preflight-independent-20260827/audit.mjs"
+  ],
+  "cases": [
+    { "id": "strict-clean-positive", "mode": "strict-live", "expect": "Existing clean miniature repository still admits with authenticated prerequisites; launcher replaced by a harmless sentinel." },
+    { "id": "strict-dirty-refusal", "mode": "strict-live", "expect": "Unrelated tracked live edit still refuses; explicit archive mode must not disable the default guard." },
+    { "id": "archive-dirty-live-positive", "mode": "explicit-committed-archive", "expect": "Exact selected archive admits while an owned miniature live checkout has a distinct tracked edit; committed bytes, not edited bytes, reach the candidate." },
+    { "id": "archive-untracked-canary", "mode": "explicit-committed-archive", "expect": "Owned live untracked shadow module/config does not enter the archive or load receipts; live bytes remain unchanged." },
+    { "id": "moving-head-fixed-candidate", "mode": "explicit-committed-archive", "expect": "A later owned-miniature HEAD does not replace the explicit original commit/tree/blob inputs." },
+    { "id": "changed-archive-code", "mode": "explicit-committed-archive", "expect": "Changed required archived source/test/package bytes refuse before a phase sentinel." },
+    { "id": "missing-archive-input", "mode": "explicit-committed-archive", "expect": "Missing required source/test/package input refuses; no cached build or loader fallback compensates." },
+    { "id": "foreign-overlay", "mode": "explicit-committed-archive", "expect": "Added live/untracked source/config overlay in the candidate input namespace refuses; explicitly declared separate generated output/native/tool staging is not conflated with source." },
+    { "id": "wrong-commit-archive", "mode": "explicit-committed-archive", "expect": "An archive from another commit cannot qualify under the selected candidate identity." },
+    { "id": "changed-input-mode", "mode": "explicit-committed-archive", "expect": "Git-bound required-file mode changes are detected rather than silently rebaselined." },
+    { "id": "active-file-symlink-escape", "mode": "explicit-committed-archive", "expect": "Required source-file replacement by an owned symlink outside the candidate refuses, even if the target initially has identical bytes." },
+    { "id": "active-directory-symlink-escape", "mode": "explicit-committed-archive", "expect": "A required source ancestor redirected outside the candidate refuses; no write reaches the external owned sentinel." },
+    { "id": "post-phase-immutability", "mode": "explicit-committed-archive", "expect": "A harmless miniature phase that changes source or tracked evidence is detected after execution; original expected Git identity remains authoritative." },
+    { "id": "cleanup-envelope-exact", "mode": "both", "expect": "Exactly the selected 220-input envelope and compact hash are required; old revision, changed/missing input and absent/mismatched required environment bindings refuse." },
+    { "id": "native-guards-retained", "mode": "both", "expect": "Native49 authenticate; copied mandatory prerequisite missing/changed/nonexecutable still refuses before launch in each supported mode." },
+    { "id": "source-load-guard-retained", "mode": "explicit-committed-archive", "expect": "Existing legitimate/old/missing/compiled env-source import controls preserve actual resolve/load receipts and reject fallback; no full product evaluation." },
+    { "id": "mode-selection-fail-closed", "mode": "entrypoint", "expect": "No implicit global ignore-dirty setting; missing/invalid mode preserves strict policy or explicit usage rejection." },
+    { "id": "guard-mutants", "mode": "temporary prototypes only", "expect": "Detect blanket dirty bypass with strict-mode control, dropped archive-byte authentication with tamper control, and live-copy substitution with committed/live canaries. Never launch a whole suite." }
+  ],
+  "boundaries": [
+    "No mutation or content ingestion of Faraday's real live rg.ts edit; all adversarial edits occur in owned miniature repositories/copies.",
+    "Respect committed literal symlink fixture data; test active input/path escapes rather than inventing a blanket prohibition on all historical fixture symlinks.",
+    "No whole-gate/build/comparison/private-engine run during this bounded admission review.",
+    "No invented archive-mode API before explicit author handoff."
+  ]
+}

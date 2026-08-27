@@ -2056,3 +2056,32 @@ that any implementation, command, fixture, or test currently exists.
   archives bind immutable candidate inputs independently of unrelated live edits,
   while strict-live mode continues rejecting dirty inputs. No timeline metrics
   or transient ownership state is added to AGENTS.
+
+### 2026-08-27 14:46 UTC — frozen8670 gate stopped on evidence mutation
+
+- Actual candidate8670ebe8f0d39966c2de2638780437398e5f8490, not moving HEAD.
+  Independent archive admission58130545 preceded execution. A redundant native
+  tar publisher blocked attempt v3 before tests; external harness fixf6e07510
+  and9 author controls preserve that failure separately in6fce94f8.
+- Attempt v4 authenticated49 native assets, exact560 canonical paths and the
+  candidate220-input cleanup envelope; it used concurrency2. Cold typecheck
+  returned documented prerequisite78; typecheck:all built once and passed.
+- Canonical raw footer:17,454 pass,12 fail,0 skipped/TODO/cancelled. Then tracked
+  split captures gnu-errors-latest.json and gnu9.7-darwin-latest.json differed.
+  The integrity guard stopped later runtime-consumer, separate contract/type
+  and outer moved-package phases. This is NOT immutable whole-gate acceptance;
+  no packed70-name smoke or current-release result is inferred.
+- Exact12: four TypeScript-importing files fail at loader startup; one known
+  pre-fix rg iterator-close failure; one native strings executable-path capture
+  mismatch; one old exact-tsconfig assertion; five known custom first-read
+  requirements. No source fix, fixture waiver, rescore or rerun was applied.
+  Later rg repair, aliases/column, shebang and sort-cache work remain excluded.
+- Actual regular-copy SafeJS availability passed; private state and264 source
+  files stayed unchanged. Two actual-engine test files nevertheless failed at
+  startup, so0 skips is not their acceptance. Nineteen named characterizations
+  remain included in the raw footer and separately identified, not feature wins.
+- Evidenced98b8321 preserves806 raw output files and exact failure routing in
+  tests/integration/full-gate-20260827/combined-8670ebe8/attempt-v4/README.md.
+  Capture verification authenticates all806 files and reconciles the footer.
+  Observed owned processes/scratch are cleaned; foreign live changes preserved.
+  Historical b49416,520/307/13 and all comparative profiles remain separate.

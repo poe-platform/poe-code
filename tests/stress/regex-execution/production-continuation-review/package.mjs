@@ -27,6 +27,7 @@ try {
   const archive=resolve(moved,metadata.filename);
   run('/usr/bin/tar',['-xzf',archive,'-C',packageRoot,'--strip-components=1']);
   await copyFile(resolve(owned,'child.mjs'),resolve(moved,'child.mjs'));
+  await copyFile(resolve(owned,'walker-cases.mjs'),resolve(moved,'walker-cases.mjs'));
   await copyFile(resolve(owned,'package-consumer.mts'),resolve(moved,'consumer.mts'));
   const fixture=(await readFile(resolve(owned,'../production-review/cohort.mjs'),'utf8'))+(await readFile(resolve(owned,'cohort.mjs'),'utf8')).replace("export { cases } from '../production-review/cohort.mjs';",'');
   await writeFile(resolve(moved,'cohort.mjs'),fixture,{flag:'wx'});

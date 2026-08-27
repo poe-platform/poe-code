@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 
 const owned = resolve('tests/stress/regex-execution/production-continuation-review');
 const [name, job, label = job] = process.argv.slice(2);
-if (!['baseline', 'candidate', 'packed'].includes(name) || !['cohort', 'lifecycle', 'globs', 'public', 'transport', 'benchmark'].includes(job) || !/^[a-z0-9-]+$/u.test(label)) throw new Error('only frozen benign jobs allowed; risk budget zero');
+if (!['baseline', 'candidate', 'packed'].includes(name) || !['cohort', 'lifecycle', 'globs', 'public', 'errors', 'walker', 'transport', 'benchmark'].includes(job) || !/^[a-z0-9-]+$/u.test(label)) throw new Error('only frozen benign jobs allowed; risk budget zero');
 const source = name === 'packed' ? 'candidate' : name;
 const snapshot = resolve(owned, 'snapshots', source);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');

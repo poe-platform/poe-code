@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cases, globCases, files } from './cohort.mjs';
+import { walkerCases } from './walker-cases.mjs';
 
 const [snapshotName, job] = process.argv.slice(2);
 const owned = resolve('tests/stress/regex-execution/production-continuation-review');
@@ -232,6 +233,79 @@ async function publicCases() {
     finally { NativeWorker.prototype.postMessage=originalPost; await shell.dispose(); }
   });
 }
+async function errorCases() {
+  await caseCheck('actual-public-worker-constructor-failure', async () => {
+    const observed = workerThreads.Worker;
+    const before = workers.length;
+    workerThreads.Worker = class FailedWorker { constructor() { throw new Error('independent constructor failure'); } };
+    syncBuiltinESMExports();
+    const shell = makeShell();
+    try {
+      const results = [];
+      for (const command of ["grep -E '^a'", "rg '^a'"]) {
+        const result = await shell.exec(command, {stdin:'ab\n'});
+        assert.equal(result.exitCode,2); assert.equal(result.stdout,''); assert.match(result.stderr,/independent constructor failure/);
+        results.push(vector(result));
+      }
+      assert.equal(workers.length,before); assert.equal(active,0);
+      return results;
+    } finally { await shell.dispose(); workerThreads.Worker=observed; syncBuiltinESMExports(); }
+  });
+  await caseCheck('actual-public-bounded-queue-admission', async () => {
+    const before = workers.length;
+    const shell = new api.Shell({fs:new api.MemoryFileSystem()}).use(api.searchCommands({regex:{maxWorkers:1,maxQueuedRequests:0}}));
+    try {
+      const results = await Promise.all(Array.from({length:3},()=>shell.exec("rg '^a'",{stdin:'ab\n'})));
+      assert.deepEqual(results.map(result=>result.exitCode).sort(),[0,2,2]);
+      for (const result of results) {
+        if (result.exitCode===0) {assert.equal(result.stdout,'ab\n');assert.equal(result.stderr,'');}
+        else {assert.equal(result.stdout,'');assert.match(result.stderr,/QUEUE_EXHAUSTED/);}
+      }
+      assert.equal(workers.length-before,1);assert.equal(active,0);
+      return results.map(vector);
+    } finally {await shell.dispose();}
+  });
+}
+async function walkerChecks() {
+  const native = JSON.parse(await readFile(resolve(owned,'evidence/native-walker.json')));
+  const previous = snapshotName==='baseline' ? null : JSON.parse(await readFile(resolve(owned,'evidence/baseline/walker.json'))).result.observations;
+  for (const fixture of walkerCases) await caseCheck(fixture.id,async()=>{
+    const fs=new api.MemoryFileSystem();
+    for(const [path,contents] of Object.entries(fixture.files)) await fs.writeFile('/'+path,Buffer.from(contents));
+    const shell=new api.Shell({fs}).use(api.agentCommands());
+    try {
+      const result=await shell.exec(['rg',...fixture.args].map(quote).join(' '));
+      const actual=vector(result);
+      assert.equal(result.exitCode,fixture.code);assert.equal(result.stdout,fixture.output);assert.equal(result.stderr.length>0,fixture.code===2);
+      const reference=native.observations.find(item=>item.id===fixture.id);
+      if(fixture.nativeEquality){assert.equal(actual.code,reference.code);assert.equal(actual.stdout,reference.stdout);}
+      if(previous) assert.deepEqual(actual,previous.find(item=>item.name===fixture.id).details.actual);
+      assert.equal(active,0);
+      return {actual,native:reference,nativeEqualityRequired:fixture.nativeEquality};
+    } finally {await shell.dispose();}
+  });
+  await caseCheck('caller-abort-glob-no-continued-filesystem-work',async()=>{
+    const controller=new AbortController();
+    const reason=new Error('abort accepted ordinary filename predicate');
+    const fs=new api.MemoryFileSystem();
+    for(const path of ['/alpha.txt','/beta.txt','/gamma.txt']) await fs.writeFile(path,Buffer.from('hit\n'));
+    const calls=[];
+    for(const method of ['stat','lstat','realpath','readdir','readFile']) {
+      const original=fs[method].bind(fs);
+      fs[method]=(...args)=>{calls.push({method,path:args[0],afterAbort:controller.signal.aborted});return original(...args);};
+    }
+    const originalPost=NativeWorker.prototype.postMessage;
+    let posted=false;
+    NativeWorker.prototype.postMessage=function(message,...rest){const result=originalPost.call(this,message,...rest);if(!posted && message?.descriptor?.kind==='glob' && message.rows.length){posted=true;controller.abort(reason);}return result;};
+    const shell=new api.Shell({fs}).use(api.agentCommands());
+    try {
+      const settled=await shell.exec("rg --files -g '*.txt' .",{signal:controller.signal}).then(value=>({value}),error=>({error}));
+      if(snapshotName==='baseline') {assert.equal(posted,false);assert.equal(settled.value?.exitCode,0);return {notApplicable:'baseline executes filename predicates on host; no worker glob request',calls};}
+      assert.equal(posted,true);assert.equal(settled.error,reason);assert.equal(calls.filter(call=>call.afterAbort).length,0);assert.equal(active,0,JSON.stringify({posted,calls,afterAbort:0}));
+      return {posted,calls};
+    } finally {NativeWorker.prototype.postMessage=originalPost;await shell.dispose();}
+  });
+}
 async function benchmark() {
   const baselineApi = await import(pathToFileURL(resolve(owned,'snapshots/baseline/dist/index.js')));
   const expected = Array.from({length:32}, (_,index) => index).filter(index => index < 10 || index === 12 || index >= 30).map(index => './file'+String(index).padStart(2,'0')+'.txt:hit '+String(index).padStart(2,'0')+'\n').join('');
@@ -268,6 +342,8 @@ process.once('message',async message => {
     else if (job==='lifecycle') await lifecycle();
     else if (job==='globs') await globs();
     else if (job==='public') await publicCases();
+    else if (job==='errors') await errorCases();
+    else if (job==='walker') await walkerChecks();
     else if (job==='transport') await (await import('../production-review/transport.mjs')).runTransport(snapshot,caseCheck);
     else if (job==='benchmark') await benchmark();
     else throw new Error('unprepared benign job');

@@ -37,6 +37,26 @@ is excluded; new Shell/plugin creation, real startup, complete traversal/output
 and awaited ordinary-command disposal are included. No timing replay has run
 when this clarification is added. No acceptance threshold is invented.
 
+Two bounded explicit public error controls supplement inherited transport-only
+checks: injected constructor throw (no native Worker created) must yield status2,
+empty stdout and the injected diagnostic through actual Shell grep/rg; three
+simultaneous benign rg invocations under maxWorkers1/maxQueuedRequests0 must
+yield one successful `ab\n` and two QUEUE_EXHAUSTED status2 results, exactly one
+created Worker and none pending at final settlement. These are safe fault/admission
+controls, not risky regex or product-default policy changes. They are separate
+from the five extra public lifecycle cases and frozen before their first run.
+
+Root's final async-walker emphasis adds three named controls, keeping the public
+inventory at47 (24+7+6+5+2+3), plus one timing workload; transport15 is separate.
+Literal '[' in .ignore remains literal and excludes the '[' filename. Unclosed
+brace in .ignore preserves virtual status2, alpha output and diagnostic; actual
+native behavior is captured separately without asserting native diagnostic/status
+parity. These fixtures are in walker-cases.mjs and frozen before execution.
+After candidate handoff, abort exactly at an accepted ordinary glob-row post:
+preserve caller reason identity, make no subsequent VFS calls, and await Worker
+retirement. The baseline has no worker glob request and that injection is N/A,
+not a passed containment test. No broad engine or malformed-pattern fuzzing.
+
 Static children only, strict unhandled rejections, 128MiB heap, bounded input
 and output, exact child handles and hard watchdog. No eval, network, risky host
 regex, huge inventory or full-repository gate. Six additional pathological

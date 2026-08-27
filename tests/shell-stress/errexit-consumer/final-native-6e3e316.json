@@ -1,0 +1,1197 @@
+{
+  "at": "2026-08-27T06:08:14.415Z",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "casesHash": "5fd7a335466785cc45a263f9dd69daae2c6c3d732077405df08083102d25556f",
+  "nativeCount": 10,
+  "hostCount": 2,
+  "policy": {
+    "primary": "Whole GNU Bash5.3 profile; historical whole Bash3.2 profile, no per-case selection.",
+    "source": "Exact source/name/positional arguments supplied to -c. Native --noprofile/--norc disable host startup only; product receives declared supported options without those harness flags.",
+    "roles": "Native PATH contains only fixture bin symlinks bash/sh to selected profile and cat to /bin/cat. Product uses /consumer/bin with actual virtual registry/interpreter dispatch. No role prelude changes source lines.",
+    "mapping": "Native canonical temporary cwd corresponds to /consumer; no stdout/stderr normalization. Relative entries include exact file bytes and modes, excluding native-only bin role infrastructure.",
+    "effects": "Seeded phase mode0644; no new-file creation-mask oracle change or umask claim.",
+    "deferred": "Consumer-specific env-shebang options await explicit ROOT design. No -S assumption, no existing env-single-row mutation, and no new ERR/inherit_errexit/umask API."
+  },
+  "catHash": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6",
+  "profiles": [
+    {
+      "role": "primary",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "binaryHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "pid": 96168,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": ""
+      },
+      "rows": [
+        {
+          "id": "startup-e-literal",
+          "literalSource": "printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; printf before > phase; false; printf forbidden >> phase",
+          "sourceHash": "f5fb6c3d5a3e9ea5ee7f795a9d03e98fbc976af400747127b3f9501f08ab99ad",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; printf before > phase; false; printf forbidden >> phase",
+            "public consumer",
+            "; printf INJECTED"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-pDaTHl",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-pDaTHl/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96151,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PHB1YmxpYyBjb25zdW1lcj58PDsgcHJpbnRmIElOSkVDVEVEPgo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "3c7075626c696320636f6e73756d65723e7c3c3b207072696e746620494e4a45435445443e0a",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "sh-startup-e",
+          "literalSource": "printf sh-before; false; printf forbidden",
+          "sourceHash": "e179f70a79eb1a7e6b3315019f4fb389175ed40413af89716ce9e1067b67d3a5",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "printf sh-before; false; printf forbidden",
+            "public consumer"
+          ],
+          "osArgv0": "sh",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-PIADRB",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-PIADRB/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96152,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c2gtYmVmb3Jl",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "73682d6265666f7265",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "set-e-stop",
+          "literalSource": "printf before > phase; set -e; false; printf forbidden >> phase",
+          "sourceHash": "773be325a26029a3df20f05ada012478e7bf47f4ba42f0190d5a143ce4cd90c7",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; set -e; false; printf forbidden >> phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-ozkDJu",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-ozkDJu/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96153,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "plus-e-disables",
+          "literalSource": "false; printf option-off; set -e; set +e; false; printf runtime-off > phase",
+          "sourceHash": "e509ea4bb73e39065bf5af26a86911ec8b3286a7a753ab2b6546022e69702273",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "+e",
+            "-c",
+            "false; printf option-off; set -e; set +e; false; printf runtime-off > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-MXNICa",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-MXNICa/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96154,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "b3B0aW9uLW9mZg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "6f7074696f6e2d6f6666",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "72756e74696d652d6f6666",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "conditional-function",
+          "literalSource": "worker() { printf body; false; printf continued; }; if worker; then printf then; fi; printf done",
+          "sourceHash": "3507b35178f3980ac4ce8a8a729f279c635ac2380dc46bc57a4dfc24ecde34aa",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "worker() { printf body; false; printf continued; }; if worker; then printf then; fi; printf done",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-WnDEyk",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-WnDEyk/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96155,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Ym9keWNvbnRpbnVlZHRoZW5kb25l",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "626f6479636f6e74696e7565647468656e646f6e65",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "conditional-source",
+          "literalSource": "if . ./consumer-lib; then printf source-ok; fi; printf done",
+          "sourceHash": "bc9e6f02f245f6b345fb5671009ca7d5595fb5f478a74be29b8dab2dcc9e2cb1",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "if . ./consumer-lib; then printf source-ok; fi; printf done",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-eSXbqj",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-eSXbqj/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            },
+            "consumer-lib": {
+              "text": "printf before > phase\nfalse\nprintf after >> phase\n",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96156,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c291cmNlLW9rZG9uZQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "736f757263652d6f6b646f6e65",
+            "stderrHex": "",
+            "entries": {
+              "consumer-lib": {
+                "hex": "7072696e7466206265666f7265203e2070686173650a66616c73650a7072696e7466206166746572203e3e2070686173650a",
+                "mode": 420
+              },
+              "phase": {
+                "hex": "6265666f72656166746572",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "eval-stop",
+          "literalSource": "eval 'printf evaluated; false; printf forbidden'; printf forbidden > phase",
+          "sourceHash": "ba1c5802aca635bde5ba6de8257382a26842d8d8b17657c23f119f7af313440c",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "eval 'printf evaluated; false; printf forbidden'; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-slTHDS",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-slTHDS/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96157,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "ZXZhbHVhdGVk",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "6576616c7561746564",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "pipeline-default",
+          "literalSource": "false | cat; printf after > phase; printf pipeline-ok",
+          "sourceHash": "43d9b9cd59d0e36b528d51dd3fa3b3cf79eeadc7029635410c83612f8f3606cd",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "false | cat; printf after > phase; printf pipeline-ok",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-UgCgYQ",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-UgCgYQ/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96158,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGlwZWxpbmUtb2s=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "706970656c696e652d6f6b",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6166746572",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "pipeline-pipefail",
+          "literalSource": "set -o pipefail; false | cat; printf forbidden > phase",
+          "sourceHash": "7fce38fd39c71386aff90c7d1d1eea7d38aea064d1dd4641d6737bb20d5f1500",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "set -o pipefail; false | cat; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-2LIdwk",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-2LIdwk/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96161,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "child-option-isolation",
+          "literalSource": "bash -c 'false; printf child'; false; printf forbidden > phase",
+          "sourceHash": "bc8b945f966f403709a7761f82003da9d29f6a811a407814200f1f61a3286943",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "bash -c 'false; printf child'; false; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-SB7xul",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-SB7xul/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96164,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Y2hpbGQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "6368696c64",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "profile-control",
+          "literalSource": "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; bash -c 'printf \"bash-child:%s\\n\" \"$BASH_VERSION\"'; sh -c 'printf \"sh-child:%s\\n\" \"$BASH_VERSION\"; set -o'",
+          "sourceHash": "8eaf2afe551a9e3c1521e0e457ea9ed46cb87961d54a19c95e6dd6bb1cfe7266",
+          "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; bash -c 'printf \"bash-child:%s\\n\" \"$BASH_VERSION\"'; sh -c 'printf \"sh-child:%s\\n\" \"$BASH_VERSION\"; set -o'",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-JKK6pd",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-JKK6pd/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {},
+          "run": {
+            "pid": 96166,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGFyZW50OnB1YmxpYyBjb25zdW1lcjo1LjMuMCgxKS1yZWxlYXNlCmJhc2gtY2hpbGQ6NS4zLjAoMSktcmVsZWFzZQpzaC1jaGlsZDo1LjMuMCgxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb24KcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "706172656e743a7075626c696320636f6e73756d65723a352e332e302831292d72656c656173650a626173682d6368696c643a352e332e302831292d72656c656173650a73682d6368696c643a352e332e302831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f6e0a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+            "stderrHex": "",
+            "entries": {}
+          }
+        }
+      ]
+    },
+    {
+      "role": "historical",
+      "binary": "/bin/bash",
+      "binaryHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "pid": 96188,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": ""
+      },
+      "rows": [
+        {
+          "id": "startup-e-literal",
+          "literalSource": "printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; printf before > phase; false; printf forbidden >> phase",
+          "sourceHash": "f5fb6c3d5a3e9ea5ee7f795a9d03e98fbc976af400747127b3f9501f08ab99ad",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; printf before > phase; false; printf forbidden >> phase",
+            "public consumer",
+            "; printf INJECTED"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-5oCQrf",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-5oCQrf/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96169,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PHB1YmxpYyBjb25zdW1lcj58PDsgcHJpbnRmIElOSkVDVEVEPgo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "3c7075626c696320636f6e73756d65723e7c3c3b207072696e746620494e4a45435445443e0a",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "sh-startup-e",
+          "literalSource": "printf sh-before; false; printf forbidden",
+          "sourceHash": "e179f70a79eb1a7e6b3315019f4fb389175ed40413af89716ce9e1067b67d3a5",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "printf sh-before; false; printf forbidden",
+            "public consumer"
+          ],
+          "osArgv0": "sh",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-rhl2Vf",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-rhl2Vf/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96170,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c2gtYmVmb3Jl",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "73682d6265666f7265",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "set-e-stop",
+          "literalSource": "printf before > phase; set -e; false; printf forbidden >> phase",
+          "sourceHash": "773be325a26029a3df20f05ada012478e7bf47f4ba42f0190d5a143ce4cd90c7",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; set -e; false; printf forbidden >> phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-sR2in4",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-sR2in4/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96171,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "plus-e-disables",
+          "literalSource": "false; printf option-off; set -e; set +e; false; printf runtime-off > phase",
+          "sourceHash": "e509ea4bb73e39065bf5af26a86911ec8b3286a7a753ab2b6546022e69702273",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "+e",
+            "-c",
+            "false; printf option-off; set -e; set +e; false; printf runtime-off > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-xJwpuS",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-xJwpuS/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96172,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "b3B0aW9uLW9mZg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "6f7074696f6e2d6f6666",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "72756e74696d652d6f6666",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "conditional-function",
+          "literalSource": "worker() { printf body; false; printf continued; }; if worker; then printf then; fi; printf done",
+          "sourceHash": "3507b35178f3980ac4ce8a8a729f279c635ac2380dc46bc57a4dfc24ecde34aa",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "worker() { printf body; false; printf continued; }; if worker; then printf then; fi; printf done",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-Xg3rrI",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-Xg3rrI/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96173,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Ym9keWNvbnRpbnVlZHRoZW5kb25l",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "626f6479636f6e74696e7565647468656e646f6e65",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "conditional-source",
+          "literalSource": "if . ./consumer-lib; then printf source-ok; fi; printf done",
+          "sourceHash": "bc9e6f02f245f6b345fb5671009ca7d5595fb5f478a74be29b8dab2dcc9e2cb1",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "if . ./consumer-lib; then printf source-ok; fi; printf done",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-ysdcZL",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-ysdcZL/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            },
+            "consumer-lib": {
+              "text": "printf before > phase\nfalse\nprintf after >> phase\n",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96174,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "consumer-lib": {
+                "hex": "7072696e7466206265666f7265203e2070686173650a66616c73650a7072696e7466206166746572203e3e2070686173650a",
+                "mode": 420
+              },
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "eval-stop",
+          "literalSource": "eval 'printf evaluated; false; printf forbidden'; printf forbidden > phase",
+          "sourceHash": "ba1c5802aca635bde5ba6de8257382a26842d8d8b17657c23f119f7af313440c",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "eval 'printf evaluated; false; printf forbidden'; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-Qi3Gzz",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-Qi3Gzz/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96175,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "ZXZhbHVhdGVk",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "6576616c7561746564",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "pipeline-default",
+          "literalSource": "false | cat; printf after > phase; printf pipeline-ok",
+          "sourceHash": "43d9b9cd59d0e36b528d51dd3fa3b3cf79eeadc7029635410c83612f8f3606cd",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "false | cat; printf after > phase; printf pipeline-ok",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-V0saLn",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-V0saLn/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96177,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGlwZWxpbmUtb2s=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "706970656c696e652d6f6b",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "6166746572",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "pipeline-pipefail",
+          "literalSource": "set -o pipefail; false | cat; printf forbidden > phase",
+          "sourceHash": "7fce38fd39c71386aff90c7d1d1eea7d38aea064d1dd4641d6737bb20d5f1500",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "set -o pipefail; false | cat; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-0cyWte",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-0cyWte/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96180,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "child-option-isolation",
+          "literalSource": "bash -c 'false; printf child'; false; printf forbidden > phase",
+          "sourceHash": "bc8b945f966f403709a7761f82003da9d29f6a811a407814200f1f61a3286943",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-e",
+            "-c",
+            "bash -c 'false; printf child'; false; printf forbidden > phase",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-jhqg4P",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-jhqg4P/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {
+            "phase": {
+              "text": "seed",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 96183,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Y2hpbGQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "6368696c64",
+            "stderrHex": "",
+            "entries": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "profile-control",
+          "literalSource": "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; bash -c 'printf \"bash-child:%s\\n\" \"$BASH_VERSION\"'; sh -c 'printf \"sh-child:%s\\n\" \"$BASH_VERSION\"; set -o'",
+          "sourceHash": "8eaf2afe551a9e3c1521e0e457ea9ed46cb87961d54a19c95e6dd6bb1cfe7266",
+          "binary": "/bin/bash",
+          "argv": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; bash -c 'printf \"bash-child:%s\\n\" \"$BASH_VERSION\"'; sh -c 'printf \"sh-child:%s\\n\" \"$BASH_VERSION\"; set -o'",
+            "public consumer"
+          ],
+          "osArgv0": "bash",
+          "shellArg0": "public consumer",
+          "cwd": "/private/tmp/safe-bash-errexit-consumer-native-dBQZ3x",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-errexit-consumer-native-dBQZ3x/bin",
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "inputHex": "",
+          "fixtures": {},
+          "run": {
+            "pid": 96185,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGFyZW50OnB1YmxpYyBjb25zdW1lcjozLjIuNTcoMSktcmVsZWFzZQpiYXNoLWNoaWxkOjMuMi41NygxKS1yZWxlYXNlCnNoLWNoaWxkOjMuMi41NygxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb24KcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "706172656e743a7075626c696320636f6e73756d65723a332e322e35372831292d72656c656173650a626173682d6368696c643a332e322e35372831292d72656c656173650a73682d6368696c643a332e322e35372831292d72656c656173650a616c6c6578706f7274202020202020096f66660a6272616365657870616e6420202020096f6e0a656d61637320202020202020202020096f66660a657272657869742020202020202020096f66660a657272747261636520202020202020096f66660a66756e637472616365202020202020096f66660a68617368616c6c2020202020202020096f6e0a68697374657870616e642020202020096f66660a686973746f72792020202020202020096f66660a69676e6f7265656f66202020202020096f66660a696e7465726163746976652d636f6d6d656e7473096f6e0a6b6579776f72642020202020202020096f66660a6d6f6e69746f722020202020202020096f66660a6e6f636c6f62626572202020202020096f66660a6e6f65786563202020202020202020096f66660a6e6f676c6f62202020202020202020096f66660a6e6f6c6f6720202020202020202020096f66660a6e6f74696679202020202020202020096f66660a6e6f756e7365742020202020202020096f66660a6f6e65636d64202020202020202020096f66660a706879736963616c20202020202020096f66660a706970656661696c20202020202020096f66660a706f73697820202020202020202020096f6e0a70726976696c656765642020202020096f66660a766572626f73652020202020202020096f66660a766920202020202020202020202020096f66660a787472616365202020202020202020096f66660a",
+            "stderrHex": "",
+            "entries": {}
+          }
+        }
+      ]
+    }
+  ]
+}

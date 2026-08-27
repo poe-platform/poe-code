@@ -1,0 +1,3448 @@
+{
+  "at": "2026-08-27T06:20:14.065Z",
+  "sourceRevision": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "headAtSeal": "c467e8a7bdd78048985f97539bc76e38ff786b09",
+  "priorOwnedFiles": [
+    {
+      "path": "tests/shell-stress/errexit-consumer/PREPARATION.md",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "85b28378450a097c08be3a5381524271ebe3fc4dc2f3cda01081d5446b7e9091"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/build-ready.mjs",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "f93d22c7a1c2a59111a0469f79ce485edf339d5b4b3d2e0364ac0c208c308629"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/cases.mjs",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "5fd7a335466785cc45a263f9dd69daae2c6c3d732077405df08083102d25556f"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/consumer.mjs",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "d2157b50a33f1ecd6e9bfc483ab1aa2fd30ad993b3ad9125507ce914881c6118"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/native-frozen.json",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "8afcc998b5a51901c4dd7e3213765a90dac5e9d5b34b9aaaf65596f9a1bd03b7"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/native.mjs",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "38be343597439f39b839f16dace32fa4d8fd8897814fabd58eab0b8747e2093c"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/preparation.json",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "6aa0c4d0d07079b51517a371d1e08d6f13d0043fc16f1d5ab0e7b1904729bc84"
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/support.mjs",
+      "revision": "a111a2ad1c597c0b8e0ddbf6f1fe2f2905f1958f",
+      "sha256": "97e46a70069d2734531a9d361a9b0882181b4a1deed5a949e45c4d34c0ea96e9"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/ACCEPTANCE.md",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "83f43714cbf969e50639a01509e8788a76615e08fbb60da62f4127c4615d3250"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/ACCEPTANCE_ROWS.md",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "8bcabba5155b0b0aae0a54736d463bab186080fecb6958727b65dcc61238a227"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/BASELINE.md",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "54cae5200304d4d6ef6fed01993c841c0c58d75f82abc7bc2210e8d854a71483"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/RAW_ROWS.md",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "d9187fff4b62810d1446c63810608d0b0a7eaed82223335c464178a01ecb307a"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-audit.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "bc44f2a6208bd61f761408b63aa165827936a163fd06a46b47a160492e992c4e"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "a038e4629d21abcf4621ca0f2329ec8695bc485340ea615fb30093434844ecc0"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-compilers-f1bb98b.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "b088ebe93140033c393eb625be5ef3995c3dbf130d9a14e9aa530c48ebb5857d"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-compilers.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "bab998bd631ff97ce0cf513f8e3a5102918d1ad98c3c8ef9260564ea3a190f79"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-corrected72.tap",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "aaf4fba3fb396e044b0080888103a12dbd2015ca4f6062d434631b700de906f9"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-f1bb98b.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "9801fecbd83c07ea0e7492ca9a30e35fd2bf62f81f1a1177e3fbda1bd83c1088"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-native36-f1bb98b.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "3171d2d3fde6b0f2ce9ea5c733071720d48902643317cc9a9a970d0154442394"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "3a00a3c438ddf50d76cf438eeff08a7e422f9c30507483abc6fd14d5df9574ff"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-native57-f1bb98b.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "01ce0d567aa1c5b3ec647329bb3af31a371d7c7d94d922559273e78bd6adfd66"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-native57.ts",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "72e2daa8c8d663ebad150ee64cd87c588f5ed6095bda963118ea2e2f478dcd24"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-ready-proof.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "5281e3072bbf9d2c0170fe03155f89aa9b0d3a78687e629331cf193b052e181b"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-report.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "1323c1ecb99d981322d1773ccced853aad55423a8af6a6ed57fac2dd9c10668a"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-rows.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "b95ed79e4e45dc6535e1d9815ff453f1b19fb8704cb08bfa3da9ce4207605e45"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-seal.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "0f4030f9b55782b759c2b6bfd69ac21e7a41381d53bbae97be2e699168e8be4b"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-support.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "7775f9f96c37d9c97e85ca41a546e8768a62d62b7987114fb80d4835c2bb554e"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/audit.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "cfb8cd0e7dc087398e9bfc50a26ad9978801c5c62725332e1d776a7e1a795787"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/baseline-current.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "ab79f0254cbc20a9923a78802ce2dab86b383dadfb04c8dbf7ff2528cb3ab1d8"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/baseline-recovered.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "5feb7451dcef401d7b33dc27adb6fd6d408fe66fa80816664538b91ac67051bc"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/capture.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "5a01e3542c63aad20f93d6c53b92850318eaadfd7bcfc01267b0a62c2bd1810b"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/corrected72.tap",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "7a4323acefcd385bd02dc2d3979757757b26e1b5d0c43323d13029e68ad9f3fe"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/functional-handoff.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "57dc77bc833ff3c6778d68b00a41171a18fa258735d12b75a69a1e5c967c6f4d"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/native36-current.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "7ef74516df90327cbe8ec5821cd4dfcc928a053eb3410335c711e253ad89e02f"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/native36.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "a3ff27fd16b9d9872dfbe2b3bd7a566b8f640fb62d8a4fcc5dbb2bd94d9c6e89"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/native57-current.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "85995da790b5f62051c0743d6c92361ec57ffd277c46a7eafabde3987728f799"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/native57.ts",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "3d3673f2e28c1d834b4eb6d66952b56b9b0e441b3979ee3e97377ae498a80725"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/report.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "45b6f3f48a9e22f51df4ff966e618ab1c15c699ae6deff9bd8eeb8dd327a4ce9"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/scoped-typecheck.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "e108d52e755f0050f8aa677b7ef94c03c7e18640f847e99a20a988841b50a9f3"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/seal.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "909f2d0a1cb4bb63f8620b88be393d5a445f69e3d4f5a5c6a7b25fa976bb0645"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/support.d.mts",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/support.mjs",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "7cbe2c4a7271d81a6abd98fc2d91852d193d9d1c2e6efa99b796b8f0dcef86d4"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/unresolved-rows.json",
+      "revision": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+      "sha256": "8333bb783775b8a18d84bf909f0aacffedbb6742ca48f4f42889a1f6afbae906"
+    }
+  ],
+  "syntax": [
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-report.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-snapshot.mjs",
+      "status": 0
+    }
+  ],
+  "nativeRuns": [
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/version",
+      "pid": 96168,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/0/run",
+      "pid": 96151,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/1/run",
+      "pid": 96152,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/2/run",
+      "pid": 96153,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/3/run",
+      "pid": 96154,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/4/run",
+      "pid": 96155,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/5/run",
+      "pid": 96156,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/6/run",
+      "pid": 96157,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/7/run",
+      "pid": 96158,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/8/run",
+      "pid": 96161,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/rows/9/run",
+      "pid": 96164,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/0/controls/0/run",
+      "pid": 96166,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/version",
+      "pid": 96188,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/0/run",
+      "pid": 96169,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/1/run",
+      "pid": 96170,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/2/run",
+      "pid": 96171,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/3/run",
+      "pid": 96172,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/4/run",
+      "pid": 96173,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/5/run",
+      "pid": 96174,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/6/run",
+      "pid": 96175,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/7/run",
+      "pid": 96177,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/8/run",
+      "pid": 96180,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/rows/9/run",
+      "pid": 96183,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/final-native-6e3e316.json/profiles/1/controls/0/run",
+      "pid": 96185,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/version",
+      "pid": 96271,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/0/run",
+      "pid": 96215,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/1/run",
+      "pid": 96216,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/2/run",
+      "pid": 96217,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/3/run",
+      "pid": 96219,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/4/run",
+      "pid": 96221,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/5/run",
+      "pid": 96224,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/6/run",
+      "pid": 96226,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/7/run",
+      "pid": 96228,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/8/run",
+      "pid": 96230,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/9/run",
+      "pid": 96231,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/10/run",
+      "pid": 96232,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/11/run",
+      "pid": 96233,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/12/run",
+      "pid": 96234,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/13/run",
+      "pid": 96235,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/14/run",
+      "pid": 96238,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/15/run",
+      "pid": 96245,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/16/run",
+      "pid": 96246,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/17/run",
+      "pid": 96247,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/18/run",
+      "pid": 96248,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/19/run",
+      "pid": 96249,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/20/run",
+      "pid": 96251,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/21/run",
+      "pid": 96252,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/22/run",
+      "pid": 96253,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/23/run",
+      "pid": 96254,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/24/run",
+      "pid": 96255,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/25/run",
+      "pid": 96256,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/26/run",
+      "pid": 96257,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/27/run",
+      "pid": 96258,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/28/run",
+      "pid": 96259,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/29/run",
+      "pid": 96260,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/30/run",
+      "pid": 96261,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/31/run",
+      "pid": 96262,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/32/run",
+      "pid": 96263,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/33/run",
+      "pid": 96264,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/34/run",
+      "pid": 96267,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/rows/35/run",
+      "pid": 96268,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/0/controls/0/run",
+      "pid": 96269,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/version",
+      "pid": 96332,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/0/run",
+      "pid": 96272,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/1/run",
+      "pid": 96273,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/2/run",
+      "pid": 96274,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/3/run",
+      "pid": 96276,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/4/run",
+      "pid": 96278,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/5/run",
+      "pid": 96281,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/6/run",
+      "pid": 96283,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/7/run",
+      "pid": 96285,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/8/run",
+      "pid": 96287,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/9/run",
+      "pid": 96288,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/10/run",
+      "pid": 96289,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/11/run",
+      "pid": 96290,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/12/run",
+      "pid": 96291,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/13/run",
+      "pid": 96293,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/14/run",
+      "pid": 96294,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/15/run",
+      "pid": 96296,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/16/run",
+      "pid": 96297,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/17/run",
+      "pid": 96298,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/18/run",
+      "pid": 96299,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/19/run",
+      "pid": 96300,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/20/run",
+      "pid": 96303,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/21/run",
+      "pid": 96305,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/22/run",
+      "pid": 96306,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/23/run",
+      "pid": 96307,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/24/run",
+      "pid": 96308,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/25/run",
+      "pid": 96309,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/26/run",
+      "pid": 96310,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/27/run",
+      "pid": 96311,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/28/run",
+      "pid": 96312,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/29/run",
+      "pid": 96313,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/30/run",
+      "pid": 96314,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/31/run",
+      "pid": 96315,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/32/run",
+      "pid": 96316,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/33/run",
+      "pid": 96317,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/34/run",
+      "pid": 96320,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/rows/35/run",
+      "pid": 96321,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json/profiles/1/controls/0/run",
+      "pid": 96322,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/version",
+      "pid": 96358,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/0/result",
+      "pid": 96359,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/1/result",
+      "pid": 96361,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/2/result",
+      "pid": 96364,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/3/result",
+      "pid": 96366,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/4/result",
+      "pid": 96368,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/5/result",
+      "pid": 96370,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/6/result",
+      "pid": 96372,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/7/result",
+      "pid": 96374,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/8/result",
+      "pid": 96376,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/9/result",
+      "pid": 96378,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/10/result",
+      "pid": 96380,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/11/result",
+      "pid": 96382,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/12/result",
+      "pid": 96384,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/13/result",
+      "pid": 96386,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/14/result",
+      "pid": 96388,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/15/result",
+      "pid": 96390,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/16/result",
+      "pid": 96392,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/17/result",
+      "pid": 96394,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/18/result",
+      "pid": 96396,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/19/result",
+      "pid": 96398,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/20/result",
+      "pid": 96400,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/21/result",
+      "pid": 96402,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/22/result",
+      "pid": 96404,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/23/result",
+      "pid": 96406,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/24/result",
+      "pid": 96408,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/25/result",
+      "pid": 96410,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/26/result",
+      "pid": 96413,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/27/result",
+      "pid": 96415,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/28/result",
+      "pid": 96418,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/29/result",
+      "pid": 96420,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/30/result",
+      "pid": 96422,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/31/result",
+      "pid": 96424,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/32/result",
+      "pid": 96427,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/33/result",
+      "pid": 96429,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/34/result",
+      "pid": 96431,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/35/result",
+      "pid": 96438,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/36/result",
+      "pid": 96440,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/37/result",
+      "pid": 96442,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/38/result",
+      "pid": 96444,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/39/result",
+      "pid": 96445,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/40/result",
+      "pid": 96446,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/41/result",
+      "pid": 96447,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/42/result",
+      "pid": 96449,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/43/result",
+      "pid": 96450,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/44/result",
+      "pid": 96452,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/45/result",
+      "pid": 96453,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/46/result",
+      "pid": 96454,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/47/result",
+      "pid": 96455,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/48/result",
+      "pid": 96456,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/49/result",
+      "pid": 96458,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/50/result",
+      "pid": 96465,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/51/result",
+      "pid": 96466,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/52/result",
+      "pid": 96467,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/53/result",
+      "pid": 96468,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/54/result",
+      "pid": 96469,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/55/result",
+      "pid": 96470,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/0/rows/56/result",
+      "pid": 96471,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/version",
+      "pid": 96473,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/0/result",
+      "pid": 96474,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/1/result",
+      "pid": 96476,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/2/result",
+      "pid": 96478,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/3/result",
+      "pid": 96480,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/4/result",
+      "pid": 96482,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/5/result",
+      "pid": 96484,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/6/result",
+      "pid": 96486,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/7/result",
+      "pid": 96488,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/8/result",
+      "pid": 96490,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/9/result",
+      "pid": 96492,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/10/result",
+      "pid": 96494,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/11/result",
+      "pid": 96496,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/12/result",
+      "pid": 96498,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/13/result",
+      "pid": 96500,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/14/result",
+      "pid": 96502,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/15/result",
+      "pid": 96504,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/16/result",
+      "pid": 96506,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/17/result",
+      "pid": 96508,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/18/result",
+      "pid": 96510,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/19/result",
+      "pid": 96512,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/20/result",
+      "pid": 96514,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/21/result",
+      "pid": 96516,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/22/result",
+      "pid": 96518,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/23/result",
+      "pid": 96520,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/24/result",
+      "pid": 96522,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/25/result",
+      "pid": 96524,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/26/result",
+      "pid": 96527,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/27/result",
+      "pid": 96529,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/28/result",
+      "pid": 96532,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/29/result",
+      "pid": 96534,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/30/result",
+      "pid": 96536,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/31/result",
+      "pid": 96538,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/32/result",
+      "pid": 96541,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/33/result",
+      "pid": 96543,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/34/result",
+      "pid": 96546,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/35/result",
+      "pid": 96553,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/36/result",
+      "pid": 96556,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/37/result",
+      "pid": 96558,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/38/result",
+      "pid": 96561,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/39/result",
+      "pid": 96563,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/40/result",
+      "pid": 96565,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/41/result",
+      "pid": 96567,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/42/result",
+      "pid": 96570,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/43/result",
+      "pid": 96572,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/44/result",
+      "pid": 96574,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/45/result",
+      "pid": 96576,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/46/result",
+      "pid": 96578,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/47/result",
+      "pid": 96580,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/48/result",
+      "pid": 96582,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/49/result",
+      "pid": 96585,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/50/result",
+      "pid": 96593,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/51/result",
+      "pid": 96594,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/52/result",
+      "pid": 96596,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/53/result",
+      "pid": 96597,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/54/result",
+      "pid": 96599,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/55/result",
+      "pid": 96601,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json/profiles/1/rows/56/result",
+      "pid": 96603,
+      "timedOut": false,
+      "overflow": false,
+      "signal": null,
+      "groupAlive": null
+    }
+  ],
+  "groups": [
+    {
+      "pid": 96147,
+      "alive": false
+    },
+    {
+      "pid": 96150,
+      "alive": false
+    },
+    {
+      "pid": 96212,
+      "alive": false
+    },
+    {
+      "pid": 96356,
+      "alive": false
+    },
+    {
+      "pid": 96168,
+      "alive": false
+    },
+    {
+      "pid": 96151,
+      "alive": false
+    },
+    {
+      "pid": 96152,
+      "alive": false
+    },
+    {
+      "pid": 96153,
+      "alive": false
+    },
+    {
+      "pid": 96154,
+      "alive": false
+    },
+    {
+      "pid": 96155,
+      "alive": false
+    },
+    {
+      "pid": 96156,
+      "alive": false
+    },
+    {
+      "pid": 96157,
+      "alive": false
+    },
+    {
+      "pid": 96158,
+      "alive": false
+    },
+    {
+      "pid": 96161,
+      "alive": false
+    },
+    {
+      "pid": 96164,
+      "alive": false
+    },
+    {
+      "pid": 96166,
+      "alive": false
+    },
+    {
+      "pid": 96188,
+      "alive": false
+    },
+    {
+      "pid": 96169,
+      "alive": false
+    },
+    {
+      "pid": 96170,
+      "alive": false
+    },
+    {
+      "pid": 96171,
+      "alive": false
+    },
+    {
+      "pid": 96172,
+      "alive": false
+    },
+    {
+      "pid": 96173,
+      "alive": false
+    },
+    {
+      "pid": 96174,
+      "alive": false
+    },
+    {
+      "pid": 96175,
+      "alive": false
+    },
+    {
+      "pid": 96177,
+      "alive": false
+    },
+    {
+      "pid": 96180,
+      "alive": false
+    },
+    {
+      "pid": 96183,
+      "alive": false
+    },
+    {
+      "pid": 96185,
+      "alive": false
+    },
+    {
+      "pid": 96271,
+      "alive": false
+    },
+    {
+      "pid": 96215,
+      "alive": false
+    },
+    {
+      "pid": 96216,
+      "alive": false
+    },
+    {
+      "pid": 96217,
+      "alive": false
+    },
+    {
+      "pid": 96219,
+      "alive": false
+    },
+    {
+      "pid": 96221,
+      "alive": false
+    },
+    {
+      "pid": 96224,
+      "alive": false
+    },
+    {
+      "pid": 96226,
+      "alive": false
+    },
+    {
+      "pid": 96228,
+      "alive": false
+    },
+    {
+      "pid": 96230,
+      "alive": false
+    },
+    {
+      "pid": 96231,
+      "alive": false
+    },
+    {
+      "pid": 96232,
+      "alive": false
+    },
+    {
+      "pid": 96233,
+      "alive": false
+    },
+    {
+      "pid": 96234,
+      "alive": false
+    },
+    {
+      "pid": 96235,
+      "alive": false
+    },
+    {
+      "pid": 96238,
+      "alive": false
+    },
+    {
+      "pid": 96245,
+      "alive": false
+    },
+    {
+      "pid": 96246,
+      "alive": false
+    },
+    {
+      "pid": 96247,
+      "alive": false
+    },
+    {
+      "pid": 96248,
+      "alive": false
+    },
+    {
+      "pid": 96249,
+      "alive": false
+    },
+    {
+      "pid": 96251,
+      "alive": false
+    },
+    {
+      "pid": 96252,
+      "alive": false
+    },
+    {
+      "pid": 96253,
+      "alive": false
+    },
+    {
+      "pid": 96254,
+      "alive": false
+    },
+    {
+      "pid": 96255,
+      "alive": false
+    },
+    {
+      "pid": 96256,
+      "alive": false
+    },
+    {
+      "pid": 96257,
+      "alive": false
+    },
+    {
+      "pid": 96258,
+      "alive": false
+    },
+    {
+      "pid": 96259,
+      "alive": false
+    },
+    {
+      "pid": 96260,
+      "alive": false
+    },
+    {
+      "pid": 96261,
+      "alive": false
+    },
+    {
+      "pid": 96262,
+      "alive": false
+    },
+    {
+      "pid": 96263,
+      "alive": false
+    },
+    {
+      "pid": 96264,
+      "alive": false
+    },
+    {
+      "pid": 96267,
+      "alive": false
+    },
+    {
+      "pid": 96268,
+      "alive": false
+    },
+    {
+      "pid": 96269,
+      "alive": false
+    },
+    {
+      "pid": 96332,
+      "alive": false
+    },
+    {
+      "pid": 96272,
+      "alive": false
+    },
+    {
+      "pid": 96273,
+      "alive": false
+    },
+    {
+      "pid": 96274,
+      "alive": false
+    },
+    {
+      "pid": 96276,
+      "alive": false
+    },
+    {
+      "pid": 96278,
+      "alive": false
+    },
+    {
+      "pid": 96281,
+      "alive": false
+    },
+    {
+      "pid": 96283,
+      "alive": false
+    },
+    {
+      "pid": 96285,
+      "alive": false
+    },
+    {
+      "pid": 96287,
+      "alive": false
+    },
+    {
+      "pid": 96288,
+      "alive": false
+    },
+    {
+      "pid": 96289,
+      "alive": false
+    },
+    {
+      "pid": 96290,
+      "alive": false
+    },
+    {
+      "pid": 96291,
+      "alive": false
+    },
+    {
+      "pid": 96293,
+      "alive": false
+    },
+    {
+      "pid": 96294,
+      "alive": false
+    },
+    {
+      "pid": 96296,
+      "alive": false
+    },
+    {
+      "pid": 96297,
+      "alive": false
+    },
+    {
+      "pid": 96298,
+      "alive": false
+    },
+    {
+      "pid": 96299,
+      "alive": false
+    },
+    {
+      "pid": 96300,
+      "alive": false
+    },
+    {
+      "pid": 96303,
+      "alive": false
+    },
+    {
+      "pid": 96305,
+      "alive": false
+    },
+    {
+      "pid": 96306,
+      "alive": false
+    },
+    {
+      "pid": 96307,
+      "alive": false
+    },
+    {
+      "pid": 96308,
+      "alive": false
+    },
+    {
+      "pid": 96309,
+      "alive": false
+    },
+    {
+      "pid": 96310,
+      "alive": false
+    },
+    {
+      "pid": 96311,
+      "alive": false
+    },
+    {
+      "pid": 96312,
+      "alive": false
+    },
+    {
+      "pid": 96313,
+      "alive": false
+    },
+    {
+      "pid": 96314,
+      "alive": false
+    },
+    {
+      "pid": 96315,
+      "alive": false
+    },
+    {
+      "pid": 96316,
+      "alive": false
+    },
+    {
+      "pid": 96317,
+      "alive": false
+    },
+    {
+      "pid": 96320,
+      "alive": false
+    },
+    {
+      "pid": 96321,
+      "alive": false
+    },
+    {
+      "pid": 96322,
+      "alive": false
+    },
+    {
+      "pid": 96358,
+      "alive": false
+    },
+    {
+      "pid": 96359,
+      "alive": false
+    },
+    {
+      "pid": 96361,
+      "alive": false
+    },
+    {
+      "pid": 96364,
+      "alive": false
+    },
+    {
+      "pid": 96366,
+      "alive": false
+    },
+    {
+      "pid": 96368,
+      "alive": false
+    },
+    {
+      "pid": 96370,
+      "alive": false
+    },
+    {
+      "pid": 96372,
+      "alive": false
+    },
+    {
+      "pid": 96374,
+      "alive": false
+    },
+    {
+      "pid": 96376,
+      "alive": false
+    },
+    {
+      "pid": 96378,
+      "alive": false
+    },
+    {
+      "pid": 96380,
+      "alive": false
+    },
+    {
+      "pid": 96382,
+      "alive": false
+    },
+    {
+      "pid": 96384,
+      "alive": false
+    },
+    {
+      "pid": 96386,
+      "alive": false
+    },
+    {
+      "pid": 96388,
+      "alive": false
+    },
+    {
+      "pid": 96390,
+      "alive": false
+    },
+    {
+      "pid": 96392,
+      "alive": false
+    },
+    {
+      "pid": 96394,
+      "alive": false
+    },
+    {
+      "pid": 96396,
+      "alive": false
+    },
+    {
+      "pid": 96398,
+      "alive": false
+    },
+    {
+      "pid": 96400,
+      "alive": false
+    },
+    {
+      "pid": 96402,
+      "alive": false
+    },
+    {
+      "pid": 96404,
+      "alive": false
+    },
+    {
+      "pid": 96406,
+      "alive": false
+    },
+    {
+      "pid": 96408,
+      "alive": false
+    },
+    {
+      "pid": 96410,
+      "alive": false
+    },
+    {
+      "pid": 96413,
+      "alive": false
+    },
+    {
+      "pid": 96415,
+      "alive": false
+    },
+    {
+      "pid": 96418,
+      "alive": false
+    },
+    {
+      "pid": 96420,
+      "alive": false
+    },
+    {
+      "pid": 96422,
+      "alive": false
+    },
+    {
+      "pid": 96424,
+      "alive": false
+    },
+    {
+      "pid": 96427,
+      "alive": false
+    },
+    {
+      "pid": 96429,
+      "alive": false
+    },
+    {
+      "pid": 96431,
+      "alive": false
+    },
+    {
+      "pid": 96438,
+      "alive": false
+    },
+    {
+      "pid": 96440,
+      "alive": false
+    },
+    {
+      "pid": 96442,
+      "alive": false
+    },
+    {
+      "pid": 96444,
+      "alive": false
+    },
+    {
+      "pid": 96445,
+      "alive": false
+    },
+    {
+      "pid": 96446,
+      "alive": false
+    },
+    {
+      "pid": 96447,
+      "alive": false
+    },
+    {
+      "pid": 96449,
+      "alive": false
+    },
+    {
+      "pid": 96450,
+      "alive": false
+    },
+    {
+      "pid": 96452,
+      "alive": false
+    },
+    {
+      "pid": 96453,
+      "alive": false
+    },
+    {
+      "pid": 96454,
+      "alive": false
+    },
+    {
+      "pid": 96455,
+      "alive": false
+    },
+    {
+      "pid": 96456,
+      "alive": false
+    },
+    {
+      "pid": 96458,
+      "alive": false
+    },
+    {
+      "pid": 96465,
+      "alive": false
+    },
+    {
+      "pid": 96466,
+      "alive": false
+    },
+    {
+      "pid": 96467,
+      "alive": false
+    },
+    {
+      "pid": 96468,
+      "alive": false
+    },
+    {
+      "pid": 96469,
+      "alive": false
+    },
+    {
+      "pid": 96470,
+      "alive": false
+    },
+    {
+      "pid": 96471,
+      "alive": false
+    },
+    {
+      "pid": 96473,
+      "alive": false
+    },
+    {
+      "pid": 96474,
+      "alive": false
+    },
+    {
+      "pid": 96476,
+      "alive": false
+    },
+    {
+      "pid": 96478,
+      "alive": false
+    },
+    {
+      "pid": 96480,
+      "alive": false
+    },
+    {
+      "pid": 96482,
+      "alive": false
+    },
+    {
+      "pid": 96484,
+      "alive": false
+    },
+    {
+      "pid": 96486,
+      "alive": false
+    },
+    {
+      "pid": 96488,
+      "alive": false
+    },
+    {
+      "pid": 96490,
+      "alive": false
+    },
+    {
+      "pid": 96492,
+      "alive": false
+    },
+    {
+      "pid": 96494,
+      "alive": false
+    },
+    {
+      "pid": 96496,
+      "alive": false
+    },
+    {
+      "pid": 96498,
+      "alive": false
+    },
+    {
+      "pid": 96500,
+      "alive": false
+    },
+    {
+      "pid": 96502,
+      "alive": false
+    },
+    {
+      "pid": 96504,
+      "alive": false
+    },
+    {
+      "pid": 96506,
+      "alive": false
+    },
+    {
+      "pid": 96508,
+      "alive": false
+    },
+    {
+      "pid": 96510,
+      "alive": false
+    },
+    {
+      "pid": 96512,
+      "alive": false
+    },
+    {
+      "pid": 96514,
+      "alive": false
+    },
+    {
+      "pid": 96516,
+      "alive": false
+    },
+    {
+      "pid": 96518,
+      "alive": false
+    },
+    {
+      "pid": 96520,
+      "alive": false
+    },
+    {
+      "pid": 96522,
+      "alive": false
+    },
+    {
+      "pid": 96524,
+      "alive": false
+    },
+    {
+      "pid": 96527,
+      "alive": false
+    },
+    {
+      "pid": 96529,
+      "alive": false
+    },
+    {
+      "pid": 96532,
+      "alive": false
+    },
+    {
+      "pid": 96534,
+      "alive": false
+    },
+    {
+      "pid": 96536,
+      "alive": false
+    },
+    {
+      "pid": 96538,
+      "alive": false
+    },
+    {
+      "pid": 96541,
+      "alive": false
+    },
+    {
+      "pid": 96543,
+      "alive": false
+    },
+    {
+      "pid": 96546,
+      "alive": false
+    },
+    {
+      "pid": 96553,
+      "alive": false
+    },
+    {
+      "pid": 96556,
+      "alive": false
+    },
+    {
+      "pid": 96558,
+      "alive": false
+    },
+    {
+      "pid": 96561,
+      "alive": false
+    },
+    {
+      "pid": 96563,
+      "alive": false
+    },
+    {
+      "pid": 96565,
+      "alive": false
+    },
+    {
+      "pid": 96567,
+      "alive": false
+    },
+    {
+      "pid": 96570,
+      "alive": false
+    },
+    {
+      "pid": 96572,
+      "alive": false
+    },
+    {
+      "pid": 96574,
+      "alive": false
+    },
+    {
+      "pid": 96576,
+      "alive": false
+    },
+    {
+      "pid": 96578,
+      "alive": false
+    },
+    {
+      "pid": 96580,
+      "alive": false
+    },
+    {
+      "pid": 96582,
+      "alive": false
+    },
+    {
+      "pid": 96585,
+      "alive": false
+    },
+    {
+      "pid": 96593,
+      "alive": false
+    },
+    {
+      "pid": 96594,
+      "alive": false
+    },
+    {
+      "pid": 96596,
+      "alive": false
+    },
+    {
+      "pid": 96597,
+      "alive": false
+    },
+    {
+      "pid": 96599,
+      "alive": false
+    },
+    {
+      "pid": 96601,
+      "alive": false
+    },
+    {
+      "pid": 96603,
+      "alive": false
+    },
+    {
+      "pid": 96700,
+      "alive": false
+    },
+    {
+      "pid": 96703,
+      "alive": false
+    },
+    {
+      "pid": 96716,
+      "alive": false
+    },
+    {
+      "pid": 96721,
+      "alive": false
+    },
+    {
+      "pid": 96743,
+      "alive": false
+    },
+    {
+      "pid": 96744,
+      "alive": false
+    },
+    {
+      "pid": 96745,
+      "alive": false
+    },
+    {
+      "pid": 96787,
+      "alive": false
+    },
+    {
+      "pid": 96789,
+      "alive": false
+    },
+    {
+      "pid": 96796,
+      "alive": false
+    },
+    {
+      "pid": 96797,
+      "alive": false
+    },
+    {
+      "pid": 96804,
+      "alive": false
+    },
+    {
+      "pid": 96805,
+      "alive": false
+    },
+    {
+      "pid": 96815,
+      "alive": false
+    },
+    {
+      "pid": 96816,
+      "alive": false
+    },
+    {
+      "pid": 96817,
+      "alive": false
+    },
+    {
+      "pid": 96835,
+      "alive": false
+    },
+    {
+      "pid": 96841,
+      "alive": false
+    },
+    {
+      "pid": 96855,
+      "alive": false
+    },
+    {
+      "pid": 96856,
+      "alive": false
+    },
+    {
+      "pid": 96870,
+      "alive": false
+    },
+    {
+      "pid": 96886,
+      "alive": false
+    },
+    {
+      "pid": 96901,
+      "alive": false
+    },
+    {
+      "pid": 96906,
+      "alive": false
+    },
+    {
+      "pid": 96907,
+      "alive": false
+    },
+    {
+      "pid": 96908,
+      "alive": false
+    },
+    {
+      "pid": 96923,
+      "alive": false
+    },
+    {
+      "pid": 96943,
+      "alive": false
+    },
+    {
+      "pid": 96949,
+      "alive": false
+    },
+    {
+      "pid": 96953,
+      "alive": false
+    },
+    {
+      "pid": 96957,
+      "alive": false
+    },
+    {
+      "pid": 96977,
+      "alive": false
+    },
+    {
+      "pid": 96983,
+      "alive": false
+    },
+    {
+      "pid": 96988,
+      "alive": false
+    },
+    {
+      "pid": 97002,
+      "alive": false
+    },
+    {
+      "pid": 97008,
+      "alive": false
+    },
+    {
+      "pid": 97017,
+      "alive": false
+    },
+    {
+      "pid": 97027,
+      "alive": false
+    },
+    {
+      "pid": 97033,
+      "alive": false
+    },
+    {
+      "pid": 97038,
+      "alive": false
+    },
+    {
+      "pid": 97045,
+      "alive": false
+    },
+    {
+      "pid": 97050,
+      "alive": false
+    },
+    {
+      "pid": 97056,
+      "alive": false
+    },
+    {
+      "pid": 97062,
+      "alive": false
+    },
+    {
+      "pid": 97071,
+      "alive": false
+    },
+    {
+      "pid": 97072,
+      "alive": false
+    },
+    {
+      "pid": 97083,
+      "alive": false
+    },
+    {
+      "pid": 97084,
+      "alive": false
+    },
+    {
+      "pid": 97087,
+      "alive": false
+    },
+    {
+      "pid": 97089,
+      "alive": false
+    },
+    {
+      "pid": 97091,
+      "alive": false
+    },
+    {
+      "pid": 97092,
+      "alive": false
+    },
+    {
+      "pid": 97093,
+      "alive": false
+    },
+    {
+      "pid": 97094,
+      "alive": false
+    },
+    {
+      "pid": 97096,
+      "alive": false
+    },
+    {
+      "pid": 97097,
+      "alive": false
+    },
+    {
+      "pid": 97098,
+      "alive": false
+    },
+    {
+      "pid": 97100,
+      "alive": false
+    },
+    {
+      "pid": 97102,
+      "alive": false
+    },
+    {
+      "pid": 97103,
+      "alive": false
+    },
+    {
+      "pid": 97106,
+      "alive": false
+    },
+    {
+      "pid": 97109,
+      "alive": false
+    },
+    {
+      "pid": 97110,
+      "alive": false
+    },
+    {
+      "pid": 97113,
+      "alive": false
+    },
+    {
+      "pid": 97114,
+      "alive": false
+    },
+    {
+      "pid": 97117,
+      "alive": false
+    },
+    {
+      "pid": 97118,
+      "alive": false
+    },
+    {
+      "pid": 97121,
+      "alive": false
+    },
+    {
+      "pid": 97123,
+      "alive": false
+    },
+    {
+      "pid": 97126,
+      "alive": false
+    },
+    {
+      "pid": 97129,
+      "alive": false
+    },
+    {
+      "pid": 97132,
+      "alive": false
+    },
+    {
+      "pid": 97140,
+      "alive": false
+    },
+    {
+      "pid": 97141,
+      "alive": false
+    },
+    {
+      "pid": 97144,
+      "alive": false
+    },
+    {
+      "pid": 97148,
+      "alive": false
+    },
+    {
+      "pid": 97150,
+      "alive": false
+    },
+    {
+      "pid": 97153,
+      "alive": false
+    },
+    {
+      "pid": 97154,
+      "alive": false
+    },
+    {
+      "pid": 97156,
+      "alive": false
+    },
+    {
+      "pid": 97157,
+      "alive": false
+    },
+    {
+      "pid": 97159,
+      "alive": false
+    },
+    {
+      "pid": 97160,
+      "alive": false
+    },
+    {
+      "pid": 97162,
+      "alive": false
+    },
+    {
+      "pid": 97163,
+      "alive": false
+    },
+    {
+      "pid": 97165,
+      "alive": false
+    },
+    {
+      "pid": 97167,
+      "alive": false
+    },
+    {
+      "pid": 97169,
+      "alive": false
+    },
+    {
+      "pid": 97170,
+      "alive": false
+    },
+    {
+      "pid": 97172,
+      "alive": false
+    },
+    {
+      "pid": 97176,
+      "alive": false
+    },
+    {
+      "pid": 97185,
+      "alive": false
+    },
+    {
+      "pid": 97187,
+      "alive": false
+    },
+    {
+      "pid": 97202,
+      "alive": false
+    },
+    {
+      "pid": 97211,
+      "alive": false
+    },
+    {
+      "pid": 97215,
+      "alive": false
+    },
+    {
+      "pid": 97223,
+      "alive": false
+    },
+    {
+      "pid": 97225,
+      "alive": false
+    },
+    {
+      "pid": 97226,
+      "alive": false
+    },
+    {
+      "pid": 97227,
+      "alive": false
+    },
+    {
+      "pid": 97229,
+      "alive": false
+    },
+    {
+      "pid": 97230,
+      "alive": false
+    },
+    {
+      "pid": 97232,
+      "alive": false
+    },
+    {
+      "pid": 97234,
+      "alive": false
+    },
+    {
+      "pid": 97236,
+      "alive": false
+    },
+    {
+      "pid": 97238,
+      "alive": false
+    },
+    {
+      "pid": 97239,
+      "alive": false
+    },
+    {
+      "pid": 97241,
+      "alive": false
+    },
+    {
+      "pid": 97242,
+      "alive": false
+    },
+    {
+      "pid": 97244,
+      "alive": false
+    },
+    {
+      "pid": 97245,
+      "alive": false
+    },
+    {
+      "pid": 97249,
+      "alive": false
+    },
+    {
+      "pid": 97251,
+      "alive": false
+    },
+    {
+      "pid": 97254,
+      "alive": false
+    },
+    {
+      "pid": 97255,
+      "alive": false
+    },
+    {
+      "pid": 97258,
+      "alive": false
+    },
+    {
+      "pid": 97259,
+      "alive": false
+    },
+    {
+      "pid": 97261,
+      "alive": false
+    },
+    {
+      "pid": 97271,
+      "alive": false
+    },
+    {
+      "pid": 97274,
+      "alive": false
+    },
+    {
+      "pid": 97310,
+      "alive": false
+    },
+    {
+      "pid": 97311,
+      "alive": false
+    },
+    {
+      "pid": 97455,
+      "alive": false
+    },
+    {
+      "pid": 97457,
+      "alive": false
+    },
+    {
+      "pid": 97517,
+      "alive": false
+    },
+    {
+      "pid": 97520,
+      "alive": false
+    },
+    {
+      "pid": 97549,
+      "alive": false
+    },
+    {
+      "pid": 97558,
+      "alive": false
+    },
+    {
+      "pid": 84205,
+      "alive": false
+    },
+    {
+      "pid": 84405,
+      "alive": false
+    },
+    {
+      "pid": 84426,
+      "alive": false
+    },
+    {
+      "pid": 84428,
+      "alive": false
+    },
+    {
+      "pid": 84429,
+      "alive": false
+    },
+    {
+      "pid": 84430,
+      "alive": false
+    },
+    {
+      "pid": 84442,
+      "alive": false
+    },
+    {
+      "pid": 84446,
+      "alive": false
+    },
+    {
+      "pid": 84447,
+      "alive": false
+    },
+    {
+      "pid": 84448,
+      "alive": false
+    },
+    {
+      "pid": 84457,
+      "alive": false
+    },
+    {
+      "pid": 84462,
+      "alive": false
+    },
+    {
+      "pid": 84463,
+      "alive": false
+    },
+    {
+      "pid": 84464,
+      "alive": false
+    }
+  ],
+  "newEvidenceHashes": {
+    "tests/shell-stress/errexit-consumer/FINAL.md": "d7216fdeacd6e25b6e14dcbc0f0e139e65fe2b351721d204263c97ab73952849",
+    "tests/shell-stress/errexit-consumer/final-audit.json": "b5a4feb059101db845ead13ceadcfc955c1d8468bc049ea6ac26c7cd8b7166c9",
+    "tests/shell-stress/errexit-consumer/final-built-6e3e316.json": "a38606760dd844c2276a77a2780b677e3899c814c48b7e907fdfb352dbdcf6a7",
+    "tests/shell-stress/errexit-consumer/final-native-6e3e316.json": "720b49ffa00e0b62ed1481d2029e60e7514faa41c1de9f89c89fc04c66ca6fbc",
+    "tests/shell-stress/errexit-consumer/final-native.mjs": "d7a9e9ae521e784124a88842f25a50bcfc5959802ece77284ea0262bb55b7645",
+    "tests/shell-stress/errexit-consumer/final-report.mjs": "58904ff388b56cf671ca4af4ba6a5fe561f6f62e6247e6eca1291b69c194fff9",
+    "tests/shell-stress/kernel-reconciliation/FINAL_ACCEPTANCE.md": "9636122d38b7fc553f240c976e35c840c60c843607ccc2354b856b9224748229",
+    "tests/shell-stress/kernel-reconciliation/FINAL_ROWS.md": "666411bcdb07c3a0916dd21991ec7d1d4be5b2066e2c7ea4038194b6274c3652",
+    "tests/shell-stress/kernel-reconciliation/final-corrected72.tap": "6bd5490f676e764f198865d76178c4eef3f573bb80339447acbeffd5ebe89cd6",
+    "tests/shell-stress/kernel-reconciliation/final-native36-6e3e316.json": "d393393433112ab26779630747e0ddba9d361631770a2c3aefb43db6dd66c4a3",
+    "tests/shell-stress/kernel-reconciliation/final-native36.mjs": "f59d30e5a08478ce62f615d30bb9f940d800e096424fcd518692a4fd31dc01b6",
+    "tests/shell-stress/kernel-reconciliation/final-native57-6e3e316.json": "2f218a605cc737290924b0bafdfb513ac9d389c0fe1d0b6f1418a5f1412c65dd",
+    "tests/shell-stress/kernel-reconciliation/final-native57.ts": "9141eac5fff9deafacf6af3f23bab3195f607dce08e4a5bfb6c6ca6a16e7e0cf",
+    "tests/shell-stress/kernel-reconciliation/final-rows-6e3e316.json": "06e623e634fe26bdad004746b037953552757a701b3810acda2019623087afcc",
+    "tests/shell-stress/kernel-reconciliation/final-snapshot-6e3e316.json": "b064ed575777143157273d4beeb1df8b76e4ea2915380b546e96405cbcb70245",
+    "tests/shell-stress/kernel-reconciliation/final-snapshot.mjs": "6a79309a5892f4f1b83abc879332f7e50ad8c68452e7c1a72a4ca6390b925b4f"
+  },
+  "foreignIndexBeforeCommit": {
+    "entries": 9752,
+    "sha256": "2b33c34a8fdbaffee1a190498d2cb6221eb9358c8f064f7c0092114520e503ac"
+  },
+  "sealRecovery": {
+    "initialCommand": "git ls-files --stage -z",
+    "failure": "spawnSync git ENOBUFS at default execFileSync maxBuffer; 1114112 captured bytes; own git child terminated with SIGTERM",
+    "scope": "Evidence-seal metadata only; no product/native/compiler invocation. Bounded recovery increases metadata buffer to64MiB, preserves failed attempt here.",
+    "productRetries": 0
+  }
+}

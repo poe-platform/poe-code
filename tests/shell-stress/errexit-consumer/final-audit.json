@@ -1,0 +1,3058 @@
+{
+  "at": "2026-08-27T06:13:00.321Z",
+  "revision": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "scope": "Full committed6e source, not latest live aggregate",
+  "sourceProof": [
+    {
+      "path": "package.json",
+      "hash": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/README.md",
+      "hash": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/README.md",
+      "hash": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/create.ts",
+      "hash": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/extract.ts",
+      "hash": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/format.ts",
+      "hash": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/index.ts",
+      "hash": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/internal.ts",
+      "hash": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/options.ts",
+      "hash": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/archive/stream.ts",
+      "hash": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "hash": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/README.md",
+      "hash": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/checksums/README.md",
+      "hash": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "hash": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/README.md",
+      "hash": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/files.ts",
+      "hash": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/gunzip.ts",
+      "hash": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/index.ts",
+      "hash": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/options.ts",
+      "hash": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/compression/stream.ts",
+      "hash": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/README.md",
+      "hash": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/base.ts",
+      "hash": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/index.ts",
+      "hash": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/od.ts",
+      "hash": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/shared.ts",
+      "hash": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/encoding/xxd.ts",
+      "hash": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/bytes/index.ts",
+      "hash": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "hash": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-DIFF.md",
+      "hash": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-PATCH.md",
+      "hash": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/PARSER.md",
+      "hash": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/README.md",
+      "hash": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "hash": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "hash": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "hash": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "hash": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "hash": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "hash": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "hash": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "hash": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "hash": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "hash": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "hash": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "hash": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "hash": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/find.ts",
+      "hash": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "hash": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/index.ts",
+      "hash": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "hash": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/README.md",
+      "hash": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/chmod.ts",
+      "hash": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/index.ts",
+      "hash": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/internal.ts",
+      "hash": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "hash": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/metadata/stat.ts",
+      "hash": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/move.ts",
+      "hash": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/README.md",
+      "hash": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "hash": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "hash": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "hash": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "hash": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "hash": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "hash": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "hash": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "hash": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "hash": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/README.md",
+      "hash": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "hash": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/io.ts",
+      "hash": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "hash": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/render.ts",
+      "hash": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "hash": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/README.md",
+      "hash": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "hash": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "hash": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "hash": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "hash": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "hash": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "hash": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "hash": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "hash": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "hash": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "hash": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "hash": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "hash": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "hash": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "hash": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "hash": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "hash": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "hash": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/README.md",
+      "hash": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "hash": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "hash": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "hash": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "hash": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "hash": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "hash": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "hash": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "hash": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "hash": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/README.md",
+      "hash": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "hash": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/index.ts",
+      "hash": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "hash": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/join.ts",
+      "hash": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/table-text/paste.ts",
+      "hash": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/README.md",
+      "hash": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/awk-runtime.ts",
+      "hash": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/awk-syntax.ts",
+      "hash": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/awk-values.ts",
+      "hash": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "hash": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "hash": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/regex.ts",
+      "hash": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "hash": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "hash": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/commands/text.ts",
+      "hash": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/command.md",
+      "hash": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "hash": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "hash": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/mount/COMPARISON.md",
+      "hash": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/mount/README.md",
+      "hash": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/mount/comparison.ts",
+      "hash": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/mount/identity.ts",
+      "hash": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "hash": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/overlay/README.md",
+      "hash": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "hash": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/readonly/README.md",
+      "hash": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "hash": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "hash": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "hash": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/README.md",
+      "hash": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/SDK_COMPARISON.md",
+      "hash": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/authority.ts",
+      "hash": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "hash": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/README.md",
+      "hash": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/index.ts",
+      "hash": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/request.ts",
+      "hash": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/signature.ts",
+      "hash": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/transport.ts",
+      "hash": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/types.ts",
+      "hash": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/http/xml.ts",
+      "hash": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/index.ts",
+      "hash": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/mock.ts",
+      "hash": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/s3/transport.ts",
+      "hash": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+      "hash": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "hash": "5485cfaaf844789d12478b7bff783bd8afeb1b16528d334fba09dec2d15bd0ae",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/index.ts",
+      "hash": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "hash": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "hash": "b7503e186108baae2ec69b56ee45d782b423a514c71094067b2ea877ee3c221e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/fs/webdav/xml.ts",
+      "hash": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/index.ts",
+      "hash": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/integrations/safejs/filesystem.ts",
+      "hash": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/integrations/safejs/index.ts",
+      "hash": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/integrations/safejs/shell.ts",
+      "hash": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/integrations/safejs/stats.ts",
+      "hash": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/integrations/safejs/values.ts",
+      "hash": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "hash": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/display.ts",
+      "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/index.ts",
+      "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/input.ts",
+      "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "hash": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "hash": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "matchesCommit": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "matchesCommit": true
+    },
+    {
+      "path": "tsconfig.build.json",
+      "hash": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "matchesCommit": true
+    },
+    {
+      "path": "tsconfig.json",
+      "hash": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+      "matchesCommit": true
+    }
+  ],
+  "compiledImportChecks": [
+    {
+      "id": "startup-e-literal",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "sh-startup-e",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "set-e-stop",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "plus-e-disables",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "conditional-function",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "conditional-source",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "eval-stop",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "pipeline-default",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "pipeline-pipefail",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "child-option-isolation",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "literal-invoke-shared-budget",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    },
+    {
+      "id": "invoke-cancellation-identity",
+      "valid": true,
+      "resolved": {
+        "root": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/index.js",
+        "contracts": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-public-built-consumer-o5kqa7/package/dist/contracts/index.js"
+      },
+      "imports": 142,
+      "mismatches": [],
+      "sourceAliases": []
+    }
+  ],
+  "builtSummary": {
+    "native": [
+      {
+        "role": "primary",
+        "total": 10,
+        "passed": 10
+      },
+      {
+        "role": "historical",
+        "total": 10,
+        "passed": 9
+      }
+    ],
+    "host": {
+      "total": 2,
+      "passed": 2
+    },
+    "invalid": 0
+  },
+  "publicLosses": [
+    {
+      "id": "conditional-source",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "736f757263652d6f6b646f6e65",
+        "stderrHex": "",
+        "entries": {
+          "consumer-lib": {
+            "hex": "7072696e7466206265666f7265203e2070686173650a66616c73650a7072696e7466206166746572203e3e2070686173650a",
+            "mode": 420
+          },
+          "phase": {
+            "hex": "6265666f72656166746572",
+            "mode": 420
+          }
+        }
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "736f757263652d6f6b646f6e65",
+            "stderrHex": "",
+            "entries": {
+              "consumer-lib": {
+                "hex": "7072696e7466206265666f7265203e2070686173650a66616c73650a7072696e7466206166746572203e3e2070686173650a",
+                "mode": 420
+              },
+              "phase": {
+                "hex": "6265666f72656166746572",
+                "mode": 420
+              }
+            }
+          },
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "entries": {
+              "consumer-lib": {
+                "hex": "7072696e7466206265666f7265203e2070686173650a66616c73650a7072696e7466206166746572203e3e2070686173650a",
+                "mode": 420
+              },
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          },
+          "passed": false
+        }
+      ]
+    }
+  ],
+  "kernelSummary": {
+    "product36": [
+      {
+        "role": "primary",
+        "total": 36,
+        "passed": 30
+      },
+      {
+        "role": "historical",
+        "total": 36,
+        "passed": 29
+      }
+    ],
+    "host10": {
+      "passed": 10,
+      "total": 10
+    },
+    "corrected72": {
+      "tests": 72,
+      "pass": 72,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "raw57": [
+      {
+        "role": "gnu-5.3",
+        "total": 57,
+        "passed": 52
+      },
+      {
+        "role": "historical-3.2",
+        "total": 57,
+        "passed": 50
+      }
+    ]
+  },
+  "changed36": [],
+  "changed57": [],
+  "changedHost": [],
+  "nativeDrift": {
+    "consumer": [
+      {
+        "role": "primary",
+        "total": 10,
+        "changed": []
+      },
+      {
+        "role": "historical",
+        "total": 10,
+        "changed": []
+      }
+    ],
+    "expanded": [
+      {
+        "role": "primary",
+        "total": 36,
+        "changed": []
+      },
+      {
+        "role": "historical",
+        "total": 36,
+        "changed": []
+      }
+    ],
+    "invocation": [
+      {
+        "role": "gnu-5.3",
+        "total": 57,
+        "changed": []
+      },
+      {
+        "role": "historical-3.2",
+        "total": 57,
+        "changed": []
+      }
+    ]
+  },
+  "kernelPhaseGuards": [
+    {
+      "id": "native10",
+      "valid": true,
+      "sourceImports": 0,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "native36",
+      "valid": true,
+      "sourceImports": 0,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "native57",
+      "valid": true,
+      "sourceImports": 0,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-argv",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-path",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-cwd",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-env",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-functions",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-state",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-empty",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-exit",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-symlink",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-noexecute",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-readonly-bash",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-execute-no-read",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "header-path-search-denied",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-argv",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-tabs",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-single-kernel-argument",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-injection-text",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-missing-target",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-sh",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-child-isolation",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "env-unsupported-interpreter",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-combined-nearby",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-short-long-prefix",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-short-long-suffix",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-replace-first-global",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-anchored-replace",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-delete",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-quoted-pattern",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-escaped-pattern",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-unset-empty",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-pattern-variable",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-replacement-variable",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-nested-default",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-substitution-order",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-quoted-fields",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "parameter-existing-controls",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-vfs-only",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-command-budget",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-source-budget",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-depth-budget",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-output-shared-noreset",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-read-cancellation",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-input-cursor",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-empty-input-origin",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-child-state-literal",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "host-permission-before-effects",
+      "valid": true,
+      "sourceImports": 142,
+      "mismatches": [],
+      "drift": []
+    },
+    {
+      "id": "corrected72",
+      "valid": true,
+      "sourceImports": 34,
+      "mismatches": [],
+      "drift": []
+    }
+  ],
+  "immutableDrift": [],
+  "endpoint": {
+    "manifest": "c98b6f3e5b359d30cefc0f200f7862a2d4bfb20e11378159115fe07bfca2e386",
+    "drift": []
+  },
+  "compilers": [
+    {
+      "id": "frozen-global",
+      "status": 2,
+      "inputs": 1075,
+      "validGuard": true,
+      "diagnostics": [
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(34,119): error TS2307: Cannot find module 'virtual-bash' or its corresponding type declarations.",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(35,65): error TS2307: Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations.",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(37,50): error TS7006: Parameter 'command' implicitly has an 'any' type.",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(38,43): error TS7006: Parameter 'command' implicitly has an 'any' type.",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(41,29): error TS7006: Parameter 'name' implicitly has an 'any' type.",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(61,58): error TS7006: Parameter 'entry' implicitly has an 'any' type."
+      ],
+      "drift": [],
+      "unlisted": [],
+      "headBefore": "b0713c421962107ba2e36585f3cb90e023c3b26e",
+      "headAfter": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa"
+    },
+    {
+      "id": "frozen-build",
+      "status": 0,
+      "inputs": 309,
+      "validGuard": true,
+      "diagnostics": [],
+      "drift": [],
+      "unlisted": [],
+      "headBefore": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa",
+      "headAfter": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa"
+    },
+    {
+      "id": "frozen-benchmark",
+      "status": 0,
+      "inputs": 424,
+      "validGuard": true,
+      "diagnostics": [],
+      "drift": [],
+      "unlisted": [],
+      "headBefore": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa",
+      "headAfter": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa"
+    },
+    {
+      "id": "live-global-qualified",
+      "status": 2,
+      "inputs": 1970,
+      "validGuard": true,
+      "diagnostics": [
+        "tests/commands/stream-next-stress/independent.test.ts(91,95): error TS7053: Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'.",
+        "  Property 'thrown' does not exist on type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'."
+      ],
+      "drift": [],
+      "unlisted": [],
+      "headBefore": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa",
+      "headAfter": "4244e9a3ef180f1ab819ec7028013c8c0f3083aa"
+    }
+  ],
+  "currentSourcesForQualificationOnly": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "package.json": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22"
+  },
+  "cleanup": {
+    "publicSnapshotRemoved": true,
+    "kernelSnapshotRemoved": true
+  },
+  "children": [
+    {
+      "pid": 96147,
+      "groupAlive": false
+    },
+    {
+      "pid": 96150,
+      "groupAlive": false
+    },
+    {
+      "pid": 96212,
+      "groupAlive": false
+    },
+    {
+      "pid": 96356,
+      "groupAlive": false
+    },
+    {
+      "pid": 96168,
+      "groupAlive": false
+    },
+    {
+      "pid": 96151,
+      "groupAlive": false
+    },
+    {
+      "pid": 96152,
+      "groupAlive": false
+    },
+    {
+      "pid": 96153,
+      "groupAlive": false
+    },
+    {
+      "pid": 96154,
+      "groupAlive": false
+    },
+    {
+      "pid": 96155,
+      "groupAlive": false
+    },
+    {
+      "pid": 96156,
+      "groupAlive": false
+    },
+    {
+      "pid": 96157,
+      "groupAlive": false
+    },
+    {
+      "pid": 96158,
+      "groupAlive": false
+    },
+    {
+      "pid": 96161,
+      "groupAlive": false
+    },
+    {
+      "pid": 96164,
+      "groupAlive": false
+    },
+    {
+      "pid": 96166,
+      "groupAlive": false
+    },
+    {
+      "pid": 96188,
+      "groupAlive": false
+    },
+    {
+      "pid": 96169,
+      "groupAlive": false
+    },
+    {
+      "pid": 96170,
+      "groupAlive": false
+    },
+    {
+      "pid": 96171,
+      "groupAlive": false
+    },
+    {
+      "pid": 96172,
+      "groupAlive": false
+    },
+    {
+      "pid": 96173,
+      "groupAlive": false
+    },
+    {
+      "pid": 96174,
+      "groupAlive": false
+    },
+    {
+      "pid": 96175,
+      "groupAlive": false
+    },
+    {
+      "pid": 96177,
+      "groupAlive": false
+    },
+    {
+      "pid": 96180,
+      "groupAlive": false
+    },
+    {
+      "pid": 96183,
+      "groupAlive": false
+    },
+    {
+      "pid": 96185,
+      "groupAlive": false
+    },
+    {
+      "pid": 96271,
+      "groupAlive": false
+    },
+    {
+      "pid": 96215,
+      "groupAlive": false
+    },
+    {
+      "pid": 96216,
+      "groupAlive": false
+    },
+    {
+      "pid": 96217,
+      "groupAlive": false
+    },
+    {
+      "pid": 96219,
+      "groupAlive": false
+    },
+    {
+      "pid": 96221,
+      "groupAlive": false
+    },
+    {
+      "pid": 96224,
+      "groupAlive": false
+    },
+    {
+      "pid": 96226,
+      "groupAlive": false
+    },
+    {
+      "pid": 96228,
+      "groupAlive": false
+    },
+    {
+      "pid": 96230,
+      "groupAlive": false
+    },
+    {
+      "pid": 96231,
+      "groupAlive": false
+    },
+    {
+      "pid": 96232,
+      "groupAlive": false
+    },
+    {
+      "pid": 96233,
+      "groupAlive": false
+    },
+    {
+      "pid": 96234,
+      "groupAlive": false
+    },
+    {
+      "pid": 96235,
+      "groupAlive": false
+    },
+    {
+      "pid": 96238,
+      "groupAlive": false
+    },
+    {
+      "pid": 96245,
+      "groupAlive": false
+    },
+    {
+      "pid": 96246,
+      "groupAlive": false
+    },
+    {
+      "pid": 96247,
+      "groupAlive": false
+    },
+    {
+      "pid": 96248,
+      "groupAlive": false
+    },
+    {
+      "pid": 96249,
+      "groupAlive": false
+    },
+    {
+      "pid": 96251,
+      "groupAlive": false
+    },
+    {
+      "pid": 96252,
+      "groupAlive": false
+    },
+    {
+      "pid": 96253,
+      "groupAlive": false
+    },
+    {
+      "pid": 96254,
+      "groupAlive": false
+    },
+    {
+      "pid": 96255,
+      "groupAlive": false
+    },
+    {
+      "pid": 96256,
+      "groupAlive": false
+    },
+    {
+      "pid": 96257,
+      "groupAlive": false
+    },
+    {
+      "pid": 96258,
+      "groupAlive": false
+    },
+    {
+      "pid": 96259,
+      "groupAlive": false
+    },
+    {
+      "pid": 96260,
+      "groupAlive": false
+    },
+    {
+      "pid": 96261,
+      "groupAlive": false
+    },
+    {
+      "pid": 96262,
+      "groupAlive": false
+    },
+    {
+      "pid": 96263,
+      "groupAlive": false
+    },
+    {
+      "pid": 96264,
+      "groupAlive": false
+    },
+    {
+      "pid": 96267,
+      "groupAlive": false
+    },
+    {
+      "pid": 96268,
+      "groupAlive": false
+    },
+    {
+      "pid": 96269,
+      "groupAlive": false
+    },
+    {
+      "pid": 96332,
+      "groupAlive": false
+    },
+    {
+      "pid": 96272,
+      "groupAlive": false
+    },
+    {
+      "pid": 96273,
+      "groupAlive": false
+    },
+    {
+      "pid": 96274,
+      "groupAlive": false
+    },
+    {
+      "pid": 96276,
+      "groupAlive": false
+    },
+    {
+      "pid": 96278,
+      "groupAlive": false
+    },
+    {
+      "pid": 96281,
+      "groupAlive": false
+    },
+    {
+      "pid": 96283,
+      "groupAlive": false
+    },
+    {
+      "pid": 96285,
+      "groupAlive": false
+    },
+    {
+      "pid": 96287,
+      "groupAlive": false
+    },
+    {
+      "pid": 96288,
+      "groupAlive": false
+    },
+    {
+      "pid": 96289,
+      "groupAlive": false
+    },
+    {
+      "pid": 96290,
+      "groupAlive": false
+    },
+    {
+      "pid": 96291,
+      "groupAlive": false
+    },
+    {
+      "pid": 96293,
+      "groupAlive": false
+    },
+    {
+      "pid": 96294,
+      "groupAlive": false
+    },
+    {
+      "pid": 96296,
+      "groupAlive": false
+    },
+    {
+      "pid": 96297,
+      "groupAlive": false
+    },
+    {
+      "pid": 96298,
+      "groupAlive": false
+    },
+    {
+      "pid": 96299,
+      "groupAlive": false
+    },
+    {
+      "pid": 96300,
+      "groupAlive": false
+    },
+    {
+      "pid": 96303,
+      "groupAlive": false
+    },
+    {
+      "pid": 96305,
+      "groupAlive": false
+    },
+    {
+      "pid": 96306,
+      "groupAlive": false
+    },
+    {
+      "pid": 96307,
+      "groupAlive": false
+    },
+    {
+      "pid": 96308,
+      "groupAlive": false
+    },
+    {
+      "pid": 96309,
+      "groupAlive": false
+    },
+    {
+      "pid": 96310,
+      "groupAlive": false
+    },
+    {
+      "pid": 96311,
+      "groupAlive": false
+    },
+    {
+      "pid": 96312,
+      "groupAlive": false
+    },
+    {
+      "pid": 96313,
+      "groupAlive": false
+    },
+    {
+      "pid": 96314,
+      "groupAlive": false
+    },
+    {
+      "pid": 96315,
+      "groupAlive": false
+    },
+    {
+      "pid": 96316,
+      "groupAlive": false
+    },
+    {
+      "pid": 96317,
+      "groupAlive": false
+    },
+    {
+      "pid": 96320,
+      "groupAlive": false
+    },
+    {
+      "pid": 96321,
+      "groupAlive": false
+    },
+    {
+      "pid": 96322,
+      "groupAlive": false
+    },
+    {
+      "pid": 96358,
+      "groupAlive": false
+    },
+    {
+      "pid": 96359,
+      "groupAlive": false
+    },
+    {
+      "pid": 96361,
+      "groupAlive": false
+    },
+    {
+      "pid": 96364,
+      "groupAlive": false
+    },
+    {
+      "pid": 96366,
+      "groupAlive": false
+    },
+    {
+      "pid": 96368,
+      "groupAlive": false
+    },
+    {
+      "pid": 96370,
+      "groupAlive": false
+    },
+    {
+      "pid": 96372,
+      "groupAlive": false
+    },
+    {
+      "pid": 96374,
+      "groupAlive": false
+    },
+    {
+      "pid": 96376,
+      "groupAlive": false
+    },
+    {
+      "pid": 96378,
+      "groupAlive": false
+    },
+    {
+      "pid": 96380,
+      "groupAlive": false
+    },
+    {
+      "pid": 96382,
+      "groupAlive": false
+    },
+    {
+      "pid": 96384,
+      "groupAlive": false
+    },
+    {
+      "pid": 96386,
+      "groupAlive": false
+    },
+    {
+      "pid": 96388,
+      "groupAlive": false
+    },
+    {
+      "pid": 96390,
+      "groupAlive": false
+    },
+    {
+      "pid": 96392,
+      "groupAlive": false
+    },
+    {
+      "pid": 96394,
+      "groupAlive": false
+    },
+    {
+      "pid": 96396,
+      "groupAlive": false
+    },
+    {
+      "pid": 96398,
+      "groupAlive": false
+    },
+    {
+      "pid": 96400,
+      "groupAlive": false
+    },
+    {
+      "pid": 96402,
+      "groupAlive": false
+    },
+    {
+      "pid": 96404,
+      "groupAlive": false
+    },
+    {
+      "pid": 96406,
+      "groupAlive": false
+    },
+    {
+      "pid": 96408,
+      "groupAlive": false
+    },
+    {
+      "pid": 96410,
+      "groupAlive": false
+    },
+    {
+      "pid": 96413,
+      "groupAlive": false
+    },
+    {
+      "pid": 96415,
+      "groupAlive": false
+    },
+    {
+      "pid": 96418,
+      "groupAlive": false
+    },
+    {
+      "pid": 96420,
+      "groupAlive": false
+    },
+    {
+      "pid": 96422,
+      "groupAlive": false
+    },
+    {
+      "pid": 96424,
+      "groupAlive": false
+    },
+    {
+      "pid": 96427,
+      "groupAlive": false
+    },
+    {
+      "pid": 96429,
+      "groupAlive": false
+    },
+    {
+      "pid": 96431,
+      "groupAlive": false
+    },
+    {
+      "pid": 96438,
+      "groupAlive": false
+    },
+    {
+      "pid": 96440,
+      "groupAlive": false
+    },
+    {
+      "pid": 96442,
+      "groupAlive": false
+    },
+    {
+      "pid": 96444,
+      "groupAlive": false
+    },
+    {
+      "pid": 96445,
+      "groupAlive": false
+    },
+    {
+      "pid": 96446,
+      "groupAlive": false
+    },
+    {
+      "pid": 96447,
+      "groupAlive": false
+    },
+    {
+      "pid": 96449,
+      "groupAlive": false
+    },
+    {
+      "pid": 96450,
+      "groupAlive": false
+    },
+    {
+      "pid": 96452,
+      "groupAlive": false
+    },
+    {
+      "pid": 96453,
+      "groupAlive": false
+    },
+    {
+      "pid": 96454,
+      "groupAlive": false
+    },
+    {
+      "pid": 96455,
+      "groupAlive": false
+    },
+    {
+      "pid": 96456,
+      "groupAlive": false
+    },
+    {
+      "pid": 96458,
+      "groupAlive": false
+    },
+    {
+      "pid": 96465,
+      "groupAlive": false
+    },
+    {
+      "pid": 96466,
+      "groupAlive": false
+    },
+    {
+      "pid": 96467,
+      "groupAlive": false
+    },
+    {
+      "pid": 96468,
+      "groupAlive": false
+    },
+    {
+      "pid": 96469,
+      "groupAlive": false
+    },
+    {
+      "pid": 96470,
+      "groupAlive": false
+    },
+    {
+      "pid": 96471,
+      "groupAlive": false
+    },
+    {
+      "pid": 96473,
+      "groupAlive": false
+    },
+    {
+      "pid": 96474,
+      "groupAlive": false
+    },
+    {
+      "pid": 96476,
+      "groupAlive": false
+    },
+    {
+      "pid": 96478,
+      "groupAlive": false
+    },
+    {
+      "pid": 96480,
+      "groupAlive": false
+    },
+    {
+      "pid": 96482,
+      "groupAlive": false
+    },
+    {
+      "pid": 96484,
+      "groupAlive": false
+    },
+    {
+      "pid": 96486,
+      "groupAlive": false
+    },
+    {
+      "pid": 96488,
+      "groupAlive": false
+    },
+    {
+      "pid": 96490,
+      "groupAlive": false
+    },
+    {
+      "pid": 96492,
+      "groupAlive": false
+    },
+    {
+      "pid": 96494,
+      "groupAlive": false
+    },
+    {
+      "pid": 96496,
+      "groupAlive": false
+    },
+    {
+      "pid": 96498,
+      "groupAlive": false
+    },
+    {
+      "pid": 96500,
+      "groupAlive": false
+    },
+    {
+      "pid": 96502,
+      "groupAlive": false
+    },
+    {
+      "pid": 96504,
+      "groupAlive": false
+    },
+    {
+      "pid": 96506,
+      "groupAlive": false
+    },
+    {
+      "pid": 96508,
+      "groupAlive": false
+    },
+    {
+      "pid": 96510,
+      "groupAlive": false
+    },
+    {
+      "pid": 96512,
+      "groupAlive": false
+    },
+    {
+      "pid": 96514,
+      "groupAlive": false
+    },
+    {
+      "pid": 96516,
+      "groupAlive": false
+    },
+    {
+      "pid": 96518,
+      "groupAlive": false
+    },
+    {
+      "pid": 96520,
+      "groupAlive": false
+    },
+    {
+      "pid": 96522,
+      "groupAlive": false
+    },
+    {
+      "pid": 96524,
+      "groupAlive": false
+    },
+    {
+      "pid": 96527,
+      "groupAlive": false
+    },
+    {
+      "pid": 96529,
+      "groupAlive": false
+    },
+    {
+      "pid": 96532,
+      "groupAlive": false
+    },
+    {
+      "pid": 96534,
+      "groupAlive": false
+    },
+    {
+      "pid": 96536,
+      "groupAlive": false
+    },
+    {
+      "pid": 96538,
+      "groupAlive": false
+    },
+    {
+      "pid": 96541,
+      "groupAlive": false
+    },
+    {
+      "pid": 96543,
+      "groupAlive": false
+    },
+    {
+      "pid": 96546,
+      "groupAlive": false
+    },
+    {
+      "pid": 96553,
+      "groupAlive": false
+    },
+    {
+      "pid": 96556,
+      "groupAlive": false
+    },
+    {
+      "pid": 96558,
+      "groupAlive": false
+    },
+    {
+      "pid": 96561,
+      "groupAlive": false
+    },
+    {
+      "pid": 96563,
+      "groupAlive": false
+    },
+    {
+      "pid": 96565,
+      "groupAlive": false
+    },
+    {
+      "pid": 96567,
+      "groupAlive": false
+    },
+    {
+      "pid": 96570,
+      "groupAlive": false
+    },
+    {
+      "pid": 96572,
+      "groupAlive": false
+    },
+    {
+      "pid": 96574,
+      "groupAlive": false
+    },
+    {
+      "pid": 96576,
+      "groupAlive": false
+    },
+    {
+      "pid": 96578,
+      "groupAlive": false
+    },
+    {
+      "pid": 96580,
+      "groupAlive": false
+    },
+    {
+      "pid": 96582,
+      "groupAlive": false
+    },
+    {
+      "pid": 96585,
+      "groupAlive": false
+    },
+    {
+      "pid": 96593,
+      "groupAlive": false
+    },
+    {
+      "pid": 96594,
+      "groupAlive": false
+    },
+    {
+      "pid": 96596,
+      "groupAlive": false
+    },
+    {
+      "pid": 96597,
+      "groupAlive": false
+    },
+    {
+      "pid": 96599,
+      "groupAlive": false
+    },
+    {
+      "pid": 96601,
+      "groupAlive": false
+    },
+    {
+      "pid": 96603,
+      "groupAlive": false
+    },
+    {
+      "pid": 96700,
+      "groupAlive": false
+    },
+    {
+      "pid": 96703,
+      "groupAlive": false
+    },
+    {
+      "pid": 96716,
+      "groupAlive": false
+    },
+    {
+      "pid": 96721,
+      "groupAlive": false
+    },
+    {
+      "pid": 96743,
+      "groupAlive": false
+    },
+    {
+      "pid": 96744,
+      "groupAlive": false
+    },
+    {
+      "pid": 96745,
+      "groupAlive": false
+    },
+    {
+      "pid": 96787,
+      "groupAlive": false
+    },
+    {
+      "pid": 96789,
+      "groupAlive": false
+    },
+    {
+      "pid": 96796,
+      "groupAlive": false
+    },
+    {
+      "pid": 96797,
+      "groupAlive": false
+    },
+    {
+      "pid": 96804,
+      "groupAlive": false
+    },
+    {
+      "pid": 96805,
+      "groupAlive": false
+    },
+    {
+      "pid": 96815,
+      "groupAlive": false
+    },
+    {
+      "pid": 96816,
+      "groupAlive": false
+    },
+    {
+      "pid": 96817,
+      "groupAlive": false
+    },
+    {
+      "pid": 96835,
+      "groupAlive": false
+    },
+    {
+      "pid": 96841,
+      "groupAlive": false
+    },
+    {
+      "pid": 96855,
+      "groupAlive": false
+    },
+    {
+      "pid": 96856,
+      "groupAlive": false
+    },
+    {
+      "pid": 96870,
+      "groupAlive": false
+    },
+    {
+      "pid": 96886,
+      "groupAlive": false
+    },
+    {
+      "pid": 96901,
+      "groupAlive": false
+    },
+    {
+      "pid": 96906,
+      "groupAlive": false
+    },
+    {
+      "pid": 96907,
+      "groupAlive": false
+    },
+    {
+      "pid": 96908,
+      "groupAlive": false
+    },
+    {
+      "pid": 96923,
+      "groupAlive": false
+    },
+    {
+      "pid": 96943,
+      "groupAlive": false
+    },
+    {
+      "pid": 96949,
+      "groupAlive": false
+    },
+    {
+      "pid": 96953,
+      "groupAlive": false
+    },
+    {
+      "pid": 96957,
+      "groupAlive": false
+    },
+    {
+      "pid": 96977,
+      "groupAlive": false
+    },
+    {
+      "pid": 96983,
+      "groupAlive": false
+    },
+    {
+      "pid": 96988,
+      "groupAlive": false
+    },
+    {
+      "pid": 97002,
+      "groupAlive": false
+    },
+    {
+      "pid": 97008,
+      "groupAlive": false
+    },
+    {
+      "pid": 97017,
+      "groupAlive": false
+    },
+    {
+      "pid": 97027,
+      "groupAlive": false
+    },
+    {
+      "pid": 97033,
+      "groupAlive": false
+    },
+    {
+      "pid": 97038,
+      "groupAlive": false
+    },
+    {
+      "pid": 97045,
+      "groupAlive": false
+    },
+    {
+      "pid": 97050,
+      "groupAlive": false
+    },
+    {
+      "pid": 97056,
+      "groupAlive": false
+    },
+    {
+      "pid": 97062,
+      "groupAlive": false
+    },
+    {
+      "pid": 97071,
+      "groupAlive": false
+    },
+    {
+      "pid": 97072,
+      "groupAlive": false
+    },
+    {
+      "pid": 97083,
+      "groupAlive": false
+    },
+    {
+      "pid": 97084,
+      "groupAlive": false
+    },
+    {
+      "pid": 97087,
+      "groupAlive": false
+    },
+    {
+      "pid": 97089,
+      "groupAlive": false
+    },
+    {
+      "pid": 97091,
+      "groupAlive": false
+    },
+    {
+      "pid": 97092,
+      "groupAlive": false
+    },
+    {
+      "pid": 97093,
+      "groupAlive": false
+    },
+    {
+      "pid": 97094,
+      "groupAlive": false
+    },
+    {
+      "pid": 97096,
+      "groupAlive": false
+    },
+    {
+      "pid": 97097,
+      "groupAlive": false
+    },
+    {
+      "pid": 97098,
+      "groupAlive": false
+    },
+    {
+      "pid": 97100,
+      "groupAlive": false
+    },
+    {
+      "pid": 97102,
+      "groupAlive": false
+    },
+    {
+      "pid": 97103,
+      "groupAlive": false
+    },
+    {
+      "pid": 97106,
+      "groupAlive": false
+    },
+    {
+      "pid": 97109,
+      "groupAlive": false
+    },
+    {
+      "pid": 97110,
+      "groupAlive": false
+    },
+    {
+      "pid": 97113,
+      "groupAlive": false
+    },
+    {
+      "pid": 97114,
+      "groupAlive": false
+    },
+    {
+      "pid": 97117,
+      "groupAlive": false
+    },
+    {
+      "pid": 97118,
+      "groupAlive": false
+    },
+    {
+      "pid": 97121,
+      "groupAlive": false
+    },
+    {
+      "pid": 97123,
+      "groupAlive": false
+    },
+    {
+      "pid": 97126,
+      "groupAlive": false
+    },
+    {
+      "pid": 97129,
+      "groupAlive": false
+    },
+    {
+      "pid": 97132,
+      "groupAlive": false
+    },
+    {
+      "pid": 97140,
+      "groupAlive": false
+    },
+    {
+      "pid": 97141,
+      "groupAlive": false
+    },
+    {
+      "pid": 97144,
+      "groupAlive": false
+    },
+    {
+      "pid": 97148,
+      "groupAlive": false
+    },
+    {
+      "pid": 97150,
+      "groupAlive": false
+    },
+    {
+      "pid": 97153,
+      "groupAlive": false
+    },
+    {
+      "pid": 97154,
+      "groupAlive": false
+    },
+    {
+      "pid": 97156,
+      "groupAlive": false
+    },
+    {
+      "pid": 97157,
+      "groupAlive": false
+    },
+    {
+      "pid": 97159,
+      "groupAlive": false
+    },
+    {
+      "pid": 97160,
+      "groupAlive": false
+    },
+    {
+      "pid": 97162,
+      "groupAlive": false
+    },
+    {
+      "pid": 97163,
+      "groupAlive": false
+    },
+    {
+      "pid": 97165,
+      "groupAlive": false
+    },
+    {
+      "pid": 97167,
+      "groupAlive": false
+    },
+    {
+      "pid": 97169,
+      "groupAlive": false
+    },
+    {
+      "pid": 97170,
+      "groupAlive": false
+    },
+    {
+      "pid": 97172,
+      "groupAlive": false
+    },
+    {
+      "pid": 97176,
+      "groupAlive": false
+    },
+    {
+      "pid": 97185,
+      "groupAlive": false
+    },
+    {
+      "pid": 97187,
+      "groupAlive": false
+    },
+    {
+      "pid": 97202,
+      "groupAlive": false
+    },
+    {
+      "pid": 97211,
+      "groupAlive": false
+    },
+    {
+      "pid": 97215,
+      "groupAlive": false
+    },
+    {
+      "pid": 97223,
+      "groupAlive": false
+    },
+    {
+      "pid": 97225,
+      "groupAlive": false
+    },
+    {
+      "pid": 97226,
+      "groupAlive": false
+    },
+    {
+      "pid": 97227,
+      "groupAlive": false
+    },
+    {
+      "pid": 97229,
+      "groupAlive": false
+    },
+    {
+      "pid": 97230,
+      "groupAlive": false
+    },
+    {
+      "pid": 97232,
+      "groupAlive": false
+    },
+    {
+      "pid": 97234,
+      "groupAlive": false
+    },
+    {
+      "pid": 97236,
+      "groupAlive": false
+    },
+    {
+      "pid": 97238,
+      "groupAlive": false
+    },
+    {
+      "pid": 97239,
+      "groupAlive": false
+    },
+    {
+      "pid": 97241,
+      "groupAlive": false
+    },
+    {
+      "pid": 97242,
+      "groupAlive": false
+    },
+    {
+      "pid": 97244,
+      "groupAlive": false
+    },
+    {
+      "pid": 97245,
+      "groupAlive": false
+    },
+    {
+      "pid": 97249,
+      "groupAlive": false
+    },
+    {
+      "pid": 97251,
+      "groupAlive": false
+    },
+    {
+      "pid": 97254,
+      "groupAlive": false
+    },
+    {
+      "pid": 97255,
+      "groupAlive": false
+    },
+    {
+      "pid": 97258,
+      "groupAlive": false
+    },
+    {
+      "pid": 97259,
+      "groupAlive": false
+    },
+    {
+      "pid": 97261,
+      "groupAlive": false
+    },
+    {
+      "pid": 97271,
+      "groupAlive": false
+    },
+    {
+      "pid": 97274,
+      "groupAlive": false
+    },
+    {
+      "pid": 97310,
+      "groupAlive": false
+    },
+    {
+      "pid": 97311,
+      "groupAlive": false
+    },
+    {
+      "pid": 97455,
+      "groupAlive": false
+    },
+    {
+      "pid": 97457,
+      "groupAlive": false
+    },
+    {
+      "pid": 97517,
+      "groupAlive": false
+    },
+    {
+      "pid": 97520,
+      "groupAlive": false
+    },
+    {
+      "pid": 97549,
+      "groupAlive": false
+    },
+    {
+      "pid": 97558,
+      "groupAlive": false
+    },
+    {
+      "pid": 84205,
+      "groupAlive": false
+    },
+    {
+      "pid": 84405,
+      "groupAlive": false
+    },
+    {
+      "pid": 84426,
+      "groupAlive": false
+    },
+    {
+      "pid": 84428,
+      "groupAlive": false
+    },
+    {
+      "pid": 84429,
+      "groupAlive": false
+    },
+    {
+      "pid": 84430,
+      "groupAlive": false
+    },
+    {
+      "pid": 84442,
+      "groupAlive": false
+    },
+    {
+      "pid": 84446,
+      "groupAlive": false
+    },
+    {
+      "pid": 84447,
+      "groupAlive": false
+    },
+    {
+      "pid": 84448,
+      "groupAlive": false
+    },
+    {
+      "pid": 84457,
+      "groupAlive": false
+    },
+    {
+      "pid": 84462,
+      "groupAlive": false
+    },
+    {
+      "pid": 84463,
+      "groupAlive": false
+    },
+    {
+      "pid": 84464,
+      "groupAlive": false
+    }
+  ],
+  "toolchainAtAudit": {
+    "node": "v22.22.2",
+    "tsxPackageHash": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+    "tsxVersion": "4.23.12",
+    "typescriptVersion": "5.9.3"
+  },
+  "limits": "No hidden-case/author denominator pooling. Frozen global exits2 because self-export declarations were not emitted into that separate kernel snapshot; built consumer used its own successful build. Qualified live global exits2 on foreign test TS7053. Neither rerun/repaired."
+}

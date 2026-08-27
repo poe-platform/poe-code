@@ -1,0 +1,38 @@
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+import ts from 'typescript';
+
+const mode = process.argv[2];
+if (!['scoped', 'global'].includes(mode)) throw new Error('Explicit typecheck scope required');
+const startedAt = new Date().toISOString();
+const cwd = process.cwd();
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const snapshot = path => existsSync(path) ? digest(readFileSync(path)) : null;
+const head = () => execFileSync('/usr/bin/git', ['-C', cwd, 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+const gitHead = () => { try { return head(); } catch { return null; } };
+const headBefore = gitHead();
+const config = ts.readConfigFile('tsconfig.json', ts.sys.readFile);
+const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, cwd);
+const helpers = 'tests/shell-stress/canonical-profile-migration/';
+const roots = mode === 'global' ? parsed.fileNames : ['tests/shell/invocation-discovery-fixes.test.ts', 'tests/shell-stress/differential.test.ts', 'tests/shell-stress/current-gaps/compatibility.test.ts', 'tests/shell-stress/invocation-closure/holdout.test.ts', ...['primary-reference.ts', 'discovery-profile.ts', 'historical-discovery.ts'].map(name => helpers + name)].map(path => resolve(path));
+const initial = Object.fromEntries([...new Set([...roots, resolve('package.json'), resolve('tsconfig.json')])].map(path => [relative(cwd, path), snapshot(path)]));
+const reads = [];
+const options = { ...parsed.options, noEmit: true };
+const host = ts.createCompilerHost(options);
+const originalRead = host.readFile.bind(host);
+host.readFile = path => {
+  const before = snapshot(path);
+  const value = originalRead(path);
+  if (value !== undefined) reads.push({ path: resolve(path), key: relative(cwd, path), before, read: digest(Buffer.from(value)), afterRead: snapshot(path) });
+  return value;
+};
+const program = ts.createProgram(roots, options, host);
+const diagnostics = [...(config.error ? [config.error] : []), ...parsed.errors, ...ts.getPreEmitDiagnostics(program)].map(diagnostic => ({ code: diagnostic.code, file: diagnostic.file ? relative(cwd, diagnostic.file.fileName) : null, start: diagnostic.start, message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n') }));
+for (const record of reads) record.after = snapshot(record.path);
+const endpoint = Object.fromEntries(Object.keys(initial).map(key => [key, snapshot(resolve(cwd, key))]));
+const changedRoots = Object.keys(initial).filter(key => initial[key] !== endpoint[key]);
+const changedReads = reads.filter(record => record.before !== record.afterRead || record.before !== record.after || (initial[record.key] !== undefined && initial[record.key] !== record.before));
+console.log(JSON.stringify({ mode, startedAt, finishedAt: new Date().toISOString(), cwd, headBefore, headAfter: gitHead(), version: ts.version, roots, options, initial, endpoint, reads, diagnostics, changedRoots, changedReads, guardValid: changedRoots.length === 0 && changedReads.length === 0, qualification: 'Compiler input/read endpoints are observations, not a write lease or transient write/revert proof. Live global uses existing dist prerequisites; no build or source fix.' }));
+process.exitCode = diagnostics.length || changedRoots.length || changedReads.length ? 1 : 0;

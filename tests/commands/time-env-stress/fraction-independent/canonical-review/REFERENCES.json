@@ -1,0 +1,56 @@
+[
+  {
+    "revision": "c9b9626",
+    "path": "tests/commands/time-env-stress/fraction-independent/semantics/canonical-native-proposals.json",
+    "sha256": "cea5ec1c5ef4342c45f5069a23ee83d4c4dd1d85adf0c2a9b73fadc938ffdaa4",
+    "bytes": 989
+  },
+  {
+    "revision": "c9b9626",
+    "path": "tests/commands/time-env-stress/fraction-independent/semantics/product-results.jsonl",
+    "sha256": "2a2d4f3193002b7fdf603db5d28dcacd6ebece5e5e0402b212f5afa0604d116d",
+    "bytes": 398366
+  },
+  {
+    "revision": "c9b9626",
+    "path": "tests/commands/time-env-stress/fraction-independent/semantics/consumer.stderr",
+    "sha256": "88b0936b5d5a961ef882d539794d15cb93972bd3e9f4cf4d2f2ce7482223515b",
+    "bytes": 758
+  },
+  {
+    "revision": "c9b9626",
+    "path": "tests/commands/time-env-stress/fraction-independent/semantics/classification-v2.json",
+    "sha256": "7238dae3a3b56c63b4ff523cb2ebe607e6b0ecec062e7d75e5d928365ae6b5de",
+    "bytes": 6704
+  },
+  {
+    "revision": "61c66bc",
+    "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.json",
+    "sha256": "a8ad7b072fc21c25af902f6e8597e02dc201b6ac8b81da0fb74345112f138a90",
+    "bytes": 6699
+  },
+  {
+    "revision": "61c66bc",
+    "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.stdout",
+    "sha256": "3bbc41f8b6a97fbf8b7d46029ecd6537f2f56d549d4555126e909b6dc4ebd508",
+    "bytes": 39204
+  },
+  {
+    "revision": "61c66bc",
+    "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "revision": "f5341340bcbc9e4c4d46d6eb3f1759da73713097",
+    "path": "tests/commands/time-env-stress/fraction-independent/canonical/canonical223.json",
+    "sha256": "37b8fde7b2fec3eb97f1a86d44bdc459f26aa0a946125ab0b25c2f67fedd27ea",
+    "bytes": 7226
+  },
+  {
+    "revision": "f5341340bcbc9e4c4d46d6eb3f1759da73713097",
+    "path": "tests/commands/time-env-stress/fraction-independent/canonical/canonical223.stdout",
+    "sha256": "bbe1765edea7182897cb19e0eec22d8b00a95134fe86f8958f8885a25a7971b8",
+    "bytes": 38028
+  }
+]

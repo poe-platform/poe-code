@@ -124,7 +124,8 @@ for (const name of ["egrep", "fgrep", "column"]) test(`${name} collision preflig
     assert.deepEqual(shell.commands.list(), before);
     await root.agentCommands({ replace: true, column: { replace: false } } as unknown as AgentCommandsOptions).setup(host);
     assert.equal(shell.commands.list().length, 74);
-    assert.equal(shell.commands.get("custom"), custom); assert.notEqual(shell.commands.get(name), existing);
+    assert.equal(shell.commands.get("custom"), before.find(command => command.name === "custom"));
+    assert.notEqual(shell.commands.get(name), before.find(command => command.name === name));
   } finally { await shell.dispose(); }
 });
 

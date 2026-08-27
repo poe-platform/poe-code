@@ -50,7 +50,7 @@ for (const [expression, expected, message] of [
   });
 }
 
-test("KNOWN UPSTREAM LIMITATION: signal drops own __proto__ data, not env-key compatibility", { skip: localSkip }, async context => {
+test("KNOWN UPSTREAM LIMITATION: raw ordinary env loses __proto__; command dictionary preserves it", { skip: localSkip }, async context => {
   assert(localRoot);
   const module = await import(pathToFileURL(join(localRoot, "src/run.ts")).href) as {
     run(source: string, options: { modules: object; signal?: AbortSignal }): Promise<{ ok: boolean; returnValue?: unknown }>;
@@ -65,9 +65,9 @@ test("KNOWN UPSTREAM LIMITATION: signal drops own __proto__ data, not env-key co
   assert.deepEqual(signalled.returnValue, [undefined, "ctor", "proto"]);
   const result = await execute(["-p", "-e", source], { runtime: await localRuntime() }, "", { env });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout.toString()), [null, "ctor", "proto"]);
+  assert.deepEqual(JSON.parse(result.stdout.toString()), ["literal", "ctor", "proto"]);
   assert.equal(Object.getOwnPropertyDescriptor(env, "__proto__")?.value, "literal");
-  context.diagnostic('Expected literal __proto__ value; raw signalled engine loses it, plugin JSON consequently prints null. Not a successful preservation test.');
+  context.diagnostic('Raw signalled ordinary records still lose __proto__; the command copies environment entries into a prototype-free data dictionary and preserves the literal value.');
 });
 
 test("KNOWN UPSTREAM LIMITATION: raw pre-aborted pure run succeeds; plugin rejects before runner", { skip: localSkip }, async () => {

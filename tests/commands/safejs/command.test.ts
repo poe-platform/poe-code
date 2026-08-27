@@ -3,6 +3,23 @@ import test from "node:test";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { contractRuntime, execute, operation } from "./helpers.js";
 
+test("command environment is a prototype-free data copy with literal special keys", async () => {
+  const env = Object.fromEntries([["__proto__", "literal"], ["constructor", "ctor"], ["prototype", "proto"], ["KEY", "original"]]);
+  const before = Object.getOwnPropertyDescriptors(env);
+  const runtime = contractRuntime(async (_source, options) => {
+    const copied = options.modules.command?.env;
+    assert(copied && typeof copied === "object" && !Array.isArray(copied));
+    assert.equal(Object.getPrototypeOf(copied), null);
+    assert.deepEqual(Object.entries(copied), Object.entries(env));
+    assert.equal(Object.hasOwn(copied, "__proto__"), true);
+    Reflect.set(copied, "KEY", "guest mutation");
+  });
+  const result = await execute(["-e", "contract"], { runtime }, "", { env });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(Object.getOwnPropertyDescriptors(env), before);
+  assert.equal(Object.getPrototypeOf(env), Object.prototype);
+});
+
 test("missing runtime is explicit and never consumes source or stdin", async () => {
   let read = false;
   const actual = await execute([], {}, { async *[Symbol.asyncIterator]() { read = true; throw new Error("unexpected read"); } });
@@ -18,7 +35,7 @@ test("inline source receives exact args, virtual context and a fresh budget", as
     assert.equal(source, "reviewed contract source");
     assert.deepEqual(options.modules.command?.args, ["hello world", "--flag"]);
     assert.equal(options.modules.command?.cwd, "/work");
-    assert.deepEqual(options.modules.command?.env, { KEY: "virtual", LC_ALL: "C" });
+    assert.deepEqual(options.modules.command?.env, Object.assign(Object.create(null), { KEY: "virtual", LC_ALL: "C" }));
     budgets.push(options.budget);
     return "result";
   });

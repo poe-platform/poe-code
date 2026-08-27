@@ -88,8 +88,10 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         error: declare(async (text: unknown) => output.text(text, true), "read-side-effect"),
         errorBytes: declare(async (bytes: unknown) => output.bytes(bytes, true), "read-side-effect"),
       };
+      const env: Record<string, string> = Object.create(null);
+      for (const [key, value] of Object.entries(context.env)) env[key] = value;
       const command: SafeJsModule = {
-        args: [...parsed.args], cwd: context.cwd, env: Object.fromEntries(Object.entries(context.env)),
+        args: [...parsed.args], cwd: context.cwd, env,
         setExitCode: declare((value: unknown) => {
           signal.throwIfAborted();
           if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 255) throw new TypeError("exit code must be an integer from 0 through 255");

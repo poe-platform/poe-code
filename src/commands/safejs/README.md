@@ -66,6 +66,19 @@ it, execution returns **127** without reading source/stdin; help still works.
 Partial runtime objects fail configuration validation. `replace: true` permits
 replacing an existing `safejs` registry entry; default registration rejects it.
 
+`command.env` is an own-entry data dictionary, not an Object-prototype capability.
+The command copies it into a prototype-free record so literal `__proto__`,
+`constructor` and `prototype` keys remain data through the injected engine.
+Guest changes do not mutate the caller's environment. This does not repair or
+promise support for arbitrary raw-engine capability records or constructor metadata.
+
+The command checks cancellation before invoking the runtime and rethrows the
+caller's exact cancellation reason. The separate filesystem and shell bridges
+retain their established sanitized `AbortError`/`ABORT_ERR` boundary; they do not
+promise raw reason identity or expose private reason objects to guest code.
+No signal is omitted, budget reset or global rejection handler installed to
+work around an external engine limitation.
+
 ## Command grammar
 
 ```text

@@ -45,7 +45,7 @@ for (const mode of ["inline", "file", "stdin"] as const) {
 test("fixture: prototype keys survive snapshots and JSON without invoking accessors", async () => {
   const env = Object.fromEntries([["__proto__", "literal"], ["constructor", "ctor"], ["prototype", "proto"]]);
   const result = await execute(["-p", "-e", "fixture"], { runtime: contractRuntime(async (_source, options) => {
-    assert.deepEqual(options.modules.command?.env, env);
+    assert.deepEqual(options.modules.command?.env, Object.assign(Object.create(null), env));
     return Object.fromEntries([["__proto__", { value: "ordinary data" }], ["constructor", "ctor"]]);
   }) }, "", { env });
   assert.equal(result.exitCode, 0, result.stderr);

@@ -1,0 +1,226 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-VYykQV/snapshot",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 6065.655416999998,
+  "stdoutSha256": "baaad5cd45f2747e5d85e2ece183392564216a4eb9c9dc54053049a44fbd1190",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": [
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 67,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 79,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 136,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "line": 1,
+      "column": 33,
+      "code": "TS2307",
+      "message": "Cannot find module './filesystem.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "line": 2,
+      "column": 43,
+      "code": "TS2307",
+      "message": "Cannot find module './io.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+      "line": 1,
+      "column": 33,
+      "code": "TS2307",
+      "message": "Cannot find module './io.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+      "line": 2,
+      "column": 25,
+      "code": "TS2307",
+      "message": "Cannot find module './errors.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+      "line": 2,
+      "column": 25,
+      "code": "TS2307",
+      "message": "Cannot find module './errors.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 1,
+      "column": 106,
+      "code": "TS2307",
+      "message": "Cannot find module './command.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 2,
+      "column": 40,
+      "code": "TS2307",
+      "message": "Cannot find module './filesystem.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 31,
+      "column": 17,
+      "code": "TS7006",
+      "message": "Parameter 'context' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 6,
+      "column": 8,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 7,
+      "column": 91,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash/fs/webdav' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 23,
+      "column": 90,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 40,
+      "column": 18,
+      "code": "TS18046",
+      "message": "'error' is of type 'unknown'."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 41,
+      "column": 18,
+      "code": "TS18046",
+      "message": "'error' is of type 'unknown'."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 98,
+      "column": 43,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 174,
+      "column": 93,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+      "line": 268,
+      "column": 106,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "line": 1,
+      "column": 25,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "line": 2,
+      "column": 91,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash/fs/webdav' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "line": 25,
+      "column": 59,
+      "code": "TS7006",
+      "message": "Parameter 'segment' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 6,
+      "column": 8,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 7,
+      "column": 91,
+      "code": "TS2307",
+      "message": "Cannot find module 'virtual-bash/fs/webdav' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 21,
+      "column": 94,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 32,
+      "column": 18,
+      "code": "TS18046",
+      "message": "'reason' is of type 'unknown'."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 33,
+      "column": 18,
+      "code": "TS18046",
+      "message": "'reason' is of type 'unknown'."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 104,
+      "column": 92,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 120,
+      "column": 104,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+      "line": 188,
+      "column": 100,
+      "code": "TS7006",
+      "message": "Parameter 'request' implicitly has an 'any' type."
+    }
+  ]
+}

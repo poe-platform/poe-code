@@ -1,0 +1,93 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 5951.044915999999,
+  "stdoutSha256": "ffb5b4201043034ab385bb56c55700fe67e611e152a5f23e7538f90daa714247",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": [
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 67,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 79,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/file/text-bound.test.ts",
+      "line": 136,
+      "column": 72,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "line": 1,
+      "column": 33,
+      "code": "TS2307",
+      "message": "Cannot find module './filesystem.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "line": 2,
+      "column": 43,
+      "code": "TS2307",
+      "message": "Cannot find module './io.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+      "line": 1,
+      "column": 33,
+      "code": "TS2307",
+      "message": "Cannot find module './io.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+      "line": 2,
+      "column": 25,
+      "code": "TS2307",
+      "message": "Cannot find module './errors.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+      "line": 2,
+      "column": 25,
+      "code": "TS2307",
+      "message": "Cannot find module './errors.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 1,
+      "column": 106,
+      "code": "TS2307",
+      "message": "Cannot find module './command.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 2,
+      "column": 40,
+      "code": "TS2307",
+      "message": "Cannot find module './filesystem.js' or its corresponding type declarations."
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "line": 31,
+      "column": 17,
+      "code": "TS7006",
+      "message": "Parameter 'context' implicitly has an 'any' type."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "build"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 1854.466124999999,
+  "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": []
+}

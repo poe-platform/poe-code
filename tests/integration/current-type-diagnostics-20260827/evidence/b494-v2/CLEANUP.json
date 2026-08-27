@@ -1,0 +1,6 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-5dr09v",
+  "removed": true,
+  "finishedAt": "2026-08-27T11:43:43.842Z",
+  "children": "Synchronous bounded archive, extraction, npm/compiler children only; no services/test workers started."
+}

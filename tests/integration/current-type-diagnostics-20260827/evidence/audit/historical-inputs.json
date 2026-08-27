@@ -1,0 +1,57 @@
+{
+  "baseline": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "current": "954406871fae381b1c69441b34946a224201d7ad",
+  "provenancePath": "tests/commands/filesystem-inspection-stress/tree/sealed/provenance.json",
+  "inventoryPath": "tests/commands/filesystem-inspection-stress/tree/sealed/inventory.json",
+  "historicalInputs": [
+    {
+      "path": "inputs/src__contracts__command.ts",
+      "kind": "file",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "originalPath": "src/contracts/command.ts",
+      "preservedBothCandidates": true
+    },
+    {
+      "path": "inputs/src__contracts__errors.ts",
+      "kind": "file",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "originalPath": "src/contracts/errors.ts",
+      "preservedBothCandidates": true
+    },
+    {
+      "path": "inputs/src__contracts__filesystem.ts",
+      "kind": "file",
+      "bytes": 3861,
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "originalPath": "src/contracts/filesystem.ts",
+      "preservedBothCandidates": true
+    },
+    {
+      "path": "inputs/src__contracts__io.ts",
+      "kind": "file",
+      "bytes": 7383,
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "originalPath": "src/contracts/io.ts",
+      "preservedBothCandidates": true
+    },
+    {
+      "path": "inputs/src__contracts__path.ts",
+      "kind": "file",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "originalPath": "src/contracts/path.ts",
+      "preservedBothCandidates": true
+    },
+    {
+      "path": "inputs/src__contracts__plugin.ts",
+      "kind": "file",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "originalPath": "src/contracts/plugin.ts",
+      "preservedBothCandidates": true
+    }
+  ],
+  "classification": "Six sealed historical contract-source captures flattened into data filenames; not current product source, not canonical runtime tests, not new env-S fixtures. Seven unresolved relative imports plus one cascade arise in five files; errors.ts contributes no diagnostic."
+}

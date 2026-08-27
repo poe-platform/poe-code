@@ -1,0 +1,12 @@
+{
+  "createdAt": "2026-08-27T11:49:13.116Z",
+  "auditRunnerSha256": "215d0556fc66705687f8b9d05eb8e5c1c6b94b3cf40b9b80d0cb91b6d57ef35f",
+  "candidates": {
+    "original": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "current": "954406871fae381b1c69441b34946a224201d7ad"
+  },
+  "retainedManifestSha256": "7c51be90526be8724e503c5dc58f65f038311c0e1d78990dda48d1a3ebf11107",
+  "retainedRoutingSha256": "661480e44691b0636b8a1dcba84b92271165b7fd361bb8c88822746ce811a260",
+  "noTestsExecuted": true,
+  "noSourceConfigChanges": true
+}

@@ -1,0 +1,1 @@
+diagnostic-probes/encoder-original.ts(1,30): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?

@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "diagnostic-probes/encoder-original.json",
+    "--pretty",
+    "false"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 220.92758299999696,
+  "stdoutSha256": "811beacd9db94aa1deea44f4ec27e87ec31c547843c16bba473062d293645a98",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": [
+    {
+      "path": "diagnostic-probes/encoder-original.ts",
+      "line": 1,
+      "column": 30,
+      "code": "TS2749",
+      "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+    }
+  ]
+}

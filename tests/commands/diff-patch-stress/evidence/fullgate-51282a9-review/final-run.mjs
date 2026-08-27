@@ -47,15 +47,25 @@ function command(directory, label, executable, args) {
 const corrected = snapshot(revision, 'final-corrected');
 const copied = overlay(corrected);
 const before = manifest(corrected);
-save(`${base}/final-gate.json`, { capturedAt: new Date().toISOString(), revision, gate, headAtCapture: git('rev-parse', 'HEAD').toString().trim(), dirtyAtCapture: git('status', '--short').toString(), stagedAtCapture: git('diff', '--cached', '--name-status').toString(), before, nativeOverlay: copied, harness: ['replay.mjs', 'probe.mjs', 'evaluate.mjs', 'final-run.mjs'].map(name => ({ name, sha256: hash(readFileSync(`${base}/${name}`)) })) });
+save(`${base}/final-gate.json`, { capturedAt: new Date().toISOString(), revision, gate, headAtCapture: git('rev-parse', 'HEAD').toString().trim(), dirtyAtCapture: git('status', '--short').toString(), stagedAtCapture: git('diff', '--cached', '--name-status').toString(), before, nativeOverlay: copied, harness: ['replay.mjs', 'probe.mjs', 'evaluate.mjs', 'final-run.mjs', 'mutations.mjs', 'type-wiring.mjs', 'initial-freeze.json', 'initial-extra-control-native-product.json'].map(name => ({ name, sha256: hash(readFileSync(`${base}/${name}`)) })) });
 const originals = snapshot('72f780d', 'final-original');
+assert.equal(git('diff', '--diff-filter=D', '--name-only', '72f780d', revision, '--', 'src').toString(), '', 'Deleted source paths require explicit clean source replacement');
 execFileSync('/usr/bin/tar', ['-xf', '-', '-C', originals], { input: git('archive', revision, 'src'), maxBuffer: 128 * 1024 * 1024 });
+const originalSource = git('ls-tree', '-r', '--name-only', revision, 'src').toString().trim().split('\n').map(path => {
+  const actual = hash(readFileSync(resolve(originals, path)));
+  const expected = hash(git('show', `${revision}:${path}`));
+  assert.equal(actual, expected, path);
+  return { path, sha256: actual };
+});
+save(`${base}/final-original-source-binding.json`, { revision, files: originalSource, originalTestRevision: '72f780d0dbe73f71702c89c33d29aa614170c403', sourceOnlyOverlay: true });
 overlay(originals);
 originalReplay(originals, 'final-qualified-original31');
 const outcomes = [];
+outcomes.push(command(corrected, 'final-mandatory-setup-check', process.execPath, ['tests/commands/metadata-stress/canonical-env/runner.mjs', 'check']));
 outcomes.push(command(corrected, 'final-mandatory-metadata-table-release', process.execPath, ['tests/commands/metadata-stress/canonical-env/runner.mjs', 'release']));
 outcomes.push(command(corrected, 'final-setup-provenance-controls', process.execPath, ['--import', 'tsx', '--test', 'tests/commands/metadata-stress/canonical-env/setup.test.mjs', 'tests/commands/metadata-stress/canonical-env/provenance-controls.test.mjs']));
 outcomes.push(command(corrected, 'final-corrected-diff-targets', process.execPath, ['--import', 'tsx', '--test', '--test-concurrency=1', 'tests/commands/diff-patch-stress/fuzz/edits.test.ts', 'tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts', 'tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts']));
+outcomes.push(command(corrected, 'final-author-signed-matcher-controls', process.execPath, ['--import', 'tsx', '--test', 'tests/commands/diff-patch-stress/fuzz/repeated-match.test.ts']));
 const after = manifest(corrected);
 assert.deepEqual(after, before);
 save(`${base}/final-post-replay-manifest.json`, { revision, unchanged: true, after });

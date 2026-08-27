@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import * as host from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { base, hash, save } from './replay.mjs';
+import { base, git, hash, save } from './replay.mjs';
 
 const label = process.argv[2] ?? 'initial';
 const outputLabel = process.argv[3] ?? label;
@@ -12,7 +12,9 @@ const load = path => import(pathToFileURL(resolve(directory, path)).href);
 const { MemoryFileSystem, Shell, diffPatchCommands } = await load('src/index.ts');
 const { oracleIdentity } = await load('tests/commands/diff-patch-stress/gnu-target/oracle.ts');
 const profiles = ['gnu', 'apple-calibration'].map(profile => ({ profile, ...oracleIdentity('patch', profile) }));
-const frozen = JSON.parse(await host.readFile(`${base}/initial-extra-control-native-product.json`, 'utf8'));
+const frozenBytes = await host.readFile(`${base}/initial-extra-control-native-product.json`);
+assert.equal(hash(frozenBytes), hash(git('--no-replace-objects', 'show', `6f5c8e0:${base}/initial-extra-control-native-product.json`)));
+const frozen = JSON.parse(frozenBytes);
 assert.deepEqual(profiles, frozen.profiles);
 const cases = frozen.results.map(row => row.fixture);
 

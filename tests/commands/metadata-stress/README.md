@@ -158,8 +158,12 @@ Factories remain `metadataCommands` / `createMetadataCommands`, with
   effects, and identity rechecks are not an ABA/path-race defense.
 - **stat:** L/dereference, c/format, printf. Directives n,N,s,a,A,f,F,i,h,u,g,d,D,
   x,y,z,w,X,Y,Z,W and percent. Bounded integer/string precision now works; width
-  is byte-based. Epoch precision remains 0–3; human timestamps remain UTC
-  milliseconds, not GNU nanosecond/default-report parity. Missing optional
+  is byte-based. Epoch precision remains 0–3; human timestamps now use UTC
+  nine-digit fractions from available numeric milliseconds, rounded through
+  exact shortest-decimal scaling rather than Date truncation. This is not a
+  nanosecond-storage or default-report-parity claim. See `stat-human-evidence/`
+  for native numeric-capacity gaps and the preserved three-digit author-test
+  conflict. Missing optional
   fields still fail explicitly. Quoting remains the delivered limited profile.
   GNU can emit an earlier format prefix before an error; virtual stat buffers
   the current operand. The invalid-format controls preserve this difference.

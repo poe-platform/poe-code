@@ -53,8 +53,25 @@ Fractional epoch width also follows that executable's separate integer/fraction
 formatting, including trailing spaces for narrow widths: at 1 ms, `%3.3Y`
 produces `0.001` followed by two spaces. Those bytes count toward output limits.
 
-Timestamps are deterministic UTC at millisecond resolution, not GNU's full
-nanosecond rendering. The default report is a concise virtual metadata report,
+Human timestamps (`%x/%y/%z/%w`, including the default report) use deterministic
+UTC with GNU-style nine-digit fractions. `FileStat` supplies numeric milliseconds,
+not a nanosecond field or a declared resolution. The renderer interprets each
+finite Number's shortest round-trip decimal representation as milliseconds and
+scales that decimal exactly with BigInt, rounding to the nearest nanosecond;
+exact half-nanosecond ties round away from zero. Negative results normalize to
+a floor-second date plus a nonnegative fraction, including second/day carry.
+Date is used only for whole-second calendar conversion, never to clip the input
+fraction. Values outside Date's inclusive +/-8,640,000,000,000,000 ms range fail.
+This avoids floating-point whole-epoch multiplication and binary residual digits:
+`1700000000123.456` ms renders `.123456000`, not `.123456055`. Integral milliseconds
+pad six zeros; sub-millisecond values retain the available decimal fraction.
+Nine output columns do not imply nanosecond storage or recover precision already
+lost by a backend/Number. Real native nanoseconds not representable in the supplied
+numeric milliseconds remain a classified comparison gap, not an exact match.
+The prior three-digit human output is retained in the read-only original author
+test as historical evidence; its selected-GNU expectation conflict is reported,
+not silently rewritten. Epoch precision/rounding/width rules above are unchanged.
+The default report is a concise virtual metadata report,
 not byte-identical GNU stat output. A missing birth timestamp renders `-` in
 `%w`/the default report; requesting an unavailable numeric birth timestamp or
 optional device/inode/owner/link-count field fails explicitly. Mode fields report
@@ -97,4 +114,6 @@ Forward cancellation to every filesystem operation and await output writes.
 
 Primary research: GNU Coreutils manual sections for these utilities and the
 GNU gnulib `mode_adjust` implementation (source SHA-256 recorded with the tests).
-These are semantic references, not a claim that a GNU executable was tested.
+These source references are separate from runtime validation. Bounded GNU 9.7
+human-stat executable evidence, numeric-capacity gaps and the preserved original
+author expectation conflict are in `tests/commands/metadata-stress/stat-human-evidence/`.

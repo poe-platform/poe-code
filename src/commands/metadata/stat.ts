@@ -55,9 +55,20 @@ function available(value: number | undefined, field: string): number {
 }
 
 function timestamp(milliseconds: number): string {
-  const date = new Date(available(milliseconds, "timestamp"));
+  const value = available(milliseconds, "timestamp");
+  if (Math.abs(value) > 8_640_000_000_000_000) throw new FsError("EIO", { message: "invalid filesystem timestamp" });
+  const [coefficient = "0", exponent = "0"] = Math.abs(value).toString().split("e");
+  const [integer = "0", fraction = ""] = coefficient.split(".");
+  const digits = BigInt(integer + fraction);
+  const power = Number(exponent) - fraction.length + 6;
+  const divisor = power < 0 ? 10n ** BigInt(-power) : 1n;
+  const magnitude = power < 0 ? (digits + divisor / 2n) / divisor : digits * 10n ** BigInt(power);
+  const nanoseconds = value < 0 ? -magnitude : magnitude;
+  const remainder = ((nanoseconds % 1_000_000_000n) + 1_000_000_000n) % 1_000_000_000n;
+  const seconds = (nanoseconds - remainder) / 1_000_000_000n;
+  const date = new Date(Number(seconds * 1000n));
   if (Number.isNaN(date.getTime())) throw new FsError("EIO", { message: "invalid filesystem timestamp" });
-  return `${date.toISOString().replace("T", " ").replace("Z", "")} +0000`;
+  return `${date.toISOString().replace("T", " ").replace(/\.\d{3}Z$/u, `.${remainder.toString().padStart(9, "0")}`)} +0000`;
 }
 
 function epoch(milliseconds: number, precision: number): string {

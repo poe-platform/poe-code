@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+not ok 1 - GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+  ---
+  duration_ms: 433.368125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human-native.test.ts:1:2141'
+  failureType: 'testCodeFailure'
+  error: '{"rawFields":{"atimeNs":"-1700000000123456789","mtimeNs":"-1700000000123456789","ctimeNs":"1787797030010544142","birthtimeNs":"0"},"nativeFields":{"exitCode":0,"stdout":"[   1916-02-18 01:46:39.876543211 +0000][1916-02-18 01:46:39.876543211 +0000   ][1916-02-18 01:46:39.876][2026-08-27 02:17:10.010544142 +0000][-]","stdoutHex":"5b202020313931362d30322d31382030313a34363a33392e383736353433323131202b303030305d5b313931362d30322d31382030313a34363a33392e383736353433323131202b303030302020205d5b313931362d30322d31382030313a34363a33392e3837365d5b323032362d30382d32372030323a31373a31302e303130353434313432202b303030305d5b2d5d","stderr":""}}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human-native.test.ts:116:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 650.532208

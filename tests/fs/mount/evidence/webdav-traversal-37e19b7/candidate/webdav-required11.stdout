@@ -1,0 +1,277 @@
+TAP version 13
+# Subtest: REQUIRED webdav one-mount copy, target missing
+ok 1 - REQUIRED webdav one-mount copy, target missing
+  ---
+  duration_ms: 30.302917
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav one-mount copy, target existing
+not ok 2 - REQUIRED webdav one-mount copy, target existing
+  ---
+  duration_ms: 9.182042
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: 'ENOTSUP: operation not supported',
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+    cause: 'ENOTSUP: operation not supported'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target","cause":"ENOTSUP: operation not supported"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target missing
+ok 3 - REQUIRED webdav separate-clients copy, target missing
+  ---
+  duration_ms: 8.942625
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target existing
+not ok 4 - REQUIRED webdav separate-clients copy, target existing
+  ---
+  duration_ms: 7.256959
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: 'ENOTSUP: operation not supported',
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: 'ENOTSUP: operation not supported'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: operation not supported"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"}]}
+# Subtest: positive webdav one-mount existing-target rename (default lock policy)
+ok 5 - positive webdav one-mount existing-target rename (default lock policy)
+  ---
+  duration_ms: 6.973542
+  type: 'test'
+  ...
+# {"case":"positive webdav one-mount existing-target rename (default lock policy)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"MOVE","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target missing
+not ok 6 - REQUIRED webdav separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 8.275834
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9937'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:234:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target missing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target existing
+not ok 7 - REQUIRED webdav separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 10.40025
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9937'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:234:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target existing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target missing
+ok 8 - REQUIRED memory to-remote webdav copy, target missing
+  ---
+  duration_ms: 2.727667
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target existing
+not ok 9 - REQUIRED memory to-remote webdav copy, target existing
+  ---
+  duration_ms: 1.8595
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: 'ENOTSUP: operation not supported',
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: 'ENOTSUP: operation not supported'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: operation not supported"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target missing
+ok 10 - REQUIRED memory from-remote webdav copy, target missing
+  ---
+  duration_ms: 2.603125
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target existing
+not ok 11 - REQUIRED memory from-remote webdav copy, target existing
+  ---
+  duration_ms: 1.778292
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: 'ENOTSUP: operation not supported',
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: 'ENOTSUP: operation not supported'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/candidate/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: operation not supported"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"}]}
+1..11
+# tests 11
+# suites 0
+# pass 5
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.376292

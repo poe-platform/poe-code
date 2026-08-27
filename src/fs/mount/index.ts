@@ -209,7 +209,8 @@ export class MountFileSystem implements FileSystem {
       const current = stack[stack.length - 1]!;
       if (current.stat?.type !== "directory") fail("ENOTDIR");
       if (!current.synthetic && !settings.createDirectories?.has(current.path)) {
-        await current.mount.backend.access(current.local, 1, options);
+        const mode = current.mount.backend.capabilities.permissions === false ? 0 : 1;
+        await current.mount.backend.access(current.local, mode, options);
       }
       if (component.name === ".") continue;
       if (component.name === "..") {

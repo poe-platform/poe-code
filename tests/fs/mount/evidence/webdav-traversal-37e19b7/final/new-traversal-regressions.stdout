@@ -1,0 +1,137 @@
+TAP version 13
+# Subtest: WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+ok 1 - WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+  ---
+  duration_ms: 79.237542
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted writes missing file after server authorization
+ok 2 - WebDAV mounted writes missing file after server authorization
+  ---
+  duration_ms: 1.51775
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted writes existing file after server authorization
+not ok 3 - WebDAV mounted writes existing file after server authorization
+  ---
+  duration_ms: 2.054125
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/final/archive/tests/fs/mount/webdav-traversal.test.ts:1:2973'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + null
+    - '"924ce3375de2c84d78fe44fe9c0b79e41a6c6247c3824211611b3f3120ef7515"'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '"924ce3375de2c84d78fe44fe9c0b79e41a6c6247c3824211611b3f3120ef7515"'
+  actual: ~
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/final/archive/tests/fs/mount/webdav-traversal.test.ts:91:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+ok 4 - WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 3.95875
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted GET denial, target existing, preserves exact backing state
+ok 5 - WebDAV mounted GET denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 5.372375
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PUT denial, target missing, preserves exact backing state
+ok 6 - WebDAV mounted PUT denial, target missing, preserves exact backing state
+  ---
+  duration_ms: 4.995
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PUT denial, target existing, preserves exact backing state
+ok 7 - WebDAV mounted PUT denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 3.575209
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+ok 8 - WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+  ---
+  duration_ms: 0.735916
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+ok 9 - WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+  ---
+  duration_ms: 22.088375
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal does not turn explicit execute/write access into permission support
+ok 10 - WebDAV traversal does not turn explicit execute/write access into permission support
+  ---
+  duration_ms: 1.402083
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates EACCES, not an error-based fallback
+ok 11 - explicit non-permission traversal propagates EACCES, not an error-based fallback
+  ---
+  duration_ms: 0.272958
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+ok 12 - explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+  ---
+  duration_ms: 0.151834
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=true
+ok 13 - mixed mount retains execute probe for permissions=true
+  ---
+  duration_ms: 0.185584
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=undefined
+ok 14 - mixed mount retains execute probe for permissions=undefined
+  ---
+  duration_ms: 0.088917
+  type: 'test'
+  ...
+# Subtest: memory actual directory execute denial survives a mixed WebDAV mount
+ok 15 - memory actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 0.3525
+  type: 'test'
+  ...
+# Subtest: real actual directory execute denial survives a mixed WebDAV mount
+ok 16 - real actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 5.40725
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal pre-abort retains caller reason and issues no request
+ok 17 - WebDAV traversal pre-abort retains caller reason and issues no request
+  ---
+  duration_ms: 0.114833
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal in-flight cancellation propagates into the authorization request
+ok 18 - WebDAV traversal in-flight cancellation propagates into the authorization request
+  ---
+  duration_ms: 0.384666
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 264.309125

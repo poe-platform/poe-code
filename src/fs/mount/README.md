@@ -23,6 +23,18 @@ not assumed to match a single-device backend; see the verification limits below.
   subsequent `..`; trailing slashes require directories. Entry mutations such as
   `rm` and `rename` reject a final symlink with a trailing slash instead of deleting
   its referent. Root aliases cannot bypass mutation protection.
+- Traversal uses the selected backend's execute/search probe unless that backend
+  explicitly declares `permissions: false`. In that profile it uses existence
+  access instead; directory metadata and the eventual read/write/copy operation
+  still require actual backend authorization. WebDAV therefore uses authorized
+  PROPFIND while walking collections, not fictional POSIX execute bits. This is
+  not proof that a subsequent GET, PUT, COPY or MOVE is permitted; those requests
+  must succeed independently. Every probe error and cancellation still propagates.
+  Missing permission metadata is conservative and keeps the execute probe, as do
+  native/memory backends even within a mixed mount whose aggregate permissions
+  capability is false. Explicit caller `access(path, mode)` remains unchanged:
+  mounted WebDAV X_OK/W_OK requests still reject `ENOTSUP`. No identity, symlink,
+  mount-boundary or chroot guard is relaxed by this traversal policy.
 - Absolute backend symlink targets mean the root of **that mount**, not global
   `/`. Relative targets start at the link's backend parent. `readlink` returns the
   stored target unchanged; `realpath` returns a canonical global path.

@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+ok 1 - WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+  ---
+  duration_ms: 75.077292
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted writes missing file after server authorization
+ok 2 - WebDAV mounted writes missing file after server authorization
+  ---
+  duration_ms: 1.602208
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted writes existing file after server authorization
+ok 3 - WebDAV mounted writes existing file after server authorization
+  ---
+  duration_ms: 2.301375
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+ok 4 - WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 3.978042
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted GET denial, target existing, preserves exact backing state
+ok 5 - WebDAV mounted GET denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 3.642917
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PUT denial, target missing, preserves exact backing state
+ok 6 - WebDAV mounted PUT denial, target missing, preserves exact backing state
+  ---
+  duration_ms: 4.546875
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PUT denial, target existing, preserves exact backing state
+ok 7 - WebDAV mounted PUT denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 5.297958
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+ok 8 - WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+  ---
+  duration_ms: 0.825042
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+ok 9 - WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+  ---
+  duration_ms: 22.799708
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal does not turn explicit execute/write access into permission support
+ok 10 - WebDAV traversal does not turn explicit execute/write access into permission support
+  ---
+  duration_ms: 1.268458
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates EACCES, not an error-based fallback
+ok 11 - explicit non-permission traversal propagates EACCES, not an error-based fallback
+  ---
+  duration_ms: 0.246833
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+ok 12 - explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+  ---
+  duration_ms: 0.124708
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=true
+ok 13 - mixed mount retains execute probe for permissions=true
+  ---
+  duration_ms: 0.17925
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=undefined
+ok 14 - mixed mount retains execute probe for permissions=undefined
+  ---
+  duration_ms: 0.05425
+  type: 'test'
+  ...
+# Subtest: memory actual directory execute denial survives a mixed WebDAV mount
+ok 15 - memory actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 0.31625
+  type: 'test'
+  ...
+# Subtest: real actual directory execute denial survives a mixed WebDAV mount
+ok 16 - real actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 4.165166
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal pre-abort retains caller reason and issues no request
+ok 17 - WebDAV traversal pre-abort retains caller reason and issues no request
+  ---
+  duration_ms: 0.100916
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal in-flight cancellation propagates into the authorization request
+ok 18 - WebDAV traversal in-flight cancellation propagates into the authorization request
+  ---
+  duration_ms: 0.323583
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 263.902833

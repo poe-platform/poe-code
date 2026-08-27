@@ -109,7 +109,7 @@ try {
   report.negativeTypeDiagnostics = diagnostics;
   const permissions = ["--unhandled-rejections=strict", "--permission", `--allow-fs-read=${moved}`];
   for (let repeat = 1; repeat <= 2; repeat++) run(`public-repeat-${repeat}`, process.execPath,
-    [...permissions, "--test", "--test-concurrency=1", "emitted/consumer.mjs"], moved);
+    [...permissions, "emitted/consumer.mjs"], moved);
   const runtime = join(moved, "node_modules/virtual-bash/dist/commands/time-env/index.js");
   const withheld = `${runtime}.withheld`; renameSync(runtime, withheld);
   try {

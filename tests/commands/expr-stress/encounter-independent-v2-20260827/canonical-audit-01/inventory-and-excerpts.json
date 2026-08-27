@@ -1,0 +1,744 @@
+{
+  "commit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "canonicalFileCount": 12,
+  "fixtureFileCount": 3,
+  "files": [
+    {
+      "filename": "tests/commands/expr/abort-reason-regression.test.ts",
+      "sha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3",
+      "bytes": 12841,
+      "observationLines": [
+        {
+          "line": 40,
+          "text": "  requests = 0;"
+        },
+        {
+          "line": 53,
+          "text": "    this.requests++;"
+        },
+        {
+          "line": 72,
+          "text": "  console.log(JSON.stringify({ abortReasonWorkers: workers.length, activeBeforeSafetyCleanup, activeAfter: workers.filter(worker => !worker.closed).length }));"
+        },
+        {
+          "line": 160,
+          "text": "        const from = workers.length;"
+        },
+        {
+          "line": 173,
+          "text": "            assert.equal(workers.length, from);"
+        },
+        {
+          "line": 179,
+          "text": "            await until(() => workers[from]?.requests === 1);"
+        },
+        {
+          "line": 185,
+          "text": "          await until(() => stage === \"active\" ? workers[from]?.requests === 1 : workers.length > from);"
+        },
+        {
+          "line": 193,
+          "text": "            assert.equal(workers[from]!.requests, 1);"
+        },
+        {
+          "line": 199,
+          "text": "            assert.equal(workers[from]!.requests, stage === \"startup\" ? 0 : 1);"
+        },
+        {
+          "line": 217,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 224,
+          "text": "      registerCleanup(callback) { assert.equal(workers.length, from); cleanup = callback; },"
+        },
+        {
+          "line": 243,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 252,
+          "text": "      await until(() => workers[from]?.requests === 1);"
+        },
+        {
+          "line": 267,
+          "text": "    const from = workers.length;"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/contracts.test.ts",
+      "sha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+      "bytes": 10494,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/diagnostics-regression.test.ts",
+      "sha256": "f01f5f88b4d2bd4c43f7359f548ce64002fcf2c0bf24b7fc7300a8cb8d9795e4",
+      "bytes": 5295,
+      "observationLines": [
+        {
+          "line": 18,
+          "text": "for (const [id, args, stdout, exitCode] of validControls) test(`diagnostic grammar control: ${id}`, async () => {"
+        },
+        {
+          "line": 39,
+          "text": "test(\"skipped grammar errors submit no BRE requests or acquire stdin\", async () => {"
+        },
+        {
+          "line": 41,
+          "text": "  let requests = 0;"
+        },
+        {
+          "line": 42,
+          "text": "  RegexSession.prototype.matchExpr = function () { requests++; throw new Error(\"unexpected BRE request\"); };"
+        },
+        {
+          "line": 50,
+          "text": "    assert.equal(requests, 0);"
+        },
+        {
+          "line": 76,
+          "text": "    [[\"(\", \"(\", \"1\"], { maxDepth: 1 }, \"parser depth\"],"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/grammar.test.ts",
+      "sha256": "0de1d7042f5f0a1a7ad75a540096bdb07cdf28a2137b6927b2e8177091d64919",
+      "bytes": 3408,
+      "observationLines": [
+        {
+          "line": 40,
+          "text": "for (const [args, stdout, exitCode] of cases) test(`expr grammar ${JSON.stringify(args)}`, async () => {"
+        },
+        {
+          "line": 56,
+          "text": "      assert.match(actual.stderr, /^expr: (syntax error|division by zero|non-integer argument)/u);"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/inactive-prefix.test.ts",
+      "sha256": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e",
+      "bytes": 11923,
+      "observationLines": [
+        {
+          "line": 11,
+          "text": "  const encodes: string[] = [], jobs: string[] = [];"
+        },
+        {
+          "line": 27,
+          "text": "    assert.equal(pending++, 0, \"regex jobs remain sequential\");"
+        },
+        {
+          "line": 28,
+          "text": "    jobs.push(Buffer.from(args[1]).toString());"
+        },
+        {
+          "line": 32,
+          "text": "  return { encodes, jobs, budgets };"
+        },
+        {
+          "line": 40,
+          "text": "  options: ExprCommandsOptions = {}, env = { LC_ALL: \"C\" }, forbidden: readonly string[] = [], jobs: readonly string[] = []) {"
+        },
+        {
+          "line": 44,
+          "text": "  assert.deepEqual(observed.jobs, jobs);"
+        },
+        {
+          "line": 93,
+          "text": "] as const) test(`literal quoting retains grammar ${JSON.stringify(args)}`, async context => {"
+        },
+        {
+          "line": 98,
+          "text": "  [[\"1\", \"|\", \"length\"], \"syntax error: missing argument after 'length'\"],"
+        },
+        {
+          "line": 99,
+          "text": "  [[\"0\", \"&\", \"index\", \"abc\"], \"syntax error: missing argument after 'abc'\"],"
+        },
+        {
+          "line": 100,
+          "text": "  [[\"1\", \"|\", \"substr\", \"abc\", \"1\"], \"syntax error: missing argument after '1'\"],"
+        },
+        {
+          "line": 101,
+          "text": "  [[\"0\", \"&\", \"match\", \"abc\"], \"syntax error: missing argument after 'abc'\"],"
+        },
+        {
+          "line": 102,
+          "text": "  [[\"1\", \"|\", \"+\"], \"syntax error: missing argument after '+'\"],"
+        },
+        {
+          "line": 103,
+          "text": "  [[\"1\", \"|\", \"length\", \"(\", \"1\", \"/\", \"0\"], \"syntax error: expecting ')' after '0'\"],"
+        },
+        {
+          "line": 104,
+          "text": "  [[\"0\", \"&\", \"(\", \"1\", \"|\", \"index\", \"abc\", \")\"], \"syntax error: unexpected ')'\"],"
+        },
+        {
+          "line": 105,
+          "text": "  [[\"1\", \"|\", \"match\", \"abc\", \"[\", \"x\"], \"syntax error: unexpected argument 'x'\"],"
+        },
+        {
+          "line": 106,
+          "text": "  [[\"1\", \"|\", \"substr\", \"match\", \"abc\", \"[\", \"1\"], \"syntax error: missing argument after '1'\"],"
+        },
+        {
+          "line": 108,
+          "text": "for (const [args, message] of malformed) test(`inactive malformed grammar ${JSON.stringify(args)}`, async context => {"
+        },
+        {
+          "line": 112,
+          "text": "  assert.deepEqual(observed.jobs, []);"
+        },
+        {
+          "line": 129,
+          "text": "  assert.deepEqual(observed.jobs, []);"
+        },
+        {
+          "line": 132,
+          "text": "for (const [args, expected, jobs] of ["
+        },
+        {
+          "line": 140,
+          "text": "  const observed = await checked(context, args, expected, {}, { LC_ALL: \"C\" }, [\"hidden\", \"999\"], jobs);"
+        },
+        {
+          "line": 148,
+          "text": "  [[\"1\", \"|\", \"length\", \"length\", \"abc\"], { maxDepth: 2 }, \"parser depth\"],"
+        },
+        {
+          "line": 160,
+          "text": "  assert.deepEqual(observed.jobs, []);"
+        },
+        {
+          "line": 167,
+          "text": "  let checkpoints = 0;"
+        },
+        {
+          "line": 169,
+          "text": "    if (++checkpoints === 3) this.charge(this.remaining());"
+        },
+        {
+          "line": 174,
+          "text": "  assert.equal(checkpoints, 3);"
+        },
+        {
+          "line": 196,
+          "text": "    let checkpoints = 0, writes = 0;"
+        },
+        {
+          "line": 198,
+          "text": "      if (++checkpoints === 3) signal.abort(reason);"
+        },
+        {
+          "line": 205,
+          "text": "    assert.equal(checkpoints, 3);"
+        },
+        {
+          "line": 207,
+          "text": "    assert.deepEqual(observed.jobs, []);"
+        },
+        {
+          "line": 227,
+          "text": "    assert.deepEqual(observed.jobs, []);"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/named-profile.test.ts",
+      "sha256": "0ed5438f5713793ee30f462b08685b53cd93c3a65b94009dba62edf7c9e97349",
+      "bytes": 16387,
+      "observationLines": [
+        {
+          "line": 38,
+          "text": "  console.log(JSON.stringify({ namedProfileWorkers: workers.length, activeBeforeSafetyCleanup,"
+        },
+        {
+          "line": 44,
+          "text": "  const jobs: ExprMatchDescriptor[] = [];"
+        },
+        {
+          "line": 47,
+          "text": "    jobs.push(args[0]);"
+        },
+        {
+          "line": 50,
+          "text": "  return jobs;"
+        },
+        {
+          "line": 80,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 82,
+          "text": "  for (const descriptor of jobs) {"
+        },
+        {
+          "line": 110,
+          "text": "    const jobs = observe(context);"
+        },
+        {
+          "line": 115,
+          "text": "    assert.equal(jobs.length, brackets ? 2 : 0);"
+        },
+        {
+          "line": 122,
+          "text": "    const jobs = observe(context);"
+        },
+        {
+          "line": 129,
+          "text": "    assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 140,
+          "text": "    const jobs = observe(context);"
+        },
+        {
+          "line": 142,
+          "text": "    assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 146,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 150,
+          "text": "  assert.equal(jobs.length, count % 2 === 0 ? 0 : 2);"
+        },
+        {
+          "line": 151,
+          "text": "  for (const job of jobs) assert.equal(Buffer.from(job.pattern).toString(), pattern);"
+        },
+        {
+          "line": 154,
+          "text": "test(\"admitted trailing escape keeps worker syntax diagnostic\", async context => {"
+        },
+        {
+          "line": 155,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 157,
+          "text": "  assert.equal(jobs.length, 2);"
+        },
+        {
+          "line": 160,
+          "text": "test(\"bracket byte caps precede screen and create no jobs\", async context => {"
+        },
+        {
+          "line": 161,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 168,
+          "text": "  assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 213,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 215,
+          "text": "  assert.equal(jobs.length, 4);"
+        },
+        {
+          "line": 216,
+          "text": "  for (let index = 0; index < 2; index++) assert.equal(jobs[index]!.limits.maxSteps - jobs[index + 2]!.limits.maxSteps, 3);"
+        },
+        {
+          "line": 219,
+          "text": "test(\"scan work exhaustion wins over bracket refusal and admits no jobs\", async context => {"
+        },
+        {
+          "line": 220,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 236,
+          "text": "  assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 239,
+          "text": "test(\"short-circuited bracket/alias regex submits zero jobs\", async context => {"
+        },
+        {
+          "line": 240,
+          "text": "  const jobs = observe(context);"
+        },
+        {
+          "line": 245,
+          "text": "  assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 275,
+          "text": "    const jobs = observe(context);"
+        },
+        {
+          "line": 295,
+          "text": "    assert.equal(jobs.length, 0);"
+        },
+        {
+          "line": 301,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 310,
+          "text": "      assert(workers.length > from);"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/native.test.ts",
+      "sha256": "dd1ceee8f5e70aa02528d0edc69f413397f4e28b1fbb5a90ac5c1778b9156160",
+      "bytes": 644,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-lifecycle.test.ts",
+      "sha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+      "bytes": 13613,
+      "observationLines": [
+        {
+          "line": 47,
+          "text": "  console.log(JSON.stringify({ exprWorkers: workers.length, activeBeforeSafetyCleanup, activeAfter: workers.filter(worker => !worker.closed).length }));"
+        },
+        {
+          "line": 67,
+          "text": "test(\"expr skipped regex branches submit/compile zero jobs and never access stdin\", async () => {"
+        },
+        {
+          "line": 68,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 75,
+          "text": "  assert.equal(workers.length, from);"
+        },
+        {
+          "line": 79,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 97,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 116,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 139,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 153,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 164,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 165,
+          "text": "  const executor = new RegexExecutor({ maxWorkers: 1, maxQueuedRequests: 1, maxQueuedBytes: 260 });"
+        },
+        {
+          "line": 192,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 211,
+          "text": "test(\"malformed reply, worker exit and syntax failure retire only the failed worker\", async () => {"
+        },
+        {
+          "line": 212,
+          "text": "  for (const mode of [\"bounds\", \"exit\", \"syntax\"] as const) {"
+        },
+        {
+          "line": 213,
+          "text": "    const from = workers.length;"
+        },
+        {
+          "line": 216,
+          "text": "    if (mode !== \"syntax\") intercept = (worker, message) => {"
+        },
+        {
+          "line": 224,
+          "text": "      await assert.rejects(session.matchExpr(mode === \"syntax\" ? { ...descriptor, pattern: Buffer.from(\"[\") } : descriptor, subject),"
+        },
+        {
+          "line": 225,
+          "text": "        mode === \"syntax\" ? error => error instanceof ExprMatchError && error.category === \"syntax\" : code(mode === \"exit\" ? \"WORKER_EXIT\" : \"PROTOCOL\"));"
+        },
+        {
+          "line": 235,
+          "text": "  const from = workers.length;"
+        },
+        {
+          "line": 250,
+          "text": "  const from = workers.length;"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/regex-limits.test.ts",
+      "sha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+      "bytes": 3059,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-native.test.ts",
+      "sha256": "5e642fd91fe8b606cc48d2d426fafcf78fedf5a04fcb172392df2274940f9ed7",
+      "bytes": 2525,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/regex-protocol.test.ts",
+      "sha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+      "bytes": 7238,
+      "observationLines": [
+        {
+          "line": 27,
+          "text": "    { id: 1, operation: \"expr-match\", error: \"x\".repeat(513), category: \"syntax\" },"
+        },
+        {
+          "line": 28,
+          "text": "    { id: 1, operation: \"expr-match\", error: 3, category: \"syntax\" }]) {"
+        },
+        {
+          "line": 33,
+          "text": "  assert.throws(() => validateExprReply({ id: 1, operation: \"expr-match\", category: \"syntax\", error: \"Trailing backslash\" }, 1, descriptor, subject, signal()), error => error instanceof ExprMatchError && error.category === \"syntax\");"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/repeat-history/invariants.test.ts",
+      "sha256": "432e3df1ddc625b149c0ba1d0e6ea654467e067c21f1171942713ccbe42a7bbe",
+      "bytes": 2943,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/diagnostics/cases.ts",
+      "sha256": "ff56d02154150be09810b4c9e3b39a35f7e285862155a822ce2e0a938333e7bf",
+      "bytes": 5337,
+      "observationLines": [
+        {
+          "line": 9,
+          "text": "  [\"ambiguous-index-keyword\", [\"index\", \"index\", \"a\"], \"syntax error: missing argument after 'a'\"],"
+        },
+        {
+          "line": 11,
+          "text": "  [\"missing-rhs\", [\"1\", \"+\"], \"syntax error: missing argument after '+'\"],"
+        },
+        {
+          "line": 12,
+          "text": "  [\"missing-close\", [\"(\", \"1\", \"+\", \"2\"], \"syntax error: expecting ')' after '2'\"],"
+        },
+        {
+          "line": 13,
+          "text": "  [\"trailing-token\", [\"1\", \"2\"], \"syntax error: unexpected argument '2'\"],"
+        },
+        {
+          "line": 14,
+          "text": "  [\"skip-still-requires-rhs\", [\"kept\", \"|\", \"1\", \"+\"], \"syntax error: missing argument after '+'\"],"
+        },
+        {
+          "line": 15,
+          "text": "  [\"skip-still-requires-close\", [\"0\", \"&\", \"(\", \"1\"], \"syntax error: expecting ')' after '1'\"],"
+        },
+        {
+          "line": 16,
+          "text": "  [\"skip-still-requires-keyword-args\", [\"kept\", \"|\", \"substr\", \"abc\", \"1\"], \"syntax error: missing argument after '1'\"],"
+        },
+        {
+          "line": 21,
+          "text": "  [\"forced-token-missing\", [\"+\"], \"syntax error: missing argument after '+'\"],"
+        },
+        {
+          "line": 22,
+          "text": "  [\"length-missing\", [\"length\"], \"syntax error: missing argument after 'length'\"],"
+        },
+        {
+          "line": 23,
+          "text": "  [\"index-missing\", [\"index\", \"abc\"], \"syntax error: missing argument after 'abc'\"],"
+        },
+        {
+          "line": 24,
+          "text": "  [\"match-missing\", [\"match\", \"abc\"], \"syntax error: missing argument after 'abc'\"],"
+        },
+        {
+          "line": 25,
+          "text": "  [\"substr-missing\", [\"substr\", \"abc\", \"2\"], \"syntax error: missing argument after '2'\"],"
+        },
+        {
+          "line": 26,
+          "text": "  [\"open-only\", [\"(\"], \"syntax error: missing argument after '('\"],"
+        },
+        {
+          "line": 27,
+          "text": "  [\"unexpected-close\", [\")\"], \"syntax error: unexpected ')'\"],"
+        },
+        {
+          "line": 28,
+          "text": "  [\"empty-group\", [\"(\", \")\"], \"syntax error: unexpected ')'\"],"
+        },
+        {
+          "line": 29,
+          "text": "  [\"wrong-close\", [\"(\", \"1\", \"2\"], \"syntax error: expecting ')' instead of '2'\"],"
+        },
+        {
+          "line": 30,
+          "text": "  [\"nested-missing-close\", [\"(\", \"(\", \"1\", \")\"], \"syntax error: expecting ')' after ')'\"],"
+        },
+        {
+          "line": 31,
+          "text": "  [\"trailing-close\", [\"(\", \"1\", \")\", \")\"], \"syntax error: unexpected argument ')'\"],"
+        },
+        {
+          "line": 32,
+          "text": "  [\"rhs-close\", [\"1\", \"+\", \")\"], \"syntax error: unexpected ')'\"],"
+        },
+        {
+          "line": 33,
+          "text": "  [\"help-is-not-an-option-with-operands\", [\"--help\", \"x\"], \"syntax error: unexpected argument 'x'\"],"
+        },
+        {
+          "line": 34,
+          "text": "  [\"version-is-not-an-option-with-operands\", [\"--version\", \"x\"], \"syntax error: unexpected argument 'x'\"],"
+        },
+        {
+          "line": 35,
+          "text": "  [\"skip-or-forced-token\", [\"kept\", \"|\", \"+\"], \"syntax error: missing argument after '+'\"],"
+        },
+        {
+          "line": 36,
+          "text": "  [\"skip-and-prefix\", [\"0\", \"&\", \"length\"], \"syntax error: missing argument after 'length'\"],"
+        },
+        {
+          "line": 37,
+          "text": "  [\"skip-or-wrong-close\", [\"kept\", \"|\", \"(\", \"1\", \"x\"], \"syntax error: expecting ')' instead of 'x'\"],"
+        },
+        {
+          "line": 38,
+          "text": "  [\"skip-and-trailing\", [\"0\", \"&\", \"1\", \"x\"], \"syntax error: unexpected argument 'x'\"],"
+        },
+        {
+          "line": 39,
+          "text": "  [\"skip-invalid-regex-then-trailing\", [\"kept\", \"|\", \"match\", \"abc\", \"[\", \"extra\"], \"syntax error: unexpected argument 'extra'\"],"
+        },
+        {
+          "line": 40,
+          "text": "  [\"quoted-apostrophe\", [\"1\", \"a'b\"], \"syntax error: unexpected argument 'a\\\\'b'\"],"
+        },
+        {
+          "line": 41,
+          "text": "  [\"quoted-backslash\", [\"1\", \"a\\\\b\"], \"syntax error: unexpected argument 'a\\\\\\\\b'\"],"
+        },
+        {
+          "line": 42,
+          "text": "  [\"quoted-newline\", [\"1\", \"a\\nb\"], \"syntax error: unexpected argument 'a\\\\nb'\"],"
+        },
+        {
+          "line": 43,
+          "text": "  [\"quoted-tab\", [\"1\", \"\\t\"], \"syntax error: unexpected argument '\\\\t'\"],"
+        },
+        {
+          "line": 44,
+          "text": "  [\"quoted-control-bytes\", [\"1\", \"\\x01\\x07\\b\\v\\f\\r\\x1b\\x7f\"], \"syntax error: unexpected argument '\\\\001\\\\a\\\\b\\\\v\\\\f\\\\r\\\\033\\\\177'\"],"
+        },
+        {
+          "line": 45,
+          "text": "  [\"quoted-utf8-bytes\", [\"1\", \"é😀\"], \"syntax error: unexpected argument '\\\\303\\\\251\\\\360\\\\237\\\\230\\\\200'\"],"
+        },
+        {
+          "line": 46,
+          "text": "  [\"quoted-double-quote\", [\"1\", \"\\\"\"], \"syntax error: unexpected argument '\\\"'\"],"
+        },
+        {
+          "line": 47,
+          "text": "  [\"quoted-empty\", [\"1\", \"\"], \"syntax error: unexpected argument ''\"],"
+        },
+        {
+          "line": 48,
+          "text": "  [\"missing-after-empty\", [\"index\", \"\"], \"syntax error: missing argument after ''\"],"
+        },
+        {
+          "line": 49,
+          "text": "  [\"missing-after-newline\", [\"index\", \"+\", \"a\\nb\"], \"syntax error: missing argument after 'a\\\\nb'\"],"
+        },
+        {
+          "line": 50,
+          "text": "  [\"close-after-apostrophe\", [\"(\", \"+\", \"a'b\"], \"syntax error: expecting ')' after 'a\\\\'b'\"],"
+        },
+        {
+          "line": 51,
+          "text": "  [\"close-instead-of-backslash\", [\"(\", \"1\", \"a\\\\b\"], \"syntax error: expecting ')' instead of 'a\\\\\\\\b'\"],"
+        },
+        {
+          "line": 56,
+          "text": "  { id: \"class-parenthesis-not-capture\", cohort: \"extension\", args: [\"(\", \":\", \"[(]\"], stderr: \"expr: syntax error: expecting ')' instead of '[(]'\\n\" },"
+        },
+        {
+          "line": 60,
+          "text": "    stderr: `expr: syntax error: missing argument after '${operator}'\\n`,"
+        }
+      ]
+    },
+    {
+      "filename": "tests/commands/expr/regex-cases.ts",
+      "sha256": "62f59c9963ff8413388cf59b95011eba0a961c947d33f143ffb6d2609501e9e6",
+      "bytes": 4077,
+      "observationLines": []
+    },
+    {
+      "filename": "tests/commands/expr/native-cases.ts",
+      "sha256": "e84ba8cb0a41b187949f62d59b3905872997f3e47774d9b6d60f4007da2c4ac1",
+      "bytes": 2218,
+      "observationLines": []
+    }
+  ],
+  "excerpts": [
+    {
+      "filename": "tests/commands/expr/diagnostics-regression.test.ts",
+      "start": 39,
+      "end": 52,
+      "text": "test(\"skipped grammar errors submit no BRE requests or acquire stdin\", async () => {\n  const original = RegexSession.prototype.matchExpr;\n  let requests = 0;\n  RegexSession.prototype.matchExpr = function () { requests++; throw new Error(\"unexpected BRE request\"); };\n  try {\n    for (const specimen of diagnosticCases.filter(specimen => specimen.id.startsWith(\"skip\"))) {\n      assert.equal((await run(specimen.args)).stderr, specimen.stderr);\n    }\n    for (const [id, args, stdout] of validControls.filter(([id]) => id.startsWith(\"skip\"))) {\n      assert.equal((await run(args)).stdout, stdout, id);\n    }\n    assert.equal(requests, 0);\n  } finally { RegexSession.prototype.matchExpr = original; }\n});"
+    },
+    {
+      "filename": "tests/commands/expr/diagnostics/cases.ts",
+      "start": 8,
+      "end": 75,
+      "text": "const original: readonly [string, readonly string[], string][] = [\n  [\"ambiguous-index-keyword\", [\"index\", \"index\", \"a\"], \"syntax error: missing argument after 'a'\"],\n  [\"missing-operands\", [], \"missing operand\\nTry 'expr --help' for more information.\"],\n  [\"missing-rhs\", [\"1\", \"+\"], \"syntax error: missing argument after '+'\"],\n  [\"missing-close\", [\"(\", \"1\", \"+\", \"2\"], \"syntax error: expecting ')' after '2'\"],\n  [\"trailing-token\", [\"1\", \"2\"], \"syntax error: unexpected argument '2'\"],\n  [\"skip-still-requires-rhs\", [\"kept\", \"|\", \"1\", \"+\"], \"syntax error: missing argument after '+'\"],\n  [\"skip-still-requires-close\", [\"0\", \"&\", \"(\", \"1\"], \"syntax error: expecting ')' after '1'\"],\n  [\"skip-still-requires-keyword-args\", [\"kept\", \"|\", \"substr\", \"abc\", \"1\"], \"syntax error: missing argument after '1'\"],\n];\n\nconst controls: readonly [string, readonly string[], string][] = [\n  [\"empty-after-end-options\", [\"--\"], \"missing operand\\nTry 'expr --help' for more information.\"],\n  [\"forced-token-missing\", [\"+\"], \"syntax error: missing argument after '+'\"],\n  [\"length-missing\", [\"length\"], \"syntax error: missing argument after 'length'\"],\n  [\"index-missing\", [\"index\", \"abc\"], \"syntax error: missing argument after 'abc'\"],\n  [\"match-missing\", [\"match\", \"abc\"], \"syntax error: missing argument after 'abc'\"],\n  [\"substr-missing\", [\"substr\", \"abc\", \"2\"], \"syntax error: missing argument after '2'\"],\n  [\"open-only\", [\"(\"], \"syntax error: missing argument after '('\"],\n  [\"unexpected-close\", [\")\"], \"syntax error: unexpected ')'\"],\n  [\"empty-group\", [\"(\", \")\"], \"syntax error: unexpected ')'\"],\n  [\"wrong-close\", [\"(\", \"1\", \"2\"], \"syntax error: expecting ')' instead of '2'\"],\n  [\"nested-missing-close\", [\"(\", \"(\", \"1\", \")\"], \"syntax error: expecting ')' after ')'\"],\n  [\"trailing-close\", [\"(\", \"1\", \")\", \")\"], \"syntax error: unexpected argument ')'\"],\n  [\"rhs-close\", [\"1\", \"+\", \")\"], \"syntax error: unexpected ')'\"],\n  [\"help-is-not-an-option-with-operands\", [\"--help\", \"x\"], \"syntax error: unexpected argument 'x'\"],\n  [\"version-is-not-an-option-with-operands\", [\"--version\", \"x\"], \"syntax error: unexpected argument 'x'\"],\n  [\"skip-or-forced-token\", [\"kept\", \"|\", \"+\"], \"syntax error: missing argument after '+'\"],\n  [\"skip-and-prefix\", [\"0\", \"&\", \"length\"], \"syntax error: missing argument after 'length'\"],\n  [\"skip-or-wrong-close\", [\"kept\", \"|\", \"(\", \"1\", \"x\"], \"syntax error: expecting ')' instead of 'x'\"],\n  [\"skip-and-trailing\", [\"0\", \"&\", \"1\", \"x\"], \"syntax error: unexpected argument 'x'\"],\n  [\"skip-invalid-regex-then-trailing\", [\"kept\", \"|\", \"match\", \"abc\", \"[\", \"extra\"], \"syntax error: unexpected argument 'extra'\"],\n  [\"quoted-apostrophe\", [\"1\", \"a'b\"], \"syntax error: unexpected argument 'a\\\\'b'\"],\n  [\"quoted-backslash\", [\"1\", \"a\\\\b\"], \"syntax error: unexpected argument 'a\\\\\\\\b'\"],\n  [\"quoted-newline\", [\"1\", \"a\\nb\"], \"syntax error: unexpected argument 'a\\\\nb'\"],\n  [\"quoted-tab\", [\"1\", \"\\t\"], \"syntax error: unexpected argument '\\\\t'\"],\n  [\"quoted-control-bytes\", [\"1\", \"\\x01\\x07\\b\\v\\f\\r\\x1b\\x7f\"], \"syntax error: unexpected argument '\\\\001\\\\a\\\\b\\\\v\\\\f\\\\r\\\\033\\\\177'\"],\n  [\"quoted-utf8-bytes\", [\"1\", \"é😀\"], \"syntax error: unexpected argument '\\\\303\\\\251\\\\360\\\\237\\\\230\\\\200'\"],\n  [\"quoted-double-quote\", [\"1\", \"\\\"\"], \"syntax error: unexpected argument '\\\"'\"],\n  [\"quoted-empty\", [\"1\", \"\"], \"syntax error: unexpected argument ''\"],\n  [\"missing-after-empty\", [\"index\", \"\"], \"syntax error: missing argument after ''\"],\n  [\"missing-after-newline\", [\"index\", \"+\", \"a\\nb\"], \"syntax error: missing argument after 'a\\\\nb'\"],\n  [\"close-after-apostrophe\", [\"(\", \"+\", \"a'b\"], \"syntax error: expecting ')' after 'a\\\\'b'\"],\n  [\"close-instead-of-backslash\", [\"(\", \"1\", \"a\\\\b\"], \"syntax error: expecting ')' instead of 'a\\\\\\\\b'\"],\n];\n\nexport const diagnosticCases: readonly DiagnosticCase[] = [\n  ...original.map(([id, args, body]) => ({ id, args, cohort: \"original\" as const, stderr: `expr: ${body}\\n` })),\n  { id: \"class-parenthesis-not-capture\", cohort: \"extension\", args: [\"(\", \":\", \"[(]\"], stderr: \"expr: syntax error: expecting ')' instead of '[(]'\\n\" },\n  ...controls.map(([id, args, body]) => ({ id, args, cohort: \"control\" as const, stderr: `expr: ${body}\\n` })),\n  ...[\"|\", \"&\", \"<\", \"<=\", \"=\", \"==\", \"!=\", \">=\", \">\", \"-\", \"*\", \"/\", \"%\", \":\"].map(operator => ({\n    id: `missing-operator-rhs-${operator}`, cohort: \"control\" as const, args: [\"1\", operator],\n    stderr: `expr: syntax error: missing argument after '${operator}'\\n`,\n  })),\n];\n\nexport const validControls: readonly [string, readonly string[], string, number][] = [\n  [\"forced-index\", [\"index\", \"+\", \"index\", \"x\"], \"5\\n\", 0],\n  [\"forced-close\", [\"+\", \")\"], \")\\n\", 0],\n  [\"help-after-end-options\", [\"--\", \"--help\"], \"--help\\n\", 0],\n  [\"version-after-end-options\", [\"--\", \"--version\"], \"--version\\n\", 0],\n  [\"skip-division\", [\"kept\", \"|\", \"1\", \"/\", \"0\"], \"kept\\n\", 0],\n  [\"skip-noninteger\", [\"0\", \"&\", \"x\", \"+\", \"y\"], \"0\\n\", 1],\n  [\"skip-regex\", [\"kept\", \"|\", \"match\", \"abc\", \"[\"], \"kept\\n\", 0],\n  [\"skip-regex-and\", [\"0\", \"&\", \"abc\", \":\", \"[\"], \"0\\n\", 1],\n  [\"nested-closed\", [\"(\", \"(\", \"1\", \")\", \")\"], \"1\\n\", 0],\n  [\"quoted-correction1\", [\"+\", \"(\", \":\", \"[(]\"], \"1\\n\", 0],\n];"
+    },
+    {
+      "filename": "tests/commands/expr/regex-lifecycle.test.ts",
+      "start": 67,
+      "end": 76,
+      "text": "test(\"expr skipped regex branches submit/compile zero jobs and never access stdin\", async () => {\n  const from = workers.length;\n  for (const args of [[\"1\", \"|\", \"match\", \"\", \"[\"], [\"0\", \"&\", \"\", \":\", \"\\\\(\"], [\"1\", \"|\", \"match\", \"x\", \"a**\"]]) {\n    const { context } = await run([\"1\"]);\n    Object.defineProperty(context, \"stdin\", { get() { throw new Error(\"stdin accessed\"); } });\n    Object.defineProperty(context, \"args\", { value: args });\n    assert.ok((await createExprCommand().execute(context)).exitCode < 2);\n  }\n  assert.equal(workers.length, from);\n});"
+    },
+    {
+      "filename": "tests/commands/expr/inactive-prefix.test.ts",
+      "start": 97,
+      "end": 114,
+      "text": "const malformed: readonly [readonly string[], string][] = [\n  [[\"1\", \"|\", \"length\"], \"syntax error: missing argument after 'length'\"],\n  [[\"0\", \"&\", \"index\", \"abc\"], \"syntax error: missing argument after 'abc'\"],\n  [[\"1\", \"|\", \"substr\", \"abc\", \"1\"], \"syntax error: missing argument after '1'\"],\n  [[\"0\", \"&\", \"match\", \"abc\"], \"syntax error: missing argument after 'abc'\"],\n  [[\"1\", \"|\", \"+\"], \"syntax error: missing argument after '+'\"],\n  [[\"1\", \"|\", \"length\", \"(\", \"1\", \"/\", \"0\"], \"syntax error: expecting ')' after '0'\"],\n  [[\"0\", \"&\", \"(\", \"1\", \"|\", \"index\", \"abc\", \")\"], \"syntax error: unexpected ')'\"],\n  [[\"1\", \"|\", \"match\", \"abc\", \"[\", \"x\"], \"syntax error: unexpected argument 'x'\"],\n  [[\"1\", \"|\", \"substr\", \"match\", \"abc\", \"[\", \"1\"], \"syntax error: missing argument after '1'\"],\n];\nfor (const [args, message] of malformed) test(`inactive malformed grammar ${JSON.stringify(args)}`, async context => {\n  const observed = observe(context);\n  const actual = await run(args, {}, { fs: noFileSystem });\n  assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [2, \"\", `expr: ${message}\\n`]);\n  assert.deepEqual(observed.jobs, []);\n  assert.equal(observed.budgets.size, 1);\n});"
+    },
+    {
+      "filename": "tests/commands/expr/inactive-prefix.test.ts",
+      "start": 144,
+      "end": 209,
+      "text": "const limits: readonly [readonly string[], Partial<ExprLimits>, string][] = [\n  [[\"1\", \"|\", \"substr\", \"abc\", \"999\", \"1\"], { maxArgumentBytes: 5 }, \"aggregate argument bytes\"],\n  [[\"1\", \"|\", \"substr\", \"abc\", \"999\", \"1\"], { maxNodes: 1 }, \"argument count\"],\n  [[\"1\", \"|\", \"length\", \"abc\"], { maxNodes: 3 }, \"AST node\"],\n  [[\"1\", \"|\", \"length\", \"length\", \"abc\"], { maxDepth: 2 }, \"parser depth\"],\n  [[\"1\", \"|\", \"length\", \"abc\", \"|\", \"1\"], { maxDepth: 3 }, \"AST depth\"],\n  [[\"1\", \"|\", \"substr\", \"abc\", \"999\", \"1\"], { maxSteps: 1 }, \"evaluation work\"],\n  [[\"substr\", \"abc\", \"999\", \"1\"], { maxNumericDigits: 1 }, \"numeric digits\"],\n  [[\"length\", \"0123456789\"], { maxNumericDigits: 1 }, \"numeric result digits\"],\n  [[\"length\", \"abc\"], { maxStringBytes: 2 }, \"string allocation\"],\n  [[\"1\", \"|\", \"length\", \"abc\"], { maxOutputBytes: 1 }, \"output bytes\"],\n];\nfor (const [args, options, label] of limits) test(`retained ${label} limit ${JSON.stringify(options)}`, async context => {\n  const observed = observe(context);\n  const actual = await run(args, { limits: options }, { fs: noFileSystem });\n  assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [3, \"\", `expr: ${label} limit exceeded\\n`]);\n  assert.deepEqual(observed.jobs, []);\n  assert.equal(observed.budgets.size, label === \"argument count\" ? 0 : 1);\n});\n\ntest(\"inactive call retains its evaluator work checkpoint\", async context => {\n  const observed = observe(context);\n  const checkpoint = Budget.prototype.yield;\n  let checkpoints = 0;\n  context.mock.method(Budget.prototype, \"yield\", async function (this: Budget) {\n    if (++checkpoints === 3) this.charge(this.remaining());\n    return checkpoint.call(this);\n  });\n  const actual = await run([\"1\", \"|\", \"length\", \"abc\"], {}, { fs: noFileSystem });\n  assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [3, \"\", \"expr: evaluation work limit exceeded\\n\"]);\n  assert.equal(checkpoints, 3);\n  assert(!observed.encodes.includes(\"abc\"));\n  assert.equal(observed.budgets.size, 1);\n});\n\nclass StructuralSignal extends EventTarget implements AbortSignal {\n  aborted = false;\n  reason: unknown;\n  onabort: ((this: AbortSignal, event: Event) => unknown) | null = null;\n  throwIfAborted(): void { if (this.aborted) throw this.reason; }\n  abort(reason: unknown): void {\n    this.reason = reason;\n    this.aborted = true;\n    this.dispatchEvent(new Event(\"abort\"));\n  }\n}\n\nfor (const reason of [undefined, null, false, 0, \"\", Object.assign(new Error(\"cancelled\"), { code: \"ENOENT\" })]) {\n  test(`inactive call checkpoint preserves abort identity: ${String(reason)}`, async context => {\n    const signal = new StructuralSignal();\n    const observed = observe(context);\n    const checkpoint = Budget.prototype.yield;\n    let checkpoints = 0, writes = 0;\n    context.mock.method(Budget.prototype, \"yield\", async function (this: Budget) {\n      if (++checkpoints === 3) signal.abort(reason);\n      return checkpoint.call(this);\n    });\n    await assert.rejects(run([\"1\", \"|\", \"length\", \"abc\"], {}, {\n      signal, fs: noFileSystem,\n      stdout: { async write() { writes++; } }, stderr: { async write() { writes++; } },\n    }), error => Object.is(error, reason));\n    assert.equal(checkpoints, 3);\n    assert.equal(writes, 0);\n    assert.deepEqual(observed.jobs, []);\n    assert(!observed.encodes.includes(\"abc\"));\n  });"
+    },
+    {
+      "filename": "tests/commands/expr/grammar.test.ts",
+      "start": 47,
+      "end": 59,
+      "text": "for (const args of [[], [\"--\"], [\"+\"], [\"length\"], [\"(\"], [\")\"], [\"(\", \"1\"], [\"1\", \"2\"], [\"1\", \"+\"],\n  [\"1\", \"|\", \"(\", \"1\", \"+\"], [\"1\", \"|\", \"match\", \"x\"], [\"1\", \"|\", \"+\"], [\"1\", \"&\", \"2\", \")\"],\n  [\"1\", \"/\", \"0\"], [\"1\", \"%\", \"0\"], [\"+5\", \"+\", \"1\"], [\" 5\", \"*\", \"1\"], [\"--help\", \"x\"]]) {\n  test(`expr invalid ${JSON.stringify(args)}`, async () => {\n    const actual = await run(args);\n    assert.equal(actual.exitCode, 2); assert.equal(actual.stdout, \"\");\n    if (args.length === 0 || (args.length === 1 && args[0] === \"--\")) {\n      assert.equal(actual.stderr, \"expr: missing operand\\nTry 'expr --help' for more information.\\n\");\n    } else {\n      assert.match(actual.stderr, /^expr: (syntax error|division by zero|non-integer argument)/u);\n    }\n  });\n}"
+    }
+  ],
+  "method": "Historical committed canonical expr tests only. Static assertion/input inspection, not execution or candidate acceptance. No postfreeze parser source or author implementation imported."
+}

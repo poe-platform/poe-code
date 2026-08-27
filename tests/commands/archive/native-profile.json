@@ -1,0 +1,44 @@
+{
+  "captured": "2026-08-26",
+  "phase": "AUTHOR native-only capture before virtual behavior tests and corrections",
+  "command": "node tests/commands/archive/capture-native.mjs",
+  "nativeBehaviorInvocations": 14,
+  "identityVersionInvocations": 2,
+  "gnu": {
+    "executable": "tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+    "version": "tar (GNU tar) 1.35",
+    "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+    "bottleSha256": "4e3782b9393e2e53a1cccd9c1047c2fc43b81c34746b10755050d5d162b21269",
+    "bottleProfile": "Homebrew gnu-tar 1.35 rebuild 1 arm64_tahoe, no dependencies; extracted test-only, not installed",
+    "results": [
+      { "args": ["--format=ustar", "-cf", "gnu.tar", "-C", "input", "alpha", "sub", "symbol", "hard", "line\nname"], "status": 0, "stdout": "", "stderr": "" },
+      { "args": ["-tf", "gnu.tar"], "status": 0, "stdout": "alpha\nsub/\nsub/drop.tmp\nsub/keep.txt\nsymbol\nhard\nline\\nname\n", "stderr": "" },
+      { "args": ["-tf", "gnu.tar", "--exclude=*.tmp"], "status": 0, "stdout": "alpha\nsub/\nsub/keep.txt\nsymbol\nhard\nline\\nname\n", "stderr": "" },
+      { "args": ["-tf", "gnu.tar", "--strip-components=1"], "status": 0, "stdout": "alpha\nsub/\nsub/drop.tmp\nsub/keep.txt\nsymbol\nhard\nline\\nname\n", "stderr": "" },
+      { "args": ["-cf", "gnu-names.tar", "-T", "names"], "status": 2, "stdout": "", "stderrMeaning": "Literal ' alpha ' missing; GNU applies -Cinput and -Csub directives; keep.txt archived. Whitespace is NOT trimmed by this pinned native executable despite manual prose." },
+      { "args": ["-tf", "gnu-names.tar"], "status": 0, "stdout": "keep.txt\n", "stderr": "" },
+      { "args": ["-xf", "gnu.tar", "-C", "out", "--strip-components=1", "sub/keep.txt"], "status": 0, "stdout": "", "stderr": "" }
+    ]
+  },
+  "apple": {
+    "executable": "/usr/bin/tar",
+    "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 ",
+    "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+    "results": [
+      { "operation": "same safe USTAR create", "status": 0 },
+      { "operation": "list", "status": 0, "stdout": "alpha\nsub/\nsub/drop.tmp\nsub/keep.txt\nsymbol\nhard\nline\\nname\n" },
+      { "operation": "list --exclude=*.tmp", "status": 0, "stdout": "alpha\nsub/\nsub/keep.txt\nsymbol\nhard\nline\\nname\n" },
+      { "operation": "list --strip-components=1", "status": 0, "stdout": "alpha\nsub/\nsub/drop.tmp\nsub/keep.txt\nsymbol\nhard\nline\\nname\n" },
+      { "operation": "create -T names", "status": 1, "stderr": "tar: -Cinput: Cannot stat: No such file or directory\ntar:  alpha : Cannot stat: No such file or directory\ntar: -Csub: Cannot stat: No such file or directory\ntar: keep.txt: Cannot stat: No such file or directory\ntar: Error exit delayed from previous errors.\n" },
+      { "operation": "list file-list archive", "status": 0, "stdout": "" },
+      { "operation": "selected strip extraction", "status": 0 }
+    ]
+  },
+  "primarySources": [
+    "https://www.gnu.org/software/tar/manual/html_node/Standard.html",
+    "https://www.gnu.org/software/tar/manual/html_chapter/Choosing.html",
+    "https://www.gnu.org/s/tar/manual/html_section/files.html",
+    "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/pax.html"
+  ],
+  "retrieval": "GNU pages consulted through web search. POSIX Issue 8 primary page requested through web open (empty renderer result), then retrieved directly over HTTPS and read sections pax Extended Header, USTAR header, keyword precedence and file times. No secondary format reference substituted."
+}

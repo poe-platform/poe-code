@@ -1,0 +1,11 @@
+{
+  "captured": "2026-08-26",
+  "phase": "AUTHOR native follow-up, recorded before correcting the native forward-link test expectation; no virtual-source behavior changed for this observation",
+  "gnuSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "invocation": ["-xf", "forward.tar", "-C", "output"],
+  "safeFixture": "USTAR hardlink 'hard' -> 'later' before regular 'later' containing binary fixture; all names relative inside isolated temp directory",
+  "nativeStatus": 2,
+  "nativeDiagnostic": "hard: Cannot hard link to 'later': No such file or directory; Exiting with failure status due to previous errors",
+  "initialAuthorSuite": { "tests": 5, "passed": 4, "failed": 1, "nativeBehaviorInvocations": 11 },
+  "reason": "Initial native-test assumption that GNU 1.35 defers forward hardlinks was false. The source already rejected forward links. Correct the author native characterization, not the product, and retain this observation."
+}

@@ -1,0 +1,21 @@
+import { createHash } from "node:crypto";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+
+const directory = fileURLToPath(new URL(".oracle/", import.meta.url));
+const expected = "4e3782b9393e2e53a1cccd9c1047c2fc43b81c34746b10755050d5d162b21269";
+const tokenResponse = await fetch("https://ghcr.io/token?service=ghcr.io&scope=repository:homebrew/core/gnu-tar:pull", { signal: AbortSignal.timeout(30_000) });
+if (!tokenResponse.ok) throw new Error(`Token HTTP ${tokenResponse.status}`);
+const { token } = await tokenResponse.json();
+const response = await fetch(`https://ghcr.io/v2/homebrew/core/gnu-tar/blobs/sha256:${expected}`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(60_000) });
+if (!response.ok) throw new Error(`Bottle HTTP ${response.status}`);
+const bytes = Buffer.from(await response.arrayBuffer());
+if (createHash("sha256").update(bytes).digest("hex") !== expected) throw new Error("Oracle bottle checksum mismatch");
+await mkdir(directory, { recursive: true });
+const bottle = join(directory, "gnu-tar-1.35.arm64_tahoe.bottle.tar.gz");
+await writeFile(bottle, bytes);
+execFileSync("/usr/bin/tar", ["-xzf", bottle, "-C", directory, "gnu-tar/1.35/bin/gtar"], { timeout: 30_000, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", COPYFILE_DISABLE: "1" } });
+const executable = join(directory, "gnu-tar/1.35/bin/gtar");
+console.log(JSON.stringify({ executable, sha256: createHash("sha256").update(await readFile(executable)).digest("hex"), version: execFileSync(executable, ["--version"], { encoding: "utf8", timeout: 5000 }).split("\n")[0] }, null, 2));

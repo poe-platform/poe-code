@@ -1,0 +1,32 @@
+not ok - direct stat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - direct lstat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - direct readdir refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - direct du-metadata refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - direct du-pending refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - readonly stat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - readonly lstat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - readonly readdir refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - readonly du-metadata refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - readonly du-pending refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - mount-over-overlay stat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - mount-over-overlay lstat refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - mount-over-overlay readdir refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - mount-over-overlay du-metadata refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+not ok - mount-over-overlay du-pending refined-v2 metadata purity: backing snapshots unchanged; pending stage and source remain hidden and intact where supported
+ok - overlay-over-mount stat refined-v2 metadata purity
+ok - overlay-over-mount lstat refined-v2 metadata purity
+ok - overlay-over-mount readdir refined-v2 metadata purity
+ok - overlay-over-mount du-metadata refined-v2 metadata purity
+not ok - exact child lstat EIO suppresses incomplete total and retry is pure: failure leaves backing unchanged; failure and retry make no mutation/content calls; pending garbage remains after failure and retry
+ok - exact v2 pre-abort reason is preserved
+not ok - exact v2 mid-traversal reason is preserved: no mutation or content read; backing unchanged; pending garbage remains
+ok - active mkdir-stage queues exactly one readdir read
+ok - active mkdir-stage queues exactly one du read
+ok - exact 1500-byte DU_BLOCK_SIZE table
+ok - explicit cleanup removes the exact pending stage
+ok - normal mutation cleans pending garbage then publishes exact byte
+ok - ordinary content read proves the content oracle
+ok - unchanged purity assertions kill readdir-removal behavior mutant
+ok - unchanged purity assertions kill content-read behavior mutant
+ok - unchanged purity assertions kill copy-up behavior mutant
+not ok - actual Shell lifecycle runs DU registered cleanup and preserves caller reason: pending overlay garbage remains metadata-inert

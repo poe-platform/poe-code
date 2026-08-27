@@ -1,0 +1,16 @@
+{
+  "name": "package-original",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-loader",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-NNOCQH/relocated-after-install/moved-consumer/node_modules/virtual-bash"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 272739,
+  "stderrBytes": 1695,
+  "stdoutSha256": "a6a52017576d40c5747ad8101f60c7347586e27374b80b8d290a93a00fe60c34",
+  "stderrSha256": "660202e1f3767be23436b144749ec886a950948f9e62ece7d0f6b45e96d79230"
+}

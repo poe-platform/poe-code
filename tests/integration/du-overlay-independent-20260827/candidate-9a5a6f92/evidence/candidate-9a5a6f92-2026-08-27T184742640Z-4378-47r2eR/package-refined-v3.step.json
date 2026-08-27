@@ -1,0 +1,16 @@
+{
+  "name": "package-refined-v3",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-loader",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 846747,
+  "stderrBytes": 2328,
+  "stdoutSha256": "0c52e608872da791b407d5ee002b8359a81ecd1c7e77c753dab9d223a3f926a4",
+  "stderrSha256": "cca52c8d29d3ec27a06bad8738e9fa51e8ffd1f6bc656109ad8f9042d7f788cb"
+}

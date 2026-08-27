@@ -1,0 +1,30 @@
+{
+  "name": "git-archive",
+  "command": "git",
+  "args": [
+    "archive",
+    "--format=tar",
+    "--output=/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/candidate-selected.tar",
+    "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+    "--",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "src",
+    "tests/commands/du/backends.test.ts",
+    "tests/commands/du/behavior.test.ts",
+    "tests/commands/du/helpers.ts",
+    "tests/fs/overlay/allocation.test.ts",
+    "tests/fs/overlay/allocation-evidence/README.md",
+    "tests/fs/overlay/adversarial.test.ts",
+    "tests/fs/overlay/helpers.ts",
+    "tests/fs/webdav/mock.ts"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

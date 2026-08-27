@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-27T18:39:10.720Z",
+  "finishedAt": "2026-08-27T18:39:19.507Z",
+  "requestedRevision": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "revision": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "knownBaseline": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+  "purpose": "explicit supplied revision",
+  "archive": {
+    "selectedInputs": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "src",
+      "tests/commands/du/backends.test.ts",
+      "tests/commands/du/behavior.test.ts",
+      "tests/commands/du/helpers.ts",
+      "tests/fs/overlay/allocation.test.ts",
+      "tests/fs/overlay/allocation-evidence/README.md",
+      "tests/fs/overlay/adversarial.test.ts",
+      "tests/fs/overlay/helpers.ts",
+      "tests/fs/webdav/mock.ts"
+    ],
+    "sha256": "b6c8055a335f5a3e316501267d5ed4590a765cf380cc44eec9d0e84774321381",
+    "gitTreeFile": "git-tree.txt"
+  },
+  "harness": {
+    "inputs": [
+      {
+        "path": "harness/HOLDOUT_CONTRACT.md",
+        "bytes": 6925,
+        "sha256": "7e2f2381807d685d07ee1af1a28ad98eb406daf32449d14687fe37edf20fd526"
+      },
+      {
+        "path": "capture-original.mjs",
+        "bytes": 14828,
+        "sha256": "a032d580a77d62287bee82a420b841c759e92d62b92d4890e36cd5e15ae54066"
+      },
+      {
+        "path": "harness/verify-original.mjs",
+        "bytes": 26190,
+        "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a"
+      },
+      {
+        "path": "harness/consumer/package.json",
+        "bytes": 116,
+        "sha256": "f2bd3dbe8a926d697476ffee4a09cf7bb5e40af7d21712324424c3456f94c465"
+      },
+      {
+        "path": "harness/consumer/tsconfig.json",
+        "bytes": 237,
+        "sha256": "fc2eae81fc2f6add168c9a2253b65645a8426bc8f779ad1c8ae433aef65d217d"
+      },
+      {
+        "path": "harness/consumer/consumer.ts",
+        "bytes": 554,
+        "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc"
+      },
+      {
+        "path": "harness/consumer/consumer.mjs",
+        "bytes": 1761,
+        "sha256": "13e88f433ab9af04d0cafa0b0cd3772cbeb3aa0b73707578695ba2a29ab51261"
+      }
+    ],
+    "immutableDuringCapture": true,
+    "snapshots": "harness/"
+  },
+  "immutableInputs": true,
+  "postRunDetectsNewEntries": "yes, for the selected extracted input tree excluding generated dist",
+  "inputCount": 249,
+  "relevantSourceHashes": {
+    "src/fs/overlay/index.ts": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17",
+    "src/commands/du/arguments.ts": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409",
+    "src/commands/du/du.ts": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+    "src/commands/du/index.ts": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7"
+  },
+  "outputHashes": {
+    "builtDuSha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4",
+    "builtRootSha256": "fca3b3db1ff1cfbc8ed59d1eefce52d088839288109990d9fa05bd9200a5aa54",
+    "tarballSha256": "17ea61cadba802e971cdefd545a56c889d28540b378142870cabacab12b67159"
+  },
+  "packageProof": {
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash",
+    "rootPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash/dist/index.js",
+    "duPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash/dist/commands/du/index.js",
+    "resolvedInsideInstalledPackage": true,
+    "hashesMatchAuthenticatedBuild": true
+  },
+  "verification": {
+    "processStatus": 0,
+    "summary": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "holdouts": {
+        "passed": 17,
+        "failed": 0
+      },
+      "controls": {
+        "passed": 7,
+        "failed": 0
+      }
+    }
+  },
+  "scopedRegressionsStatus": 0,
+  "consumer": {
+    "installStatus": 0,
+    "strictTypecheckStatus": 0,
+    "runtimeStatus": 0
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "typescript": "Version 5.9.3",
+    "tsx": "4.23.12"
+  },
+  "steps": [
+    {
+      "name": "git-archive",
+      "command": "git",
+      "args": [
+        "archive",
+        "--format=tar",
+        "--output=/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/committed-inputs.tar",
+        "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+        "--",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "src",
+        "tests/commands/du/backends.test.ts",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/helpers.ts",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/allocation-evidence/README.md",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/helpers.ts",
+        "tests/fs/webdav/mock.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "extract",
+      "command": "tar",
+      "args": [
+        "-x",
+        "-f",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/committed-inputs.tar",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/committed"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "build",
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/committed/tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "holdouts",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/committed"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 272675,
+      "stderrBytes": 1232
+    },
+    {
+      "name": "scoped-regressions",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/adversarial.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 26019,
+      "stderrBytes": 0
+    },
+    {
+      "name": "npm-pack",
+      "command": "npm",
+      "args": [
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 88698,
+      "stderrBytes": 0
+    },
+    {
+      "name": "consumer-install",
+      "command": "npm",
+      "args": [
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--no-save",
+        "--package-lock=false",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/virtual-bash-0.0.0.tgz"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 23,
+      "stderrBytes": 0
+    },
+    {
+      "name": "consumer-typecheck",
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "consumer-runtime",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/consumer.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 1498,
+      "stderrBytes": 0
+    }
+  ],
+  "foreignIndexFingerprintAtStart": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "foreignIndexFingerprintAtFinish": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "childrenAtFinish": [],
+  "noSubagentsOrWorkersCreated": true
+}

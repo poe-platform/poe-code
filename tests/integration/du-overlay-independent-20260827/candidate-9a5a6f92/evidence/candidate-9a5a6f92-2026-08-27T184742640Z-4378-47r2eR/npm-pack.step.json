@@ -1,0 +1,16 @@
+{
+  "name": "npm-pack",
+  "command": "npm",
+  "args": [
+    "pack",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 88698,
+  "stderrBytes": 0,
+  "stdoutSha256": "9fe3f0be21f89cc2d6677bca89a9e8cfb57326e0a4839417f0a544a2aeabe7bc",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

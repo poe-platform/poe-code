@@ -1,0 +1,14 @@
+{
+  "name": "npm-tar-list",
+  "command": "tar",
+  "args": [
+    "-tvf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/virtual-bash-0.0.0.tgz"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 71141,
+  "stderrBytes": 0,
+  "stdoutSha256": "da6a0fdfb1c8e4328da56b464dc1913689fd2c08d85ebb2c95a9b213ec231dc4",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

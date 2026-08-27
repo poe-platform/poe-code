@@ -1,0 +1,45 @@
+Error: source v5 suite failed (1, timeout=false, spawn=none): ok - direct stat v5 measured metadata contract
+ok - direct lstat v5 measured metadata contract
+ok - direct readdir v5 measured metadata contract
+ok - direct du-metadata v5 measured metadata contract
+ok - direct du-pending v5 measured metadata contract
+ok - readonly stat v5 measured metadata contract
+ok - readonly lstat v5 measured metadata contract
+ok - readonly readdir v5 measured metadata contract
+ok - readonly du-metadata v5 measured metadata contract
+ok - readonly du-pending v5 measured metadata contract
+ok - mount-over-overlay stat v5 measured metadata contract
+ok - mount-over-overlay lstat v5 measured metadata contract
+ok - mount-over-overlay readdir v5 measured metadata contract
+ok - mount-over-overlay du-metadata v5 measured metadata contract
+ok - mount-over-overlay du-pending v5 measured metadata contract
+ok - overlay-over-mount stat v5 measured metadata contract
+ok - overlay-over-mount lstat v5 measured metadata contract
+ok - overlay-over-mount readdir v5 measured metadata contract
+ok - overlay-over-mount du-metadata v5 measured metadata contract
+not ok - exact child lstat EIO suppresses incomplete total and retry is mutation-free: retry leaves backing unchanged
+ok - real directory listing visibly changes only directory atime
+ok - real lstat observer is atime-stable
+ok - observer-only file read visibly changes file atime outside product phase
+not ok - atime field scope rejects file-read listing mutant: file atime is rejected while listed-directory atime remains authorized
+ok - real non-atime-stat listing mutant fails unchanged assertions
+ok - real byte-change listing mutant fails unchanged assertions
+ok - real entry-change listing mutant fails unchanged assertions
+ok - exact v2 pre-abort reason is preserved
+not ok - exact v2 mid-traversal reason is preserved: backing unchanged
+not ok - active mkdir-stage queues exactly one readdir read: metadata phase leaves backing unchanged
+not ok - active mkdir-stage queues exactly one du read: metadata phase leaves backing unchanged
+ok - literal 1500-byte three-level environment precedence table
+ok - explicit cleanup removes the exact pending stage
+ok - consumer-registered pending cleanup runs through actual Shell lifecycle
+ok - normal mutation cleans pending garbage then publishes exact byte
+ok - ordinary content read proves the content oracle
+ok - unchanged assertions kill readdir-removal behavior mutant
+ok - unchanged assertions kill content-read behavior mutant
+ok - unchanged assertions kill copy-up behavior mutant
+ok - actual Shell lifecycle runs DU registered cleanup and preserves caller reason
+
+    at success (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/replay.mjs:34:11)
+    at executeMaterialized (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/replay.mjs:445:52)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/replay.mjs:738:21

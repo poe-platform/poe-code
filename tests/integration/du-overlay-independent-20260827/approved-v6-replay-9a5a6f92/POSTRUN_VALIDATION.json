@@ -1,0 +1,451 @@
+{
+  "schema": 1,
+  "validatedAtUtc": "2026-08-27T19:53:11.136Z",
+  "freeze": {
+    "commit": "cea13e21b26e3bf85c60e56e7a846e28b6f68720",
+    "tree": "b61988ff4a23a6a90d5ffa15149b314af0ae6c63",
+    "manifestSha256": "417a776d878fe8bf8ee363327dd603b3b34d64df09f1b3314b2da33b84df4ef7",
+    "boundedVerifierStatus": 0,
+    "boundedVerifierStdout": "{\n  \"freeze\": \"cea13e21b26e3bf85c60e56e7a846e28b6f68720\",\n  \"tree\": \"b61988ff4a23a6a90d5ffa15149b314af0ae6c63\",\n  \"manifestSha256\": \"417a776d878fe8bf8ee363327dd603b3b34d64df09f1b3314b2da33b84df4ef7\",\n  \"fileCount\": 20,\n  \"allNonSelfBytesVerified\": true,\n  \"forbiddenAgents\": 0\n}\n",
+    "boundedVerifierStderr": "",
+    "boundedVerifierClosure": {
+      "descendantGroupDetected": false,
+      "rootPidGone": true,
+      "groupGone": true
+    },
+    "liveTreeFileCount": 20,
+    "liveTreeMatchesManifest": true,
+    "liveTreeForbiddenAgents": []
+  },
+  "suites": {
+    "originalSource": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "holdouts": {
+        "passed": 17,
+        "failed": 0
+      },
+      "controls": {
+        "passed": 7,
+        "failed": 0
+      }
+    },
+    "freshSource": {
+      "total": 40,
+      "passed": 35,
+      "failed": 5,
+      "byCategory": {
+        "historical-frozen-derived": {
+          "total": 19,
+          "passed": 19,
+          "failed": 0
+        },
+        "holdout": {
+          "total": 6,
+          "passed": 2,
+          "failed": 4
+        },
+        "v5-observer-policy-control": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0
+        },
+        "negative-control": {
+          "total": 7,
+          "passed": 6,
+          "failed": 1
+        },
+        "v5-approved-addition": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "positive-control": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        }
+      },
+      "byLineage": {
+        "historical-frozen-derived": {
+          "total": 31,
+          "passed": 27,
+          "failed": 4
+        },
+        "v5-observer-policy-control": {
+          "total": 7,
+          "passed": 6,
+          "failed": 1
+        },
+        "postfreeze-lifecycle-addition": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        }
+      }
+    },
+    "movedOriginal": "not-executed-after-fresh-source-failure",
+    "movedFresh": "not-executed-after-fresh-source-failure"
+  },
+  "processClosure": {
+    "bootstrap": {
+      "historyCount": 50,
+      "everyHistoryRecordClosed": true,
+      "recorded": {
+        "spawnedRootPids": [
+          13987,
+          13992,
+          13997,
+          14002,
+          14007,
+          14012,
+          14017,
+          14022,
+          14027,
+          14032,
+          14037,
+          14043,
+          14048,
+          14053,
+          14058,
+          14063,
+          14068,
+          14073,
+          14078,
+          14083,
+          14088,
+          14093,
+          14098,
+          14103,
+          14108,
+          14113,
+          14118,
+          14123,
+          14128,
+          14133,
+          14138,
+          14143,
+          14148,
+          14153,
+          14158,
+          14163,
+          14168,
+          14173,
+          14178,
+          14183,
+          14189,
+          14194,
+          14200,
+          14205,
+          14211,
+          14219,
+          14225,
+          14230,
+          14235,
+          14239
+        ],
+        "spawnedProcessGroups": [
+          13987,
+          13992,
+          13997,
+          14002,
+          14007,
+          14012,
+          14017,
+          14022,
+          14027,
+          14032,
+          14037,
+          14043,
+          14048,
+          14053,
+          14058,
+          14063,
+          14068,
+          14073,
+          14078,
+          14083,
+          14088,
+          14093,
+          14098,
+          14103,
+          14108,
+          14113,
+          14118,
+          14123,
+          14128,
+          14133,
+          14138,
+          14143,
+          14148,
+          14153,
+          14158,
+          14163,
+          14168,
+          14173,
+          14178,
+          14183,
+          14189,
+          14194,
+          14200,
+          14205,
+          14211,
+          14219,
+          14225,
+          14230,
+          14235,
+          14239
+        ],
+        "everyRootPidGone": true,
+        "everyOwnedGroupGone": true,
+        "active": []
+      }
+    },
+    "materialized": {
+      "historyCount": 55,
+      "everyHistoryRecordClosed": true,
+      "recorded": {
+        "spawnedRootPids": [
+          14253,
+          14258,
+          14263,
+          14268,
+          14273,
+          14278,
+          14283,
+          14288,
+          14293,
+          14298,
+          14304,
+          14309,
+          14315,
+          14320,
+          14325,
+          14330,
+          14335,
+          14341,
+          14347,
+          14352,
+          14357,
+          14362,
+          14368,
+          14375,
+          14380,
+          14385,
+          14390,
+          14395,
+          14400,
+          14405,
+          14411,
+          14416,
+          14421,
+          14427,
+          14432,
+          14437,
+          14442,
+          14447,
+          14452,
+          14457,
+          14462,
+          14467,
+          14472,
+          14473,
+          14489,
+          14495,
+          14504,
+          14509,
+          14514,
+          14515,
+          14535,
+          14536,
+          14537,
+          14552,
+          14553
+        ],
+        "spawnedProcessGroups": [
+          14253,
+          14258,
+          14263,
+          14268,
+          14273,
+          14278,
+          14283,
+          14288,
+          14293,
+          14298,
+          14304,
+          14309,
+          14315,
+          14320,
+          14325,
+          14330,
+          14335,
+          14341,
+          14347,
+          14352,
+          14357,
+          14362,
+          14368,
+          14375,
+          14380,
+          14385,
+          14390,
+          14395,
+          14400,
+          14405,
+          14411,
+          14416,
+          14421,
+          14427,
+          14432,
+          14437,
+          14442,
+          14447,
+          14452,
+          14457,
+          14462,
+          14467,
+          14472,
+          14473,
+          14489,
+          14495,
+          14504,
+          14509,
+          14514,
+          14515,
+          14535,
+          14536,
+          14537,
+          14552,
+          14553
+        ],
+        "everyRootPidGone": true,
+        "everyOwnedGroupGone": true,
+        "active": []
+      }
+    },
+    "timeoutGrandchild": {
+      "rootPid": 14473,
+      "ownedPgid": 14473,
+      "grandchildPid": 14474,
+      "timedOut": true,
+      "rootPidGone": true,
+      "ownedGroupGone": true,
+      "grandchildPidGone": true
+    },
+    "postrunRootPidsStillExisting": [],
+    "postrunOwnedGroupsStillExisting": [],
+    "postrunGrandchildStillExisting": false,
+    "validationProcesses": {
+      "spawnedRootPids": [
+        19903,
+        20126,
+        20131
+      ],
+      "spawnedProcessGroups": [
+        19903,
+        20126,
+        20131
+      ],
+      "everyRootPidGone": true,
+      "everyOwnedGroupGone": true,
+      "active": []
+    }
+  },
+  "cleanup": {
+    "workScratch": {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/work-kRKL4h",
+      "recordedFileCount": 1038,
+      "recordedTotalBytes": 8415085,
+      "recordedInventorySha256": "2ddbe581d7537e694d5981f02e8c6607c0acac50059f4e95b414dbbe27334fdd",
+      "existsAfterCleanup": false
+    },
+    "bootstrapScratch": {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/bootstrap-scratch",
+      "recordedFileCount": 21,
+      "recordedTotalBytes": 379528,
+      "recordedInventorySha256": "6686a83cb88e9888a5d79dd3113b1bb9a2f28765f85537ace8f44b5caa312eb3",
+      "existsAfterCleanup": false
+    },
+    "auditScratch": {
+      "path": "/tmp/du-overlay-v6-replay-9a5a6f92-audit.1lm17m",
+      "existsAfterCleanup": false
+    }
+  },
+  "preservation": {
+    "ownedAgentsCount": 0,
+    "repositoryAgentStatus": "",
+    "repositoryAgentStatusCommandClosure": {
+      "descendantGroupDetected": false,
+      "rootPidGone": true,
+      "groupGone": true
+    },
+    "oldFiles": {
+      "candidate-report": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/REPORT.md",
+        "bytes": 7897,
+        "sha256": "6095e59265d7f108726d9810018e6312406ad99aa70575a433b81712ae4fa0aa",
+        "matchesExpected": true
+      },
+      "correction-v4-report": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/correction-audit-v4/REPORT.md",
+        "bytes": 11465,
+        "sha256": "63c4a26cdb9e56a51056636a3da4f0d2e2aaf5a1b57a643f1865d6ee15dea0c2",
+        "matchesExpected": true
+      },
+      "independent-readme": {
+        "path": "tests/commands/du/independent/README.md",
+        "bytes": 12756,
+        "sha256": "005fcb8fcd704100c1ddd8346533d0f13ce208ec50cc4d27866703ca3bd050f1",
+        "matchesExpected": true
+      },
+      "canonical-migration-report": {
+        "path": "tests/commands/du/canonical-migration-v1/REPORT.md",
+        "bytes": 4704,
+        "sha256": "9f15eb9d36fa594958ea0b5ba243ccb053798cfe144dfa48838bf27b3c558f27",
+        "matchesExpected": true
+      },
+      "old-failure-stdout": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/refined-v2-frozen-atime-observer-fail/run.stdout",
+        "bytes": 867078,
+        "sha256": "3fa5f7e7cc3a1bb9133086b06c41ac4f671e562a62192d144e9c800dd9df5e14",
+        "matchesExpected": true
+      },
+      "old-failure-stderr": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/refined-v2-frozen-atime-observer-fail/run.stderr",
+        "bytes": 2604,
+        "sha256": "5fa997f91509e743cd70fb5fd20f5a6dffd35bc5e074e0cf8038ec235a4571fe",
+        "matchesExpected": true
+      },
+      "old-failure-status": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/refined-v2-frozen-atime-observer-fail/run.status.json",
+        "bytes": 290,
+        "sha256": "93d7432ac47672a3e8d78119710975fa84c477a7db057947787cc24874586082",
+        "matchesExpected": true
+      }
+    },
+    "allOldHashesMatch": true,
+    "unsafeMigrationAuditAppearsInProcessHistory": false,
+    "foreignIndex": {
+      "capturedBeforeFailureSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentStatus": 0,
+      "currentClosure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      }
+    }
+  },
+  "executionBoundary": {
+    "candidateSelectedInputCount": 249,
+    "candidateArchiveSha256": "b6c8055a335f5a3e316501267d5ed4590a765cf380cc44eec9d0e84774321381",
+    "buildDistFileCount": 788,
+    "buildDistInventorySha256": "02606aa248b4984a7be4491c0e6e3d3d0cb729638fc350ed1a9ee3892c7d7c91",
+    "npmPackExecuted": false,
+    "movedPackageExecuted": false,
+    "nativeRowsExecuted": false,
+    "scopedRegressionsExecuted": false
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "process-timeout-grandchild-control",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92/replay-001/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/harness/process-timeout-control.mjs",
+    "grandchild"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": null,
+  "signal": "SIGTERM",
+  "pid": 14473,
+  "pgid": 14473,
+  "timedOut": true,
+  "terminationReason": "timeout",
+  "termination": {
+    "termSent": true,
+    "killSent": true,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": true,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 1500,
+  "startedAt": "2026-08-27T19:49:55.165Z",
+  "finishedAt": "2026-08-27T19:49:56.956Z",
+  "durationMs": 1791.0735,
+  "stdoutSha256": "4770b03fae57302ade707ae467bf3671a0afe7b393d16dd70f9b86e33e204586",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

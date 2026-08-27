@@ -1,0 +1,7 @@
+{
+  "phase": "materialized-before-cases",
+  "completeFileCount": 20,
+  "everyByteSizeSha256AndGitBlobVerified": true,
+  "exactInventoryNoNewOrDeletedEntries": true,
+  "inventorySha256": "3c8fff0fc33a0ada3104d2849b503b1c9833174a112ccbc41ed7dc50ab1d3d3e"
+}

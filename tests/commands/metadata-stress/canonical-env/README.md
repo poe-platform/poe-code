@@ -120,6 +120,61 @@ portability needs a separately authorized reproducible native build/profile or
 a narrowly reviewed relocation mechanism; it is not necessary to alter the
 currently passing native tests to fix these routed missing-cache failures.
 
+## Immutable author provenance correction
+
+The sole existing-test edit is in `../provenance.test.ts`. The old assertion
+required every latest author file to equal its historical handoff hash. It
+failed after the legitimate `bdaaf50b3eccdd261349c1f32c19407fa348a64f` stat fixture
+change from three to nine human-time fractional columns. The old assertion,
+both source versions and original failed outcomes remain in `original.json`
+and `evidence/before-provenance.json`. No expected author hash is replaced.
+
+`author-snapshot.json` contains exact text of all seven author artifacts read
+from actual Git commit `7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3`, already named
+by the original oracle evidence's `initialHead`. `capture-author.mjs` used
+`git --no-replace-objects cat-file blob <commit>:<path>` and `rev-parse` and
+verified all seven SHA-256s against the existing evidence before saving.
+The canonical test pins the complete snapshot's SHA-256, authenticates the
+original oracle evidence bytes, checks the exact seven names and paths,
+recomputes each source SHA-256 and Git blob ID, and checks the recorded commit.
+The other two canonical provenance tests still authenticate the real native
+source/archive/executable identities and run GNU version checks unchanged.
+
+Historical stat source is still SHA-256
+`a3597699eadbcfa3b48a7a2cb9830428d6fc98c70f197c6f6c97011219e0b3aa`,
+Git blob `b578a59ed4861b6de071aa69d84d41c80d78b528`.
+Current author stat source is separately reported as
+`06b10fc13e5e884802ab69cd7838e8e61f115ce9d3024ceee63145e3fba6076f`.
+Six other author files currently match the capture; this observation is not
+an invariant preventing future author edits. The bound oracle evidence SHA-256
+is `4c02d4b362245afdf81665844df3dc986e66642bc95f624c207b1e11fecef124`.
+The earlier malformed stat.c hash correction remains in that unmodified record.
+
+`provenance-controls.test.mjs` independently retrieves all seven actual Git
+objects and checks captured text/IDs. Negative controls reject changed captured
+bytes, incorrect blobs, altered oracle evidence, another commit, and an omitted
+author file. Current author bytes are observed separately. Unlike this dev
+Git-object control, the canonical test needs no Git database: the pinned,
+authenticated snapshot works in a source archive as well.
+
+```sh
+LC_ALL=C LANG=C TZ=UTC node --import tsx --test tests/commands/metadata-stress/provenance.test.ts tests/commands/metadata-stress/canonical-env/provenance-controls.test.mjs
+LC_ALL=C LANG=C TZ=UTC node node_modules/typescript/bin/tsc --noEmit -p tests/commands/metadata-stress/canonical-env/tsconfig.json
+```
+
+Recorded results: **9/9** canonical-provenance + integrity controls, **5/5**
+setup controls, scoped noEmit and syntax checks pass. The qualified release in
+`evidence/after-provenance.json` reports **318/318, 22/22 routed native rows,
+zero failures/skips/TODO/cancellation**, with current sources unchanged during
+the run. `evidence/final-provenance.json` repeats **318/318** with the final
+runner, which enumerates source files directly even without a Git database and
+includes the new authenticated snapshot/helper in its before/after hashes.
+`evidence/final-controls-and-change-audit.json` records **11/11** combined
+setup/provenance controls, scoped noEmit, final runner syntax and the exact
+one-file existing-test delta. Repetitions are not additional unique coverage.
+Root release wiring and independent frozen-gate acceptance remain
+outstanding; these local results do not close any other failed gate category.
+
 ## Primary references, not replacement oracles
 
 - `https://git-scm.com/docs/git-rev-parse`: `<revision>:<path>` names the

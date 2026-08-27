@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { release } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -75,9 +75,22 @@ export function saveEvidence(name, value) {
 function manifest() {
   const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, env: environment, encoding: "utf8" });
   const status = spawnSync("git", ["status", "--short", "--untracked-files=no"], { cwd: root, env: environment, encoding: "utf8" });
-  const tracked = spawnSync("git", ["ls-files", "src"], { cwd: root, env: environment, encoding: "utf8" });
-  const source = tracked.status === 0 ? tracked.stdout.trim().split("\n").filter(Boolean) : original.files.filter(entry => entry.path.startsWith("src/")).map(entry => entry.path);
-  const paths = [...new Set([...original.files.map(entry => entry.path), ...source, "node_modules/tsx/package.json", "tests/commands/metadata-stress/canonical-env/runner.mjs"])];
+  const source = [];
+  const walk = path => {
+    for (const entry of readdirSync(resolve(root, path), { withFileTypes: true })) {
+      const child = `${path}/${entry.name}`;
+      if (entry.isDirectory()) walk(child);
+      else source.push(child);
+    }
+  };
+  walk("src");
+  const paths = [...new Set([...original.files.map(entry => entry.path), ...source,
+    "node_modules/tsx/package.json",
+    "tests/commands/table-text-stress/cases.ts",
+    "tests/commands/metadata-stress/canonical-env/runner.mjs",
+    "tests/commands/metadata-stress/canonical-env/author-provenance.ts",
+    "tests/commands/metadata-stress/canonical-env/author-snapshot.json",
+  ])];
   return { head: git.status === 0 ? git.stdout.trim() : null, trackedStatus: status.status === 0 ? status.stdout : null, files: Object.fromEntries(paths.map(path => [path, hash(readFileSync(resolve(root, path)))])) };
 }
 
@@ -103,6 +116,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   assert.equal(extra.length, 0);
   const report = mode === "check" ? verifySetup() : runRelease();
   if (output) console.log(`evidence: ${saveEvidence(output, report)}`);
-  console.log(JSON.stringify(mode === "check" ? report : { status: report.status, counts: report.counts, nativeRowsPassed: report.nativeRows?.filter(row => row.passed).length, issues: report.setup.issues }, null, 2));
+  console.log(JSON.stringify(mode === "check" ? report : { status: report.status, executedTests: report.executedTests ?? report.counts.tests, counts: report.counts, nativeRowsPassed: report.nativeRows?.filter(row => row.passed).length, issues: report.setup.issues }, null, 2));
   process.exitCode = report.exitCode ?? (report.status === "setup-qualified" ? 0 : 78);
 }

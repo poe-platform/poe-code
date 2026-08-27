@@ -1,0 +1,78 @@
+{
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "authorFixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+  "previousAuthorFixtureCommit": "f2906a064d2558c634cdc1b71a7b74fd2f6d022a",
+  "previousReviewerCommit": "b4263e7748ed21078e67ac4af640a07273900c28",
+  "scope": "Only exact own map entries and truthful export middleware/setup-charge accounting; no new variants or limits",
+  "sourceSections": [
+    {
+      "filename": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "first": 22,
+      "last": 35,
+      "text": "export interface CommandContext {\n  readonly command: string;\n  readonly args: readonly string[];\n  readonly stdin: ByteSource;\n  readonly stdinIsDefault?: boolean;\n  readonly stdout: ByteSink;\n  readonly stderr: ByteSink;\n  cwd: string;\n  env: Record<string, string>;\n  readonly fs: FileSystem;\n  readonly signal: AbortSignal;\n  readonly invoke?: CommandInvoker;\n  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;\n}"
+    },
+    {
+      "filename": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "first": 1,
+      "last": 22,
+      "text": "# Literal invocation environment\n\n`CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains\nthe runtime's existing environment merge behavior and PWD treatment. True uses\na fresh copy of exactly `options.env ?? {}` as the exported environment at\ncommand entry: no merge with inherited exports, implicit PWD or promotion of\nunexported/local variables. Supplied PWD is an environment value, not a cwd setter.\nEnvironment key/value validation remains required before child execution.\n\nThis replaces the child environment, not generic shell state. Parent values,\nexport attributes and function locals must remain unchanged on success, error\nor cancellation. Cwd resolution remains independent. A child Bash interpreter's\nown initialization is separate from the environment passed to it.\n\nLiteral argv, middleware, shared execution/output/depth budgets, signal,\nstdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not\nimplement replacement with a new Shell, new budget or a callback-only bypass.\n\nCore `env COMMAND` explicitly requests replacement for its already-computed\nenvironment, including plain assignments and `-u`, not just `-i`. With no invoke\nhook, its existing registry/callback fallback still receives that exact map.\nGeneric directExecutor/xargs/find callers retain their existing default behavior."
+    },
+    {
+      "filename": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "first": 63,
+      "last": 72,
+      "text": "    const error = new ShellLimitError(limit);\n    this.controller.abort(error);\n    throw error;\n  }\n\n  tick(): void {\n    this.signal.throwIfAborted();\n    if (++this.commands > this.limits.maxCommands) this.fail(\"maxCommands\");\n  }\n"
+    },
+    {
+      "filename": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "first": 405,
+      "last": 418,
+      "text": "  }\n\n  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {\n    originalIO = activeIO(originalIO);\n    originalIO.descriptors ??= new Map<number, Descriptor>([\n      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],\n      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],\n    ]);\n    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);\n    originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };\n    if (command.kind === \"subshell\") originalIO = isolateIO(originalIO);\n    this.budget.tick();\n    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);\n    this.signal.throwIfAborted();"
+    },
+    {
+      "filename": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "first": 794,
+      "last": 822,
+      "text": "\n  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions: boolean): Promise<number> {\n    const { [invocationScope]: scope, ...publicIO } = io;\n    let builtinFailure: { error: unknown; diagnostic: string } | undefined;\n    const env = Object.create(null) as Record<string, string>;\n    for (const key of state.exported) {\n      const value = state.variables[key];\n      if (value !== undefined) env[key] = value;\n    }\n    const initialEnv = { ...env };\n    const context: ShellCommandContext = {\n      ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,\n      registerCleanup: (cleanup) => scope.register(cleanup),\n      invoke: (name, args, options) => {\n        const invocation = this.invoke(name, args, options, context, state, scope);\n        void invocation.catch(() => undefined);\n        return invocation;\n      },\n    };\n    const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {\n      scope.assertOpen();\n      return handler(context, next);\n    });\n    const execute = composeMiddleware(middleware, async (forwarded) => {\n      const context = { ...forwarded, [invocationScope]: scope };\n      scope.assertOpen();\n      const previous = new Map<string, { value: string | undefined; exported: boolean; overlay: string | undefined }>();\n      const cwd = state.cwd;\n      state.cwd = resolvePath(\"/\", context.cwd);"
+    }
+  ],
+  "authorDiffSha256": "ec49032cceb2414264496b3648b827af04e03e842cceb0250a7318461cf1a68f",
+  "unchanged": {
+    "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+    "tarballSha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+    "controlGroups": 6,
+    "runtimeVariants": 14,
+    "commandLimitControls": [
+      2,
+      3
+    ],
+    "outputLimitControls": [
+      7,
+      6
+    ],
+    "originalPackedCommandLimit": 4,
+    "revisedPackedCommandLimit": 7
+  },
+  "setupCharges": {
+    "assignment": 1,
+    "export": 1,
+    "parentbefore": 1,
+    "underStudy": 4,
+    "total": 7
+  },
+  "reviewerCorrections": {
+    "prototypeAssertions": 5,
+    "controlGroups": [
+      "C1",
+      "C3",
+      "C5"
+    ],
+    "C1MiddlewareTrace": "Adds export; no removed invocation",
+    "budgetCrosswalk": "Checks exact export/parentbefore prefix then compares ALL original primary command records; separately verifies old post-primary printf. No free setup allowance."
+  }
+}

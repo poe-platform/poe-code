@@ -1,0 +1,260 @@
+{
+  "sealedAt": "2026-08-27T12:23:12.929Z",
+  "candidate": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+  "verdict": "Qualified two-pin migration/guard verified; unconditional candidate approval BLOCKED by three frozen binding-control assertion defects. No candidate or source edits.",
+  "authorThread": "01a04314-dda5-7233-a841-0bc7a1533906",
+  "originalHookFailuresRetained": 89,
+  "currentProfiles": [
+    {
+      "profile": "primary-5.3",
+      "tests": 89,
+      "pass": 89,
+      "fail": 0,
+      "identityPass": 1,
+      "nativeCaseTuples": 88,
+      "nativeMatched": 88,
+      "productObservations": 88
+    },
+    {
+      "profile": "historical-3.2",
+      "tests": 89,
+      "pass": 75,
+      "fail": 14,
+      "identityPass": 1,
+      "nativeCaseTuples": 88,
+      "nativeMatched": 88,
+      "productObservations": 88
+    }
+  ],
+  "bindingControls": {
+    "tests": 6,
+    "pass": 3,
+    "fail": 3,
+    "defect": "assert.throws exact message omits assert.equal generated hash diff; guard rejection itself succeeds"
+  },
+  "negativeMutants": {
+    "runs": 2,
+    "scheduledTestsPerRun": 89,
+    "hookRejectedPerRun": 89,
+    "nativeCaseLaunches": 0,
+    "productCaseLaunches": 0
+  },
+  "fullGuardDistinctionPrograms": {
+    "runs": 2,
+    "statuses": [
+      0,
+      0
+    ],
+    "historicalOriginalBytesAccepted": true,
+    "oppositeBindingsRejected": true
+  },
+  "integrity": {
+    "tests": 7,
+    "pass": 7,
+    "fail": 0
+  },
+  "executionAccounting": {
+    "wholeProfileRuns": 2,
+    "uniqueBehaviorFixtures": 88,
+    "nativeCaseLaunches": 176,
+    "nativeIdentityLifecycleLaunches": 4,
+    "productCaseLaunches": 176,
+    "initialControlRuns": 1,
+    "remainingOnlyRuns": 4,
+    "behaviorOrSixControlRetries": 0,
+    "actualModuleLoads": 35591,
+    "publicIndexLoads": 176,
+    "phaseGuards": 7,
+    "regularInputFilesPerArchive": 237,
+    "fullSourceFiles": 213,
+    "copiedToolFiles": 60
+  },
+  "historicalLosses": [
+    {
+      "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "fields": [
+        "stderr",
+        "stderrBase64",
+        "exitCode",
+        "files"
+      ],
+      "classification": "historical semantic/prevalidation difference including effects/status"
+    },
+    {
+      "name": "fatal-parameter-expansion-prevents-following-file-effect",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "fatal-expansion-in-substitution-stops-substitution-only",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "command-substitution-removes-nul-bytes",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "unterminated-quote-after-write",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "missing-pipeline-command-after-write",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "missing-conditional-operand-after-write",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "missing-group-terminator-after-write",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "missing-if-fi-after-write",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "move-output-really-closes-source",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "move-input-really-closes-source",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    },
+    {
+      "name": "prevalidation-prior-output-and-file",
+      "fields": [
+        "stdout",
+        "stderr",
+        "stdoutBase64",
+        "stderrBase64",
+        "exitCode",
+        "files"
+      ],
+      "classification": "historical semantic/prevalidation difference including effects/status"
+    },
+    {
+      "name": "fatal-parameter-preserves-only-earlier-effects",
+      "fields": [
+        "stderr",
+        "stderrBase64"
+      ],
+      "classification": "stderr-only historical-profile loss"
+    }
+  ],
+  "sourceHashes": {
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+    "src/index.ts": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+    "package.json": "8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027"
+  },
+  "native": [
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "realpath": "/bin/bash"
+    },
+    {
+      "name": "primary-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+    }
+  ],
+  "cleanup": [
+    {
+      "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pin-review-ip002C",
+      "removed": true,
+      "allRecordedGroupsAbsent": true,
+      "rawSha256": "b7e137d9a34e0577d6597fbc5dd262fb6b7c7fec1ea2fca00ac29de17b02f910"
+    },
+    {
+      "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pin-remaining-ZnrKlN",
+      "removed": true,
+      "allRecordedGroupsAbsent": true,
+      "rawSha256": "f6a4bd0870eeb55d21901c063396f61fb577d79e84b2943ae1ca8aa4fa039528"
+    }
+  ],
+  "stagingSnapshot": {
+    "head": "547160e8a81d07a7f78de3092321c217e51c5f3c",
+    "foreignCachedRawSha256": "ac75677a425501e6efad549d2c20a3c29bbc080a096b17b196da1639bac7cd71",
+    "foreignCachedRawBytes": 2771,
+    "note": "Concurrent foreign staging is not owned or amended; explicit --only commit required."
+  },
+  "files": {
+    "REVIEW.md": "15e8b237c63f93482c429e6fce3f5073a5d7ad6101a2d0501f12592410e0184e",
+    "analyze.mjs": "f65e1595086a18954b33494d9c4d71f42fa1b5acfce978a0cb9b53b5052cea88",
+    "authentication.json": "95bbc68e857174f33cdbe9cba5d275b9c57779c2a011025327b56cb1b174df34",
+    "cleanup.json": "23fce8a09aab0482ed20cf1eac21f95b78da5d5956bfae7a52db5c47f0cd189c",
+    "execution.json": "b7e137d9a34e0577d6597fbc5dd262fb6b7c7fec1ea2fca00ac29de17b02f910",
+    "integrity-result.json": "b48565ea75d2c423fab3153e63b9e3bdc48bfea1653aaf0a40b8d7c534afc56d",
+    "integrity.test.mjs": "778744e35d1174ac0c530ba41ab833493538160d0c219b26db3b71c1f0b6033c",
+    "observations.json": "1b8cde87b023cf5239618df77bbe74affecc9ace68373d4f2eddf13bfacbdfd5",
+    "remaining-authentication.json": "2fe65604067db4c9eecdd4b22fa666de552583a868db78196fdccb2a017235f0",
+    "remaining-cleanup.json": "24fbf333ad8624815d0ded3320f6f351ede7dfaeeee628fc237e1e5c0e870490",
+    "remaining-execution.json": "f6a4bd0870eeb55d21901c063396f61fb577d79e84b2943ae1ca8aa4fa039528",
+    "remaining.mjs": "8ccb048c8531dce62f722e9732fb43f2299491a996372cddd5a0da36954bae44",
+    "review.mjs": "48ff462688961ad9bf037f2fedaf3b2b996e7e271ef373dfcb05aac64c4837dd",
+    "trace.mjs": "4c5206688cd699af27206c494cac4bfa08c077844750ffce5f7f86f20a677bc1"
+  },
+  "limits": [
+    "Candidate control defect remains red; author correction required.",
+    "All original14 strict historical behavior losses retained.",
+    "Native effect snapshots validated by unchanged suite; native spawn trace itself does not emit file snapshots.",
+    "Original model has no file mode assertion.",
+    "No cleanup-pin,84pre-envS,global/build/fullgate/private/upstream work."
+  ]
+}

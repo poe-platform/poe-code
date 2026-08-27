@@ -1,0 +1,854 @@
+{
+  "checkedAt": "2026-08-27T12:17:14.094Z",
+  "candidate": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+  "historical": "eb602376d11f9d19cd22864027fe51f564944381",
+  "migration": "4fa20ac6cadb9d37fa9da4d205dc37a5a1bcb9f9",
+  "audit": "8cafed9bff7a8df1cf49b4ff4ef3ee021229ae3c",
+  "authorThread": "01a04314-dda5-7233-a841-0bc7a1533906",
+  "authorHeaderSource": "/tmp/safe-bash-diagnostic-pins-author.log",
+  "baselineHash": "0cb9d0b498331434ec2a49dd4f75b30dcfb10db2ff8fd029613d948f119d4cf3",
+  "drivers": [
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "oldHash": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "newHash": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "oldBlob": "b87954f4568bfe24c1ca757e5f0a6eb86166dc1c",
+      "newBlob": "05d6995613544dbd4d2c43ae4390523db16aef6e",
+      "oldSource": "import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { differentialCases, syntaxCases } from \"./cases.js\";\nimport { bashVersion, runBash, runVirtualScript, sourceEvidence } from \"./helpers.js\";\n\ntest(\"shell stress reference identity and source provenance\", context => {\n  context.diagnostic(bashVersion());\n  const { time, revision, aggregate, node, platform } = sourceEvidence();\n  context.diagnostic(JSON.stringify({ time, revision, aggregate, node, platform }));\n});\n\nfor (const fixture of differentialCases) {\n  test(`Bash differential: ${fixture.name}`, async () => {\n    const expected = await runBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n  });\n}\n\nfor (const fixture of syntaxCases) {\n  test(`Bash parse-before-effects: ${fixture.name}`, async context => {\n    const expected = await runBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    context.diagnostic(JSON.stringify({ script: fixture.script, expected, actual }));\n    for (const [engine, result] of [[\"Bash\", expected], [\"virtual\", actual]] as const) {\n      assert.equal(result.exitCode, 2, `${engine}: ${fixture.script}`);\n      assert.equal(result.stdout, \"\", `${engine}: output before syntax error`);\n      assert.deepEqual(result.files, {}, `${engine}: filesystem effect before syntax error`);\n      assert.notEqual(result.stderr, \"\", `${engine}: missing syntax diagnostic`);\n    }\n  });\n}\n",
+      "newSource": "import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { differentialCases, syntaxCases } from \"./cases.js\";\nimport { runVirtualScript, sourceEvidence } from \"./helpers.js\";\nimport { primaryObservation as runBash, primaryVersion as bashVersion } from \"./canonical-profile-migration/primary-reference.js\";\n\ntest(\"shell stress reference identity and source provenance\", context => {\n  context.diagnostic(bashVersion());\n  const { time, revision, aggregate, node, platform } = sourceEvidence();\n  context.diagnostic(JSON.stringify({ time, revision, aggregate, node, platform }));\n});\n\nfor (const fixture of differentialCases) {\n  test(`GNU5.3 declared-profile differential: ${fixture.name}`, async () => {\n    const expected = await runBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n  });\n}\n\nfor (const fixture of syntaxCases) {\n  test(`GNU5.3 declared-profile parse-before-effects: ${fixture.name}`, async context => {\n    const expected = await runBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    context.diagnostic(JSON.stringify({ script: fixture.script, expected, actual }));\n    for (const [engine, result] of [[\"Bash\", expected], [\"virtual\", actual]] as const) {\n      assert.equal(result.exitCode, 2, `${engine}: ${fixture.script}`);\n      assert.equal(result.stdout, \"\", `${engine}: output before syntax error`);\n      assert.deepEqual(result.files, {}, `${engine}: filesystem effect before syntax error`);\n      assert.notEqual(result.stderr, \"\", `${engine}: missing syntax diagnostic`);\n    }\n  });\n}\n"
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "oldHash": "93f4d8dd5938ddba1464b126e5aec00c5304eacbd7470768e550301837dc4fa6",
+      "newHash": "ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca",
+      "oldBlob": "4255873f5cbb306a8b97e19034d16b4e2dfdcf0b",
+      "newBlob": "4c8d05d60f529f2bd0460a78cf49d356b946c51c",
+      "oldSource": "import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { additionalCases } from \"./cases.js\";\nimport { independentBash } from \"./reference.js\";\nimport { runVirtualScript } from \"../helpers.js\";\n\nfor (const fixture of additionalCases) {\n  test(`remaining-gap independent Bash: ${fixture.name}`, { timeout: 8000 }, async () => {\n    const expected = await independentBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n  });\n}\n",
+      "newSource": "import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { additionalCases } from \"./cases.js\";\nimport { primaryObservation as independentBash } from \"../canonical-profile-migration/primary-reference.js\";\nimport { runVirtualScript } from \"../helpers.js\";\n\nfor (const fixture of additionalCases) {\n  test(`remaining-gap GNU5.3 declared profile: ${fixture.name}`, { timeout: 8000 }, async () => {\n    const expected = await independentBash(fixture);\n    const actual = await runVirtualScript(fixture);\n    assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n  });\n}\n"
+    }
+  ],
+  "driverDiff": "diff --git a/tests/shell-stress/current-gaps/compatibility.test.ts b/tests/shell-stress/current-gaps/compatibility.test.ts\nindex 4255873f..4c8d05d6 100644\n--- a/tests/shell-stress/current-gaps/compatibility.test.ts\n+++ b/tests/shell-stress/current-gaps/compatibility.test.ts\n@@ -1,11 +1,11 @@\n import assert from \"node:assert/strict\";\n import { test } from \"node:test\";\n import { additionalCases } from \"./cases.js\";\n-import { independentBash } from \"./reference.js\";\n+import { primaryObservation as independentBash } from \"../canonical-profile-migration/primary-reference.js\";\n import { runVirtualScript } from \"../helpers.js\";\n \n for (const fixture of additionalCases) {\n-  test(`remaining-gap independent Bash: ${fixture.name}`, { timeout: 8000 }, async () => {\n+  test(`remaining-gap GNU5.3 declared profile: ${fixture.name}`, { timeout: 8000 }, async () => {\n     const expected = await independentBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\ndiff --git a/tests/shell-stress/differential.test.ts b/tests/shell-stress/differential.test.ts\nindex b87954f4..05d69956 100644\n--- a/tests/shell-stress/differential.test.ts\n+++ b/tests/shell-stress/differential.test.ts\n@@ -1,7 +1,8 @@\n import assert from \"node:assert/strict\";\n import { test } from \"node:test\";\n import { differentialCases, syntaxCases } from \"./cases.js\";\n-import { bashVersion, runBash, runVirtualScript, sourceEvidence } from \"./helpers.js\";\n+import { runVirtualScript, sourceEvidence } from \"./helpers.js\";\n+import { primaryObservation as runBash, primaryVersion as bashVersion } from \"./canonical-profile-migration/primary-reference.js\";\n \n test(\"shell stress reference identity and source provenance\", context => {\n   context.diagnostic(bashVersion());\n@@ -10,7 +11,7 @@ test(\"shell stress reference identity and source provenance\", context => {\n });\n \n for (const fixture of differentialCases) {\n-  test(`Bash differential: ${fixture.name}`, async () => {\n+  test(`GNU5.3 declared-profile differential: ${fixture.name}`, async () => {\n     const expected = await runBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n@@ -18,7 +19,7 @@ for (const fixture of differentialCases) {\n }\n \n for (const fixture of syntaxCases) {\n-  test(`Bash parse-before-effects: ${fixture.name}`, async context => {\n+  test(`GNU5.3 declared-profile parse-before-effects: ${fixture.name}`, async context => {\n     const expected = await runBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     context.diagnostic(JSON.stringify({ script: fixture.script, expected, actual }));\n",
+  "guardDiff": "diff --git a/tests/shell-stress/diagnostic-profiles/compatibility.test.ts b/tests/shell-stress/diagnostic-profiles/compatibility.test.ts\nindex cc3af133..71695f99 100644\n--- a/tests/shell-stress/diagnostic-profiles/compatibility.test.ts\n+++ b/tests/shell-stress/diagnostic-profiles/compatibility.test.ts\n@@ -1,10 +1,10 @@\n import assert from \"node:assert/strict\";\n import { after, before, test } from \"node:test\";\n import { runVirtualScript, sourceEvidence } from \"../helpers.js\";\n-import { fixtures, frozen, profileName, runNative, validateFrozenProfile, validateNativeIdentityAndLifecycle } from \"./profile.js\";\n+import { fixtures, frozen, profileName, runNative, validateCurrentProfile, validateNativeIdentityAndLifecycle } from \"./profile.js\";\n \n const beforeSources = sourceEvidence();\n-before(validateFrozenProfile);\n+before(validateCurrentProfile);\n after(() => assert.equal(sourceEvidence().aggregate, beforeSources.aggregate, \"Source changed during complete profile; rerun without attribution\"));\n \n test(`${profileName}: pinned identity and original native lifecycle control`, validateNativeIdentityAndLifecycle);\ndiff --git a/tests/shell-stress/diagnostic-profiles/profile.ts b/tests/shell-stress/diagnostic-profiles/profile.ts\nindex 8eab1e54..6144cd36 100644\n--- a/tests/shell-stress/diagnostic-profiles/profile.ts\n+++ b/tests/shell-stress/diagnostic-profiles/profile.ts\n@@ -7,6 +7,7 @@ import { differentialCases, syntaxCases } from \"../cases.js\";\n import { additionalCases } from \"../current-gaps/cases.js\";\n import type { Observation, Snapshot, StressCase } from \"../model.js\";\n import { isolatedSpawn } from \"../process.js\";\n+import { nativeCaptureSha256, validateSourceBindings } from \"./pin-migration/current-binding.js\";\n \n export interface Profile {\n   name: string;\n@@ -89,13 +90,20 @@ function snapshot(directory: string, prefix = \"\"): Snapshot {\n }\n \n export function validateFrozenProfile(): void {\n+  validateProfile(\"historical\");\n+}\n+\n+export function validateCurrentProfile(): void {\n+  validateProfile(\"current\");\n+}\n+\n+function validateProfile(binding: \"historical\" | \"current\"): void {\n+  assert.equal(sha256(join(artifactRoot, \"native-baseline.json\")), nativeCaptureSha256, \"Frozen native capture changed\");\n   assert.equal(sha256(profile.executable), profile.sha256, \"Pinned native executable changed or unavailable\");\n   assert.equal(fixtures.length, 88);\n   assert.equal(frozen.rows.length, fixtures.length);\n   assert.deepEqual(frozen.rows.map(row => ({ cohort: row.cohort, fixture: row.fixture })), fixtures);\n-  for (const [path, expected] of Object.entries(evidence.sources)) {\n-    if (path.startsWith(\"tests/\")) assert.equal(sha256(join(root, path)), expected, `Frozen historical fixture/helper changed: ${path}`);\n-  }\n+  validateSourceBindings(root, evidence.sources, binding);\n   for (const candidate of evidence.profiles) {\n     for (const argv0 of [\"shell-stress\", \"shell\"]) {\n       const captures = evidence.captures.filter(capture => capture.profile === candidate.name && capture.argv0 === argv0);\n",
+  "pinProof": [
+    {
+      "path": "tests/shell-stress/cases.ts",
+      "historical": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a",
+      "candidate": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "historical": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6",
+      "candidate": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/model.ts",
+      "historical": "9e863c4238200abb67e089669b3cea30dcd8a98073f163ee9147c5db56c626c9",
+      "candidate": "9e863c4238200abb67e089669b3cea30dcd8a98073f163ee9147c5db56c626c9",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/process.ts",
+      "historical": "00ca4d13b077a2c21bd8af2d0f9770ff8f97ea85217a141b9fca9e3bfe4ef700",
+      "candidate": "00ca4d13b077a2c21bd8af2d0f9770ff8f97ea85217a141b9fca9e3bfe4ef700",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/process.test.ts",
+      "historical": "de547daf75526ccc94fe723a920459040dda59306562befe9f942f2322dc83d0",
+      "candidate": "de547daf75526ccc94fe723a920459040dda59306562befe9f942f2322dc83d0",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/probes.ts",
+      "historical": "f6cb394028c1e013cf1d86672debff64b651a1dda9cf07267cc58d06e7b66bbd",
+      "candidate": "f6cb394028c1e013cf1d86672debff64b651a1dda9cf07267cc58d06e7b66bbd",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/lifecycle.test.ts",
+      "historical": "585c6ce08f24eb6de8c0799aeb73f7895b33b1eb830a7d3c6704d3cc8c524a22",
+      "candidate": "585c6ce08f24eb6de8c0799aeb73f7895b33b1eb830a7d3c6704d3cc8c524a22",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "historical": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "candidate": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "migrated": true
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/cases.ts",
+      "historical": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d",
+      "candidate": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "historical": "93f4d8dd5938ddba1464b126e5aec00c5304eacbd7470768e550301837dc4fa6",
+      "candidate": "ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca",
+      "migrated": true
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/pattern.test.ts",
+      "historical": "aa5ffea1b243fed54b1b5432b8f14772db51682f3289a71e7d3400d8061ddec2",
+      "candidate": "aa5ffea1b243fed54b1b5432b8f14772db51682f3289a71e7d3400d8061ddec2",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/pattern-child.ts",
+      "historical": "1d6073b2bf397e86a2827e342833d13406d2d916a74fb5993138d21de488f0fd",
+      "candidate": "1d6073b2bf397e86a2827e342833d13406d2d916a74fb5993138d21de488f0fd",
+      "migrated": false
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/reference.ts",
+      "historical": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63",
+      "candidate": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63",
+      "migrated": false
+    },
+    {
+      "path": "tests/fixtures/shell-cases.json",
+      "historical": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c",
+      "candidate": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c",
+      "migrated": false
+    }
+  ],
+  "originalHookFailureCount": 89,
+  "originalExcerptSha256": "be79c19f8417ec34e1260fb2dc15fb96d7bfd80555e5ee9460b1b62e09bce586",
+  "originalCapture": {
+    "key": "canonical/test.stdout.log",
+    "path": "evidence/canonical/test.stdout.log.data.gzbase64",
+    "encoding": "gzip-base64",
+    "originalBytes": 4246176,
+    "originalSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+    "storedSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3"
+  },
+  "oldFailureRows": [
+    {
+      "id": "tap-line-89762",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: pinned identity and original native lifecycle control",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89793",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89824",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: descriptor-move-closes-original-after-copy",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89855",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89886",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89917",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: group-redirection-is-restored-after-return",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89948",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-89979",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90010",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90041",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: duplicated-output-descriptors-share-offset",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90072",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: append-descriptor-observes-intervening-truncation",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90103",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90134",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90165",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90196",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90227",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-n-consumes-exactly-two-characters",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90258",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-d-consumes-through-delimiter-only",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90289",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-backslash-newline-joins-before-splitting",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90320",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-last-variable-preserves-inner-separators",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90351",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90382",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90413",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90444",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90475",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90506",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90537",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: quoted-star-uses-first-ifs-character",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90568",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90599",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90630",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90661",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90692",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90723",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90754",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90785",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: last-assignment-substitution-status-wins",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90816",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: substitution-does-not-reparse-metacharacters",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90847",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90878",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90909",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90940",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-90971",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91002",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91033",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91064",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91095",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: multiple-heredocs-last-input-wins",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91126",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91157",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91188",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91219",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91250",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91281",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91312",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91343",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91374",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91405",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91436",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91467",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91498",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91529",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91560",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91591",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91622",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: quoted-pattern-removal-star-is-literal",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91653",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: glob-posix-bracket-digit-class",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91684",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: command-substitution-removes-nul-bytes",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91715",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: export-prefix-assignment-persists-in-shell",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91746",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: local-without-assignment-starts-unset",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91777",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91808",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91839",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91870",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91901",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91932",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91963",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-91994",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92025",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-syntax: unterminated-quote-after-write",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92056",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-syntax: missing-pipeline-command-after-write",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92087",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-syntax: missing-conditional-operand-after-write",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92118",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-syntax: missing-group-terminator-after-write",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92149",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: original-syntax: missing-if-fi-after-write",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92180",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: move-output-really-closes-source",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92211",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: move-input-really-closes-source",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92242",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: read-n-stops-at-newline-before-count",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92273",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: read-d-empty-selects-nul",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92304",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92335",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92366",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92397",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92428",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: prevalidation-prior-output-and-file",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92459",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    },
+    {
+      "id": "tap-line-92490",
+      "file": "tests/shell-stress/diagnostic-profiles/compatibility.test.ts",
+      "name": "primary-5.3: current-gaps: unmatched-case-bracket-literal-control",
+      "group": "historical-diagnostic-pin",
+      "failureType": "hookFailed",
+      "rawCapture": "canonical/test.stdout.log"
+    }
+  ],
+  "canonicalFixtureAndTupleCrosswalk": 88,
+  "profileChanged": {
+    "old": "/bin/bash3.2 live -c ORIGINAL_SOURCE shell-stress",
+    "canonicalSibling": "frozen GNU5.3 -c ORIGINAL_SOURCE shell; not live native",
+    "diagnosticSuite": "unchanged explicit whole5.3 and3.2 profiles, live native then product compared with sealed shell-name tuples",
+    "modesAsserted": false
+  },
+  "helper": {
+    "path": "tests/shell-stress/current-shell/support.mjs",
+    "commit": "303d18449c6e01bae4f33dada2f2022f95a56d49",
+    "sha256": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a"
+  }
+}

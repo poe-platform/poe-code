@@ -90,8 +90,9 @@ lengths clamp to remaining subject length after digit/work validation.
 
 Successful evaluation writes the exact result bytes followed by LF. Status 0
 means true, 1 false, 2 invalid expression/profile/argv, and 3 bounded resource or
-execution/output failure. Cancellation is rethrown unchanged, including an
-errno-shaped reason. A rejected diagnostic sink remains a rejection.
+execution failure. Cancellation is rethrown unchanged, including an
+errno-shaped reason. Rejected stdout and diagnostic sinks preserve the original
+rejection; they do not trigger another diagnostic or become quota failures.
 
 Only a sole `--help` or `--version` requests informational output, identifying
 virtual-bash rather than a fabricated GNU version. An initial `--` is removed
@@ -157,12 +158,20 @@ All options are positive safe integers; `maxDepth` additionally cannot exceed
 | `maxDepth` | 128 | Parser recursion and constructed AST depth; flat binary chains also have depth |
 | `maxSteps` | 8,000,000 | Shared parse/evaluation work and logical allocation charges for this invocation |
 | `maxStringBytes` | 65,536 | Per-value byte allocation and conservative arithmetic render bound |
-| `maxOutputBytes` | 65,537 | Final stdout allocation including LF, checked before allocation/write |
+| `maxOutputBytes` | 65,537 | Normal stdout and diagnostic bytes including LF, checked before output encoding/allocation/write |
 | `maxRegexPatternBytes` | 8,192 | Pre-admission pattern bytes (hard ceiling 65,536) |
 | `maxRegexNodes` | 4,096 | Combined BRE AST and compiled instructions (ceiling 8,192) |
 | `maxRegexDepth` | 64 | BRE group nesting (ceiling 128) |
 | `maxRegexStates` | 16,384 | Cumulative search states, including alternatives (ceiling 65,536) |
 | `maxRegexAllocatedUnits` | 1,000,000 | Cumulative logical worker allocation units (ceiling 4,000,000) |
+
+Every normal diagnostic obeys `maxOutputBytes`, including argument, arithmetic,
+worker, resource and unknown-execution errors. Failed output admission emits
+only `expr: output bytes limit exceeded\n`: one fixed 34-byte emergency diagnostic,
+awaited and exempt from the normal quota, with status 3. It contains no caller
+tokens or command name. This is not an absolute combined stdout/stderr byte cap.
+Diagnostic sizing precedes interpolation and UTF-8 encoding; reporting an
+exhausted work/string budget does not require spending that exhausted budget.
 
 Regex requests receive the remaining invocation `maxSteps`, capped at 50,000,000
 per request; successful worker work is charged back to the invocation. Subject

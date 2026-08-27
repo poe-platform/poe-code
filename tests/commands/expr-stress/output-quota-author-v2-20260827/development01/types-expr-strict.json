@@ -1,0 +1,6 @@
+{
+  "status": 2,
+  "signal": null,
+  "stdout": "tests/commands/expr/output-quota.test.ts(72,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?\n",
+  "stderr": ""
+}

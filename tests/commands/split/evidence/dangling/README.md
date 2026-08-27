@@ -64,3 +64,16 @@ optional methods with exactOptionalPropertyTypes. The fixture now hides absent
 methods through a truthful forwarding Proxy, as existing author fixtures do;
 `final-typecheck.log` is the succeeding noEmit run. Neither correction changes FS
 code, oracle inputs or the split source fix.
+
+## Final scoped replay
+
+`final-author60.tap`: 60 passed, zero failures/skips (historical43 with one corrected
+expectation, one new native aggregate test, and16 additional contract tests).
+`native-final.json` matches all22 backend-case observations; initial/final fixture,
+argv and native profile snapshots are exactly equal. This is not an independent
+verifier run. `final-noEmit.log` and `final-build.log` are successful empty logs;
+the noEmit/build/consumer exit codes are recorded in `final-manifest.json`.
+`final-compiled-consumer.jsonl` preserves both binary and dangling-link consumers.
+The isolated build emitted88 files for44 imported modules into the owned ignored
+`.build` directory only. Hashes were captured and `.build` then removed. No owned
+native scratch remains. Source-only opt-in/default60 scope is unchanged.

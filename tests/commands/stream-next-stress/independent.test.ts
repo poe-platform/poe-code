@@ -114,8 +114,16 @@ test("frozen native primary inputs on MemoryFS and explicit-root RealFS", { time
     const fs = await filesystem(backend);
     await setup(fs, record.fixture.files);
     const instance = shell(fs, record.fixture.locale);
+    const observedOutput: Uint8Array[] = [];
+    const observedError: Uint8Array[] = [];
     try {
-      const result = await instance.exec([record.fixture.command, ...record.fixture.args].map(quote).join(" "), { stdin: fragmented(Buffer.from(record.fixture.stdin, "base64")) });
+      const result = await instance.exec([record.fixture.command, ...record.fixture.args].map(quote).join(" "), {
+        stdin: fragmented(Buffer.from(record.fixture.stdin, "base64")),
+        stdout: { async write(chunk) { observedOutput.push(new Uint8Array(chunk)); } },
+        stderr: { async write(chunk) { observedError.push(new Uint8Array(chunk)); } },
+      });
+      assert.equal(base64(result.stdoutBytes), base64(Buffer.concat(observedOutput)));
+      assert.equal(base64(result.stderrBytes), base64(Buffer.concat(observedError)));
       const actual = { status: result.exitCode, stdout: base64(result.stdoutBytes), stderr: base64(result.stderrBytes), after: await snapshot(fs) };
       const comparison = compare(record, actual, backend);
       comparisons.push(comparison);
@@ -123,7 +131,7 @@ test("frozen native primary inputs on MemoryFS and explicit-root RealFS", { time
       const secondary = native.records.find(candidate => candidate.id === record.id && candidate.profile === "apple" && record.profile !== "apple");
       if (secondary) comparisons.push(compare(secondary, actual, backend));
     } catch (error) {
-      const actual = { status: null, stdout: "", stderr: "", after: await snapshot(fs), thrown: error instanceof Error ? error.stack ?? error.message : String(error) };
+      const actual = { status: null, stdout: base64(Buffer.concat(observedOutput)), stderr: base64(Buffer.concat(observedError)), after: await snapshot(fs), thrown: error instanceof Error ? error.stack ?? error.message : String(error) };
       comparisons.push(compare(record, actual, backend));
       failures.push(`${backend}:${record.id}:thrown (no returned byte result; not fabricated status)`);
     } finally { await instance.dispose(); }
@@ -207,7 +215,7 @@ contract("byte producer reuse and delayed sink backpressure preserve publication
       active -= 1;
     } } });
     assert.equal(result.exitCode, 0);
-    const expected = Array.from({ length: 3000 }, (_, index) => String(index + 1).split("").reverse().join("")).join("\n") + "\n";
+    const expected = Array.from({ length: 3000 }, (_unused, index) => String(index + 1).split("").reverse().join("")).join("\n") + "\n";
     assert.equal(result.stdout, expected);
     assert.ok(references.length > 0);
     for (const reference of references) assert.deepEqual(reference.chunk, reference.copy);
@@ -342,7 +350,7 @@ function intercept(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
 contract("split large reusable producer chunks use owned bounded VFS writes", async () => {
   const fs = await filesystem("memory");
   const references: { chunk: Uint8Array; copy: Uint8Array }[] = [];
-  const input = Uint8Array.from({ length: 65_541 }, (_, index) => index % 251);
+  const input = Uint8Array.from({ length: 65_541 }, (_unused, index) => index % 251);
   let active = 0;
   let peak = 0;
   const wrapped = intercept(fs, { writeStream: async (path: string, source: ByteSource, options: WriteFileOptions = {}) => {

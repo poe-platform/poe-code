@@ -1,0 +1,64 @@
+{
+  "label": "primary-5.3",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/shell-stress/diagnostic-profiles/compatibility.test.ts"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIAGNOSTIC_PROFILE": "primary-5.3"
+  },
+  "timeout": 240000,
+  "maxBuffer": 16777216,
+  "pid": 21957,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 21329,
+  "counts": {
+    "tests": 89,
+    "pass": 89,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cohortCounts": {
+    "original-differential": {
+      "tests": 72,
+      "pass": 72,
+      "fail": 0
+    },
+    "original-syntax": {
+      "tests": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    "current-gaps": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "identity": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "hookFailures": 0,
+  "failures": [],
+  "stdoutSha256": "21fc0e57c29af6871ccfd61cd08dce1a2b9cca0d2ab1306099ef1e46272e9d30",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "processGroupClosed": true
+}

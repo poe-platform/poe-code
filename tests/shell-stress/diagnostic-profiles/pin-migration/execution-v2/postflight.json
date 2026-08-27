@@ -1,0 +1,9 @@
+{
+  "candidate": "96146732cc7e17a67797389de5b83d14b29b41bf",
+  "copiedInputsUnchanged": 235,
+  "copiedAndInstalledToolingUnchanged": true,
+  "nativeBinariesUnchanged": true,
+  "canonicalFrozenFilesUnchanged": 22,
+  "liveHeadAtFinish": "96146732cc7e17a67797389de5b83d14b29b41bf",
+  "dirtyStatusAtFinish": " M package.json\n M scripts/verify-current-consumers.mjs\n M tests/plugins/qualified-current-release/consumers.mjs\n M tests/plugins/qualified-current-release/inventory.json\n M tests/shell/invocation-cleanup-public.test.ts\n M tsconfig.json\n?? benchmarks/reports/current-comparison-20260827/execution-review/\n?? benchmarks/reports/current-comparison-20260827/execution/\n?? scripts/typecheck-consumers.mjs\n?? scripts/typecheck-inputs.mjs\n?? scripts/typecheck.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/plugins/qualified-current-release/captured-types.json\n?? tests/plugins/qualified-current-release/negative-env-split.stdout\n?? tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/\n?? tests/shell-stress/env-split-gate-routing/\n?? tests/shell-stress/invocation-cleanup-runtime/migration/\n"
+}

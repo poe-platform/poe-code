@@ -1,0 +1,267 @@
+{
+  "sealedAt": "2026-08-27T12:12:35.070Z",
+  "candidate": "96146732cc7e17a67797389de5b83d14b29b41bf",
+  "firstCandidate": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+  "liveHeadAtSeal": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+  "sourceEvidenceAggregate": "92b1d95473f813df0f0e827df70da8c8e5d350da08c5b27a337345ec2b3e193c",
+  "files": {
+    "tests/shell-stress/diagnostic-profiles/pin-migration/ATTEMPT-1.md": {
+      "sha256": "c08c4a70ee397740991be611ca8f528507d1619b01df0e4d61dd4d44011f5d29",
+      "bytes": 1448
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/authenticate.mjs": {
+      "sha256": "076a9a5befa1730571a3bc3ce2738d909d7a9601ba18c3776f87969737a46876",
+      "bytes": 8592
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/authentication.json": {
+      "sha256": "cc84ae287b9eb768a55392196bf759df637dc1c91951ef2e2b888368177637d0",
+      "bytes": 54806
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts": {
+      "sha256": "cd5b259167c58b9a828d15b2f7e187ad4f71c4ff4a1f92bd638fb3c649c9bf2d",
+      "bytes": 4448
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts": {
+      "sha256": "0c57db0de94c74d164401098a24f527367fb6279bd63250971d188b35092da46",
+      "bytes": 1816
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/driver-delta.diff": {
+      "sha256": "10aa629424a59a4c308cef544de051099a5b2e448b89f600b140c51a95accaf1",
+      "bytes": 2900
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/binding-controls.json": {
+      "sha256": "dc7b827553a83c778892d4206fb4d257fde65d0ec6f500c662fa8115dd58eb6a",
+      "bytes": 1877
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/binding-controls.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/binding-controls.stdout.tap": {
+      "sha256": "b33251225a02501cbf8431693f5d18d786324515ea5dc7736a9c58e68ceb9694",
+      "bytes": 10072
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/historical-3.2.json": {
+      "sha256": "0a30a165a57bfadb791809296bed64e88e92192a5cd0101b016d80bbb4607bf9",
+      "bytes": 2779
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/historical-3.2.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/historical-3.2.stdout.tap": {
+      "sha256": "b45b54efca835d3ee350e0713957dfc34f2562f72abf2f7d4030a9628767e4d1",
+      "bytes": 48706
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/prerequisites.json": {
+      "sha256": "8f24e50fa168a4cf608b8e90165a4563eb1f00ca8a3307e905caf648595c09f5",
+      "bytes": 75783
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/primary-5.3.json": {
+      "sha256": "a4cc575f794573d2f931b8bf1ab890dd3a0108a2026f3077dd21edc6db0223b1",
+      "bytes": 1598
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/primary-5.3.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/primary-5.3.stdout.tap": {
+      "sha256": "f2b3b19ae34304900c430149411d98cf27c6f2e81ecd693f61d66fd28fa233a3",
+      "bytes": 20893
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution/summary.json": {
+      "sha256": "c79decdc06f620b339fad192578d65d03900977435fd9bc32c201477b5397bae",
+      "bytes": 8416
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/binding-controls.json": {
+      "sha256": "e47013d72e2324eb68a31b4ee4d881636faeebfd7d1c1d61f6ab281e2a59bcb5",
+      "bytes": 1625
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/binding-controls.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/binding-controls.stdout.tap": {
+      "sha256": "3e026b5e7639ca5238574a07236aa709ae9ce54f744130167dec828d6225d27f",
+      "bytes": 1425
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-3.2.json": {
+      "sha256": "9901ad82cb00de34d1d9a26342248788396f7e99c9532c1b28fb3b426ee20691",
+      "bytes": 2779
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-3.2.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-3.2.stdout.tap": {
+      "sha256": "dc49fe845e8eb93fa23cdb2cef0c0b60c5d2e00a490c707eaabfdad546b9e6c5",
+      "bytes": 48774
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-guard-replay.json": {
+      "sha256": "677dd6ff5b4ccec116ccf56043863939e02d83e1a4d497485d4e831d4c70566e",
+      "bytes": 1732
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-guard-replay.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/historical-guard-replay.stdout.tap": {
+      "sha256": "90f406fa0c48bc96e9a3395dc2528147cc99bb8df504ac558aae309912b16a30",
+      "bytes": 55
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-1.json": {
+      "sha256": "55644e8870a65ae049e64e2b0f0c848f0c590d854a5e62732a38324419351580",
+      "bytes": 9423
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-1.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-1.stdout.tap": {
+      "sha256": "ac0d3743f4fb6b1228c98d05cc2c040852d46f0d9528fee3bcb105a46ae1933d",
+      "bytes": 182873
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-2.json": {
+      "sha256": "ee8d2e4b2a904208fda8e1ff1af8805cdb22b73d13e105e311f3fe9a81e62f51",
+      "bytes": 9423
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-2.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/mutated-driver-2.stdout.tap": {
+      "sha256": "b7aeb913907dbbabb05aebe6a731a367618b96e4aac24f0f85bc12dde99c028d",
+      "bytes": 184122
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/postflight.json": {
+      "sha256": "2ffe9548e35ebf9579a8fbbe8c7345b94d3c43ccfdc83df59b6b87ff47f870e7",
+      "bytes": 1198
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/prerequisites.json": {
+      "sha256": "481e909a351533d6707b1d10a4a7af49de9fcd165adc633cc6b042036a04ad07",
+      "bytes": 75783
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/primary-5.3.json": {
+      "sha256": "6c89df6bb951b5ba8950ae5f276c41fa180230df29f28b579e118d7c15b8665a",
+      "bytes": 1598
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/primary-5.3.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/primary-5.3.stdout.tap": {
+      "sha256": "21fc0e57c29af6871ccfd61cd08dce1a2b9cca0d2ab1306099ef1e46272e9d30",
+      "bytes": 20895
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/execution-v2/summary.json": {
+      "sha256": "9d66176bae0d382208f83c43df2586640c4837ec344859323951f7a71da3871c",
+      "bytes": 29397
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/original-89.tap": {
+      "sha256": "be79c19f8417ec34e1260fb2dc15fb96d7bfd80555e5ee9460b1b62e09bce586",
+      "bytes": 147522
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/README.md": {
+      "sha256": "09fd44ea5bdddde06aa7fe24cc61ad689542c3b2e453c2dbc0722f0b6fbcd45a",
+      "bytes": 3315
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/RESULTS.md": {
+      "sha256": "8bf95902ba74d1bf1c9ce24306eb9a408faf86a8923b002d7ffb5c7d84b1830b",
+      "bytes": 6289
+    },
+    "tests/shell-stress/diagnostic-profiles/pin-migration/run.mjs": {
+      "sha256": "287ac70b1517475ef38f5705786df7b6927fdfd392dc2e393a6d572903cd1702",
+      "bytes": 12955
+    },
+    "tests/shell-stress/diagnostic-profiles/profile.ts": {
+      "sha256": "f72cc1e1cb9b6b3e943e93ab814171602ce26a92d554cf7016da75d23e359906",
+      "bytes": 7743
+    },
+    "tests/shell-stress/diagnostic-profiles/compatibility.test.ts": {
+      "sha256": "aa480a26b245b51a2998c6a809b1fcc12bc336d024d01ba8d43cd000f3a9070f",
+      "bytes": 1141
+    }
+  },
+  "finalCounts": [
+    {
+      "label": "primary-5.3",
+      "status": 0,
+      "counts": {
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hookFailures": 0
+    },
+    {
+      "label": "historical-3.2",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hookFailures": 0
+    },
+    {
+      "label": "binding-controls",
+      "status": 0,
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hookFailures": 0
+    },
+    {
+      "label": "mutated-driver-1",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 0,
+        "fail": 89,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hookFailures": 89
+    },
+    {
+      "label": "mutated-driver-2",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 0,
+        "fail": 89,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hookFailures": 89
+    },
+    {
+      "label": "historical-guard-replay",
+      "status": 0,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "hookFailures": 0
+    }
+  ],
+  "independentAcceptance": false,
+  "scope": "Exactly two current diagnostic driver bindings; historical seals and all original89 assertions preserved"
+}

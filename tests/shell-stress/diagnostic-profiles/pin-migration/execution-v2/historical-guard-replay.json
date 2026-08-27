@@ -1,0 +1,64 @@
+{
+  "label": "historical-guard-replay",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "import { validateFrozenProfile } from './tests/shell-stress/diagnostic-profiles/profile.ts'; validateFrozenProfile(); console.log('Historical guard accepted sealed original driver bytes');"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIAGNOSTIC_PROFILE": "primary-5.3"
+  },
+  "timeout": 240000,
+  "maxBuffer": 16777216,
+  "pid": 23724,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 107,
+  "counts": {
+    "tests": -1,
+    "pass": -1,
+    "fail": -1,
+    "cancelled": -1,
+    "skipped": -1,
+    "todo": -1
+  },
+  "cohortCounts": {
+    "original-differential": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "original-syntax": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "current-gaps": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "identity": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    }
+  },
+  "hookFailures": 0,
+  "failures": [],
+  "stdoutSha256": "90f406fa0c48bc96e9a3395dc2528147cc99bb8df504ac558aae309912b16a30",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "processGroupClosed": true
+}

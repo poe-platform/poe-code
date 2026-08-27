@@ -1,0 +1,544 @@
+TAP version 13
+# Subtest: primary-5.3: pinned identity and original native lifecycle control
+ok 1 - primary-5.3: pinned identity and original native lifecycle control
+  ---
+  duration_ms: 212.684834
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+ok 2 - primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+  ---
+  duration_ms: 334.976083
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+ok 3 - primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+  ---
+  duration_ms: 234.151958
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+ok 4 - primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+  ---
+  duration_ms: 233.989917
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+ok 5 - primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+  ---
+  duration_ms: 218.778125
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: group-redirection-is-restored-after-return
+ok 6 - primary-5.3: original-differential: group-redirection-is-restored-after-return
+  ---
+  duration_ms: 216.986875
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+ok 7 - primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+  ---
+  duration_ms: 220.036
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+ok 8 - primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+  ---
+  duration_ms: 224.031542
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+ok 9 - primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+  ---
+  duration_ms: 221.599584
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+ok 10 - primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+  ---
+  duration_ms: 230.847792
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+ok 11 - primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+  ---
+  duration_ms: 246.823833
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+ok 12 - primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+  ---
+  duration_ms: 225.042291
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+ok 13 - primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+  ---
+  duration_ms: 219.3885
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+ok 14 - primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+  ---
+  duration_ms: 219.962375
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+ok 15 - primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+  ---
+  duration_ms: 219.481333
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+ok 16 - primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+  ---
+  duration_ms: 225.734375
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+ok 17 - primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+  ---
+  duration_ms: 223.443
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+ok 18 - primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+  ---
+  duration_ms: 221.357167
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+ok 19 - primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+  ---
+  duration_ms: 223.781791
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+ok 20 - primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+  ---
+  duration_ms: 230.817125
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+ok 21 - primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+  ---
+  duration_ms: 230.131541
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+ok 22 - primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+  ---
+  duration_ms: 236.988916
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+ok 23 - primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+  ---
+  duration_ms: 244.570625
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+ok 24 - primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+  ---
+  duration_ms: 237.600667
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+ok 25 - primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+  ---
+  duration_ms: 224.014084
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+ok 26 - primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+  ---
+  duration_ms: 232.445292
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+ok 27 - primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+  ---
+  duration_ms: 235.90175
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+ok 28 - primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+  ---
+  duration_ms: 229.744583
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+ok 29 - primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+  ---
+  duration_ms: 234.088417
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+ok 30 - primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+  ---
+  duration_ms: 227.135209
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+ok 31 - primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+  ---
+  duration_ms: 225.669792
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+ok 32 - primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+  ---
+  duration_ms: 216.59675
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+ok 33 - primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+  ---
+  duration_ms: 226.392458
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: last-assignment-substitution-status-wins
+ok 34 - primary-5.3: original-differential: last-assignment-substitution-status-wins
+  ---
+  duration_ms: 230.181167
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+ok 35 - primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+  ---
+  duration_ms: 218.475709
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+ok 36 - primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+  ---
+  duration_ms: 231.834959
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+ok 37 - primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+  ---
+  duration_ms: 229.953917
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+ok 38 - primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+  ---
+  duration_ms: 231.620084
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+ok 39 - primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+  ---
+  duration_ms: 234.489292
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+ok 40 - primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+  ---
+  duration_ms: 241.746792
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+ok 41 - primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+  ---
+  duration_ms: 240.721292
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+ok 42 - primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+  ---
+  duration_ms: 229.659416
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+ok 43 - primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+  ---
+  duration_ms: 224.891042
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: multiple-heredocs-last-input-wins
+ok 44 - primary-5.3: original-differential: multiple-heredocs-last-input-wins
+  ---
+  duration_ms: 230.390083
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+ok 45 - primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+  ---
+  duration_ms: 221.061542
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+ok 46 - primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+  ---
+  duration_ms: 235.827125
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+ok 47 - primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+  ---
+  duration_ms: 228.451292
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+ok 48 - primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+  ---
+  duration_ms: 231.520042
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+ok 49 - primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+  ---
+  duration_ms: 229.967709
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+ok 50 - primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+  ---
+  duration_ms: 236.262917
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+ok 51 - primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+  ---
+  duration_ms: 235.940291
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+ok 52 - primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 238.60425
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+ok 53 - primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 240.454291
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+ok 54 - primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+  ---
+  duration_ms: 221.149375
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+ok 55 - primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+  ---
+  duration_ms: 237.642542
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+ok 56 - primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+  ---
+  duration_ms: 248.95325
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+ok 57 - primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+  ---
+  duration_ms: 243.827208
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+ok 58 - primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+  ---
+  duration_ms: 217.021708
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+ok 59 - primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+  ---
+  duration_ms: 231.852916
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+ok 60 - primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+  ---
+  duration_ms: 225.4355
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+ok 61 - primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+  ---
+  duration_ms: 233.641625
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: glob-posix-bracket-digit-class
+ok 62 - primary-5.3: original-differential: glob-posix-bracket-digit-class
+  ---
+  duration_ms: 245.840958
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-removes-nul-bytes
+ok 63 - primary-5.3: original-differential: command-substitution-removes-nul-bytes
+  ---
+  duration_ms: 228.774459
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+ok 64 - primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+  ---
+  duration_ms: 219.837083
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: local-without-assignment-starts-unset
+ok 65 - primary-5.3: original-differential: local-without-assignment-starts-unset
+  ---
+  duration_ms: 216.79025
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+ok 66 - primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+  ---
+  duration_ms: 237.375375
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+ok 67 - primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+  ---
+  duration_ms: 225.820166
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+ok 68 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+  ---
+  duration_ms: 246.303583
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+ok 69 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+  ---
+  duration_ms: 246.970709
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+ok 70 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+  ---
+  duration_ms: 249.427333
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+ok 71 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+  ---
+  duration_ms: 251.629542
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+ok 72 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+  ---
+  duration_ms: 241.795125
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+ok 73 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+  ---
+  duration_ms: 249.494875
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-syntax: unterminated-quote-after-write
+ok 74 - primary-5.3: original-syntax: unterminated-quote-after-write
+  ---
+  duration_ms: 235.278958
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-syntax: missing-pipeline-command-after-write
+ok 75 - primary-5.3: original-syntax: missing-pipeline-command-after-write
+  ---
+  duration_ms: 232.947583
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-syntax: missing-conditional-operand-after-write
+ok 76 - primary-5.3: original-syntax: missing-conditional-operand-after-write
+  ---
+  duration_ms: 227.630209
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-syntax: missing-group-terminator-after-write
+ok 77 - primary-5.3: original-syntax: missing-group-terminator-after-write
+  ---
+  duration_ms: 217.527584
+  type: 'test'
+  ...
+# Subtest: primary-5.3: original-syntax: missing-if-fi-after-write
+ok 78 - primary-5.3: original-syntax: missing-if-fi-after-write
+  ---
+  duration_ms: 213.288417
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: move-output-really-closes-source
+ok 79 - primary-5.3: current-gaps: move-output-really-closes-source
+  ---
+  duration_ms: 226.134458
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: move-input-really-closes-source
+ok 80 - primary-5.3: current-gaps: move-input-really-closes-source
+  ---
+  duration_ms: 221.992334
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+ok 81 - primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+  ---
+  duration_ms: 234.499416
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-empty-selects-nul
+ok 82 - primary-5.3: current-gaps: read-d-empty-selects-nul
+  ---
+  duration_ms: 229.130625
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+ok 83 - primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+  ---
+  duration_ms: 225.591334
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+ok 84 - primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+  ---
+  duration_ms: 221.711958
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+ok 85 - primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+  ---
+  duration_ms: 228.845375
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+ok 86 - primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+  ---
+  duration_ms: 223.035
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: prevalidation-prior-output-and-file
+ok 87 - primary-5.3: current-gaps: prevalidation-prior-output-and-file
+  ---
+  duration_ms: 224.1955
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+ok 88 - primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+  ---
+  duration_ms: 232.651083
+  type: 'test'
+  ...
+# Subtest: primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+ok 89 - primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+  ---
+  duration_ms: 221.829375
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 89
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21302.868958

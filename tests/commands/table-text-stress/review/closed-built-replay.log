@@ -1,0 +1,18 @@
+{
+  "publicExportsAndRegistration": "pass",
+  "results": [
+    {
+      "mode": "pipeline",
+      "fixtures": 71,
+      "nativeMatches": 70,
+      "knownDifferences": 1
+    },
+    {
+      "mode": "redirection",
+      "fixtures": 71,
+      "nativeMatches": 70,
+      "knownDifferences": 1
+    }
+  ],
+  "limitation": "Reviewer replay of existing frozen inputs, not the unavailable original six built-check script."
+}

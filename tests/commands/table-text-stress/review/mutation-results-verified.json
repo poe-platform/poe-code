@@ -1,0 +1,147 @@
+{
+  "baseline": {
+    "name": "mutation-baseline",
+    "args": [
+      "tests/commands/table-text-stress/corpus.test.ts",
+      "tests/commands/table-text/contracts.test.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "logSha256": "0474abbb2975399a7be812291ebf5cbb8472d60b239ca57970748259335e8e25",
+    "pass": 108,
+    "fail": 0,
+    "assertions": [],
+    "semanticAssertion": false
+  },
+  "results": [
+    {
+      "name": "mutation-shared-cursor",
+      "args": [
+        "--test-name-pattern",
+        "independent frozen GNU: paste shared alternating empty EOF",
+        "tests/commands/table-text-stress/corpus.test.ts",
+        "tests/commands/table-text/contracts.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "logSha256": "469bb3e87c05ac336b4beb34ee40826b8df1208a5ea26aae2445855442c772a2",
+      "pass": 1,
+      "fail": 1,
+      "assertions": [
+        "independent frozen GNU: paste shared alternating empty EOF"
+      ],
+      "semanticAssertion": true,
+      "mutation": {
+        "name": "shared-cursor",
+        "from": "    if (name === \"-\" && this.stdin) return this.stdin;",
+        "to": "    if (false && name === \"-\" && this.stdin) return this.stdin;",
+        "pattern": "independent frozen GNU: paste shared alternating empty EOF"
+      },
+      "mutatedSourceSha256": "6f09b5341012da97845382d7aadb5d51861ba2f2df29a444ba22070220da2f36",
+      "killed": true
+    },
+    {
+      "name": "mutation-byte-fidelity",
+      "args": [
+        "--test-name-pattern",
+        "independent frozen GNU: paste NUL shared invalid bytes",
+        "tests/commands/table-text-stress/corpus.test.ts",
+        "tests/commands/table-text/contracts.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "logSha256": "d46d4ecc027dec2a08cbcd70d9ee1cf0af18258a9e461665b19ed032a857d777",
+      "pass": 1,
+      "fail": 1,
+      "assertions": [
+        "independent frozen GNU: paste NUL shared invalid bytes"
+      ],
+      "semanticAssertion": true,
+      "mutation": {
+        "name": "byte-fidelity",
+        "from": "        this.chunk = Uint8Array.from(result.value);",
+        "to": "        this.chunk = new TextEncoder().encode(new TextDecoder().decode(result.value));",
+        "pattern": "independent frozen GNU: paste NUL shared invalid bytes"
+      },
+      "mutatedSourceSha256": "5ff32cf0d9f06895a0c556b1a60a70aa4d4a1f0dfefb36aa753bb51fe4faee9e",
+      "killed": true
+    },
+    {
+      "name": "mutation-byte-order",
+      "args": [
+        "--test-name-pattern",
+        "independent frozen GNU: comm C byte collation",
+        "tests/commands/table-text-stress/corpus.test.ts",
+        "tests/commands/table-text/contracts.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "logSha256": "e98449ba4084b695b55fdac50d736c26a174011758aa09652af54563993e68c0",
+      "pass": 1,
+      "fail": 1,
+      "assertions": [
+        "independent frozen GNU: comm C byte collation"
+      ],
+      "semanticAssertion": true,
+      "mutation": {
+        "name": "byte-order",
+        "from": "    if (first !== second) return first - second;",
+        "to": "    if (first !== second) return second - first;",
+        "pattern": "independent frozen GNU: comm C byte collation"
+      },
+      "mutatedSourceSha256": "160b0d2ac151f75382b22c98d12290b947e748c03d192588d2c63c23230b5ce3",
+      "killed": true
+    },
+    {
+      "name": "mutation-borrowed-buffer",
+      "args": [
+        "--test-name-pattern",
+        "records retain Buffer fragments after producer reuse",
+        "tests/commands/table-text-stress/corpus.test.ts",
+        "tests/commands/table-text/contracts.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "logSha256": "6ade212da9d6bdabff9650b0a65e66cc78fa4fd4c04c80288a0af7f940e51ebb",
+      "pass": 1,
+      "fail": 3,
+      "assertions": [
+        "paste: records retain Buffer fragments after producer reuse",
+        "comm: records retain Buffer fragments after producer reuse",
+        "join: records retain Buffer fragments after producer reuse"
+      ],
+      "semanticAssertion": true,
+      "mutation": {
+        "name": "borrowed-buffer",
+        "from": "        this.chunk = Uint8Array.from(result.value);",
+        "to": "        this.chunk = result.value.slice();",
+        "pattern": "records retain Buffer fragments after producer reuse"
+      },
+      "mutatedSourceSha256": "aaaba3d981dfbdc93ab536e3958876029095c45a74418071c77be5f017dc2157",
+      "killed": true
+    }
+  ],
+  "restored": {
+    "name": "mutation-restored",
+    "args": [
+      "tests/commands/table-text-stress/corpus.test.ts",
+      "tests/commands/table-text/contracts.test.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "logSha256": "b5d7431c31b928a929c67e8a03712674754712900db1b7ca2ffec5307a4e2314",
+    "pass": 108,
+    "fail": 0,
+    "assertions": [],
+    "semanticAssertion": false
+  },
+  "pristineSourceSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+  "afterSourceSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+  "inputDrift": []
+}

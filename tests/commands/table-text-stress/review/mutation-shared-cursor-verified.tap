@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: independent frozen GNU: paste shared alternating empty EOF
+not ok 1 - independent frozen GNU: paste shared alternating empty EOF
+  ---
+  duration_ms: 8.809792
+  type: 'test'
+  location: '/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text-stress/corpus.test.ts:1:351'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '094c09090a61094d09090a094e09090a6c6173740909090a'
+    - '094c0961090a6c617374094d09090a094e09090a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '094c0961090a6c617374094d09090a094e09090a'
+  actual: '094c09090a61094d09090a094e09090a6c6173740909090a'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text-stress/corpus.test.ts:15:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..0
+# Subtest: tests/commands/table-text/contracts.test.ts
+ok 2 - tests/commands/table-text/contracts.test.ts
+  ---
+  duration_ms: 110.300833
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.81075

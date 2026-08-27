@@ -1,0 +1,1439 @@
+{
+  "candidate": "b9559de5c62fb679c8558fc2444ecb99f1d9eee1",
+  "startedAt": "2026-08-27T12:30:59.190Z",
+  "node": "v22.22.2",
+  "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "arch": "arm64",
+  "checks": [
+    {
+      "name": "cold-npm-command-exits78-without-compiler",
+      "status": "pass"
+    },
+    {
+      "name": "qualified-npm-command-builds-once-and-compiles-all-declared-consumers",
+      "status": "pass"
+    },
+    {
+      "name": "compiler-includes-current-contracts-neighbors-and-all-source-consumers",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(inputs.has(join(snapshot, entry.originalPath)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:175:110\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:40:25)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:172:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    },
+    {
+      "name": "all-capture-bytes-and-provenance-authenticate",
+      "status": "pass"
+    },
+    {
+      "name": "capture-tampering-cannot-be-excluded-silently",
+      "status": "pass"
+    },
+    {
+      "name": "new-directory-exclusion-rejected-before-compiler",
+      "status": "pass"
+    },
+    {
+      "name": "omitting-current-test-include-rejected-before-compiler",
+      "status": "pass"
+    },
+    {
+      "name": "unknown-tracked-mts-cannot-enter-unclassified",
+      "status": "pass"
+    },
+    {
+      "name": "removing-current-mts-route-is-rejected",
+      "status": "pass"
+    },
+    {
+      "name": "missing-current-ts-consumer-is-rejected",
+      "status": "pass"
+    },
+    {
+      "name": "missing-current-mts-consumer-is-rejected",
+      "status": "pass"
+    },
+    {
+      "name": "missing-current-contract-is-rejected",
+      "status": "pass"
+    },
+    {
+      "name": "missing-public-built-subpath-requires-build",
+      "status": "pass"
+    },
+    {
+      "name": "real-current-source-type-error-blocks-build-before-consumers",
+      "status": "pass"
+    },
+    {
+      "name": "new-ts-neighbor-beside-historical-data-is-typechecked",
+      "status": "pass"
+    },
+    {
+      "name": "current-source-consumer-error-still-rejected-strictly",
+      "status": "pass"
+    },
+    {
+      "name": "actual-moved-consumer-rejects-missing-public-export",
+      "status": "pass"
+    },
+    {
+      "name": "source-consumer-package-resolution-rejects-repository-src",
+      "status": "pass"
+    },
+    {
+      "name": "moved-consumer-all-public-imports-bind-to-copied-current-package",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: mixed real copied-package / alternate-build binding must not pass\n\n0 !== 2\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:265:14\n    at mutate (file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:49:12)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:260:54\n    at mutate (file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:49:12)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:260:5\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:40:25)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827/audit.mjs:251:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    },
+    {
+      "name": "existing-mandatory-runtime-coverage-controls-unchanged",
+      "status": "pass"
+    },
+    {
+      "name": "complete-archived-source-tools-and-build-unchanged-after-controls",
+      "status": "pass"
+    }
+  ],
+  "commands": [
+    {
+      "label": "resolve-candidate",
+      "executable": "git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "b9559de5c62fb679c8558fc2444ecb99f1d9eee1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "resolve-candidate.stdout.gz.base64",
+        "bytes": 41,
+        "sha256": "b9634a66d6d84d2389c1a17213950655dcd38fd5fbcf7116d94e659764f39135"
+      },
+      "stderr": {
+        "path": "resolve-candidate.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "resolve-tree",
+      "executable": "git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "b9559de5c62fb679c8558fc2444ecb99f1d9eee1^{tree}"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "resolve-tree.stdout.gz.base64",
+        "bytes": 41,
+        "sha256": "eed88ff29a75b5c1db5a53bc3328b9b3d19fbe69ed4d8b1cc1d4128e7969279e"
+      },
+      "stderr": {
+        "path": "resolve-tree.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "extract",
+      "executable": "tar",
+      "args": [
+        "-xf",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/source.tar",
+        "-C",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/candidate"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "extract.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "extract.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "isolated-git-init",
+      "executable": "git",
+      "args": [
+        "init",
+        "-q"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "isolated-git-init.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "isolated-git-init.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "isolated-index",
+      "executable": "git",
+      "args": [
+        "read-tree",
+        "b9559de5c62fb679c8558fc2444ecb99f1d9eee1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "isolated-index.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "isolated-index.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "tracked-inputs",
+      "executable": "git",
+      "args": [
+        "ls-files",
+        "-z"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "tracked-inputs.stdout.gz.base64",
+        "bytes": 1943790,
+        "sha256": "e9c821f0fd05d0b77ca79a1f3ec037b275ff37dbe4fecdf97ac5ea830b4311e3"
+      },
+      "stderr": {
+        "path": "tracked-inputs.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "cold",
+      "executable": "npm",
+      "args": [
+        "run",
+        "typecheck",
+        "--",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/cold"
+      ],
+      "status": 78,
+      "signal": null,
+      "stdout": {
+        "path": "cold.stdout.gz.base64",
+        "bytes": 283,
+        "sha256": "d13c2cda397c720667f4f42250fa283b8ff0464469d6f53b9e0d578911dcdbae"
+      },
+      "stderr": {
+        "path": "cold.stderr.gz.base64",
+        "bytes": 221,
+        "sha256": "77d0d5556f1c4f60d2a03d4ea6772eafcce1c59662a43d707e119483e5828f40"
+      }
+    },
+    {
+      "label": "combined",
+      "executable": "npm",
+      "args": [
+        "run",
+        "typecheck:all",
+        "--",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/combined"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "combined.stdout.gz.base64",
+        "bytes": 1635,
+        "sha256": "16a0ab514b7c4b5b16b27cdb9fa535aa6438add90de4b32caec23e30596c1a41"
+      },
+      "stderr": {
+        "path": "combined.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "input-discovery",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--listFilesOnly"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "input-discovery.stdout.gz.base64",
+        "bytes": 293722,
+        "sha256": "4736b71993e9a60d65a47bbb36f0ae151e62562e31662edb8cc26a34602a69be"
+      },
+      "stderr": {
+        "path": "input-discovery.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "capture-tamper",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/capture-tamper"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "capture-tamper.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "capture-tamper.stderr.gz.base64",
+        "bytes": 142,
+        "sha256": "b44519aea4be7e303b11c0f646fa3c93b2fee890ceb56379a372d64a7fd45ee6"
+      }
+    },
+    {
+      "label": "broad-exclusion",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/broad-exclusion"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "broad-exclusion.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "broad-exclusion.stderr.gz.base64",
+        "bytes": 459,
+        "sha256": "984b25c9832bbc02a907665a014f3cd65c4897ae05ddf95cfcfde0929aa42120"
+      }
+    },
+    {
+      "label": "missing-include",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/missing-include"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "missing-include.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "missing-include.stderr.gz.base64",
+        "bytes": 129,
+        "sha256": "01bfd54dfc8b80cc13334e93ef33d45d97336c3a132f85341e0bca5fbacfc583"
+      }
+    },
+    {
+      "label": "track-new-consumer",
+      "executable": "git",
+      "args": [
+        "add",
+        "--",
+        "tests/independent-unknown-current-consumer.mts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "track-new-consumer.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "track-new-consumer.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "unknown-consumer",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/unknown-consumer"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "unknown-consumer.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "unknown-consumer.stderr.gz.base64",
+        "bytes": 147,
+        "sha256": "931fc93d22b3864d900002bd91488e6db37841af76dbc19426052a79e0f1b539"
+      }
+    },
+    {
+      "label": "untrack-new-consumer",
+      "executable": "git",
+      "args": [
+        "update-index",
+        "--force-remove",
+        "--",
+        "tests/independent-unknown-current-consumer.mts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "untrack-new-consumer.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "untrack-new-consumer.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "removed-route",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/removed-route"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "removed-route.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "removed-route.stderr.gz.base64",
+        "bytes": 702,
+        "sha256": "f54157a9f77ca3adebf058481276082f417a4712821a6bba1e1d39e399f9237b"
+      }
+    },
+    {
+      "label": "missing-source-consumer",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/missing-source-consumer"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "missing-source-consumer.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "missing-source-consumer.stderr.gz.base64",
+        "bytes": 123,
+        "sha256": "aff14d6a906b078d536bf486bb049ff7d90dc5f179f35674f644efe15ae43c02"
+      }
+    },
+    {
+      "label": "missing-moved-consumer",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/missing-moved-consumer"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "missing-moved-consumer.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "missing-moved-consumer.stderr.gz.base64",
+        "bytes": 95,
+        "sha256": "614d65fc69478dbff4c56f7fa6fa9b9da0ea0dff3e6530f13a27fe95fb8ddff3"
+      }
+    },
+    {
+      "label": "missing-contract",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/missing-contract"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "missing-contract.stdout.gz.base64",
+        "bytes": 104,
+        "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+      },
+      "stderr": {
+        "path": "missing-contract.stderr.gz.base64",
+        "bytes": 67,
+        "sha256": "655c82b518c000addfbcd4e598ba5631904263fd12a3edf6b8f70d9a56feffbb"
+      }
+    },
+    {
+      "label": "missing-built-subpath",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/missing-built-subpath"
+      ],
+      "status": 78,
+      "signal": null,
+      "stdout": {
+        "path": "missing-built-subpath.stdout.gz.base64",
+        "bytes": 115,
+        "sha256": "55d79e5e7e72f1081bc480a2eef9d96a5d7655f172638a867c685b2e653c7008"
+      },
+      "stderr": {
+        "path": "missing-built-subpath.stderr.gz.base64",
+        "bytes": 220,
+        "sha256": "91e1baf12c2f634cecf72efb4b6b4bb4537a439d46cac798d942b0110e4bf2ba"
+      }
+    },
+    {
+      "label": "failed-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "scripts/typecheck.mjs",
+        "--build",
+        "--report",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/failed-build"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "failed-build.stdout.gz.base64",
+        "bytes": 223,
+        "sha256": "c973b99f36f9220cd37a0a9d2b6d7eac8ad55a5721cac4687f934f98672e2ef3"
+      },
+      "stderr": {
+        "path": "failed-build.stderr.gz.base64",
+        "bytes": 93,
+        "sha256": "c15e6f98f2fad09d724bdb824af7d49e00e832d94dc6ba5fcbc65296fc8fd5e0"
+      }
+    },
+    {
+      "label": "neighbor-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "neighbor-negative.stdout.gz.base64",
+        "bytes": 159,
+        "sha256": "0addbb4dc42544f2bc2181fb381c6c77be07e6192846aae1efc6104ad22ae773"
+      },
+      "stderr": {
+        "path": "neighbor-negative.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "source-consumer-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = true;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-source\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/source-consumer-negative\", compile);\n    writeFileSync(\"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/source-consumer-negative/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "source-consumer-negative.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "source-consumer-negative.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "moved-consumer-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = false;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-types\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/moved-consumer-negative\", compile);\n    writeFileSync(\"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/moved-consumer-negative/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "moved-consumer-negative.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "moved-consumer-negative.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "source-fallback-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = true;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-source\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/source-fallback-negative\", compile);\n    writeFileSync(\"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/source-fallback-negative/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "source-fallback-negative.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "source-fallback-negative.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "foreign-build-resolution",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = false;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-types\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/foreign-build-resolution\", compile);\n    writeFileSync(\"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/foreign-build-resolution/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "foreign-build-resolution.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "foreign-build-resolution.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "coverage-controls",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/integration/qualified-current-release-repair/coverage.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "coverage-controls.stdout.gz.base64",
+        "bytes": 4139,
+        "sha256": "fbcf51873a239e9a5ac990614ffdc37d62fec751719c029e4237d1e5c5a2004f"
+      },
+      "stderr": {
+        "path": "coverage-controls.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captures": [
+    {
+      "path": "resolve-candidate.stdout.gz.base64",
+      "bytes": 41,
+      "sha256": "b9634a66d6d84d2389c1a17213950655dcd38fd5fbcf7116d94e659764f39135"
+    },
+    {
+      "path": "resolve-candidate.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "resolve-tree.stdout.gz.base64",
+      "bytes": 41,
+      "sha256": "eed88ff29a75b5c1db5a53bc3328b9b3d19fbe69ed4d8b1cc1d4128e7969279e"
+    },
+    {
+      "path": "resolve-tree.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "extract.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "extract.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-git-init.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-git-init.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-index.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-index.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tracked-inputs.stdout.gz.base64",
+      "bytes": 1943790,
+      "sha256": "e9c821f0fd05d0b77ca79a1f3ec037b275ff37dbe4fecdf97ac5ea830b4311e3"
+    },
+    {
+      "path": "tracked-inputs.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-before.gz.base64",
+      "bytes": 5174135,
+      "sha256": "57ca330a241334eaa512161554e4020a854d13b7079b3f3c17efd8eaf896e0e9"
+    },
+    {
+      "path": "tools.gz.base64",
+      "bytes": 60939,
+      "sha256": "cd1e8c47d74fc98c31975adec71792fef3515c503fbb330ef9b6c64c7d5f5bc2"
+    },
+    {
+      "path": "cold.stdout.gz.base64",
+      "bytes": 283,
+      "sha256": "d13c2cda397c720667f4f42250fa283b8ff0464469d6f53b9e0d578911dcdbae"
+    },
+    {
+      "path": "cold.stderr.gz.base64",
+      "bytes": 221,
+      "sha256": "77d0d5556f1c4f60d2a03d4ea6772eafcce1c59662a43d707e119483e5828f40"
+    },
+    {
+      "path": "cold.report.gz.base64",
+      "bytes": 508,
+      "sha256": "29eb11ff12066f9b088327e7dab9db09dcd427bb787b5f518f6a56bc4f0b273a"
+    },
+    {
+      "path": "combined.stdout.gz.base64",
+      "bytes": 1635,
+      "sha256": "16a0ab514b7c4b5b16b27cdb9fa535aa6438add90de4b32caec23e30596c1a41"
+    },
+    {
+      "path": "combined.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "combined.report.gz.base64",
+      "bytes": 22537966,
+      "sha256": "23b7b7d736dcb3f970c5543b68c02fea3819cbfdcfe32cbb09f4f90dc52cfb33"
+    },
+    {
+      "path": "emitted.gz.base64",
+      "bytes": 124680,
+      "sha256": "12801a0b1723648ebab6826d4bb5ee1f06e388ca948f86b5e0b303223251f1f1"
+    },
+    {
+      "path": "input-discovery.stdout.gz.base64",
+      "bytes": 293722,
+      "sha256": "4736b71993e9a60d65a47bbb36f0ae151e62562e31662edb8cc26a34602a69be"
+    },
+    {
+      "path": "input-discovery.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture-tamper.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "capture-tamper.stderr.gz.base64",
+      "bytes": 142,
+      "sha256": "b44519aea4be7e303b11c0f646fa3c93b2fee890ceb56379a372d64a7fd45ee6"
+    },
+    {
+      "path": "capture-tamper.report.gz.base64",
+      "bytes": 421,
+      "sha256": "d45b58d120d485b5f59268a10733d578ab619a984d5f36bec86878c89160ee7b"
+    },
+    {
+      "path": "broad-exclusion.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "broad-exclusion.stderr.gz.base64",
+      "bytes": 459,
+      "sha256": "984b25c9832bbc02a907665a014f3cd65c4897ae05ddf95cfcfde0929aa42120"
+    },
+    {
+      "path": "broad-exclusion.report.gz.base64",
+      "bytes": 748,
+      "sha256": "52a563f63a27eaa17ca5381e2dc5e05c66976732a1fcef5be0a2214128f68875"
+    },
+    {
+      "path": "missing-include.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "missing-include.stderr.gz.base64",
+      "bytes": 129,
+      "sha256": "01bfd54dfc8b80cc13334e93ef33d45d97336c3a132f85341e0bca5fbacfc583"
+    },
+    {
+      "path": "missing-include.report.gz.base64",
+      "bytes": 412,
+      "sha256": "6891356cef979f8531c89e4daa4ad0f9bfeb5e5dde3d9d154c29547683ff24dc"
+    },
+    {
+      "path": "track-new-consumer.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "track-new-consumer.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "unknown-consumer.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "unknown-consumer.stderr.gz.base64",
+      "bytes": 147,
+      "sha256": "931fc93d22b3864d900002bd91488e6db37841af76dbc19426052a79e0f1b539"
+    },
+    {
+      "path": "unknown-consumer.report.gz.base64",
+      "bytes": 426,
+      "sha256": "9d53473ed8501f1dad41f0762be69d7612cb7dc4cd71c257382d1fbfade4ec66"
+    },
+    {
+      "path": "untrack-new-consumer.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "untrack-new-consumer.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "removed-route.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "removed-route.stderr.gz.base64",
+      "bytes": 702,
+      "sha256": "f54157a9f77ca3adebf058481276082f417a4712821a6bba1e1d39e399f9237b"
+    },
+    {
+      "path": "removed-route.report.gz.base64",
+      "bytes": 993,
+      "sha256": "37e2bcc75bf3328e2bf07ae4dfaa244d3c99b99144cbc7bf05a6e051608a9d56"
+    },
+    {
+      "path": "missing-source-consumer.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "missing-source-consumer.stderr.gz.base64",
+      "bytes": 123,
+      "sha256": "aff14d6a906b078d536bf486bb049ff7d90dc5f179f35674f644efe15ae43c02"
+    },
+    {
+      "path": "missing-source-consumer.report.gz.base64",
+      "bytes": 399,
+      "sha256": "e1509ea551e2bef0017a84e401374f94643886d37af62c729d74fd771f1df7cd"
+    },
+    {
+      "path": "missing-moved-consumer.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "missing-moved-consumer.stderr.gz.base64",
+      "bytes": 95,
+      "sha256": "614d65fc69478dbff4c56f7fa6fa9b9da0ea0dff3e6530f13a27fe95fb8ddff3"
+    },
+    {
+      "path": "missing-moved-consumer.report.gz.base64",
+      "bytes": 371,
+      "sha256": "65c417ee582d0df010e849c56df5923a401cc71f207b76be9de43b4fc7a203d3"
+    },
+    {
+      "path": "missing-contract.stdout.gz.base64",
+      "bytes": 104,
+      "sha256": "4b3178e1204f84cda0b838bcef9f964a067c51b07a270f20391b330ba3d65c19"
+    },
+    {
+      "path": "missing-contract.stderr.gz.base64",
+      "bytes": 67,
+      "sha256": "655c82b518c000addfbcd4e598ba5631904263fd12a3edf6b8f70d9a56feffbb"
+    },
+    {
+      "path": "missing-contract.report.gz.base64",
+      "bytes": 343,
+      "sha256": "204b0bc97ebbfde3c93e089ddbf28a1a14315f5f569be13f7ffc86de3d92d6cd"
+    },
+    {
+      "path": "missing-built-subpath.stdout.gz.base64",
+      "bytes": 115,
+      "sha256": "55d79e5e7e72f1081bc480a2eef9d96a5d7655f172638a867c685b2e653c7008"
+    },
+    {
+      "path": "missing-built-subpath.stderr.gz.base64",
+      "bytes": 220,
+      "sha256": "91e1baf12c2f634cecf72efb4b6b4bb4537a439d46cac798d942b0110e4bf2ba"
+    },
+    {
+      "path": "missing-built-subpath.report.gz.base64",
+      "bytes": 507,
+      "sha256": "54ad39416e2c199eb745b8c4d18e419bb7d886ed523c42a5b07238a513f537d7"
+    },
+    {
+      "path": "failed-build.stdout.gz.base64",
+      "bytes": 223,
+      "sha256": "c973b99f36f9220cd37a0a9d2b6d7eac8ad55a5721cac4687f934f98672e2ef3"
+    },
+    {
+      "path": "failed-build.stderr.gz.base64",
+      "bytes": 93,
+      "sha256": "c15e6f98f2fad09d724bdb824af7d49e00e832d94dc6ba5fcbc65296fc8fd5e0"
+    },
+    {
+      "path": "failed-build.report.gz.base64",
+      "bytes": 1962,
+      "sha256": "532b9a74e8964f6ba1c4c5eff0e68490e7ec8741ae7e4ccf60571d912f27c9e3"
+    },
+    {
+      "path": "neighbor-negative.stdout.gz.base64",
+      "bytes": 159,
+      "sha256": "0addbb4dc42544f2bc2181fb381c6c77be07e6192846aae1efc6104ad22ae773"
+    },
+    {
+      "path": "neighbor-negative.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-consumer-negative.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-consumer-negative.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-consumer-negative.report.gz.base64",
+      "bytes": 977414,
+      "sha256": "0f318dbe90c57b9a3fe78a7f97fb3614048ae03edc1f36c9ce45072e331d1fe9"
+    },
+    {
+      "path": "moved-consumer-negative.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "moved-consumer-negative.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "moved-consumer-negative.report.gz.base64",
+      "bytes": 1123913,
+      "sha256": "0a4640b9ca576ee66c5f4d3efc63899f73b80d3e925fece9881d8ec1560fa8fa"
+    },
+    {
+      "path": "source-fallback-negative.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-fallback-negative.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-fallback-negative.report.gz.base64",
+      "bytes": 1399816,
+      "sha256": "0940d8e85a384363cb2adf4f5d55d4bddaefb345eab27f130baf164c742afdca"
+    },
+    {
+      "path": "foreign-build-resolution.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "foreign-build-resolution.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "foreign-build-resolution.report.gz.base64",
+      "bytes": 1152861,
+      "sha256": "490afe17e36ad980b793b9e2f08e52e514ed53c510bac8fe0e97937a17c2765a"
+    },
+    {
+      "path": "coverage-controls.stdout.gz.base64",
+      "bytes": 4139,
+      "sha256": "fbcf51873a239e9a5ac990614ffdc37d62fec751719c029e4237d1e5c5a2004f"
+    },
+    {
+      "path": "coverage-controls.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-after.gz.base64",
+      "bytes": 5174135,
+      "sha256": "57ca330a241334eaa512161554e4020a854d13b7079b3f3c17efd8eaf896e0e9"
+    }
+  ],
+  "findings": [
+    {
+      "id": "mixed-public-package-resolution",
+      "expected": "reject public contract resolution outside the installed candidate",
+      "actual": "strict compile and moved-consumer guard both accept missing candidate export supplied by alternate declarations",
+      "path": "scripts/typecheck-consumers.mjs:7",
+      "evidence": "foreign-build-resolution.report.gz.base64"
+    }
+  ],
+  "runtimeAcceptance": false,
+  "tree": "cb32675239f13e86dfcc8f702b4d1b5328dac3ec",
+  "archiveSha256": "edb1db5cf4a7a476f4dead186995b3d6c60cc24e926641fd6126dd9771c8da7f",
+  "sourceBefore": {
+    "path": "source-before.gz.base64",
+    "bytes": 5174135,
+    "sha256": "57ca330a241334eaa512161554e4020a854d13b7079b3f3c17efd8eaf896e0e9"
+  },
+  "tools": {
+    "path": "tools.gz.base64",
+    "bytes": 60939,
+    "sha256": "cd1e8c47d74fc98c31975adec71792fef3515c503fbb330ef9b6c64c7d5f5bc2"
+  },
+  "typescript": "5.9.3",
+  "nodeTypes": "22.20.1",
+  "baseline": {
+    "phases": [
+      {
+        "label": "build",
+        "status": 0
+      },
+      {
+        "label": "source-and-tests",
+        "status": 0
+      },
+      {
+        "label": "historical-build-first-consumer",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-profile-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-independent-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-env-split-public-source",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-followup",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-constructor",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-author",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-rmdir",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-loopback",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-services",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-inspection",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-five",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-env-split-public-types",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-timestamp-independent",
+        "status": 0
+      },
+      {
+        "label": "negative-env-split-invalid-binding",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-public-negative",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-leaf-negative",
+        "status": 2
+      }
+    ],
+    "sourceGroups": [
+      {
+        "name": "atomic-webdav-profile-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+          "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"
+        ],
+        "qualification": "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "atomic-webdav-independent-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"
+        ],
+        "qualification": "current public imports use built declarations; source fixture helpers remain explicit",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-source",
+        "files": [
+          "tests/shell-stress/env-split-consumer/packed-public-types.ts"
+        ],
+        "qualification": "current public declaration consumer; typing is not env-S runtime acceptance",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "groups": [
+      {
+        "name": "regex",
+        "files": [
+          "tests/commands/regex-execution/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-continuation",
+        "files": [
+          "tests/commands/regex-execution/continuation/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-followup",
+        "files": [
+          "tests/commands/regex-execution/followup/product-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production",
+        "files": [
+          "tests/stress/regex-execution/production-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production-continuation",
+        "files": [
+          "tests/stress/regex-execution/production-continuation-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-constructor",
+        "files": [
+          "tests/fs/s3/constructor-comparison/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-author",
+        "files": [
+          "tests/fs/s3/http/author/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-independent",
+        "files": [
+          "tests/fs/s3/http-independent/public-workflow.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-rmdir",
+        "files": [
+          "tests/fs/s3/rmdir-independent/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-loopback",
+        "files": [
+          "tests/fs/webdav/consumer/consumer.test.mts",
+          "tests/fs/webdav/consumer/example.mts",
+          "tests/fs/webdav/consumer/provider.mts",
+          "tests/fs/webdav/consumer/types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-services",
+        "files": [
+          "tests/fs/webdav/real-service/consumer.mts",
+          "tests/fs/webdav/real-service/example.mts",
+          "tests/fs/webdav/real-service/https.mts",
+          "tests/fs/webdav/real-service/phase2-consumer.mts",
+          "tests/fs/webdav/real-service-independent/independent.mts",
+          "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+          "tests/fs/webdav/rmdir-real-service/feasibility.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-inspection",
+        "files": [
+          "tests/integration/stream-inspection-public-author/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-five",
+        "files": [
+          "tests/plugins/stream-five-fixture-migration/public-options.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-public",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-leaf",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-types",
+        "files": [
+          "tests/shell-stress/env-split-validity/public-types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic",
+        "files": [
+          "tests/fs/webdav/atomic-extension/consumer.mts",
+          "tests/fs/webdav/atomic-extension/example.mts",
+          "tests/fs/webdav/atomic-extension/https.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic-independent",
+        "files": [
+          "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-timestamp-independent",
+        "files": [
+          "tests/fs/webdav/release-timestamp-independent/independent.test.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "negatives": [
+      {
+        "name": "env-split-invalid-binding",
+        "status": "pass",
+        "diagnostics": 1
+      },
+      {
+        "name": "time-env-public-negative",
+        "status": "pass",
+        "diagnostics": 2
+      },
+      {
+        "name": "time-env-leaf-negative",
+        "status": "pass",
+        "diagnostics": 5
+      }
+    ]
+  },
+  "emitted": {
+    "path": "emitted.gz.base64",
+    "bytes": 124680,
+    "sha256": "12801a0b1723648ebab6826d4bb5ee1f06e388ca948f86b5e0b303223251f1f1"
+  },
+  "bindingMutation": {
+    "status": 0,
+    "result": {
+      "scope": "Existing maintained consumer routes; strict types and exact diagnostic negatives only. Zero runtime executions, no provider acceptance.",
+      "groups": [
+        {
+          "name": "env-split-public-types",
+          "files": [
+            "tests/shell-stress/env-split-validity/public-types.mts"
+          ],
+          "status": "pass",
+          "runtime": "not executed: typecheck-only route"
+        }
+      ],
+      "negativeTypes": [],
+      "passed": true
+    },
+    "resolutions": [
+      {
+        "specifier": "virtual-bash",
+        "resolved": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/foreign-build-resolution/consumer/node_modules/virtual-bash/dist/index.d.ts"
+      },
+      {
+        "specifier": "virtual-bash/contracts",
+        "resolved": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-N5DSow/decoy-dist/contracts/index.d.ts"
+      }
+    ],
+    "declarationSha256": "39e667165065458ac71235293333b35d1a644d2c8ba107dc484405b45c0831c5"
+  },
+  "sourceAfter": {
+    "path": "source-after.gz.base64",
+    "bytes": 5174135,
+    "sha256": "57ca330a241334eaa512161554e4020a854d13b7079b3f3c17efd8eaf896e0e9"
+  },
+  "cleaned": true,
+  "finishedAt": "2026-08-27T12:31:56.288Z",
+  "counts": {
+    "pass": 19,
+    "fail": 2,
+    "skip": 0
+  }
+}

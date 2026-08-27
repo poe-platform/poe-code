@@ -9,8 +9,9 @@ packed e36dab2; those reports are not this review's acceptance evidence. Later
 commits, dirty source, private engines and previously emitted dist are excluded.
 Ownership is this new directory only. No product or author fixture changes.
 
-This preparation commit is not a full-gate result. Execution evidence follows in
-a separate owned commit. No broad compatibility or superiority claim is made.
+Preparation commit **511a337** is not a full-gate result. The completed frozen run
+is **failed: 15,769 pass, 110 fail, 79 skip**; see `REPORT.md` and immutable
+`evidence/first/`. No broad compatibility or superiority claim is made.
 
 ## Canonical discovery and historical evidence
 

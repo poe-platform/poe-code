@@ -35,6 +35,11 @@ test("prep: skip and characterization remain distinct from accepted feature beha
   requireReconciled(parsed); assert.equal(parsed.skips[0].category, "unavailable-private-engine"); assert.equal(parsed.characterizations.length, 1);
 });
 
+test("prep: GNU availability skips and noncompliant characterizations are explicitly classified", () => {
+  const parsed = account("ok 1 - native vector # SKIP GNU base32 not installed; static vectors still run\nok 2 - NONCOMPLIANT characterization: host remapper\n# tests 2\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n");
+  requireReconciled(parsed); assert.equal(parsed.skips[0].category, "optional-native-oracle-or-profile"); assert.equal(parsed.characterizations.length, 1);
+});
+
 test("prep: supervisor captures a bounded successful child", async context => {
   const root = temporary(context);
   const result = await supervise(process.execPath, ["-e", "console.log('owned child');"], { cwd: root, env: environment, timeoutMs: 3000, stdout: join(root, "stdout"), stderr: join(root, "stderr") });

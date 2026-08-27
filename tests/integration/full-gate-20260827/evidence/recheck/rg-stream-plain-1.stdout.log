@@ -1,0 +1,114 @@
+TAP version 13
+# Subtest: isolated matched-delivery, whole-write and backpressure regressions
+not ok 1 - isolated matched-delivery, whole-write and backpressure regressions
+  ---
+  duration_ms: 851.698875
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/search-stress/streaming.test.ts:1:145'
+  failureType: 'testCodeFailure'
+  error: |-
+    TAP version 13
+    # Subtest: matched 25ms one-byte delivery 1
+    not ok 1 - matched 25ms one-byte delivery 1
+      ---
+      duration_ms: 189.021416
+      type: 'test'
+      location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/search-stress/streaming-cases.ts:1:2144'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly deep-equal:
+        + actual - expected
+        
+          {
+            code: 0,
+            stderr: '',
+        +   stdout: 'binary file matches (found "\\0" byte around offset 4)\n'
+        -   stdout: 'foo\nbinary file matches (found "\\0" byte around offset 4)\n'
+          }
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected:
+        code: 0
+        stdout: |-
+          foo
+          binary file matches (found "\0" byte around offset 4)
+          
+        stderr: ''
+      actual:
+        code: 0
+        stdout: |-
+          binary file matches (found "\0" byte around offset 4)
+          
+        stderr: ''
+      operator: 'deepStrictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/search-stress/streaming-cases.ts:49:10)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: matched 25ms one-byte delivery 2
+    ok 2 - matched 25ms one-byte delivery 2
+      ---
+      duration_ms: 245.888166
+      type: 'test'
+      ...
+    # Subtest: matched 25ms one-byte delivery 3
+    ok 3 - matched 25ms one-byte delivery 3
+      ---
+      duration_ms: 244.111083
+      type: 'test'
+      ...
+    # Subtest: whole-write delivery retains the distinct warning-only native result
+    ok 4 - whole-write delivery retains the distinct warning-only native result
+      ---
+      duration_ms: 9.772416
+      type: 'test'
+      ...
+    # Subtest: binary-aware output respects backpressure before another read
+    ok 5 - binary-aware output respects backpressure before another read
+      ---
+      duration_ms: 10.837291
+      type: 'test'
+      ...
+    # Subtest: binary-aware output cancels under backpressure before another read
+    ok 6 - binary-aware output cancels under backpressure before another read
+      ---
+      duration_ms: 12.963458
+      type: 'test'
+      ...
+    1..6
+    # tests 6
+    # suites 0
+    # pass 5
+    # fail 1
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 824.813583
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/search-stress/streaming.test.ts:8:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 961.816667

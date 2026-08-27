@@ -26,8 +26,8 @@ export function account(text) {
     statuses: Object.fromEntries(Object.entries(counts).map(([name, value]) => [name, value === summary[name]])) };
   const reconciled = reconciliation.completeFooter && reconciliation.testInstances && Object.values(reconciliation.statuses).every(Boolean);
   const skips = tests.filter(entry => entry.status === "skipped").map(entry => ({ ...entry,
-    category: /SAFEJS_LOCAL_ROOT/.test(entry.reason ?? "") ? "unavailable-private-engine" : /STREAM_NATIVE_LIVE|BYTE_GNU|GNU_SED|native|oracle/i.test(entry.reason ?? "") ? "optional-native-oracle-or-profile" : "unclassified-explicit-skip" }));
-  const characterizations = tests.filter(entry => /KNOWN UPSTREAM LIMITATION:|documented Rust regex difference|external deadline bounds a catastrophic JavaScript regex probe|POLICY characterization/.test(entry.name));
+    category: /SAFEJS_LOCAL_ROOT/.test(entry.reason ?? "") ? "unavailable-private-engine" : /STREAM_NATIVE_LIVE|BYTE_GNU|\bGNU\b|native|oracle/i.test(entry.reason ?? "") ? "optional-native-oracle-or-profile" : "unclassified-explicit-skip" }));
+  const characterizations = tests.filter(entry => /KNOWN UPSTREAM LIMITATION:|documented Rust regex difference|external deadline bounds a catastrophic JavaScript regex probe|POLICY characterization|NONCOMPLIANT characterization/.test(entry.name));
   return { summary, counts, reconciled, reconciliation, cases: tests, suites: cases.filter(entry => entry.type === "suite"), skips, characterizations,
     nonpassing: tests.filter(entry => entry.status !== "pass"), disclaimer: "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance." };
 }

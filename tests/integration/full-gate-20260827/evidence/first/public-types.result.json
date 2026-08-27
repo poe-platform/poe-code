@@ -1,0 +1,48 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/tmp/full-gate-execution-1tkDXu/source/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--target",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/private/tmp/full-gate-execution-1tkDXu/source/node_modules/@types",
+    "consumer.mts"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/consumer",
+  "pid": 29400,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 476,
+  "timeoutMs": 180000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 29400,
+      "parent": 94682,
+      "group": 29400,
+      "born": "Thu Aug 27 00:43:15 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /private/tmp/full-gate-execution-1tkDXu/source/node_modules/typescript/bin/tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --skipLibCheck --types node --typeRoots /private/tmp/full-gate-execution-1tkDXu/source/node_modules/@types consumer.mts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "public-types",
+  "sourceChanges": []
+}

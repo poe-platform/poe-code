@@ -1,0 +1,1311 @@
+{
+  "revision": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+  "startedAt": "2026-08-27T05:48:16.117Z",
+  "profile": "Darwin arm64; C; UTC; /bin/bash3.2 and separately pinned GNU5.3; argv0 shell-stress; no Linux or portable claim",
+  "rows": [
+    {
+      "name": "move-output-really-closes-source",
+      "profile": "bash3.2",
+      "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-move-output-really-closes-source",
+        "pid": 37645,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 168,
+        "timeoutMs": 3000,
+        "outputBytes": 45,
+        "observed": [
+          {
+            "pid": 37645,
+            "parent": 37634,
+            "group": 37645,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "status=1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "status=1",
+        "stderr": "shell: line 1: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        },
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "move-input-really-closes-source",
+      "profile": "bash3.2",
+      "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-move-input-really-closes-source",
+        "pid": 37650,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 161,
+        "timeoutMs": 3000,
+        "outputBytes": 52,
+        "observed": [
+          {
+            "pid": 37650,
+            "parent": 37634,
+            "group": 37650,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<first>status=1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "<first>status=1",
+        "stderr": "shell: line 1: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        },
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "prevalidation-prior-output-and-file",
+      "profile": "bash3.2",
+      "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-prevalidation-prior-output-and-file",
+        "pid": 37655,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 167,
+        "timeoutMs": 3000,
+        "outputBytes": 92,
+        "observed": [
+          {
+            "pid": 37655,
+            "parent": 37634,
+            "group": 37655,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "beforeafter",
+        "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+        "stdoutBase64": "YmVmb3JlYWZ0ZXI=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "exitCode": 0,
+        "files": {
+          "marker": {
+            "type": "file",
+            "base64": "bWFya2Vy"
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": false
+    },
+    {
+      "name": "fatal-parameter-preserves-only-earlier-effects",
+      "profile": "bash3.2",
+      "script": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before >before; : \"${missing:?stop}\"; printf after >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-fatal-parameter-preserves-only-earlier-effects",
+        "pid": 37662,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 170,
+        "timeoutMs": 3000,
+        "outputBytes": 28,
+        "observed": [
+          {
+            "pid": 37662,
+            "parent": 37634,
+            "group": 37662,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        },
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "profile": "bash3.2",
+      "script": "printf touched >marker; printf '%s' \"$(true |)\"",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf touched >marker; printf '%s' \"$(true |)\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "pid": 37668,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 153,
+        "timeoutMs": 3000,
+        "outputBytes": 81,
+        "observed": [
+          {
+            "pid": 37668,
+            "parent": 37634,
+            "group": 37668,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "(bash)"
+          },
+          {
+            "pid": 37671,
+            "parent": 37668,
+            "group": 37668,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "(bash)"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "exitCode": 0,
+        "files": {
+          "marker": {
+            "type": "file",
+            "base64": "dG91Y2hlZA=="
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": false
+    },
+    {
+      "name": "fatal-parameter-expansion-prevents-following-file-effect",
+      "profile": "bash3.2",
+      "script": ": \"${missing:?stop}\"; : >after",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"${missing:?stop}\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-fatal-parameter-expansion-prevents-following-file-effect",
+        "pid": 37688,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 156,
+        "timeoutMs": 3000,
+        "outputBytes": 28,
+        "observed": [
+          {
+            "pid": 37688,
+            "parent": 37634,
+            "group": 37688,
+            "born": "Thu Aug 27 00:48:16 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 127,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+      "profile": "bash3.2",
+      "script": ": \"$((1/0))\"; : >after",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"$((1/0))\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-fatal-arithmetic-expansion-prevents-following-file-effect",
+        "pid": 37693,
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 154,
+        "timeoutMs": 3000,
+        "outputBytes": 54,
+        "observed": [
+          {
+            "pid": 37693,
+            "parent": 37634,
+            "group": 37693,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: 1/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "exitCode": 1,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+        "exitCode": 1,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-expansion-in-substitution-stops-substitution-only",
+      "profile": "bash3.2",
+      "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-fatal-expansion-in-substitution-stops-substitution-only",
+        "pid": 37698,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 153,
+        "timeoutMs": 3000,
+        "outputBytes": 33,
+        "observed": [
+          {
+            "pid": 37698,
+            "parent": 37634,
+            "group": 37698,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<>:1\n",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 0,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "<>:1\n",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "command-substitution-removes-nul-bytes",
+      "profile": "bash3.2",
+      "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+      "binary": {
+        "path": "/bin/bash",
+        "resolved": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash3.2-command-substitution-removes-nul-bytes",
+        "pid": 37704,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 155,
+        "timeoutMs": 3000,
+        "outputBytes": 5,
+        "observed": [
+          {
+            "pid": 37704,
+            "parent": 37634,
+            "group": 37704,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<ab>\n",
+        "stderr": "",
+        "stdoutBase64": "PGFiPgo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "<ab>\n",
+        "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PGFiPgo=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "move-output-really-closes-source",
+      "profile": "bash5.3",
+      "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-move-output-really-closes-source",
+        "pid": 37710,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 167,
+        "timeoutMs": 3000,
+        "outputBytes": 53,
+        "observed": [
+          {
+            "pid": 37710,
+            "parent": 37634,
+            "group": 37710,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "status=1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "status=1",
+        "stderr": "shell: line 1: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        },
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "move-input-really-closes-source",
+      "profile": "bash5.3",
+      "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-move-input-really-closes-source",
+        "pid": 37715,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 164,
+        "timeoutMs": 3000,
+        "outputBytes": 60,
+        "observed": [
+          {
+            "pid": 37715,
+            "parent": 37634,
+            "group": 37715,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<first>status=1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "<first>status=1",
+        "stderr": "shell: line 1: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        },
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "prevalidation-prior-output-and-file",
+      "profile": "bash5.3",
+      "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-prevalidation-prior-output-and-file",
+        "pid": 37723,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 161,
+        "timeoutMs": 3000,
+        "outputBytes": 169,
+        "observed": [
+          {
+            "pid": 37723,
+            "parent": 37634,
+            "group": 37723,
+            "born": "Thu Aug 27 00:48:17 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgYmVmb3JlOyBwcmludGYgbWFya2VyID5tYXJrZXI7IHByaW50ZiAiJXMiICIkKHRydWUgfCkiOyBwcmludGYgYWZ0ZXInCg==",
+        "exitCode": 127,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-parameter-preserves-only-earlier-effects",
+      "profile": "bash5.3",
+      "script": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before >before; : \"${missing:?stop}\"; printf after >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-fatal-parameter-preserves-only-earlier-effects",
+        "pid": 37732,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 165,
+        "timeoutMs": 3000,
+        "outputBytes": 36,
+        "observed": [
+          {
+            "pid": 37732,
+            "parent": 37634,
+            "group": 37732,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        },
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "profile": "bash5.3",
+      "script": "printf touched >marker; printf '%s' \"$(true |)\"",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf touched >marker; printf '%s' \"$(true |)\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "pid": 37737,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 165,
+        "timeoutMs": 3000,
+        "outputBytes": 141,
+        "observed": [
+          {
+            "pid": 37737,
+            "parent": 37634,
+            "group": 37737,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgdG91Y2hlZCA+bWFya2VyOyBwcmludGYgJyVzJyAiJCh0cnVlIHwpIicK",
+        "exitCode": 127,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-parameter-expansion-prevents-following-file-effect",
+      "profile": "bash5.3",
+      "script": ": \"${missing:?stop}\"; : >after",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"${missing:?stop}\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-fatal-parameter-expansion-prevents-following-file-effect",
+        "pid": 37742,
+        "status": 127,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 170,
+        "timeoutMs": 3000,
+        "outputBytes": 36,
+        "observed": [
+          {
+            "pid": 37742,
+            "parent": 37634,
+            "group": 37742,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "exitCode": 127,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 127,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+      "profile": "bash5.3",
+      "script": ": \"$((1/0))\"; : >after",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"$((1/0))\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-fatal-arithmetic-expansion-prevents-following-file-effect",
+        "pid": 37748,
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 152,
+        "timeoutMs": 3000,
+        "outputBytes": 62,
+        "observed": [
+          {
+            "pid": 37748,
+            "parent": 37634,
+            "group": 37748,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "(bash)"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: 1/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+        "exitCode": 1,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "",
+        "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+        "exitCode": 1,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "fatal-expansion-in-substitution-stops-substitution-only",
+      "profile": "bash5.3",
+      "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-fatal-expansion-in-substitution-stops-substitution-only",
+        "pid": 37753,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 153,
+        "timeoutMs": 3000,
+        "outputBytes": 41,
+        "observed": [
+          {
+            "pid": 37753,
+            "parent": 37634,
+            "group": 37753,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<>:1\n",
+        "stderr": "shell-stress: line 1: missing: stop\n",
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "exitCode": 0,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "<>:1\n",
+        "stderr": "shell: line 1: missing: stop\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    },
+    {
+      "name": "command-substitution-removes-nul-bytes",
+      "profile": "bash5.3",
+      "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+      "binary": {
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "resolved": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "available": true,
+        "version": {
+          "status": 0,
+          "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "stderr": ""
+        }
+      },
+      "result": {
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+          "shell-stress"
+        ],
+        "cwd": "/private/tmp/full-gate-native-do9M2G/bash5.3-command-substitution-removes-nul-bytes",
+        "pid": 37759,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "outputExceeded": false,
+        "closed": true,
+        "elapsedMs": 158,
+        "timeoutMs": 3000,
+        "outputBytes": 85,
+        "observed": [
+          {
+            "pid": 37759,
+            "parent": 37634,
+            "group": 37759,
+            "born": "Thu Aug 27 00:48:18 2026",
+            "command": "<defunct>"
+          }
+        ],
+        "signals": [],
+        "survivors": [],
+        "listeners": [],
+        "cleanupRequired": false,
+        "clean": true
+      },
+      "observed": {
+        "stdout": "<ab>\n",
+        "stderr": "shell-stress: line 1: warning: command substitution: ignored null byte in input\n",
+        "stdoutBase64": "PGFiPgo=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+        "exitCode": 0,
+        "files": {}
+      },
+      "originalVirtual": {
+        "stdout": "<ab>\n",
+        "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PGFiPgo=",
+        "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "exactMatchesVirtual": false,
+      "stdoutStatusFilesMatchVirtual": true
+    }
+  ],
+  "status": "captured",
+  "temporaryRemoved": true,
+  "finishedAt": "2026-08-27T05:48:19.037Z"
+}

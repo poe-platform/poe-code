@@ -1,0 +1,39 @@
+{
+  "executable": "npm",
+  "args": [
+    "install",
+    "--offline",
+    "--ignore-scripts",
+    "--omit=dev",
+    "--no-package-lock",
+    "--no-audit",
+    "--no-fund",
+    "/private/tmp/full-gate-execution-1tkDXu/virtual-bash-0.0.0.tgz"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/consumer",
+  "pid": 29317,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 979,
+  "timeoutMs": 180000,
+  "outputBytes": 26,
+  "observed": [
+    {
+      "pid": 29317,
+      "parent": 94682,
+      "group": 29317,
+      "born": "Thu Aug 27 00:43:13 2026",
+      "command": "node /Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm install --offline --ignore-scripts --omit=dev --no-package-lock --no-audit --no-fund /private/tmp/full-gate-execution-1tkDXu/virtual-bash-0.0.0.tgz"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "install",
+  "sourceChanges": []
+}

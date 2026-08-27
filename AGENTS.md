@@ -117,6 +117,8 @@
   inputs and verify archive integrity before/after execution. Unrelated live
   edits neither enter nor veto that archive; never overlay live product inputs.
   Strict-live gate mode retains its dirty-input rejection.
+  State whether post-run checks also detect new entries; checking only original
+  tracked paths does not establish an append-proof tree.
 - Preserve original cohorts, failures, fixture inputs and oracle defects beside
   later corrections. Record exact source hashes, profiles, versions, denominators,
   dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported

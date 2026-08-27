@@ -1,9 +1,9 @@
 import { writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/client.js";
 import { ExprMatchError, exprMatchCeilings } from "../regex-execution/protocol.js";
-import { bytes, characterCount, evaluate, smallInteger, truth } from "./evaluate.js";
+import { bytes, characterCount, smallInteger, truth } from "./evaluate.js";
 import { Budget, ExprError, screenMatch, settings, type ExprCommandsOptions } from "./internal.js";
-import { parse } from "./syntax.js";
+import { evaluateExpression } from "./syntax.js";
 
 export type { ExprCommandsOptions, ExprLimits } from "./internal.js";
 
@@ -25,8 +25,7 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
           budget.check(Buffer.byteLength(text), limits.maxOutputBytes, "output bytes");
           output = budget.encode(text);
         } else {
-          const tree = parse(context.args, budget, context.args[0] === "--" ? 1 : 0);
-          const value = await evaluate(tree, budget, async (subject, pattern, unicode) => {
+          const value = await evaluateExpression(context.args, budget, async (subject, pattern, unicode) => {
             budget.charge();
             screenMatch(subject, pattern, budget);
             if (budget.remaining() < 1) throw new ExprError("evaluation work limit exceeded", 3);
@@ -44,7 +43,7 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
               return new Uint8Array(subject.subarray(start, end));
             }
             return smallInteger(characterCount(subject.subarray(0, result.overall?.end ?? 0), budget, unicode), budget);
-          });
+          }, context.args[0] === "--" ? 1 : 0);
           exitCode = truth(value, budget) ? 0 : 1;
           const result = bytes(value, budget);
           budget.check(result.length + 1, limits.maxOutputBytes, "output bytes");

@@ -1,5 +1,4 @@
 import { Budget, ExprError, nextCharacter, requireByteCollation, utf8Profile } from "./internal.js";
-import type { Node } from "./syntax.js";
 
 export interface IntegerValue { readonly number: bigint; readonly text: string }
 export type Value = Uint8Array | IntegerValue;
@@ -12,7 +11,7 @@ export function smallInteger(value: number, budget: Budget): IntegerValue {
   return { number: BigInt(value), text };
 }
 
-const zero: IntegerValue = { number: 0n, text: "0" };
+export const zeroValue: IntegerValue = { number: 0n, text: "0" };
 
 export function bytes(value: Value, budget: Budget): Uint8Array {
   return value instanceof Uint8Array ? value : budget.encode(value.text);
@@ -92,8 +91,7 @@ export function characterCount(value: Uint8Array, budget: Budget, unicode: boole
   return count;
 }
 
-async function call(operator: string, values: readonly Value[], active: boolean, budget: Budget, match: Matcher): Promise<Value> {
-  if (operator === "match" && !active) return values[0]!;
+export async function evaluateCall(operator: string, values: readonly Value[], budget: Budget, match: Matcher): Promise<Value> {
   const subject = bytes(values[0]!, budget);
   const unicode = utf8Profile(budget.context);
   if (operator === "match") return match(subject, bytes(values[1]!, budget), unicode);
@@ -118,7 +116,7 @@ async function call(operator: string, values: readonly Value[], active: boolean,
       offset = end;
       await budget.yield();
     }
-    return zero;
+    return zeroValue;
   }
   const position = numeric(values[1]!, budget), length = numeric(values[2]!, budget);
   if (position === undefined || length === undefined || position <= 0n || length <= 0n || position > BigInt(subject.length)) return new Uint8Array();
@@ -132,28 +130,12 @@ async function call(operator: string, values: readonly Value[], active: boolean,
   return new Uint8Array(subject.subarray(start, end));
 }
 
-export async function evaluate(node: Node, budget: Budget, match: Matcher, active = true): Promise<Value> {
-  await budget.yield();
-  if (node.kind === "literal") return budget.encode(node.text);
-  if (node.kind === "call") {
-    if (!active) return zero;
-    const values: Value[] = [];
-    for (const argument of node.args) values.push(await evaluate(argument, budget, match, active));
-    return call(node.operator, values, active, budget, match);
-  }
-  const left = await evaluate(node.left, budget, match, active);
-  const operator = node.operator;
-  const enabled = operator === "|" ? !truth(left, budget) : operator === "&" ? truth(left, budget) : true;
-  const right = await evaluate(node.right, budget, match, active && enabled);
-  if (operator === "|") return truth(left, budget) ? left : truth(right, budget) ? right : zero;
-  if (operator === "&") return truth(left, budget) && truth(right, budget) ? left : zero;
+export async function evaluateBinary(operator: string, left: Value, right: Value, budget: Budget, match: Matcher): Promise<Value> {
   if (["<", "<=", "=", "==", "!=", ">=", ">"].includes(operator)) {
-    if (!active) return zero;
     const order = compare(left, right, budget);
     return smallInteger(Number(operator === "<" ? order < 0 : operator === "<=" ? order <= 0
       : operator === ">" ? order > 0 : operator === ">=" ? order >= 0 : operator === "!=" ? order !== 0 : order === 0), budget);
   }
-  if (!active) return left;
   if (operator === ":") return match(bytes(left, budget), bytes(right, budget), utf8Profile(budget.context));
   return arithmetic(operator, left, right, budget);
 }

@@ -1,9 +1,9 @@
 import { Budget, ExprError } from "./internal.js";
+import { evaluateBinary, evaluateCall, truth, zeroValue, type Matcher, type Value } from "./evaluate.js";
 
-export type Node =
-  | { readonly kind: "literal"; readonly text: string; readonly depth: number }
-  | { readonly kind: "binary"; readonly operator: string; readonly left: Node; readonly right: Node; readonly depth: number }
-  | { readonly kind: "call"; readonly operator: string; readonly args: readonly Node[]; readonly depth: number };
+type Operand =
+  | { readonly active: true; readonly value: Value; readonly depth: number }
+  | { readonly active: false; readonly depth: number };
 
 const precedences = new Map([
   ["|", 1], ["&", 2], ["<", 3], ["<=", 3], ["=", 3], ["==", 3], ["!=", 3], [">=", 3], [">", 3],
@@ -11,7 +11,7 @@ const precedences = new Map([
 ]);
 const arities = new Map([["length", 1], ["index", 2], ["substr", 3], ["match", 2]]);
 
-export function parse(args: readonly string[], budget: Budget, start = 0): Node {
+export async function evaluateExpression(args: readonly string[], budget: Budget, match: Matcher, start = 0): Promise<Value> {
   let position = start;
   let nodes = 0;
   function fail(message: string): never {
@@ -38,19 +38,23 @@ export function parse(args: readonly string[], budget: Budget, start = 0): Node 
     fragments.push("'");
     return fragments.join("");
   }
-  function node(value: Node): Node {
+  async function node(depth: number): Promise<void> {
     budget.charge();
     budget.check(++nodes, budget.limits.maxNodes, "AST node");
-    budget.check(value.depth, budget.limits.maxDepth, "AST depth");
-    return value;
+    budget.check(depth, budget.limits.maxDepth, "AST depth");
+    await budget.yield();
   }
-  function prefix(depth: number): Node {
+  async function literal(text: string, active: boolean): Promise<Operand> {
+    await node(1);
+    return active ? { active, value: budget.encode(text), depth: 1 } : { active, depth: 1 };
+  }
+  async function prefix(depth: number, active: boolean): Promise<Operand> {
     budget.check(depth, budget.limits.maxDepth, "parser depth");
     if (position === args.length) fail(`syntax error: missing argument after ${quote(args[position - 1]!)}`);
     const token = args[position++]!;
     if (token === ")") fail("syntax error: unexpected ')'");
     if (token === "(") {
-      const result = expression(1, depth + 1);
+      const result = await expression(1, depth + 1, active);
       if (position === args.length) fail(`syntax error: expecting ')' after ${quote(args[position - 1]!)}`);
       if (args[position] !== ")") fail(`syntax error: expecting ')' instead of ${quote(args[position]!)}`);
       position++;
@@ -59,30 +63,51 @@ export function parse(args: readonly string[], budget: Budget, start = 0): Node 
     if (token === "+") {
       const text = args[position++];
       if (text === undefined) fail("syntax error: missing argument after '+'");
-      return node({ kind: "literal", text, depth: 1 });
+      return literal(text, active);
     }
     const arity = arities.get(token);
     if (arity !== undefined) {
-      const operands: Node[] = [];
-      for (let index = 0; index < arity; index++) operands.push(prefix(depth + 1));
-      return node({ kind: "call", operator: token, args: operands, depth: 1 + Math.max(...operands.map(operand => operand.depth)) });
+      const values: Value[] = [];
+      let operandDepth = 0;
+      for (let index = 0; index < arity; index++) {
+        const operand = await prefix(depth + 1, active);
+        operandDepth = Math.max(operandDepth, operand.depth);
+        if (operand.active) values.push(operand.value);
+      }
+      const resultDepth = 1 + operandDepth;
+      await node(resultDepth);
+      return active ? { active, value: await evaluateCall(token, values, budget, match), depth: resultDepth }
+        : { active, depth: resultDepth };
     }
-    return node({ kind: "literal", text: token, depth: 1 });
+    return literal(token, active);
   }
-  function expression(minimum: number, depth: number): Node {
-    let left = prefix(depth);
+  async function expression(minimum: number, depth: number, active: boolean): Promise<Operand> {
+    let left = await prefix(depth, active);
     while (position < args.length) {
       const operator = args[position]!;
       const precedence = precedences.get(operator);
       if (precedence === undefined || precedence < minimum) break;
       position++;
-      const right = expression(precedence + 1, depth + 1);
-      left = node({ kind: "binary", operator, left, right, depth: 1 + Math.max(left.depth, right.depth) });
+      const logical = operator === "|" || operator === "&";
+      const leftTruth = left.active && logical ? truth(left.value, budget) : false;
+      const enabled = operator === "|" ? !leftTruth : operator === "&" ? leftTruth : true;
+      const right = await expression(precedence + 1, depth + 1, active && enabled);
+      const resultDepth = 1 + Math.max(left.depth, right.depth);
+      await node(resultDepth);
+      if (!left.active) left = { active: false, depth: resultDepth };
+      else if (logical) {
+        const value = operator === "|" ? leftTruth ? left.value : right.active && truth(right.value, budget) ? right.value : zeroValue
+          : leftTruth && right.active && truth(right.value, budget) ? left.value : zeroValue;
+        left = { active: true, value, depth: resultDepth };
+      } else if (right.active) {
+        left = { active: true, value: await evaluateBinary(operator, left.value, right.value, budget, match), depth: resultDepth };
+      }
     }
     return left;
   }
   if (position === args.length) fail("missing operand\nTry 'expr --help' for more information.");
-  const result = expression(1, 1);
+  const result = await expression(1, 1, true);
   if (position !== args.length) fail(`syntax error: unexpected argument ${quote(args[position]!)}`);
-  return result;
+  if (!result.active) throw new ExprError("inactive expression", 3);
+  return result.value;
 }

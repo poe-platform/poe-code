@@ -54,3 +54,21 @@ module imports do not establish public package/subpath support. Defaults must
 remain 60; no whole-project, full-backend, performance, superiority, or duration
 completion claim is made. Plato's frozen `e36dab2` gate and the old diagnostic
 cohorts are unrelated and untouched.
+
+The prepared source harness is launched only through:
+
+```sh
+node tests/commands/stream-next-stress/run-source.mjs
+```
+
+The launcher rejects a missing/incomplete release or uncommitted author source,
+checks the original frozen hashes, snapshots actual source/config/lockfile/runtime
+and compiler identity, and emits JavaScript into a unique owned private tree.
+Its scoped TypeScript build follows the harness's actual source dependencies;
+the test subprocess has no TSX loader, source fallback, or inherited Node options.
+Compilation/launch faults are saved separately from product behavioral failures.
+It preserves raw test output, strict and selected-semantic comparisons, secondary
+Apple observations, contracts, workflow outcomes, and before/after index state.
+The two backends are repeated executions of the same 82 inputs, not a doubled
+independent-input claim. Native sequential-stage workflows are compared to actual
+concurrent virtual pipelines; they do not establish native pipe backpressure.

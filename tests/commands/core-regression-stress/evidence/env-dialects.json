@@ -1,0 +1,55 @@
+{
+  "capturedAt": "2026-08-27T03:16:16.891Z",
+  "node": "v22.22.2",
+  "scope": "Fresh direct utility captures of identical fixed argv in isolated directory; retains both native dialects. No frozen fixture changes.",
+  "version": "env (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard Mlynarik, David MacKenzie, and Assaf Gordon.\n",
+  "observations": [
+    {
+      "profile": "gnu",
+      "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "args": [
+        "-i",
+        "A=1",
+        "B=2"
+      ],
+      "stdout": "Qj0yCkE9MQo=",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "profile": "apple",
+      "binary": "/usr/bin/env",
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "args": [
+        "-i",
+        "A=1",
+        "B=2"
+      ],
+      "stdout": "QT0xCkI9Mgo=",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "product": {
+    "id": "entry-order-raw-control",
+    "expected": {
+      "stdout": "QT0xCkI9Mgo=",
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "work/": null
+      }
+    },
+    "actual": {
+      "stdout": "Qj0yCkE9MQo=",
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "work/": null
+      }
+    },
+    "pass": false,
+    "profile": "UNCHANGED Apple env order under GNU Bash5.3; not the approved GNU coreutils env ordering profile"
+  }
+}

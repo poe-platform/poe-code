@@ -1,9 +1,13 @@
 import { EventEmitter } from "node:events";
 import * as readline from "node:readline";
+import { Readable } from "node:stream";
+import { StringDecoder } from "node:string_decoder";
 import { graphemes } from "../../dashboard/terminal-width.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { mapKey, type Action } from "./keys.js";
 import { wrapFrame } from "./wrap.js";
+
+const pendingCarriageReturns = new WeakMap<Readable, number>();
 
 const cursor = {
   hide: "\x1b[?25l",
@@ -169,6 +173,79 @@ export class Prompt<Value> extends EventEmitter {
     if (this.input.destroyed) {
       this.state = "cancel";
       return Promise.resolve(CANCEL);
+    }
+
+    const input = this.input;
+    if (input instanceof Readable) {
+      return new Promise((resolve, reject) => {
+        const decoder = new StringDecoder("utf8");
+        let line = "";
+        let settled = false;
+
+        const settle = (value: string | typeof CANCEL | Error, remainder?: string | Buffer) => {
+          if (settled) return;
+          settled = true;
+          input.removeListener("data", onData);
+          input.removeListener("end", onEnd);
+          input.removeListener("close", onCancel);
+          input.removeListener("error", settle);
+          this.signal?.removeEventListener("abort", onCancel);
+          input.pause();
+          if (remainder?.length) input.unshift(remainder, input.readableEncoding ?? undefined);
+          if (value instanceof Error) reject(value);
+          else resolve(value);
+        };
+
+        const onCancel = () => {
+          this.state = "cancel";
+          settle(CANCEL);
+        };
+        const onEnd = () => settle(line + decoder.end());
+        const onData = (chunk: string | Buffer) => {
+          if (chunk.length === 0) return;
+          if (settled) {
+            if (!input.destroyed) input.unshift(chunk, input.readableEncoding ?? undefined);
+            return;
+          }
+          let offset = 0;
+          const previousCarriageReturn = pendingCarriageReturns.get(input);
+          if (previousCarriageReturn !== undefined) {
+            pendingCarriageReturns.delete(input);
+            const isLineFeed = typeof chunk === "string" ? chunk[0] === "\n" : chunk[0] === 10;
+            if (isLineFeed && Date.now() - previousCarriageReturn <= 100) offset = 1;
+          }
+          for (; offset < chunk.length; offset += 1) {
+            const character = typeof chunk === "string" ? chunk[offset] : decoder.write(chunk.subarray(offset, offset + 1));
+            if (character.endsWith("\r") || character.endsWith("\n")) {
+              line += character.slice(0, -1);
+              offset += 1;
+              if (character.endsWith("\r")) {
+                if (offset === chunk.length) {
+                  pendingCarriageReturns.set(input, Date.now());
+                } else if (typeof chunk === "string" ? chunk[offset] === "\n" : chunk[offset] === 10) {
+                  offset += 1;
+                }
+              }
+              settle(line, chunk.slice(offset));
+              return;
+            }
+            line += character;
+          }
+        };
+
+        input.once("end", onEnd);
+        input.once("close", onCancel);
+        input.once("error", settle);
+        this.signal?.addEventListener("abort", onCancel, { once: true });
+        if (this.signal?.aborted) onCancel();
+        else if (input.readableEnded) onEnd();
+        else if (input.destroyed) onCancel();
+        else if (!settled) {
+          input.on("data", onData);
+          if (!settled) input.resume();
+          if (settled) input.pause();
+        }
+      });
     }
 
     return new Promise((resolve, reject) => {

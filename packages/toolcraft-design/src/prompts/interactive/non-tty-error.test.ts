@@ -1,5 +1,6 @@
 import { getEventListeners } from "node:events";
 import * as readline from "node:readline";
+import { Stream } from "node:stream";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { password, text } from "../index.js";
 import { CANCEL } from "./cancel-symbol.js";
@@ -86,8 +87,12 @@ describe.each([
   });
 });
 
-it.each(["error", "line", "EOF", "abort", "close"])("removes only owned listeners on %s settlement", async (ending) => {
-  const { input, output, getOutput, rawModes } = createPromptHarness({ tty: false });
+it.each(["error", "line", "EOF", "abort", "close"])("removes only owned legacy readline listeners on %s settlement", async (ending) => {
+  const { output, getOutput, rawModes } = createPromptHarness({ tty: false });
+  const input = new Stream() as NodeJS.ReadableStream;
+  input.readable = true;
+  input.pause = vi.fn(() => input);
+  input.resume = vi.fn(() => input);
   const controller = new AbortController();
   const foreignInputError = vi.fn();
   const foreignInputClose = vi.fn();
@@ -102,7 +107,7 @@ it.each(["error", "line", "EOF", "abort", "close"])("removes only owned listener
   const reader = readline.createInterface({ input, terminal: false });
   onTestFinished(() => {
     reader.close();
-    input.end();
+    input.emit("end");
   });
   vi.spyOn(readline, "createInterface").mockReturnValueOnce(reader);
   const foreignReaderError = vi.fn();
@@ -127,11 +132,11 @@ it.each(["error", "line", "EOF", "abort", "close"])("removes only owned listener
   const resolved = vi.fn();
   const rejected = vi.fn();
   void text({ message: "Value?", input, output, signal: controller.signal, validate }).then(resolved, rejected);
-  input.write(rawValue);
+  input.emit("data", Buffer.from(rawValue));
 
   if (ending === "error") input.emit("error", error);
-  if (ending === "line") input.write("\n");
-  if (ending === "EOF") input.end();
+  if (ending === "line") input.emit("data", Buffer.from("\n"));
+  if (ending === "EOF") input.emit("end");
   if (ending === "abort") controller.abort();
   if (ending === "close") input.emit("close");
   await tick();

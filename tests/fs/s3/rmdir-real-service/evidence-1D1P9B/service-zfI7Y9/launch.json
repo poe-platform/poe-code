@@ -1,0 +1,43 @@
+{
+  "binary": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-XN0Onj/download-51lkUg/minio",
+  "lock": {
+    "service": "MinIO Community",
+    "release": "RELEASE.2025-09-07T16-13-09Z",
+    "sourceCommit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+    "platform": "darwin-arm64",
+    "url": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z",
+    "checksumUrl": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z.sha256sum",
+    "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+    "size": 108218434,
+    "releasePage": "https://github.com/minio/minio/releases/tag/RELEASE.2025-09-07T16-13-09Z",
+    "selection": "Pinned historical official binary, not a latest-version or production-security recommendation"
+  },
+  "version": "minio version RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed433e49018cb0f78a52145d4bedeb)\nRuntime: go1.24.6 darwin/arm64\nLicense: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html\nCopyright: 2015-2025 MinIO, Inc.\n",
+  "args": [
+    "server",
+    "--address",
+    "127.0.0.1:58240",
+    "--console-address",
+    "127.0.0.1:58241",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-1D1P9B/service-zfI7Y9/data"
+  ],
+  "environment": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-1D1P9B/service-zfI7Y9/home",
+    "PATH": "/usr/bin:/bin",
+    "MINIO_ROOT_USER": "safe-bash-synthetic",
+    "MINIO_ROOT_PASSWORD": "safe-bash-synthetic-secret-not-for-real-use",
+    "MINIO_BROWSER": "off",
+    "MINIO_UPDATE": "off",
+    "MINIO_CALLHOME_ENABLE": "off"
+  },
+  "pid": 62789,
+  "endpoint": "http://127.0.0.1:58240",
+  "invocation": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/run.mjs",
+    "--download"
+  ],
+  "node": "v22.22.2",
+  "platform": "darwin-arm64",
+  "curl": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n"
+}

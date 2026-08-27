@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>author/primitive-empty/</Key><BucketName>safe-bash-interop</BucketName><Resource>/safe-bash-interop/author/primitive-empty/</Resource><RequestId>18CF9728E8E79F60</RequestId><HostId>05e4e9e7f91e18c5073a43031ed6542e2552d14724cf5e2e3a8863e663f2abac</HostId></Error>

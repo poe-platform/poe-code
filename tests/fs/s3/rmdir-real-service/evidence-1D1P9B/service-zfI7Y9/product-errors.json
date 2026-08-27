@@ -1,0 +1,166 @@
+[
+  {
+    "target": "/empty",
+    "expectedCode": "ENOTSUP",
+    "code": "ENOTSUP",
+    "syscall": "rmdir",
+    "path": "/empty",
+    "message": "ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'"
+  },
+  {
+    "target": "/work/file",
+    "expectedCode": "ENOTDIR",
+    "code": "ENOTDIR",
+    "syscall": "rmdir",
+    "path": "/work/file",
+    "message": "ENOTDIR: not a directory, rmdir '/work/file'"
+  },
+  {
+    "target": "/work/file/",
+    "expectedCode": "ENOTDIR",
+    "code": "ENOTDIR",
+    "syscall": "rmdir",
+    "path": "/work/file/",
+    "message": "ENOTDIR: not a directory, rmdir '/work/file/'"
+  },
+  {
+    "target": "/missing",
+    "expectedCode": "ENOENT",
+    "code": "ENOENT",
+    "syscall": "rmdir",
+    "path": "/missing",
+    "message": "ENOENT: no such file or directory, rmdir '/missing'"
+  },
+  {
+    "target": "/work",
+    "expectedCode": "ENOTEMPTY",
+    "code": "ENOTSUP",
+    "syscall": "rmdir",
+    "path": "/work",
+    "message": "ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/work'"
+  },
+  {
+    "target": "/",
+    "expectedCode": "EBUSY",
+    "code": "EBUSY",
+    "syscall": "rmdir",
+    "path": "/",
+    "message": "EBUSY: cannot remove the mounted root, rmdir '/'"
+  },
+  {
+    "target": "/work",
+    "expectedCode": "ENOTEMPTY",
+    "code": "ENOTEMPTY",
+    "syscall": "rmdir",
+    "path": "/work",
+    "message": "ENOTEMPTY: directory not empty, rmdir '/work'"
+  },
+  {
+    "target": "/implicit",
+    "expectedCode": "ENOTEMPTY",
+    "code": "ENOTEMPTY",
+    "syscall": "rmdir",
+    "path": "/implicit",
+    "message": "ENOTEMPTY: directory not empty, rmdir '/implicit'"
+  },
+  {
+    "target": "/nested",
+    "expectedCode": "ENOTEMPTY",
+    "code": "ENOTEMPTY",
+    "syscall": "rmdir",
+    "path": "/nested",
+    "message": "ENOTEMPTY: directory not empty, rmdir '/nested'"
+  },
+  {
+    "target": "/empty",
+    "expectedCode": "EROFS",
+    "code": "EROFS",
+    "syscall": "rmdir",
+    "path": "/empty",
+    "message": "EROFS: read-only file system, rmdir '/empty'"
+  },
+  {
+    "target": "/empty",
+    "expectedCode": "EROFS",
+    "code": "EROFS",
+    "syscall": "rmdir",
+    "path": "/empty",
+    "message": "EROFS: read-only file system, rmdir '/empty'",
+    "cause": {
+      "code": "EROFS",
+      "syscall": "write",
+      "path": "/empty",
+      "message": "EROFS: read-only file system, write '/empty'"
+    }
+  },
+  {
+    "target": "/remote",
+    "expectedCode": "EBUSY",
+    "code": "EBUSY",
+    "syscall": "rmdir",
+    "path": "/remote",
+    "message": "EBUSY: resource busy or locked, rmdir '/remote'",
+    "cause": {
+      "code": "EBUSY",
+      "message": "EBUSY: resource busy or locked"
+    }
+  },
+  {
+    "target": "/remote/empty",
+    "expectedCode": "ENOTSUP",
+    "code": "ENOTSUP",
+    "syscall": "rmdir",
+    "path": "/remote/empty",
+    "message": "ENOTSUP: operation not supported, rmdir '/remote/empty'",
+    "cause": {
+      "code": "ENOTSUP",
+      "syscall": "rmdir",
+      "path": "/empty",
+      "message": "ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'"
+    }
+  },
+  {
+    "target": "/empty",
+    "expectedCode": "ECANCELED",
+    "code": "ECANCELED",
+    "syscall": "rmdir",
+    "path": "/empty",
+    "message": "ECANCELED: operation canceled, rmdir '/empty'"
+  },
+  {
+    "target": "/empty/",
+    "expectedCode": "EACCES",
+    "code": "EACCES",
+    "syscall": "rmdir",
+    "path": "/empty/",
+    "message": "EACCES: permission denied, rmdir '/empty/'",
+    "cause": {
+      "code": "EACCES",
+      "syscall": "listObjectsV2",
+      "path": "/",
+      "message": "EACCES: permission denied, listObjectsV2 '/'"
+    }
+  },
+  {
+    "target": "/current-race",
+    "expectedCode": "ENOTSUP",
+    "code": "ENOTSUP",
+    "syscall": "rmdir",
+    "path": "/current-race",
+    "message": "ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/current-race'"
+  },
+  {
+    "target": "/abort-list",
+    "expectedCode": "ECANCELED",
+    "code": "ECANCELED",
+    "syscall": "rmdir",
+    "path": "/abort-list",
+    "message": "ECANCELED: operation canceled, rmdir '/abort-list'",
+    "cause": {
+      "code": "ECANCELED",
+      "syscall": "listObjectsV2",
+      "path": "/abort-list",
+      "message": "ECANCELED: operation canceled, listObjectsV2 '/abort-list'"
+    }
+  }
+]

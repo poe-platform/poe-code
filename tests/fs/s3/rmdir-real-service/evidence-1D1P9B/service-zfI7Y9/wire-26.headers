@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Content-Length: 0
+Content-Type: binary/octet-stream
+ETag: "d41d8cd98f00b204e9800998ecf8427e"
+Last-Modified: Thu, 27 Aug 2026 06:56:18 GMT
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: 05e4e9e7f91e18c5073a43031ed6542e2552d14724cf5e2e3a8863e663f2abac
+X-Amz-Request-Id: 18CF9728D95C0DD8
+X-Content-Type-Options: nosniff
+X-Ratelimit-Limit: 1581
+X-Ratelimit-Remaining: 1581
+X-Xss-Protection: 1; mode=block
+Date: Thu, 27 Aug 2026 06:56:18 GMT
+

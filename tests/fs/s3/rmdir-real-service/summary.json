@@ -1,0 +1,96 @@
+{
+  "authorOnly": true,
+  "checkedAt": "2026-08-27T06:59:12.977Z",
+  "sourceCommit": null,
+  "harnessCommit": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+  "runs": [
+    {
+      "directory": "evidence-1D1P9B",
+      "passed": 19,
+      "total": 20,
+      "positiveProductRmdirWorkflows": 0,
+      "pid": 62789,
+      "pidAbsent": true,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-XN0Onj",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-1D1P9B/service-zfI7Y9",
+        "serviceShutdown": {
+          "pid": 62789,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T06:56:19.348Z"
+        }
+      }
+    },
+    {
+      "directory": "evidence-EK5WvL",
+      "passed": 5,
+      "total": 6,
+      "positiveProductRmdirWorkflows": 0,
+      "pid": 42683,
+      "pidAbsent": true,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-CRpQxZ",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-EK5WvL/service-pA9qnC",
+        "serviceShutdown": {
+          "pid": 42683,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T06:52:43.401Z"
+        }
+      }
+    },
+    {
+      "directory": "evidence-GScgVQ",
+      "passed": 1,
+      "total": 2,
+      "positiveProductRmdirWorkflows": 0,
+      "pid": 29903,
+      "pidAbsent": true,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-GScgVQ/service-JDKbu8",
+        "serviceShutdown": {
+          "pid": 29903,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T06:51:58.444Z"
+        }
+      }
+    },
+    {
+      "directory": "evidence-Xyjrmo",
+      "passed": 17,
+      "total": 18,
+      "positiveProductRmdirWorkflows": 0,
+      "pid": 55866,
+      "pidAbsent": true,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-Xyjrmo/service-epfGgr",
+        "serviceShutdown": {
+          "pid": 55866,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T06:54:12.567Z"
+        }
+      }
+    }
+  ]
+}

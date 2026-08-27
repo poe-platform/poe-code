@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: rmdir rejects file path /file without effects
+ok 1 - rmdir rejects file path /file without effects
+  ---
+  duration_ms: 2.499584
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/ without effects
+ok 2 - rmdir rejects file path /file/ without effects
+  ---
+  duration_ms: 0.463792
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/child without effects
+ok 3 - rmdir rejects file path /file/child without effects
+  ---
+  duration_ms: 0.428
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing
+ok 4 - rmdir preserves requested missing path /missing
+  ---
+  duration_ms: 0.213125
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing/child
+ok 5 - rmdir preserves requested missing path /missing/child
+  ---
+  duration_ms: 0.177959
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing file
+ok 6 - rmdir rejects implicit directory containing file
+  ---
+  duration_ms: 0.256125
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing file
+ok 7 - rmdir rejects explicit directory containing file
+  ---
+  duration_ms: 0.285167
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing nested/file
+ok 8 - rmdir rejects implicit directory containing nested/file
+  ---
+  duration_ms: 0.2275
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing nested/file
+ok 9 - rmdir rejects explicit directory containing nested/file
+  ---
+  duration_ms: 0.52325
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing child/
+ok 10 - rmdir rejects implicit directory containing child/
+  ---
+  duration_ms: 0.710708
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing child/
+ok 11 - rmdir rejects explicit directory containing child/
+  ---
+  duration_ms: 0.214291
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported even with conditionalDelete=false
+ok 12 - empty rmdir is unsupported even with conditionalDelete=false
+  ---
+  duration_ms: 0.287875
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported even with conditionalDelete=true
+ok 13 - empty rmdir is unsupported even with conditionalDelete=true
+  ---
+  duration_ms: 0.152542
+  type: 'test'
+  ...
+# Subtest: a child created after the empty listing survives, and the marker is not deleted
+ok 14 - a child created after the empty listing survives, and the marker is not deleted
+  ---
+  duration_ms: 0.368583
+  type: 'test'
+  ...
+# Subtest: pre-abort, read-only mode, and root protection make no requests
+ok 15 - pre-abort, read-only mode, and root protection make no requests
+  ---
+  duration_ms: 0.143
+  type: 'test'
+  ...
+# Subtest: rmdir cancels an uncooperative head and observes late rejection
+ok 16 - rmdir cancels an uncooperative head and observes late rejection
+  ---
+  duration_ms: 3.820125
+  type: 'test'
+  ...
+# Subtest: rmdir cancels an uncooperative list and observes late rejection
+ok 17 - rmdir cancels an uncooperative list and observes late rejection
+  ---
+  duration_ms: 1.2855
+  type: 'test'
+  ...
+# Subtest: rmdir propagates listing authorization errors with the requested path and cause
+ok 18 - rmdir propagates listing authorization errors with the requested path and cause
+  ---
+  duration_ms: 0.254834
+  type: 'test'
+  ...
+# Subtest: legacy nonrecursive rm still removes a file and an empty marker
+ok 19 - legacy nonrecursive rm still removes a file and an empty marker
+  ---
+  duration_ms: 0.612292
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.824708

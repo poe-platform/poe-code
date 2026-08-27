@@ -1,0 +1,27 @@
+*   Trying 127.0.0.1:56077...
+* Connected to 127.0.0.1 (127.0.0.1) port 56077
+> DELETE /safe-bash-interop/author/stale-delete HTTP/1.1
+> Host: 127.0.0.1:56077
+> User-Agent: curl/8.7.1
+> Accept: */*
+> if-match: "not-the-etag"
+> x-amz-date: 20260827T065412Z
+> x-amz-content-sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;if-match;x-amz-content-sha256;x-amz-date, Signature=2288202aa50073213d9d97986454b84de9bd44160acbf0278dc4a757202c7fcf
+> 
+* Request completely sent off
+< HTTP/1.1 204 No Content
+< Accept-Ranges: bytes
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: 64d5ffbbe59de5e01c3ada88667eed9e2f5090a2e30b7c7c80c41108845722b5
+< X-Amz-Request-Id: 18CF970B71F03BA0
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1566
+< X-Ratelimit-Remaining: 1566
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 06:54:12 GMT
+< 
+* Connection #0 to host 127.0.0.1 left intact

@@ -1,0 +1,1664 @@
+TAP version 13
+# S3_ADAPTER_OVERRIDE {"timing":"subclass-before","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-before","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"instance-after","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-after","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"subclass-before","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-before","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"instance-after","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-after","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# Subtest: S3 adapter subclass-before buffered remapping drops inherited binding before copy
+ok 1 - S3 adapter subclass-before buffered remapping drops inherited binding before copy
+  ---
+  duration_ms: 13.315958
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-before buffered remapping drops inherited binding before copy
+ok 2 - S3 adapter prototype-before buffered remapping drops inherited binding before copy
+  ---
+  duration_ms: 2.281666
+  type: 'test'
+  ...
+# Subtest: S3 adapter instance-after buffered remapping drops inherited binding before copy
+ok 3 - S3 adapter instance-after buffered remapping drops inherited binding before copy
+  ---
+  duration_ms: 2.705708
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-after buffered remapping drops inherited binding before copy
+ok 4 - S3 adapter prototype-after buffered remapping drops inherited binding before copy
+  ---
+  duration_ms: 2.069417
+  type: 'test'
+  ...
+# Subtest: S3 adapter subclass-before streamed remapping drops inherited binding before copy
+ok 5 - S3 adapter subclass-before streamed remapping drops inherited binding before copy
+  ---
+  duration_ms: 2.849459
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-before streamed remapping drops inherited binding before copy
+ok 6 - S3 adapter prototype-before streamed remapping drops inherited binding before copy
+  ---
+  duration_ms: 1.654042
+  type: 'test'
+  ...
+# Subtest: S3 adapter instance-after streamed remapping drops inherited binding before copy
+ok 7 - S3 adapter instance-after streamed remapping drops inherited binding before copy
+  ---
+  duration_ms: 2.668709
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-after streamed remapping drops inherited binding before copy
+ok 8 - S3 adapter prototype-after streamed remapping drops inherited binding before copy
+  ---
+  duration_ms: 1.204584
+  type: 'test'
+  ...
+# Subtest: original-operation subclass preserves qualified distinct-copy behavior without a class whitelist
+ok 9 - original-operation subclass preserves qualified distinct-copy behavior without a class whitelist
+  ---
+  duration_ms: 2.274875
+  type: 'test'
+  ...
+# Subtest: explicit subclass comparison same is not silently shadowed by the base authority
+ok 10 - explicit subclass comparison same is not silently shadowed by the base authority
+  ---
+  duration_ms: 1.412291
+  type: 'test'
+  ...
+# Subtest: explicit subclass comparison invalid is not silently shadowed by the base authority
+ok 11 - explicit subclass comparison invalid is not silently shadowed by the base authority
+  ---
+  duration_ms: 0.796625
+  type: 'test'
+  ...
+# Subtest: Memory consumer preserves source when buffered S3 remapping drops inherited binding
+ok 12 - Memory consumer preserves source when buffered S3 remapping drops inherited binding
+  ---
+  duration_ms: 0.707791
+  type: 'test'
+  ...
+# Subtest: Memory consumer preserves source when streamed S3 remapping drops inherited binding
+ok 13 - Memory consumer preserves source when streamed S3 remapping drops inherited binding
+  ---
+  duration_ms: 4.423542
+  type: 'test'
+  ...
+# Subtest: fresh provider authority survives direct clients and overlapping prefixes
+ok 14 - fresh provider authority survives direct clients and overlapping prefixes
+  ---
+  duration_ms: 6.088375
+  type: 'test'
+  ...
+# Subtest: fresh provider authority survives transport clients and overlapping prefixes
+ok 15 - fresh provider authority survives transport clients and overlapping prefixes
+  ---
+  duration_ms: 11.468792
+  type: 'test'
+  ...
+# Subtest: fresh provider authority survives transport-chain clients and overlapping prefixes
+ok 16 - fresh provider authority survives transport-chain clients and overlapping prefixes
+  ---
+  duration_ms: 2.612208
+  type: 'test'
+  ...
+# Subtest: distinct actual private stores and buckets are disjoint even with equal labels/content
+ok 17 - distinct actual private stores and buckets are disjoint even with equal labels/content
+  ---
+  duration_ms: 1.6485
+  type: 'test'
+  ...
+# Subtest: unqualified clone metadata stays unknown without mutation
+ok 18 - unqualified clone metadata stays unknown without mutation
+  ---
+  duration_ms: 3.437709
+  type: 'test'
+  ...
+# Subtest: unqualified manufacture metadata stays unknown without mutation
+ok 19 - unqualified manufacture metadata stays unknown without mutation
+  ---
+  duration_ms: 2.968875
+  type: 'test'
+  ...
+# Subtest: unqualified replay metadata stays unknown without mutation
+ok 20 - unqualified replay metadata stays unknown without mutation
+  ---
+  duration_ms: 2.083417
+  type: 'test'
+  ...
+# Subtest: unqualified wrong-key metadata stays unknown without mutation
+ok 21 - unqualified wrong-key metadata stays unknown without mutation
+  ---
+  duration_ms: 1.158792
+  type: 'test'
+  ...
+# Subtest: cache drops stale stat binding; copied stat and path or filesystem poisoning remain unqualified
+ok 22 - cache drops stale stat binding; copied stat and path or filesystem poisoning remain unqualified
+  ---
+  duration_ms: 0.480584
+  type: 'test'
+  ...
+# Subtest: provider AccessDenied propagates before querying peer
+ok 23 - provider AccessDenied propagates before querying peer
+  ---
+  duration_ms: 0.499292
+  type: 'test'
+  ...
+# Subtest: provider InternalError propagates before querying peer
+ok 24 - provider InternalError propagates before querying peer
+  ---
+  duration_ms: 0.209209
+  type: 'test'
+  ...
+# Subtest: provider NoSuchKey propagates before querying peer
+ok 25 - provider NoSuchKey propagates before querying peer
+  ---
+  duration_ms: 0.229833
+  type: 'test'
+  ...
+# Subtest: comparison forwards signal, propagates abort reasons and never starts peer after abort
+ok 26 - comparison forwards signal, propagates abort reasons and never starts peer after abort
+  ---
+  duration_ms: 0.663583
+  type: 'test'
+  ...
+# Subtest: qualified shared-service existing-target copy preserves source semantics and sentinel
+ok 27 - qualified shared-service existing-target copy preserves source semantics and sentinel
+  ---
+  duration_ms: 2.392291
+  type: 'test'
+  ...
+# Subtest: qualified shared-service existing-target mv preserves source semantics and sentinel
+ok 28 - qualified shared-service existing-target mv preserves source semantics and sentinel
+  ---
+  duration_ms: 9.308542
+  type: 'test'
+  ...
+# Subtest: recognized aliases reject before GET/mutation; readonly destination remains readonly
+ok 29 - recognized aliases reject before GET/mutation; readonly destination remains readonly
+  ---
+  duration_ms: 2.446458
+  type: 'test'
+  ...
+# Subtest: faithful opaque forwarding preserves genuine fresh HEAD entry bindings
+ok 30 - faithful opaque forwarding preserves genuine fresh HEAD entry bindings
+  ---
+  duration_ms: 0.765792
+  type: 'test'
+  ...
+# Subtest: faithful headObject method replacement preserves the actual entry binding
+ok 31 - faithful headObject method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.635208
+  type: 'test'
+  ...
+# Subtest: faithful getObject method replacement preserves the actual entry binding
+ok 32 - faithful getObject method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.596084
+  type: 'test'
+  ...
+# Subtest: faithful putObject method replacement preserves the actual entry binding
+ok 33 - faithful putObject method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.6195
+  type: 'test'
+  ...
+# Subtest: faithful deleteObject method replacement preserves the actual entry binding
+ok 34 - faithful deleteObject method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.589292
+  type: 'test'
+  ...
+# Subtest: faithful copyObject method replacement preserves the actual entry binding
+ok 35 - faithful copyObject method replacement preserves the actual entry binding
+  ---
+  duration_ms: 7.176291
+  type: 'test'
+  ...
+# Subtest: faithful listObjectsV2 method replacement preserves the actual entry binding
+ok 36 - faithful listObjectsV2 method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.580708
+  type: 'test'
+  ...
+# Subtest: faithful getObjectStream method replacement preserves the actual entry binding
+ok 37 - faithful getObjectStream method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.541166
+  type: 'test'
+  ...
+# Subtest: faithful putObjectStream method replacement preserves the actual entry binding
+ok 38 - faithful putObjectStream method replacement preserves the actual entry binding
+  ---
+  duration_ms: 0.492959
+  type: 'test'
+  ...
+# Subtest: remapped Memory content drops the unrelated Mock HEAD binding before comparison
+ok 39 - remapped Memory content drops the unrelated Mock HEAD binding before comparison
+  ---
+  duration_ms: 1.267417
+  type: 'test'
+  ...
+# Subtest: faithful provider forwarding before construction retains observed storage authority
+ok 40 - faithful provider forwarding before construction retains observed storage authority
+  ---
+  duration_ms: 0.401875
+  type: 'test'
+  ...
+# Subtest: faithful method replacement during peer metadata work preserves actual distinct stores
+ok 41 - faithful method replacement during peer metadata work preserves actual distinct stores
+  ---
+  duration_ms: 0.591709
+  type: 'test'
+  ...
+# Subtest: faithful opaque client alias copy is EINVAL and exact-byte preserving before body work
+ok 42 - faithful opaque client alias copy is EINVAL and exact-byte preserving before body work
+  ---
+  duration_ms: 0.804333
+  type: 'test'
+  ...
+# Subtest: constructor authority enables serialized SDK cp over an existing distinct entry
+ok 43 - constructor authority enables serialized SDK cp over an existing distinct entry
+  ---
+  duration_ms: 25.034
+  type: 'test'
+  ...
+# Subtest: constructor authority enables serialized SDK mv over an existing distinct entry
+ok 44 - constructor authority enables serialized SDK mv over an existing distinct entry
+  ---
+  duration_ms: 14.354792
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with present authority
+ok 45 - serialized SDK alias and existing target with present authority
+  ---
+  duration_ms: 3.4615
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with absent authority
+ok 46 - serialized SDK alias and existing target with absent authority
+  ---
+  duration_ms: 8.89125
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with unknown authority
+ok 47 - serialized SDK alias and existing target with unknown authority
+  ---
+  duration_ms: 3.643375
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor same without hiding errors or overwriting aliases
+ok 48 - built-in same composes with constructor same without hiding errors or overwriting aliases
+  ---
+  duration_ms: 4.821875
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor distinct without hiding errors or overwriting aliases
+ok 49 - built-in same composes with constructor distinct without hiding errors or overwriting aliases
+  ---
+  duration_ms: 1.474875
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor unknown without hiding errors or overwriting aliases
+ok 50 - built-in same composes with constructor unknown without hiding errors or overwriting aliases
+  ---
+  duration_ms: 1.28875
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor denied without hiding errors or overwriting aliases
+ok 51 - built-in same composes with constructor denied without hiding errors or overwriting aliases
+  ---
+  duration_ms: 1.267167
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor invalid without hiding errors or overwriting aliases
+ok 52 - built-in same composes with constructor invalid without hiding errors or overwriting aliases
+  ---
+  duration_ms: 1.273834
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor abort without hiding errors or overwriting aliases
+ok 53 - built-in same composes with constructor abort without hiding errors or overwriting aliases
+  ---
+  duration_ms: 2.66575
+  type: 'test'
+  ...
+# Subtest: explicit unknown does not revive built-in distinctness
+ok 54 - explicit unknown does not revive built-in distinctness
+  ---
+  duration_ms: 1.636416
+  type: 'test'
+  ...
+# Subtest: late explicit denial replaces configured callback without bypassing known alias protection
+ok 55 - late explicit denial replaces configured callback without bypassing known alias protection
+  ---
+  duration_ms: 1.78225
+  type: 'test'
+  ...
+# Subtest: constructor operand conflicts are EIO and cancellation stops the next callback
+ok 56 - constructor operand conflicts are EIO and cancellation stops the next callback
+  ---
+  duration_ms: 3.956625
+  type: 'test'
+  ...
+# Subtest: constructor authority cannot bypass readonly, exclusive creation or metadata denial
+ok 57 - constructor authority cannot bypass readonly, exclusive creation or metadata denial
+  ---
+  duration_ms: 1.861333
+  type: 'test'
+  ...
+# Subtest: invalid constructor callback fails EINVAL before provider requests
+ok 58 - invalid constructor callback fails EINVAL before provider requests
+  ---
+  duration_ms: 0.106208
+  type: 'test'
+  ...
+# Subtest: constructor callback leaves public negotiation intact and runs once for one operand
+ok 59 - constructor callback leaves public negotiation intact and runs once for one operand
+  ---
+  duration_ms: 1.042708
+  type: 'test'
+  ...
+# Subtest: recursive constructor forwarding stays unknown rather than negotiating again
+ok 60 - recursive constructor forwarding stays unknown rather than negotiating again
+  ---
+  duration_ms: 0.5045
+  type: 'test'
+  ...
+# Subtest: exclusive copy reports EEXIST when authorization concurrently creates the destination
+ok 61 - exclusive copy reports EEXIST when authorization concurrently creates the destination
+  ---
+  duration_ms: 5.4175
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains EAGAIN for changed source ETag; concurrent destination: false
+ok 62 - exclusive copy retains EAGAIN for changed source ETag; concurrent destination: false
+  ---
+  duration_ms: 1.151583
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains EAGAIN for changed source ETag; concurrent destination: true
+ok 63 - exclusive copy retains EAGAIN for changed source ETag; concurrent destination: true
+  ---
+  duration_ms: 0.909042
+  type: 'test'
+  ...
+# Subtest: exclusive copy recognizes HTTP-only 412 failures without an AWS error name
+ok 64 - exclusive copy recognizes HTTP-only 412 failures without an AWS error name
+  ---
+  duration_ms: 4.104167
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: source-missing
+ok 65 - exclusive copy retains original failure when diagnosis is inconclusive: source-missing
+  ---
+  duration_ms: 0.894791
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: source-denied
+ok 66 - exclusive copy retains original failure when diagnosis is inconclusive: source-denied
+  ---
+  duration_ms: 0.96875
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: target-denied
+ok 67 - exclusive copy retains original failure when diagnosis is inconclusive: target-denied
+  ---
+  duration_ms: 1.478625
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: target-missing
+ok 68 - exclusive copy retains original failure when diagnosis is inconclusive: target-missing
+  ---
+  duration_ms: 0.580583
+  type: 'test'
+  ...
+# Subtest: exclusive copy diagnostic requests propagate cancellation
+ok 69 - exclusive copy diagnostic requests propagate cancellation
+  ---
+  duration_ms: 1.071583
+  type: 'test'
+  ...
+# Subtest: exclusive copy does not reclassify or diagnose a 409 as destination existence
+ok 70 - exclusive copy does not reclassify or diagnose a 409 as destination existence
+  ---
+  duration_ms: 3.540709
+  type: 'test'
+  ...
+# Subtest: nonexclusive copy leaves source-precondition errors unchanged even with an existing destination
+ok 71 - nonexclusive copy leaves source-precondition errors unchanged even with an existing destination
+  ---
+  duration_ms: 1.599042
+  type: 'test'
+  ...
+# Subtest: exclusive copy guards only the target key, not concurrent target/child creation
+ok 72 - exclusive copy guards only the target key, not concurrent target/child creation
+  ---
+  duration_ms: 1.153333
+  type: 'test'
+  ...
+# Subtest: exclusive creation also has no namespace-wide isolation
+ok 73 - exclusive creation also has no namespace-wide isolation
+  ---
+  duration_ms: 0.562916
+  type: 'test'
+  ...
+# S3_FAITHFUL_DECORATOR {"decorator":"readFile-bind","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# S3_FAITHFUL_DECORATOR {"decorator":"buffer-forward","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# S3_FAITHFUL_DECORATOR {"decorator":"stream-bind","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# S3_FAITHFUL_DECORATOR {"decorator":"stream-forward","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# S3_FAITHFUL_DECORATOR {"decorator":"metadata-forward","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# S3_FAITHFUL_DECORATOR {"decorator":"subclass-buffer","relation":"distinct","code":null,"source":[0,255,128,10,17],"target":[0,255,128,10,17]}
+# Subtest: faithful S3 readFile-bind preserves observed aliases and existing-target copy
+ok 74 - faithful S3 readFile-bind preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 22.991167
+  type: 'test'
+  ...
+# Subtest: faithful S3 buffer-forward preserves observed aliases and existing-target copy
+ok 75 - faithful S3 buffer-forward preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 4.655834
+  type: 'test'
+  ...
+# Subtest: faithful S3 stream-bind preserves observed aliases and existing-target copy
+ok 76 - faithful S3 stream-bind preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 5.486125
+  type: 'test'
+  ...
+# Subtest: faithful S3 stream-forward preserves observed aliases and existing-target copy
+ok 77 - faithful S3 stream-forward preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 5.101666
+  type: 'test'
+  ...
+# Subtest: faithful S3 metadata-forward preserves observed aliases and existing-target copy
+ok 78 - faithful S3 metadata-forward preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 3.211208
+  type: 'test'
+  ...
+# Subtest: faithful S3 subclass-buffer preserves observed aliases and existing-target copy
+ok 79 - faithful S3 subclass-buffer preserves observed aliases and existing-target copy
+  ---
+  duration_ms: 4.093667
+  type: 'test'
+  ...
+# Subtest: S3 transport routing substitution does not reuse the old stat binding
+ok 80 - S3 transport routing substitution does not reuse the old stat binding
+  ---
+  duration_ms: 3.402875
+  type: 'test'
+  ...
+# Subtest: S3 bucket routing substitution does not reuse the old stat binding
+ok 81 - S3 bucket routing substitution does not reuse the old stat binding
+  ---
+  duration_ms: 0.541833
+  type: 'test'
+  ...
+# Subtest: S3 prefix routing substitution does not reuse the old stat binding
+ok 82 - S3 prefix routing substitution does not reuse the old stat binding
+  ---
+  duration_ms: 0.543875
+  type: 'test'
+  ...
+# Subtest: S3 adapter conforms to FileSystem and construction is offline with explicit transport
+ok 83 - S3 adapter conforms to FileSystem and construction is offline with explicit transport
+  ---
+  duration_ms: 1.825459
+  type: 'test'
+  ...
+# Subtest: file operations preserve empty bytes, invalid UTF-8, NULs, and caller buffer ownership
+ok 84 - file operations preserve empty bytes, invalid UTF-8, NULs, and caller buffer ownership
+  ---
+  duration_ms: 2.794042
+  type: 'test'
+  ...
+# Subtest: explicit and implicit directories project object prefixes without leaking neighboring prefixes
+ok 85 - explicit and implicit directories project object prefixes without leaking neighboring prefixes
+  ---
+  duration_ms: 2.330708
+  type: 'test'
+  ...
+# Subtest: mkdir, file parents, missing paths, suffixes, and nonempty removal report contract errors
+ok 86 - mkdir, file parents, missing paths, suffixes, and nonempty removal report contract errors
+  ---
+  duration_ms: 3.701
+  type: 'test'
+  ...
+# Subtest: all mutating and reading paths reject escape attempts before transport access
+ok 87 - all mutating and reading paths reject escape attempts before transport access
+  ---
+  duration_ms: 0.712375
+  type: 'test'
+  ...
+# Subtest: literal percent escapes, backslashes, Unicode, and spaces do not become path traversal
+ok 88 - literal percent escapes, backslashes, Unicode, and spaces do not become path traversal
+  ---
+  duration_ms: 1.679
+  type: 'test'
+  ...
+# Subtest: prefixes and limits validate before any requests and object key byte limits include prefix
+ok 89 - prefixes and limits validate before any requests and object key byte limits include prefix
+  ---
+  duration_ms: 0.807416
+  type: 'test'
+  ...
+# Subtest: readdir traverses more than 1000 objects and recursive rm snapshots every page before deleting
+ok 90 - readdir traverses more than 1000 objects and recursive rm snapshots every page before deleting
+  ---
+  duration_ms: 110.418417
+  type: 'test'
+  ...
+# Subtest: listing resource limits fail before recursive deletion modifies any objects
+ok 91 - listing resource limits fail before recursive deletion modifies any objects
+  ---
+  duration_ms: 0.698583
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: missing-token
+ok 92 - malformed list response fails closed: missing-token
+  ---
+  duration_ms: 0.4315
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: repeated-token
+ok 93 - malformed list response fails closed: repeated-token
+  ---
+  duration_ms: 0.0905
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: escaped-key
+ok 94 - malformed list response fails closed: escaped-key
+  ---
+  duration_ms: 0.054583
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: bad-size
+ok 95 - malformed list response fails closed: bad-size
+  ---
+  duration_ms: 0.04925
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: escaped-prefix
+ok 96 - malformed list response fails closed: escaped-prefix
+  ---
+  duration_ms: 0.04675
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: invalid-truncated
+ok 97 - malformed list response fails closed: invalid-truncated
+  ---
+  duration_ms: 0.040334
+  type: 'test'
+  ...
+# Subtest: zero-item truncated pages are followed rather than treated as end-of-list
+ok 98 - zero-item truncated pages are followed rather than treated as end-of-list
+  ---
+  duration_ms: 0.105459
+  type: 'test'
+  ...
+# Subtest: implicit directory existence follows empty truncated pages
+ok 99 - implicit directory existence follows empty truncated pages
+  ---
+  duration_ms: 0.309917
+  type: 'test'
+  ...
+# Subtest: ambiguous file/prefix collisions are not silently hidden or deleted
+ok 100 - ambiguous file/prefix collisions are not silently hidden or deleted
+  ---
+  duration_ms: 0.375209
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/../escape"
+ok 101 - unrepresentable remote key is rejected without data loss: "mount/tree/../escape"
+  ---
+  duration_ms: 0.160917
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree//double"
+ok 102 - unrepresentable remote key is rejected without data loss: "mount/tree//double"
+  ---
+  duration_ms: 0.114167
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/./dot"
+ok 103 - unrepresentable remote key is rejected without data loss: "mount/tree/./dot"
+  ---
+  duration_ms: 0.10125
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/nonempty/"
+ok 104 - unrepresentable remote key is rejected without data loss: "mount/tree/nonempty/"
+  ---
+  duration_ms: 0.101875
+  type: 'test'
+  ...
+# Subtest: nested file/prefix collisions are discovered during destructive preflight
+ok 105 - nested file/prefix collisions are discovered during destructive preflight
+  ---
+  duration_ms: 0.15225
+  type: 'test'
+  ...
+# Subtest: exclusive writes and appends use service preconditions and preserve bytes and user metadata
+ok 106 - exclusive writes and appends use service preconditions and preserve bytes and user metadata
+  ---
+  duration_ms: 0.732375
+  type: 'test'
+  ...
+# Subtest: concurrent append rejects a stale ETag instead of losing a competing write
+ok 107 - concurrent append rejects a stale ETag instead of losing a competing write
+  ---
+  duration_ms: 0.341417
+  type: 'test'
+  ...
+# Subtest: concurrent exclusive create reports EEXIST without overwriting the winner
+ok 108 - concurrent exclusive create reports EEXIST without overwriting the winner
+  ---
+  duration_ms: 0.239666
+  type: 'test'
+  ...
+# Subtest: unsupported conditional operations fail rather than emulating unsafe check-then-write
+ok 109 - unsupported conditional operations fail rather than emulating unsafe check-then-write
+  ---
+  duration_ms: 0.178584
+  type: 'test'
+  ...
+# Subtest: copy uses server-side CopyObject with source ETag and encoded keys, including binary data
+ok 110 - copy uses server-side CopyObject with source ETag and encoded keys, including binary data
+  ---
+  duration_ms: 0.77025
+  type: 'test'
+  ...
+# Subtest: explicitly disabling non-atomic rename rejects before accessing the transport
+ok 111 - explicitly disabling non-atomic rename rejects before accessing the transport
+  ---
+  duration_ms: 0.072708
+  type: 'test'
+  ...
+# Subtest: non-atomic rename copies all paginated objects before deleting any source
+ok 112 - non-atomic rename copies all paginated objects before deleting any source
+  ---
+  duration_ms: 1.216
+  type: 'test'
+  ...
+# Subtest: rename rejects invalid directory moves and incompatible destinations without modifying source
+ok 113 - rename rejects invalid directory moves and incompatible destinations without modifying source
+  ---
+  duration_ms: 1.388584
+  type: 'test'
+  ...
+# Subtest: rename may replace a file or empty directory and does not delete unrelated prefixes
+ok 114 - rename may replace a file or empty directory and does not delete unrelated prefixes
+  ---
+  duration_ms: 1.731708
+  type: 'test'
+  ...
+# Subtest: copy failure during rename retains every source and reports completed destination copies
+ok 115 - copy failure during rename retains every source and reports completed destination copies
+  ---
+  duration_ms: 0.934167
+  type: 'test'
+  ...
+# Subtest: delete failure during rename reports partial source deletion without rolling back destination copies
+ok 116 - delete failure during rename reports partial source deletion without rolling back destination copies
+  ---
+  duration_ms: 0.814333
+  type: 'test'
+  ...
+# Subtest: conditional rename deletion preserves a source concurrently changed after copy
+ok 117 - conditional rename deletion preserves a source concurrently changed after copy
+  ---
+  duration_ms: 0.504166
+  type: 'test'
+  ...
+# Subtest: unconfirmed CopyObject success never permits source deletion
+ok 118 - unconfirmed CopyObject success never permits source deletion
+  ---
+  duration_ms: 0.367833
+  type: 'test'
+  ...
+# Subtest: service error AccessDenied becomes EACCES without exposing it as a missing file
+ok 119 - service error AccessDenied becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.116833
+  type: 'test'
+  ...
+# Subtest: service error InvalidAccessKeyId becomes EACCES without exposing it as a missing file
+ok 120 - service error InvalidAccessKeyId becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 2.038375
+  type: 'test'
+  ...
+# Subtest: service error SignatureDoesNotMatch becomes EACCES without exposing it as a missing file
+ok 121 - service error SignatureDoesNotMatch becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.179625
+  type: 'test'
+  ...
+# Subtest: service error ExpiredToken becomes EACCES without exposing it as a missing file
+ok 122 - service error ExpiredToken becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.099291
+  type: 'test'
+  ...
+# Subtest: service error SlowDown becomes EAGAIN without exposing it as a missing file
+ok 123 - service error SlowDown becomes EAGAIN without exposing it as a missing file
+  ---
+  duration_ms: 0.121667
+  type: 'test'
+  ...
+# Subtest: service error RequestTimeout becomes ETIMEDOUT without exposing it as a missing file
+ok 124 - service error RequestTimeout becomes ETIMEDOUT without exposing it as a missing file
+  ---
+  duration_ms: 0.089458
+  type: 'test'
+  ...
+# Subtest: service error NotImplemented becomes ENOTSUP without exposing it as a missing file
+ok 125 - service error NotImplemented becomes ENOTSUP without exposing it as a missing file
+  ---
+  duration_ms: 0.081208
+  type: 'test'
+  ...
+# Subtest: service error InternalError becomes EIO without exposing it as a missing file
+ok 126 - service error InternalError becomes EIO without exposing it as a missing file
+  ---
+  duration_ms: 0.528542
+  type: 'test'
+  ...
+# Subtest: service error InvalidArgument becomes EINVAL without exposing it as a missing file
+ok 127 - service error InvalidArgument becomes EINVAL without exposing it as a missing file
+  ---
+  duration_ms: 0.233875
+  type: 'test'
+  ...
+# Subtest: missing bucket is not treated as a missing object or lazily provisioned
+ok 128 - missing bucket is not treated as a missing object or lazily provisioned
+  ---
+  duration_ms: 0.20975
+  type: 'test'
+  ...
+# Subtest: readOnly policy blocks every mutation before transport calls
+ok 129 - readOnly policy blocks every mutation before transport calls
+  ---
+  duration_ms: 0.202917
+  type: 'test'
+  ...
+# Subtest: abort signals are checked before IO and passed through the transport
+ok 130 - abort signals are checked before IO and passed through the transport
+  ---
+  duration_ms: 0.233417
+  type: 'test'
+  ...
+# Subtest: read limits and invalid flags fail; valid creation modes persist as metadata
+ok 131 - read limits and invalid flags fail; valid creation modes persist as metadata
+  ---
+  duration_ms: 0.728875
+  type: 'test'
+  ...
+# Subtest: read accepts SDK-style binary streams and byte-array transforms but rejects corrupt bodies
+ok 132 - read accepts SDK-style binary streams and byte-array transforms but rejects corrupt bodies
+  ---
+  duration_ms: 0.711417
+  type: 'test'
+  ...
+# Subtest: stream limits stop consumption and close the iterator
+ok 133 - stream limits stop consumption and close the iterator
+  ---
+  duration_ms: 0.196542
+  type: 'test'
+  ...
+# Subtest: oversized GET response closes the SDK-style body when HEAD became stale
+ok 134 - oversized GET response closes the SDK-style body when HEAD became stale
+  ---
+  duration_ms: 0.246709
+  type: 'test'
+  ...
+# Subtest: unsupported POSIX capabilities never report successful emulation
+ok 135 - unsupported POSIX capabilities never report successful emulation
+  ---
+  duration_ms: 0.66025
+  type: 'test'
+  ...
+# Subtest: source changes before server-side copy are not copied or deleted
+ok 136 - source changes before server-side copy are not copied or deleted
+  ---
+  duration_ms: 0.458208
+  type: 'test'
+  ...
+# Subtest: missing source ETags and multipart sizes fail copy/rename before mutation
+ok 137 - missing source ETags and multipart sizes fail copy/rename before mutation
+  ---
+  duration_ms: 0.77625
+  type: 'test'
+  ...
+# Subtest: mounted-prefix policy covers every operation including copy source and root probes
+ok 138 - mounted-prefix policy covers every operation including copy source and root probes
+  ---
+  duration_ms: 0.864041
+  type: 'test'
+  ...
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"same","comparison":"same","comparisonCalls":1,"copyError":"EINVAL","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"distinct","comparison":"distinct","comparisonCalls":1,"copyCalls":1,"source":[0,255,128,17,10],"target":[0,255,128,17,10],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","putObject"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"unknown","comparison":"unknown","comparisonCalls":1,"copyError":"ENOTSUP","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"denied","comparisonError":"EACCES","comparisonCalls":1,"copyError":"EACCES","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"invalid","comparisonError":"EIO","comparisonCalls":1,"copyError":"EIO","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"source","answer":"cancel","comparisonError":"ECANCELED","comparisonCalls":1,"copyError":"ECANCELED","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"same","comparison":"same","comparisonCalls":1,"copyError":"EINVAL","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"distinct","comparison":"distinct","comparisonCalls":1,"copyCalls":1,"source":[0,255,128,17,10],"target":[0,255,128,17,10],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","putObject"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"unknown","comparison":"unknown","comparisonCalls":1,"copyError":"ENOTSUP","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"denied","comparisonError":"EACCES","comparisonCalls":1,"copyError":"EACCES","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"invalid","comparisonError":"EIO","comparisonCalls":1,"copyError":"EIO","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":false,"side":"target","answer":"cancel","comparisonError":"ECANCELED","comparisonCalls":1,"copyError":"ECANCELED","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"same","comparison":"same","comparisonCalls":1,"copyError":"EINVAL","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"distinct","comparison":"distinct","comparisonCalls":1,"copyCalls":1,"source":[0,255,128,17,10],"target":[0,255,128,17,10],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","putObject"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"unknown","comparison":"unknown","comparisonCalls":1,"copyError":"ENOTSUP","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"denied","comparisonError":"EACCES","comparisonCalls":1,"copyError":"EACCES","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"invalid","comparisonError":"EIO","comparisonCalls":1,"copyError":"EIO","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"source","answer":"cancel","comparisonError":"ECANCELED","comparisonCalls":1,"copyError":"ECANCELED","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"same","comparison":"same","comparisonCalls":1,"copyError":"EINVAL","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"distinct","comparison":"distinct","comparisonCalls":1,"copyCalls":1,"source":[0,255,128,17,10],"target":[0,255,128,17,10],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","putObject"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"unknown","comparison":"unknown","comparisonCalls":1,"copyError":"ENOTSUP","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"denied","comparisonError":"EACCES","comparisonCalls":1,"copyError":"EACCES","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"invalid","comparisonError":"EIO","comparisonCalls":1,"copyError":"EIO","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_AUTHORITY {"streaming":true,"side":"target","answer":"cancel","comparisonError":"ECANCELED","comparisonCalls":1,"copyError":"ECANCELED","copyCalls":1,"source":[0,255,128,17,10],"target":[33,0,34],"requests":["listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_LATE_MIXED {"streaming":false,"calls":1,"code":"EACCES","target":[33,0,34]}
+# S3_LATE_MIXED {"streaming":true,"calls":1,"code":"EACCES","target":[33,0,34]}
+# Subtest: late S3 source same preserves buffered comparison and copy semantics
+ok 139 - late S3 source same preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 8.516792
+  type: 'test'
+  ...
+# Subtest: late S3 source distinct preserves buffered comparison and copy semantics
+ok 140 - late S3 source distinct preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 6.784
+  type: 'test'
+  ...
+# Subtest: late S3 source unknown preserves buffered comparison and copy semantics
+ok 141 - late S3 source unknown preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 2.429709
+  type: 'test'
+  ...
+# Subtest: late S3 source denied preserves buffered comparison and copy semantics
+ok 142 - late S3 source denied preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 2.626
+  type: 'test'
+  ...
+# Subtest: late S3 source invalid preserves buffered comparison and copy semantics
+ok 143 - late S3 source invalid preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 10.405209
+  type: 'test'
+  ...
+# Subtest: late S3 source cancel preserves buffered comparison and copy semantics
+ok 144 - late S3 source cancel preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 1.79875
+  type: 'test'
+  ...
+# Subtest: late S3 target same preserves buffered comparison and copy semantics
+ok 145 - late S3 target same preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 1.828583
+  type: 'test'
+  ...
+# Subtest: late S3 target distinct preserves buffered comparison and copy semantics
+ok 146 - late S3 target distinct preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 13.419459
+  type: 'test'
+  ...
+# Subtest: late S3 target unknown preserves buffered comparison and copy semantics
+ok 147 - late S3 target unknown preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 2.089584
+  type: 'test'
+  ...
+# Subtest: late S3 target denied preserves buffered comparison and copy semantics
+ok 148 - late S3 target denied preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 1.930834
+  type: 'test'
+  ...
+# Subtest: late S3 target invalid preserves buffered comparison and copy semantics
+ok 149 - late S3 target invalid preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 2.260541
+  type: 'test'
+  ...
+# Subtest: late S3 target cancel preserves buffered comparison and copy semantics
+ok 150 - late S3 target cancel preserves buffered comparison and copy semantics
+  ---
+  duration_ms: 4.815
+  type: 'test'
+  ...
+# Subtest: late S3 source same preserves streamed comparison and copy semantics
+ok 151 - late S3 source same preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.910083
+  type: 'test'
+  ...
+# Subtest: late S3 source distinct preserves streamed comparison and copy semantics
+ok 152 - late S3 source distinct preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 2.600458
+  type: 'test'
+  ...
+# Subtest: late S3 source unknown preserves streamed comparison and copy semantics
+ok 153 - late S3 source unknown preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 5.571625
+  type: 'test'
+  ...
+# Subtest: late S3 source denied preserves streamed comparison and copy semantics
+ok 154 - late S3 source denied preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.416375
+  type: 'test'
+  ...
+# Subtest: late S3 source invalid preserves streamed comparison and copy semantics
+ok 155 - late S3 source invalid preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.245875
+  type: 'test'
+  ...
+# Subtest: late S3 source cancel preserves streamed comparison and copy semantics
+ok 156 - late S3 source cancel preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 4.950375
+  type: 'test'
+  ...
+# Subtest: late S3 target same preserves streamed comparison and copy semantics
+ok 157 - late S3 target same preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 3.650166
+  type: 'test'
+  ...
+# Subtest: late S3 target distinct preserves streamed comparison and copy semantics
+ok 158 - late S3 target distinct preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.750209
+  type: 'test'
+  ...
+# Subtest: late S3 target unknown preserves streamed comparison and copy semantics
+ok 159 - late S3 target unknown preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.411334
+  type: 'test'
+  ...
+# Subtest: late S3 target denied preserves streamed comparison and copy semantics
+ok 160 - late S3 target denied preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 2.704625
+  type: 'test'
+  ...
+# Subtest: late S3 target invalid preserves streamed comparison and copy semantics
+ok 161 - late S3 target invalid preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.359458
+  type: 'test'
+  ...
+# Subtest: late S3 target cancel preserves streamed comparison and copy semantics
+ok 162 - late S3 target cancel preserves streamed comparison and copy semantics
+  ---
+  duration_ms: 1.38275
+  type: 'test'
+  ...
+# Subtest: late S3 denial preserves mixed Memory target bytes (buffered)
+ok 163 - late S3 denial preserves mixed Memory target bytes (buffered)
+  ---
+  duration_ms: 0.863625
+  type: 'test'
+  ...
+# Subtest: late S3 denial preserves mixed Memory target bytes (streamed)
+ok 164 - late S3 denial preserves mixed Memory target bytes (streamed)
+  ---
+  duration_ms: 1.286042
+  type: 'test'
+  ...
+# Subtest: late S3 conflicting callbacks execute once per operand and preserve both files
+ok 165 - late S3 conflicting callbacks execute once per operand and preserve both files
+  ---
+  duration_ms: 6.193875
+  type: 'test'
+  ...
+# Subtest: late S3 cancellation stops the peer callback before effects
+ok 166 - late S3 cancellation stops the peer callback before effects
+  ---
+  duration_ms: 1.06725
+  type: 'test'
+  ...
+# Subtest: one late callback shared by two S3 operands is called once for each operand
+ok 167 - one late callback shared by two S3 operands is called once for each operand
+  ---
+  duration_ms: 1.152042
+  type: 'test'
+  ...
+# Subtest: same S3 operand callback executes once and recursive comparison stays unknown
+ok 168 - same S3 operand callback executes once and recursive comparison stays unknown
+  ---
+  duration_ms: 0.72825
+  type: 'test'
+  ...
+# Subtest: complete known identities precede late S3 callbacks
+ok 169 - complete known identities precede late S3 callbacks
+  ---
+  duration_ms: 0.717375
+  type: 'test'
+  ...
+# Subtest: late S3 prototype authority is observed and removal remains unknown
+ok 170 - late S3 prototype authority is observed and removal remains unknown
+  ---
+  duration_ms: 32.40425
+  type: 'test'
+  ...
+# Subtest: unchanged capable S3 authority still copies distinct existing entries
+ok 171 - unchanged capable S3 authority still copies distinct existing entries
+  ---
+  duration_ms: 1.033417
+  type: 'test'
+  ...
+# Subtest: mock objects are flat keys and binary bodies are copied at storage and retrieval boundaries
+ok 172 - mock objects are flat keys and binary bodies are copied at storage and retrieval boundaries
+  ---
+  duration_ms: 1.253375
+  type: 'test'
+  ...
+# Subtest: mock empty objects and mutable metadata have independent snapshots
+ok 173 - mock empty objects and mutable metadata have independent snapshots
+  ---
+  duration_ms: 0.241959
+  type: 'test'
+  ...
+# Subtest: mock pagination counts common prefixes as single entries and uses scoped opaque tokens
+ok 174 - mock pagination counts common prefixes as single entries and uses scoped opaque tokens
+  ---
+  duration_ms: 2.109375
+  type: 'test'
+  ...
+# Subtest: mock continuation does not skip keys when an earlier page is deleted
+ok 175 - mock continuation does not skip keys when an earlier page is deleted
+  ---
+  duration_ms: 0.724583
+  type: 'test'
+  ...
+# Subtest: mock list ordering follows UTF-8 bytes, not UTF-16 code units
+ok 176 - mock list ordering follows UTF-8 bytes, not UTF-16 code units
+  ---
+  duration_ms: 0.247375
+  type: 'test'
+  ...
+# Subtest: mock enforces conditional put, source copy, destination copy, and delete
+ok 177 - mock enforces conditional put, source copy, destination copy, and delete
+  ---
+  duration_ms: 0.474209
+  type: 'test'
+  ...
+# Subtest: mock server-side copy decodes CopySource exactly once and preserves bytes and user metadata
+ok 178 - mock server-side copy decodes CopySource exactly once and preserves bytes and user metadata
+  ---
+  duration_ms: 0.269875
+  type: 'test'
+  ...
+# Subtest: mock authorization is explicit and failures cannot mutate stored data
+ok 179 - mock authorization is explicit and failures cannot mutate stored data
+  ---
+  duration_ms: 0.127625
+  type: 'test'
+  ...
+# Subtest: mock pre-aborted requests do not call authorization or mutate data
+ok 180 - mock pre-aborted requests do not call authorization or mutate data
+  ---
+  duration_ms: 0.270792
+  type: 'test'
+  ...
+# Subtest: mock does not create buckets implicitly, rejects malformed requests, and supports MaxKeys zero
+ok 181 - mock does not create buckets implicitly, rejects malformed requests, and supports MaxKeys zero
+  ---
+  duration_ms: 0.552542
+  type: 'test'
+  ...
+# Subtest: transport wrapper preserves client method binding and performs no requests at construction
+ok 182 - transport wrapper preserves client method binding and performs no requests at construction
+  ---
+  duration_ms: 0.209584
+  type: 'test'
+  ...
+# Subtest: rename guards a destination creation after preflight
+ok 183 - rename guards a destination creation after preflight
+  ---
+  duration_ms: 4.036083
+  type: 'test'
+  ...
+# Subtest: rename guards a destination replacement after preflight
+ok 184 - rename guards a destination replacement after preflight
+  ---
+  duration_ms: 1.241542
+  type: 'test'
+  ...
+# Subtest: metadata replacement rejects a concurrent content update and never rewrites new bytes
+ok 185 - metadata replacement rejects a concurrent content update and never rewrites new bytes
+  ---
+  duration_ms: 0.82025
+  type: 'test'
+  ...
+# Subtest: truncate guards the exact bytes read against a concurrent replacement
+ok 186 - truncate guards the exact bytes read against a concurrent replacement
+  ---
+  duration_ms: 2.012166
+  type: 'test'
+  ...
+# Subtest: truncate shrinks a large object using only a bounded range and truncates to zero without GET
+ok 187 - truncate shrinks a large object using only a bounded range and truncates to zero without GET
+  ---
+  duration_ms: 4.096
+  type: 'test'
+  ...
+# Subtest: file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+ok 188 - file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+  ---
+  duration_ms: 1.8095
+  type: 'test'
+  ...
+# Subtest: conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+ok 189 - conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+  ---
+  duration_ms: 7.321542
+  type: 'test'
+  ...
+# Subtest: append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+ok 190 - append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+  ---
+  duration_ms: 1.379333
+  type: 'test'
+  ...
+# Subtest: access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+ok 191 - access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+  ---
+  duration_ms: 0.977375
+  type: 'test'
+  ...
+# Subtest: metadata and truncate failures preserve filesystem error fidelity
+ok 192 - metadata and truncate failures preserve filesystem error fidelity
+  ---
+  duration_ms: 1.100458
+  type: 'test'
+  ...
+# Subtest: readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+ok 193 - readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+  ---
+  duration_ms: 0.198833
+  type: 'test'
+  ...
+# Subtest: buffered mock snapshots input bytes and metadata before asynchronous authorization
+ok 194 - buffered mock snapshots input bytes and metadata before asynchronous authorization
+  ---
+  duration_ms: 0.110375
+  type: 'test'
+  ...
+# Subtest: mock enforces the provider metadata budget without altering the object
+ok 195 - mock enforces the provider metadata budget without altering the object
+  ---
+  duration_ms: 0.308083
+  type: 'test'
+  ...
+# Subtest: metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+ok 196 - metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+  ---
+  duration_ms: 0.126709
+  type: 'test'
+  ...
+# Subtest: root agentCommands dispatches named reads, gzip, move, and existing-file touch on S3
+ok 197 - root agentCommands dispatches named reads, gzip, move, and existing-file touch on S3
+  ---
+  duration_ms: 20.792709
+  type: 'test'
+  ...
+# Subtest: stream transport reads ranges beyond the buffered budget without eager body materialization
+ok 198 - stream transport reads ranges beyond the buffered budget without eager body materialization
+  ---
+  duration_ms: 1.948625
+  type: 'test'
+  ...
+# Subtest: legacy buffered transports expose no misleading stream methods
+ok 199 - legacy buffered transports expose no misleading stream methods
+  ---
+  duration_ms: 0.493709
+  type: 'test'
+  ...
+# Subtest: timestamps persist in object metadata and truncate preserves bytes and padding
+ok 200 - timestamps persist in object metadata and truncate preserves bytes and padding
+  ---
+  duration_ms: 2.487959
+  type: 'test'
+  ...
+# Subtest: root named-file gzip stages, publishes, preserves input with -k and removes input without -k
+ok 201 - root named-file gzip stages, publishes, preserves input with -k and removes input without -k
+  ---
+  duration_ms: 13.340416
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {"conditionalDelete":true}
+ok 202 - minimum mutation capabilities preflight {"conditionalDelete":true}
+  ---
+  duration_ms: 3.285334
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+ok 203 - minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+  ---
+  duration_ms: 0.345333
+  type: 'test'
+  ...
+# Subtest: no destination guard capability must not clobber concurrent create
+ok 204 - no destination guard capability must not clobber concurrent create
+  ---
+  duration_ms: 0.256459
+  type: 'test'
+  ...
+# Subtest: conditional PUT without conditional current-object deletion rejects before host calls
+ok 205 - conditional PUT without conditional current-object deletion rejects before host calls
+  ---
+  duration_ms: 0.18575
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename creates destination without CopyObject capability
+ok 206 - buffered PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 2.050458
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination creation race retains both writers
+ok 207 - buffered PUT destination creation race retains both writers
+  ---
+  duration_ms: 0.9655
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename replaces stable destination without CopyObject capability
+ok 208 - buffered PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 1.039084
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination replacement race retains both writers
+ok 209 - buffered PUT destination replacement race retains both writers
+  ---
+  duration_ms: 3.889542
+  type: 'test'
+  ...
+# Subtest: buffered PUT source replacement before GET produces no destination
+ok 210 - buffered PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 1.714375
+  type: 'test'
+  ...
+# Subtest: buffered PUT changed source after publication survives conditional deletion
+ok 211 - buffered PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 1.07375
+  type: 'test'
+  ...
+# Subtest: buffered PUT deletion failure reports acknowledged publication without rollback
+ok 212 - buffered PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.620417
+  type: 'test'
+  ...
+# Subtest: buffered PUT lost publication acknowledgement never authorizes source deletion
+ok 213 - buffered PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 0.538042
+  type: 'test'
+  ...
+# Subtest: buffered PUT directory size preflight rejects before publishing any earlier child
+ok 214 - buffered PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 0.576834
+  type: 'test'
+  ...
+# Subtest: buffered PUT supports absent conditionalCopy advertisement without upgrading it
+ok 215 - buffered PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.515792
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename creates destination without CopyObject capability
+ok 216 - streaming PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 1.871334
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination creation race retains both writers
+ok 217 - streaming PUT destination creation race retains both writers
+  ---
+  duration_ms: 0.497375
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename replaces stable destination without CopyObject capability
+ok 218 - streaming PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 0.619708
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination replacement race retains both writers
+ok 219 - streaming PUT destination replacement race retains both writers
+  ---
+  duration_ms: 0.474958
+  type: 'test'
+  ...
+# Subtest: streaming PUT source replacement before GET produces no destination
+ok 220 - streaming PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 0.404667
+  type: 'test'
+  ...
+# Subtest: streaming PUT changed source after publication survives conditional deletion
+ok 221 - streaming PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 0.545583
+  type: 'test'
+  ...
+# Subtest: streaming PUT deletion failure reports acknowledged publication without rollback
+ok 222 - streaming PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.644333
+  type: 'test'
+  ...
+# Subtest: streaming PUT lost publication acknowledgement never authorizes source deletion
+ok 223 - streaming PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 0.420125
+  type: 'test'
+  ...
+# Subtest: streaming PUT directory size preflight rejects before publishing any earlier child
+ok 224 - streaming PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 0.362916
+  type: 'test'
+  ...
+# Subtest: streaming PUT supports absent conditionalCopy advertisement without upgrading it
+ok 225 - streaming PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.403833
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+ok 226 - LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.527166
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: a new source child survives successful enumerated-key rename
+ok 227 - LIMIT copy: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 3.246208
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 228 - LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 4.490416
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+ok 229 - LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 5.917917
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 230 - LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 1.917375
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+ok 231 - LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 1.317125
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback abort closes a stalled source and never deletes or publishes
+ok 232 - streaming PUT fallback abort closes a stalled source and never deletes or publishes
+  ---
+  duration_ms: 8.794333
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback rejects success without full body consumption and closes source
+ok 233 - streaming PUT fallback rejects success without full body consumption and closes source
+  ---
+  duration_ms: 0.503708
+  type: 'test'
+  ...
+# Subtest: buffered fallback rejects missing source ETag before destination PUT
+ok 234 - buffered fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.357667
+  type: 'test'
+  ...
+# Subtest: streaming fallback rejects missing source ETag before destination PUT
+ok 235 - streaming fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.293667
+  type: 'test'
+  ...
+# Subtest: stream discovery requires both negotiated capability and a streaming method
+ok 236 - stream discovery requires both negotiated capability and a streaming method
+  ---
+  duration_ms: 3.826708
+  type: 'test'
+  ...
+# Subtest: stream reads pull only on demand, split chunks and release on early return
+ok 237 - stream reads pull only on demand, split chunks and release on early return
+  ---
+  duration_ms: 3.284708
+  type: 'test'
+  ...
+# Subtest: early consumer return does not hang on an uncooperative response return hook
+ok 238 - early consumer return does not hang on an uncooperative response return hook
+  ---
+  duration_ms: 0.80575
+  type: 'test'
+  ...
+# Subtest: abort interrupts stalled response next and observes its late rejection
+ok 239 - abort interrupts stalled response next and observes its late rejection
+  ---
+  duration_ms: 2.517125
+  type: 'test'
+  ...
+# Subtest: abort stops awaiting transport and releases an eventual response body
+ok 240 - abort stops awaiting transport and releases an eventual response body
+  ---
+  duration_ms: 1.571875
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response short rejects and cleans up
+ok 241 - corrupt streaming response short rejects and cleans up
+  ---
+  duration_ms: 0.464667
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response long rejects and cleans up
+ok 242 - corrupt streaming response long rejects and cleans up
+  ---
+  duration_ms: 12.520417
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response header rejects and cleans up
+ok 243 - corrupt streaming response header rejects and cleans up
+  ---
+  duration_ms: 9.99275
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response etag rejects and cleans up
+ok 244 - corrupt streaming response etag rejects and cleans up
+  ---
+  duration_ms: 3.299708
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response text rejects and cleans up
+ok 245 - corrupt streaming response text rejects and cleans up
+  ---
+  duration_ms: 0.529125
+  type: 'test'
+  ...
+# Subtest: empty reads still enforce GET authorization; exact empty ranges and EOF do not issue invalid Range
+ok 246 - empty reads still enforce GET authorization; exact empty ranges and EOF do not issue invalid Range
+  ---
+  duration_ms: 1.792584
+  type: 'test'
+  ...
+# Subtest: read argument and transfer budgets fail before requesting a body
+ok 247 - read argument and transfer budgets fail before requesting a body
+  ---
+  duration_ms: 1.078834
+  type: 'test'
+  ...
+# Subtest: stream source snapshots reject a concurrent object replacement before GET
+ok 248 - stream source snapshots reject a concurrent object replacement before GET
+  ---
+  duration_ms: 7.413875
+  type: 'test'
+  ...
+# Subtest: stream writes follow transport demand and do not mutate producer chunks
+ok 249 - stream writes follow transport demand and do not mutate producer chunks
+  ---
+  duration_ms: 0.88725
+  type: 'test'
+  ...
+# Subtest: stream upload limit closes input and preserves an existing object
+ok 250 - stream upload limit closes input and preserves an existing object
+  ---
+  duration_ms: 0.547375
+  type: 'test'
+  ...
+# Subtest: stream source failure preserves prior bytes and maps to EIO
+ok 251 - stream source failure preserves prior bytes and maps to EIO
+  ---
+  duration_ms: 0.398792
+  type: 'test'
+  ...
+# Subtest: abort interrupts a stalled upload source without publishing partial data
+ok 252 - abort interrupts a stalled upload source without publishing partial data
+  ---
+  duration_ms: 7.421042
+  type: 'test'
+  ...
+# Subtest: early transport success without consuming the stream is not reported as a completed write
+ok 253 - early transport success without consuming the stream is not reported as a completed write
+  ---
+  duration_ms: 0.405833
+  type: 'test'
+  ...
+# Subtest: a transport failure cancels a pending producer pull and observes its late failure
+ok 254 - a transport failure cancels a pending producer pull and observes its late failure
+  ---
+  duration_ms: 1.188292
+  type: 'test'
+  ...
+# Subtest: exclusive stream conditions are evaluated after upload and preserve a concurrent winner
+ok 255 - exclusive stream conditions are evaluated after upload and preserve a concurrent winner
+  ---
+  duration_ms: 0.632083
+  type: 'test'
+  ...
+# Subtest: pre-aborted stream operations and readonly mutations consume no input
+ok 256 - pre-aborted stream operations and readonly mutations consume no input
+  ---
+  duration_ms: 0.28275
+  type: 'test'
+  ...
+# Subtest: stream append is explicitly bounded and preserves metadata with a conditional write
+ok 257 - stream append is explicitly bounded and preserves metadata with a conditional write
+  ---
+  duration_ms: 0.631
+  type: 'test'
+  ...
+# Subtest: stream flags cover empty replacement, new append, exclusive append and concurrent append conflicts
+ok 258 - stream flags cover empty replacement, new append, exclusive append and concurrent append conflicts
+  ---
+  duration_ms: 1.36475
+  type: 'test'
+  ...
+# Subtest: deterministic range boundaries preserve the exclusive endpoint and chunk budget
+ok 259 - deterministic range boundaries preserve the exclusive endpoint and chunk budget
+  ---
+  duration_ms: 10.351709
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 305441741
+ok 260 - seeded mixed-operation conformance against independent byte model: 305441741
+  ---
+  duration_ms: 119.9485
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 2147483647
+ok 261 - seeded mixed-operation conformance against independent byte model: 2147483647
+  ---
+  duration_ms: 69.526
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 12648430
+ok 262 - seeded mixed-operation conformance against independent byte model: 12648430
+  ---
+  duration_ms: 56.054708
+  type: 'test'
+  ...
+# Subtest: trusted proxy forwarding preserves shared-map aliases and distinct existing-key copies
+ok 263 - trusted proxy forwarding preserves shared-map aliases and distinct existing-key copies
+  ---
+  duration_ms: 17.174875
+  type: 'test'
+  ...
+# Subtest: trusted manual forwarding preserves shared-map aliases and distinct existing-key copies
+ok 264 - trusted manual forwarding preserves shared-map aliases and distinct existing-key copies
+  ---
+  duration_ms: 4.904458
+  type: 'test'
+  ...
+# Subtest: trusted factory-proxy forwarding preserves shared-map aliases and distinct existing-key copies
+ok 265 - trusted factory-proxy forwarding preserves shared-map aliases and distinct existing-key copies
+  ---
+  duration_ms: 5.618583
+  type: 'test'
+  ...
+# Subtest: trusted factory-manual forwarding preserves shared-map aliases and distinct existing-key copies
+ok 266 - trusted factory-manual forwarding preserves shared-map aliases and distinct existing-key copies
+  ---
+  duration_ms: 7.975041
+  type: 'test'
+  ...
+# Subtest: HEAD returned outside a current provider query cannot bind an opaque client
+ok 267 - HEAD returned outside a current provider query cannot bind an opaque client
+  ---
+  duration_ms: 2.750375
+  type: 'test'
+  ...
+# Subtest: legitimate Memory gateway actual-memory-tuples preserves aliases and only copies proven distinct entries
+ok 268 - legitimate Memory gateway actual-memory-tuples preserves aliases and only copies proven distinct entries
+  ---
+  duration_ms: 1.048375
+  type: 'test'
+  ...
+# Subtest: legitimate Memory gateway unbound-metadata preserves aliases and only copies proven distinct entries
+ok 269 - legitimate Memory gateway unbound-metadata preserves aliases and only copies proven distinct entries
+  ---
+  duration_ms: 1.477875
+  type: 'test'
+  ...
+1..269
+# tests 269
+# suites 0
+# pass 269
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 634.35475

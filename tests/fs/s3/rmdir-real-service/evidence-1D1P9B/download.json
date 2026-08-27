@@ -1,0 +1,30 @@
+{
+  "lock": {
+    "service": "MinIO Community",
+    "release": "RELEASE.2025-09-07T16-13-09Z",
+    "sourceCommit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+    "platform": "darwin-arm64",
+    "url": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z",
+    "checksumUrl": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z.sha256sum",
+    "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+    "size": 108218434,
+    "releasePage": "https://github.com/minio/minio/releases/tag/RELEASE.2025-09-07T16-13-09Z",
+    "selection": "Pinned historical official binary, not a latest-version or production-security recommendation"
+  },
+  "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+  "size": 108218434,
+  "downloadedAt": "2026-08-27T06:56:16.879Z",
+  "headers": {
+    "access-control-allow-headers": "Content-Type, Authorization",
+    "access-control-allow-methods": "GET, HEAD, OPTIONS",
+    "access-control-allow-origin": "*",
+    "access-control-max-age": "3600",
+    "content-encoding": "gzip",
+    "content-type": "application/octet-stream",
+    "date": "Thu, 27 Aug 2026 06:56:14 GMT",
+    "last-modified": "Sun, 07 Sep 2025 17:57:58 GMT",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-request-id": "13a34d62-b48b-45d3-9279-80920b447cba"
+  }
+}

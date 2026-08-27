@@ -1,0 +1,424 @@
+TAP version 13
+# Subtest: provider AccessDenied is typed and retains HTTP 403
+ok 1 - provider AccessDenied is typed and retains HTTP 403
+  ---
+  duration_ms: 17.81475
+  type: 'test'
+  ...
+# Subtest: provider NoSuchKey is typed and retains HTTP 404
+ok 2 - provider NoSuchKey is typed and retains HTTP 404
+  ---
+  duration_ms: 1.929458
+  type: 'test'
+  ...
+# Subtest: provider PreconditionFailed is typed and retains HTTP 412
+ok 3 - provider PreconditionFailed is typed and retains HTTP 412
+  ---
+  duration_ms: 3.008791
+  type: 'test'
+  ...
+# Subtest: provider ConditionalRequestConflict is typed and retains HTTP 409
+ok 4 - provider ConditionalRequestConflict is typed and retains HTTP 409
+  ---
+  duration_ms: 2.65275
+  type: 'test'
+  ...
+# Subtest: provider NotImplemented is typed and retains HTTP 501
+ok 5 - provider NotImplemented is typed and retains HTTP 501
+  ---
+  duration_ms: 3.321708
+  type: 'test'
+  ...
+# Subtest: empty HEAD error remains typed and never requires XML
+ok 6 - empty HEAD error remains typed and never requires XML
+  ---
+  duration_ms: 2.289417
+  type: 'test'
+  ...
+# Subtest: HTTP 200 embedded COPY error is failure after the complete body
+ok 7 - HTTP 200 embedded COPY error is failure after the complete body
+  ---
+  duration_ms: 1.720083
+  type: 'test'
+  ...
+# Subtest: redirects never replay credentials to their target
+ok 8 - redirects never replay credentials to their target
+  ---
+  duration_ms: 1.198583
+  type: 'test'
+  ...
+# Subtest: pre-abort and cancellation during asynchronous credentials cause no request
+ok 9 - pre-abort and cancellation during asynchronous credentials cause no request
+  ---
+  duration_ms: 0.506042
+  type: 'test'
+  ...
+# Subtest: credential deadline remains live without sockets or other event-loop handles
+ok 10 - credential deadline remains live without sockets or other event-loop handles
+  ---
+  duration_ms: 138.516834
+  type: 'test'
+  ...
+# Subtest: abort while waiting for headers destroys the socket and observes late request errors
+ok 11 - abort while waiting for headers destroys the socket and observes late request errors
+  ---
+  duration_ms: 1.444541
+  type: 'test'
+  ...
+# Subtest: abort after headers with unread body destroys response
+ok 12 - abort after headers with unread body destroys response
+  ---
+  duration_ms: 0.991667
+  type: 'test'
+  ...
+# Subtest: abort after headers with pending next destroys response
+ok 13 - abort after headers with pending next destroys response
+  ---
+  duration_ms: 0.666708
+  type: 'test'
+  ...
+# Subtest: iterator return before first next releases socket
+ok 14 - iterator return before first next releases socket
+  ---
+  duration_ms: 0.979666
+  type: 'test'
+  ...
+# Subtest: iterator return after first chunk releases socket
+ok 15 - iterator return after first chunk releases socket
+  ---
+  duration_ms: 0.816375
+  type: 'test'
+  ...
+# Subtest: absolute request timeout aborts stalled headers
+ok 16 - absolute request timeout aborts stalled headers
+  ---
+  duration_ms: 42.837416
+  type: 'test'
+  ...
+# Subtest: absolute request timeout aborts stalled body
+ok 17 - absolute request timeout aborts stalled body
+  ---
+  duration_ms: 43.266875
+  type: 'test'
+  ...
+# Subtest: chunked GET limit destroys connection
+ok 18 - chunked GET limit destroys connection
+  ---
+  duration_ms: 1.045666
+  type: 'test'
+  ...
+# Subtest: declared GET limit destroys connection
+ok 19 - declared GET limit destroys connection
+  ---
+  duration_ms: 0.860042
+  type: 'test'
+  ...
+# Subtest: streaming reads do not eagerly consume a complete body
+ok 20 - streaming reads do not eagerly consume a complete body
+  ---
+  duration_ms: 28.6
+  type: 'test'
+  ...
+# Subtest: partial content with a wrong range or body length is rejected
+ok 21 - partial content with a wrong range or body length is rejected
+  ---
+  duration_ms: 3.112167
+  type: 'test'
+  ...
+# Subtest: premature response closure never becomes successful bytes
+ok 22 - premature response closure never becomes successful bytes
+  ---
+  duration_ms: 8.222667
+  type: 'test'
+  ...
+# Subtest: XML byte limits also apply to HTTP error and COPY bodies
+ok 23 - XML byte limits also apply to HTTP error and COPY bodies
+  ---
+  duration_ms: 1.410708
+  type: 'test'
+  ...
+# Subtest: disabled native COPY uses guarded bounded fallback to target
+ok 24 - disabled native COPY uses guarded bounded fallback to target
+  ---
+  duration_ms: 16.538458
+  type: 'test'
+  ...
+# Subtest: disabled native COPY uses guarded bounded fallback to new
+ok 25 - disabled native COPY uses guarded bounded fallback to new
+  ---
+  duration_ms: 3.805167
+  type: 'test'
+  ...
+# Subtest: fallback preserves a existing destination race with no source deletion
+ok 26 - fallback preserves a existing destination race with no source deletion
+  ---
+  duration_ms: 3.942291
+  type: 'test'
+  ...
+# Subtest: fallback preserves a missing destination race with no source deletion
+ok 27 - fallback preserves a missing destination race with no source deletion
+  ---
+  duration_ms: 3.815917
+  type: 'test'
+  ...
+# Subtest: fallback preserves caller predicates and propagates source denial without PUT
+ok 28 - fallback preserves caller predicates and propagates source denial without PUT
+  ---
+  duration_ms: 1.006917
+  type: 'test'
+  ...
+# Subtest: fallback preserves stale source and explicit destination predicates
+ok 29 - fallback preserves stale source and explicit destination predicates
+  ---
+  duration_ms: 1.937166
+  type: 'test'
+  ...
+# Subtest: fallback cancellation before publication preserves bytes
+ok 30 - fallback cancellation before publication preserves bytes
+  ---
+  duration_ms: 1.758833
+  type: 'test'
+  ...
+# Subtest: bounded fallback rejects oversized source before destination PUT
+ok 31 - bounded fallback rejects oversized source before destination PUT
+  ---
+  duration_ms: 1.488417
+  type: 'test'
+  ...
+# Subtest: fallback self-copy REPLACE preserves bytes and replaces metadata under IfMatch
+ok 32 - fallback self-copy REPLACE preserves bytes and replaces metadata under IfMatch
+  ---
+  duration_ms: 2.026875
+  type: 'test'
+  ...
+# Subtest: actual Shell same-view cp existing and missing targets works with native COPY disabled
+ok 33 - actual Shell same-view cp existing and missing targets works with native COPY disabled
+  ---
+  duration_ms: 63.941042
+  type: 'test'
+  ...
+# Subtest: mounted same-view missing-target cp reaches guarded exclusive HTTP fallback
+ok 34 - mounted same-view missing-target cp reaches guarded exclusive HTTP fallback
+  ---
+  duration_ms: 27.507083
+  type: 'test'
+  ...
+# Subtest: AWS official single-chunk SigV4 vector: GET Object
+ok 35 - AWS official single-chunk SigV4 vector: GET Object
+  ---
+  duration_ms: 2.92375
+  type: 'test'
+  ...
+# Subtest: AWS official single-chunk SigV4 vector: PUT Object
+ok 36 - AWS official single-chunk SigV4 vector: PUT Object
+  ---
+  duration_ms: 0.527625
+  type: 'test'
+  ...
+# Subtest: AWS official single-chunk SigV4 vector: GET Bucket Lifecycle
+ok 37 - AWS official single-chunk SigV4 vector: GET Bucket Lifecycle
+  ---
+  duration_ms: 0.216958
+  type: 'test'
+  ...
+# Subtest: AWS official single-chunk SigV4 vector: GET Bucket List
+ok 38 - AWS official single-chunk SigV4 vector: GET Bucket List
+  ---
+  duration_ms: 0.095083
+  type: 'test'
+  ...
+# Subtest: UTF-8 URI encoding and query sorting preserve literal key structure
+ok 39 - UTF-8 URI encoding and query sorting preserve literal key structure
+  ---
+  duration_ms: 0.564625
+  type: 'test'
+  ...
+# Subtest: session token and normalized metadata are signed exactly as emitted
+ok 40 - session token and normalized metadata are signed exactly as emitted
+  ---
+  duration_ms: 0.211875
+  type: 'test'
+  ...
+# Subtest: real TCP wire preserves dot segments, repeated slashes, UTF-8 and literal percent keys
+ok 41 - real TCP wire preserves dot segments, repeated slashes, UTF-8 and literal percent keys
+  ---
+  duration_ms: 21.885
+  type: 'test'
+  ...
+# Subtest: HEAD metadata, buffered PUT snapshot, DELETE and header signing use real sockets
+ok 42 - HEAD metadata, buffered PUT snapshot, DELETE and header signing use real sockets
+  ---
+  duration_ms: 4.281125
+  type: 'test'
+  ...
+# Subtest: COPY preserves already encoded source and separates source/destination conditions
+ok 43 - COPY preserves already encoded source and separates source/destination conditions
+  ---
+  duration_ms: 2.177583
+  type: 'test'
+  ...
+# Subtest: LIST encodes sorted queries and decodes URL keys once, never continuation tokens
+ok 44 - LIST encodes sorted queries and decodes URL keys once, never continuation tokens
+  ---
+  duration_ms: 1.402792
+  type: 'test'
+  ...
+# Subtest: streamed GET preserves binary bytes and validates ranges and IfMatch
+ok 45 - streamed GET preserves binary bytes and validates ranges and IfMatch
+  ---
+  duration_ms: 1.531917
+  type: 'test'
+  ...
+# Subtest: explicit session credentials and request factory preserve signed Host and raw target
+ok 46 - explicit session credentials and request factory preserve signed Host and raw target
+  ---
+  duration_ms: 1.017625
+  type: 'test'
+  ...
+# Subtest: conditional capabilities default false and reject guarded mutations before requests
+ok 47 - conditional capabilities default false and reject guarded mutations before requests
+  ---
+  duration_ms: 0.643208
+  type: 'test'
+  ...
+# Subtest: effective COPY capability is native-verified or guarded-fallback-verified, never DELETE
+ok 48 - effective COPY capability is native-verified or guarded-fallback-verified, never DELETE
+  ---
+  duration_ms: 0.21825
+  type: 'test'
+  ...
+# Subtest: configuration, headers, keys and upload bounds reject before network
+ok 49 - configuration, headers, keys and upload bounds reject before network
+  ---
+  duration_ms: 0.821334
+  type: 'test'
+  ...
+# Subtest: explicit percent LIST decoder preserves space, plus, percent and tokens
+ok 50 - explicit percent LIST decoder preserves space, plus, percent and tokens
+  ---
+  duration_ms: 2.43525
+  type: 'test'
+  ...
+# Subtest: explicit form LIST decoder preserves space, plus, percent and tokens
+ok 51 - explicit form LIST decoder preserves space, plus, percent and tokens
+  ---
+  duration_ms: 1.672791
+  type: 'test'
+  ...
+# Subtest: bounded XML handles namespaces, comments, CDATA and numeric entities
+ok 52 - bounded XML handles namespaces, comments, CDATA and numeric entities
+  ---
+  duration_ms: 0.977875
+  type: 'test'
+  ...
+# Subtest: XML rejects DTD
+ok 53 - XML rejects DTD
+  ---
+  duration_ms: 0.577
+  type: 'test'
+  ...
+# Subtest: XML rejects unknown entity
+ok 54 - XML rejects unknown entity
+  ---
+  duration_ms: 0.081375
+  type: 'test'
+  ...
+# Subtest: XML rejects bad numeric entity
+ok 55 - XML rejects bad numeric entity
+  ---
+  duration_ms: 0.205333
+  type: 'test'
+  ...
+# Subtest: XML rejects bad close tag
+ok 56 - XML rejects bad close tag
+  ---
+  duration_ms: 0.059791
+  type: 'test'
+  ...
+# Subtest: XML rejects duplicate attributes
+ok 57 - XML rejects duplicate attributes
+  ---
+  duration_ms: 0.040625
+  type: 'test'
+  ...
+# Subtest: XML rejects multiple roots
+ok 58 - XML rejects multiple roots
+  ---
+  duration_ms: 0.072
+  type: 'test'
+  ...
+# Subtest: XML rejects deep nesting
+ok 59 - XML rejects deep nesting
+  ---
+  duration_ms: 0.141541
+  type: 'test'
+  ...
+# Subtest: XML rejects node bound
+ok 60 - XML rejects node bound
+  ---
+  duration_ms: 19.555834
+  type: 'test'
+  ...
+# Subtest: XML rejects literal control
+ok 61 - XML rejects literal control
+  ---
+  duration_ms: 0.405833
+  type: 'test'
+  ...
+# Subtest: XML rejects processing instruction
+ok 62 - XML rejects processing instruction
+  ---
+  duration_ms: 0.097083
+  type: 'test'
+  ...
+# Subtest: XML rejects wrong encoding
+ok 63 - XML rejects wrong encoding
+  ---
+  duration_ms: 0.127959
+  type: 'test'
+  ...
+# Subtest: XML rejects invalid UTF-8
+ok 64 - XML rejects invalid UTF-8
+  ---
+  duration_ms: 0.082875
+  type: 'test'
+  ...
+# Subtest: HTTP 200 LIST malformed is not successful metadata
+ok 65 - HTTP 200 LIST malformed is not successful metadata
+  ---
+  duration_ms: 18.577625
+  type: 'test'
+  ...
+# Subtest: HTTP 200 LIST DTD is not successful metadata
+ok 66 - HTTP 200 LIST DTD is not successful metadata
+  ---
+  duration_ms: 2.714708
+  type: 'test'
+  ...
+# Subtest: HTTP 200 LIST duplicate state is not successful metadata
+ok 67 - HTTP 200 LIST duplicate state is not successful metadata
+  ---
+  duration_ms: 1.550917
+  type: 'test'
+  ...
+# Subtest: HTTP 200 LIST missing token is not successful metadata
+ok 68 - HTTP 200 LIST missing token is not successful metadata
+  ---
+  duration_ms: 1.892375
+  type: 'test'
+  ...
+# Subtest: HTTP 200 LIST bad escaping is not successful metadata
+ok 69 - HTTP 200 LIST bad escaping is not successful metadata
+  ---
+  duration_ms: 1.8225
+  type: 'test'
+  ...
+1..69
+# tests 69
+# suites 0
+# pass 69
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 466.384917

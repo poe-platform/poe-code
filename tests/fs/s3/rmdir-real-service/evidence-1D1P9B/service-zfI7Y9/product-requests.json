@@ -1,0 +1,430 @@
+[
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2F"
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2Ffile%2F"
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2Ffile%2F"
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2Ffile%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fempty%2F"
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fempty%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fempty%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fempty%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2Ffile%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/file/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2Ffile%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/missing"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/missing/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fmissing%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/work/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=author%2Fwork%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/implicit"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/implicit/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fimplicit%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fimplicit%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/nested"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/nested/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fnested%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fnested%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fempty%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/current-race"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/current-race/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=author%2Fcurrent-race%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/abort-list"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/abort-list/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=author%2Fabort-list%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/primitive-empty"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/primitive-empty/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fprimitive-empty%2F"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/candidate-race"
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/author/candidate-race/"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fcandidate-race%2F"
+  }
+]

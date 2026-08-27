@@ -1,0 +1,29 @@
+{
+  "frozenAt": "2026-08-27T19:13:04.534Z",
+  "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "productSourceChangesAuthorized": false,
+  "sourceArchiveSha256": "b2de2b86a834f1b5c3ba7a98c347d3aa9668632ff3af2a073cf2c45c6b6bfef5",
+  "casesSha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314",
+  "filesSha256": {
+    "cases.mjs": "fd5160e88daef8a9e53a4aa3bba98bca8e5fb49824be11965756511c0efae793",
+    "freeze.mjs": "924c5495a77a7a8a0653a2e44a3c5a41170c7270987e821cf838b5bc8c123e5d",
+    "capture.mjs": "451e28ded03b49a5640a94169fd35eeb554146df6d04ff9d87191a7ae01bcafe",
+    "driver.mjs": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613"
+  },
+  "native": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "expectedVersion": "expr (GNU coreutils) 9.7",
+    "expectedPlatform": "darwin",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "PATH": "/usr/bin:/bin"
+    }
+  },
+  "semanticCases": 44,
+  "productControls": 17,
+  "oldCapSeparate": 1,
+  "sourceClassification": "compressed immutable Git source/tests; never canonical TS discovery",
+  "controlsClassification": "explicit version-specific opt-in .mjs drivers; no canonical test writes"
+}

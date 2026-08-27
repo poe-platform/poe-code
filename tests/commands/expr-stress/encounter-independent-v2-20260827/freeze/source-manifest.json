@@ -1,0 +1,242 @@
+[
+  {
+    "filename": "package-lock.json",
+    "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "liveSha256AtFreeze": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "bytes": 16734
+  },
+  {
+    "filename": "package.json",
+    "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+    "liveSha256AtFreeze": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+    "bytes": 4287
+  },
+  {
+    "filename": "src/commands/env-split.ts",
+    "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+    "liveSha256AtFreeze": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+    "bytes": 7492
+  },
+  {
+    "filename": "src/commands/execution.ts",
+    "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "liveSha256AtFreeze": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "bytes": 9269
+  },
+  {
+    "filename": "src/commands/expr/bre-worker.ts",
+    "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "liveSha256AtFreeze": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "bytes": 17704
+  },
+  {
+    "filename": "src/commands/expr/evaluate.ts",
+    "sha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+    "liveSha256AtFreeze": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+    "bytes": 7825
+  },
+  {
+    "filename": "src/commands/expr/index.ts",
+    "sha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d",
+    "liveSha256AtFreeze": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d",
+    "bytes": 4701
+  },
+  {
+    "filename": "src/commands/expr/internal.ts",
+    "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+    "liveSha256AtFreeze": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+    "bytes": 6600
+  },
+  {
+    "filename": "src/commands/expr/syntax.ts",
+    "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+    "liveSha256AtFreeze": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+    "bytes": 4046
+  },
+  {
+    "filename": "src/commands/internal.ts",
+    "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "liveSha256AtFreeze": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "bytes": 8820
+  },
+  {
+    "filename": "src/commands/regex-execution/client.ts",
+    "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+    "liveSha256AtFreeze": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+    "bytes": 15319
+  },
+  {
+    "filename": "src/commands/regex-execution/matching.ts",
+    "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "liveSha256AtFreeze": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "bytes": 11796
+  },
+  {
+    "filename": "src/commands/regex-execution/protocol.ts",
+    "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "liveSha256AtFreeze": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "bytes": 10890
+  },
+  {
+    "filename": "src/commands/regex-execution/worker.ts",
+    "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "liveSha256AtFreeze": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "bytes": 1930
+  },
+  {
+    "filename": "src/contracts/command.ts",
+    "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "liveSha256AtFreeze": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "bytes": 2923
+  },
+  {
+    "filename": "src/contracts/errors.ts",
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "liveSha256AtFreeze": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "bytes": 3457
+  },
+  {
+    "filename": "src/contracts/filesystem.ts",
+    "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "liveSha256AtFreeze": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "bytes": 3897
+  },
+  {
+    "filename": "src/contracts/index.ts",
+    "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+    "liveSha256AtFreeze": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+    "bytes": 202
+  },
+  {
+    "filename": "src/contracts/io.ts",
+    "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+    "liveSha256AtFreeze": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+    "bytes": 7663
+  },
+  {
+    "filename": "src/contracts/output.ts",
+    "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+    "liveSha256AtFreeze": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+    "bytes": 4661
+  },
+  {
+    "filename": "src/contracts/path.ts",
+    "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "liveSha256AtFreeze": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "bytes": 1675
+  },
+  {
+    "filename": "src/contracts/plugin.ts",
+    "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "liveSha256AtFreeze": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "bytes": 2359
+  },
+  {
+    "filename": "src/fs/memory/index.ts",
+    "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "liveSha256AtFreeze": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "bytes": 23533
+  },
+  {
+    "filename": "src/fs/mount/comparison.ts",
+    "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "liveSha256AtFreeze": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "bytes": 5220
+  },
+  {
+    "filename": "src/fs/mount/identity.ts",
+    "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "liveSha256AtFreeze": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "bytes": 748
+  },
+  {
+    "filename": "src/fs/s3/authority.ts",
+    "sha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "liveSha256AtFreeze": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "bytes": 4938
+  },
+  {
+    "filename": "src/fs/s3/transport.ts",
+    "sha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "liveSha256AtFreeze": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "bytes": 4996
+  },
+  {
+    "filename": "src/fs/webdav/resource-id.ts",
+    "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "liveSha256AtFreeze": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "bytes": 5570
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "liveSha256AtFreeze": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "bytes": 9922
+  },
+  {
+    "filename": "src/shell/cleanup.ts",
+    "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "liveSha256AtFreeze": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "bytes": 1947
+  },
+  {
+    "filename": "src/shell/display.ts",
+    "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "liveSha256AtFreeze": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "bytes": 2605
+  },
+  {
+    "filename": "src/shell/input.ts",
+    "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+    "liveSha256AtFreeze": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+    "bytes": 9881
+  },
+  {
+    "filename": "src/shell/locale.ts",
+    "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "liveSha256AtFreeze": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "bytes": 207
+  },
+  {
+    "filename": "src/shell/parser.ts",
+    "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "liveSha256AtFreeze": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "bytes": 36304
+  },
+  {
+    "filename": "src/shell/pattern.ts",
+    "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "liveSha256AtFreeze": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "bytes": 4863
+  },
+  {
+    "filename": "src/shell/runtime.ts",
+    "sha256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+    "liveSha256AtFreeze": "0273dfd1d4271a1541e809bbb3215395044bcc2cfdd6edb4cb97aae7a7613b9f",
+    "bytes": 108731
+  },
+  {
+    "filename": "src/shell/shell.ts",
+    "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+    "liveSha256AtFreeze": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+    "bytes": 10644
+  },
+  {
+    "filename": "src/shell/types.ts",
+    "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "liveSha256AtFreeze": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "bytes": 2178
+  },
+  {
+    "filename": "tsconfig.build.json",
+    "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "liveSha256AtFreeze": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "bytes": 260
+  },
+  {
+    "filename": "tsconfig.json",
+    "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+    "liveSha256AtFreeze": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+    "bytes": 1087
+  }
+]

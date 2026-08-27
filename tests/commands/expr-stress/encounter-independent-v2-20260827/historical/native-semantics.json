@@ -1,0 +1,1029 @@
+{
+  "cases": [
+    {
+      "id": "root-counterexample",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "modulo-trailing",
+      "args": [
+        "1",
+        "%",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "noninteger-trailing",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "left-error-before-next-operator-missing",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "+"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "left-error-before-next-same-precedence",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "*"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "left-error-before-skipped-syntax",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "|",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "group-runtime-before-missing-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "group-runtime-before-wrong-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "nested-runtime-before-close",
+      "args": [
+        "length",
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "prefix-first-argument-before-missing-second",
+      "args": [
+        "index",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "prefix-second-before-missing-third",
+      "args": [
+        "substr",
+        "abc",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-group-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "(",
+        "0",
+        "x",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-missing-before-division",
+      "args": [
+        "1",
+        "/"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-higher-precedence-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "0",
+        ":"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-prefix-syntax-before-noninteger",
+      "args": [
+        "bad",
+        "+",
+        "length"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-closing-syntax-before-runtime",
+      "args": [
+        "1",
+        "/",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "rhs-higher-precedence-runtime-first",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "earlier-noninteger-before-later-division",
+      "args": [
+        "bad",
+        "*",
+        "1",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-error-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-error-before-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-error-before-later-missing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "+"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-prefix-error-before-outer-arity",
+      "args": [
+        "index",
+        "match",
+        "a",
+        "["
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-success-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-success-before-missing-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-success-before-runtime",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "syntax-prevents-regex-submit",
+      "args": [
+        "a",
+        ":",
+        "(",
+        "[",
+        "x",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "first-regex-before-second-syntax",
+      "args": [
+        "match",
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "("
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "regex-two-once-in-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "first-regex-error-stops-second",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-or-division",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-and-division",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-or-invalid-regex",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-and-prefix-invalid-regex",
+      "args": [
+        "0",
+        "&",
+        "match",
+        "a",
+        "["
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-still-missing-close",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '0'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '0'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-still-missing-operand",
+      "args": [
+        "0",
+        "&",
+        "a",
+        ":"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-still-trailing",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "skip-still-prefix-arity",
+      "args": [
+        "1",
+        "|",
+        "substr",
+        "a",
+        "1"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "observed": {
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "nested-skip-never-regex",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "match",
+        "a",
+        "[",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "active-then-skipped-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "|",
+        "b",
+        ":",
+        "["
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "active-false-then-active-regex",
+      "args": [
+        "a",
+        ":",
+        "b",
+        "|",
+        "b",
+        ":",
+        "b"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "left-associative-division",
+      "args": [
+        "20",
+        "/",
+        "2",
+        "/",
+        "2"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "5\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "5\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "prefix-binds-before-colon",
+      "args": [
+        "length",
+        "abc",
+        ":",
+        "3"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "quoted-parenthesis",
+      "args": [
+        "+",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": ")\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": ")\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "leading-double-dash",
+      "args": [
+        "--",
+        "1",
+        "+",
+        "2"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "passed": true
+    }
+  ],
+  "passing": 44,
+  "total": 44
+}

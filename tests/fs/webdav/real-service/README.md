@@ -1,7 +1,13 @@
 # Independent real-service WebDAV checkpoint
 
-This subtree owns the independent-service harness and its evidence. The only
-product change is bounded timestamp post-validation, committed as `4143efd`.
+The subsequent bounded source-author checkpoint is [PHASE2-REPORT.md](PHASE2-REPORT.md):
+default Apache LOCK interoperability, direct transfer authority guards, frozen
+public consumers and separate remaining WsgiDAV failures. Use `phase2-seal.mjs`
+for the expanded tree; the original seal and every original cohort are preserved.
+
+The remainder describes the original `a4c7824` checkpoint. This subtree owns the
+independent-service harness and its evidence. At that checkpoint, the only
+product change was bounded timestamp post-validation, committed as `4143efd`.
 Package manifests, runtime dependencies, and existing fixtures are unchanged.
 All host witnesses and mutation targets are inside a newly created task-owned
 server root. Synthetic Basic credentials are sent only over per-request trusted

@@ -143,7 +143,6 @@ for (const method of ['COPY', 'MOVE']) {
     status(await wire('PUT', `/${method}-lock-target`, {}, 'blocked'), 423);
     status(await wire(method, `/${method}-lock-source`, { Destination: `${base}/${method}-lock-target`, Overwrite: 'T', If: `<${base}/${method}-lock-target> (${coded})` }), 204);
     assert.equal((await get(`/${method}-lock-target`)).body, 'source');
-    await wire('PROPFIND', `/${method}-lock-target`, { Depth: '0', 'Content-Type': 'application/xml' }, '<d:propfind xmlns:d="DAV:"><d:prop><d:lockdiscovery/></d:prop></d:propfind>');
     const unlock = await wire('UNLOCK', `/${method}-lock-target`, { 'Lock-Token': coded });
     await wire('PROPFIND', `/${method}-lock-target`, { Depth: '0', 'Content-Type': 'application/xml' }, '<d:propfind xmlns:d="DAV:"><d:prop><d:lockdiscovery/></d:prop></d:propfind>');
     status(unlock, 204);

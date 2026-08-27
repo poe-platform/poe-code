@@ -1,0 +1,6615 @@
+{
+  "provider": "apache",
+  "rows": [
+    {
+      "name": "default direct copyFile distinct entries with truthful callback",
+      "kind": "positive",
+      "result": "pass",
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK",
+        "PROPFIND"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct copyFile hardlink rejects known same before LOCK or mutation",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'EACCES' !== 'EINVAL'\n"
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct copyFile symlink rejects known same before LOCK or mutation",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'EACCES' !== 'EINVAL'\n"
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        }
+      }
+    },
+    {
+      "name": "direct copyFile callback error precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct copyFile callback unknown precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct copyFile callback cancel precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "COPY",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "default direct rename distinct entries with truthful callback",
+      "kind": "positive",
+      "result": "pass",
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK",
+        "PROPFIND"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct rename hardlink rejects known same before LOCK or mutation",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'EACCES' !== 'EINVAL'\n"
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct rename symlink rejects known same before LOCK or mutation",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'EACCES' !== 'EINVAL'\n"
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        }
+      }
+    },
+    {
+      "name": "direct rename callback error precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct rename callback unknown precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct rename callback cancel precedes acquisition/effects",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "MOVE",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct lexical self-rename still observes callback error",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244921,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244922,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        }
+      }
+    },
+    {
+      "name": "direct known lexical identity cannot be overridden as distinct",
+      "kind": "guard",
+      "result": "fail",
+      "detail": {
+        "message": "AssertionError [ERR_ASSERTION]: Missing expected rejection."
+      },
+      "methods": [
+        "PROPFIND"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244921,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244922,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-self-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244923,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244924,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        }
+      }
+    },
+    {
+      "name": "raw destination lock rejects an alias URL write",
+      "kind": "guard",
+      "result": "pass",
+      "methods": [
+        "LOCK",
+        "PUT",
+        "PROPFIND",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244921,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244922,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-self-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244923,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244924,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-locked-url-alias-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244925,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-locked-url-alias-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244926,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        }
+      }
+    },
+    {
+      "name": "default overwrite cannot take another client's destination lock",
+      "kind": "guard",
+      "result": "pass",
+      "methods": [
+        "LOCK",
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "PROPFIND",
+        "UNLOCK"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244921,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244922,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-self-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244923,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244924,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-locked-url-alias-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244925,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-locked-url-alias-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244926,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-locked-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244927,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-locked-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244928,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        }
+      }
+    },
+    {
+      "name": "late real LOCK cancellation cleans its grant without transfer",
+      "kind": "guard",
+      "result": "pass",
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "LOCK",
+        "UNLOCK",
+        "PROPFIND"
+      ],
+      "witnesses": {
+        "/phase2-distinct-copyFile-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244884,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-copyFile-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244886,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244888,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244892,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244894,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-copyFile-symlink-source"
+        },
+        "/phase2-copyFile-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244895,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244897,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244898,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244900,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244901,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-copyFile-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244903,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-distinct-rename-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-distinct-rename-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244904,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-hardlink-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244906,
+          "nlink": 2,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244912,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-symlink-target": {
+          "type": "symlink",
+          "dev": 16777232,
+          "ino": 171244914,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ],
+          "target": "phase2-rename-symlink-source"
+        },
+        "/phase2-rename-error-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244915,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-unknown-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-unknown-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244917,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-rename-cancel-source": {
+          "error": "ENOENT"
+        },
+        "/phase2-rename-cancel-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244919,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244921,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-error-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244922,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-self-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244923,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-self-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244924,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-locked-url-alias-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244925,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-locked-url-alias-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244926,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-locked-conflict-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244927,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-locked-conflict-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244928,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        },
+        "/phase2-late-lock-source": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244929,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        },
+        "/phase2-late-lock-target": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171244930,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ]
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:b26c270b-794e-44fa-aecf-31e6895b0d38>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target> (<opaquelocktoken:b26c270b-794e-44fa-aecf-31e6895b0d38>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:b26c270b-794e-44fa-aecf-31e6895b0d38>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-copyFile-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "0"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 287,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "287",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:bfb9419a-86b7-4fcd-b33e-530baf08ad21>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 761,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "761",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target> (<opaquelocktoken:bfb9419a-86b7-4fcd-b33e-530baf08ad21>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": true,
+      "ended": false,
+      "status": 403,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "231",
+        "content-type": "text/html; charset=ISO-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-hardlink-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:bfb9419a-86b7-4fcd-b33e-530baf08ad21>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:17d4bdc1-f6e4-4b47-b670-c5bd421427d0>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target> (<opaquelocktoken:17d4bdc1-f6e4-4b47-b670-c5bd421427d0>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": true,
+      "ended": false,
+      "status": 403,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "231",
+        "content-type": "text/html; charset=ISO-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-symlink-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:17d4bdc1-f6e4-4b47-b670-c5bd421427d0>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:55dae78a-e32e-4a23-a01a-68ffe06547fc>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-copyFile-error-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-copyFile-error-target> (<opaquelocktoken:55dae78a-e32e-4a23-a01a-68ffe06547fc>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-error-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:55dae78a-e32e-4a23-a01a-68ffe06547fc>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:b87cb292-bb9a-4387-a339-ccd7ed42d828>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 760,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "760",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target> (<opaquelocktoken:b87cb292-bb9a-4387-a339-ccd7ed42d828>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-unknown-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:b87cb292-bb9a-4387-a339-ccd7ed42d828>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:e4501de1-ddc8-4c26-84d7-562328193faf>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-source",
+      "method": "COPY",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "0",
+        "destination": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target> (<opaquelocktoken:e4501de1-ddc8-4c26-84d7-562328193faf>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-copyFile-cancel-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:e4501de1-ddc8-4c26-84d7-562328193faf>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:9f11d65f-820f-455e-be81-64244104adf1>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-distinct-rename-target> (<opaquelocktoken:9f11d65f-820f-455e-be81-64244104adf1>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:9f11d65f-820f-455e-be81-64244104adf1>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-distinct-rename-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "0"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 285,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "285",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:65132f3d-2e0e-43cd-be35-301aa59a6f0c>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-rename-hardlink-target> (<opaquelocktoken:65132f3d-2e0e-43cd-be35-301aa59a6f0c>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": true,
+      "ended": false,
+      "status": 403,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "231",
+        "content-type": "text/html; charset=ISO-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-hardlink-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:65132f3d-2e0e-43cd-be35-301aa59a6f0c>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:debcc79a-0442-4c99-a4fb-17a1c30ff396>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-rename-symlink-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-rename-symlink-target> (<opaquelocktoken:debcc79a-0442-4c99-a4fb-17a1c30ff396>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": true,
+      "ended": false,
+      "status": 403,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "231",
+        "content-type": "text/html; charset=ISO-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-symlink-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:debcc79a-0442-4c99-a4fb-17a1c30ff396>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 756,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "756",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 756,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "756",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:33b8480b-893e-43c4-b67e-cbda5ef458db>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 756,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "756",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-rename-error-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-rename-error-target> (<opaquelocktoken:33b8480b-893e-43c4-b67e-cbda5ef458db>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-error-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:33b8480b-893e-43c4-b67e-cbda5ef458db>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:9950783a-3e7c-442d-8194-4d62569b136f>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 758,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "758",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-rename-unknown-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-rename-unknown-target> (<opaquelocktoken:9950783a-3e7c-442d-8194-4d62569b136f>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-unknown-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:9950783a-3e7c-442d-8194-4d62569b136f>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 757,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "757",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 757,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "757",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:0d9c792c-9a27-4b05-a819-eb37756428d6>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 757,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "757",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-source",
+      "method": "MOVE",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "depth": "infinity",
+        "destination": "https://127.0.0.1:53118/dav/phase2-rename-cancel-target",
+        "if": "<https://127.0.0.1:53118/dav/phase2-rename-cancel-target> (<opaquelocktoken:0d9c792c-9a27-4b05-a819-eb37756428d6>)",
+        "overwrite": "T"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-rename-cancel-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:0d9c792c-9a27-4b05-a819-eb37756428d6>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-self-error-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 754,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "754",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-self-conflict-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 757,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "757",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-url-alias-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "116",
+        "content-type": "application/xml",
+        "depth": "infinity",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:42025018-97e7-4b8a-ad22-a29b87d1598b>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/alias/phase2-locked-url-alias-target",
+      "method": "PUT",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "6"
+      },
+      "uploadedBytes": 6,
+      "downloadedBytes": 317,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 423,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "317",
+        "content-type": "text/html; charset=iso-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-url-alias-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "0"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 572,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "572",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-url-alias-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "lock-token": "<opaquelocktoken:42025018-97e7-4b8a-ad22-a29b87d1598b>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "116",
+        "content-type": "application/xml",
+        "depth": "infinity",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 379,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:bcf283b5-979f-4cfc-b580-29c9c9e774c5>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 759,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "759",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": true,
+      "ended": false,
+      "status": 423,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "317",
+        "content-type": "text/html; charset=iso-8859-1",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "0"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 571,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "571",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-locked-conflict-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "lock-token": "<opaquelocktoken:bcf283b5-979f-4cfc-b580-29c9c9e774c5>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-late-lock-source",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 753,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "753",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-late-lock-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "233",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "0"
+      },
+      "uploadedBytes": 233,
+      "downloadedBytes": 753,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "753",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-late-lock-target",
+      "method": "LOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "content-length": "116",
+        "content-type": "application/xml; charset=utf-8",
+        "depth": "infinity",
+        "if-match": "*",
+        "timeout": "Second-60"
+      },
+      "uploadedBytes": 116,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": true,
+      "cancelled": false,
+      "ended": false,
+      "status": 200,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:d4d4afb4-9c50-42ee-9310-e1aa91354287>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-late-lock-target",
+      "method": "UNLOCK",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "cache-control": "no-cache",
+        "lock-token": "<opaquelocktoken:d4d4afb4-9c50-42ee-9310-e1aa91354287>"
+      },
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "pulls": 0,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 204,
+      "responseHeaders": {
+        "connection": "close",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    },
+    {
+      "url": "https://127.0.0.1:53118/dav/phase2-late-lock-target",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "0"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 279,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "279",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      }
+    }
+  ],
+  "observations": [
+    {
+      "method": "PROPFIND-locks",
+      "path": "/phase2-distinct-copyFile-target",
+      "status": 207,
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/phase2-distinct-copyFile-target</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    },
+    {
+      "method": "PROPFIND-locks",
+      "path": "/phase2-distinct-rename-target",
+      "status": 207,
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/phase2-distinct-rename-target</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    },
+    {
+      "method": "LOCK",
+      "path": "/phase2-locked-url-alias-target",
+      "status": 200,
+      "headers": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:42025018-97e7-4b8a-ad22-a29b87d1598b>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:42025018-97e7-4b8a-ad22-a29b87d1598b</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+    },
+    {
+      "method": "PUT-alias",
+      "path": "/phase2-locked-url-alias-target",
+      "status": 423,
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>423 Locked</title>\n</head><body>\n<h1>Locked</h1>\n<p>The requested resource is currently locked.\nThe lock must be released or proper identification\ngiven before the method can be applied.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PROPFIND-locks",
+      "path": "/phase2-locked-url-alias-target",
+      "status": 207,
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/phase2-locked-url-alias-target</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery><D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:42025018-97e7-4b8a-ad22-a29b87d1598b</D:href>\n</D:locktoken>\n</D:activelock>\n</D:lockdiscovery>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/phase2-locked-url-alias-target",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "method": "LOCK",
+      "path": "/phase2-locked-conflict-target",
+      "status": 200,
+      "headers": {
+        "connection": "close",
+        "content-length": "379",
+        "content-type": "text/xml; charset=\"utf-8\"",
+        "date": "Thu, 27 Aug 2026 05:59:52 GMT",
+        "lock-token": "<opaquelocktoken:bcf283b5-979f-4cfc-b580-29c9c9e774c5>",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:bcf283b5-979f-4cfc-b580-29c9c9e774c5</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+    },
+    {
+      "method": "PROPFIND-locks",
+      "path": "/phase2-locked-conflict-target",
+      "status": 207,
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/phase2-locked-conflict-target</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery><D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:bcf283b5-979f-4cfc-b580-29c9c9e774c5</D:href>\n</D:locktoken>\n</D:activelock>\n</D:lockdiscovery>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/phase2-locked-conflict-target",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "method": "PROPFIND-locks",
+      "path": "/phase2-late-lock-target",
+      "status": 207,
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/phase2-late-lock-target</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    }
+  ],
+  "publicImports": {
+    "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-2GlMza/consumer/node_modules/virtual-bash/dist/index.js",
+    "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-2GlMza/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+  }
+}

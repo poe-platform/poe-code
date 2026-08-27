@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--test",
+    "--test-timeout=20000",
+    "--test-concurrency=1",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v3-TKK7sw/emitted/tests/commands/expr/regex-protocol.test.js"
+  ],
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 218,
+  "tests": 5,
+  "pass": 5,
+  "fail": 0
+}

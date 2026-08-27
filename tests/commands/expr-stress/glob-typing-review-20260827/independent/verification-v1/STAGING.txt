@@ -1,0 +1,13 @@
+The initial owned-subtree staging whitespace check returned exit 2:
+
+candidate-v1/candidate.patch:20: trailing whitespace.
+Reported content: plus sign followed by one space.
+candidate-v1/candidate.patch:24: trailing whitespace.
+Reported content: plus sign followed by one space.
+
+These are the single-space empty context lines in the preserved raw git-show
+patch, not whitespace added to the candidate fixture or authored executable
+code. The raw capture is retained byte-for-byte rather than rewritten merely
+to silence a formatting check. No commit ran in that first && command chain.
+The follow-up check excludes only that exact captured patch artifact from
+whitespace lint; it does not alter canonical discovery, types or assertions.

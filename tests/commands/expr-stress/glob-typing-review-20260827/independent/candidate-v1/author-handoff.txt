@@ -1,0 +1,13 @@
+Candidate source commit: ec59c917ba137126a064960995b5fc6945ea8f6d
+Owned source: tests/commands/regex-execution/continuation/glob.test.ts
+Change: +4/-2 lines; type-only fixture-local regex request view, no production changes.
+Cause: additive ExprMatchDescriptor overload widens contextual interception parameter to Descriptor | ExprMatchDescriptor; expr uses pattern/profile/limits rather than legacy patterns.
+Baseline: frozen exact TS2339/TS2345/TS2769 diagnostics before fix; original fixture runtime 4/4.
+Candidate: focused strict typecheck and continuation scoped typecheck pass; canonical glob + glob transport + expr protocol runtime 15/15.
+Negative controls: original-source replay reproduces three errors; seven additional typing probes reject; three runtime assertion mutations each fail exactly one test (3 pass/1 fail).
+Emitted JavaScript: identical 4812 bytes; SHA256 b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146 under TypeScript 5.9.3 repository options, source maps disabled.
+Existing worker dist: all four dependency-closure JavaScript files match in-memory compilation; no shared writes.
+Evidence: tests/commands/expr-stress/glob-typing-review-20260827/author/
+Source commit is ready for independent review; evidence commit pending.
+No full gate or native recapture; ten unrelated DU diagnostic artifacts untouched.
+All recorded child process groups exited normally; no owned temporary directories.

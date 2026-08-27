@@ -1,0 +1,66 @@
+{
+  "fixtureJavaScriptByteIdentical": true,
+  "baselineJsSha256": "b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146",
+  "candidateJsSha256": "b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146",
+  "originalFixtureSha256": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd",
+  "candidateFixtureSha256": "65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f",
+  "annotation": "Omit<RegexExecutor, \"request\"> & {\n    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]>;\n  }",
+  "forbiddenSyntaxCount": 0,
+  "assertionCalls": 14,
+  "testNames": [
+    "\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\"",
+    "\"glob validation preserves first invalid rule and ignore-file literal brackets\"",
+    "\"glob batching caps ordinary descriptors without reordering matches\"",
+    "\"glob queue accounting includes options and UTF16LE path bytes\""
+  ],
+  "assertionTextIdentical": true,
+  "testNamesIdentical": true,
+  "positiveDiagnostics": [],
+  "negativeHelperDiagnostics": [
+    {
+      "code": 2345,
+      "category": "Error",
+      "file": "negative-helper.ts",
+      "line": 11,
+      "column": 16,
+      "message": "Argument of type 'ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n  Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions"
+    }
+  ],
+  "negativeInputDiagnostics": [
+    {
+      "code": 2345,
+      "category": "Error",
+      "file": "negative-input-bytes.ts",
+      "line": 11,
+      "column": 12,
+      "message": "Argument of type 'ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n  Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions"
+    }
+  ],
+  "reversalDiagnostics": [
+    {
+      "code": 2339,
+      "category": "Error",
+      "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "line": 54,
+      "column": 42,
+      "message": "Property 'patterns' does not exist on type 'Descriptor | ExprMatchDescriptor'.\n  Property 'patterns' does not exist on type 'ExprMatchDescriptor'."
+    },
+    {
+      "code": 2345,
+      "category": "Error",
+      "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "line": 54,
+      "column": 96,
+      "message": "Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n  Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.\n    Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions"
+    },
+    {
+      "code": 2769,
+      "category": "Error",
+      "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "line": 55,
+      "column": 21,
+      "message": "No overload matches this call.\n  Overload 1 of 2, '(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<Match[][]>', gave the following error.\n    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n      Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.\n        Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions\n  Overload 2 of 2, '(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<...>', gave the following error.\n    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'ExprMatchDescriptor'.\n      Type 'GrepDescriptor' is missing the following properties from type 'ExprMatchDescriptor': pattern, profile, limits"
+    }
+  ],
+  "reversalJavaScriptByteIdentical": true
+}

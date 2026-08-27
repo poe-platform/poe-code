@@ -1,0 +1,54 @@
+typecheck: source-and-tests: exit 2
+tests/commands/regex-execution/continuation/glob.test.ts(54,42): error TS2339: Property 'patterns' does not exist on type 'Descriptor | ExprMatchDescriptor'.
+  Property 'patterns' does not exist on type 'ExprMatchDescriptor'.
+tests/commands/regex-execution/continuation/glob.test.ts(54,96): error TS2345: Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.
+  Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.
+    Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions
+tests/commands/regex-execution/continuation/glob.test.ts(55,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<Match[][]>', gave the following error.
+    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.
+      Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.
+        Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions
+  Overload 2 of 2, '(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<...>', gave the following error.
+    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'ExprMatchDescriptor'.
+      Type 'GrepDescriptor' is missing the following properties from type 'ExprMatchDescriptor': pattern, profile, limits
+tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.
+typecheck: historical-build-first-consumer: exit 0
+typecheck: source-consumer-atomic-webdav-profile-source: exit 0
+typecheck: source-consumer-atomic-webdav-independent-source: exit 0
+typecheck: source-consumer-env-split-public-source: exit 0
+typecheck: consumer-grep-aliases-public: exit 0
+typecheck: consumer-column-public: exit 0
+typecheck: consumer-network-zero-caps-public: exit 0
+typecheck: consumer-regex: exit 0
+typecheck: consumer-regex-continuation: exit 0
+typecheck: consumer-regex-followup: exit 0
+typecheck: consumer-regex-production: exit 0
+typecheck: consumer-regex-production-continuation: exit 0
+typecheck: consumer-s3-constructor: exit 0
+typecheck: consumer-s3-http-author: exit 0
+typecheck: consumer-s3-http-independent: exit 0
+typecheck: consumer-s3-rmdir: exit 0
+typecheck: consumer-webdav-loopback: exit 0
+typecheck: consumer-webdav-services: exit 0
+typecheck: consumer-stream-inspection: exit 0
+typecheck: consumer-stream-five: exit 0
+typecheck: consumer-time-env-public: exit 0
+typecheck: consumer-time-env-leaf: exit 0
+typecheck: consumer-env-split-public-types: exit 0
+typecheck: consumer-webdav-atomic: exit 0
+typecheck: consumer-webdav-atomic-independent: exit 0
+typecheck: consumer-webdav-timestamp-independent: exit 0
+typecheck: negative-env-split-invalid-binding: exit 2
+typecheck: negative-time-env-public-negative: exit 2
+typecheck: negative-time-env-leaf-negative: exit 2
+{"status":"typecheck-failed","builds":0,"currentConsumerGroups":22,"runtimeExecutions":0,"cleaned":true}

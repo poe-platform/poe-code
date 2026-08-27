@@ -1,0 +1,16 @@
+READY — frozen narrow byte-tail trim correction.
+Written: 2026-08-27T10:23:09.482Z
+Code + canonical tests commit: 7d7dce7ced596b24e60e1ab3fea5bcd50c070755
+Independent holdout freeze acknowledged: b1c823af09c1cc4bf9a13225ef0ae9c170d22d80; no independent/** contents read.
+SHA-256 ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654  src/commands/internal.ts
+SHA-256 be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c  src/commands/streams.ts
+SHA-256 406be07ceb7a76b792737e14aa6e8d1dcf26c0589f111b8061c60fab18877840  tests/commands/internal.test.ts
+SHA-256 119a53e868f896bf4ab42785d79fe02348e92de68ca7859a284446f596e3bfff  tests/commands/streams.test.ts
+Owned source scope clean. Source and canonical tests frozen; NO MORE SOURCE/CANONICAL EDITS.
+Queue: owned subviews; copy remaining bytes only at <= half backing size; delete fully consumed byte slots; skip empty byte chunks. Line queue and internal.ts unchanged.
+Canonical 39/39 (prior27 + new12); prior candidate new controls fail12, original27 pass. Adjacent46/46; unchanged original20 replay20/20; scoped compile exit0.
+New binding verifies original fixtures and previous candidate artifacts unchanged; original and prior-candidate source bindings correctly reject changed source.
+Evidence status: IN PROGRESS under tests/stress/byte-ownership-20260827/trim-fix only; code frozen so independent verifier may run real offline npm-pack moved consumer, frozen30 and allocation/retention holdouts now.
+Pending author evidence: bounded comparable timing/allocation observations and report, then separate evidence commit and marker update.
+Contract basis: bare ByteSource/ByteSink types have no explicit lease prose; executable io copying/reuse/await tests, AGENTS ownership, and user-authorized next-read/finalizer/write-completion schedules.
+All launched checks returned; no task-owned server/background process. No full gate, superiority, or 72-hour completion claim.

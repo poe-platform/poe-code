@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-08-27T10:26:28.212Z",
+  "candidate": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+  "sourceInventoryComplete": true,
+  "sourceBeforeAfterUnchanged": true,
+  "fixtureAndFreezeHashesUnchanged": true,
+  "consumerFixtures": {
+    "internal.mjs": "e44a8ea50781da122503ebd33a254225468dde7e6008bfcd86ae6402fc4a0385",
+    "public.mjs": "4c23e93b28016b58432159a4ead191e1df199f0931d467c4893dabb6f20dccd3",
+    "vectors.mjs": "c3c5cbdeb07fec7385399e225527195f8e08528a0c9877f7dce95e0e0fd2328f",
+    "fixtures.mjs": "f332ed1421cd7b6fc1145164803c0a6766446dd173fd379e34523e635beb6291",
+    "trim.mjs": "999ed5fb6c70166dfb6c8ddab7f580f6682fd146c399aea40d0b15e628c2ffae",
+    "trim-vectors.mjs": "b05dc65cc8151572e9f17f199cdb9cd47328412843e10f8591db46e41e5d362f"
+  },
+  "liveChangedSinceFinalRun": [
+    "package.json",
+    "src/index.ts",
+    "src/plugins/index.ts"
+  ],
+  "remainingOwnedProcesses": [],
+  "serversLaunched": 0,
+  "detachedChildrenLaunched": 0,
+  "evidenceHashes": {
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/FINAL_REPORT.md": "28004d588b424c4da6077a4ca3a2a4aa3dc403ec106c915204fbab8045705fd9",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-author-ready.txt": "a5f725d7d1bb59ca5edddfebfcd3b4b46fa0ea61b990fca10358c97f913e15ce",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-binding.json": "392c58a8924833caab454528350c05f13c17a564b8c147eacf07c4deadbc3b13",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-build.json": "ef530caf822b98bb7d7fe53eb6422f4fef90b8f9507305b4bc3674afbfeec373",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-internal.tap": "ce735359de5b1a0ee0e275e7f899d70e6e7e78092149e953b41271c30f72cded",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-npm-pack.json": "fd5680027db7a74e55dd49971fdb46f5a3d9eaeba9f790f6dbd8335cc1568ddc",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-package.json": "cfd4d9eb355ae23d4aa382ec409e67e65cabc6e08a943641da1b41a41d30b41f",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-public.tap": "2378711a4e996953ae3a59f97ae84bc24161c246fbabaf46a7bb11c51f8de643",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-results.json": "194925f7f304a5eced7a46e7124986cbad1f39d29c43d196302af1a7bcbcd4ab",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/final-trim-trim.tap": "887c7bc93174f988bf198eb489c0f19ebaf7a880c3f25b48e159264e74eb2511",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/run-packed.mjs": "312de2135b1d6631c08ba30d06b161dd1da8f37c8bcc941cdfe728911a8f8673"
+  },
+  "result": "Scoped independent acceptance: original30/30 and frozen trim53/53. First candidate defect remains preserved."
+}

@@ -1,0 +1,14 @@
+{
+  "started": "2026-08-27T21:38:15.569Z",
+  "finished": "2026-08-27T21:38:27.116Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/harness/support/core-bound.mjs",
+    "independent-revised"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"subcases\":146,\"failed\":[],\"destination\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/harness/revised/core/independent-revised\"}\n",
+  "stderr": ""
+}

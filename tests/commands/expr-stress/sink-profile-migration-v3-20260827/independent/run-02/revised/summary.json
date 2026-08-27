@@ -1,0 +1,29 @@
+{
+  "canonical": {
+    "status": 0,
+    "tests": 237,
+    "pass": 237,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "quota": {
+    "passed": 47,
+    "total": 47,
+    "failed": [],
+    "safetyTerminations": 0
+  },
+  "nearby": {
+    "passed": 16,
+    "total": 16,
+    "failed": [],
+    "activeWorkers": 0
+  },
+  "core": {
+    "passed": 146,
+    "total": 146,
+    "failed": [],
+    "realVfsScratchRemoved": true
+  }
+}

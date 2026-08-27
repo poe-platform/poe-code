@@ -1,0 +1,35 @@
+{
+  "canonical": {
+    "status": 1,
+    "tests": 237,
+    "pass": 236,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "quota": {
+    "passed": 46,
+    "total": 47,
+    "failed": [
+      "stdout-rejection-normal-quota"
+    ],
+    "safetyTerminations": 0
+  },
+  "nearby": {
+    "passed": 15,
+    "total": 16,
+    "failed": [
+      "stdout-failure-no-regex-replay"
+    ],
+    "activeWorkers": 0
+  },
+  "core": {
+    "passed": 145,
+    "total": 146,
+    "failed": [
+      "sink-rejection"
+    ],
+    "realVfsScratchRemoved": true
+  }
+}

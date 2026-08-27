@@ -1,0 +1,314 @@
+import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
+import { createRequire, syncBuiltinESMExports } from "node:module";
+import { setTimeout as delay } from "node:timers/promises";
+import { after, test } from "node:test";
+import { RegexExecutor, RegexExecutionError } from "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js";
+import { ExprMatchError, exprMatchCeilings } from "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js";
+import { Shell } from "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/index.js";
+import { createMemoryFileSystem } from "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js";
+import { createExprCommand, exprCommands } from "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js";
+import { run } from "./helpers.js";
+const workersModule = createRequire(import.meta.url)("node:worker_threads");
+const NativeWorker = workersModule.Worker;
+const workers = [];
+let intercept;
+let holdReady = false;
+class ObservedWorker extends NativeWorker {
+    closed = false;
+    messages = 0;
+    terminations = 0;
+    externalExit = false;
+    constructor(filename, options) {
+        super(filename, options);
+        workers.push(this);
+        this.once("exit", () => { this.closed = true; });
+    }
+    postMessage(message, transferList) {
+        this.messages++;
+        if (!intercept?.(this, message))
+            super.postMessage(message, transferList);
+    }
+    terminate() { this.terminations++; return super.terminate(); }
+    emit(event, ...args) {
+        if (holdReady && event === "message" && args[0]?.ready)
+            return true;
+        return super.emit(event, ...args);
+    }
+    deliver(message) { super.postMessage(message); }
+}
+workersModule.Worker = ObservedWorker;
+syncBuiltinESMExports();
+after(async () => {
+    intercept = undefined;
+    holdReady = false;
+    const activeBeforeSafetyCleanup = workers.filter(worker => !worker.closed).length;
+    await Promise.all(workers.filter(worker => !worker.closed).map(worker => worker.terminate()));
+    workersModule.Worker = NativeWorker;
+    syncBuiltinESMExports();
+    console.log(JSON.stringify({ exprWorkers: workers.length, activeBeforeSafetyCleanup, activeAfter: workers.filter(worker => !worker.closed).length }));
+    assert.equal(activeBeforeSafetyCleanup, 0, "tests must close their own workers before the safety hook");
+});
+const descriptor = { kind: "expr-match", pattern: Buffer.from("a"), profile: "byte", limits: exprMatchCeilings };
+const subject = Buffer.from("abc");
+const signal = () => new AbortController().signal;
+const code = (expected) => (error) => error instanceof RegexExecutionError && error.code === expected;
+async function until(predicate) {
+    for (let attempt = 0; attempt < 300; attempt++) {
+        if (predicate())
+            return;
+        await delay(5);
+    }
+    assert.fail("bounded lifecycle observation timed out");
+}
+function clean(from) {
+    for (const worker of workers.slice(from)) {
+        assert.equal(worker.closed, true);
+        assert.equal(worker.terminations, worker.externalExit ? 0 : 1);
+        for (const event of ["message", "error", "exit", "messageerror"])
+            assert.equal(worker.listenerCount(event), 0, event);
+    }
+}
+test("expr skipped regex branches submit/compile zero jobs and never access stdin", async () => {
+    const from = workers.length;
+    for (const args of [["1", "|", "match", "", "["], ["0", "&", "", ":", "\\("], ["1", "|", "match", "x", "a**"]]) {
+        const { context } = await run(["1"]);
+        Object.defineProperty(context, "stdin", { get() { throw new Error("stdin accessed"); } });
+        Object.defineProperty(context, "args", { value: args });
+        assert.ok((await createExprCommand().execute(context)).exitCode < 2);
+    }
+    assert.equal(workers.length, from);
+});
+test("registration is synchronous before session admission and rejected cleanup acquires nothing", async () => {
+    const from = workers.length;
+    const original = RegexExecutor.prototype.open;
+    let registered = false, admitted = 0;
+    RegexExecutor.prototype.open = function (signal) { assert.equal(registered, true); admitted++; return original.call(this, signal); };
+    try {
+        const pending = run(["abc", ":", "a"], {}, { registerCleanup() { registered = true; } });
+        assert.equal(registered, true);
+        assert.equal((await pending).stdout, "1\n");
+        const count = admitted;
+        const rejection = new Error("cleanup registration rejected");
+        await assert.rejects(run(["abc", ":", "a"], {}, { registerCleanup() { throw rejection; } }), error => error === rejection);
+        await assert.rejects(run(["abc", ":", "a"], {}, { registerCleanup(cleanup) { void cleanup(); } }), code("CLOSED"));
+        assert.equal(admitted, count);
+    }
+    finally {
+        RegexExecutor.prototype.open = original;
+    }
+    clean(from);
+});
+test("expr cleanup shares one promise with finally and closes active matching", async () => {
+    const from = workers.length;
+    let cleanup;
+    let held;
+    intercept = worker => { held = worker; return true; };
+    try {
+        const pending = run(["abc", ":", "a"], {}, { registerCleanup(close) { cleanup = close; } });
+        await until(() => held !== undefined);
+        const first = cleanup(), second = cleanup();
+        assert.equal(first, second);
+        await first;
+        assert.equal(held.closed, true);
+        assert.equal((await pending).exitCode, 3);
+        assert.equal(cleanup(), first);
+    }
+    finally {
+        intercept = undefined;
+    }
+    clean(from);
+});
+test("active and startup cancellation preserve exact reasons and reap workers", async () => {
+    for (const startup of [true, false]) {
+        const from = workers.length;
+        const controller = new AbortController();
+        const executor = new RegexExecutor();
+        const session = executor.open(controller.signal);
+        let held = false;
+        intercept = () => { held = true; return true; };
+        try {
+            const pending = session.matchExpr(descriptor, subject);
+            const reason = { code: "ENOENT", cancellation: startup ? "startup" : "active" };
+            const rejected = assert.rejects(pending, error => error === reason);
+            if (!startup)
+                await until(() => held);
+            controller.abort(reason);
+            await rejected;
+            assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+            if (startup)
+                assert.equal(workers[from].messages, 0);
+            assert.equal(workers[from].closed, true);
+        }
+        finally {
+            intercept = undefined;
+            await session.close();
+        }
+        clean(from);
+    }
+});
+test("startup and active deadlines remain separate with retirement before rejection", async () => {
+    for (const startup of [true, false]) {
+        const from = workers.length;
+        const executor = new RegexExecutor(startup ? { startupTimeoutMs: 35 } : { requestTimeoutMs: 35 });
+        const session = executor.open(signal());
+        holdReady = startup;
+        intercept = () => true;
+        try {
+            await assert.rejects(session.matchExpr(descriptor, subject), code(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT"));
+            assert.equal(workers[from].closed, true);
+            assert.equal(workers[from].messages, startup ? 0 : 1);
+        }
+        finally {
+            holdReady = false;
+            intercept = undefined;
+            await session.close();
+        }
+        clean(from);
+    }
+});
+test("actual bounded BRE execution is terminated by the active deadline", async () => {
+    const from = workers.length;
+    const executor = new RegexExecutor({ requestTimeoutMs: 1 });
+    const session = executor.open(signal());
+    try {
+        await assert.rejects(session.matchExpr({ ...descriptor, pattern: Buffer.from("a*") }, Buffer.from("a".repeat(32_768))), code("REQUEST_TIMEOUT"));
+        assert.equal(workers[from].closed, true);
+    }
+    finally {
+        await session.close();
+    }
+    clean(from);
+});
+test("expr admission bytes/count, queued ownership, cancellation and sibling sessions", async () => {
+    const from = workers.length;
+    const executor = new RegexExecutor({ maxWorkers: 1, maxQueuedRequests: 1, maxQueuedBytes: 260 });
+    const firstController = new AbortController();
+    const first = executor.open(firstController.signal), second = executor.open(signal());
+    let held;
+    intercept = worker => { held = worker; return true; };
+    try {
+        const reason = new Error("one session abort");
+        const active = assert.rejects(first.matchExpr(descriptor, subject), error => error === reason);
+        await until(() => held !== undefined);
+        const oversized = { ...descriptor, pattern: Buffer.from("abc") };
+        await assert.rejects(second.matchExpr(oversized, subject), code("QUEUE_EXHAUSTED"));
+        const borrowedPattern = Buffer.from("a"), borrowedSubject = Buffer.from("abc");
+        const borrowedLimits = { ...exprMatchCeilings };
+        const queued = second.matchExpr({ ...descriptor, pattern: borrowedPattern, limits: borrowedLimits }, borrowedSubject);
+        borrowedPattern.fill(98);
+        borrowedSubject.fill(98);
+        borrowedLimits.maxNodes = 1;
+        await assert.rejects(second.matchExpr(descriptor, subject), code("QUEUE_EXHAUSTED"));
+        intercept = undefined;
+        firstController.abort(reason);
+        await active;
+        await first.close();
+        assert.deepEqual((await queued).overall, { start: 0, end: 1 });
+        assert.equal(held.closed, true);
+        assert.equal((await second.matchExpr(descriptor, subject)).matched, true);
+    }
+    finally {
+        intercept = undefined;
+        await Promise.all([first.close(), second.close()]);
+    }
+    clean(from);
+});
+test("queued abort withdraws admission without retiring another session's worker", async () => {
+    const from = workers.length;
+    const executor = new RegexExecutor({ maxWorkers: 1 });
+    const controller = new AbortController();
+    const first = executor.open(signal()), second = executor.open(controller.signal);
+    let held;
+    intercept = (worker, message) => { held = { worker, message }; return true; };
+    try {
+        const active = first.matchExpr(descriptor, subject);
+        await until(() => held !== undefined);
+        const reason = { queued: true };
+        const rejected = assert.rejects(second.matchExpr(descriptor, subject), error => error === reason);
+        controller.abort(reason);
+        await rejected;
+        await second.close();
+        assert.equal(held.worker.closed, false);
+        intercept = undefined;
+        held.worker.deliver(held.message);
+        assert.equal((await active).matched, true);
+    }
+    finally {
+        intercept = undefined;
+        await Promise.all([first.close(), second.close()]);
+    }
+    clean(from);
+});
+test("malformed reply, worker exit and syntax failure retire only the failed worker", async () => {
+    for (const mode of ["bounds", "exit", "syntax"]) {
+        const from = workers.length;
+        const executor = new RegexExecutor();
+        const session = executor.open(signal());
+        if (mode !== "syntax")
+            intercept = (worker, message) => {
+                if (mode === "exit") {
+                    worker.externalExit = true;
+                    void NativeWorker.prototype.terminate.call(worker);
+                }
+                else
+                    queueMicrotask(() => worker.emit("message", { id: message.id, operation: "expr-match", result: {
+                            offsetUnit: "byte", matched: true, hasCapture: false, overall: { start: 0, end: 99 }, capture: null, steps: 1,
+                        } }));
+                return true;
+            };
+        try {
+            await assert.rejects(session.matchExpr(mode === "syntax" ? { ...descriptor, pattern: Buffer.from("[") } : descriptor, subject), mode === "syntax" ? error => error instanceof ExprMatchError && error.category === "syntax" : code(mode === "exit" ? "WORKER_EXIT" : "PROTOCOL"));
+            assert.equal(workers[from].closed, true);
+            intercept = undefined;
+            assert.equal((await session.matchExpr(descriptor, subject)).matched, true);
+        }
+        finally {
+            intercept = undefined;
+            await session.close();
+        }
+        clean(from);
+    }
+});
+test("idle retirement and executor dispose keep expr sessions bounded", async () => {
+    const from = workers.length;
+    const executor = new RegexExecutor({ idleTimeoutMs: 10, maxWorkers: 1 });
+    const session = executor.open(signal());
+    try {
+        await session.matchExpr(descriptor, subject);
+        await until(() => workers[from].closed);
+        intercept = () => true;
+        const active = assert.rejects(session.matchExpr(descriptor, subject), code("CLOSED"));
+        const queued = assert.rejects(session.matchExpr(descriptor, subject), code("CLOSED"));
+        await executor.dispose();
+        await executor.dispose();
+        await Promise.all([active, queued]);
+    }
+    finally {
+        intercept = undefined;
+        await session.close();
+    }
+    clean(from);
+});
+test("actual Shell abort settles after regex retirement and leaves siblings usable", async () => {
+    const from = workers.length;
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(exprCommands());
+    const controller = new AbortController();
+    let held = false;
+    intercept = () => { held = true; return true; };
+    try {
+        const reason = { shell: "abort" };
+        const rejected = assert.rejects(shell.exec("expr abc : a", { signal: controller.signal }), error => error === reason);
+        await until(() => held);
+        controller.abort(reason);
+        await rejected;
+        assert.equal(workers[from].closed, true);
+        intercept = undefined;
+        assert.equal((await shell.exec("expr abc : 'a\\(.\\)'")).stdout, "b\n");
+    }
+    finally {
+        intercept = undefined;
+        await shell.dispose();
+    }
+    clean(from);
+});

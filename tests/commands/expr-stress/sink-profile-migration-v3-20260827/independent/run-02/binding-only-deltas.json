@@ -1,0 +1,316 @@
+[
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/contracts.test.ts",
+    "sourceSha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+    "emittedBeforeSha256": "72433976b410a053d94993ef4d4e09ee8f042b50debd083a2ba49365f16d4d2f",
+    "emittedAfterSha256": "03948923d5fbbf17789a904e54e5c28b9cc08fb77f2b3acc0e221e5ada0bb478",
+    "replacements": [
+      {
+        "before": "\"../../../src/contracts/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/shell/shell.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/shell.js\""
+      },
+      {
+        "before": "\"../../../src/commands/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/abort-reason-regression.test.ts",
+    "sourceSha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3",
+    "emittedBeforeSha256": "7a75021206329d17a62bbfcccde5ad275bb07a25e90494d7c6eb12b0bbb70dbf",
+    "emittedAfterSha256": "242d912ff346aeb126873a4523da1ed2dc8dec9b4e06dc1f2f8bf2e4e6e25a06",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/regex-lifecycle.test.ts",
+    "sourceSha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+    "emittedBeforeSha256": "23769ebb6a09fe809cd2786ab6010bf6a2a86de2bbd24405b90b16372568d653",
+    "emittedAfterSha256": "fedee0b0b6c6b3d1fc38e4c7586c52541e68ac4853a91ae7fcb52a51e9ab6234",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/shell/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/regex-limits.test.ts",
+    "sourceSha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+    "emittedBeforeSha256": "bb6c1598f850fac1e2f8feb8670350806f748f412a07623899ec1e19f87e17f1",
+    "emittedAfterSha256": "730ff15cb295cf6de9241ff32b9aab228fe6fd41f935790d9257309bee736a82",
+    "replacements": [
+      {
+        "before": "\"../../../src/shell/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/regex-protocol.test.ts",
+    "sourceSha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+    "emittedBeforeSha256": "f46c383d88bf5ab7829573af5de1ce3bbf87699f99056a1bdcbb7b70137fef5f",
+    "emittedAfterSha256": "4fe18070f1ea297f1f950c68c432feb7c391050f06d26767d1d479bee8897170",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/bre-worker.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/bre-worker.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/grammar.test.ts",
+    "sourceSha256": "0de1d7042f5f0a1a7ad75a540096bdb07cdf28a2137b6927b2e8177091d64919",
+    "emittedBeforeSha256": "2ed6b38b6155ec5999b8db881d4b32a9dffe3af08766e9501f5ff20e9dad606a",
+    "emittedAfterSha256": "2ed6b38b6155ec5999b8db881d4b32a9dffe3af08766e9501f5ff20e9dad606a",
+    "replacements": [],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "original",
+    "path": "tests/commands/expr/helpers.ts",
+    "sourceSha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "emittedBeforeSha256": "0e8c2b39c95373312bdf3cbc8c00e2c469428e253fe4ab869268b7989dcfd8d0",
+    "emittedAfterSha256": "715be0fb405439c2cc84eb740b35b70600c8e749b0f65e121b25bdf21df997f4",
+    "replacements": [
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/contracts.test.ts",
+    "sourceSha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7",
+    "emittedBeforeSha256": "c6a4c13221a6b36252cb288ae550f62e7d5203c3c117beaa553b8e26e0a7d201",
+    "emittedAfterSha256": "d4027982c78e002ae55a256990a75b801dfedc6d3929d933ebf83e2395b5738d",
+    "replacements": [
+      {
+        "before": "\"../../../src/contracts/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/shell/shell.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/shell.js\""
+      },
+      {
+        "before": "\"../../../src/commands/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/abort-reason-regression.test.ts",
+    "sourceSha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3",
+    "emittedBeforeSha256": "7a75021206329d17a62bbfcccde5ad275bb07a25e90494d7c6eb12b0bbb70dbf",
+    "emittedAfterSha256": "242d912ff346aeb126873a4523da1ed2dc8dec9b4e06dc1f2f8bf2e4e6e25a06",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/regex-lifecycle.test.ts",
+    "sourceSha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+    "emittedBeforeSha256": "23769ebb6a09fe809cd2786ab6010bf6a2a86de2bbd24405b90b16372568d653",
+    "emittedAfterSha256": "fedee0b0b6c6b3d1fc38e4c7586c52541e68ac4853a91ae7fcb52a51e9ab6234",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/shell/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/regex-limits.test.ts",
+    "sourceSha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+    "emittedBeforeSha256": "bb6c1598f850fac1e2f8feb8670350806f748f412a07623899ec1e19f87e17f1",
+    "emittedAfterSha256": "730ff15cb295cf6de9241ff32b9aab228fe6fd41f935790d9257309bee736a82",
+    "replacements": [
+      {
+        "before": "\"../../../src/shell/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/shell/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/index.js\""
+      },
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/regex-protocol.test.ts",
+    "sourceSha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+    "emittedBeforeSha256": "f46c383d88bf5ab7829573af5de1ce3bbf87699f99056a1bdcbb7b70137fef5f",
+    "emittedAfterSha256": "4fe18070f1ea297f1f950c68c432feb7c391050f06d26767d1d479bee8897170",
+    "replacements": [
+      {
+        "before": "\"../../../src/commands/regex-execution/protocol.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\""
+      },
+      {
+        "before": "\"../../../src/commands/regex-execution/client.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/bre-worker.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/bre-worker.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/grammar.test.ts",
+    "sourceSha256": "0de1d7042f5f0a1a7ad75a540096bdb07cdf28a2137b6927b2e8177091d64919",
+    "emittedBeforeSha256": "2ed6b38b6155ec5999b8db881d4b32a9dffe3af08766e9501f5ff20e9dad606a",
+    "emittedAfterSha256": "2ed6b38b6155ec5999b8db881d4b32a9dffe3af08766e9501f5ff20e9dad606a",
+    "replacements": [],
+    "assertionBytesUnchanged": true
+  },
+  {
+    "profile": "revised",
+    "path": "tests/commands/expr/helpers.ts",
+    "sourceSha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "emittedBeforeSha256": "0e8c2b39c95373312bdf3cbc8c00e2c469428e253fe4ab869268b7989dcfd8d0",
+    "emittedAfterSha256": "715be0fb405439c2cc84eb740b35b70600c8e749b0f65e121b25bdf21df997f4",
+    "replacements": [
+      {
+        "before": "\"../../../src/fs/memory/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js\""
+      },
+      {
+        "before": "\"../../../src/commands/expr/index.js\"",
+        "after": "\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js\""
+      }
+    ],
+    "assertionBytesUnchanged": true
+  }
+]

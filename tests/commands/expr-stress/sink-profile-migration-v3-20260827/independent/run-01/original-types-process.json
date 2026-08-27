@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T21:35:21.108Z",
+  "finished": "2026-08-27T21:35:22.241Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/review.json"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

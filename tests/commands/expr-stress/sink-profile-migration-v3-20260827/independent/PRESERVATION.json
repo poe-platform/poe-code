@@ -1,0 +1,51 @@
+{
+  "originalHistoricalBodies": [
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-01/core-controls.json",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "bytes": 3771820,
+      "sha256": "9243ff2af4ed2d78a8b611f3deb643f1aba12358b83a8b9dba710b632e9237fb",
+      "liveRawBodyUnchanged": true
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/legacy-no-native-process.json",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "bytes": 20762,
+      "sha256": "fa3adb17fe8606fcc07aa222d46b8c9f6f24305752e6936744c526182e11cccf",
+      "liveRawBodyUnchanged": true
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/quota47-results.json",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "bytes": 163784,
+      "sha256": "f6aed55c062dcbf5804a7a331f535a5b38ac573da7d8b660c6b26c29a168043a",
+      "liveRawBodyUnchanged": true
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/nearby16-results.json",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "bytes": 27252,
+      "sha256": "7cf67b08ef8c31a28befe5a2a4671cb46c49bdb4bf2bda38fe132332f92ece83",
+      "liveRawBodyUnchanged": true
+    }
+  ],
+  "exactBebaLegacyScope": [
+    "tests/commands/expr/contracts.test.ts",
+    "tests/commands/expr/abort-reason-regression.test.ts",
+    "tests/commands/expr/regex-lifecycle.test.ts",
+    "tests/commands/expr/regex-limits.test.ts",
+    "tests/commands/expr/regex-protocol.test.ts",
+    "tests/commands/expr/grammar.test.ts"
+  ],
+  "exactBebaLegacyOriginalCounts": {
+    "status": 1,
+    "tests": 237,
+    "pass": 236,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "preservedInitialHarnessMatchesItsFreeze": true,
+  "attemptQualification": "run-01 is a rejected binding/setup attempt. Its initial guard/lib/replay are retained with matching pre-execution hashes. The guard correction became visible before run-01 revised canonical launched; no run-01 results certify the final review. Fresh frozen run-02 consistently uses canonical physical paths and corrected guard; unchanged c3 installed bytes throughout."
+}

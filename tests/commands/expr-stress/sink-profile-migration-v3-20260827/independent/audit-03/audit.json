@@ -1,0 +1,430 @@
+{
+  "completedAt": "2026-08-27T21:34:11.576Z",
+  "canonicalCommit": "860967af44b20918e3096230f6c7445d4c9cf133",
+  "records": [
+    {
+      "path": "original/canonical/contracts.test.ts.data",
+      "bytes": 10494,
+      "sha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr/contracts.test.ts",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/canonical/contracts.test.ts.data",
+      "bytes": 10638,
+      "sha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7",
+      "originalCommit": "860967af44b20918e3096230f6c7445d4c9cf133",
+      "originalPath": "tests/commands/expr/contracts.test.ts",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/core/runtime-driver.mjs",
+      "bytes": 10926,
+      "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/runtime-driver.mjs",
+      "originalSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/core/runtime-driver.mjs",
+      "bytes": 10915,
+      "sha256": "1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/runtime-driver.mjs",
+      "originalSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "byteIdentical": false,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/core/protocol-driver.mjs",
+      "bytes": 7531,
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/protocol-driver.mjs",
+      "originalSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/core/protocol-driver.mjs",
+      "bytes": 7531,
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/protocol-driver.mjs",
+      "originalSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/core/lifecycle-driver.mjs",
+      "bytes": 13675,
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/lifecycle-driver.mjs",
+      "originalSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/core/lifecycle-driver.mjs",
+      "bytes": 13675,
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/lifecycle-driver.mjs",
+      "originalSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/core/watchdog.mjs",
+      "bytes": 3808,
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/core/watchdog.mjs",
+      "bytes": 3808,
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/quota/cases.mjs",
+      "bytes": 3617,
+      "sha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/cases.mjs",
+      "originalSha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/quota/cases.mjs",
+      "bytes": 3662,
+      "sha256": "95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/cases.mjs",
+      "originalSha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086",
+      "byteIdentical": false,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/quota/probe.mjs",
+      "bytes": 9398,
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/probe.mjs",
+      "originalSha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/quota/probe.mjs",
+      "bytes": 9398,
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/probe.mjs",
+      "originalSha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/quota/common.mjs",
+      "bytes": 920,
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/common.mjs",
+      "originalSha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/quota/common.mjs",
+      "bytes": 920,
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/output-emergency-review-20260827/common.mjs",
+      "originalSha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "original/nearby/controls.json",
+      "bytes": 7306,
+      "sha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/encounter-independent-v2-20260827/freeze/controls.json",
+      "originalSha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "revised/nearby/controls.json",
+      "bytes": 7232,
+      "sha256": "8842bd8d8542757a64cca37306491903233cb43e41fe9b37d0801feba6816fda",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/encounter-independent-v2-20260827/freeze/controls.json",
+      "originalSha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+      "byteIdentical": false,
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/nearby-driver.mjs",
+      "bytes": 8196,
+      "sha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe",
+      "originalCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "originalPath": "tests/commands/expr-stress/encounter-independent-v2-20260827/nearby-driver.mjs",
+      "originalSha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/core-bound.mjs",
+      "bytes": 11869,
+      "sha256": "ea789c6fde5f09a85a84504e772451e44ca04e3acf88c4f90024f1c3bcd388d1",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-bound.mjs",
+      "originalSha256": "ea789c6fde5f09a85a84504e772451e44ca04e3acf88c4f90024f1c3bcd388d1",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/core-drivers/watchdog.mjs",
+      "bytes": 3808,
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-drivers/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/core-bindings.mjs",
+      "bytes": 2198,
+      "sha256": "76ba82c4c7b226122343ca19a331504be1e1d3e38e334ad30e0b22ef3d2cea13",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-bindings.mjs",
+      "originalSha256": "01124b41833a2d156957a446cae0761850c0080b1081cac688b8a197bd22a928",
+      "byteIdentical": false,
+      "bindingDeltas": [
+        [
+          "const root = resolve(evidence, '../../../..');",
+          "const root = resolve(process.env.REVIEW_ROOT);"
+        ],
+        [
+          "export const owned = join(evidence, 'core-drivers');",
+          "export const owned = join(evidence, '..', process.env.REVIEW_PROFILE, 'core');"
+        ],
+        [
+          "join(evidence, 'core-binding-deltas.json')",
+          "join(evidence, `${process.env.REVIEW_PROFILE}-core-binding-deltas.json`)"
+        ]
+      ],
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/original-core-binding-deltas.json",
+      "bytes": 2071,
+      "sha256": "9ea5e46827d867d828c12a65c47e922fd502b3c31efbdb7c93e0d31803274b2a",
+      "role": "Existing binding authentication with profile-specific driver digest",
+      "independentlyVerified": true
+    },
+    {
+      "path": "support/revised-core-binding-deltas.json",
+      "bytes": 2134,
+      "sha256": "e9240686f0a077240f138e0edccbb69e17525c5421dfa576de934492de680906",
+      "role": "Existing binding authentication with profile-specific driver digest",
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/final-REPORT.md",
+      "bytes": 17398,
+      "sha256": "0bb7190f00f277dee529c9c8383bbaaeea1524704ec01cfc051f05d49b7b7bb2",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/REPORT.md",
+      "originalSha256": "0bb7190f00f277dee529c9c8383bbaaeea1524704ec01cfc051f05d49b7b7bb2",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/final-regression-summary.json",
+      "bytes": 1329,
+      "sha256": "ed28c33e5811ec2f8befa58493623df60cf6202988467fa226990424d0655935",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/regression-summary.json",
+      "originalSha256": "ed28c33e5811ec2f8befa58493623df60cf6202988467fa226990424d0655935",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/final-legacy-no-native-process.json",
+      "bytes": 20762,
+      "sha256": "fa3adb17fe8606fcc07aa222d46b8c9f6f24305752e6936744c526182e11cccf",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/legacy-no-native-process.json",
+      "originalSha256": "fa3adb17fe8606fcc07aa222d46b8c9f6f24305752e6936744c526182e11cccf",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/final-core-summary.json",
+      "bytes": 487,
+      "sha256": "8b6eb072485386bac00a9d21d1fc6462efe30c22dd06442eb54032b5f606be53",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-01/summary.json",
+      "originalSha256": "8b6eb072485386bac00a9d21d1fc6462efe30c22dd06442eb54032b5f606be53",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/author-REPORT.md",
+      "bytes": 10105,
+      "sha256": "62ec9b99afe5ed4e9fd54b9bc4eb0dcdebee25bd3a62ed229430d5db1e996e7b",
+      "originalCommit": "2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2",
+      "originalPath": "tests/commands/expr-stress/encounter-author-v2-20260827/REPORT.md",
+      "originalSha256": "62ec9b99afe5ed4e9fd54b9bc4eb0dcdebee25bd3a62ed229430d5db1e996e7b",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/author-candidate-summary.json",
+      "bytes": 2052,
+      "sha256": "8125c596053531d4c1152260317fe0029fb3ca2b12cc86796ec64dd9a91d968e",
+      "originalCommit": "2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2",
+      "originalPath": "tests/commands/expr-stress/encounter-author-v2-20260827/candidate-01/summary.json",
+      "originalSha256": "8125c596053531d4c1152260317fe0029fb3ca2b12cc86796ec64dd9a91d968e",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/author-candidate-expr.tap.data",
+      "bytes": 105267,
+      "sha256": "ab7dd148ed70b55877712e403905841229c54a5d41812e0a7d6603744a796a0e",
+      "originalCommit": "2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2",
+      "originalPath": "tests/commands/expr-stress/encounter-author-v2-20260827/candidate-01/expr.tap",
+      "originalSha256": "ab7dd148ed70b55877712e403905841229c54a5d41812e0a7d6603744a796a0e",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    },
+    {
+      "path": "historical/outside-REPORT.md",
+      "bytes": 8497,
+      "sha256": "cbe923248fdc01af6c83d4f679726332980411fde69d299d499232adaeb2b3e6",
+      "originalCommit": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+      "originalPath": "tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/REPORT.md",
+      "originalSha256": "cbe923248fdc01af6c83d4f679726332980411fde69d299d499232adaeb2b3e6",
+      "byteIdentical": true,
+      "independentlyVerified": true
+    }
+  ],
+  "minimalDeltas": [
+    {
+      "id": "canonical",
+      "oldSha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+      "newSha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7",
+      "before": "test(\"sink failure is status 3 and diagnostic failure is not swallowed\", async () => {\n  const result = await run([\"1\"], {}, { stdout: { async write() { throw new Error(\"sink failure\"); } } });\n  assert.equal(result.exitCode, 3); assert.match(result.stderr, /output failure/u);",
+      "after": "test(\"sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed\", async () => {\n  const stdoutReason = new Error(\"sink failure\");\n  let diagnosticWrites = 0;\n  await assert.rejects(run([\"1\"], {}, {\n    stdout: { async write() { throw stdoutReason; } },\n    stderr: { async write() { diagnosticWrites++; } },\n  }), error => error === stdoutReason);\n  assert.equal(diagnosticWrites, 0);"
+    },
+    {
+      "id": "core",
+      "oldSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "newSha256": "1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5",
+      "before": "assert.equal(state, 'rejected'); assert.equal(reason, second); assert.deepEqual(writes, ['stdout', 'stderr']);",
+      "after": "assert.equal(state, 'rejected'); assert.equal(reason, first); assert.deepEqual(writes, ['stdout']);"
+    },
+    {
+      "id": "quota",
+      "oldSha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086",
+      "newSha256": "95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40",
+      "before": "add('stdout-rejection-normal-quota', ['1'], 2, {}, { mode: 'reject-stdout' });",
+      "after": "add('stdout-rejection-normal-quota', ['1'], 2, { status: null, stderr: '', rejection: 'sink' }, { mode: 'reject-stdout' });"
+    },
+    {
+      "id": "nearby",
+      "oldSha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+      "newSha256": "8842bd8d8542757a64cca37306491903233cb43e41fe9b37d0801feba6816fda",
+      "before": "\"sink\": \"fail-stdout\",\n      \"expected\": {\n        \"exitCode\": 3,\n        \"stdout\": \"\",\n        \"stderr\": \"expr: execution or output failure\\n\"\n      }",
+      "after": "\"sink\": \"fail-stdout\",\n      \"expected\": {\n        \"rejected\": \"sink\"\n      }"
+    }
+  ],
+  "structuralSensitivity": [
+    {
+      "id": "changed argv",
+      "rejected": true,
+      "assertion": "core: exact approved delta only",
+      "positivePassed": true,
+      "mutationBefore": "direct(['41', '+', '1']",
+      "mutationAfter": "direct(['42']"
+    },
+    {
+      "id": "raised output budget",
+      "rejected": true,
+      "assertion": "quota: exact approved delta only",
+      "positivePassed": true,
+      "mutationBefore": "['1'], 2, { status: null",
+      "mutationAfter": "['1'], 3, { status: null"
+    },
+    {
+      "id": "changed sink callback",
+      "rejected": true,
+      "assertion": "core: exact approved delta only",
+      "positivePassed": true,
+      "mutationBefore": "return Promise.reject(first)",
+      "mutationAfter": "return Promise.resolve()"
+    },
+    {
+      "id": "changed job assertion",
+      "rejected": true,
+      "assertion": "nearby: exact approved delta only",
+      "positivePassed": true,
+      "mutationBefore": "\"sink\": \"fail-stdout\",\n      \"expected\": {\n        \"rejected\": \"sink\"\n      },\n      \"subjects\": [\n        \"a\"\n      ]",
+      "mutationAfter": "\"sink\": \"fail-stdout\",\n      \"expected\": {\n        \"rejected\": \"sink\"\n      },\n      \"subjects\": []"
+    },
+    {
+      "id": "removed cleanup assertion",
+      "rejected": true,
+      "assertion": "nearby driver cleanup must remain byte-identical",
+      "positivePassed": true
+    }
+  ],
+  "productAndRootChanges": [],
+  "bindingOnlySupportDisclosed": [
+    {
+      "path": "support/core-bindings.mjs",
+      "bytes": 2198,
+      "sha256": "76ba82c4c7b226122343ca19a331504be1e1d3e38e334ad30e0b22ef3d2cea13",
+      "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "originalPath": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-bindings.mjs",
+      "originalSha256": "01124b41833a2d156957a446cae0761850c0080b1081cac688b8a197bd22a928",
+      "byteIdentical": false,
+      "bindingDeltas": [
+        [
+          "const root = resolve(evidence, '../../../..');",
+          "const root = resolve(process.env.REVIEW_ROOT);"
+        ],
+        [
+          "export const owned = join(evidence, 'core-drivers');",
+          "export const owned = join(evidence, '..', process.env.REVIEW_PROFILE, 'core');"
+        ],
+        [
+          "join(evidence, 'core-binding-deltas.json')",
+          "join(evidence, `${process.env.REVIEW_PROFILE}-core-binding-deltas.json`)"
+        ]
+      ],
+      "independentlyVerified": true
+    }
+  ],
+  "assertionPlumbingDelta": "Canonical promotes inline Error to captured identity and adds diagnostic-write counter; exact argv/options and subsequent diagnostic sink assertion preserved. Core assertions only; quota/nearby expected data only; runtime comparator callbacks/jobs/budgets/cleanup unchanged."
+}

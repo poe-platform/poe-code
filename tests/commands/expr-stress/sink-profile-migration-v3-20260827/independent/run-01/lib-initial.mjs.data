@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync, readdirSync, lstatSync, readlinkSync, mkdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export const owned = dirname(fileURLToPath(import.meta.url));
+export const root = resolve(owned, '../../../../..');
+export const product = 'c3e40f8bd721da5e496f3b3abfd51aee45db5a84';
+export const baseline = 'beba7b00';
+export const base = 'tests/commands/expr-stress/encounter-final-review-v2-20260827';
+export const quota = 'tests/commands/expr-stress/output-quota-independent-v2-20260827/old47';
+export const nearby = 'tests/commands/expr-stress/encounter-independent-v2-20260827';
+export const canonical = ['contracts', 'abort-reason-regression', 'regex-lifecycle', 'regex-limits', 'regex-protocol', 'grammar'].map(name => `tests/commands/expr/${name}.test.ts`);
+export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export const git = (...args) => {
+  const result = spawnSync('git', args, { cwd: root, maxBuffer: 128 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr?.toString());
+  return result.stdout;
+};
+export const frozen = (path, commit = baseline) => git('show', `${commit}:${path}`);
+export const save = (path, value) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' }); };
+export const put = (path, bytes) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes, { flag: 'wx' }); };
+export function inventory(directory) {
+  const entries = {};
+  function visit(current, prefix = '') {
+    for (const name of readdirSync(current).sort()) {
+      const relative = prefix + name, absolute = join(current, name), stat = lstatSync(absolute);
+      if (stat.isSymbolicLink()) entries[relative] = { symlink: readlinkSync(absolute) };
+      else if (stat.isDirectory()) { entries[relative] = { directory: true }; visit(absolute, relative + '/'); }
+      else entries[relative] = { bytes: stat.size, sha256: hash(readFileSync(absolute)) };
+    }
+  }
+  visit(directory);
+  return entries;
+}
+export function command(output, name, executable, args, cwd, env = {}, input) {
+  const started = new Date().toISOString();
+  const result = spawnSync(executable, args, { cwd, env: { ...process.env, ...env }, input, timeout: 180000, killSignal: 'SIGKILL', maxBuffer: 48 * 1024 * 1024 });
+  const record = { started, finished: new Date().toISOString(), executable, args, cwd, status: result.status, signal: result.signal, error: result.error?.message, stdout: result.stdout?.toString(), stderr: result.stderr?.toString() };
+  save(join(output, name + '-process.json'), record);
+  return record;
+}
+export function replaceOne(text, before, after) {
+  assert.equal(text.split(before).length, 2, `unique binding: ${before}`);
+  return text.replace(before, after);
+}

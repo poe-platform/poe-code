@@ -1,0 +1,16 @@
+{
+  "started": "2026-08-27T21:39:06.379Z",
+  "finished": "2026-08-27T21:39:06.470Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--test",
+    "--test-reporter=spec",
+    "--test-name-pattern=sink failure preserves",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved",
+  "status": 1,
+  "signal": null,
+  "stdout": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.187042ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 59.592958\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.187042ms)\n  AssertionError [ERR_ASSERTION]: Missing expected rejection.\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+  "stderr": ""
+}

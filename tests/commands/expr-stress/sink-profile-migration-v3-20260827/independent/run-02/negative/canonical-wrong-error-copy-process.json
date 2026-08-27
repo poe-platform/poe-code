@@ -1,0 +1,16 @@
+{
+  "started": "2026-08-27T21:39:06.560Z",
+  "finished": "2026-08-27T21:39:06.663Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--test",
+    "--test-reporter=spec",
+    "--test-name-pattern=sink failure preserves",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved",
+  "status": 1,
+  "signal": null,
+  "stdout": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (3.240666ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 68.3685\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (3.240666ms)\n  AssertionError [ERR_ASSERTION]: The validation function is expected to return \"true\". Received false\n  \n  Caught error:\n  \n  Error: sink failure\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: Error: sink failure\n        at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/mutant-expr.mjs:19:40)\n        at async run (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/helpers.js:13:20)\n        at async waitForActual (node:assert:644:5)\n        at async Function.rejects (node:assert:767:25)\n        at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n        at async Test.run (node:internal/test_runner/test:1054:7)\n        at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3),\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+  "stderr": ""
+}

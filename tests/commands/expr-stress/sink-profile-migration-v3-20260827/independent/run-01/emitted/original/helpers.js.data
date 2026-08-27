@@ -1,0 +1,21 @@
+import { createMemoryFileSystem } from "file:///var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/fs/memory/index.js";
+import { createExprCommand } from "file:///var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/index.js";
+export async function run(args, options = {}, overrides = {}) {
+    const stdout = [], stderr = [];
+    const context = {
+        command: "expr", args, cwd: "/", env: { LC_ALL: "C" }, fs: createMemoryFileSystem(),
+        signal: new AbortController().signal,
+        stdin: { [Symbol.asyncIterator]() { throw new Error("argv-only expr acquired stdin"); } },
+        stdout: { async write(chunk) { stdout.push(new Uint8Array(chunk)); } },
+        stderr: { async write(chunk) { stderr.push(new Uint8Array(chunk)); } },
+        ...overrides,
+    };
+    const result = await createExprCommand(options).execute(context);
+    const output = Buffer.concat(stdout), errors = Buffer.concat(stderr);
+    return { ...result, stdout: output.toString(), stdoutHex: output.toString("hex"), stderr: errors.toString(), context };
+}
+export function deferred() {
+    let resolve;
+    const promise = new Promise(done => { resolve = done; });
+    return { promise, resolve };
+}

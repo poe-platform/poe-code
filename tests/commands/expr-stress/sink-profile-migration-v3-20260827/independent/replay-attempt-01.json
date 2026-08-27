@@ -1,0 +1,9 @@
+{
+  "kind": "independent harness binding failure; not a demonstrated product defect",
+  "attempt": "run-01",
+  "cause": "macOS OS tmpdir returned /var/folders while Node resolves file modules and worker URLs through /private/var/folders. Initial independent canonical import guard compared uncanonicalized expected URLs, denying actual c3 workers. Existing quota/nearby drivers also require canonical base arguments. Core runtime already canonicalizes its installed path.",
+  "evidence": "run-01/diagnose-contracts-process.json preserves additional BRE failure caused by worker refusal beside the expected old sink red. Missing import log exposed the same prefix mismatch.",
+  "boundedInterruption": "Sent SIGTERM only to observed task child PID 23536, parent 23535, after inspecting its exact task-root command line; no SIGSTOP. Parent and remaining bounded harness commands allowed to settle and retain raw results.",
+  "correction": "Use realpathSync on task-owned installed/source/temp directories before deriving file URLs; canonical guard canonicalizes its binding too. Inputs, callbacks, budgets, assertions and actual compiled package bytes unchanged. Unique run-02 output and harness trees, same installed c3 bytes.",
+  "additionalContainment": "Subsequent command children create owned process groups; timeout kills bounded group rather than leaving node:test children."
+}

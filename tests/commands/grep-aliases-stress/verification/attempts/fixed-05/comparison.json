@@ -1,0 +1,166 @@
+{
+  "denominator": 26,
+  "executed": 26,
+  "bsdExact": 16,
+  "gnuExact": 0,
+  "gnuPayloadProjectionOnly": 26,
+  "stderrStripped": false,
+  "rows": [
+    {
+      "id": "N01",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N02",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N03",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N04",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N05",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N06",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N07",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N08",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N09",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N10",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N11",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N12",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N13",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N14",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N15",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N16",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N17",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N18",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N19",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N20",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N21",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N22",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N23",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N24",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N25",
+      "bsdExact": true,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    },
+    {
+      "id": "N26",
+      "bsdExact": false,
+      "gnuExact": false,
+      "gnuPayloadProjectionOnly": true
+    }
+  ]
+}

@@ -34,3 +34,26 @@ outer owner's eventual return. Add owner-scoped regression evidence at that publ
 boundary and provide a new immutable candidate commit for replay. No shared file
 has been edited by this verifier; live `src/shell/runtime.ts` is under the active
 shared owner's control and must not be overlaid into this archive.
+
+## Final fixed-candidate confirmation and narrowed location
+
+The same failure persists in candidate 04644bc2 after all six alias-specific
+context regressions pass. The final ROOT-CONTROL registers only the public
+createStandardCommands grep definition, with no aliases, and repeats the same
+requirement. It also calls return once, then reports status zero and empty stderr.
+Both cases remain failed; the control is not counted as a pass for finding a bug.
+
+Frozen `src/shell/input.ts:65` assigns the return promise with both fulfillment
+and rejection mapped to undefined. `ShellInput[Symbol.asyncIterator]` intentionally
+exposes a borrowed iterator without return; the outer owning cursor eventually
+calls the real source return. The silent rejection conversion is the observed
+failure, not merely that borrowed iterator shape. Frozen `src/shell/shell.ts:174`
+already awaits stdin close and propagates its error if no primary execution
+failure was selected. Input source SHA-256 at this candidate:
+`7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4`.
+
+Minimal owner change request: preserve a settled outer cursor return rejection
+through close instead of converting it to fulfillment, while retaining late-error
+observation for pending opaque reads and existing caller-abort/primary-failure
+precedence. Independently verify those boundaries; this verifier does not propose
+an unreviewed blanket removal of cancellation handling or a shared source patch.

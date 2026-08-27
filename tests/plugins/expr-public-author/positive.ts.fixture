@@ -8,7 +8,7 @@ const leaf: LeafOptions = options;
 const single: CommandDefinition = fromSubpath(leaf), definitions: readonly CommandDefinition[] = createExprCommands(options);
 const plugin: VirtualShellPlugin = exprCommands(options);
 const aggregate: AgentCommandsOptions = { replace: true, regex: options.regex!, expr: { limits } };
-const omitted: "regex" | "replace" extends keyof NonNullable<AgentCommandsOptions["expr"]> ? false : true = true;
+const omitted: Extract<"regex" | "replace", keyof NonNullable<AgentCommandsOptions["expr"]>> extends never ? true : false = true;
 assert.equal(omitted, true); assert.equal(single.name, "expr"); assert.equal(definitions.length, 1); assert.equal(plugin.name, "expr-commands");
 assert.equal(createExprCommand, fromSubpath); assert.equal(createAgentCommands(aggregate).length, 76);
 console.log(JSON.stringify({ typed: true, count: 76, root: import.meta.resolve("virtual-bash"), subpath: import.meta.resolve("virtual-bash/commands/expr") }));

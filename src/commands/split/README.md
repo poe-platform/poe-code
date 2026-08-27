@@ -100,6 +100,11 @@ ability to overwrite an earlier output through another link. Named-input
 preflight can reject known aliases even if the file is empty. Raw stdin has no
 path/descriptor identity in `CommandContext`, including shell redirection: split
 cannot detect whether it aliases an output. No safety promise is made there.
+An output directory is not an error when no output bytes exist: empty stdin or
+an empty named file leaves it alone. With named input, metadata/comparison errors
+other than that known directory condition can still occur during preflight,
+before reading an empty input; no content is acquired after an unsafe identity
+observation.
 
 New names use actual `wx` creation. An existing path raced into that name fails
 `EEXIST` instead of being truncated. A dangling final symlink also fails exclusive

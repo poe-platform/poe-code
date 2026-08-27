@@ -1,4 +1,4 @@
-import { FsError, collectBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, isFsError, collectBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
@@ -57,7 +57,16 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
   try {
     await outputs.prepareInput(args.input);
     let name = names.next();
-    const initial = await outputs.prepare(name);
+    let initial: Awaited<ReturnType<Outputs["prepare"]>> | undefined;
+    let initialDirectoryError: FsError | undefined;
+    if (args.input !== "-") {
+      try { initial = await outputs.prepare(name); }
+      catch (error) {
+        signal.throwIfAborted();
+        if (!isFsError(error, "EISDIR")) throw error;
+        initialDirectoryError = error;
+      }
+    }
     cursor = new Cursor(context, args.input, budget);
     const window = args.mode === "line-bytes" ? new LineBytes(cursor, args.size) : undefined;
     let files = 0;
@@ -70,7 +79,8 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       if (first.done) break;
       budget.check(++files, limits.maxFiles, "file");
       if (files > 1) name = names.next();
-      const destination = files === 1 ? initial : await outputs.prepare(name);
+      if (files === 1 && initialDirectoryError) throw initialDirectoryError;
+      const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       const source = (async function* (): ByteSource {
         budget.output(first.value.length);
         yield first.value;

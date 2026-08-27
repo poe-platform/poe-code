@@ -46,6 +46,21 @@ test("empty input creates no files and does not truncate existing files", async 
   assert.equal(Buffer.from(await fs.readFile("/xaa")).toString(), "keep");
 });
 
+test("empty input ignores output directories without weakening input alias guards", async () => {
+  for (const named of [false, true]) {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/xaa");
+    await fs.writeFile("/input", Buffer.alloc(0));
+    const empty = await run(named ? ["input"] : [], "", {}, { fs });
+    assert.equal(empty.exitCode, 0, empty.stderr);
+    assert.equal((await fs.stat("/xaa")).type, "directory");
+    if (named) await fs.writeFile("/input", Buffer.from("a"));
+    const nonempty = await run(named ? ["input"] : [], "a", {}, { fs });
+    assert.equal(nonempty.exitCode, 1);
+    assert.match(nonempty.stderr, /illegal operation on a directory/);
+  }
+});
+
 test("suffix exhaustion retains successful outputs and leaves next name alone", async () => {
   for (const args of [["-a1", "-db1"], ["--numeric-suffixes=98", "-b1"]]) {
     const result = await run(args, "abcdefghijkl");

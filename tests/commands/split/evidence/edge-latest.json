@@ -265,11 +265,11 @@
         "stderr": ""
       },
       "observed": {
-        "status": 1,
-        "stderr": "split: illegal operation on a directory '/xaa'\n",
+        "status": 0,
+        "stderr": "",
         "files": {}
       },
-      "semanticMatch": false
+      "semanticMatch": true
     },
     {
       "id": "empty-output-directory-file",
@@ -281,14 +281,14 @@
         "stderr": ""
       },
       "observed": {
-        "status": 1,
-        "stderr": "split: illegal operation on a directory '/xaa'\n",
+        "status": 0,
+        "stderr": "",
         "files": {
           "input": ""
         }
       },
-      "semanticMatch": false
+      "semanticMatch": true
     }
   ],
-  "failed": true
+  "failed": false
 }

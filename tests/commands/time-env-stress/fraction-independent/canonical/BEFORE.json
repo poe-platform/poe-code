@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-08-27T09:18:04.419Z",
+  "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "sourceTree": "47b9a9d5763c036bdb8eab8ee25091ae5bd64a20",
+  "originalFixtureRevision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+  "historicalReviewRevision": "61c66bca1212ad511af2ce057f866c8839027b8a",
+  "head": "2fae86c3b4175a3ed0d3493b1e5838507831c776",
+  "status": "M  src/commands/tree/README.md\nM  src/commands/tree/arguments.ts\nM  src/commands/tree/io.ts\nM  src/commands/tree/tree.ts\nA  tests/commands/tree/SORT-TEXT.md\nA  tests/commands/tree/sort-text-bound.test.ts\nA  tests/commands/tree/sort-text-fixed.tap\nA  tests/commands/tree/sort-text-original.tap\nA  tests/commands/tree/sort-text-source-manifest.json\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/harness-review/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/fraction-independent/canonical/\n?? tests/fs/webdav/release-timestamp/\n?? tests/integration/adapter-tools/atomic-webdav-profile-independent/\n?? tests/shell-stress/first-read-contract-review/\n",
+  "staged": ":100644 100644 b239249 64cd79d M\tsrc/commands/tree/README.md\n:100644 100644 3e645e4 545875a M\tsrc/commands/tree/arguments.ts\n:100644 100644 d1f63b6 799c1ed M\tsrc/commands/tree/io.ts\n:100644 100644 7450265 70948ef M\tsrc/commands/tree/tree.ts\n:000000 100644 0000000 ef7e77c A\ttests/commands/tree/SORT-TEXT.md\n:000000 100644 0000000 b8b9b11 A\ttests/commands/tree/sort-text-bound.test.ts\n:000000 100644 0000000 320f364 A\ttests/commands/tree/sort-text-fixed.tap\n:000000 100644 0000000 8daef62 A\ttests/commands/tree/sort-text-original.tap\n:000000 100644 0000000 659d3f0 A\ttests/commands/tree/sort-text-source-manifest.json\n",
+  "scratch": "/tmp/safe-bash-fraction-canonical-fHOcaA",
+  "guardedPaths": 15298,
+  "worktreeGuardSha256": "535a5eccb5ce7cce654bac5eb068ba4455d4532d7af212048d24e94f79d29673",
+  "dateBeforeSha256": "9fab5e8bdcf0044fea983fa78159bf9ab7163167be12b263a95c8e969bfcafbd",
+  "references": {
+    "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79:tests/commands/time-env-stress/fraction-independent/semantics/README.md": "41b4f066de3ae0566e18a26590b1d5180e001e0542e66e3a49f86527454ba19f",
+    "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79:tests/commands/time-env-stress/fraction-independent/semantics/SOURCE_PROOF.md": "c2a010009ad9d2f34fac7d70b5ae141746a4520e48999fc192511037885b9b2e",
+    "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79:tests/commands/time-env-stress/fraction-independent/semantics/canonical-native-proposals.json": "cea5ec1c5ef4342c45f5069a23ee83d4c4dd1d85adf0c2a9b73fadc938ffdaa4",
+    "61c66bca1212ad511af2ce057f866c8839027b8a:tests/commands/time-env-stress/fraction-independent/packed/README.md": "0b54e6e099fbd03e2c59440237df8534e8f849c6d90aa3feb5eda55f3946a226",
+    "61c66bca1212ad511af2ce057f866c8839027b8a:tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.json": "a8ad7b072fc21c25af902f6e8597e02dc201b6ac8b81da0fb74345112f138a90",
+    "61c66bca1212ad511af2ce057f866c8839027b8a:tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.stdout": "3bbc41f8b6a97fbf8b7d46029ecd6537f2f56d549d4555126e909b6dc4ebd508",
+    "61c66bca1212ad511af2ce057f866c8839027b8a:tests/commands/time-env-stress/fraction-independent/packed/evidence-final/source-original223.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "61c66bca1212ad511af2ce057f866c8839027b8a:tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba"
+  }
+}

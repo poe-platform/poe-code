@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "date": "2026-08-27",
+  "status": "root-approved one-assertion policy overlay; no candidate execution",
+  "baseFreezeCommit": "98f400c4a33eeb03f825213054f90adc1fd979c4",
+  "decisionRecordCommit": "0d07852b5c16abc3572f2858f1b0f45deb2239a3",
+  "baseFixture": "cohort.mjs",
+  "baseFixtureSha256": "50b843a25fba63bee230ddd1bef0828b0a4e9425662e4a318b060bca0d565375",
+  "effectiveFixtureSha256": "b6ff804f0397907930fb41cbe17eb8bd4caf60a4edc2b424341aa80c1c204b7f",
+  "case": "R08",
+  "replacement": {
+    "occurrences": 1,
+    "before": "    thrown(result.outerOutcome, inner);",
+    "after": "    assert.equal(returned(result.outerOutcome).exitCode, 1);"
+  },
+  "policyBinding": {
+    "decision": "Root decision 3: preserve existing handler-error-to-status mapping; nonzero numeric status is not an escaping execution rejection",
+    "innerOutcome": "exact rejection for each of the original seven reasons",
+    "outerOutcome": "returned CommandResult with exitCode 1",
+    "publicOutcome": "returned ShellResult with exitCode 0",
+    "caller": "remains live",
+    "cleanup": "original held cleanup and settlement assertions retained",
+    "stderr": "existing mapped diagnostic retained; no empty-stderr requirement added",
+    "R09AndR10": "unchanged"
+  },
+  "history": {
+    "v1": "13 pass / 13 fail, unchanged",
+    "v2": "14 pass / 12 fail, unchanged",
+    "integratedOuterStatus1": "policy consequence, not an executed result",
+    "candidateExecutionsForThisOverlay": 0,
+    "baselineReplaysForThisOverlay": 0
+  }
+}

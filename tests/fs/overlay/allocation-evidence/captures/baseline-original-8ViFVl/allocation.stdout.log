@@ -1,0 +1,1971 @@
+TAP version 13
+# Subtest: stat forwards enumerable-own allocation through root routing
+not ok 1 - stat forwards enumerable-own allocation through root routing
+  ---
+  duration_ms: 1.630792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: stat forwards enumerable-own allocation through mount routing
+not ok 2 - stat forwards enumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.307708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards enumerable-own allocation through root routing
+not ok 3 - lstat forwards enumerable-own allocation through root routing
+  ---
+  duration_ms: 0.17275
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards enumerable-own allocation through mount routing
+not ok 4 - lstat forwards enumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.281417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards nonenumerable-own allocation through root routing
+not ok 5 - stat forwards nonenumerable-own allocation through root routing
+  ---
+  duration_ms: 0.156958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards nonenumerable-own allocation through mount routing
+not ok 6 - stat forwards nonenumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.153792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards nonenumerable-own allocation through root routing
+not ok 7 - lstat forwards nonenumerable-own allocation through root routing
+  ---
+  duration_ms: 0.146916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards nonenumerable-own allocation through mount routing
+not ok 8 - lstat forwards nonenumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.138583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards prototype-accessor allocation through root routing
+not ok 9 - stat forwards prototype-accessor allocation through root routing
+  ---
+  duration_ms: 0.419791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards prototype-accessor allocation through mount routing
+not ok 10 - stat forwards prototype-accessor allocation through mount routing
+  ---
+  duration_ms: 0.312875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards prototype-accessor allocation through root routing
+not ok 11 - lstat forwards prototype-accessor allocation through root routing
+  ---
+  duration_ms: 0.095417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards prototype-accessor allocation through mount routing
+not ok 12 - lstat forwards prototype-accessor allocation through mount routing
+  ---
+  duration_ms: 0.091833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:1389'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:52:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: synthetic mount ancestors have unknown allocation, not a mounted root's allocation
+not ok 13 - synthetic mount ancestors have unknown allocation, not a mounted root's allocation
+  ---
+  duration_ms: 0.288541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:2547'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:78:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mount stat follows allocation to the target while lstat reports the link
+not ok 14 - mount stat follows allocation to the target while lstat reports the link
+  ---
+  duration_ms: 0.330958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:1:3190'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/allocation.test.ts:94:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mounted memory files do not acquire allocation from logical size
+ok 15 - mounted memory files do not acquire allocation from logical size
+  ---
+  duration_ms: 0.486042
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation undefined
+not ok 16 - upper enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 2.241958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 0
+not ok 17 - upper enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.374208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 1
+not ok 18 - upper enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.517875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 4096
+not ok 19 - upper enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.198208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 9007199254740991
+not ok 20 - upper enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.231542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation undefined
+not ok 21 - upper nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.161
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 0
+not ok 22 - upper nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.194125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 1
+not ok 23 - upper nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.180625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 4096
+not ok 24 - upper nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.442417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 9007199254740991
+not ok 25 - upper nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.31225
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation undefined
+not ok 26 - upper prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 0.210042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 0
+not ok 27 - upper prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.135542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 1
+not ok 28 - upper prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.561666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 4096
+not ok 29 - upper prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.172209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 9007199254740991
+not ok 30 - upper prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.176875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower enumerable-own forwards reported allocation undefined
+not ok 31 - lower enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.364375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 0
+not ok 32 - lower enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.224792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 1
+not ok 33 - lower enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.151334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 4096
+not ok 34 - lower enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.133708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 9007199254740991
+not ok 35 - lower enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.144458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation undefined
+not ok 36 - lower nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.167875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 0
+not ok 37 - lower nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.136625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 1
+not ok 38 - lower nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.120625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 4096
+not ok 39 - lower nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.172375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 9007199254740991
+not ok 40 - lower nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.137375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation undefined
+not ok 41 - lower prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 0.201416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 8192
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8192
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:63:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 0
+not ok 42 - lower prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.130542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 1
+not ok 43 - lower prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.157958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 4096
+not ok 44 - lower prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.136834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 9007199254740991
+not ok 45 - lower prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.134542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:1428'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:54:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report undefined
+not ok 46 - chmod copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 0.266666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 0
+not ok 47 - chmod copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 0.120667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 8192
+not ok 48 - chmod copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.119791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report undefined
+not ok 49 - appendFile copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 0.11225
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 0
+not ok 50 - appendFile copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 0.107125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 8192
+not ok 51 - appendFile copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.161791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:2745'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay allocation composes through mount and read-only views with link semantics
+not ok 52 - overlay allocation composes through mount and read-only views with link semantics
+  ---
+  duration_ms: 1.238458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:3875'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:112:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay memory allocation stays unknown before and after copy-up
+ok 53 - overlay memory allocation stays unknown before and after copy-up
+  ---
+  duration_ms: 1.2665
+  type: 'test'
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+not ok 54 - stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+  ---
+  duration_ms: 0.730375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:5320'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:158:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+not ok 55 - stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+  ---
+  duration_ms: 0.31575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:1:5320'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/allocation.test.ts:158:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation undefined from enumerable-own
+not ok 56 - stat forwards reported allocation undefined from enumerable-own
+  ---
+  duration_ms: 1.244084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: stat forwards reported allocation 0 from enumerable-own
+not ok 57 - stat forwards reported allocation 0 from enumerable-own
+  ---
+  duration_ms: 0.153625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 1 from enumerable-own
+not ok 58 - stat forwards reported allocation 1 from enumerable-own
+  ---
+  duration_ms: 0.080041
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 4096 from enumerable-own
+not ok 59 - stat forwards reported allocation 4096 from enumerable-own
+  ---
+  duration_ms: 0.078541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from enumerable-own
+not ok 60 - stat forwards reported allocation 9007199254740991 from enumerable-own
+  ---
+  duration_ms: 0.10225
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation undefined from nonenumerable-own
+not ok 61 - stat forwards reported allocation undefined from nonenumerable-own
+  ---
+  duration_ms: 0.063625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 0 from nonenumerable-own
+not ok 62 - stat forwards reported allocation 0 from nonenumerable-own
+  ---
+  duration_ms: 0.093333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 1 from nonenumerable-own
+not ok 63 - stat forwards reported allocation 1 from nonenumerable-own
+  ---
+  duration_ms: 0.056
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 4096 from nonenumerable-own
+not ok 64 - stat forwards reported allocation 4096 from nonenumerable-own
+  ---
+  duration_ms: 0.360959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from nonenumerable-own
+not ok 65 - stat forwards reported allocation 9007199254740991 from nonenumerable-own
+  ---
+  duration_ms: 0.267834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation undefined from prototype-accessor
+not ok 66 - stat forwards reported allocation undefined from prototype-accessor
+  ---
+  duration_ms: 0.07475
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 0 from prototype-accessor
+not ok 67 - stat forwards reported allocation 0 from prototype-accessor
+  ---
+  duration_ms: 0.051625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 1 from prototype-accessor
+not ok 68 - stat forwards reported allocation 1 from prototype-accessor
+  ---
+  duration_ms: 0.04575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 4096 from prototype-accessor
+not ok 69 - stat forwards reported allocation 4096 from prototype-accessor
+  ---
+  duration_ms: 0.051
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from prototype-accessor
+not ok 70 - stat forwards reported allocation 9007199254740991 from prototype-accessor
+  ---
+  duration_ms: 0.043875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat propagates allocation accessor failures
+not ok 71 - stat propagates allocation accessor failures
+  ---
+  duration_ms: 0.127792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:1954'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:59:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat forwards a provider-reported directory allocation
+not ok 72 - stat forwards a provider-reported directory allocation
+  ---
+  duration_ms: 0.512791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:2304'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    -   allocatedBytes: 4096,
+        atimeMs: 3,
+        ctimeMs: 4,
+        mode: 33279,
+        mtimeMs: 2,
+        size: 0,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    type: 'directory'
+    size: 0
+    mode: 33279
+    mtimeMs: 2
+    atimeMs: 3
+    ctimeMs: 4
+    allocatedBytes: 4096
+  actual:
+    type: 'directory'
+    size: 0
+    mode: 33279
+    mtimeMs: 2
+    atimeMs: 3
+    ctimeMs: 4
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:66:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation undefined from enumerable-own
+not ok 73 - lstat forwards reported allocation undefined from enumerable-own
+  ---
+  duration_ms: 0.064333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 0 from enumerable-own
+not ok 74 - lstat forwards reported allocation 0 from enumerable-own
+  ---
+  duration_ms: 0.04325
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 1 from enumerable-own
+not ok 75 - lstat forwards reported allocation 1 from enumerable-own
+  ---
+  duration_ms: 0.042125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 4096 from enumerable-own
+not ok 76 - lstat forwards reported allocation 4096 from enumerable-own
+  ---
+  duration_ms: 0.035375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from enumerable-own
+not ok 77 - lstat forwards reported allocation 9007199254740991 from enumerable-own
+  ---
+  duration_ms: 0.040084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation undefined from nonenumerable-own
+not ok 78 - lstat forwards reported allocation undefined from nonenumerable-own
+  ---
+  duration_ms: 0.034042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 0 from nonenumerable-own
+not ok 79 - lstat forwards reported allocation 0 from nonenumerable-own
+  ---
+  duration_ms: 0.03325
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 1 from nonenumerable-own
+not ok 80 - lstat forwards reported allocation 1 from nonenumerable-own
+  ---
+  duration_ms: 0.040292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 4096 from nonenumerable-own
+not ok 81 - lstat forwards reported allocation 4096 from nonenumerable-own
+  ---
+  duration_ms: 0.038792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from nonenumerable-own
+not ok 82 - lstat forwards reported allocation 9007199254740991 from nonenumerable-own
+  ---
+  duration_ms: 0.045208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation undefined from prototype-accessor
+not ok 83 - lstat forwards reported allocation undefined from prototype-accessor
+  ---
+  duration_ms: 0.070209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:41:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 0 from prototype-accessor
+not ok 84 - lstat forwards reported allocation 0 from prototype-accessor
+  ---
+  duration_ms: 0.041042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 1 from prototype-accessor
+not ok 85 - lstat forwards reported allocation 1 from prototype-accessor
+  ---
+  duration_ms: 0.041375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 4096 from prototype-accessor
+not ok 86 - lstat forwards reported allocation 4096 from prototype-accessor
+  ---
+  duration_ms: 0.039375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from prototype-accessor
+not ok 87 - lstat forwards reported allocation 9007199254740991 from prototype-accessor
+  ---
+  duration_ms: 0.40475
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:431'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 9007199254740991
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 9007199254740991
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:35:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat propagates allocation accessor failures
+not ok 88 - lstat propagates allocation accessor failures
+  ---
+  duration_ms: 0.078458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:1954'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:59:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lstat forwards a provider-reported directory allocation
+not ok 89 - lstat forwards a provider-reported directory allocation
+  ---
+  duration_ms: 0.091833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:1:2304'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    -   allocatedBytes: 4096,
+        atimeMs: 6,
+        ctimeMs: 7,
+        mode: 41471,
+        mtimeMs: 5,
+        size: 0,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    type: 'directory'
+    size: 0
+    mode: 41471
+    mtimeMs: 5
+    atimeMs: 6
+    ctimeMs: 7
+    allocatedBytes: 4096
+  actual:
+    type: 'directory'
+    size: 0
+    mode: 41471
+    mtimeMs: 5
+    atimeMs: 6
+    ctimeMs: 7
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/readonly/allocation.test.ts:66:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: read-only memory views leave allocation unknown, including nonempty files
+ok 90 - read-only memory views leave allocation unknown, including nonempty files
+  ---
+  duration_ms: 0.456958
+  type: 'test'
+  ...
+1..90
+# tests 90
+# suites 0
+# pass 3
+# fail 87
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 536.962

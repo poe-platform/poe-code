@@ -1,0 +1,7 @@
+{
+  "finishedAt": "2026-08-27T16:33:43.264Z",
+  "head": "365ec125589cb41e7e9ea8134314627583ee21dd",
+  "changed": [],
+  "stable": true,
+  "detectsNewEntries": "Only newly reachable local modules in the re-resolved scoped import closure"
+}

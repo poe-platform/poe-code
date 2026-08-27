@@ -1,0 +1,25 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/readonly/allocation.test.ts",
+    "tests/fs/mount/allocation.test.ts",
+    "tests/fs/overlay/allocation.test.ts"
+  ],
+  "startedAt": "2026-08-27T16:33:37.849Z",
+  "finishedAt": "2026-08-27T16:33:38.356Z",
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 91,
+    "suites": 0,
+    "pass": 91,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

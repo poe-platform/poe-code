@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-08-27T16:31:48.327Z",
+  "label": "baseline-original",
+  "selection": "allocation",
+  "head": "a3febbee84e2c1c871376a9d5d30baddb96dae68",
+  "status": "?? tests/commands/column-stress/audit-rename-review/\n?? tests/commands/column-stress/final-shared-replay/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/grep-aliases-stress/final-shared-replay/\n?? tests/commands/network-zero-caps-author/\n?? tests/commands/network-zero-caps-review/BASELINE-CLARIFICATIONS.md\n?? tests/commands/network-zero-caps-review/baseline-original/\n?? tests/commands/network-zero-caps-review/baseline-qualified/\n?? tests/commands/network-zero-caps-review/candidate-isolated/\n?? tests/commands/network-zero-caps-review/candidate-original/\n?? tests/commands/network-zero-caps-review/candidate-with-mutations/\n?? tests/commands/network-zero-caps-review/consumer.mts\n?? tests/commands/network-zero-caps-review/entry.mjs\n?? tests/commands/network-zero-caps-review/holdout.test.ts\n?? tests/commands/network-zero-caps-review/mutation-entry.mjs\n?? tests/commands/network-zero-caps-review/mutations.d.mts\n?? tests/commands/network-zero-caps-review/mutations.mjs\n?? tests/commands/network-zero-caps-review/offline.d.mts\n?? tests/commands/network-zero-caps-review/offline.mjs\n?? tests/commands/network-zero-caps-review/runtime.d.mts\n?? tests/commands/network-zero-caps-review/runtime.mjs\n?? tests/commands/network-zero-caps-review/verify.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/allocation.test.ts\n?? tests/fs/overlay/allocation-evidence/\n?? tests/fs/overlay/allocation.test.ts\n?? tests/fs/readonly/allocation.test.ts\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/REPORT.md\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/VERIFICATION.json\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/evidence/\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/verify-evidence.mjs\n?? tests/integration/shared-external-stdin-independent-20260827/fixture-v2/README.md\n?? tests/integration/shared-external-stdin-independent-20260827/fixture-v2/SEAL.json\n?? tests/integration/shared-external-stdin-independent-20260827/fixture-v2/evidence/",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "uv": "1.51.0",
+  "typescript": "5.9.3",
+  "entries": [
+    "tests/fs/readonly/allocation.test.ts",
+    "tests/fs/mount/allocation.test.ts",
+    "tests/fs/overlay/allocation.test.ts"
+  ],
+  "profile": "author worktree, scoped source-import tests; not frozen-archive or independent review",
+  "coverage": "TypeScript-resolved local import closure plus listed config and contract inputs; not an append-proof repository inventory"
+}

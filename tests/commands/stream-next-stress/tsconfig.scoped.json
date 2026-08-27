@@ -3,6 +3,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["./independent.test.ts"],
+  "include": ["./independent.review.ts"],
   "exclude": [".private"]
 }

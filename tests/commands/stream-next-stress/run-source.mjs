@@ -43,7 +43,7 @@ for (const path of [...committedPaths, 'package.json', 'package-lock.json', 'tsc
   mkdirSync(dirname(join(snapshot, path)), { recursive: true });
   writeFileSync(join(snapshot, path), buffer);
 }
-const harnessPath = 'tests/commands/stream-next-stress/independent.test.ts';
+const harnessPath = 'tests/commands/stream-next-stress/independent.review.ts';
 mkdirSync(dirname(join(snapshot, harnessPath)), { recursive: true });
 copyFileSync(join(repository, harnessPath), join(snapshot, harnessPath));
 const harnessSha256 = sha256(readFileSync(join(snapshot, harnessPath)));
@@ -60,7 +60,7 @@ const compiler = join(repository, 'node_modules/typescript/bin/tsc');
 const configuration = { extends: './tsconfig.json', compilerOptions: {
   rootDir: '.', outDir: './emitted', declaration: false, sourceMap: false,
   typeRoots: [join(repository, 'node_modules/@types')],
-}, include: ['tests/commands/stream-next-stress/independent.test.ts'], exclude: ['emitted', 'node_modules'] };
+}, include: ['tests/commands/stream-next-stress/independent.review.ts'], exclude: ['emitted', 'node_modules'] };
 writeFileSync(join(snapshot, 'tsconfig.review.json'), JSON.stringify(configuration, null, 2));
 const metadata = { startedAt: new Date().toISOString(), release, sourceCommit, harnessPath, harnessSha256, splitDigest, head: git(['rev-parse', 'HEAD']).trim(), status: git(['status', '--short']),
   authorSourceCommits: targetPaths.map(path => ({ path, commit: git(['log', '-1', '--format=%H', sourceCommit, '--', path]).trim() })),
@@ -89,7 +89,7 @@ if (compile.status !== 0 || compile.error) {
   };
   scanEmitted('emitted');
   writeFileSync(join(run, 'emitted.json'), JSON.stringify(emitted, null, 2) + '\n');
-  const execution = spawnSync(process.execPath, ['--unhandled-rejections=strict', '--test', '--test-concurrency=1', join(snapshot, 'emitted/tests/commands/stream-next-stress/independent.test.js')], {
+  const execution = spawnSync(process.execPath, ['--unhandled-rejections=strict', '--test', '--test-concurrency=1', join(snapshot, 'emitted/tests/commands/stream-next-stress/independent.review.js')], {
     cwd: snapshot, env: { PATH: '/usr/bin:/bin', STREAM_NEXT_REVIEW_OUTPUT: run, STREAM_NEXT_REVIEW_FROZEN: join(owned, 'frozen/native.json') },
     encoding: 'utf8', timeout: 180_000, maxBuffer: 8 * 1024 * 1024,
   });

@@ -61,6 +61,13 @@ The prepared source harness is launched only through:
 node tests/commands/stream-next-stress/run-source.mjs
 ```
 
+Its source is `independent.review.ts`, deliberately not a `*.test.ts` auto-glob
+entry: ordinary project tests must neither bypass this immutable-source gate nor
+fail on the explicit guarded-launch requirement. The original filename and
+helper attempts remain in committed historical evidence. This is a launcher
+boundary correction, not skipped tests or removed holdouts; the dedicated runner
+still executes the same 82 inputs, three workflows and 16 contract groups.
+
 The launcher rejects a missing/incomplete release, verifies the authorized
 immutable source commit and original frozen hashes, snapshots committed source/config/lockfile/runtime
 and compiler identity, and emits JavaScript into a unique owned private tree.

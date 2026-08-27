@@ -1,0 +1,17 @@
+import {capture,candidate,owned} from '/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/supervisor.mjs';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
+assert.equal(hash(candidate+'/tests/shell/first-read-probe.ts'),'b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6');
+assert.equal(hash(candidate+'/tests/stress/remote-cancellation/helpers.ts'),'9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678');
+const testArgs=['--unhandled-rejections=strict','--import','tsx','--test','--test-concurrency=1'];
+for(const scenario of ['first-read-local','first-read-s3','first-read-webdav','first-read-curl-body','first-read-curl-headers'])
+ await capture('independent-original-'+scenario,process.execPath,['--unhandled-rejections=strict','--import','tsx','tests/shell/first-read-probe.ts',scenario],{timeoutMs:3000,maxBytes:1048576});
+await capture('independent-existing-remote19',process.execPath,[...testArgs,'--test-name-pattern=pipeline close: (?!first-read-)','tests/shell/remote-close.test.ts']);
+await capture('independent-existing-byte28',process.execPath,[...testArgs,'tests/contracts/io.test.ts','tests/contracts/io.stress.test.ts']);
+await capture('independent-existing-shared5',process.execPath,[...testArgs,'--test-name-pattern=hard-timeout lifecycle regression: shared-','tests/shell/lifecycle.test.ts']);
+await capture('independent-existing-streaming4',process.execPath,[...testArgs,'--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches','tests/shell/streaming.test.ts']);
+await capture('independent-existing-headzero1',process.execPath,[...testArgs,'--test-name-pattern=pipeline close: first-read-head-zero','tests/shell/remote-close.test.ts']);
+for(const scenario of ['C1','C2','C3','C4','C5','C6','C7','C8','C9'])
+ await capture('independent-existing-'+scenario,process.execPath,['--unhandled-rejections=strict',owned+'/controls.mjs',scenario],{timeoutMs:3000,maxBytes:65536});

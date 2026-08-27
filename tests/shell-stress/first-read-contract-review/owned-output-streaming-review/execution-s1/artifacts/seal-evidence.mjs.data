@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import {readFileSync,readdirSync,mkdirSync,copyFileSync,statSync} from 'node:fs';
+import {resolve,relative,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {execFileSync,spawnSync} from 'node:child_process';
+const root=process.cwd();
+const temp='/tmp/safe-bash-owned-output-streaming-execution-F9JeT9';
+const restored='/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO';
+const base=root+'/tests/shell-stress/first-read-contract-review';
+const owned=base+'/owned-output-streaming-review/execution-s1';
+const author=base+'/owned-output-streaming-prototype';
+const binding=base+'/owned-output-streaming-review/binding-s1';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const artifact=path=>({path,bytes:readFileSync(path).length,sha256:hash(readFileSync(path))});
+const put=(path,text)=>execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Add File: ${path}\n${text.replace(/\n$/,'').split('\n').map(line=>'+'+line).join('\n')}\n*** End Patch\n`,encoding:'utf8'});
+const json=(path,value)=>put(path,JSON.stringify(value,null,2)+'\n');
+const copy=(from,to)=>{mkdirSync(dirname(to),{recursive:true});copyFileSync(from,to);assert.equal(hash(readFileSync(to)),hash(readFileSync(from)));};
+const walk=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(directory,entry.name)):entry.isFile()?[resolve(directory,entry.name)]:[]).sort();
+const manifest=JSON.parse(readFileSync(author+'/tested-manifest.json'));
+const candidates=[manifest.candidate,'/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate',restored+'/candidate'];
+const candidateChecks=[];
+for(const candidate of candidates){
+ const checks={candidate};
+ for(const [directory,identity] of [['src','sourceManifestSha256'],['tests','testManifestSha256'],['dist','compiledManifestSha256']]){
+  const inventory=walk(candidate+'/'+directory).map(path=>({path:relative(candidate,path),bytes:readFileSync(path).length,sha256:hash(readFileSync(path))}));
+  assert.equal(hash(JSON.stringify(inventory)),manifest[identity]);
+  checks[directory]={files:inventory.length,manifestSha256:hash(JSON.stringify(inventory)),allReadonly:walk(candidate+'/'+directory).every(path=>(statSync(path).mode&0o222)===0)};
+ }
+ candidateChecks.push(checks);
+}
+for(const entry of JSON.parse(readFileSync(binding+'/SHA256SUMS.json')).files) assert.equal(hash(readFileSync(binding+'/'+entry.path)),entry.sha256);
+const acceptance=JSON.parse(readFileSync(temp+'/acceptance.result.json'));
+const counts=records=>Object.fromEntries(['PASS','FAIL','BLOCKED','UNRUN','TIMEOUT'].map(status=>[status,records.filter(record=>record.status===status).length]));
+assert.equal(acceptance.runs.length,20);
+assert.equal(acceptance.logical.length,12);
+for(const run of acceptance.runs){
+ assert.equal(run.execution.reapedDirectChild,true);
+ assert.equal(run.execution.residual,false);
+ assert.equal(run.execution.timedOut,false);
+ assert.equal(run.execution.oversized,false);
+ assert.deepEqual(run.observation.fixtureCleanup,{failures:[],timers:0,sockets:0,tasks:0,children:0});
+ assert.throws(()=>process.kill(run.execution.pid,0),{code:'ESRCH'});
+}
+const historyPaths=walk(restored+'/evidence/runs').filter(path=>path.endsWith('.json'));
+const history=historyPaths.map(path=>JSON.parse(readFileSync(path)));
+assert.equal(history.length,19);
+for(const run of history){assert.equal(run.closeEventObserved,true);assert.equal(run.groupExistsAfterClose,false);assert.equal(run.pidAfterClose,'');assert.equal(run.timedOut,false);assert.equal(run.oversized,false);assert.throws(()=>process.kill(run.pid,0),{code:'ESRCH'});}
+for(const path of walk(temp)){
+ if(path.includes('/historical/')) continue;
+ const name=relative(temp,path);
+ copy(path,owned+'/artifacts/'+name+(name.endsWith('.mjs')?'.data':''));
+}
+copy(restored+'/reconstruction-proof.json',owned+'/artifacts/reconstruction-proof.json');
+for(const path of walk(restored+'/evidence/runs')) copy(path,owned+'/runs/'+relative(restored+'/evidence/runs',path)+(path.endsWith('.json')?'':'.data'));
+for(const name of ['supervisor.mjs','controls.mjs'])copy(restored+'/'+name,owned+'/artifacts/'+name+'.data');
+const delta=spawnSync('/usr/bin/git',['diff','--no-index','--',binding+'/driver.mjs.data',temp+'/driver-r1.mjs'],{encoding:'utf8'});
+assert.equal(delta.status,1);
+put(owned+'/driver-binding-delta.patch-data',delta.stdout);
+const restorationDelta=spawnSync('/usr/bin/git',['diff','--no-index','--',author+'/restore.mjs.data',temp+'/restore.mjs'],{encoding:'utf8'});
+assert.equal(restorationDelta.status,1);
+put(owned+'/restore-location-delta.patch-data',restorationDelta.stdout);
+json(owned+'/RESULTS.json',{
+ at:new Date().toISOString(),sourceIdentity:manifest.sourceManifestSha256,strictAcceptanceComplete:false,
+ logical:counts(acceptance.logical),parameterized:counts(acceptance.runs),logicalDenominator:12,parameterDenominator:20,
+ firstAttempt:{candidateImports:0,outcome:'pre-import canonical path assertion failure',transcript:'artifacts/first-run-transcript.txt'},
+ firstCorpus:{attempted:20,positiveIoUnrunDueToMissingFacade:5,sourceDefectsEstablished:0,fixtureContaminatedUploadRecords:3},
+ logicalRecords:acceptance.logical,
+ records:acceptance.runs.map(run=>({id:run.id,parameter:run.parameter,status:run.status,innerStatus:run.observation.status,diagnosticStatus:run.observation.diagnosticStatus??null,failure:run.observation.failure??null})),
+ historical:{original5:{pass:1,fail:4,baseline0of5:'reference only; not rerun'},unchanged57:{pass:57,fail:0},unchanged9:{pass:9,fail:0,synthetic:['C9']},authorOptin5:'reference only; not rerun or added to independent counts',author12:'reference only',native5:'preserved; not rerun',old16:'historical only',rejectedV2:'historical only; optional negative control not run'},
+ changes:{liveSource:0,sourceFixes:0,frozenCriteria:0,originalFixtures:0,acceptanceCorrectionRounds:2,newLogicalCases:0},
+ caveat:'Complete candidate build closure authenticated; complete historical facade import closure was overclaimed by initial executor config and is explicitly not qualified.'
+});
+json(owned+'/CLOSURE.json',{at:new Date().toISOString(),acceptanceDirectChildren:acceptance.runs.map(run=>({pid:run.execution.pid,status:run.execution.exitCode,signal:run.execution.signal,reaped:true,residual:false})),historicalDirectChildren:history.map(run=>({pid:run.pid,command:run.command,args:run.args,status:run.status,signal:run.signal,reaped:true,residual:false})),allAcceptanceFixtureResourcesZero:true,noHardTimeoutsOrOutputOverflow:true,noUnhandledFixtureRejections:true,ownOpaqueGatesReleased:true,noPollerOrStoppedWorker:true,rootMustObserveExecutorActualExit:true});
+json(owned+'/IDENTITIES-AFTER.json',{at:new Date().toISOString(),candidateChecks,bindingSeal:artifact(binding+'/SHA256SUMS.json'),sourceTestBuildToolsBefore:'artifacts/authentication-before.json',after:'artifacts/authentication-after.json',reconstruction:'artifacts/reconstruction-proof.json',historicalFixtureArchives:JSON.parse(readFileSync(binding+'/historical-inputs.json')),sourceCandidateMutations:0});
+json(owned+'/SEAL.json',{at:new Date().toISOString(),classification:'Independent TEMP incomplete acceptance, not release qualification',files:walk(owned).map(path=>({path:relative(owned,path),bytes:readFileSync(path).length,sha256:hash(readFileSync(path))})),sourceIdentity:manifest.sourceManifestSha256,authorEvidenceCommit:'c1985fd5ef365312a098148528cee517064cfaa9',freezeCommit:'722c62f8a8e0795dc2c72509cc012a6017217c0d',binderCommit:'b3d09429de0af798663a5a18839e8b15f132a1f8'});
+console.log(JSON.stringify({sealed:true,owned,files:walk(owned).length,logical:counts(acceptance.logical),parameters:counts(acceptance.runs),historyRuns:history.length,candidateChecks}));

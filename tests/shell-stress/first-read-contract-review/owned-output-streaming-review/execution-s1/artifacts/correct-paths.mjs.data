@@ -1,0 +1,22 @@
+import {readFileSync,realpathSync,chmodSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+const temp='/tmp/safe-bash-owned-output-streaming-execution-F9JeT9';
+const put=(path,value)=>execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Add File: ${path}\n${(JSON.stringify(value,null,2)+'\n').trimEnd().split('\n').map(line=>'+'+line).join('\n')}\n*** End Patch\n`});
+const artifact=path=>({path,sha256:createHash('sha256').update(readFileSync(path)).digest('hex')});
+const config=JSON.parse(readFileSync(temp+'/execution-inputs.json'));
+const manifest=JSON.parse(readFileSync(config.sourceManifest.path));
+const deltas=[];
+for(const name of ['historicalHelper','historicalProbe','historicalFacade']){
+ const old=config[name].path;
+ const path=realpathSync(old);
+ config[name].path=path;
+ manifest.files.find(entry=>entry.path===old).path=path;
+ deltas.push({field:name,from:old,to:path,sha256:config[name].sha256});
+}
+put(temp+'/source-manifest-r2.json',manifest);
+config.sourceManifest=artifact(temp+'/source-manifest-r2.json');
+put(temp+'/execution-inputs-r2.json',config);
+put(temp+'/round2-path-correction.json',{at:new Date().toISOString(),firstAttemptImportedCandidate:false,firstAttempt:'first-run-transcript.txt',cause:'macOS Node canonicalizes import.meta.url /tmp to /private/tmp; lexical helper path validation rejects identical real files',deltas,changedDriver:false,changedFixture:false,changedCriteria:false,config:artifact(temp+'/execution-inputs-r2.json'),manifest:artifact(temp+'/source-manifest-r2.json')});
+chmodSync(temp+'/execution-inputs-r2.json',0o444);
+chmodSync(temp+'/source-manifest-r2.json',0o444);

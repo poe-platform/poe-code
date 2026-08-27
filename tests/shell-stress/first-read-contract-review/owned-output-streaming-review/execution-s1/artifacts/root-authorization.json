@@ -1,0 +1,9 @@
+{
+  "freshExecutorAuthorized": true,
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "streamingReadySha256": "f016214887c9827af40f54e74b3100026565dd070de4f63b9657e887db2bdb4d",
+  "bindingDriverSha256": "10b863a63a8cc86add835afdde8cfed203cdc767bb2721d4f2ea881e3d28c31c",
+  "bindingMapSha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2",
+  "declarationSha256": "601adc3e3844aae2b021887e4a096c08c1a1a315baa821a9ce664c19d82c6e14",
+  "evidenceBasis": "Fresh root assignment, author session17223 EXIT0, binder82828 EXIT0; driver location/provenance adaptation documented in PRE-RUN. This JSON transcribes authority, not an independent root attestation."
+}

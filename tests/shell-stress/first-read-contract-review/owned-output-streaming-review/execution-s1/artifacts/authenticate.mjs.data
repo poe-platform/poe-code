@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+const root = process.cwd();
+const base = 'tests/shell-stress/first-read-contract-review/';
+const author = base + 'owned-output-streaming-prototype/';
+const binding = base + 'owned-output-streaming-review/binding-s1/';
+const hash = data => createHash('sha256').update(data).digest('hex');
+const check = (path, expected) => assert.equal(hash(readFileSync(path)), expected, path);
+const pinned = [
+ ['/tmp/safe-bash-owned-output-streaming-prototype.ready','f016214887c9827af40f54e74b3100026565dd070de4f63b9657e887db2bdb4d'],
+ ['/tmp/safe-bash-owned-output-streaming-prototype-final-result.txt','5f002910c2b1b653c9c6422e5618f8dc3a827144894d4a02644c120a8b4305e1'],
+ [author+'tested-manifest.json','4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9'],
+ [author+'API-S1.txt.data','601adc3e3844aae2b021887e4a096c08c1a1a315baa821a9ce664c19d82c6e14'],
+ [base+'owned-output-streaming-review/FREEZE.md','4095cb141a9e7d7e715daa99fc713f8734e00255969e76bdf49e4f82401040ca'],
+ [binding+'driver.mjs.data','f57b423ac3aa5ff210e3a389f4c4df3c01740f0329f66194012ae551068c8b21'],
+ [binding+'binding-map.json','2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2'],
+ [binding+'expected-observations.json','cfbaf336e5ba3dc31cc43384718c608cfebf4df8b4b3744c10b6a2c090b4ec25'],
+ [binding+'SHA256SUMS.json','5b4a6ccae2281fcda9c6d68eec687c918c9bf5a87c96419d47abf20ac48cc105']
+];
+for (const [path, expected] of pinned) check(path, expected);
+const manifest = JSON.parse(readFileSync(author+'tested-manifest.json'));
+const candidates = [manifest.candidate, '/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate'];
+if (process.argv[2]) candidates.push(process.argv[2]);
+for (const candidate of candidates) {
+ for (const [section, identity] of [['source','sourceManifestSha256'],['tests','testManifestSha256'],['compiled','compiledManifestSha256']]) {
+  assert.equal(hash(JSON.stringify(manifest[section])), manifest[identity]);
+  for (const entry of manifest[section]) check(resolve(candidate, entry.path),entry.sha256);
+ }
+ for (const entry of manifest.config) check(resolve(candidate,entry.path),entry.sha256);
+}
+for (const entry of [...manifest.restoreInputs,...manifest.tooling]) check(resolve(root,entry.path),entry.sha256);
+check(process.execPath,manifest.tools.node.sha256);
+for (const entry of manifest.tools.compiler) check(entry.path,entry.sha256);
+for (const entry of manifest.compilerInputs) check(entry.path,entry.sha256);
+for (const entry of manifest.runs) check(resolve(author,entry.path),entry.sha256);
+check(author+'CONTRACT.md',manifest.contractSha256);
+const sums = JSON.parse(readFileSync(binding+'SHA256SUMS.json'));
+console.log(JSON.stringify({at:new Date().toISOString(),pinned,candidates,source:manifest.source.length,tests:manifest.tests.length,compiled:manifest.compiled.length,compilerInputs:manifest.compilerInputs.length,tooling:manifest.tooling.length,restoreInputs:manifest.restoreInputs.length,config:manifest.config.length,node:process.version,bindingSumsKeys:Object.keys(sums),candidateExecuted:false},null,2));

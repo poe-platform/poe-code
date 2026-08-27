@@ -1,0 +1,10 @@
+/private/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/tests/stress/remote-cancellation/helpers.ts:29
+      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                      ^
+
+Error: DEADLINE: first-read-local (1200ms)
+    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    at listOnTimeout (node:internal/timers:585:17)
+    at process.processTimers (node:internal/timers:521:7)
+
+Node.js v22.22.2

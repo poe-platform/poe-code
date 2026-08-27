@@ -533,7 +533,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
-    return this.run(options, async () => this.listing(await this.required(path, options), options));
+    return this.run(options, async () => this.listing(await this.required(path, options), options), false);
   }
 
   async realpath(path: string, options: FsOptions = {}): Promise<string> {

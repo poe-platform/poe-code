@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, mkdtempSync, symlinkSync, readdirSync } from 'node:fs';
+import { resolve, dirname, relative } from 'node:path';
+
+const root = process.cwd();
+assert.equal(root, '/Users/kjopek/Workspace/safe-bash');
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-prototype');
+const handoff = JSON.parse(readFileSync(resolve(owned, 'handoff.json')));
+const baseline = JSON.parse(readFileSync(resolve(owned, 'reconstruction.json')));
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+assert.equal(hash(readFileSync(resolve(owned, 'baseline.tar.gz.data'))), handoff.baselineArchiveSha256);
+assert.equal(hash(readFileSync(resolve(owned, 'source-r1.patch-data'))), handoff.sourcePatchSha256);
+for (const tool of handoff.tools.development) assert.equal(hash(readFileSync(resolve(root, tool.path))), tool.sha256);
+assert.equal(hash(readFileSync(process.execPath)), handoff.tools.node.sha256);
+const temp = mkdtempSync('/tmp/safe-bash-owned-output-direction-prototype-');
+const candidate = resolve(temp, 'candidate');
+mkdirSync(candidate);
+const archive = resolve(owned, 'baseline.tar.gz.data');
+const names = execFileSync('/usr/bin/tar', ['-tzf', archive], { encoding: 'utf8', timeout: 5000 }).split('\n').filter(Boolean);
+assert.ok(names.every(name => !name.startsWith('/') && !name.split('/').includes('..')));
+execFileSync('/usr/bin/tar', ['-xzf', archive, '-C', candidate], { timeout: 5000 });
+for (const entry of baseline.files) assert.equal(hash(readFileSync(resolve(candidate, entry.path))), entry.sha256, `Baseline ${entry.path}`);
+execFileSync('git', ['apply', '--check', resolve(owned, 'source-r1.patch-data')], { cwd: candidate, timeout: 5000 });
+execFileSync('git', ['apply', resolve(owned, 'source-r1.patch-data')], { cwd: candidate, timeout: 5000 });
+for (const name of ['owned-output-author.test.ts', 'adapted-first-read-probe.ts', 'adapted-remote-close.test.ts']) {
+  writeFileSync(resolve(candidate, 'tests/shell', name), readFileSync(resolve(owned, `${name}.data`)), { flag: 'wx' });
+}
+for (const entry of [...handoff.source, ...handoff.tests]) assert.equal(hash(readFileSync(resolve(candidate, entry.path))), entry.sha256, `Reconstructed ${entry.path}`);
+symlinkSync(resolve(root, 'node_modules'), resolve(candidate, 'node_modules'), 'dir');
+for (const name of ['supervisor.mjs', 'run-existing.mjs', 'run-controls.mjs', 'controls.mjs', 'native.mjs', 'run-prototype.mjs']) {
+  const content = readFileSync(resolve(owned, `${name}.data`), 'utf8').replaceAll(handoff.temp, temp);
+  writeFileSync(resolve(temp, name), content, { flag: 'wx' });
+}
+mkdirSync(resolve(temp, 'evidence/runs'), { recursive: true });
+mkdirSync(resolve(temp, '.scratch'));
+const build = spawnSync(process.execPath, [resolve(root, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.build.json'], { cwd: candidate, encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 });
+assert.equal(build.error, undefined); assert.equal(build.status, 0, build.stdout + build.stderr);
+const walk = base => readdirSync(base, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(base, entry.name)) : entry.isFile() ? [resolve(base, entry.name)] : []).sort();
+const compiled = walk(resolve(candidate, 'dist')).map(path => { const bytes = readFileSync(path); return { path: relative(candidate, path), bytes: bytes.length, sha256: hash(bytes) }; });
+assert.equal(hash(JSON.stringify(compiled)), handoff.compiledManifestSha256, 'Rebuilt output must match exact handed-off compiled files');
+let compilerStillExists = false;
+try { process.kill(build.pid, 0); compilerStillExists = true; } catch (error) { assert.equal(error.code, 'ESRCH'); }
+assert.equal(compilerStillExists, false);
+const report = { temp, candidate, sourceManifestSha256: handoff.sourceManifestSha256, testManifestSha256: handoff.testManifestSha256, compiledManifestSha256: handoff.compiledManifestSha256,
+  sourceFiles: handoff.source.length, testFiles: handoff.tests.length, compiledFiles: compiled.length, restoredAt: new Date().toISOString(),
+  noSourceFallback: true, noGitShowNeeded: true, toolPolicy: 'Authenticated existing development tool symlink only; no new dependencies',
+  build: { pid: build.pid, status: build.status, signal: build.signal, stdout: build.stdout, stderr: build.stderr, compilerStillExists },
+  replay: `node ${resolve(temp, 'run-prototype.mjs')} independent-replay` };
+writeFileSync(resolve(temp, 'reconstruction-proof.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(report, null, 2));
+

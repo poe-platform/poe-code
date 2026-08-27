@@ -1,0 +1,36 @@
+{
+  "label": "v1-diagnosis-first-read-curl-headers",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-curl-headers"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:10:57.231Z",
+  "finishedAt": "2026-08-27T10:10:57.444Z",
+  "durationMs": 212.63162499999999,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 21050,
+  "initialIdentity": "21050 20997 21050 Thu Aug 27 05:10:57 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx tests/shell/first-read-probe.ts first-read-curl-headers",
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"first-read-curl-headers\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\"]}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

@@ -1,0 +1,36 @@
+{
+  "label": "v1-diagnosis-first-read-local",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-local"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:10:54.893Z",
+  "finishedAt": "2026-08-27T10:10:56.427Z",
+  "durationMs": 1534.132958,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 21008,
+  "initialIdentity": "21008 20997 21008 Thu Aug 27 05:10:54 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx tests/shell/first-read-probe.ts first-read-local",
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"first-read-local\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+  "stderr": "/private/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate/tests/stress/remote-cancellation/helpers.ts:29\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                      ^\n\nError: DEADLINE: first-read-local (1200ms)\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\nNode.js v22.22.2\n"
+}

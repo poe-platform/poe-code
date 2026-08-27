@@ -1,0 +1,38 @@
+{
+  "label": "v2-r1-existing-byte-io",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/contracts/io.test.ts",
+    "tests/contracts/io.stress.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-direction-prototype-PMLamJ/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:12:18.259Z",
+  "finishedAt": "2026-08-27T10:12:18.548Z",
+  "durationMs": 289.5760419999988,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 24361,
+  "initialIdentity": "24361 24173 24361 Thu Aug 27 05:12:18 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 tests/contracts/io.test.ts tests/contracts/io.stress.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: abort remains observable after producer close while bytes are unread\nok 1 - abort remains observable after producer close while bytes are unread\n  ---\n  duration_ms: 4.361083\n  type: 'test'\n  ...\n# Subtest: aborting a fully drained pipe does not undo successful closure\nok 2 - aborting a fully drained pipe does not undo successful closure\n  ---\n  duration_ms: 0.179042\n  type: 'test'\n  ...\n# Subtest: abort preserves the first failure and releases blocked writes and close\nok 3 - abort preserves the first failure and releases blocked writes and close\n  ---\n  duration_ms: 0.482292\n  type: 'test'\n  ...\n# Subtest: a thrown producer can fail the pipe without dangling internal rejections\nok 4 - a thrown producer can fail the pipe without dangling internal rejections\n  ---\n  duration_ms: 0.853875\n  type: 'test'\n  ...\n# Subtest: concurrent pipe writes preserve invocation order and snapshot mutable chunks\nok 5 - concurrent pipe writes preserve invocation order and snapshot mutable chunks\n  ---\n  duration_ms: 2.66175\n  type: 'test'\n  ...\n# Subtest: an oversized individual chunk still flows through a small watermark\nok 6 - an oversized individual chunk still flows through a small watermark\n  ---\n  duration_ms: 0.194125\n  type: 'test'\n  ...\n# Subtest: return and throw cancel consumers even before the first read\nok 7 - return and throw cancel consumers even before the first read\n  ---\n  duration_ms: 0.912208\n  type: 'test'\n  ...\n# Subtest: collectBytes cancels a stalled next and does not await uncooperative cleanup\nok 8 - collectBytes cancels a stalled next and does not await uncooperative cleanup\n  ---\n  duration_ms: 0.964917\n  type: 'test'\n  ...\n# Subtest: pipeBytes aborts a stalled sink and observes late write and cleanup failures\nok 9 - pipeBytes aborts a stalled sink and observes late write and cleanup failures\n  ---\n  duration_ms: 0.452041\n  type: 'test'\n  ...\n# Subtest: invalid runtime byte inputs are rejected instead of coerced\nok 10 - invalid runtime byte inputs are rejected instead of coerced\n  ---\n  duration_ms: 0.270334\n  type: 'test'\n  ...\n# Subtest: hundreds of empty, closed, and abandoned pipes settle without background errors\nok 11 - hundreds of empty, closed, and abandoned pipes settle without background errors\n  ---\n  duration_ms: 7.956584\n  type: 'test'\n  ...\n# Subtest: successful and canceled stream helpers release their AbortSignal listeners\nok 12 - successful and canceled stream helpers release their AbortSignal listeners\n  ---\n  duration_ms: 0.263208\n  type: 'test'\n  ...\n# Subtest: an aborted pending input can reject later without an unhandled rejection\nok 13 - an aborted pending input can reject later without an unhandled rejection\n  ---\n  duration_ms: 0.328166\n  type: 'test'\n  ...\n# Subtest: byte limits preserve the primary error when iterator cleanup also fails\nok 14 - byte limits preserve the primary error when iterator cleanup also fails\n  ---\n  duration_ms: 0.084416\n  type: 'test'\n  ...\n# Subtest: byte sources preserve binary bytes and UTF-8 text\nok 15 - byte sources preserve binary bytes and UTF-8 text\n  ---\n  duration_ms: 0.661667\n  type: 'test'\n  ...\n# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation\nok 16 - byte sources snapshot Uint8Array and Buffer inputs at creation\n  ---\n  duration_ms: 0.095791\n  type: 'test'\n  ...\n# Subtest: collectors enforce explicit byte limits and close overflowing sources\nok 17 - collectors enforce explicit byte limits and close overflowing sources\n  ---\n  duration_ms: 0.325917\n  type: 'test'\n  ...\n# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks\nok 18 - collectors copy reused buffers and decode UTF-8 split across chunks\n  ---\n  duration_ms: 0.1545\n  type: 'test'\n  ...\n# Subtest: collectors reject pre-aborted operations\nok 19 - collectors reject pre-aborted operations\n  ---\n  duration_ms: 0.074458\n  type: 'test'\n  ...\n# Subtest: pipes stream while the producer runs and apply byte-based backpressure\nok 20 - pipes stream while the producer runs and apply byte-based backpressure\n  ---\n  duration_ms: 4.260958\n  type: 'test'\n  ...\n# Subtest: pipe writes take ownership through byte copies, including Buffer inputs\nok 21 - pipe writes take ownership through byte copies, including Buffer inputs\n  ---\n  duration_ms: 0.198917\n  type: 'test'\n  ...\n# Subtest: pipe cancellation rejects blocked producers and readers\nok 22 - pipe cancellation rejects blocked producers and readers\n  ---\n  duration_ms: 0.493792\n  type: 'test'\n  ...\n# Subtest: breaking consumption produces EPIPE for pending writers\nok 23 - breaking consumption produces EPIPE for pending writers\n  ---\n  duration_ms: 0.245\n  type: 'test'\n  ...\n# Subtest: returning an unread pipe releases blocked producers\nok 24 - returning an unread pipe releases blocked producers\n  ---\n  duration_ms: 0.351\n  type: 'test'\n  ...\n# Subtest: closed and pre-aborted pipes reject further writes\nok 25 - closed and pre-aborted pipes reject further writes\n  ---\n  duration_ms: 0.199417\n  type: 'test'\n  ...\n# Subtest: pipe watermarks must be positive finite safe integers\nok 26 - pipe watermarks must be positive finite safe integers\n  ---\n  duration_ms: 0.060959\n  type: 'test'\n  ...\n# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk\nok 27 - pipeBytes awaits sink acceptance before requesting the next chunk\n  ---\n  duration_ms: 0.112\n  type: 'test'\n  ...\n# Subtest: writeText encodes UTF-8 and propagates sink failures\nok 28 - writeText encodes UTF-8 and propagates sink failures\n  ---\n  duration_ms: 0.105417\n  type: 'test'\n  ...\n1..28\n# tests 28\n# suites 0\n# pass 28\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 256.107708\n",
+  "stderr": ""
+}

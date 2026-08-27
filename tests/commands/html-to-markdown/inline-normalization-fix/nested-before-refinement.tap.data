@@ -1,0 +1,301 @@
+TAP version 13
+# Subtest: semantic inline normalization: empty-em-period
+ok 1 - semantic inline normalization: empty-em-period
+  ---
+  duration_ms: 5.855583
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-paren
+ok 2 - semantic inline normalization: empty-code-paren
+  ---
+  duration_ms: 4.378167
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-period
+ok 3 - semantic inline normalization: empty-anchor-period
+  ---
+  duration_ms: 2.34575
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-strong-between-em
+ok 4 - semantic inline normalization: empty-strong-between-em
+  ---
+  duration_ms: 2.711292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-between-em
+ok 5 - semantic inline normalization: empty-anchor-between-em
+  ---
+  duration_ms: 2.152667
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: transparent-empty-strong
+ok 6 - semantic inline normalization: transparent-empty-strong
+  ---
+  duration_ms: 2.229625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-em-between-strong
+ok 7 - semantic inline normalization: empty-em-between-strong
+  ---
+  duration_ms: 2.130417
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-space-separator
+ok 8 - semantic inline normalization: nonempty-space-separator
+  ---
+  duration_ms: 1.227583
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-transparent-period-control
+ok 9 - semantic inline normalization: empty-transparent-period-control
+  ---
+  duration_ms: 1.061916
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-em-digit-control
+ok 10 - semantic inline normalization: nonempty-em-digit-control
+  ---
+  duration_ms: 1.608583
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: split-numeral
+ok 11 - semantic inline normalization: split-numeral
+  ---
+  duration_ms: 2.934167
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-unknown-chain
+ok 12 - semantic inline normalization: empty-unknown-chain
+  ---
+  duration_ms: 1.924791
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: strike-adjacency
+ok 13 - semantic inline normalization: strike-adjacency
+  ---
+  duration_ms: 6.030125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: alias-adjacency
+ok 14 - semantic inline normalization: alias-adjacency
+  ---
+  duration_ms: 1.468042
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: mixed-adjacency
+ok 15 - semantic inline normalization: mixed-adjacency
+  ---
+  duration_ms: 1.3205
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: reverse-mixed-adjacency
+ok 16 - semantic inline normalization: reverse-mixed-adjacency
+  ---
+  duration_ms: 0.914167
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-through-empty
+ok 17 - semantic inline normalization: punctuation-through-empty
+  ---
+  duration_ms: 0.767834
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-inside-empty
+ok 18 - semantic inline normalization: punctuation-inside-empty
+  ---
+  duration_ms: 2.092625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: text-separator
+ok 19 - semantic inline normalization: text-separator
+  ---
+  duration_ms: 0.676
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: numeric-space-boundary
+ok 20 - semantic inline normalization: numeric-space-boundary
+  ---
+  duration_ms: 0.616667
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: ascii-space-preserved
+ok 21 - semantic inline normalization: ascii-space-preserved
+  ---
+  duration_ms: 0.708125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-text
+ok 22 - semantic inline normalization: inactive-anchor-text
+  ---
+  duration_ms: 1.028042
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-empty
+ok 23 - semantic inline normalization: inactive-anchor-empty
+  ---
+  duration_ms: 2.317166
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-empty
+ok 24 - semantic inline normalization: inactive-image-empty
+  ---
+  duration_ms: 4.438584
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-label
+ok 25 - semantic inline normalization: inactive-image-label
+  ---
+  duration_ms: 0.91625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-destination-label
+ok 26 - semantic inline normalization: empty-destination-label
+  ---
+  duration_ms: 0.988
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: meaningful-break
+ok 27 - semantic inline normalization: meaningful-break
+  ---
+  duration_ms: 0.841083
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: code-whitespace
+ok 28 - semantic inline normalization: code-whitespace
+  ---
+  duration_ms: 0.929667
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-code
+ok 29 - semantic inline normalization: nonempty-code
+  ---
+  duration_ms: 2.129875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-link
+ok 30 - semantic inline normalization: active-empty-link
+  ---
+  duration_ms: 2.688
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-image
+ok 31 - semantic inline normalization: active-empty-image
+  ---
+  duration_ms: 1.011
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-link-label
+ok 32 - semantic inline normalization: active-link-label
+  ---
+  duration_ms: 0.935625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nested-style
+ok 33 - semantic inline normalization: nested-style
+  ---
+  duration_ms: 1.145
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-raw-wrapper
+ok 34 - semantic inline normalization: empty-code-raw-wrapper
+  ---
+  duration_ms: 1.57825
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-em-strong
+not ok 35 - semantic inline normalization: merged-em-strong
+  ---
+  duration_ms: 2.964458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:1:292'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '*__a____b__*\n'
+    - '*__ab__*\n'
+           ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    *__ab__*
+    
+  actual: |-
+    *__a____b__*
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:12:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: semantic inline normalization: merged-em-strike
+not ok 36 - semantic inline normalization: merged-em-strike
+  ---
+  duration_ms: 6.340209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:1:292'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '*~~a~~~~b~~*\n'
+    - '*~~ab~~*\n'
+           ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    *~~ab~~*
+    
+  actual: |-
+    *~~a~~~~b~~*
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:12:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: semantic inline normalization: merged-strike-strong
+not ok 37 - semantic inline normalization: merged-strike-strong
+  ---
+  duration_ms: 0.766417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:1:292'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '~~**a****b**~~\n'
+    - '~~**ab**~~\n'
+            ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    ~~**ab**~~
+    
+  actual: |-
+    ~~**a****b**~~
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/regression.test.ts:12:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 34
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 303.8755

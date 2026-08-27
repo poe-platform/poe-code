@@ -1,0 +1,7 @@
+{"phase":"setup","id":"git-archive","outcome":"PASS","ms":4833}
+{"phase":"setup","id":"extract","outcome":"PASS","ms":13267}
+{"phase":"setup","id":"compile","outcome":"PASS","ms":1298}
+{"phase":"setup","id":"pack","outcome":"PASS","ms":508}
+{"phase":"setup","id":"install","outcome":"PASS","ms":330}
+{"phase":"source-semantic","id":"new34","outcome":"FAIL","ms":64}
+{"capture":"/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules/baseline-03","counts":{"source":{"new34":{"count":0,"astPass":0,"astFail":0,"exactPass":0,"exactFail":0},"author22":{"count":0,"astPass":0,"astFail":0,"exactPass":0,"exactFail":0}},"moved":{"new34":{"count":0,"astPass":0,"astFail":0,"exactPass":0,"exactFail":0},"author22":{"count":0,"astPass":0,"astFail":0,"exactPass":0,"exactFail":0}}},"error":"AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(row.loads.some(load => load.url.endsWith('/commands/html-to-markdown/render.js')))\n\n    at product (file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/capture.mjs:104:7)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/capture.mjs:113:22"}

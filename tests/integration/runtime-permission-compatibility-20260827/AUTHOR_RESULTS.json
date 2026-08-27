@@ -1,0 +1,699 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "source": {
+    "scripts/verify-current-consumers.mjs": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+    "scripts/verify-qualified-release.mjs": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+  },
+  "profiles": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "admission": {
+        "supported": true,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\",\"--experimental-permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": "(node:57198) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:57202) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v22.22.2/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+          }
+        ],
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "identity": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "version": "v22.22.2",
+          "platform": "darwin",
+          "arch": "arm64",
+          "flags": [
+            "--permission",
+            "--experimental-permission"
+          ]
+        },
+        "flag": "--permission"
+      },
+      "executions": [
+        {
+          "name": "packed-positive",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"version\":\"v22.22.2\",\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"pipeline\":true,\"vfs\":true,\"sourceDenied\":true,\"hostWriteDenied\":true}\n",
+          "stderr": "(node:57225) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+        },
+        {
+          "name": "uncaught-source-denial",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+            "--input-type=module",
+            "-e",
+            "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/source/src/index.ts\");"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+        },
+        {
+          "name": "permission-removal-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:internal/process/pre_execution:693\n        throw new ERR_MISSING_OPTION('--permission');\n        ^\n\nTypeError [ERR_MISSING_OPTION]: --permission is required\n    at node:internal/process/pre_execution:693:15\n    at Array.forEach (<anonymous>)\n    at initializePermission (node:internal/process/pre_execution:690:5)\n    at prepareExecution (node:internal/process/pre_execution:120:3)\n    at prepareMainThreadExecution (node:internal/process/pre_execution:53:10)\n    at node:internal/main/run_main_module:15:19 {\n  code: 'ERR_MISSING_OPTION'\n}\n\nNode.js v22.22.2\n"
+        },
+        {
+          "name": "all-permissions-removal-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs:4:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+        },
+        {
+          "name": "scope-widening-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v22.22.2",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "(node:57229) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v22.22.2/consumer/positive.mjs:4:8\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+        }
+      ]
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "version": "v24.11.1",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "admission": {
+        "supported": true,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": "(node:57238) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:57239) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v24.11.1/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+          }
+        ],
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+        "identity": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "version": "v24.11.1",
+          "platform": "darwin",
+          "arch": "arm64",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission"
+      },
+      "executions": [
+        {
+          "name": "packed-positive",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"version\":\"v24.11.1\",\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"pipeline\":true,\"vfs\":true,\"sourceDenied\":true,\"hostWriteDenied\":true}\n",
+          "stderr": "(node:57241) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+        },
+        {
+          "name": "uncaught-source-denial",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+            "--input-type=module",
+            "-e",
+            "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/source/src/index.ts\");"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+        },
+        {
+          "name": "permission-removal-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "args": [
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:internal/process/pre_execution:656\n        throw new ERR_MISSING_OPTION('--permission');\n        ^\n\nTypeError [ERR_MISSING_OPTION]: --permission is required\n    at node:internal/process/pre_execution:656:15\n    at Array.forEach (<anonymous>)\n    at initializePermission (node:internal/process/pre_execution:653:5)\n    at prepareExecution (node:internal/process/pre_execution:128:3)\n    at prepareMainThreadExecution (node:internal/process/pre_execution:46:10)\n    at node:internal/main/run_main_module:15:19 {\n  code: 'ERR_MISSING_OPTION'\n}\n\nNode.js v24.11.1\n"
+        },
+        {
+          "name": "all-permissions-removal-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "args": [
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs:4:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+        },
+        {
+          "name": "scope-widening-mutant",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/v24.11.1",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs"
+          ],
+          "cwd": "/private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "(node:57245) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-76469G/v24.11.1/consumer/positive.mjs:4:8\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+        }
+      ]
+    },
+    {
+      "negative": "no-mode",
+      "admission": {
+        "supported": false,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/no-mode/fake-node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/no-mode",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/no-mode/fake-node\",\"version\":\"negative-control\",\"flags\":[]}\n",
+            "stderr": ""
+          }
+        ],
+        "executable": "/private/tmp/safe-bash-permission-controls-76469G/no-mode/fake-node",
+        "sha256": "03af61cc9921cb6bae3130df2a620c209241adebf4a2481cac56b1a7436598b8",
+        "identity": {
+          "executable": "/private/tmp/safe-bash-permission-controls-76469G/no-mode/fake-node",
+          "version": "negative-control",
+          "flags": []
+        },
+        "reason": "Actual child binary exposes no supported permission mode"
+      }
+    },
+    {
+      "negative": "unknown-option",
+      "admission": {
+        "supported": false,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/unknown-option/fake-node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/unknown-option",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/unknown-option/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/unknown-option/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/unknown-option/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/unknown-option/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/unknown-option/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/unknown-option/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/unknown-option/permission-probe",
+            "status": 9,
+            "signal": null,
+            "stdout": "",
+            "stderr": "bad option: --permission\n"
+          }
+        ],
+        "executable": "/private/tmp/safe-bash-permission-controls-76469G/unknown-option/fake-node",
+        "sha256": "08779c1dedc2add6d0a1a876af331c4f19bdeb824ca831533ef8c7307ae6fcb9",
+        "identity": {
+          "executable": "/private/tmp/safe-bash-permission-controls-76469G/unknown-option/fake-node",
+          "version": "negative-control",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission",
+        "reason": "Permission positive/read-write probe must execute\n\n9 !== 0\n"
+      }
+    },
+    {
+      "negative": "permissive",
+      "admission": {
+        "supported": false,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/permissive",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/permissive/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/permissive/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/permissive/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+          }
+        ],
+        "executable": "/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node",
+        "sha256": "4d78b026782b461ff244be5b70259f5393c8877f9915e3d426b921b0ee57cdfd",
+        "identity": {
+          "executable": "/private/tmp/safe-bash-permission-controls-76469G/permissive/fake-node",
+          "version": "negative-control",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission",
+        "reason": "Unknown options or startup failures are not permission denial\n\n0 !== 1\n"
+      }
+    },
+    {
+      "negative": "wrong-resource",
+      "admission": {
+        "supported": false,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/permission-probe",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+          }
+        ],
+        "executable": "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node",
+        "sha256": "5aad8c161144f5ceab78bc06e0415a9392da8a04b1c261247fb97e09a5cbcd56",
+        "identity": {
+          "executable": "/private/tmp/safe-bash-permission-controls-76469G/wrong-resource/fake-node",
+          "version": "negative-control",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission",
+        "reason": "The expression evaluated to a falsy value:\n\n  assert.ok(denied.stderr.includes(forbidden))\n"
+      }
+    },
+    {
+      "negative": "fake-code9",
+      "admission": {
+        "supported": false,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/fake-code9",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-76469G/fake-code9/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/permission-probe",
+            "status": 9,
+            "signal": null,
+            "stdout": "",
+            "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+          }
+        ],
+        "executable": "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node",
+        "sha256": "df86e4a3457a976bab45b6e1c610591a57cd3605565fae173fd1abd8d2fa5bf7",
+        "identity": {
+          "executable": "/private/tmp/safe-bash-permission-controls-76469G/fake-code9/fake-node",
+          "version": "negative-control",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission",
+        "reason": "Unknown options or startup failures are not permission denial\n\n9 !== 1\n"
+      }
+    }
+  ],
+  "controls": [
+    {
+      "name": "v22.22.2: actual binary identity and behavior select stable permission flag",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: actual packed public pipeline and VFS with denied host read/write",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: uncaught source denial executes, not unknown-option refusal",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: flag-only removal refuses startup with exact missing-option code",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: full permission-removal mutant executes and fails public source denial",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: actual scope-widening mutant fails public source assertion",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: per-launch changed-hash admission refused78",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: unsupported admission refused78",
+      "status": "pass"
+    },
+    {
+      "name": "v22.22.2: worker/strict flags retained and read grant not broadened",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: actual binary identity and behavior select stable permission flag",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: actual packed public pipeline and VFS with denied host read/write",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: uncaught source denial executes, not unknown-option refusal",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: flag-only removal refuses startup with exact missing-option code",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: full permission-removal mutant executes and fails public source denial",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: actual scope-widening mutant fails public source assertion",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: per-launch changed-hash admission refused78",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: unsupported admission refused78",
+      "status": "pass"
+    },
+    {
+      "name": "v24.11.1: worker/strict flags retained and read grant not broadened",
+      "status": "pass"
+    },
+    {
+      "name": "no-mode: truthful admission refusal78 without consumer execution",
+      "status": "pass"
+    },
+    {
+      "name": "unknown-option: truthful admission refusal78 without consumer execution",
+      "status": "pass"
+    },
+    {
+      "name": "permissive: truthful admission refusal78 without consumer execution",
+      "status": "pass"
+    },
+    {
+      "name": "wrong-resource: truthful admission refusal78 without consumer execution",
+      "status": "pass"
+    },
+    {
+      "name": "fake-code9: truthful admission refusal78 without consumer execution",
+      "status": "pass"
+    },
+    {
+      "name": "source policy: actual-child admission precedes build",
+      "status": "pass"
+    },
+    {
+      "name": "source policy: current and aggregate CLI preserve refusal78",
+      "status": "pass"
+    },
+    {
+      "name": "source policy: exact final denial and runtime result coverage retained",
+      "status": "pass"
+    }
+  ],
+  "failures": [],
+  "privateAccess": false,
+  "fullConsumerInventoryExecuted": false,
+  "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1",
+  "temporaryRemoved": true,
+  "status": "author-controls-pass-independent-review-pending"
+}

@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "productPackageCandidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "sourceFiles": {
+    "scripts/verify-current-consumers.mjs": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+    "scripts/verify-qualified-release.mjs": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768",
+    "tests/integration/runtime-permission-compatibility-20260827/controls.mjs": "8c44a150418968b65000994b89165d2cf4ca645279d9a83b2c5daff4245fabab"
+  },
+  "artifacts": [
+    {
+      "name": "attempt-v1-setup.json",
+      "bytes": 1209,
+      "sha256": "06e099c11bd3f112587871711ff08448e4d0b4109ed82e0046e680859b0bac7e"
+    },
+    {
+      "name": "attempt-v2-assertion-defect.json",
+      "bytes": 44939,
+      "sha256": "4dd84b7860def2082dac7d941ee11a51b9a21af194e583cf39aee450451f9f83"
+    },
+    {
+      "name": "AUTHOR_RESULTS.json",
+      "bytes": 42296,
+      "sha256": "b26d086fd4123174aa04607e1d1fca61e78f05d31220d2c7b833ebe8aa0a8445"
+    }
+  ],
+  "controls": {
+    "total": 26,
+    "executed": 23,
+    "sourcePolicy": 3
+  },
+  "independentAcceptance": "pending",
+  "fullFrozenConsumerReplay": "not executed after repair",
+  "frozenAttemptPreserved": "2b26defd",
+  "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1"
+}

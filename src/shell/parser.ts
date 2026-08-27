@@ -5,7 +5,7 @@ import type { ArithmeticProgram } from "./arithmetic.js";
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
@@ -261,7 +261,7 @@ class Lexer {
     };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      if (terminator ? current === terminator : /[ \t\n;|&()<>]/u.test(current)) break;
+      if (terminator ? terminator.includes(current) : /[ \t\n;|&()<>]/u.test(current)) break;
       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
         plain = false;
         text(this.ansiWord(), true);
@@ -407,16 +407,21 @@ class Lexer {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
-      const operator = /^(?::[-=+?]|##|%%|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
+      const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;
+      let replacement: Word | undefined;
       if (operator) {
         if (length) this.error("Invalid length expansion");
         this.position += operator.length;
-        alternate = this.word("}", quoted && !["#", "##", "%", "%%"].includes(operator));
+        alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
+        if (operator.startsWith("/") && this.source[this.position] === "/") {
+          this.position++;
+          replacement = this.word("}");
+        }
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;
-      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}) });
+      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}) });
     } else {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {

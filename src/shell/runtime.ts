@@ -1117,7 +1117,7 @@ export class Runtime {
       return error.exitCode;
     }
     const child = this.processState(context, state, target, args);
-    if (direct && !source.startsWith("#!")) child.profile = state.profile;
+    if (direct && !source.startsWith("#!")) child.profile = state.profile ?? "bash";
     if (direct && interpreterProfile) child.profile = interpreterProfile;
     const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
@@ -1533,20 +1533,7 @@ export class Runtime {
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : state.variables[part.name];
     if (part.operator) {
-      if (["#", "##", "%", "%%"].includes(part.operator)) {
-        const pattern = (await this.word(part.alternate!, state, io, false, true, hereString)).join("");
-        const expression = globExpression(pattern);
-        const text = value ?? "";
-        const lengths = Array.from({ length: text.length + 1 }, (_, index) => index);
-        if (part.operator.length === 2) lengths.reverse();
-        for (const length of lengths) {
-          const prefix = part.operator.startsWith("#");
-          if (expression.test(prefix ? text.slice(0, length) : text.slice(text.length - length))) {
-            return prefix ? text.slice(length) : text.slice(0, text.length - length);
-          }
-        }
-        return text;
-      }
+      if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) return this.parameterPattern(part, value ?? "", state, io, hereString);
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
@@ -1560,6 +1547,77 @@ export class Runtime {
       } else if (operator === "+") value = "";
     }
     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+  }
+
+  async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {
+    const limit = this.budget.limits.maxExpansionBytes;
+    if (Buffer.byteLength(text) > limit) this.budget.fail("maxExpansionBytes");
+    const pattern = (await this.word(part.alternate!, state, io, false, true, hereString)).join("");
+    const characters = Array.from(text);
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    const matches = await compilePattern(pattern, work);
+    let attempts = 0;
+    const match = async (start: number, end: number): Promise<boolean> => {
+      work.remaining -= end - start + 1;
+      if (work.remaining < 0) work.exhausted();
+      if (++attempts % 256 === 0) await new Promise<void>(resolve => setImmediate(resolve));
+      this.signal.throwIfAborted();
+      return matches(characters.slice(start, end).join(""));
+    };
+    const operator = part.operator!;
+    if (!operator.startsWith("/")) {
+      const longest = operator.length === 2;
+      for (let length = longest ? characters.length : 0; longest ? length >= 0 : length <= characters.length; length += longest ? -1 : 1) {
+        const prefix = operator.startsWith("#");
+        if (await match(prefix ? 0 : characters.length - length, prefix ? length : characters.length)) return (prefix ? characters.slice(length) : characters.slice(0, characters.length - length)).join("");
+      }
+      return text;
+    }
+    const replacements: { value: string; quoted: boolean }[] = [];
+    let replacementBytes = 0;
+    for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
+      let value = entry.kind === "text" ? entry.value : await this.part(entry, state, io, hereString);
+      if (index === 0 && !entry.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
+      replacementBytes += Buffer.byteLength(value);
+      if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
+      replacements.push({ value, quoted: entry.quoted });
+    }
+    if (!pattern && operator !== "/#" && operator !== "/%") return text;
+    let result = "";
+    let resultBytes = 0;
+    const append = (value: string): void => {
+      resultBytes += Buffer.byteLength(value);
+      if (resultBytes > limit) this.budget.fail("maxExpansionBytes");
+      result += value;
+    };
+    let position = 0;
+    while (position <= characters.length) {
+      let found = false;
+      for (let start = position; start <= characters.length; start++) {
+        if (operator === "/#" && start !== 0) break;
+        for (let end = characters.length; end >= start; end--) {
+          if (operator === "/%" && end !== characters.length) break;
+          if (!await match(start, end)) continue;
+          append(characters.slice(position, start).join(""));
+          const matched = characters.slice(start, end).join("");
+          for (const replacement of replacements) {
+            if (replacement.quoted) append(replacement.value);
+            else {
+              const pieces = replacement.value.split("&");
+              for (const [index, piece] of pieces.entries()) { if (index) append(matched); append(piece); }
+            }
+          }
+          position = end;
+          found = true;
+          if (operator !== "//" || end === characters.length) { append(characters.slice(end).join("")); return result; }
+          if (end === start) { append(characters[position]!); position++; }
+          break;
+        }
+        if (found) break;
+      }
+      if (!found) { append(characters.slice(position).join("")); break; }
+    }
+    return result;
   }
 
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false): Promise<string[]> {
@@ -1677,25 +1735,4 @@ export class Runtime {
     }
     return found.length ? found.sort() : [value];
   }
-}
-
-function globExpression(pattern: string): RegExp {
-  let expression = "^";
-  for (let index = 0; index < pattern.length; index++) {
-    const character = pattern[index]!;
-    if (character === "\\" && index + 1 < pattern.length) expression += pattern[++index]!.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-    else if (character === "*") expression += ".*";
-    else if (character === "?") expression += ".";
-    else if (character === "[") {
-      const end = pattern.indexOf("]", index + 1);
-      if (end > index + 1) {
-        let contents = pattern.slice(index + 1, end);
-        if (contents.startsWith("!")) contents = `^${contents.slice(1)}`;
-        expression += `[${contents.replace(/\\/gu, "\\\\")}]`;
-        index = end;
-      } else expression += "\\[";
-    } else expression += character.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-  }
-  try { return new RegExp(`${expression}(?![\\s\\S])`, "su"); }
-  catch { return new RegExp(`^${pattern.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}(?![\\s\\S])`, "su"); }
 }

@@ -1,0 +1,814 @@
+TAP version 13
+# Subtest: pre-candidate archive and scanner projections retain exact native provenance
+ok 1 - pre-candidate archive and scanner projections retain exact native provenance
+  ---
+  duration_ms: 15.915125
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: explicit-versus-selected-positionals
+ok 2 - frozen Bash5.3 scanner projection: explicit-versus-selected-positionals
+  ---
+  duration_ms: 0.616625
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: clusters-and-required-values
+ok 3 - frozen Bash5.3 scanner projection: clusters-and-required-values
+  ---
+  duration_ms: 0.414334
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-"--"
+ok 4 - frozen Bash5.3 scanner projection: marker-"--"
+  ---
+  duration_ms: 0.208417
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-"-"
+ok 5 - frozen Bash5.3 scanner projection: marker-"-"
+  ---
+  duration_ms: 0.076209
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-"+"
+ok 6 - frozen Bash5.3 scanner projection: marker-"+"
+  ---
+  duration_ms: 0.058416
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-"-1"
+ok 7 - frozen Bash5.3 scanner projection: marker-"-1"
+  ---
+  duration_ms: 0.0985
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-"plain"
+ok 8 - frozen Bash5.3 scanner projection: marker-"plain"
+  ---
+  duration_ms: 0.058625
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: marker-""
+ok 9 - frozen Bash5.3 scanner projection: marker-""
+  ---
+  duration_ms: 0.243667
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: a:/-a
+ok 10 - frozen Bash5.3 scanner projection: a:/-a
+  ---
+  duration_ms: 0.280458
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: a:/-z
+ok 11 - frozen Bash5.3 scanner projection: a:/-z
+  ---
+  duration_ms: 0.072459
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: :a:/-a
+ok 12 - frozen Bash5.3 scanner projection: :a:/-a
+  ---
+  duration_ms: 0.061625
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: :a:/-z
+ok 13 - frozen Bash5.3 scanner projection: :a:/-z
+  ---
+  duration_ms: 0.078875
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: required-"--"
+ok 14 - frozen Bash5.3 scanner projection: required-"--"
+  ---
+  duration_ms: 0.037375
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: required-"-"
+ok 15 - frozen Bash5.3 scanner projection: required-"-"
+  ---
+  duration_ms: 0.035083
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: required-"-a"
+ok 16 - frozen Bash5.3 scanner projection: required-"-a"
+  ---
+  duration_ms: 0.036708
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: required-""
+ok 17 - frozen Bash5.3 scanner projection: required-""
+  ---
+  duration_ms: 0.0325
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: reset-same-visible-one
+ok 18 - frozen Bash5.3 scanner projection: reset-same-visible-one
+  ---
+  duration_ms: 0.085875
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: larger-index-keeps-active-slot
+ok 19 - frozen Bash5.3 scanner projection: larger-index-keeps-active-slot
+  ---
+  duration_ms: 0.109416
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: changed-explicit-vector
+ok 20 - frozen Bash5.3 scanner projection: changed-explicit-vector
+  ---
+  duration_ms: 0.062542
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: changed-selected-positionals
+ok 21 - frozen Bash5.3 scanner projection: changed-selected-positionals
+  ---
+  duration_ms: 0.118334
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: shorter-active-token
+ok 22 - frozen Bash5.3 scanner projection: shorter-active-token
+  ---
+  duration_ms: 0.102417
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: active-slot-independent-from-index
+ok 23 - frozen Bash5.3 scanner projection: active-slot-independent-from-index
+  ---
+  duration_ms: 0.171917
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: bounded-long-token
+ok 24 - frozen Bash5.3 scanner projection: bounded-long-token
+  ---
+  duration_ms: 1.438875
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"0"
+ok 25 - frozen Bash5.3 scanner projection: resolved-opterr-"0"
+  ---
+  duration_ms: 0.311
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"1"
+ok 26 - frozen Bash5.3 scanner projection: resolved-opterr-"1"
+  ---
+  duration_ms: 0.210542
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"2"
+ok 27 - frozen Bash5.3 scanner projection: resolved-opterr-"2"
+  ---
+  duration_ms: 0.172209
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"-1"
+ok 28 - frozen Bash5.3 scanner projection: resolved-opterr-"-1"
+  ---
+  duration_ms: 0.045708
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-""
+ok 29 - frozen Bash5.3 scanner projection: resolved-opterr-""
+  ---
+  duration_ms: 0.032417
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"word"
+ok 30 - frozen Bash5.3 scanner projection: resolved-opterr-"word"
+  ---
+  duration_ms: 0.23375
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"00"
+ok 31 - frozen Bash5.3 scanner projection: resolved-opterr-"00"
+  ---
+  duration_ms: 0.1695
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"1+1"
+ok 32 - frozen Bash5.3 scanner projection: resolved-opterr-"1+1"
+  ---
+  duration_ms: 0.050333
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: resolved-opterr-"unset"
+ok 33 - frozen Bash5.3 scanner projection: resolved-opterr-"unset"
+  ---
+  duration_ms: 0.03475
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: numeric-index-primitive-0
+ok 34 - frozen Bash5.3 scanner projection: numeric-index-primitive-0
+  ---
+  duration_ms: 0.081708
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: numeric-index-primitive--1
+ok 35 - frozen Bash5.3 scanner projection: numeric-index-primitive--1
+  ---
+  duration_ms: 0.055541
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: numeric-index-primitive-2
+ok 36 - frozen Bash5.3 scanner projection: numeric-index-primitive-2
+  ---
+  duration_ms: 0.102708
+  type: 'test'
+  ...
+# Subtest: frozen Bash5.3 scanner projection: numeric-index-primitive-99
+ok 37 - frozen Bash5.3 scanner projection: numeric-index-primitive-99
+  ---
+  duration_ms: 0.073958
+  type: 'test'
+  ...
+# Subtest: empty vectors, repeated end and consumed marker have no permanent done latch
+ok 38 - empty vectors, repeated end and consumed marker have no permanent done latch
+  ---
+  duration_ms: 1.328542
+  type: 'test'
+  ...
+# Subtest: unknown options advance within a cluster without losing following options
+ok 39 - unknown options advance within a cluster without losing following options
+  ---
+  duration_ms: 0.2305
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: "aa:"
+ok 40 - ASCII specification grammar: "aa:"
+  ---
+  duration_ms: 0.270834
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: "a:a"
+ok 41 - ASCII specification grammar: "a:a"
+  ---
+  duration_ms: 0.132416
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: "a::"
+ok 42 - ASCII specification grammar: "a::"
+  ---
+  duration_ms: 0.07225
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: "?"
+ok 43 - ASCII specification grammar: "?"
+  ---
+  duration_ms: 0.047209
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: ":?"
+ok 44 - ASCII specification grammar: ":?"
+  ---
+  duration_ms: 0.096334
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: ":"
+ok 45 - ASCII specification grammar: ":"
+  ---
+  duration_ms: 0.08075
+  type: 'test'
+  ...
+# Subtest: ASCII specification grammar: ""
+ok 46 - ASCII specification grammar: ""
+  ---
+  duration_ms: 0.259875
+  type: 'test'
+  ...
+# Subtest: question mark and colon remain invalid option characters: -?
+ok 47 - question mark and colon remain invalid option characters: -?
+  ---
+  duration_ms: 0.269042
+  type: 'test'
+  ...
+# Subtest: question mark and colon remain invalid option characters: -:
+ok 48 - question mark and colon remain invalid option characters: -:
+  ---
+  duration_ms: 0.151709
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: ""
+ok 49 - ordinary Unicode and dash argument values: ""
+  ---
+  duration_ms: 0.1255
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "é"
+ok 50 - ordinary Unicode and dash argument values: "é"
+  ---
+  duration_ms: 0.077375
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "🦊 snow 雪"
+ok 51 - ordinary Unicode and dash argument values: "🦊 snow 雪"
+  ---
+  duration_ms: 0.052667
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "-é"
+ok 52 - ordinary Unicode and dash argument values: "-é"
+  ---
+  duration_ms: 0.040833
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "--"
+ok 53 - ordinary Unicode and dash argument values: "--"
+  ---
+  duration_ms: 0.038959
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "\\ud800"
+ok 54 - ordinary Unicode and dash argument values: "\\ud800"
+  ---
+  duration_ms: 0.809333
+  type: 'test'
+  ...
+# Subtest: ordinary Unicode and dash argument values: "\\udc00"
+ok 55 - ordinary Unicode and dash argument values: "\\udc00"
+  ---
+  duration_ms: 0.044083
+  type: 'test'
+  ...
+# Subtest: Unicode operands are not misclassified as option characters
+ok 56 - Unicode operands are not misclassified as option characters
+  ---
+  duration_ms: 0.046917
+  type: 'test'
+  ...
+# Subtest: non-ASCII option refusal: ["é",[]]
+ok 57 - non-ASCII option refusal: ["é",[]]
+  ---
+  duration_ms: 0.213916
+  type: 'test'
+  ...
+# Subtest: non-ASCII option refusal: ["a🦊",["-a"]]
+ok 58 - non-ASCII option refusal: ["a🦊",["-a"]]
+  ---
+  duration_ms: 0.040791
+  type: 'test'
+  ...
+# Subtest: non-ASCII option refusal: ["a",["-é"]]
+ok 59 - non-ASCII option refusal: ["a",["-é"]]
+  ---
+  duration_ms: 0.045291
+  type: 'test'
+  ...
+# Subtest: non-ASCII option refusal: ["a",["-🦊"]]
+ok 60 - non-ASCII option refusal: ["a",["-🦊"]]
+  ---
+  duration_ms: 0.031792
+  type: 'test'
+  ...
+# Subtest: non-ASCII suffix refusal does not commit a transition or corrupt a prior cursor
+ok 61 - non-ASCII suffix refusal does not commit a transition or corrupt a prior cursor
+  ---
+  duration_ms: 0.112417
+  type: 'test'
+  ...
+# Subtest: clone and numeric index primitives own cursor storage and do not perform bindings
+ok 62 - clone and numeric index primitives own cursor storage and do not perform bindings
+  ---
+  duration_ms: 0.087
+  type: 'test'
+  ...
+# Subtest: oversized safe indices normalize without index-sized loops or allocations
+ok 63 - oversized safe indices normalize without index-sized loops or allocations
+  ---
+  duration_ms: 0.043333
+  type: 'test'
+  ...
+# Subtest: stale active slots and offsets are checked against the current argument vector
+ok 64 - stale active slots and offsets are checked against the current argument vector
+  ---
+  duration_ms: 0.070375
+  type: 'test'
+  ...
+# Subtest: frozen inputs survive independent concurrent scans
+ok 65 - frozen inputs survive independent concurrent scans
+  ---
+  duration_ms: 0.209334
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: null
+ok 66 - malformed state is rejected: null
+  ---
+  duration_ms: 0.103833
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: []
+ok 67 - malformed state is rejected: []
+  ---
+  duration_ms: 0.030042
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {}
+ok 68 - malformed state is rejected: {}
+  ---
+  duration_ms: 0.028375
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":-1}
+ok 69 - malformed state is rejected: {"index":-1}
+  ---
+  duration_ms: 0.026334
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":null}
+ok 70 - malformed state is rejected: {"index":null}
+  ---
+  duration_ms: 0.02575
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":null}
+ok 71 - malformed state is rejected: {"index":null}
+  ---
+  duration_ms: 0.084958
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":1.5}
+ok 72 - malformed state is rejected: {"index":1.5}
+  ---
+  duration_ms: 0.023792
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":9007199254740992}
+ok 73 - malformed state is rejected: {"index":9007199254740992}
+  ---
+  duration_ms: 0.021292
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":"1"}
+ok 74 - malformed state is rejected: {"index":"1"}
+  ---
+  duration_ms: 0.021292
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":1,"active":null}
+ok 75 - malformed state is rejected: {"index":1,"active":null}
+  ---
+  duration_ms: 0.023708
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":1,"active":{"argument":-1,"offset":1}}
+ok 76 - malformed state is rejected: {"index":1,"active":{"argument":-1,"offset":1}}
+  ---
+  duration_ms: 0.023834
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":1,"active":{"argument":0,"offset":0}}
+ok 77 - malformed state is rejected: {"index":1,"active":{"argument":0,"offset":0}}
+  ---
+  duration_ms: 0.021833
+  type: 'test'
+  ...
+# Subtest: malformed state is rejected: {"index":1,"active":{"argument":0,"offset":null}}
+ok 78 - malformed state is rejected: {"index":1,"active":{"argument":0,"offset":null}}
+  ---
+  duration_ms: 0.019833
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: NaN
+ok 79 - numeric index primitive refuses non-safe-number input: NaN
+  ---
+  duration_ms: 0.037042
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: Infinity
+ok 80 - numeric index primitive refuses non-safe-number input: Infinity
+  ---
+  duration_ms: 0.019584
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: -Infinity
+ok 81 - numeric index primitive refuses non-safe-number input: -Infinity
+  ---
+  duration_ms: 0.024916
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: 1.5
+ok 82 - numeric index primitive refuses non-safe-number input: 1.5
+  ---
+  duration_ms: 0.020208
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: 9007199254740992
+ok 83 - numeric index primitive refuses non-safe-number input: 9007199254740992
+  ---
+  duration_ms: 0.018959
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: -9007199254740992
+ok 84 - numeric index primitive refuses non-safe-number input: -9007199254740992
+  ---
+  duration_ms: 0.017334
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: 1
+ok 85 - numeric index primitive refuses non-safe-number input: 1
+  ---
+  duration_ms: 0.017542
+  type: 'test'
+  ...
+# Subtest: numeric index primitive refuses non-safe-number input: 1
+ok 86 - numeric index primitive refuses non-safe-number input: 1
+  ---
+  duration_ms: 0.018334
+  type: 'test'
+  ...
+# Subtest: UTF-8 bytes, argument count and steps accept exact bounds and refuse one less
+ok 87 - UTF-8 bytes, argument count and steps accept exact bounds and refuse one less
+  ---
+  duration_ms: 1.953333
+  type: 'test'
+  ...
+# Subtest: zero byte/argument limits can represent an empty scan, zero work cannot
+ok 88 - zero byte/argument limits can represent an empty scan, zero work cannot
+  ---
+  duration_ms: 0.144417
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "é"
+ok 89 - byte budget follows UTF-8 replacement width: "é"
+  ---
+  duration_ms: 0.313916
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "🦊"
+ok 90 - byte budget follows UTF-8 replacement width: "🦊"
+  ---
+  duration_ms: 0.204208
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "a🦊é"
+ok 91 - byte budget follows UTF-8 replacement width: "a🦊é"
+  ---
+  duration_ms: 0.115334
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "\\ud800"
+ok 92 - byte budget follows UTF-8 replacement width: "\\ud800"
+  ---
+  duration_ms: 0.155958
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "\\udc00"
+ok 93 - byte budget follows UTF-8 replacement width: "\\udc00"
+  ---
+  duration_ms: 0.435125
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "\\ud800x\\udc00"
+ok 94 - byte budget follows UTF-8 replacement width: "\\ud800x\\udc00"
+  ---
+  duration_ms: 0.250041
+  type: 'test'
+  ...
+# Subtest: byte budget follows UTF-8 replacement width: "\\ud800𐀀"
+ok 95 - byte budget follows UTF-8 replacement width: "\\ud800𐀀"
+  ---
+  duration_ms: 0.296667
+  type: 'test'
+  ...
+# Subtest: argument limits reject long vectors before iteration or checkpoint admission
+ok 96 - argument limits reject long vectors before iteration or checkpoint admission
+  ---
+  duration_ms: 0.584416
+  type: 'test'
+  ...
+# Subtest: empty arguments still consume bounded iteration work
+ok 97 - empty arguments still consume bounded iteration work
+  ---
+  duration_ms: 0.2385
+  type: 'test'
+  ...
+# Subtest: long tokens stop within the byte cap instead of scanning the rest
+ok 98 - long tokens stop within the byte cap instead of scanning the rest
+  ---
+  duration_ms: 0.19
+  type: 'test'
+  ...
+# Subtest: long specifications stop within the step cap
+ok 99 - long specifications stop within the step cap
+  ---
+  duration_ms: 4.248834
+  type: 'test'
+  ...
+# Subtest: all supplied strings are bounded and validated before a successful transition
+ok 100 - all supplied strings are bounded and validated before a successful transition
+  ---
+  duration_ms: 0.233166
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: [null,[]]
+ok 101 - malformed string/vector input is explicit: [null,[]]
+  ---
+  duration_ms: 0.07525
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a",null]
+ok 102 - malformed string/vector input is explicit: ["a",null]
+  ---
+  duration_ms: 0.032542
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a","-a"]
+ok 103 - malformed string/vector input is explicit: ["a","-a"]
+  ---
+  duration_ms: 0.027333
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a",[1]]
+ok 104 - malformed string/vector input is explicit: ["a",[1]]
+  ---
+  duration_ms: 0.0315
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a",[null,null]]
+ok 105 - malformed string/vector input is explicit: ["a",[null,null]]
+  ---
+  duration_ms: 0.028
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a\\u0000",[]]
+ok 106 - malformed string/vector input is explicit: ["a\\u0000",[]]
+  ---
+  duration_ms: 0.027375
+  type: 'test'
+  ...
+# Subtest: malformed string/vector input is explicit: ["a",["-a\\u0000"]]
+ok 107 - malformed string/vector input is explicit: ["a",["-a\\u0000"]]
+  ---
+  duration_ms: 0.025375
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxArguments=-1
+ok 108 - invalid work scalar maxArguments=-1
+  ---
+  duration_ms: 0.09275
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxArguments=Infinity
+ok 109 - invalid work scalar maxArguments=Infinity
+  ---
+  duration_ms: 0.054
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxArguments=1.5
+ok 110 - invalid work scalar maxArguments=1.5
+  ---
+  duration_ms: 0.128792
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxArguments=9007199254740992
+ok 111 - invalid work scalar maxArguments=9007199254740992
+  ---
+  duration_ms: 0.061708
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxBytes=-1
+ok 112 - invalid work scalar maxBytes=-1
+  ---
+  duration_ms: 0.055083
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxBytes=Infinity
+ok 113 - invalid work scalar maxBytes=Infinity
+  ---
+  duration_ms: 0.040583
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxBytes=1.5
+ok 114 - invalid work scalar maxBytes=1.5
+  ---
+  duration_ms: 0.035
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxBytes=9007199254740992
+ok 115 - invalid work scalar maxBytes=9007199254740992
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxSteps=-1
+ok 116 - invalid work scalar maxSteps=-1
+  ---
+  duration_ms: 0.038375
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxSteps=Infinity
+ok 117 - invalid work scalar maxSteps=Infinity
+  ---
+  duration_ms: 0.035875
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxSteps=1.5
+ok 118 - invalid work scalar maxSteps=1.5
+  ---
+  duration_ms: 0.034375
+  type: 'test'
+  ...
+# Subtest: invalid work scalar maxSteps=9007199254740992
+ok 119 - invalid work scalar maxSteps=9007199254740992
+  ---
+  duration_ms: 0.037417
+  type: 'test'
+  ...
+# Subtest: invalid work scalar yieldEvery=-1
+ok 120 - invalid work scalar yieldEvery=-1
+  ---
+  duration_ms: 0.038833
+  type: 'test'
+  ...
+# Subtest: invalid work scalar yieldEvery=Infinity
+ok 121 - invalid work scalar yieldEvery=Infinity
+  ---
+  duration_ms: 0.036541
+  type: 'test'
+  ...
+# Subtest: invalid work scalar yieldEvery=1.5
+ok 122 - invalid work scalar yieldEvery=1.5
+  ---
+  duration_ms: 0.03325
+  type: 'test'
+  ...
+# Subtest: invalid work scalar yieldEvery=9007199254740992
+ok 123 - invalid work scalar yieldEvery=9007199254740992
+  ---
+  duration_ms: 0.03275
+  type: 'test'
+  ...
+# Subtest: work controls and diagnostic policy have no implicit defaults
+ok 124 - work controls and diagnostic policy have no implicit defaults
+  ---
+  duration_ms: 0.156625
+  type: 'test'
+  ...
+# Subtest: maximum safe work scalars do not overflow on small input
+ok 125 - maximum safe work scalars do not overflow on small input
+  ---
+  duration_ms: 0.082458
+  type: 'test'
+  ...
+# Subtest: pre-abort preserves an opaque errno-shaped reason without invoking a callback
+ok 126 - pre-abort preserves an opaque errno-shaped reason without invoking a callback
+  ---
+  duration_ms: 0.095458
+  type: 'test'
+  ...
+# Subtest: final checkpoint abort cannot publish a transition
+ok 127 - final checkpoint abort cannot publish a transition
+  ---
+  duration_ms: 0.134792
+  type: 'test'
+  ...
+# Subtest: checkpoint failure retains original identity (sync)
+ok 128 - checkpoint failure retains original identity (sync)
+  ---
+  duration_ms: 0.0665
+  type: 'test'
+  ...
+# Subtest: checkpoint failure retains original identity (async)
+ok 129 - checkpoint failure retains original identity (async)
+  ---
+  duration_ms: 0.044667
+  type: 'test'
+  ...
+# Subtest: abort settles while an admitted checkpoint is pending and observes its late rejection
+ok 130 - abort settles while an admitted checkpoint is pending and observes its late rejection
+  ---
+  duration_ms: 10.220875
+  type: 'test'
+  ...
+# Subtest: abort followed by late checkpoint resolution cannot resume scanning
+ok 131 - abort followed by late checkpoint resolution cannot resume scanning
+  ---
+  duration_ms: 0.779084
+  type: 'test'
+  ...
+# Subtest: long validation provides explicit task-yield cancellation checkpoints
+ok 132 - long validation provides explicit task-yield cancellation checkpoints
+  ---
+  duration_ms: 0.64425
+  type: 'test'
+  ...
+# Subtest: silent and OPTERR decisions never require direct IO or alter the step contract
+ok 133 - silent and OPTERR decisions never require direct IO or alter the step contract
+  ---
+  duration_ms: 0.222416
+  type: 'test'
+  ...
+# Subtest: limit failures are typed without pretending to be utility exit statuses
+ok 134 - limit failures are typed without pretending to be utility exit statuses
+  ---
+  duration_ms: 0.134333
+  type: 'test'
+  ...
+1..134
+# tests 134
+# suites 0
+# pass 134
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 253.431

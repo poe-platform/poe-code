@@ -18,12 +18,12 @@ test("factories register exactly expr with explicit replacement", async () => {
   assert.notEqual(commands.get("expr"), original);
 });
 
-test("pending BRE evaluation is explicit failure, never a fabricated nonmatch", async () => {
-  for (const args of [["abc", ":", "a.*"], ["match", "abc", "\\(a\\)"], ["", ":", "["]]) {
-    const result = await run(args);
-    assert.equal(result.exitCode, 3); assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "expr: bounded expr BRE protocol is pending\n");
-  }
+test("evaluated BRE uses matching and rejects invalid patterns on empty subjects", async () => {
+  assert.equal((await run(["abc", ":", "a.*"])).stdout, "3\n");
+  assert.equal((await run(["match", "abc", "\\(a\\)"])).stdout, "a\n");
+  const result = await run(["", ":", "["]);
+  assert.equal(result.exitCode, 2); assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "expr: Invalid regular expression\n");
 });
 
 test("UTF-8 argv uses bytes in C and scalars in C.UTF-8, never UTF-16 units", async () => {

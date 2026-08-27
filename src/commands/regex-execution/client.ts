@@ -1,17 +1,17 @@
 import { Worker } from "node:worker_threads";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { defaults, inputBytes, policy, RegexExecutionError, validateReply, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { defaults, inputBytes, policy, RegexExecutionError, validateReply, validateExprInput, validateExprReply, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
 
 interface Pending {
-  readonly descriptor: Descriptor;
+  readonly descriptor: Descriptor | ExprMatchDescriptor;
   readonly rows: readonly Row[];
   readonly signal: AbortSignal;
   readonly bytes: number;
-  readonly resolve: (matches: Match[][]) => void;
+  readonly resolve: (matches: Match[][] | ExprMatchResult) => void;
   readonly reject: (error: unknown) => void;
   readonly abort: () => void;
   readonly retirements: Set<Promise<void>>;
@@ -162,13 +162,18 @@ export class RegexExecutor {
     this.slots.delete(slot);
     this.pump();
   }
-  request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements = new Set<Promise<void>>()): Promise<Match[][]> {
+  request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<Match[][]>;
+  request(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<ExprMatchResult>;
+  request(descriptor: Descriptor | ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements = new Set<Promise<void>>()): Promise<Match[][] | ExprMatchResult> {
     signal.throwIfAborted();
     if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
-    const bytes = inputBytes(descriptor, rows, signal);
+    if (descriptor.kind === "expr-match") validateExprInput(descriptor, rows, signal);
+    const bytes = descriptor.kind === "expr-match" ? 256 + descriptor.pattern.length + rows[0]!.bytes.length : inputBytes(descriptor, rows, signal);
     const available = this.queue.length === 0 && ([...this.slots].some(slot => !slot.busy && !slot.retired) || this.slots.size < this.options.maxWorkers);
     if (!available && (this.queue.length >= this.options.maxQueuedRequests || bytes > this.options.maxQueuedBytes - this.queuedBytes)) return Promise.reject(new RegexExecutionError("QUEUE_EXHAUSTED", "queued request count or input byte limit exceeded"));
-    const ownedDescriptor: Descriptor = { ...descriptor, patterns: descriptor.patterns.map(pattern => { signal.throwIfAborted(); return pattern; }) };
+    const ownedDescriptor: Descriptor | ExprMatchDescriptor = descriptor.kind === "expr-match"
+      ? { ...descriptor, pattern: Uint8Array.from(descriptor.pattern), limits: { ...descriptor.limits } }
+      : { ...descriptor, patterns: descriptor.patterns.map(pattern => { signal.throwIfAborted(); return pattern; }) };
     if (ownedDescriptor.kind === "glob") {
       const globOptions = ownedDescriptor.globOptions.map(options => { signal.throwIfAborted(); return { ...options }; });
       Object.assign(ownedDescriptor, { globOptions });
@@ -216,7 +221,7 @@ export class RegexExecutor {
     }
   }
   private async run(slot: Slot, pending: Pending): Promise<void> {
-    let result: Match[][] | undefined;
+    let result: Match[][] | ExprMatchResult | undefined;
     let failure: unknown;
     try {
       pending.signal.throwIfAborted();
@@ -229,7 +234,9 @@ export class RegexExecutor {
       const id = ++this.sequence;
       const started = performance.now();
       const reply = await slot.exchange(this.options.requestTimeoutMs, false, pending.signal, () => slot.worker.postMessage({ id, descriptor: pending.descriptor, rows: pending.rows }));
-      result = validateReply(reply, id, pending.rows, pending.signal);
+      result = pending.descriptor.kind === "expr-match"
+        ? validateExprReply(reply, id, pending.descriptor, pending.rows[0]!.bytes, pending.signal)
+        : validateReply(reply, id, pending.rows, pending.signal);
       if (performance.now() - started > this.options.requestTimeoutMs) throw new RegexExecutionError("REQUEST_TIMEOUT", `active request exceeded ${this.options.requestTimeoutMs}ms`);
       pending.signal.throwIfAborted();
     } catch (error) {
@@ -254,7 +261,7 @@ export class RegexExecutor {
 
 export class RegexSession {
   private closed: Promise<void> | undefined;
-  private readonly pending = new Set<Promise<Match[][]>>();
+  private readonly pending = new Set<Promise<Match[][] | ExprMatchResult>>();
   private readonly retirements = new Set<Promise<void>>();
   private readonly controller = new AbortController();
   private readonly requestSignal: AbortSignal;
@@ -265,6 +272,14 @@ export class RegexSession {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
     const result = this.executor.request(descriptor, rows, this.requestSignal, this.retirements);
+    this.pending.add(result);
+    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
+    return result;
+  }
+  matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
+    this.signal.throwIfAborted();
+    if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
+    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], this.requestSignal, this.retirements);
     this.pending.add(result);
     void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
     return result;

@@ -1,5 +1,6 @@
 import type { CommandContext } from "../../contracts/index.js";
 import type { RegexExecutionOptions } from "../regex-execution/client.js";
+import { exprMatchCeilings } from "../regex-execution/protocol.js";
 
 export interface ExprLimits {
   readonly maxArgumentBytes: number;
@@ -9,6 +10,11 @@ export interface ExprLimits {
   readonly maxSteps: number;
   readonly maxStringBytes: number;
   readonly maxOutputBytes: number;
+  readonly maxRegexPatternBytes: number;
+  readonly maxRegexNodes: number;
+  readonly maxRegexDepth: number;
+  readonly maxRegexStates: number;
+  readonly maxRegexAllocatedUnits: number;
 }
 
 export interface ExprCommandsOptions {
@@ -25,12 +31,18 @@ export function settings(options: ExprCommandsOptions): ExprLimits {
   const limits = {
     maxArgumentBytes: 65_536, maxNumericDigits: 1024, maxNodes: 4096,
     maxDepth: 128, maxSteps: 8_000_000, maxStringBytes: 65_536,
-    maxOutputBytes: 65_537, ...options.limits,
+    maxOutputBytes: 65_537, maxRegexPatternBytes: 8192, maxRegexNodes: 4096,
+    maxRegexDepth: 64, maxRegexStates: 16_384, maxRegexAllocatedUnits: 1_000_000, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid expr limit: ${name}`);
   }
   if (limits.maxDepth > 256) throw new RangeError("expr maxDepth must not exceed 256");
+  for (const [key, maximum] of [
+    ["maxRegexPatternBytes", exprMatchCeilings.maxPatternBytes], ["maxRegexNodes", exprMatchCeilings.maxNodes],
+    ["maxRegexDepth", exprMatchCeilings.maxDepth], ["maxRegexStates", exprMatchCeilings.maxStates],
+    ["maxRegexAllocatedUnits", exprMatchCeilings.maxAllocatedUnits],
+  ] as const) if (limits[key] > maximum) throw new RangeError(`expr ${key} exceeds worker ceiling ${maximum}`);
   return Object.freeze(limits);
 }
 
@@ -38,6 +50,7 @@ export class Budget {
   private steps = 0;
   private checkpoint = 0;
   constructor(readonly context: CommandContext, readonly limits: ExprLimits) {}
+  remaining(): number { return this.limits.maxSteps - this.steps; }
   check(size: number, maximum: number, label: string): void {
     if (!Number.isSafeInteger(size) || size > maximum) throw new ExprError(`${label} limit exceeded`, 3);
   }

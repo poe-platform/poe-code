@@ -1,12 +1,15 @@
-# expr — bounded nonregex checkpoint
+# expr — bounded integer, string and worker-only BRE evaluation
 
-This module implements argv-token integer/string evaluation. **This checkpoint
-is not the complete expr feature:** `match` and `:` parse, but evaluated regex
-operations return status 3 (`bounded expr BRE protocol is pending`). Skipped
-regex branches do not compile or execute. The root-owned bounded-worker
-first-capture protocol is awaiting explicit shared-scope approval. No untrusted
-regex compiles or executes on the main thread, and there is no private executor,
-native subprocess, `eval`, host filesystem access, or runtime dependency.
+This module implements argv-token evaluation, including evaluated `match` and
+`:` using an additive operation in the existing regex executor. Skipped regex
+branches submit and compile zero jobs. No untrusted regex compiles or executes
+on the main thread. There is no private executor, native subprocess, `eval`, host
+filesystem access, or runtime dependency. This is not a full GNU parity claim;
+the supported BRE profile and explicit unsupported cases are described below.
+
+Historical partial checkpoint `85675366` and its separate `d96f9ffe` evidence
+retain the original pending-regex behavior and 1,381-case nonregex result. Those
+immutable receipts are not rewritten or counted as regex acceptance.
 
 ## Module-local API
 
@@ -19,13 +22,15 @@ native subprocess, `eval`, host filesystem access, or runtime dependency.
 
 `ExprCommandsOptions` has `replace?: boolean`, `limits?: Partial<ExprLimits>`,
 and `regex?: RegexExecutionOptions`. Regex options use the existing executor
-policy validation; this checkpoint acquires no regex resources. The plural
+policy, admission queue and worker lifecycle without changing defaults. The plural
 factory contains exactly one definition named `expr`. Plugin registration
 rejects a collision before mutation unless `replace: true` is explicit.
 
 These are physical module exports, **not a root export or published package
-subpath**. No default aggregate registration, package configuration, existing
-module, or other command is changed. Build emits the physical module at
+subpath**. No default aggregate registration or package configuration is changed.
+The three approved shared protocol/client/worker files gain the new operation;
+legacy grep/rg/glob descriptors, reply validation and matching are unchanged.
+Build emits the physical module at
 `dist/commands/expr/index.js`. Source/build testing is not proof of installation
 in a standalone moved package; independent packed-consumer proof remains pending.
 
@@ -132,6 +137,19 @@ All options are positive safe integers; `maxDepth` additionally cannot exceed
 | `maxSteps` | 8,000,000 | Shared parse/evaluation work and logical allocation charges for this invocation |
 | `maxStringBytes` | 65,536 | Per-value byte allocation and conservative arithmetic render bound |
 | `maxOutputBytes` | 65,537 | Final stdout allocation including LF, checked before allocation/write |
+| `maxRegexPatternBytes` | 8,192 | Pre-admission pattern bytes (hard ceiling 65,536) |
+| `maxRegexNodes` | 4,096 | Combined BRE AST and compiled instructions (ceiling 8,192) |
+| `maxRegexDepth` | 64 | BRE group nesting (ceiling 128) |
+| `maxRegexStates` | 16,384 | Cumulative search states, including alternatives (ceiling 65,536) |
+| `maxRegexAllocatedUnits` | 1,000,000 | Cumulative logical worker allocation units (ceiling 4,000,000) |
+
+Regex requests receive the remaining invocation `maxSteps`, capped at 50,000,000
+per request; successful worker work is charged back to the invocation. Subject
+bytes are capped by `maxStringBytes` and a hard 1,048,576-byte worker ceiling.
+Logical allocation units bound arrays, compiler nodes, capture-state copies and
+search-path history; they are not heap bytes or an RSS promise. Worker resource
+limits and distinct startup/active deadlines remain an additional guard. Limits
+can reject valid native patterns or inputs; no partial match is returned on a cap.
 
 Numeric literals used only as strings need not fit `maxNumericDigits`. Numeric
 coercion charges input-size squared before BigInt construction; arithmetic
@@ -155,9 +173,51 @@ Shell input ownership is tested separately against its standard-command baseline
 this does not claim the Shell never acquires its supplied input. Output uses
 `writeBytes` with the supplied signal and awaits backpressure. Completed writes
 cannot be undone; cancellation observes late rejections but cannot force an
-uncooperative host sink to stop. This no-resource checkpoint needs no invocation
-cleanup registration. Regex integration must use the existing synchronously
-registered idempotent session cleanup, never per-invocation executor disposal.
+uncooperative host sink to stop. Every invocation uses `withRegexSession`, which
+synchronously registers the same idempotent cleanup before opening a session or
+acquiring workers, and awaits it in `finally`. Sibling invocations share the
+executor without per-invocation executor disposal. Direct contexts may omit the
+hook; `finally` still closes their session. Registration rejection prevents
+admission; closing one session cancels its admitted work, not a sibling's work.
+
+## BRE profile
+
+`bre-worker.ts` is imported by worker dispatch only and refuses execution on the
+main thread. A bounded parser produces instructions for an explicit interpreter;
+no pattern is translated to JavaScript RegExp. Matching starts at byte zero and
+enumerates bounded alternatives, selecting the longest whole match. On equal
+whole lengths the first greedy/ordered path wins; GNU9.7 controls include
+`\\(a\\|aa\\)a*` versus `\\(a*\\)a*`. This is not a claim that every POSIX
+subexpression tie or GNU implementation corner has been reproduced.
+
+Supported common constructs: literals, dot (including newline), contextual
+`^`/`$` (no per-line anchors), bracket lists/negation/ASCII ranges, ASCII named
+classes, escaped groups, backreferences 1–9 to closed groups, `*`, GNU `\\+`,
+`\\?`, `\\|`, and `\\{m\\}`, `\\{m,n\\}`, `\\{m,\\}`. Numeric intervals
+have a 32,767 grammar bound and compile within the instruction/work limits.
+Only the syntactically first capture determines the expr value. No capture means
+matched character count; a failed match with captures or an unmatched first
+capture means empty bytes. A participating empty capture is distinct in the
+protocol even though expr prints the same empty result.
+
+The transport explicitly reports **original-input byte spans**, never UTF-16
+code units or scalar indices. In C/POSIX, matching is byte-based and a capture
+may split UTF-8; output preserves those bytes. In the UTF-8 profile, matching uses
+scalar values plus a map to original byte boundaries; the main thread validates
+span shape/bounds and scalar boundaries, then counts scalars for noncapture
+results. Invalid UTF-8 in a regex operand is an explicit unsupported error, not
+replacement decoding. BOMs remain input. Pattern syntax is checked even when
+the subject is empty.
+
+Explicitly unsupported (status 2, no fake nonmatch): GNU word/buffer/alphabetic
+escapes, leading escaped repetitions, stacked repetitions, repeated anchors,
+collating symbols/equivalence classes, class range endpoints, non-ASCII range
+endpoints, named locale classes on non-ASCII UTF-8 subjects, and backreferences
+to captures inside nullable repeated subexpressions. The last restriction follows
+an author native discrepancy (`aaa : '\\(a*\\)*\\1'`); the original dirty
+capture is preserved, not converted to a pass. Other nested/repeated capture
+corners remain subject to independent review. Unsupported profiles are deliberate
+capability limits, not statements that the corresponding GNU syntax is invalid.
 
 ## Verification
 
@@ -166,12 +226,16 @@ Build first, then run scoped author tests:
 ```sh
 npm run build
 node --import tsx --test tests/commands/expr/*.test.ts
+node_modules/.bin/tsc -p tests/commands/expr/tsconfig.json
 node --import tsx tests/commands/expr-author/capture.ts --capture
+node --import tsx tests/commands/expr-author/capture-regex.ts --capture
 ```
 
 Canonical tests are evidence-read-only. The optional capture requires its flag,
-writes to a newly created OS temporary directory, and never overwrites committed
-evidence. Native tests use controlled bounded local argv, a timeout/output cap,
+writes to a unique new directory (nonregex: OS temporary; regex: owned author
+tree), and never overwrites committed evidence. Regex capture returns nonzero
+when native differences remain, including documented unsupported cases. Native
+tests use controlled bounded local argv, a timeout/output cap,
 and the authenticated GNU 9.7 binary at the existing metadata-stress oracle
 location. Missing/mismatched prerequisites **fail qualification**, not skip/pass.
 Product code never executes this native utility.
@@ -179,7 +243,18 @@ Product code never executes this native utility.
 Primary semantic references inspected: official GNU Coreutils manual sections
 `expr invocation`, `String expressions`, `Relations for expr`, and the official
 coreutils `v9.7/src/expr.c`. The rolling online manual is not a pinned 9.7 oracle.
-The reproducible author cohort compares exact status, stdout bytes, and stderr
-for its own controls. It does not include regex evaluation or stand in for an
-independent holdout, package-install test, full gate, universal parity, native
-superiority, deployed-service behavior, or performance comparison.
+The author cohorts compare exact status, stdout bytes and stderr and retain
+unsupported cases separately from exact matches. Canonical tests explicitly
+assert rejection for documented gaps; this is safety/contract acceptance, not
+native parity for those cases. No author cohort stands in for an independent
+holdout, package-install test, full gate, universal parity, native superiority,
+deployed-service behavior, or performance comparison. GNU9.7 on Darwin and Apple
+are separate oracles; only the pinned GNU9.7 binary is used here. No Linux claim.
+
+Primary sources checked with web.run on 2026-08-27: official coreutils v9.7
+`src/expr.c` (`docolon`) and `doc/coreutils.texi`; GNU Grep Fundamental Structure
+and the rolling GNU Coreutils String expressions manual. `docolon` uses
+`RE_SYNTAX_POSIX_BASIC` with `RE_CONTEXT_INVALID_DUP` and `RE_NO_EMPTY_RANGES`
+cleared, `newline_anchor = 0`, anchored `re_match`, and `re_nsub`/register 1 for
+capture selection. The native author controls qualify the implemented subset,
+not all semantics permitted by those flags.

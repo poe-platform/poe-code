@@ -1,0 +1,2 @@
+First probe launch imported replay.mjs while argv[2] was initial; the replay entrypoint ran accidentally and refused the existing initial snapshot before any measurement. Added an import.meta.url entrypoint guard. No product, fixture, native inputs or initial result files changed.
+After initial evidence capture, renamed reviewer-only generated scratch to .scratch to prevent broad root test/typecheck globs discovering immutable snapshot copies. Initial raw logs retain their actual original execution paths. No author/native inputs or captured logs were edited.

@@ -15,10 +15,14 @@ import { createSplitCommands, type SplitCommandsOptions } from "../commands/spli
 import { createTimeEnvCommands, type TimeEnvCommandsOptions } from "../commands/time-env/index.js";
 import { createTreeCommands, type TreeCommandsOptions } from "../commands/tree/index.js";
 import { createFileCommands, type FileCommandsOptions } from "../commands/file/index.js";
+import { createGrepAliasCommands } from "../commands/grep-aliases/index.js";
+import { createColumnCommands, type ColumnCommandsOptions } from "../commands/column/index.js";
+import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
   readonly execute?: CommandHandler;
+  readonly regex?: RegexExecutionOptions;
   readonly text?: Omit<TextProgramOptions, "replace">;
   readonly structured?: Omit<StructuredCommandsOptions, "replace">;
   readonly search?: Omit<SearchOptions, "replace">;
@@ -32,6 +36,7 @@ export interface AgentCommandsOptions {
   readonly timeEnv?: Omit<TimeEnvCommandsOptions, "replace">;
   readonly tree?: Omit<TreeCommandsOptions, "replace">;
   readonly file?: Omit<FileCommandsOptions, "replace">;
+  readonly column?: Omit<ColumnCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -46,7 +51,7 @@ function executor(lookup: (name: string) => CommandDefinition | undefined): Comm
 export function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [];
   commands.push(
-    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)) }),
+    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     ...createSearchCommands({ ...options.search }),
@@ -61,6 +66,8 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createTimeEnvCommands({ ...options.timeEnv }),
     ...createTreeCommands({ ...options.tree }),
     ...createFileCommands({ ...options.file }),
+    ...createGrepAliasCommands(options.regex === undefined ? {} : { regex: options.regex }),
+    ...createColumnCommands({ ...options.column }),
   );
   return new CommandRegistry(commands).list();
 }

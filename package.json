@@ -62,6 +62,14 @@
       "types": "./dist/commands/file/index.d.ts",
       "import": "./dist/commands/file/index.js"
     },
+    "./commands/grep-aliases": {
+      "types": "./dist/commands/grep-aliases/index.d.ts",
+      "import": "./dist/commands/grep-aliases/index.js"
+    },
+    "./commands/column": {
+      "types": "./dist/commands/column/index.d.ts",
+      "import": "./dist/commands/column/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

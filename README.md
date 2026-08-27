@@ -75,8 +75,8 @@ text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 (`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
-time/environment (`date`, `sleep`, `printenv`), tree (`tree`), and file (`file`),
-totaling 70 unique registered
+time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
+grep aliases (`egrep`, `fgrep`), and table layout (`column`), totaling 73 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -95,6 +95,7 @@ replacement policy:
 ```ts
 agentCommands({
   replace: false,
+  regex: { maxWorkers: 2, maxQueuedBytes: 8 * 1024 * 1024 },
   text: { maxSteps: 1_000_000, maxBufferBytes: 8 * 1024 * 1024 },
   structured: { limits: { maxInputBytes: 8 * 1024 * 1024 } },
   search: { maxLineBytes: 1024 * 1024, defaultInput: "auto" },
@@ -108,6 +109,7 @@ agentCommands({
   timeEnv: { defaultTimeZone: "UTC", limits: { maxOutputBytes: 1024 * 1024 } },
   tree: { limits: { maxEntries: 10000, maxOutputBytes: 1024 * 1024 } },
   file: { limits: { maxSniffBytes: 65536, maxInputBytes: 1024 * 1024 } },
+  column: { limits: { maxInputBytes: 1024 * 1024, maxRows: 10000 } },
 });
 ```
 
@@ -398,7 +400,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 70 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 73 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -408,6 +410,50 @@ remain zero.
 The older frozen package audit at `b98e239` retains its 15-export evidence in
 `benchmarks/reports/PACKAGE_AUDIT.json`; it is not rescored here. Exact flags,
 bounds and unsupported features remain in `src/commands/network/README.md`.
+
+## Grep Aliases and Column
+
+The default aggregate includes `egrep`, `fgrep`, and `column`. `egrep` selects
+extended patterns and `fgrep` fixed patterns; the standalone alias plugin owns
+its grep implementation and does not require a separately registered `grep`.
+Aggregate `regex` settings are passed to standard `grep` and both aliases.
+Search retains its separate `search.regex` configuration. These worker settings
+do not replace the shell's shared budgets or imply one pool across commands.
+
+Root and `virtual-bash/commands/grep-aliases` export `grepAliasCommands`,
+`createGrepAliasCommands`, `egrepCommand`, `fgrepCommand`, and `GrepAliasOptions`.
+Root and `virtual-bash/commands/column` export `columnCommands`,
+`createColumnCommands`, `createColumnCommand`, `ColumnCommandsOptions`, and
+`ColumnLimits`. Standalone plugin options retain explicit `replace`; aggregate
+`column` omits it, with top-level `replace` authoritative for every family.
+
+```ts
+import { Shell, createMemoryFileSystem } from "virtual-bash";
+import { grepAliasCommands } from "virtual-bash/commands/grep-aliases";
+import { columnCommands } from "virtual-bash/commands/column";
+
+const shell = new Shell({ fs: createMemoryFileSystem() })
+  .use(grepAliasCommands({ regex: { maxWorkers: 1 } }))
+  .use(columnCommands({ limits: { maxRows: 1000 } }));
+try {
+  const result = await shell.exec("egrep '^keep' | column -t", {
+    stdin: "keep 1\ndrop 2\nkeep 3\n",
+  });
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Column buffers bounded tables, preserves VFS/stdin bytes according to its
+documented decoding/layout profile, and may emit partial output before an error.
+It is not a GNU utility or full BSD/util-linux emulation. Exact flags, display
+width, padding and resource bounds remain in `src/commands/column/README.md`;
+that module-author document predates this root wiring. Alias source evidence and
+the two-case public settlement correction are separately recorded in
+`tests/commands/grep-aliases-stress/settlement-v2-independent/REPORT.md`.
+Registration is not a whole-product gate or full native-parity claim. `expr`
+and `du` are not default commands; curl and SafeJS remain explicit opt-ins.
 
 ## Optional SafeJS Command
 

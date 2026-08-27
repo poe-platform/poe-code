@@ -78,6 +78,12 @@ These 11 rows are independently specified before product acceptance:
   Limits and finite prefixes are literal fixture data. Depth uses the existing
   `maxSubstitutionDepth` contract; no new production API is requested.
 
+The output-budget driver additionally records dispatch of all three intended
+printf commands. A missing-eval diagnostic can itself overflow the same output
+budget, so matching the error type alone is not an evaluation-budget pass.
+The initial pre-READY artifact preserves that false-positive classification;
+the strengthened witness is a harness correction, not a recipe/expectation edit.
+
 Known exclusions: no new read builtin, general trap/job-control syntax, arbitrary
 invalid encoding policy, descriptor persistence via exec, sourcepath/shopt
 configuration or Bash 5.3 `source -p` option coverage. The cursor host rows use an
@@ -88,3 +94,18 @@ are not rerun or closed here. Expanded7 belongs to the other leaf.
 Stop at frozen expectations and red evidence. Repeat the unchanged cohort only
 after root provides the exact source-author READY revision; retain the original
 red artifact. Never skip, xfail or weaken expectations to bless missing features.
+
+## Reproduction
+
+- `node tests/shell-stress/current-shell/capture-native.mjs native-replay-NAME.json`
+  reruns both entire pinned native profiles. It cannot overwrite existing evidence.
+- `node tests/shell-stress/current-shell/run-product.mjs ready-NAME.json` runs all
+  43 rows, saves exact results and guards, and exits nonzero for any failing row.
+- `node --import tsx --test tests/shell-stress/current-shell/current-shell.test.ts`
+  exposes the same 43 rows as actual failing/passing node:test subtests.
+- `node tests/shell-stress/current-shell/validate.mjs validation-NAME.json`
+  records focused/global typechecks and the owned test command with source guards.
+
+No dependency or package script is added. Product children use the repository's
+existing development-only tsx loader; oracle and harness utilities use Node
+builtins. Read `REPORT.md` before interpreting any pre-READY checkpoint.

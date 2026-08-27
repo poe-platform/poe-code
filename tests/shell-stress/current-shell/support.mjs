@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 import { readFile, readdir, lstat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -76,6 +77,7 @@ export async function snapshot(directory) {
 export function patchJson(filename, value) {
   const path = relative(root, resolve(owned, filename));
   if (!path.startsWith('tests/shell-stress/current-shell/')) throw new Error('Output outside ownership');
+  if (existsSync(resolve(root, path))) throw new Error(`Refusing to overwrite evidence: ${path}`);
   const content = `${JSON.stringify(value, null, 2)}\n`;
-  execFileSync('apply_patch', [`*** Begin Patch\n*** Add File: ${path}\n${content.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`], { cwd: root });
+  execFileSync('apply_patch', [], { cwd: root, input: `*** Begin Patch\n*** Add File: ${path}\n${content.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`, maxBuffer: 4 * 1024 * 1024 });
 }

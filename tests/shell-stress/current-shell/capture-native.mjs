@@ -4,9 +4,13 @@ import { resolve, dirname } from 'node:path';
 import { nativeCases, hostCases } from './cases.mjs';
 import { owned, environment, primary, runChild, snapshot, sha256, sourceGuard, patchJson } from './support.mjs';
 
-const profiles = [{ role: 'PRIMARY', executable: primary }, { role: 'HISTORICAL', executable: '/bin/bash' }];
+const profiles = [
+  { role: 'PRIMARY', executable: primary, pinnedSha256: '8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c' },
+  { role: 'HISTORICAL', executable: '/bin/bash', pinnedSha256: '35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3' },
+];
 const report = { generatedAt: new Date().toISOString(), fixturesSha256: sha256(await readFile(resolve(owned, 'cases.mjs'))), nativeRows: nativeCases.length, hostRows: hostCases.length, profiles: [] };
 for (const profile of profiles) {
+  assert.equal(sha256(await readFile(profile.executable)), profile.pinnedSha256, `${profile.role} executable identity`);
   const version = await runChild(profile.executable, ['--version'], { argv0: 'bash' });
   assert.equal(version.status, 0);
   const results = [];
@@ -34,4 +38,4 @@ for (const profile of profiles) {
   }
   report.profiles.push({ ...profile, executableSha256: sha256(await readFile(profile.executable)), cat: { executable: '/bin/cat', sha256: sha256(await readFile('/bin/cat')) }, version, results });
 }
-patchJson('native-frozen.json', report);
+patchJson(process.argv[2] ?? 'native-replay.json', report);

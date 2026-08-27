@@ -160,7 +160,11 @@ for (const configured of [false, true]) {
       } else wrapped = new OverlayFileSystem({ lower: new MemoryFileSystem(), upper: fs });
       assert.notEqual(wrapped.capabilities.snapshotRmdir, true, "atomic profile is not S3 snapshot-marker removal");
       const result = await command(wrapped, `rmdir ${path}`);
-      const succeeds = configured && wrapper !== "readonly";
+      if (wrapper === "overlay") {
+        assert.equal(fs.capabilities.atomicRename, false);
+        assert.equal(wrapped.capabilities.readOnly, true, "atomic rmdir does not supply the atomic rename required by overlay upper");
+      }
+      const succeeds = configured && wrapper === "mount";
       assert.equal(result.exitCode, succeeds ? 0 : 1, result.stderr);
       assert.equal(result.stdout, "");
       if (succeeds) {
@@ -180,16 +184,39 @@ for (const configured of [false, true]) {
   }
 }
 
-test("overlay over configured WebDAV upper rejects a late child before publishing whiteout", async () => {
+test("mount forwards configured removal and preserves a child created after adapter preflight", async () => {
   const { fs, mock, requests } = setup(true, binding => ({ ...binding, removeEmptyDirectory: async request => {
     await fs.writeFile("/empty/late", bytes);
     return binding.removeEmptyDirectory(request);
   } }));
   await fs.mkdir("/empty");
-  const overlay = new OverlayFileSystem({ lower: new MemoryFileSystem(), upper: fs });
-  await assert.rejects(overlay.rmdir("/empty"), error("ENOTEMPTY", "/empty"));
+  const mount = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/remote": fs } });
+  await assert.rejects(mount.rmdir("/remote/empty"), error("ENOTEMPTY", "/remote/empty"));
   assert.equal(requests.length, 1);
-  assert.deepEqual(await overlay.readFile("/empty/late"), bytes);
+  assert.deepEqual(await mount.readFile("/remote/empty/late"), bytes);
   assert.deepEqual(await fs.readFile("/empty/late"), bytes);
   noDelete(mock);
 });
+
+for (const configured of [false, true]) {
+  test(`overlay with ${configured ? "configured" : "stock"} WebDAV lower whiteouts only its view without host removal`, async () => {
+    const { fs, mock, requests } = setup(configured);
+    await fs.mkdir("/empty");
+    await fs.writeFile("/sibling", bytes);
+    const upper = new MemoryFileSystem();
+    const overlay = new OverlayFileSystem({ lower: fs, upper });
+    assert.equal(overlay.capabilities.readOnly, false);
+    const result = await command(overlay, "rmdir /empty");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    await assert.rejects(overlay.stat("/empty"), error("ENOENT", "/empty"));
+    assert.equal((await fs.stat("/empty")).type, "directory");
+    await fs.writeFile("/empty/later", bytes);
+    assert.deepEqual(await fs.readFile("/empty/later"), bytes);
+    await assert.rejects(overlay.stat("/empty/later"), error("ENOENT", "/empty/later"));
+    assert.deepEqual(await overlay.readFile("/sibling"), bytes);
+    assert.equal(requests.length, 0, "lower whiteout is not forwarded atomic removal");
+    noDelete(mock);
+  });
+}

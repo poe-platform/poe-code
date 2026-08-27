@@ -46,7 +46,7 @@ function run(name, executable, args, cwd, extra = {}) {
   write(join(evidence, `${name}.stderr.log`), result.stderr ?? "");
   const text = result.stdout ?? "";
   const counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(key => [key, Number(new RegExp(`^# ${key} (\\d+)$`, "m").exec(text)?.[1] ?? NaN)]));
-  const summary = { name, executable, args, cwd: relative(scratch, cwd), startedAt, durationMs: performance.now() - start, status: result.status, signal: result.signal, error: result.error?.message, ...(Number.isFinite(counts.tests) ? { counts } : {}) };
+  const summary = { name, executable, args, cwd: relative(scratch, cwd), startedAt, durationMs: performance.now() - start, status: result.status, signal: result.signal, error: result.error?.message, ...(Number.isFinite(counts.tests) ? { counts, failedRows: [...text.matchAll(/^not ok \d+ - (.*)$/gm)].map(match => match[1]) } : {}) };
   results.push(summary);
   save(`${name}.result.json`, summary);
   return result;
@@ -135,22 +135,24 @@ try {
     target: "ES2023", lib: ["ES2023"], module: "NodeNext", moduleResolution: "NodeNext", strict: true,
     noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true,
     forceConsistentCasingInFileNames: true, skipLibCheck: true, types: ["node"],
-    typeRoots: [join(root, "node_modules/@types")], rootDir: ".", outDir: "out", noEmitOnError: true,
+    typeRoots: [join(root, "node_modules/@types")], rootDir: ".", outDir: "out-stock", noEmitOnError: true,
   }, include: [matrixPath, fixturePath, preflightPath, mockPath, `${owned}/atomic-mock.ts`, `${owned}/controls.ts`] };
   write(join(consumer, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
   const hook = join(source, owned, "loaded-hook.mjs");
-  function publicRun(name, file) {
-    return node(name, ["--unhandled-rejections=strict", "--import", hook, "--test", "--test-reporter=tap", `out/${file.replace(/\.ts$/, ".js")}`], consumer,
+  function publicRun(name, file, output = "out-configured") {
+    return node(name, ["--unhandled-rejections=strict", "--import", hook, "--test", "--test-reporter=tap", `${output}/${file.replace(/\.ts$/, ".js")}`], consumer,
       { ATOMIC_PROFILE_LOAD_ROOT: scratch, ATOMIC_PROFILE_LOAD_LOG: join(evidence, `${name}.loaded.jsonl`) });
   }
   assert.equal(node("strict-public-stock", [tsc, "-p", "tsconfig.json"], consumer).status, 0);
-  const publicStock = publicRun("packed-stock79", matrixPath);
+  const publicStock = publicRun("packed-stock79", matrixPath, "out-stock");
   writeFileSync(join(consumer, fixturePath), configuredFixture);
+  tsconfig.compilerOptions.outDir = "out-configured";
+  writeFileSync(join(consumer, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
   assert.equal(node("strict-public-configured", [tsc, "-p", "tsconfig.json"], consumer).status, 0);
   save("consumer-generated.json", filesUnder(consumer).filter(entry => !entry.path.startsWith("node_modules/")));
   const configured = publicRun("packed-configured79", matrixPath);
   const controls = publicRun("packed-controls", `${owned}/controls.ts`);
-  const probe = node("public-resolution", ["--input-type=module", "-e", `import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { agentCommands, Shell, MemoryFileSystem } from 'virtual-bash'; const consumer = JSON.parse(readFileSync('package.json')); assert.notEqual(consumer.name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, ${JSON.stringify(new URL(`file://${join(packageRoot, "dist/index.js")}`).href)}); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); const names = ${JSON.stringify(["cat", "cp", "find", "mkdir", "mv", "printf", "pwd", "rm", "rmdir", "sort", "tee", "test", "touch", "xargs", "sed", "awk", "jq", "rg", "sha256sum", "gzip", "diff", "patch"])}; for (const name of names) assert.equal(typeof shell.commands.get(name)?.execute, 'function'); console.log(JSON.stringify({consumer:consumer.name,resolved,requiredCommands:names,actualAggregate:true})); await shell.dispose();`], consumer);
+  const probe = node("public-resolution", ["--input-type=module", "-e", `import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { agentCommands, Shell, MemoryFileSystem } from 'virtual-bash'; const consumer = JSON.parse(readFileSync('package.json')); assert.notEqual(consumer.name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, ${JSON.stringify(new URL(`file://${join(packageRoot, "dist/index.js")}`).href)}); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); assert.equal((await shell.exec(':')).exitCode, 0); const names = ${JSON.stringify(["cat", "cp", "find", "mkdir", "mv", "printf", "pwd", "rm", "rmdir", "sort", "tee", "test", "touch", "xargs", "sed", "awk", "jq", "rg", "sha256sum", "gzip", "diff", "patch"])}; for (const name of names) assert.equal(typeof shell.commands.get(name)?.execute, 'function', name); console.log(JSON.stringify({consumer:consumer.name,resolved,requiredCommands:names,actualAggregate:true})); await shell.dispose();`], consumer);
   assert.equal(probe.status, 0);
   save("public-resolution.json", JSON.parse(probe.stdout));
   const packedManifest = filesUnder(packageRoot);
@@ -181,10 +183,13 @@ try {
   assert.equal(publicStock.status, 1);
   assert.deepEqual(summaries["stock-original79"], { tests: 79, pass: 78, fail: 1, cancelled: 0, skipped: 0, todo: 0 });
   assert.deepEqual(summaries["packed-stock79"], summaries["stock-original79"]);
+  for (const name of ["stock-original79", "packed-stock79"]) {
+    assert.deepEqual(results.find(result => result.name === name).failedRows, ["webdav: create, copy, append, inspect and remove files"]);
+  }
   assert.equal(configured.status, 0);
   assert.deepEqual(summaries["packed-configured79"], { tests: 79, pass: 79, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
   assert.equal(controls.status, 0);
-  assert.deepEqual(summaries["packed-controls"], { tests: 20, pass: 20, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+  assert.deepEqual(summaries["packed-controls"], { tests: 22, pass: 22, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
 } catch (error) {
   failure = error;
   save("failure.json", { message: String(error), stack: error?.stack, results });

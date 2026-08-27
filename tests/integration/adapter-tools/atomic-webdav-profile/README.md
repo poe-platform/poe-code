@@ -58,12 +58,26 @@ isolation; built worker files are additionally covered by the complete build and
 pack manifests, not claimed to be all dynamically observed by the main hook.
 
 Expected stock 78/79 and configured 79/79 are **targets until actual measurement**.
-The 20 separate controls are not added to either positive matrix denominator.
+The 22 separate controls are not added to either positive matrix denominator.
 They cover stock ENOTSUP/no-child-loss, namespace/path/receipt guards, actual
 backing effects, active locks/cancellation, nonempty and late children without
 recursive DELETE, and actual readonly/mount/overlay propagation. Invalid receipt
 tests intentionally corrupt receipts *after* real removal and assert the effect
 is not undone. Their mock controls run in-process, separately from matrix HTTP.
+
+`author-first` preserves the first raw measurements: original and packed stock
+78/79, configured 79/79, controls 18/20. The two control failures exposed an
+incorrect author expectation: WebDAV has `atomicRename: false`, so overlay with
+WebDAV **upper** advertises read-only and rejects mutations with ENOTSUP before
+calling the atomic helper, even when configured. Corrected controls assert that
+actual restriction; no production change or capability fabrication is made.
+The former unreachable overlay-late-child test is replaced by a mount forwarding
+late-child test, and two WebDAV-**lower** overlay controls demonstrate local
+whiteouts with untouched lower storage, not forwarded host removal. Separately,
+the first public resolution probe inspected the registry before asynchronous
+plugin setup; it now executes `:` before the same required-command checks.
+The original positive matrix assertions are unchanged throughout. All first-run
+logs, input archives, pack and failures are retained, not replaced by correction.
 
 Accepted configured production profile `d1174e2` and independent real WsgiDAV
 4.3.5 auth/locks/late-child evidence `4453490` / `b22d00c` remain separate service

@@ -1,0 +1,58 @@
+[
+  {
+    "path": "out/tests/fs/webdav/mock.js",
+    "sha256": "ccc2eb20cafb907be82f66b0e04a348dbc429fc802c5059d676ec2304048e199"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.js",
+    "sha256": "dac7dd55f9d2c2e7eef2db66ee9e87ace883dae9c812522264a6b284c5471187"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/atomic-webdav-profile/controls.js",
+    "sha256": "f8e4f000fd914348ceab2bd045d097249d5cf073622ae2d8cb21a67981ed7be6"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/fixtures.js",
+    "sha256": "dfae67aa59038f69660cb3b687d8748b062e6432d662db853eecce38e91c26c8"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/matrix.test.js",
+    "sha256": "3f29e2db2bfdf6ca611accccdf397bd5ee7fd7753b9529fce5eb30bca35e2c18"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/preflight-review/preflight.js",
+    "sha256": "dd606bc76ea8d9dd01c12760cf0d46023300cb5734944ff9e0963e22c2d8f731"
+  },
+  {
+    "path": "package.json",
+    "sha256": "d5e1dbc4c2f02a31af3487b29db0482e5f9f06ba4ffa490dba83ea9cb2b2c83a"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "sha256": "ea5a14545923093ffadb350c1bc9301f309d92c1e026d865a192c4f8cb904e13"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+    "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+    "sha256": "67fbeed3ae12b1c2cc4ecdcc0e9060895f8ca1d5a466086cb1526922fa04e5b8"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+  },
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "sha256": "08f963a935a388beab71a483b0e9c254f4f1268f55330a4350c1ea24c0128674"
+  },
+  {
+    "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "sha256": "1808a99ebde194c2d4b95b8a8431c1a1415898925bf7929dbbc7710f4dbded62"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "ce6bd34475b973c09447108400156b6c2d7ab8189bf30eb81222a7fe528c36d3"
+  }
+]

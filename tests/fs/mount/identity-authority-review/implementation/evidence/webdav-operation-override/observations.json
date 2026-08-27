@@ -1,0 +1,37 @@
+[
+  {
+    "name": "split-s3-copy",
+    "data": {
+      "result": "unknown",
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  },
+  {
+    "name": "split-dav-comparison",
+    "data": {
+      "result": "unknown",
+      "effects": []
+    }
+  },
+  {
+    "name": "split-dav-copy",
+    "data": {
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  },
+  {
+    "name": "subclass-dav-copy",
+    "data": {
+      "result": "distinct",
+      "code": "EIO",
+      "effects": [
+        "writeStream"
+      ],
+      "source": "subclass destination damaged source"
+    }
+  }
+]

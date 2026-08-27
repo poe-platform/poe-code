@@ -66,6 +66,46 @@ a reproduced WebDAV source-loss finding. Recheck when mixed memory/provider
 authority integration is actually present; the private-response design alone
 does not establish operation routing.
 
+## WebDAV pre-construction override authority permits source loss
+
+Confirmed separately in `evidence/webdav-operation-override`, captured
+`2026-08-27T01:13:27.131Z`, observed HEAD
+`8aaf610d26e8dc310bf6ac1f713cf2614cc1120e`. This is not the passing split-fetch
+case. A subclass overrides the public buffered/streaming data methods on its
+prototype before the base constructor registers resource identity queries.
+The registration snapshots those already-overridden methods as if they belonged
+to the base adapter's operation mapping. Both views use real MockDav metadata
+and the actual public product comparison; their data methods address the same
+memory source. No private registrar or invented compareEntry answer is used.
+
+Actual public behavior:
+
+```text
+compareEntry: distinct (required: unknown)
+mount.copyFile: EIO (required: ENOTSUP before content)
+effects: writeStream (required: none)
+source: subclass destination damaged source (required: source sentinel)
+```
+
+Relevant source SHA-256 values:
+
+| File | SHA-256 |
+| --- | --- |
+| `src/fs/webdav/resource-id.ts` | `bb1ad5de415ce3f4369aaccef3a3869162bc81a8f6eb66104df4e5c7db452916` |
+| `src/fs/webdav/webdav.ts` | `b03c53d4fd1e5c7da4d665d532dbf25b39e9555dc1cb47890edd2ffd2d9fa51b` |
+| `tests/fs/webdav/mock.ts` | `e4f8a6806c1dd6f0622cce9f3b487f530011c39b7ca95cc2543002ce4da95266` |
+| `src/fs/mount/comparison.ts` | `cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c` |
+
+Reproduce against current product source:
+
+```sh
+node --import tsx --test --test-name-pattern='WebDAV pre-construction' tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts
+```
+
+The full frozen run is 46/47, scoped typecheck 0, no skips/todos/cancellations.
+The initial S3 regression remains fixed in the same capture. Route WebDAV source
+remediation through root to its owner; no production patch is made here.
+
 ## Early harness corrections, not product waivers
 
 The first local probes required compareEntry directly on memory/real. The

@@ -8,18 +8,19 @@ not the implementation or an acceptance oracle for this review.
 
 ## Checkpoint verdict
 
-**Working-tree authority checks pass; final committed-source proof is pending.**
-The suite has 46 independent focused tests: 20 public wrapper/native-authority
-tests and 26 remote/protocol/operation-authority tests. It imports and exercises
+**Current authority gate is RED: WebDAV pre-construction overrides permit source loss.**
+The suite has 47 independent focused tests: 20 public wrapper/native-authority
+tests and 27 remote/protocol/operation-authority tests. It imports and exercises
 actual product classes and their public methods. It never imports the historical
 `proposal.ts`, `FixtureAuthority`, `proofCopy`, or `proofMove` scaffolding.
 
-One real source-loss failure was found and reported immediately to root. The S3
+Two real source-loss failures were found and reported immediately to root. The S3
 owner repaired the observed unsafe response-provenance-only rule by also binding
 authority to registered, unchanged provider operations. The subsequent captured
 working-tree tests reject the split metadata/data transport as unknown before
 content or writes. See `FINDINGS.md` for the exact failing source hashes and repro.
-No source fix was made by this verifier.
+The later WebDAV pre-construction override finding is still pending source-owner
+remediation and committed-source verification. No source fix was made by this verifier.
 
 The old independent positive suite's 38 required successes plus five controls,
 the original/required 53 guards, full filesystem suites, S3 policy cohort and
@@ -83,8 +84,12 @@ are checked across PUT, MOVE, COPY creation/overwrite and delete/recreation.
 Private closed-store descriptors additionally require recognized transport
 operation binding. Genuine MockDav Responses from an arbitrary split fetch do
 not establish that its GET/PUT use the same store. The parallel split-fetch test
-stayed unknown and source-preserving in all captured implementation runs; a
-WebDAV source-loss incident was not reproduced. Full resource-id semantics still
+stayed unknown and source-preserving in all captured implementation runs.
+However, a different case installs data-method overrides before the base
+constructor snapshots method references. That subclass is falsely accepted as
+the base resource authority, and the actual mount copy damages its aliased
+source. This is a reproduced WebDAV source-loss finding, not merely a protocol
+limitation. See `webdav-operation-override`. Full resource-id semantics still
 assume an honest supporting provider; this is not provider authentication.
 
 Actual source owners changed the original MockDav provider to supply the extension.
@@ -106,6 +111,7 @@ old proposal/positive-review evidence. Cross-protocol disjointness is not inferr
 | Qualified S3 | Shared-store distinct clients and overlapping prefixes, ordinary existing-target copy, independent stores, alias refusal |
 | S3 faults | Real mock authorization source/target failure and cancellation after successful distinctness proof, unchanged source/target, no delete |
 | Unrecognized S3 | Split metadata/content routing, changed forwarder operations and subclass content override remain unknown |
+| Unrecognized WebDAV | Split fetch is safely unknown; pre-construction adapter overrides currently fail source preservation |
 | Qualified WebDAV | Different endpoints and roots, nested readonly/mount copies, equal ETags but distinct resources, alias refusal |
 | Protocol parsing | Actual full multistatus/property/status parsing, error propagation and no content/mutation during comparison |
 | Mock truthfulness | Resource ID stable on PUT/MOVE/COPY overwrite, fresh on COPY creation/recreation; corresponding bytes and missing path checked |
@@ -136,6 +142,7 @@ or present early missing implementation as a newly introduced regression.
 | `baseline-46` | `0c4709f` | 2 / 46 | Final root-view assertions against pre-implementation source |
 | `roots-46` | moving worktree | 45 / 46 | Product mock corrected COPY overwrite; this leaf's old identity expectation was wrong |
 | `corrected-protocol-46` | moving worktree | 46 / 46 | Correct overwrite/creation identity expectations; all focused checks pass |
+| `webdav-operation-override` | moving worktree | 46 / 47 | Newly added holdout exposes WebDAV false authority and source loss |
 
 All listed scoped typechecks exit 0; none is a whole-repository typecheck. Every
 listed run has zero skips, todos and cancellations. Test-reported failures are

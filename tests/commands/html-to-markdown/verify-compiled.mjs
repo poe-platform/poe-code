@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,16 @@ const execution = realpathSync(mkdtempSync(join(tmpdir(), 'html-markdown-compile
 const output = realpathSync(mkdtempSync(join(tmpdir(), 'html-markdown-compiled-evidence-')));
 const report = { scope: 'Module-local compiled consumers, not root/package export acceptance', phases: [], cases: [], cleanup: false };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const sourceRevision = '2272feb92f8c0f151385f59f79eee004c50d14b8';
+function inventory(root) {
+  const files = {};
+  const visit = directory => { for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) visit(path);
+    else { assert.ok(entry.isFile()); files[path.slice(root.length + 1)] = hash(readFileSync(path)); }
+  } };
+  visit(root); return files;
+}
 const command = (label, args, expected = 0) => {
   const result = spawnSync(process.execPath, args, { cwd: repository, encoding: 'utf8', timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
   writeFileSync(join(output, label + '.stdout'), result.stdout ?? ''); writeFileSync(join(output, label + '.stderr'), result.stderr ?? '');
@@ -21,8 +31,17 @@ const command = (label, args, expected = 0) => {
 try {
   report.node = { path: process.execPath, version: process.version, sha256: hash(readFileSync(process.execPath)) };
   report.commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository }).toString().trim();
+  report.moduleSourceRevision = sourceRevision;
+  for (const name of readdirSync(join(repository, 'src/commands/html-to-markdown'))) {
+    const path = 'src/commands/html-to-markdown/' + name;
+    assert.deepEqual(readFileSync(join(repository, path)), execFileSync('git', ['--no-replace-objects', 'show', sourceRevision + ':' + path], { cwd: repository }));
+  }
   const compiler = join(repository, 'node_modules/typescript/bin/tsc');
+  const listed = command('input-census', [compiler, '-p', join(directory, 'tsconfig.build.json'), '--listFilesOnly']);
+  const sourcePaths = listed.stdout.split('\n').filter(path => path.startsWith(repository + '/src/'));
+  report.sourceInputs = Object.fromEntries(sourcePaths.map(path => [path.slice(repository.length + 1), hash(readFileSync(path))]));
   command('build', [compiler, '-p', join(directory, 'tsconfig.build.json'), '--outDir', join(execution, 'build')]);
+  report.emittedBefore = inventory(join(execution, 'build'));
   writeFileSync(join(execution, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
   writeFileSync(join(execution, 'consumer.mts'), readFileSync(join(directory, 'compiled-consumer.mts.fixture')));
   const flags = [compiler, '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2023', '--typeRoots', join(repository, 'node_modules/@types')];
@@ -47,6 +66,14 @@ assert.equal(createHtmlToMarkdownCommand().name,'html-to-markdown');console.log(
   writeFileSync(join(execution, 'denial.mjs'), `import{readFileSync}from'node:fs';readFileSync(${JSON.stringify(join(repository, 'src/commands/html-to-markdown/index.ts'))});`);
   const denial = command('source-denial', ['--experimental-permission', '--allow-fs-read=' + execution, join(execution, 'denial.mjs')], 1);
   assert.match(denial.stderr, /ERR_ACCESS_DENIED/u);
+  const entry = join(execution, 'build/commands/html-to-markdown/index.js');
+  renameSync(entry, entry + '.held');
+  try {
+    const missing = command('missing-module', ['--experimental-permission', '--allow-fs-read=' + execution, join(execution, 'runtime.mjs')], 1);
+    assert.match(missing.stderr, /ERR_MODULE_NOT_FOUND/u);
+  } finally { renameSync(entry + '.held', entry); }
+  report.emittedAfter = inventory(join(execution, 'build')); assert.deepEqual(report.emittedAfter, report.emittedBefore);
+  for (const [path, expected] of Object.entries(report.sourceInputs)) assert.equal(hash(readFileSync(join(repository, path))), expected, path);
   report.status = 'pass';
 } catch (error) { report.status = 'fail'; report.error = String(error.stack); process.exitCode = 1; }
 finally { rmSync(execution, { recursive: true, force: true }); report.cleanup = true; writeFileSync(join(output, 'REPORT.json'), JSON.stringify(report, null, 2) + '\n'); console.log(JSON.stringify({ output, status: report.status, runtime: report.runtime, error: report.error })); }

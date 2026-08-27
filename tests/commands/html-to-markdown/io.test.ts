@@ -5,6 +5,7 @@ import { Shell } from "../../../src/shell/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createHtmlToMarkdownCommands, htmlToMarkdownCommands } from "../../../src/commands/html-to-markdown/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
+import { networkCommands } from "../../../src/commands/network/index.js";
 import { FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { byteChunks, convert, readonlyFacade } from "./helpers.js";
 
@@ -102,5 +103,30 @@ test("standalone registration and actual VFS pipeline", async () => {
     const result = await shell.exec("printf '<h1>Release</h1><p>ready</p>' | html-to-markdown | cat > /result");
     assert.equal(result.exitCode, 0, result.stderr); assert.equal(Buffer.from(await fs.readFile("/result")).toString(), "# Release\n\nready\n");
     assert.deepEqual(createHtmlToMarkdownCommands().map(command => command.name), ["html-to-markdown"]);
+  } finally { await shell.dispose(); }
+});
+
+test("explicit curl companion pipeline fetches only through injected authorized transport", async () => {
+  const fs = new MemoryFileSystem(); const seen: string[] = [], approved: string[] = []; let disposed = 0;
+  const shell = new Shell({ fs }).use(standardCommands()).use(htmlToMarkdownCommands()).use(networkCommands({
+    authorize: request => { approved.push(request.url); return request.url === "https://page.test/document"; },
+    transport: async request => {
+      seen.push(request.url);
+      return { status: 200, statusText: "OK", headers: [["content-type", "text/html"]], body: byteChunks('<h1>Docs</h1><img src="https://image.test/x" alt="logo"><script src="https://script.test/x">bad</script>'), async dispose() { disposed++; } };
+    },
+  }));
+  try {
+    const result = await shell.exec("curl https://page.test/document | html-to-markdown > /doc.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/doc.md")).toString(), "# Docs\n\n![logo](<https://image.test/x>)\n");
+    assert.deepEqual(seen, ["https://page.test/document"]); assert.deepEqual(approved, seen); assert.equal(disposed, 1);
+  } finally { await shell.dispose(); }
+});
+
+test("normal downstream head closes a finite conversion pipeline", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(htmlToMarkdownCommands());
+  try {
+    const result = await shell.exec("html-to-markdown | head -n 1", { stdin: "<h1>first</h1>" + "<p>later</p>".repeat(1000) });
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "# first\n");
   } finally { await shell.dispose(); }
 });

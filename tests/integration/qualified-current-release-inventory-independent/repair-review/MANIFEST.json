@@ -7,7 +7,9 @@
     },
     {
       "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/canonical-regressions.json",
-      "sha256": "c3911c4ff539205f74d2ec89e373a2bbfcf2087b6a7d6472e5aeb413e111b2ee"
+      "sha256": "c59b0c18fac0ba2db21833e7fec5e2086cc0a3b962f003dbd5ba04ed61c35c1b",
+      "sourceArtifactSha256": "c3911c4ff539205f74d2ec89e373a2bbfcf2087b6a7d6472e5aeb413e111b2ee",
+      "copyNote": "Repository patch appends one final LF; source JSON data is identical. Initial manifest check detected this exact formatting delta."
     },
     {
       "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/classification.json",

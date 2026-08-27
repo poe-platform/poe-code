@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { type ByteSource } from "../../../../src/contracts/index.js";
 import { type JqLimits } from "../../../../src/commands/structured/index.js";
 import { allVectors, executeBytes, expectedBytes } from "./harness.js";
+import { nativeExpected } from "../jq-grammar-native-v3.js";
 
 const reference = (id: string) => {
   const vector = allVectors.find(vector => vector.id === id);
@@ -32,12 +33,11 @@ test("UTF-8 crossing the internal 16384-byte scan boundary preserves native byte
 });
 
 for (const id of ["raw-lone-continuation", "raw-truncated", "raw-bad-continuation", "json-bad-string"]) {
-  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {
+  test(`native UTF-8 replacement remains chunk invariant: ${id}`, async () => {
     const vector = reference(id);
     const input = Buffer.from(vector.inputHex, "hex");
     const baseline = await executeBytes(vector.argv!, input);
-    assert.equal(baseline.status, 5);
-    assert.match(Buffer.from(baseline.stderrHex, "hex").toString(), /invalid UTF-8/u);
+    assert.deepEqual(baseline, nativeExpected(vector.argv!, input));
     for (let cut = 0; cut <= input.length; cut++) {
       async function* source() { yield input.subarray(0, cut); yield new Uint8Array(); yield input.subarray(cut); }
       assert.deepEqual(await executeBytes(vector.argv!, source()), baseline, `split ${cut}`);

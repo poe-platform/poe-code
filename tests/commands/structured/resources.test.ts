@@ -3,7 +3,8 @@ import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { Budget, resolveJqLimits } from "../../../src/commands/structured/limits.js";
 import { type JqLimits } from "../../../src/commands/structured/index.js";
-import { chunks, run } from "./helpers.js";
+import { runWithBytes, chunks, run } from "./helpers.js";
+import { assertNative } from "../structured-stress/jq-grammar-native-v3.js";
 
 test("compact JSON byte accounting is exact at container boundaries", async () => {
   for (const input of ["[0]", '{"a":0}', '"😀"', '["😀"]', "[]", "{}", '{"é":[0]}']) {
@@ -17,27 +18,30 @@ test("compact JSON byte accounting is exact at container boundaries", async () =
   }
 });
 
-test("valid large decimals survive while malformed JSON and division by zero fail", async () => {
+test("native JSON grammar, large decimals and division diagnostics", async () => {
   for (const input of ["NaN", "Infinity", "-Infinity", '"\\uD800"', '"\\uDC00"', '[}', '{"a":}', "01", "1.", "1e", "truefalse", '"bad\nstring"', "[1,]", '{"a":0,}', "\uFEFF0"]) {
-    const result = await run(["-c", "."], input);
-    assert.equal(result.exitCode, 5, input); assert.equal(result.stdout, "", input);
+    const result = await runWithBytes(["-c", "."], input);
+    assertNative(result, ["-c", "."], input);
   }
   for (const bytes of [[255], [0xc3], [0xc3, 0x28], [0xed, 0xa0, 0x80]]) {
-    const result = await run(["-c", "."], Uint8Array.from(bytes)); assert.equal(result.exitCode, 5); assert.equal(result.stdout, "");
+    const result = await runWithBytes(["-c", "."], Uint8Array.from(bytes));
+    assertNative(result, ["-c", "."], Uint8Array.from(bytes));
   }
   for (const filter of ["1/0", "0/0", "1%0"]) {
-    const result = await run(["-nc", filter]); assert.equal(result.exitCode, 5, filter); assert.equal(result.stdout, "");
+    const result = await runWithBytes(["-nc", filter]);
+    assertNative(result, ["-nc", filter], "null");
   }
   for (const input of ['1e9999', '[1e9999]', '{"a":1e9999}']) {
-    const result = await run(["-c", "."], input);
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, `${input.replace("e", "E+")}\n`);
+    const result = await runWithBytes(["-c", "."], input);
+    assertNative(result, ["-c", "."], input);
   }
   for (const [filter, expected] of [["1e308*1e308", "1.7976931348623157e+308"], ['"1e9999"|tonumber', '1E+9999'], ['"[1e9999]"|fromjson', '[1E+9999]']]) {
-    const result = await run(["-nc", filter!]);
-    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, `${expected}\n`);
+    const result = await runWithBytes(["-nc", filter!]);
+    assertNative(result, ["-nc", filter!], "null");
+    assert.equal(result.stdout, `${expected}\n`);
   }
-  assert.equal((await run(["-c", "."], '"\\uD83D\\uDE00"')).stdout, '"😀"\n');
+  const surrogate = await runWithBytes(["-c", "."], '"\\uD83D\\uDE00"');
+  assertNative(surrogate, ["-c", "."], '"\\uD83D\\uDE00"');
 });
 
 test("depth limits cover inputs, constructed outputs, and source AST", async () => {

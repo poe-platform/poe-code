@@ -3,7 +3,8 @@ import { setImmediate, setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
 import type { ByteSource, CommandContext } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { execute } from "./harness.js";
+import { execute, executeWithBytes } from "./harness.js";
+import { assertNative } from "./jq-grammar-native-v3.js";
 
 async function* split(bytes: Uint8Array, size: number): ByteSource {
   for (let offset = 0; offset < bytes.length; offset += size) yield bytes.subarray(offset, offset + size);
@@ -14,8 +15,14 @@ const malformed = [
   '0x10', '"bad\nstring"', '"\\q"', '"\\u12"', '"\\uD800"', '"\\uDC00"', '\uFEFF0', 'null\u0000',
   '[}', '[[[]]', '{"x": [1}', '1e9999', '-Infinity', 'NaN',
 ];
-for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {
+const nativeAcceptanceOverrides = new Set([5, 14, 15, 16, 21, 22]);
+for (const [index, input] of malformed.entries()) test(`${nativeAcceptanceOverrides.has(index) ? 'native JSON acceptance' : input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {
   for (const size of [1, 2, 5, 64]) {
+    if (nativeAcceptanceOverrides.has(index)) {
+      const result = await executeWithBytes(['-c', '.'], split(Buffer.from(input), size));
+      assertNative(result, ['-c', '.'], input);
+      continue;
+    }
     const result = await execute(['-c', '.'], split(Buffer.from(input), size));
     assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));
     assert.equal(result.stdout, input === '1e9999' ? '1E+9999\n' : '');
@@ -34,14 +41,12 @@ test('malformed suffix preserves completed prefix but slurp remains atomic', asy
   }
 });
 
-test('invalid UTF-8 never becomes replacement text', async () => {
+test('invalid UTF-8 JSON tokens preserve prefix and native diagnostics', async () => {
   for (const invalid of [[0xc0, 0xaf], [0xed, 0xa0, 0x80], [0xf4, 0x90, 0x80, 0x80], [0xf0, 0x9f], [0x80]]) {
     const bytes = Buffer.concat([Buffer.from('{}\n'), Buffer.from(invalid)]);
     for (const size of [1, 2, 64]) {
-      const result = await execute(['-c', '.'], split(bytes, size));
-      assert.equal(result.status, 5);
-      assert.equal(result.stdout, '{}\n');
-      assert.match(result.stderr, /UTF-8/u);
+      const result = await executeWithBytes(['-c', '.'], split(bytes, size));
+      assertNative(result, ['-c', '.'], bytes);
     }
   }
 });

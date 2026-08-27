@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setImmediate, setTimeout as delay } from "node:timers/promises";
-import { execute } from "../harness.js";
+import { execute, executeWithBytes } from "../harness.js";
+import { assertNative } from "../jq-grammar-native-v3.js";
 import { evidence } from "./evidence.js";
 
 for (const fixture of evidence.cases) test(`split command native: ${fixture.id}`, { timeout: 3000 }, async () => {
@@ -42,8 +43,14 @@ test("split separator generators share the command result budget", { timeout: 30
   assert.match(actual.stderr, /maxResults limit exceeded/u);
 });
 
-for (const filter of ["split", 'split(","; "g")']) test(`split rejects out-of-scope arity: ${filter}`, { timeout: 3000 }, async () => {
+for (const filter of ["split", 'split(","; "g")']) test(`${filter === "split" ? "split rejects undefined native arity" : "split rejects out-of-scope arity"}: ${filter}`, { timeout: 3000 }, async () => {
   let acquired = false;
+  if (filter === "split") {
+    const actual = await executeWithBytes([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error("input must not be acquired"); } });
+    assertNative(actual, [filter], "");
+    assert.equal(acquired, false);
+    return;
+  }
   const actual = await execute([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error("input must not be acquired"); } });
   assert.equal(actual.status, 3);
   assert.match(actual.stderr, /unsupported function split\/(0|2)/u);

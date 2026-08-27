@@ -11,7 +11,7 @@ export interface Fixture {
   readonly status: number;
 }
 
-export async function execute(
+export async function executeWithBytes(
   argv: readonly string[],
   input: string | Uint8Array | ByteSource = "null",
   options: StructuredCommandsOptions = {},
@@ -33,7 +33,14 @@ export async function execute(
   const result = await createStructuredCommands({ ...options, limits: {
     maxOutputBytes: 64 * 1024, maxResults: 4096, maxSteps: 100000, ...options.limits,
   } })[0]!.execute(context);
-  return { status: result.exitCode, stdout: Buffer.concat(output.stdout).toString(), stderr: Buffer.concat(output.stderr).toString() };
+  const stdoutBytes = Buffer.concat(output.stdout);
+  const stderrBytes = Buffer.concat(output.stderr);
+  return { status: result.exitCode, stdout: stdoutBytes.toString(), stderr: stderrBytes.toString(), stdoutBytes, stderrBytes };
+}
+
+export async function execute(...args: Parameters<typeof executeWithBytes>) {
+  const { status, stdout, stderr } = await executeWithBytes(...args);
+  return { status, stdout, stderr };
 }
 
 export async function check(fixture: Fixture) {

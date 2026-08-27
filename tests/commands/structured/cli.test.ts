@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { createStructuredCommands, defaultJqLimits, structuredCommands } from "../../../src/commands/structured/index.js";
 import { CommandRegistry, type ByteSource, type PluginHost } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { chunks, run } from "./helpers.js";
+import { runWithBytes, chunks, run } from "./helpers.js";
+import { assertNative } from "../structured-stress/jq-grammar-native-v3.js";
 
 const streamCases: [string[], string, string, number][] = [
   [["-c", "."], '1 2\n{"a":3}', '1\n2\n{"a":3}\n', 0],
@@ -58,14 +59,16 @@ test("malformed UTF-8 preserves completed JSON prefix across every chunk split",
   for (const suffix of [[0xff], [0xc3], [0xc3, 0x28], [0xed, 0xa0, 0x80], [0xf0, 0x80, 0x80, 0x80], [0xf4, 0x90, 0x80, 0x80]]) {
     for (const prefix of ['{}\n', '"😀"\n1\n', '{"a":[1]}\n"incomplete']) {
       const bytes = Buffer.concat([Buffer.from(prefix), Buffer.from(suffix)]);
-      const expected = prefix === '{}\n' ? '{}\n' : prefix.startsWith('"😀"') ? '"😀"\n1\n' : '{"a":[1]}\n';
+
       for (let split = 0; split <= bytes.length; split++) {
         const source = (async function* () { yield bytes.subarray(0, split); yield bytes.subarray(split); })();
-        const result = await run(["-c", "."], source);
-        assert.equal(result.exitCode, 5); assert.equal(result.stdout, expected, `${suffix} split ${split}`); assert.match(result.stderr, /invalid UTF-8/);
+        const result = await runWithBytes(["-c", "."], source);
+        assertNative(result, ["-c", "."], bytes);
       }
-      const single = await run(["-c", "."], chunks(bytes)); assert.equal(single.stdout, expected); assert.equal(single.exitCode, 5);
-      const slurp = await run(["-sc", "."], bytes); assert.equal(slurp.stdout, ""); assert.equal(slurp.exitCode, 5);
+      const single = await runWithBytes(["-c", "."], chunks(bytes));
+      assertNative(single, ["-c", "."], bytes);
+      const slurp = await runWithBytes(["-sc", "."], bytes);
+      assertNative(slurp, ["-sc", "."], bytes);
     }
   }
 });

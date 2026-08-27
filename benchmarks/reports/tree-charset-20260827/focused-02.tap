@@ -1,0 +1,382 @@
+TAP version 13
+# Subtest: tree charset selection: absent
+ok 1 - tree charset selection: absent
+  ---
+  duration_ms: 1.876958
+  type: 'test'
+  ...
+# Subtest: tree charset selection: C
+ok 2 - tree charset selection: C
+  ---
+  duration_ms: 0.406333
+  type: 'test'
+  ...
+# Subtest: tree charset selection: POSIX
+ok 3 - tree charset selection: POSIX
+  ---
+  duration_ms: 0.229792
+  type: 'test'
+  ...
+# Subtest: tree charset selection: UTF-8 LC_ALL
+ok 4 - tree charset selection: UTF-8 LC_ALL
+  ---
+  duration_ms: 0.282
+  type: 'test'
+  ...
+# Subtest: tree charset selection: UTF-8 LANG
+ok 5 - tree charset selection: UTF-8 LANG
+  ---
+  duration_ms: 0.299292
+  type: 'test'
+  ...
+# Subtest: tree charset selection: LC_CTYPE overrides LANG
+ok 6 - tree charset selection: LC_CTYPE overrides LANG
+  ---
+  duration_ms: 0.260917
+  type: 'test'
+  ...
+# Subtest: tree charset selection: LC_ALL overrides LC_CTYPE
+ok 7 - tree charset selection: LC_ALL overrides LC_CTYPE
+  ---
+  duration_ms: 0.207166
+  type: 'test'
+  ...
+# Subtest: tree charset selection: empty LC_ALL falls through
+ok 8 - tree charset selection: empty LC_ALL falls through
+  ---
+  duration_ms: 0.114875
+  type: 'test'
+  ...
+# Subtest: tree charset selection: empty LC_ALL and LC_CTYPE fall through
+ok 9 - tree charset selection: empty LC_ALL and LC_CTYPE fall through
+  ---
+  duration_ms: 0.303041
+  type: 'test'
+  ...
+# Subtest: tree charset selection: all locale values empty
+ok 10 - tree charset selection: all locale values empty
+  ---
+  duration_ms: 0.321291
+  type: 'test'
+  ...
+# Subtest: tree charset selection: unknown LC_ALL stops lookup
+ok 11 - tree charset selection: unknown LC_ALL stops lookup
+  ---
+  duration_ms: 0.113917
+  type: 'test'
+  ...
+# Subtest: tree charset selection: unknown suffix is not a virtual locale
+ok 12 - tree charset selection: unknown suffix is not a virtual locale
+  ---
+  duration_ms: 0.130834
+  type: 'test'
+  ...
+# Subtest: tree charset selection: locale names are case-sensitive
+ok 13 - tree charset selection: locale names are case-sensitive
+  ---
+  duration_ms: 0.078417
+  type: 'test'
+  ...
+# Subtest: tree charset selection: locale values are not trimmed
+ok 14 - tree charset selection: locale values are not trimmed
+  ---
+  duration_ms: 0.087042
+  type: 'test'
+  ...
+# Subtest: tree charset selection: C.UTF-8
+ok 15 - tree charset selection: C.UTF-8
+  ---
+  duration_ms: 0.0745
+  type: 'test'
+  ...
+# Subtest: tree charset selection: virtual-only C.utf8 alias
+ok 16 - tree charset selection: virtual-only C.utf8 alias
+  ---
+  duration_ms: 0.079458
+  type: 'test'
+  ...
+# Subtest: tree charset selection: virtual-only en_US.utf8 alias
+ok 17 - tree charset selection: virtual-only en_US.utf8 alias
+  ---
+  duration_ms: 0.079959
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET overrides C
+ok 18 - tree charset selection: TREE_CHARSET overrides C
+  ---
+  duration_ms: 0.078792
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET ASCII overrides UTF-8
+ok 19 - tree charset selection: TREE_CHARSET ASCII overrides UTF-8
+  ---
+  duration_ms: 0.091625
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET empty overrides UTF-8
+ok 20 - tree charset selection: TREE_CHARSET empty overrides UTF-8
+  ---
+  duration_ms: 0.076125
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET unknown overrides UTF-8
+ok 21 - tree charset selection: TREE_CHARSET unknown overrides UTF-8
+  ---
+  duration_ms: 0.081666
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET is not trimmed
+ok 22 - tree charset selection: TREE_CHARSET is not trimmed
+  ---
+  duration_ms: 0.082833
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET case-insensitive
+ok 23 - tree charset selection: TREE_CHARSET case-insensitive
+  ---
+  duration_ms: 0.076042
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET UTF8 alias
+ok 24 - tree charset selection: TREE_CHARSET UTF8 alias
+  ---
+  duration_ms: 0.072458
+  type: 'test'
+  ...
+# Subtest: tree charset selection: TREE_CHARSET US-ASCII alias
+ok 25 - tree charset selection: TREE_CHARSET US-ASCII alias
+  ---
+  duration_ms: 0.074667
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: UTF-8
+ok 26 - tree explicit charset alias: UTF-8
+  ---
+  duration_ms: 0.272083
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: utf-8
+ok 27 - tree explicit charset alias: utf-8
+  ---
+  duration_ms: 0.158
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: UTF8
+ok 28 - tree explicit charset alias: UTF8
+  ---
+  duration_ms: 0.206125
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: uTf8
+ok 29 - tree explicit charset alias: uTf8
+  ---
+  duration_ms: 0.164875
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: ASCII
+ok 30 - tree explicit charset alias: ASCII
+  ---
+  duration_ms: 0.194833
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: ascii
+ok 31 - tree explicit charset alias: ascii
+  ---
+  duration_ms: 0.246167
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: US-ASCII
+ok 32 - tree explicit charset alias: US-ASCII
+  ---
+  duration_ms: 0.156625
+  type: 'test'
+  ...
+# Subtest: tree explicit charset alias: us-ascii
+ok 33 - tree explicit charset alias: us-ascii
+  ---
+  duration_ms: 0.14725
+  type: 'test'
+  ...
+# Subtest: last explicit charset wins and skips every environment read
+ok 34 - last explicit charset wins and skips every environment read
+  ---
+  duration_ms: 0.222375
+  type: 'test'
+  ...
+# Subtest: inherited environment keys never select branches or trigger inherited getters
+ok 35 - inherited environment keys never select branches or trigger inherited getters
+  ---
+  duration_ms: 0.183041
+  type: 'test'
+  ...
+# Subtest: null-prototype dictionaries and own special keys preserve data
+ok 36 - null-prototype dictionaries and own special keys preserve data
+  ---
+  duration_ms: 0.131584
+  type: 'test'
+  ...
+# Subtest: ambient host environment cannot select a virtual charset
+ok 37 - ambient host environment cannot select a virtual charset
+  ---
+  duration_ms: 0.134958
+  type: 'test'
+  ...
+# Subtest: selected environment values stop lower-priority getters
+ok 38 - selected environment values stop lower-priority getters
+  ---
+  duration_ms: 0.280834
+  type: 'test'
+  ...
+# Subtest: invalid explicit charset remains status 2 before env or filesystem access
+ok 39 - invalid explicit charset remains status 2 before env or filesystem access
+  ---
+  duration_ms: 0.495209
+  type: 'test'
+  ...
+# Subtest: environment scans are admitted before normalization and byte sizing
+ok 40 - environment scans are admitted before normalization and byte sizing
+  ---
+  duration_ms: 0.427833
+  type: 'test'
+  ...
+# Subtest: environment metadata and work share existing cumulative limits
+ok 41 - environment metadata and work share existing cumulative limits
+  ---
+  duration_ms: 0.177458
+  type: 'test'
+  ...
+# Subtest: UTF-8 connectors charge encoded bytes and preserve a partial prefix on limit
+ok 42 - UTF-8 connectors charge encoded bytes and preserve a partial prefix on limit
+  ---
+  duration_ms: 0.464458
+  type: 'test'
+  ...
+# Subtest: UTF-8 branches do not unescape filenames, reorder bytes or change JSON
+ok 43 - UTF-8 branches do not unescape filenames, reorder bytes or change JSON
+  ---
+  duration_ms: 2.74025
+  type: 'test'
+  ...
+# Subtest: UTF-8 output still awaits backpressure
+ok 44 - UTF-8 output still awaits backpressure
+  ---
+  duration_ms: 8.228708
+  type: 'test'
+  ...
+# Subtest: caller abort preserves reason before lookup and during an awaited write
+ok 45 - caller abort preserves reason before lookup and during an awaited write
+  ---
+  duration_ms: 0.592584
+  type: 'test'
+  ...
+# Subtest: default registry forwards charset through a real pipeline without leaking env
+ok 46 - default registry forwards charset through a real pipeline without leaking env
+  ---
+  duration_ms: 10.304292
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: populated root
+ok 47 - tree 2.2.1 count retained: populated root
+  ---
+  duration_ms: 4.49375
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: empty root
+ok 48 - tree 2.2.1 count retained: empty root
+  ---
+  duration_ms: 0.644459
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: file-only populated root
+ok 49 - tree 2.2.1 count retained: file-only populated root
+  ---
+  duration_ms: 0.953417
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: empty child directory
+ok 50 - tree 2.2.1 count retained: empty child directory
+  ---
+  duration_ms: 1.041708
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: hidden-only root
+ok 51 - tree 2.2.1 count retained: hidden-only root
+  ---
+  duration_ms: 1.009208
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: hidden included
+ok 52 - tree 2.2.1 count retained: hidden included
+  ---
+  duration_ms: 0.781916
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: all entries excluded
+ok 53 - tree 2.2.1 count retained: all entries excluded
+  ---
+  duration_ms: 0.868292
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: all files filtered
+ok 54 - tree 2.2.1 count retained: all files filtered
+  ---
+  duration_ms: 0.893708
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: directory-only empty report
+ok 55 - tree 2.2.1 count retained: directory-only empty report
+  ---
+  duration_ms: 0.709417
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: directory-only populated report
+ok 56 - tree 2.2.1 count retained: directory-only populated report
+  ---
+  duration_ms: 1.910458
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: depth-one displayed entries
+ok 57 - tree 2.2.1 count retained: depth-one displayed entries
+  ---
+  duration_ms: 0.625958
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: repeated roots accumulate
+ok 58 - tree 2.2.1 count retained: repeated roots accumulate
+  ---
+  duration_ms: 1.348708
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: empty, populated and file roots accumulate
+ok 59 - tree 2.2.1 count retained: empty, populated and file roots accumulate
+  ---
+  duration_ms: 0.978667
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: directory and broken links
+ok 60 - tree 2.2.1 count retained: directory and broken links
+  ---
+  duration_ms: 0.887375
+  type: 'test'
+  ...
+# Subtest: tree 2.2.1 count retained: followed directory links
+ok 61 - tree 2.2.1 count retained: followed directory links
+  ---
+  duration_ms: 1.39625
+  type: 'test'
+  ...
+# Subtest: original strict breadth output remains different; native modern count is preserved
+ok 62 - original strict breadth output remains different; native modern count is preserved
+  ---
+  duration_ms: 0.26625
+  type: 'test'
+  ...
+1..62
+# tests 62
+# suites 0
+# pass 62
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 259.682791

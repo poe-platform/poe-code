@@ -1,0 +1,391 @@
+{
+  "binary": "/tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree",
+  "binarySha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+  "rows": [
+    {
+      "id": "env-\"UTF-8\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"UTF-8\"",
+      "args": [
+        "--charset=UTF-8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"utf-8\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "utf-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"utf-8\"",
+      "args": [
+        "--charset=utf-8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"UTF8\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "UTF8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"UTF8\"",
+      "args": [
+        "--charset=UTF8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"utf8\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "utf8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"utf8\"",
+      "args": [
+        "--charset=utf8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"ASCII\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "ASCII"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"ASCII\"",
+      "args": [
+        "--charset=ASCII"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"US-ASCII\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "US-ASCII"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"US-ASCII\"",
+      "args": [
+        "--charset=US-ASCII"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"ascii\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "ascii"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"ascii\"",
+      "args": [
+        "--charset=ascii"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": ""
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"\"",
+      "args": [
+        "--charset="
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "tree: Missing argument to --charset=\n"
+    },
+    {
+      "id": "env-\"bogus\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "bogus"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"bogus\"",
+      "args": [
+        "--charset=bogus"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\"UTF-8 \"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": "UTF-8 "
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\"UTF-8 \"",
+      "args": [
+        "--charset=UTF-8 "
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-\" UTF-8\"",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "TREE_CHARSET": " UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "option-\" UTF-8\"",
+      "args": [
+        "--charset= UTF-8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-C",
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-POSIX",
+      "args": [],
+      "env": {
+        "LC_ALL": "POSIX"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-C.UTF-8",
+      "args": [],
+      "env": {
+        "LC_ALL": "C.UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-C.utf8",
+      "args": [],
+      "env": {
+        "LC_ALL": "C.utf8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-en_US.UTF-8",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-en_US.utf8",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.utf8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-en_US.UTF-8@modifier",
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8@modifier"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "locale-not-installed.UTF-8",
+      "args": [],
+      "env": {
+        "LC_ALL": "not-installed.UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-over-empty",
+      "args": [
+        "--charset=UTF-8"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TREE_CHARSET": ""
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-over-unknown",
+      "args": [
+        "--charset=UTF-8"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TREE_CHARSET": "unknown"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "last-ascii",
+      "args": [
+        "--charset=UTF-8",
+        "--charset=ASCII"
+      ],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "exitCode": 0,
+      "stdout": "root\n`-- file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "id": "last-utf8",
+      "args": [
+        "--charset=ASCII",
+        "--charset=UTF-8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "exitCode": 0,
+      "stdout": "root\n└── file\n\n1 directory, 1 file\n",
+      "stderr": ""
+    }
+  ]
+}

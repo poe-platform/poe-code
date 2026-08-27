@@ -4,9 +4,12 @@ This leaf module exports `createDuCommand`, `createDuCommands`, `duCommands`,
 `DuCommandsOptions`, and `DuLimits`. The definition is named `du`; the plugin is
 named `du-commands`. Options are `{ replace?: boolean, limits?: Partial<DuLimits> }`.
 The plugin preflights collisions and registers with the same replacement policy.
-Root exports and a package subpath are integration-owner work, not provided by
-this subtree. The author verifies source and isolated built-module imports with
-actual `Shell.use(duCommands())`; that is not a packed public import acceptance.
+Root and the explicit `virtual-bash/commands/du` subpath expose these functions
+and types. `agentCommands` includes DU; `AgentCommandsOptions.du` omits family
+`replace`, because the aggregate's top-level replacement policy is authoritative.
+Public integration and the owned-output adoption below are new author work,
+pending separate public review; prior module/native acceptance does not certify
+this integration or imply a whole-product gate.
 
 ## Accounting and failure policy
 
@@ -120,6 +123,22 @@ These boundaries and the common profile were measured against pinned GNU 9.7;
 this bounded profile is not full GNU/POSIX `du` compatibility.
 
 ## Limits and lifecycle
+
+After argument/environment validation, an advertised stdout `ownedOutput`
+capability enrolls a destination-specific `createOutputOperation`. The same
+budget continues across validation and traversal: no reset or duplicate output
+charging. Metadata calls and accounted stdout writes use the operation signal;
+required diagnostics use the original caller signal and the same combined byte
+budget. Legacy sinks without the capability keep their original signal binding.
+Invocation cleanup is registered before metadata admission; operation close and
+budget cleanup are awaited from finally. An exact operation-close reason is
+rethrown to the caller of the direct handler; no new success/141 normalization
+is added. Shell retains its existing EPIPE stage mapping. Caller abort takes
+priority and retains exact identity. Other caught errors still use the existing
+DU status1/diagnostic profile, including when a required diagnostic is pending
+as stdout closes. No whole caller or sibling destination is aborted just to stop
+the walk. Providers receive cancellation but opaque underlying promises are not
+forcibly terminated; late rejection is observed, not called successful retirement.
 
 | Limit | Default |
 | --- | ---: |

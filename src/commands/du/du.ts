@@ -1,4 +1,4 @@
-import { resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
+import { createOutputOperation, resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
 import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
@@ -27,8 +27,8 @@ class Walker {
   }
 
   private async failure(error: unknown, display?: string): Promise<void> {
-    this.budget.active();
-    if (error instanceof DuLimitError) throw error;
+    this.budget.active(this.budget.caller.signal);
+    if (this.budget.context.signal.aborted || error instanceof DuLimitError) throw error;
     this.failed = true;
     await this.budget.diagnostic(error, display);
   }
@@ -130,22 +130,31 @@ class Walker {
 export function createDuCommand(options: DuCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return { name: "du", description: "Bounded provider allocation or explicit apparent-size usage", async execute(context) {
-    const budget = new Budget(context, limits);
+    let operation: OutputOperation | undefined;
+    const work = { ...context, get signal() { return operation?.signal ?? context.signal; }, get stdout() { return operation?.output ?? context.stdout; } };
+    const budget = new Budget(work, limits, context);
     context.registerCleanup?.(budget.close);
     try {
       const args = parse(budget);
-      if (args.help) { await budget.emit(context.stdout, helpText); return { exitCode: 0 }; }
+      if (context.stdout.ownedOutput) operation = createOutputOperation(context, context.stdout);
+      if (args.help) { await budget.emit(work.stdout, helpText); return { exitCode: 0 }; }
       const walker = new Walker(budget, args);
       await walker.run();
       return { exitCode: walker.failed ? 1 : 0 };
     } catch (error) {
-      budget.active();
+      context.signal.throwIfAborted();
+      if (operation?.signal.aborted && error === operation.signal.reason) throw error;
+      budget.active(context.signal);
       try { await budget.diagnostic(error); }
       catch (diagnosticError) {
-        budget.active();
+        budget.active(context.signal);
         if (!(diagnosticError instanceof DuLimitError)) throw diagnosticError;
       }
       return { exitCode: 1 };
-    } finally { await budget.close(); }
+    } finally {
+      try { await budget.close(); }
+      finally { await operation?.close(); }
+      context.signal.throwIfAborted();
+    }
   } };
 }

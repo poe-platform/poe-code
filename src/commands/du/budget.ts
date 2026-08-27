@@ -15,12 +15,13 @@ export class Budget {
   private completion: Promise<void> | undefined;
   private readonly cancellation = new AbortController();
   private readonly ioSignal: AbortSignal;
+  private outputSignal: AbortSignal | undefined;
   private readonly work = new Set<Promise<unknown>>();
   private readonly pending = new Set<() => void>();
   private readonly timers = new Set<ReturnType<typeof setImmediate>>();
 
-  constructor(readonly context: CommandContext, readonly limits: DuLimits) {
-    this.ioSignal = AbortSignal.any([context.signal, this.cancellation.signal]);
+  constructor(readonly context: CommandContext, readonly limits: DuLimits, readonly caller: CommandContext = context) {
+    this.ioSignal = AbortSignal.any([caller.signal, this.cancellation.signal]);
   }
 
   readonly close = (): Promise<void> => {
@@ -44,13 +45,13 @@ export class Budget {
     return promise;
   }
 
-  active(): void {
-    this.context.signal.throwIfAborted();
+  active(signal = this.context.signal): void {
+    signal.throwIfAborted();
     if (this.closed) throw new Error("du invocation closed");
   }
 
-  check(value: number, maximum: number, label: string): void {
-    this.active();
+  check(value: number, maximum: number, label: string, signal = this.context.signal): void {
+    this.active(signal);
     if (!Number.isSafeInteger(value) || value > maximum) throw new DuLimitError(label);
   }
 
@@ -105,25 +106,26 @@ export class Budget {
     return this.wait(operation);
   }
 
-  async emit(sink: ByteSink, text: string): Promise<void> {
-    this.check(text.length, this.limits.maxOutputBytes - this.output, "output");
+  async emit(sink: ByteSink, text: string, signal = this.context.signal): Promise<void> {
+    this.check(text.length, this.limits.maxOutputBytes - this.output, "output", signal);
     const size = Buffer.byteLength(text);
-    this.check(size, this.limits.maxOutputBytes - this.output, "output");
+    this.check(size, this.limits.maxOutputBytes - this.output, "output", signal);
     this.output += size;
     const bytes = new TextEncoder().encode(text);
+    const ioSignal = signal === this.caller.signal ? this.ioSignal : (this.outputSignal ??= AbortSignal.any([signal, this.cancellation.signal]));
     for (let offset = 0; offset < bytes.length; offset += 16384) {
-      this.active();
-      await this.track(writeBytes(sink, bytes.slice(offset, offset + 16384), this.ioSignal));
+      this.active(signal);
+      await this.track(writeBytes(sink, bytes.slice(offset, offset + 16384), ioSignal));
     }
   }
 
   async diagnostic(error: unknown, path?: string): Promise<void> {
-    this.active();
+    this.active(this.caller.signal);
     const raw = error instanceof Error ? error.message : typeof error === "string" ? error : "filesystem operation failed";
     const maximum = 4096;
     const short = raw.length > maximum ? raw.slice(0, maximum) + " [diagnostic truncated]" : raw;
     const message = short.replace(/^[A-Z][A-Z0-9]+: /u, "");
     const location = path === undefined ? "" : `${JSON.stringify(path)}: `;
-    await this.emit(this.context.stderr, `du: ${location}${message.replace(/[\x00-\x1f\x7f]/gu, character => `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`)}\n`);
+    await this.emit(this.caller.stderr, `du: ${location}${message.replace(/[\x00-\x1f\x7f]/gu, character => `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`)}\n`, this.caller.signal);
   }
 }

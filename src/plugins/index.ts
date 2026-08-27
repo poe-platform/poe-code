@@ -18,9 +18,11 @@ import { createFileCommands, type FileCommandsOptions } from "../commands/file/i
 import { createGrepAliasCommands } from "../commands/grep-aliases/index.js";
 import { createColumnCommands, type ColumnCommandsOptions } from "../commands/column/index.js";
 import { createHtmlToMarkdownCommands, type HtmlToMarkdownCommandsOptions } from "../commands/html-to-markdown/index.js";
+import { createDuCommands, type DuCommandsOptions } from "../commands/du/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
   readonly execute?: CommandHandler;
@@ -71,6 +73,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createGrepAliasCommands(options.regex === undefined ? {} : { regex: options.regex }),
     ...createColumnCommands({ ...options.column }),
     ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
+    ...createDuCommands({ ...options.du }),
   );
   return new CommandRegistry(commands).list();
 }

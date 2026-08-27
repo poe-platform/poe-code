@@ -76,8 +76,8 @@ metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 (`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
-grep aliases (`egrep`, `fgrep`), table layout (`column`), and bounded HTML conversion
-(`html-to-markdown`), totaling 74 unique registered
+grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
+(`html-to-markdown`), and usage accounting (`du`), totaling 75 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -401,7 +401,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 74 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 75 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -454,7 +454,7 @@ that module-author document predates this root wiring. Alias source evidence and
 the two-case public settlement correction are separately recorded in
 `tests/commands/grep-aliases-stress/settlement-v2-independent/REPORT.md`.
 Registration is not a whole-product gate or full native-parity claim. `expr`
-and `du` are not default commands; curl and SafeJS remain explicit opt-ins.
+is not a default command; curl and SafeJS remain explicit opt-ins.
 
 ## Optional SafeJS Command
 
@@ -585,3 +585,43 @@ The renderer's independent module acceptance and this new public/lifecycle
 integration are separate scopes; integration still requires its different-agent
 review. Exact CLI, limits and limitations are in
 `src/commands/html-to-markdown/README.md`.
+
+## Bounded usage accounting
+
+`du` is a default command. Root and `virtual-bash/commands/du` export
+`createDuCommand`, `createDuCommands`, `duCommands`, `DuCommandsOptions`, and
+`DuLimits`. Aggregate options use `du: { limits: ... }`; only top-level `replace`
+controls aggregate replacement. Standalone `duCommands` accepts its own `replace`.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "virtual-bash";
+
+const fs = createMemoryFileSystem();
+await fs.mkdir("/project");
+await fs.writeFile("/project/notes", new TextEncoder().encode("seven!!"));
+const shell = new Shell({ fs }).use(agentCommands({ du: { limits: { maxEntries: 10000 } } }));
+try {
+  const result = await shell.exec("du -bs /project");
+  if (result.exitCode !== 0) throw new Error(result.stderr);
+} finally { await shell.dispose(); }
+```
+
+The example reports `7\t/project\n`: apparent size, not allocation.
+
+Default allocation mode uses provider-reported `FileStat.allocatedBytes`.
+Absence is unknown, not zero or rounded logical size; incomplete totals are
+suppressed with status1 and a diagnostic. Use explicit `-b`/`--apparent-size`
+when logical accounting is intended. Known zero is valid. Memory/S3/WebDAV do
+not fabricate allocation; Real reports validated host allocation when available.
+Neither mode measures unique/reclaimable storage, billing, RSS or a snapshot.
+
+The bounded walker uses metadata only, preserves its documented deterministic
+ordering and identity qualifications, and never reads stdin or file content.
+When stdout advertises the accepted owned-output capability, metadata/output
+work uses that operation's signal; validation and required stderr keep the
+original caller. One combined stdout/stderr budget remains in force. Closing
+stdout does not abort the caller or an unrelated required file destination.
+Opaque provider promises are observed but not forcibly stopped or claimed retired.
+This is new DU integration/adoption, pending separate public review; the accepted
+module, native qualification and frozen HTML74 package remain separate evidence.
+Exact flags, refusals and limits: `src/commands/du/README.md`.

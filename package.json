@@ -74,6 +74,10 @@
       "types": "./dist/commands/html-to-markdown/index.d.ts",
       "import": "./dist/commands/html-to-markdown/index.js"
     },
+    "./commands/du": {
+      "types": "./dist/commands/du/index.d.ts",
+      "import": "./dist/commands/du/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

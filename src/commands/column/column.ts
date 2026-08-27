@@ -103,7 +103,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
     } finally {
       if (inputs) {
         try { await inputs.close(); }
-        catch (error) { if (!failed) { context.signal.throwIfAborted(); throw error; } }
+        catch (error) { context.signal.throwIfAborted(); if (!failed) throw error; }
+        context.signal.throwIfAborted();
       }
     }
   } };

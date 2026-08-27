@@ -96,7 +96,13 @@ export class ColumnInputs {
       return typeof value === "function" ? value.bind(target) : value;
     } }) as FileSystem;
     const stdin: ByteSource = { [Symbol.asyncIterator]: () => this.manage(context.stdin)[Symbol.asyncIterator]() };
-    const scoped = { ...context, fs, stdin, signal: this.signal };
+    const scoped = new Proxy({ fs, stdin, signal: this.signal } as CommandContext, {
+      get(target, key) {
+        if (Object.hasOwn(target, key)) return Reflect.get(target, key, target);
+        const value: unknown = Reflect.get(context, key, context);
+        return typeof value === "function" ? value.bind(context) : value;
+      },
+    });
     this.budget = new ColumnBudget(scoped, limits);
     this.inputs = new Inputs(scoped, this.budget, 10);
     context.registerCleanup?.(this.close);

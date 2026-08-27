@@ -1,0 +1,339 @@
+{
+  "classification": "pre-execution-documented-profile-completion-original-40-recipes-unchanged",
+  "sealedAt": "2026-08-27T14:41:22.646Z",
+  "recipeSha256": "e6db28115a575c6da046a9efa81841ed05dc28a04c8860630141c461bf20d2aa",
+  "nativeSha256": "89515a42ed2e9e634cf1c82ec523f74f6b04c20732a5826d21177f04f7657a79",
+  "authorReadmeSha256": "fd8aa127d8f9c46faeb0d539bd3b98ee32318d7889f1e4d8f237c2260aef4738",
+  "independentRecipeExecutionsBeforeSeal": 0,
+  "authorSuiteExecutedBeforeSeal": true,
+  "authorSuiteOutputUsedToSetExpected": false,
+  "rows": [
+    {
+      "key": "N01/literal",
+      "status": 0,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N02/colon",
+      "status": 0,
+      "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N03/two-delimiters",
+      "status": 0,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N04/visible-bars",
+      "status": 0,
+      "stdoutHex": "61202020207c2062620a6c6f6e67207c20630a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N05/zero-bytes",
+      "status": 0,
+      "stdoutHex": "61620a78790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N06/eleven-items",
+      "status": 0,
+      "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N07/seven-in-24",
+      "status": 0,
+      "stdoutHex": "7a096209780a6109790a7109630a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N08/seven-in-24",
+      "status": 0,
+      "stdoutHex": "7a096109710a62097909630a780a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N09/width-one",
+      "status": 0,
+      "stdoutHex": "616c7068616265740a620a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N10/fill",
+      "status": 0,
+      "stdoutHex": "6120202020202020620a3132333435363720630a7a0a",
+      "stderrEmpty": true,
+      "basis": "Retained tabs expand from entry origin; maximum width nine gives one column at width 24."
+    },
+    {
+      "key": "N10/explicit-table",
+      "status": 0,
+      "stdoutHex": "6120202020202020622020630a7878202020202020202020640a",
+      "stderrEmpty": true,
+      "basis": "Cell-relative tab expansion and fixed scalar widths, not native raw tab byte width."
+    },
+    {
+      "key": "N11/empty-source",
+      "status": 0,
+      "stdoutHex": "",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N11/blank-table",
+      "status": 0,
+      "stdoutHex": "",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N11/blank-fill",
+      "status": 0,
+      "stdoutHex": "7a09610a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N12/no-final-lf",
+      "status": 0,
+      "stdoutHex": "61202020620a63632020640a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N13/two-files",
+      "status": 0,
+      "stdoutHex": "612020202020620a6c6f6e672020630a78202020202079790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N14/dash-file-dash",
+      "status": 0,
+      "stdoutHex": "732020202020310a74202020202032320a66696c652020330a",
+      "stderrEmpty": true,
+      "basis": "Explicit shared stdin cursor and record order; both native dash-filename diagnostics remain separate."
+    },
+    {
+      "key": "N15/missing-first",
+      "status": 1,
+      "stdoutHex": "6f6b202076616c75650a",
+      "stderrEmpty": false,
+      "basis": "Documented missing-open continuation plus nonzero error status.",
+      "stderrContains": "absent.txt"
+    },
+    {
+      "key": "N16/literal-file",
+      "status": 0,
+      "stdoutHex": "612020202020620a6c6f6e672020630a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N17/separator-alias",
+      "status": 0,
+      "stdoutHex": "617c620a787c790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N17/input-separator-alias",
+      "status": 0,
+      "stdoutHex": "612020620a782020790a",
+      "stderrEmpty": true,
+      "basis": "Explicit alias supported in proposal and README, absent from pinned native 2.41.2."
+    },
+    {
+      "key": "N17/fill-aliases",
+      "status": 0,
+      "stdoutHex": "6109620a630a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N18/zero",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N18/negative",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N18/not-number",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N19/missing-width",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N19/missing-input-separator",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N19/missing-output-separator",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N20/json",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N21/combining-acute",
+      "status": 0,
+      "stdoutHex": "65cc81202020780a61622020790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N22/ideograph",
+      "status": 0,
+      "stdoutHex": "e7958c2020780a61202020790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N23/emoji-zwj",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "README fixed profile rejects retained U+200D; this resolves the original named handoff prerequisite, not a candidate-observed waiver.",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N24/invalid-leading-byte",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N24/truncated-multibyte",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N24/overlong",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N25/nul",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N25/ansi-escape",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N25/bell",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N25/backspace",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N26/default-whitespace",
+      "status": 0,
+      "stdoutHex": "612020622020632020642020650a",
+      "stderrEmpty": true,
+      "basis": "ASCII TAB VT FF CR delimit before cell validation."
+    },
+    {
+      "key": "N26/explicit-colon",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    },
+    {
+      "key": "N27/table-width-one",
+      "status": 0,
+      "stdoutHex": "616c7068616265742020780a62622020202020202020790a",
+      "stderrEmpty": true,
+      "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+    },
+    {
+      "key": "N28/help",
+      "status": 0,
+      "stdoutHex": null,
+      "stderrEmpty": true,
+      "basis": "Help wording is not a frozen native requirement.",
+      "help": true
+    },
+    {
+      "key": "N28/output-separator-without-table",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrEmpty": false,
+      "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+      "stderrNonempty": true
+    }
+  ]
+}

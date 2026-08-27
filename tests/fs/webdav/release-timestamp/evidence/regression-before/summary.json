@@ -1,0 +1,35 @@
+{
+  "source": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+  "overlay": false,
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 1,
+      "counts": {
+        "tests": 13,
+        "pass": 12,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "timestamp-regressions",
+      "status": 1,
+      "counts": {
+        "tests": 19,
+        "pass": 3,
+        "fail": 16,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "runtimeModuleCount": 157,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp/.work-6pohCp",
+    "removed": true
+  }
+}

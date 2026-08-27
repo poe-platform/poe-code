@@ -1,0 +1,47 @@
+{
+  "source": "f5341340bcbc9e4c4d46d6eb3f1759da73713097",
+  "overlay": true,
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 0,
+      "counts": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "timestamp-regressions",
+      "status": 0,
+      "counts": {
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "unchanged-postcondition5",
+      "status": 0,
+      "counts": {
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "runtimeModuleCount": 157,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp/.work-paAlmA",
+    "removed": true
+  }
+}

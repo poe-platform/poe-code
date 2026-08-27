@@ -48,7 +48,7 @@ try {
       const expected = Object.fromEntries([...ready.matchAll(/(src\/shell\/\S+\.ts) ([a-f0-9]{64})/gu)].map(match => [match[1]!, match[2]!]));
       expected["src/shell/shell.ts"] = /New Shell SHA256: ([a-f0-9]{64})/u.exec(bomReady)![1]!;
       if (discoveryReady !== undefined) {
-        if (!discoveryReady.includes("READY")) throw new Error("Discovery handoff is not READY");
+        if (!/^(?:READY|SOURCE FREEZE)\b/u.test(discoveryReady)) throw new Error("Discovery handoff lacks READY or SOURCE FREEZE");
         const runtime = /runtime[^\n]*?([a-f0-9]{64})/iu.exec(discoveryReady)?.[1];
         if (!runtime) throw new Error("Discovery READY lacks an exact runtime hash");
         expected["src/shell/runtime.ts"] = runtime;

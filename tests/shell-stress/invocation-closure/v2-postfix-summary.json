@@ -1,0 +1,1764 @@
+{
+  "timestamp": "2026-08-27T01:58:34.847Z",
+  "outcome": "Bounded supported invocation/discovery closure verified; not universal raw parity or clean global typecheck snapshot",
+  "sourceCommit": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "runtimeHash": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+  "shellHash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+  "startHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+  "observedEndHead": "29a61222a8744ce479601ff33061a38b4a193b78",
+  "records": [
+    {
+      "file": "v2-postfix-original34.json",
+      "label": "new 34 holdouts",
+      "stage": "new",
+      "code": 1,
+      "totals": {
+        "tests": 34,
+        "pass": 32,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": [
+        "not ok 2 - closure primary: query-V-verbose",
+        "not ok 3 - closure primary: type-multiple-status"
+      ]
+    },
+    {
+      "file": "v2-postfix-corrected34.json",
+      "label": "corrected v2 34",
+      "stage": "v2",
+      "code": 0,
+      "totals": {
+        "tests": 34,
+        "pass": 34,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-corrected34.json",
+      "label": "v2 truthful registry supplemental 1",
+      "stage": "v2",
+      "code": 0,
+      "totals": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-legacy.json",
+      "label": "unchanged 72",
+      "stage": "legacy",
+      "code": 0,
+      "totals": {
+        "tests": 72,
+        "pass": 72,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-legacy.json",
+      "label": "unchanged 132",
+      "stage": "legacy",
+      "code": 0,
+      "totals": {
+        "tests": 132,
+        "pass": 132,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-author-original.json",
+      "label": "new author 211",
+      "stage": "author",
+      "code": 1,
+      "totals": {
+        "tests": 211,
+        "pass": 210,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": [
+        "not ok 41 - unsupported discovery options do not silently dispatch"
+      ]
+    },
+    {
+      "file": "v2-postfix-author-corrected.json",
+      "label": "new author 211",
+      "stage": "author",
+      "code": 0,
+      "totals": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "afterHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "startingCompilerInputs": 936,
+      "actualImports": 34,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-author-fixes112.json",
+      "label": "author discovery fixes",
+      "stage": "discovery-fixes",
+      "code": 1,
+      "totals": {
+        "tests": 112,
+        "pass": 96,
+        "fail": 16,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 22,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": [
+        "not ok 55 - historical-3.2/bash/empty-path",
+        "not ok 71 - historical-3.2/bash/terminator",
+        "not ok 73 - historical-3.2/bash/unknown-z",
+        "not ok 74 - historical-3.2/bash/unknown-x",
+        "not ok 75 - historical-3.2/bash/unknown-combined",
+        "not ok 76 - historical-3.2/bash/unknown-first",
+        "not ok 77 - historical-3.2/bash/unknown-long",
+        "not ok 78 - historical-3.2/bash/unknown-line",
+        "not ok 81 - historical-3.2/sh/empty-path",
+        "not ok 97 - historical-3.2/sh/terminator",
+        "not ok 99 - historical-3.2/sh/unknown-z",
+        "not ok 100 - historical-3.2/sh/unknown-x",
+        "not ok 101 - historical-3.2/sh/unknown-combined",
+        "not ok 102 - historical-3.2/sh/unknown-first",
+        "not ok 103 - historical-3.2/sh/unknown-long",
+        "not ok 104 - historical-3.2/sh/unknown-line"
+      ]
+    },
+    {
+      "file": "v2-postfix-previous.json",
+      "label": "previous file 58",
+      "stage": "previous",
+      "code": 0,
+      "totals": {
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 22,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-previous.json",
+      "label": "selected regressions",
+      "stage": "previous",
+      "code": 0,
+      "totals": {
+        "tests": 173,
+        "pass": 173,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "beforeHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "afterHead": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+      "startingCompilerInputs": 936,
+      "actualImports": 42,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-types.json",
+      "label": "global noEmit",
+      "stage": "types",
+      "code": 0,
+      "totals": {},
+      "beforeHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "afterHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "startingCompilerInputs": 936,
+      "actualImports": 936,
+      "stable": false,
+      "changedRelevant": [
+        "src/commands/structured/jq.ts"
+      ],
+      "allSourceChanges": [
+        "src/commands/structured/jq.ts"
+      ],
+      "endInputChanges": [
+        {
+          "path": "src/commands/archive/format.ts",
+          "tested": "4ff48b5157a24d54d10fd2874c6e6d83f1bc912d8b5e123a8e4801ee0ce44b2c",
+          "current": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0"
+        },
+        {
+          "path": "src/commands/structured/interpreter.ts",
+          "tested": "36388bf520b2e2ebaa81a1084bded25348ed9dd3cf95e650162ba1844f7a4307",
+          "current": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053"
+        },
+        {
+          "path": "src/commands/structured/parser.ts",
+          "tested": "f710440f4f3dfbe073873175f40cef70d0a146835b44fc9e0b0de1fecede0ebc",
+          "current": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9"
+        },
+        {
+          "path": "src/commands/structured/values.ts",
+          "tested": "40057626f9d47e46918673c944bcb00a815dd35c92f1f96c17946c6b03933cb3",
+          "current": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab"
+        },
+        {
+          "path": "tests/commands/archive-stress/native.test.ts",
+          "tested": "c09f07213a209ee4de17ef22d927fbecaee2f2118ce63220d7f429987d7cd2c4",
+          "current": "8637e372c0955286bbec9fc1aa9b9465740e212fdbdabb4e31cb272154a10431"
+        },
+        {
+          "path": "tests/commands/archive-stress/pax-extensibility.test.ts",
+          "tested": "48498093767d84f89a3e70a27aacba497a6ad3c1bff9c71dbed25f9b7c77e7b8",
+          "current": "6be4fac35f4d4ee65e25dce8a605839d02527f3129bdcd22d2dd3b640bee3951"
+        },
+        {
+          "path": "tests/commands/structured-stress/jq-grammar-author-20260827/grammar.test.ts",
+          "tested": "9327909f3708e85400e70d9f4e0f20bfca6d08d79b9a589e6ab9c6547b4c9c8d",
+          "current": "7a780d053e24712e0943a13b6b97d57c6f156fa6caf690c447be2931bd7ebf71"
+        }
+      ],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-types.json",
+      "label": "build noEmit",
+      "stage": "types",
+      "code": 0,
+      "totals": {},
+      "beforeHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "afterHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "startingCompilerInputs": 296,
+      "actualImports": 296,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [
+        {
+          "path": "src/commands/archive/format.ts",
+          "tested": "4ff48b5157a24d54d10fd2874c6e6d83f1bc912d8b5e123a8e4801ee0ce44b2c",
+          "current": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0"
+        },
+        {
+          "path": "src/commands/structured/interpreter.ts",
+          "tested": "36388bf520b2e2ebaa81a1084bded25348ed9dd3cf95e650162ba1844f7a4307",
+          "current": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053"
+        },
+        {
+          "path": "src/commands/structured/parser.ts",
+          "tested": "f710440f4f3dfbe073873175f40cef70d0a146835b44fc9e0b0de1fecede0ebc",
+          "current": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9"
+        },
+        {
+          "path": "src/commands/structured/values.ts",
+          "tested": "40057626f9d47e46918673c944bcb00a815dd35c92f1f96c17946c6b03933cb3",
+          "current": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab"
+        }
+      ],
+      "failedTests": []
+    },
+    {
+      "file": "v2-postfix-types.json",
+      "label": "benchmark noEmit",
+      "stage": "types",
+      "code": 0,
+      "totals": {},
+      "beforeHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "afterHead": "1f9efe330a62e3204c0a9507d94d3e0111154dc4",
+      "startingCompilerInputs": 411,
+      "actualImports": 411,
+      "stable": true,
+      "changedRelevant": [],
+      "allSourceChanges": [],
+      "endInputChanges": [
+        {
+          "path": "src/commands/archive/format.ts",
+          "tested": "4ff48b5157a24d54d10fd2874c6e6d83f1bc912d8b5e123a8e4801ee0ce44b2c",
+          "current": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0"
+        },
+        {
+          "path": "src/commands/structured/interpreter.ts",
+          "tested": "36388bf520b2e2ebaa81a1084bded25348ed9dd3cf95e650162ba1844f7a4307",
+          "current": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053"
+        },
+        {
+          "path": "src/commands/structured/parser.ts",
+          "tested": "f710440f4f3dfbe073873175f40cef70d0a146835b44fc9e0b0de1fecede0ebc",
+          "current": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9"
+        },
+        {
+          "path": "src/commands/structured/values.ts",
+          "tested": "40057626f9d47e46918673c944bcb00a815dd35c92f1f96c17946c6b03933cb3",
+          "current": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab"
+        }
+      ],
+      "failedTests": []
+    }
+  ],
+  "actualRuntimeDependencies": {
+    "src/commands/basic.ts": {
+      "current": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "versions": [
+        {
+          "hash": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/copy-identity.ts": {
+      "current": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "versions": [
+        {
+          "hash": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/execution.ts": {
+      "current": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "versions": [
+        {
+          "hash": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/filesystem.ts": {
+      "current": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+      "versions": [
+        {
+          "hash": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/find.ts": {
+      "current": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "versions": [
+        {
+          "hash": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/grep.ts": {
+      "current": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "versions": [
+        {
+          "hash": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/index.ts": {
+      "current": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "versions": [
+        {
+          "hash": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/internal.ts": {
+      "current": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "versions": [
+        {
+          "hash": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/move.ts": {
+      "current": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "versions": [
+        {
+          "hash": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/predicates.ts": {
+      "current": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "versions": [
+        {
+          "hash": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/streams.ts": {
+      "current": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "versions": [
+        {
+          "hash": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/text.ts": {
+      "current": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "versions": [
+        {
+          "hash": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/command.ts": {
+      "current": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "versions": [
+        {
+          "hash": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/errors.ts": {
+      "current": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "versions": [
+        {
+          "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/filesystem.ts": {
+      "current": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "versions": [
+        {
+          "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/index.ts": {
+      "current": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "versions": [
+        {
+          "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/io.ts": {
+      "current": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "versions": [
+        {
+          "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/path.ts": {
+      "current": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "versions": [
+        {
+          "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/contracts/plugin.ts": {
+      "current": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "versions": [
+        {
+          "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/fs/memory/index.ts": {
+      "current": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+      "versions": [
+        {
+          "hash": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/fs/mount/comparison.ts": {
+      "current": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "versions": [
+        {
+          "hash": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/fs/mount/identity.ts": {
+      "current": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "versions": [
+        {
+          "hash": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/fs/s3/authority.ts": {
+      "current": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229",
+      "versions": [
+        {
+          "hash": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/fs/webdav/resource-id.ts": {
+      "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+      "versions": [
+        {
+          "hash": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/arithmetic.ts": {
+      "current": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "versions": [
+        {
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/display.ts": {
+      "current": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "versions": [
+        {
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/index.ts": {
+      "current": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "versions": [
+        {
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/input.ts": {
+      "current": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "versions": [
+        {
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/locale.ts": {
+      "current": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "versions": [
+        {
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/parser.ts": {
+      "current": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "versions": [
+        {
+          "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/pattern.ts": {
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "versions": [
+        {
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/runtime.ts": {
+      "current": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+      "versions": [
+        {
+          "hash": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/shell.ts": {
+      "current": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "versions": [
+        {
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/shell/types.ts": {
+      "current": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "versions": [
+        {
+          "hash": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "phases": [
+            "v2-postfix-original34.json: new 34 holdouts",
+            "v2-postfix-corrected34.json: corrected v2 34",
+            "v2-postfix-corrected34.json: v2 truthful registry supplemental 1",
+            "v2-postfix-legacy.json: unchanged 72",
+            "v2-postfix-legacy.json: unchanged 132",
+            "v2-postfix-author-original.json: new author 211",
+            "v2-postfix-author-corrected.json: new author 211",
+            "v2-postfix-author-fixes112.json: author discovery fixes",
+            "v2-postfix-previous.json: previous file 58",
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/glob.ts": {
+      "current": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "versions": [
+        {
+          "hash": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/index.ts": {
+      "current": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "versions": [
+        {
+          "hash": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/matcher.ts": {
+      "current": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "versions": [
+        {
+          "hash": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/options.ts": {
+      "current": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "versions": [
+        {
+          "hash": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/output.ts": {
+      "current": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "versions": [
+        {
+          "hash": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/rg.ts": {
+      "current": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "versions": [
+        {
+          "hash": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/shared.ts": {
+      "current": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "versions": [
+        {
+          "hash": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    },
+    "src/commands/search/walk.ts": {
+      "current": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "versions": [
+        {
+          "hash": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+          "phases": [
+            "v2-postfix-previous.json: selected regressions"
+          ]
+        }
+      ]
+    }
+  },
+  "runtimeChangesBetweenPhases": [],
+  "runtimeChangesAtEnd": [],
+  "comparisons": [
+    {
+      "file": "v2-postfix-original26-comparison.json",
+      "virtualFile": "v2-postfix-original34.json",
+      "virtualHash": "ef7c1a649ce71a9720d72c10eddc102fb75813e05605c5160dbada1ef2e1201c",
+      "nativeFile": "native-preparation.json",
+      "nativeHash": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+      "profiles": [
+        {
+          "profile": "gnu-5.3",
+          "passed": 24,
+          "total": 26,
+          "losses": [
+            {
+              "id": "query-V-verbose",
+              "fields": [
+                "stdout bytes"
+              ]
+            },
+            {
+              "id": "type-multiple-status",
+              "fields": [
+                "stdout bytes"
+              ]
+            }
+          ]
+        },
+        {
+          "profile": "historical-3.2",
+          "passed": 12,
+          "total": 26,
+          "losses": [
+            {
+              "id": "query-V-verbose",
+              "fields": [
+                "stdout bytes"
+              ]
+            },
+            {
+              "id": "type-multiple-status",
+              "fields": [
+                "stdout bytes"
+              ]
+            },
+            {
+              "id": "query-empty-and-unsupported-option",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-character-count-en_US.UTF-8",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-character-count-C",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-delimiter-vs-n",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-skips-nul-data",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-nul-delimiter",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-no-ifs-split",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-backslash-raw",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-zero-invalid",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-eof-partial",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-stdin-source-cursor",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "sh-special-ordinary-function",
+              "fields": [
+                "stdout bytes"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "v2-postfix-corrected26-comparison.json",
+      "virtualFile": "v2-postfix-corrected34.json",
+      "virtualHash": "2ef5fb5e1fded066aaeedde3cbab2bbccb41b4667d1f1ba1f12590ce7f3fad5f",
+      "nativeFile": "v2-native.json",
+      "nativeHash": "e1bf8961ed3aee2832b93aa68af2e45b14dad652c68262f6d8d8210bc2c7673d",
+      "profiles": [
+        {
+          "profile": "gnu-5.3",
+          "passed": 25,
+          "total": 26,
+          "losses": [
+            {
+              "id": "query-V-verbose",
+              "fields": [
+                "stdout bytes"
+              ]
+            }
+          ]
+        },
+        {
+          "profile": "historical-3.2",
+          "passed": 12,
+          "total": 26,
+          "losses": [
+            {
+              "id": "query-V-verbose",
+              "fields": [
+                "stdout bytes"
+              ]
+            },
+            {
+              "id": "type-multiple-status",
+              "fields": [
+                "stdout bytes"
+              ]
+            },
+            {
+              "id": "query-empty-and-unsupported-option",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-character-count-en_US.UTF-8",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-character-count-C",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-delimiter-vs-n",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-skips-nul-data",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-nul-delimiter",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-no-ifs-split",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-backslash-raw",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-zero-invalid",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-eof-partial",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "read-N-stdin-source-cursor",
+              "fields": [
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "sh-special-ordinary-function",
+              "fields": [
+                "stdout bytes"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "v2-postfix-legacy57-comparison.json",
+      "virtualFile": "v2-postfix-legacy.json",
+      "virtualHash": "6fc759cd119ac83398f09624eaf3e2109c1e23e78082ca0a4e67c391ff452513",
+      "nativeFile": "post-ready-legacy-native.json",
+      "nativeHash": "29859046be395e3893d24856d399e30da8740860b002e0a0eda32727c5bb0405",
+      "profiles": [
+        {
+          "profile": "gnu-5.3",
+          "passed": 51,
+          "total": 57,
+          "losses": [
+            {
+              "id": "path-only-denied-126",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-missing-127",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-headerless-policy",
+              "fields": [
+                "status",
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-unsupported-shebang-policy",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-binary-policy",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-invalid-utf8-policy",
+              "fields": [
+                "status",
+                "stderr bytes"
+              ]
+            }
+          ]
+        },
+        {
+          "profile": "historical-3.2",
+          "passed": 49,
+          "total": 57,
+          "losses": [
+            {
+              "id": "stdin-eof-syntax-prior-effects",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "child-environment-isolation",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-only-denied-126",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-missing-127",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-headerless-policy",
+              "fields": [
+                "status",
+                "stdout bytes",
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-unsupported-shebang-policy",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-binary-policy",
+              "fields": [
+                "stderr bytes"
+              ]
+            },
+            {
+              "id": "path-invalid-utf8-policy",
+              "fields": [
+                "status",
+                "stderr bytes"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "authorGroups": {
+    "primary": {
+      "pass": 52,
+      "fail": 0
+    },
+    "historical": {
+      "pass": 36,
+      "fail": 16
+    },
+    "host": {
+      "pass": 8,
+      "fail": 0
+    }
+  },
+  "preservedOriginalRoleConflicts": [
+    "query-V-verbose",
+    "type-multiple-status"
+  ],
+  "original34": {
+    "pass": 32,
+    "total": 34
+  },
+  "corrected34": {
+    "pass": 34,
+    "total": 34
+  },
+  "truthfulRegistry": {
+    "pass": 1,
+    "total": 1
+  },
+  "authorAssertionCorrection": {
+    "commit": "29a6122",
+    "original": "210/211",
+    "corrected": "211/211",
+    "proof": "v2-author-assertion-original-proof.json / v2-author-assertion-correction-proof.json / V2_AUTHOR_ASSERTION.md"
+  },
+  "nativeProvenance": {
+    "newWholeNativeCohortsRunThisReplay": 0,
+    "legacy57": "Both real profiles captured at d02c3b5; post-ready-legacy-native.json reused unchanged",
+    "v2_26": "Both real profiles captured at225f992; v2-native.json reused unchanged",
+    "original26": "Original native-preparation.json reused unchanged",
+    "focusedNewNativeProbes": 0,
+    "existingSelectedRegressionReferences": "61 existing /bin/bash3.2 references (17 descriptor,19 read-options,15 read-fields,10 variable-scope); not new whole-profile captures or pending cohorts",
+    "oracleHashes": {
+      "post-ready-legacy-native.json": "29859046be395e3893d24856d399e30da8740860b002e0a0eda32727c5bb0405",
+      "native-preparation.json": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+      "v2-native.json": "e1bf8961ed3aee2832b93aa68af2e45b14dad652c68262f6d8d8210bc2c7673d"
+    }
+  },
+  "scope": "Legacy72/132, native-role-corrected34 and registry1 close supported invocation semantics and the two routed source findings. Original34 role conflicts, strict file policies, raw path coordinates and historical diagnostic/read-N/POSIX differences remain visible. command-p, aliases/keywords, invalid UTF8 boundaries, limited function display and broader shell features remain limited. No source/dot/eval work performed.",
+  "compilerQualification": "Global exit0 with a changed imported jq.ts input is NOT a guarded global pass. Build/benchmark results apply to their own stable snapshots; foreign end-tree changes are listed separately. No retry or whole-product claim.",
+  "cleanup": {
+    "pids": [
+      8525,
+      8528,
+      8530,
+      8535,
+      8540,
+      8542,
+      8543,
+      8544,
+      8545,
+      8546,
+      8547,
+      8549,
+      8550,
+      8551,
+      8560,
+      8561,
+      8562,
+      8563,
+      8564,
+      8566,
+      8567,
+      8568,
+      8569,
+      8570,
+      8571,
+      8572,
+      8573,
+      8575,
+      8581,
+      8583,
+      8584,
+      8585,
+      8586,
+      8588,
+      8589,
+      8526,
+      8615,
+      8619,
+      8621,
+      8622,
+      8623,
+      8625,
+      8626,
+      8627,
+      8635,
+      8641,
+      8644,
+      8645,
+      8646,
+      8647,
+      8648,
+      8649,
+      8650,
+      8651,
+      8652,
+      8654,
+      8655,
+      8656,
+      8657,
+      8658,
+      8659,
+      8660,
+      8661,
+      8662,
+      8663,
+      8664,
+      8665,
+      8666,
+      8667,
+      8673,
+      8677,
+      8616,
+      8702,
+      8703,
+      8877,
+      8878,
+      9023,
+      9080,
+      8730,
+      8741,
+      17167,
+      17254,
+      9146,
+      9147,
+      9175,
+      9183,
+      9279,
+      9284,
+      17534,
+      17542,
+      17655,
+      17656,
+      17682,
+      17683,
+      8880,
+      8881,
+      8882,
+      8884,
+      8885,
+      8886,
+      8887,
+      8890,
+      8896,
+      8897,
+      8898,
+      8899,
+      8900,
+      8901,
+      8902,
+      8903,
+      8904,
+      8905,
+      8907,
+      8908,
+      8909,
+      8910,
+      8911,
+      8912,
+      8913,
+      8914,
+      8915,
+      8916,
+      8917,
+      8918,
+      8919,
+      8920,
+      8923,
+      8930,
+      8931,
+      8932,
+      8933,
+      8934,
+      8935,
+      8936,
+      8937,
+      8938,
+      8939,
+      8940,
+      8941,
+      8944,
+      8948,
+      8949,
+      8951,
+      8952,
+      8953,
+      8954,
+      8960,
+      8962,
+      8968,
+      8972,
+      8973,
+      8975,
+      8981,
+      8984,
+      8985,
+      8986,
+      8988,
+      8989,
+      8990,
+      8991,
+      8992,
+      8993,
+      8994,
+      8995,
+      8996,
+      8997
+    ],
+    "allRecordedProcessesAndGroupsAbsent": true,
+    "temporaryDirectories": [],
+    "watchers": []
+  },
+  "frozenOriginalAndV2Guards": {
+    "tests/shell-stress/invocation-closure/cases.ts": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef",
+    "tests/shell-stress/invocation-closure/probe.ts": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464",
+    "tests/shell-stress/invocation-closure/holdout.test.ts": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff",
+    "tests/shell-stress/invocation-closure/native.ts": "b2f6d8a5ed8bd96392d62d7af8d5c89c75f1a58983aaf87e775171013520bbec",
+    "tests/shell-stress/invocation-closure/native-preparation.json": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+    "tests/shell-stress/invocation-closure/post-ready-new.json": "62122136be8458985926753ab8f2b22c7fb3dc3ee6d08fe6088458db1a8fea11",
+    "tests/shell-stress/invocation-closure/post-ready-new-comparison.json": "0bf653e2340183b687fe160ee5e49d36e5e666e3f151f681c530381cabf14fbc",
+    "tests/shell-stress/invocation-closure/post-ready-summary.json": "a129abb8c07a958413875090c50d457653e3278913d4024c41a9a8e8621a960e",
+    "tests/shell-stress/invocation-modes/cases.ts": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+    "tests/shell-stress/invocation-modes/holdout.test.ts": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+    "tests/shell/invocation-modes.test.ts": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+    "tests/shell-stress/script-entrypoint/cases.ts": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d",
+    "tests/shell-stress/invocation-closure/v2-cases.ts": "14ca9a525eb75fe2c51720c472890a42cb4278fac9a6271cab4dfa021ef095be",
+    "tests/shell-stress/invocation-closure/v2-probe.ts": "ab6899da81ec40b263b3e9c514dc57445ac25e179e1a6d6a6460fd2e11314b52",
+    "tests/shell-stress/invocation-closure/v2-holdout.test.ts": "aaddaf3a25f77ee8be81cd49c3c139187981a0a4826829e3fe829993e04f8362",
+    "tests/shell-stress/invocation-closure/v2-registry.test.ts": "302c8c9168f4f5d70976f3f3496de2848069038e347400a1de52af7206b941ec",
+    "tests/shell-stress/invocation-closure/v2-native.json": "e1bf8961ed3aee2832b93aa68af2e45b14dad652c68262f6d8d8210bc2c7673d"
+  },
+  "hashes": {
+    "v2-postfix-original34.json": "ef7c1a649ce71a9720d72c10eddc102fb75813e05605c5160dbada1ef2e1201c",
+    "v2-postfix-corrected34.json": "2ef5fb5e1fded066aaeedde3cbab2bbccb41b4667d1f1ba1f12590ce7f3fad5f",
+    "v2-postfix-legacy.json": "6fc759cd119ac83398f09624eaf3e2109c1e23e78082ca0a4e67c391ff452513",
+    "v2-postfix-author-original.json": "1a9ecec3ce28aedfea2f6c65dc2e0c2272409937ff3c184b388e29f692a1f683",
+    "v2-postfix-author-corrected.json": "b73e3d83a022cbd21dcfe7cf08b06135402ad8091861c5116ac4c7903a1768e3",
+    "v2-postfix-author-fixes112.json": "940ff6db3b842ef1e95c27994d648070029265527b3b72170b34d5f19082364d",
+    "v2-postfix-previous.json": "ca6b91cdac365ccfa6c67feecd21c0e4b02921dbd5e09148561d1ba0666f0074",
+    "v2-postfix-types.json": "43c637b818ffa16d05123a696fe7a4b02f8326183c429bda4068f74fd3f059c3",
+    "v2-postfix-original26-comparison.json": "ac8c38e45ae7781073872608fe15a25e4d687c0cc1af92a544c7f5ffa723123a",
+    "v2-postfix-corrected26-comparison.json": "c0615bba8a46c4f7ccda7f74a725460fa5d6ad18450564c92ed494de928166c0",
+    "v2-postfix-legacy57-comparison.json": "96f9540491931029a38ec78329d510bf1c2cc4d32b001e9f1faf33dbcb35b4dd"
+  }
+}

@@ -1,5 +1,10 @@
 # V2 native-role fixture correction
 
+**Postfix checkpoint completed:** corrected34 + registry1 pass; original34 is
+32/34 with truthful role conflicts retained. See `V2_POSTFIX.md` and
+`v2-postfix-summary.json` for scope, raw losses and the invalidated global guard.
+The preparation/wait history below remains unchanged historical context.
+
 This is a new, separately named cohort, not a correction to old results.
 Original cases/probe/holdout/native files and the original **31/34 d02c3b5**
 evidence remain immutable. Native printf is a builtin; virtual printf really is

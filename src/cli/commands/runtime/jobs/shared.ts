@@ -248,10 +248,21 @@ export async function waitForGracefulStop(
       throw error;
     }
   );
-  const result = await Promise.race([waitForExit, sleep(graceMs), sigtermFailure]);
-  if (result !== "exited") {
-    await handle.kill("SIGKILL");
-    await waitForExit.catch(() => undefined);
+  let graceTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const result = await Promise.race([
+      waitForExit,
+      new Promise<"timeout">((resolve) => {
+        graceTimer = setTimeout(() => resolve("timeout"), graceMs);
+      }),
+      sigtermFailure
+    ]);
+    if (result !== "exited") {
+      await handle.kill("SIGKILL");
+      await waitForExit.catch(() => undefined);
+    }
+  } finally {
+    clearTimeout(graceTimer);
   }
 }
 
@@ -263,12 +274,6 @@ function isStrictlyNewer(left: JobEntry, right: JobEntry): boolean {
   const leftStart = Date.parse(left.started_at);
   const rightStart = Date.parse(right.started_at);
   return Number.isFinite(leftStart) && Number.isFinite(rightStart) && leftStart > rightStart;
-}
-
-function sleep(ms: number): Promise<"timeout"> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve("timeout"), ms);
-  });
 }
 
 function pendingForever(): Promise<never> {

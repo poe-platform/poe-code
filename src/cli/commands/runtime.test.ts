@@ -1641,6 +1641,46 @@ describe("runtime command", () => {
     ]);
   });
 
+  it.each([false, true])("leaves no grace timer after public job stop (dryRun: %s)", async (dryRun) => {
+    vi.useFakeTimers();
+    try {
+      const jobPath = path.join(jobsDir, "job-stop.json");
+      const initialJob = `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }), null, 2
+      )}\n`;
+      const fs = createMemFs({ [jobPath]: initialJob });
+      const kill = vi.fn().mockResolvedValue(undefined);
+      jobHandles.set("env-stop", createJobHandle({ status: "running", kill }));
+      const logs: string[] = [];
+      const program = createBaseProgram();
+      registerRuntimeCommand(program, createContainer(fs, logs));
+
+      await program.parseAsync([
+        "node", "cli", ...(dryRun ? ["--dry-run"] : []),
+        "runtime", "jobs", "stop", "job-stop"
+      ]);
+
+      if (dryRun) {
+        expect(runtimeEvents.attached).toEqual([]);
+        expect(kill).not.toHaveBeenCalled();
+        await expect(fs.readFile(jobPath, "utf8")).resolves.toBe(initialJob);
+        expect(logs.join("\n")).toContain("Dry run: would stop runtime job job-stop.");
+        expect(logs.join("\n")).not.toContain("Stopped runtime job");
+      } else {
+        expect(runtimeEvents.attached).toHaveLength(1);
+        expect(kill).toHaveBeenCalledExactlyOnceWith("SIGTERM");
+        expect(JSON.parse(await fs.readFile(jobPath, "utf8"))).toMatchObject({
+          status: "killed", exit_code: 130
+        });
+        expect(logs.join("\n")).toContain("Stopped runtime job job-stop.");
+      }
+      expect(runtimeEvents.downloads).toEqual([]);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("stops a job without syncing by default", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(

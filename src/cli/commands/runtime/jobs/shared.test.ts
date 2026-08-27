@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { JobEntry, StateManager } from "@poe-code/poe-code-config";
 import type { JobHandle, LogChunk } from "@poe-code/process-runner";
-import { resolveJob, streamJobLog } from "./shared.js";
+import { resolveJob, streamJobLog, waitForGracefulStop } from "./shared.js";
 import { ValidationError } from "../../../errors.js";
 
 function job(overrides: Partial<JobEntry> & Pick<JobEntry, "id" | "started_at">): JobEntry {
@@ -280,6 +280,129 @@ describe("streamJobLog", () => {
       await vi.advanceTimersByTimeAsync(1000);
       await reading;
     }
+  });
+});
+
+describe("waitForGracefulStop timer cleanup", () => {
+  const wait = vi.fn<JobHandle["wait"]>();
+  const kill = vi.fn<JobHandle["kill"]>();
+  const handle: JobHandle = {
+    id: "job-stop",
+    envId: "container-id",
+    tool: "node",
+    argv: ["node"],
+    status: vi.fn(),
+    stream: vi.fn(),
+    wait,
+    kill
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    wait.mockReset().mockResolvedValue({ exitCode: 0 });
+    kill.mockReset().mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([false, true])("clears the default grace timer on exit (stalled SIGTERM: %s)", async (stalled) => {
+    if (stalled) {
+      kill.mockImplementation(() => new Promise(() => {}));
+    }
+
+    await waitForGracefulStop(handle);
+
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(kill).toHaveBeenCalledExactlyOnceWith("SIGTERM");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("preserves a wait error and clears the grace timer", async () => {
+    const failure = new Error("wait failed");
+    wait.mockRejectedValue(failure);
+
+    await expect(waitForGracefulStop(handle)).rejects.toBe(failure);
+
+    expect(kill).toHaveBeenCalledExactlyOnceWith("SIGTERM");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("preserves a SIGTERM error and clears the grace timer", async () => {
+    const failure = new Error("SIGTERM failed");
+    wait.mockImplementation(() => new Promise(() => {}));
+    kill.mockRejectedValue(failure);
+
+    await expect(waitForGracefulStop(handle)).rejects.toBe(failure);
+
+    expect(kill).toHaveBeenCalledExactlyOnceWith("SIGTERM");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each([false, true])("escalates only after grace expires (stalled SIGTERM: %s)", async (stalled) => {
+    let completeExit: ((result: { exitCode: number }) => void) | undefined;
+    wait.mockReturnValue(new Promise((resolve) => {
+      completeExit = resolve;
+    }));
+    kill.mockImplementation(async (signal) => {
+      if (signal === "SIGKILL") {
+        completeExit?.({ exitCode: 137 });
+      } else if (stalled) {
+        await new Promise(() => {});
+      }
+    });
+    const stopping = waitForGracefulStop(handle, 800);
+
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(kill).toHaveBeenCalledExactlyOnceWith("SIGTERM");
+    expect(vi.getTimerCount()).toBe(1);
+    await vi.advanceTimersByTimeAsync(799);
+    expect(kill).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    await stopping;
+
+    expect(kill.mock.calls).toEqual([["SIGTERM"], ["SIGKILL"]]);
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("preserves a SIGKILL error after grace expiry", async () => {
+    const failure = new Error("SIGKILL failed");
+    wait.mockImplementation(() => new Promise(() => {}));
+    kill.mockImplementation(async (signal) => {
+      if (signal === "SIGKILL") {
+        throw failure;
+      }
+    });
+    const stopping = waitForGracefulStop(handle, 800).catch((error: unknown) => error);
+
+    await vi.advanceTimersByTimeAsync(800);
+
+    expect(await stopping).toBe(failure);
+    expect(kill.mock.calls).toEqual([["SIGTERM"], ["SIGKILL"]]);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("still tolerates a wait rejection after SIGKILL", async () => {
+    const failure = new Error("wait failed after kill");
+    let rejectExit: ((error: unknown) => void) | undefined;
+    wait.mockReturnValue(new Promise((_resolve, reject) => {
+      rejectExit = reject;
+    }));
+    kill.mockImplementation(async (signal) => {
+      if (signal === "SIGKILL") {
+        rejectExit?.(failure);
+      }
+    });
+    const stopping = waitForGracefulStop(handle, 800);
+
+    await vi.advanceTimersByTimeAsync(800);
+    await expect(stopping).resolves.toBeUndefined();
+
+    expect(kill.mock.calls).toEqual([["SIGTERM"], ["SIGKILL"]]);
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
 

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { request as nodeRequest } from "node:http";
 import type { ClientRequest, IncomingMessage } from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
@@ -56,6 +57,18 @@ test("pre-abort and cancellation during asynchronous credentials cause no reques
   rejectCredentials(new Error("late credential rejection"));
   await assert.rejects(client.getObject(key, { abortSignal: controller.signal }), error => error === reason);
   assert.equal(fixture.requests(), 0);
+});
+
+test("credential deadline remains live without sockets or other event-loop handles", () => {
+  const module = new URL("../../../../../src/fs/s3/http/index.ts", import.meta.url).href;
+  const script = `import { createS3HttpTransport } from ${JSON.stringify(module)};
+const transport = createS3HttpTransport({ endpoint: 'https://s3.example.invalid', region: 'us-east-1',
+  credentials: async () => new Promise(() => {}), requestTimeoutMs: 20 });
+try { await transport.headObject({ Bucket: 'testbucket', Key: 'key' }); process.exitCode = 1; }
+catch (error) { if (error.code !== 'RequestTimeout') throw error; console.log(error.code); }`;
+  const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--input-type=module", "--eval", script], { encoding: "utf8", timeout: 3000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "RequestTimeout\n");
 });
 
 test("abort while waiting for headers destroys the socket and observes late request errors", async context => {

@@ -16,7 +16,6 @@ export function scopeFor(signal: AbortSignal | undefined, timeout: number): Requ
   signal?.addEventListener("abort", abort, { once: true });
   if (signal?.aborted) abort();
   const timer = setTimeout(() => controller.abort(new S3ServiceError("RequestTimeout", 408)), timeout);
-  timer.unref();
   return {
     signal: controller.signal,
     finish: () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); },

@@ -62,7 +62,8 @@ class InputCursor {
     this.#closed = true;
     this.remainder = undefined;
     const pendingRead = this.#read !== undefined && !this.#readSettled;
-    this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined, () => undefined);
+    this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined);
+    void this.#returned.catch(() => undefined);
     if (!pendingRead) await interruptible(this.#returned, signal);
     signal.throwIfAborted();
   }

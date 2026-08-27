@@ -1,0 +1,71 @@
+diff --git a/tests/shell-stress/env-split-author/resume-host.ts b/tests/shell-stress/env-split-author/resume-host.ts
+index e645123f..2496a831 100644
+--- a/tests/shell-stress/env-split-author/resume-host.ts
++++ b/tests/shell-stress/env-split-author/resume-host.ts
+@@ -91,9 +91,10 @@ try {
+   } else if (scenario === "literal-single-optional-argument") {
+     await fs.writeFile("/work/script", Buffer.from("#!/usr/bin/env bash -e\nprintf forbidden > marker\n"), { mode: 0o755 });
+     const result = await shell.exec("./script");
+-    assert.equal(result.exitCode, 126); assert.equal(result.stdout, "");
+-    assert.match(result.stderr, /unsupported interpreter: \/usr\/bin\/env bash -e/u);
++    assert.equal(result.exitCode, 127); assert.equal(result.stdout, "");
++    assert.equal(result.stderr, "env: bash -e: command not found\n");
+     assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["script"]);
++    assert.deepEqual(Buffer.from(await fs.readFile("/work/script")), Buffer.from("#!/usr/bin/env bash -e\nprintf forbidden > marker\n"));
+   } else if (scenario === "literal-injection-host-boundary") {
+     const value = "/bin/sh -c touch marker; $(touch marker) `touch marker`";
+     const result = await shell.exec(`env -S ${quote("report ${VALUE}")}`, { env: { VALUE: value } });
+diff --git a/tests/shell/errexit-host.test.ts b/tests/shell/errexit-host.test.ts
+index 54f08332..14f6f8ff 100644
+--- a/tests/shell/errexit-host.test.ts
++++ b/tests/shell/errexit-host.test.ts
+@@ -126,7 +126,19 @@ test("explicit interpreter does not apply file header option twice", async () =>
+   const result = await shell.exec("bash -e /script"); assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+ });
+ 
+-for (const header of ["#!/usr/bin/env bash -e", "#!/usr/bin/env -S bash -e", "#!/bin/bash -e -e", "#!/bin/bash -c", "#!/bin/bash '-e'", "#!/unknown -e"]) test(`literal shebang refusal ${header}`, async () => {
++for (const [header, expected] of [
++  ["#!/usr/bin/env bash -e", [127, "", "env: bash -e: command not found\n"]],
++  ["#!/usr/bin/env -S bash -e", [0, "BAD", ""]],
++] as const) test(`env shebang literal optional argument ${header}`, async () => {
++  const { shell, fs } = setup(); await fs.writeFile("/script", Buffer.from(`${header}\nprintf BAD\n`), { mode: 0o755 });
++  try {
++    const result = await shell.exec("/script"); assert.deepEqual([result.exitCode, result.stdout, result.stderr], expected);
++    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["script"]);
++    assert.deepEqual(Buffer.from(await fs.readFile("/script")), Buffer.from(`${header}\nprintf BAD\n`));
++  } finally { await shell.dispose(); }
++});
++
++for (const header of ["#!/bin/bash -e -e", "#!/bin/bash -c", "#!/bin/bash '-e'", "#!/unknown -e"]) test(`literal shebang refusal ${header}`, async () => {
+   const { shell, fs } = setup(); await fs.writeFile("/script", Buffer.from(`${header}\nprintf BAD\n`), { mode: 0o755 });
+   const result = await shell.exec("/script"); assert.equal(result.exitCode, 126); assert.equal(result.stdout, ""); assert.match(result.stderr, /unsupported interpreter/u);
+ });
+diff --git a/tests/shell/expanded-gaps-env-host.test.ts b/tests/shell/expanded-gaps-env-host.test.ts
+index 405abf63..3d459350 100644
+--- a/tests/shell/expanded-gaps-env-host.test.ts
++++ b/tests/shell/expanded-gaps-env-host.test.ts
+@@ -1,10 +1,21 @@
+ import assert from "node:assert/strict";
+ import { test } from "node:test";
+-import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+-for (const header of ["/usr/bin/env bash -e", "/usr/bin/env -S bash -e", "/usr/bin/env python", "/usr/bin/env", "/usr/bin/env bash\r"]) test(`explicit unsupported env interpreter ${JSON.stringify(header)}`, async () => {
++import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem } from "../../src/index.js";
++for (const [header, expected] of [
++  ["/usr/bin/env bash -e", [127, "", "env: bash -e: command not found\n"]],
++  ["/usr/bin/env -S bash -e", [0, "forbidden", ""]],
++  ["/usr/bin/env python", [127, "", "env: python: command not found\n"]],
++  ["/usr/bin/env", null],
++  ["/usr/bin/env bash\r", [127, "", "env: bash\r: command not found\n"]],
++] as const) test(`explicit env interpreter outcome ${JSON.stringify(header)}`, async () => {
+   const fs = createMemoryFileSystem(); await fs.writeFile("/script", Buffer.from(`#!${header}\nprintf forbidden`), { mode: 0o755 });
+   const shell = new Shell({ fs }).use(agentCommands());
+-  try { const result = await shell.exec("/script"); assert.equal(result.exitCode, 126); assert.equal(result.stdout, ""); assert.match(result.stderr, /unsupported interpreter/u); }
++  try {
++    if (expected === null) await assert.rejects(shell.exec("/script"), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
++    else { const result = await shell.exec("/script"); assert.deepEqual([result.exitCode, result.stdout, result.stderr], expected); }
++    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["script"]);
++    assert.deepEqual(Buffer.from(await fs.readFile("/script")), Buffer.from(`#!${header}\nprintf forbidden`));
++  }
+   finally { await shell.dispose(); }
+ });
+ test("env shebang refuses a registry override rather than silently bypassing it", async () => {

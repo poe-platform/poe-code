@@ -1,0 +1,61 @@
+{
+  "candidate": "5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7",
+  "verifiedAt": "2026-08-27T16:18:33.835Z",
+  "success": true,
+  "original": {
+    "canonical": {
+      "pass": 29,
+      "fail": 7,
+      "total": 36
+    },
+    "core": {
+      "pass": 0,
+      "fail": 1,
+      "total": 1
+    }
+  },
+  "revised": {
+    "canonical": {
+      "pass": 36,
+      "fail": 0,
+      "total": 36
+    },
+    "core": {
+      "pass": 1,
+      "fail": 0,
+      "total": 1
+    }
+  },
+  "controls": {
+    "pass": 16,
+    "fail": 0
+  },
+  "negativeControls": {
+    "inputWhitelist": 8,
+    "resultAssertions": 6
+  },
+  "historicalFilesUnchanged": 118,
+  "selectedToolHashesStable": true,
+  "archiveRegeneratedIdentically": true,
+  "exactInputPaths": 229,
+  "depthDispatches": [
+    {
+      "id": "expanded-4",
+      "dispatches": 129,
+      "typedLimit": true
+    },
+    {
+      "id": "bare-env-depth-two",
+      "dispatches": 5,
+      "typedLimit": true
+    },
+    {
+      "id": "bare-env-depth-four",
+      "dispatches": 9,
+      "typedLimit": true
+    }
+  ],
+  "absentOwnedProcessGroups": 18,
+  "scratchAbsent": true,
+  "firstReviewerDiagnosticDefectPreserved": true
+}

@@ -1,0 +1,52 @@
+# Eight env shebang expectation migrations — author candidate
+
+Published August 27, 2026, immediately after fixture commit. Independent reviewer acceptance is NOT authored here.
+
+Exact fixture candidate: 5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7
+Exact fixture parent: bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2
+Original execution archive: c800c899114c6c83b3d3eb67231176d124abaf49
+The original execution archive and fixture parent have identical selected source/build/test inputs; intervening changes are AGENTS and unrelated evidence. The candidate changes ONLY the three owned fixtures, not production/config/package/root/other tests.
+
+Evidence root: /Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-author
+Original results: original-c800c899/report.json, canonical.stdout, resume-literal-single-optional-argument.stderr, observations.stdout.
+Candidate exact-archive capture: candidate-5ba1a0f3/report.json, completed successfully. Canonical 36/36; resume 25/25; unchanged env-shebang controls 29/29; build and strict-owned succeeded. Zero failures/skips/cancellations/TODOs in the candidate TAP cohorts. Original eight behavior observations and candidate observations are identical; only expectations changed. Both archives passed append-detecting source inventory comparison and report all 31 owned command PIDs/process groups absent plus scratch removed.
+
+All eight literal bodies verified in the actual fixture sources before editing: core `printf forbidden > marker\n`; two errexit `printf BAD\n`; five expanded `printf forbidden` with NO final LF. No body contains a failing command, hidden conditional or suppressed failure. Headers, script bytes, mode 0755, cwd, argv, env, plugin/registration/middleware inputs remain unchanged. Existing failing-command errexit controls, four unsupported-header 126 rows, reserved-bash override 126, original namespace assertion and existing finally disposal remain. Additional unchanged-file/namespace checks strengthen these eight cases; the two separated errexit rows also now dispose in finally.
+
+Eight exact deltas, tuple order [status, stdout, stderr], JSON escapes denote literal bytes:
+1. resume core-literal: old126 -> [127,"","env: bash -e: command not found\n"]
+2. errexit env bash -e: old126 -> [127,"","env: bash -e: command not found\n"]
+3. errexit env -S bash -e: old126 -> [0,"BAD",""] (NO output LF)
+4. expanded env bash -e: old126 -> [127,"","env: bash -e: command not found\n"]
+5. expanded env -S bash -e: old126 -> [0,"forbidden",""] (NO output LF)
+6. expanded env python: old126 -> [127,"","env: python: command not found\n"] (unregistered in this setup)
+7. expanded bare env: old exit126 assertion -> assert.rejects public ShellLimitError with limit === "maxSubstitutionDepth"; NO invented exit/stdout/stderr tuple.
+8. expanded env bash CR: old126 -> [127,"","env: bash\r: command not found\n"] (literal CR preserved in script and diagnostic).
+
+Candidate SHA256 (also bound by the archived source manifest):
+src/shell/runtime.ts 4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06
+src/shell/input.ts 4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32
+src/commands/env-split.ts b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4
+src/commands/execution.ts 61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6
+tests/shell-stress/env-split-author/resume-host.ts f3c490e84833227b6899d9ec6b37bfaa5de0b41ab6fabb3e84b531e29984f359
+tests/shell/errexit-host.test.ts 38a6372d6e518338a2379bef1b58cada12e5c06aceafc59b40e5afeda9fa2d36
+tests/shell/expanded-gaps-env-host.test.ts d01394e6938cfc4758c6ee3c88a4f0660b0f6cf0aa2596a181ad71a26216628e
+
+Exact reproduction commands from repo root (choose unused output labels; existing captures are never overwritten):
+node tests/shell-stress/env-shebang-eight-migration-author/capture.mjs c800c899114c6c83b3d3eb67231176d124abaf49 original-REVIEW-LABEL
+node tests/shell-stress/env-shebang-eight-migration-author/capture.mjs 5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7 candidate-REVIEW-LABEL
+Labels must use lowercase letters/digits/hyphens. The concrete author labels are original-c800c899 and candidate-5ba1a0f3.
+
+Runner/setup: git archive exact revision selecting all src, package.json/package-lock.json, tsconfig.json/tsconfig.build.json, three owned fixtures, tests/shell/env-shebang.test.ts and tests/shell/helpers.ts. Isolated scratch/source under evidence root; read-only use of preexisting node_modules via symlink. Node v22.22.2 Darwin arm64; no dependency install, native shell/oracle recapture or full gate. Env explicitly PATH=/usr/bin:/bin, LANG=C, LC_ALL=C, TMPDIR=owned scratch/tmp, TSX_DISABLE_CACHE=1. Reports retain actual absolute cwd, executable, args, tool versions, archive/source hashes, deadlines and process groups.
+
+Exact source test commands in isolated source cwd:
+node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/shell/errexit-host.test.ts tests/shell/expanded-gaps-env-host.test.ts
+node --unhandled-rejections=strict --import tsx tests/shell-stress/env-split-author/resume-host.ts SCENARIO (all 25 unchanged scenario names; each 6000ms cap)
+node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/shell/env-shebang.test.ts
+node node_modules/typescript/bin/tsc -p tsconfig.build.json
+node node_modules/typescript/bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node tests/shell-stress/env-split-author/resume-host.ts tests/shell/errexit-host.test.ts tests/shell/expanded-gaps-env-host.test.ts
+All other commands have 30000ms deadlines and 4MiB combined-output cap. No root config changed. Strict explicit flags check these fixtures/transitive imports, NOT every TypeScript fixture.
+
+Original exact selected-source execution: canonical 29/36 with seven named conflicts; resume 24/25 with only literal-single-optional-argument failing; extra env-shebang source controls 29/29. Build and strict-owned succeed. Supplemental observations preserve literal inputs plus relevant setup; record exact seven tuples and one typed rejection, unchanged script/namespace and disposal for all eight. Supplemental probe is disclosed in probe.mjs.data, not substituted for canonical test execution.
+
+Historical evidence remains separate and untouched: original eight failure receipts in env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls; ea409a6b frozen 30/30 semantic vs 17/23 strict native; guarded original author 47/48 vs separately authorized f6a3fa75 overlay 48/48. Current source differs from ea409a6b in column, text and shell/input; no old-source acceptance is called current. Bare-env native 300ms SIGKILL/nonsettlement is historical only, no recapture/no settled native status/no Linux equivalence. No superiority, parity, service, packed/public consumer, whole-gate or 72-hour completion claim.

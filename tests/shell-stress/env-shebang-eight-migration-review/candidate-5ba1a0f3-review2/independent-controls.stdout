@@ -1,0 +1,2625 @@
+{
+  "rows": [
+    {
+      "id": "core-literal",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden > marker\n",
+      "file": "/work/script",
+      "invocation": "./script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/other",
+          "type": "directory",
+          "mode": 16895
+        },
+        {
+          "path": "/work",
+          "type": "directory",
+          "mode": 16895
+        },
+        {
+          "path": "/work/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/other",
+          "type": "directory",
+          "mode": 16895
+        },
+        {
+          "path": "/work",
+          "type": "directory",
+          "mode": 16895
+        },
+        {
+          "path": "/work/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "./script",
+          "args": [],
+          "cwd": "/work",
+          "env": {
+            "PUBLIC": "parent value",
+            "A": "ancestor",
+            "PATH": "",
+            "PWD": "/work"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "bash -e",
+            "./script"
+          ],
+          "cwd": "/work",
+          "env": {
+            "PUBLIC": "parent value",
+            "A": "ancestor",
+            "PATH": "",
+            "PWD": "/work"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash -e",
+          "args": [
+            "./script"
+          ],
+          "cwd": "/work",
+          "env": {
+            "PUBLIC": "parent value",
+            "A": "ancestor",
+            "PATH": "",
+            "PWD": "/work"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [
+        "./script",
+        "env",
+        "bash -e"
+      ],
+      "entered": 0,
+      "result": {
+        "exitCode": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "errexit-1",
+      "source": "#!/usr/bin/env bash -e\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "bash -e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash -e",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "errexit-2",
+      "source": "#!/usr/bin/env -S bash -e\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "-S bash -e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash",
+          "args": [
+            "-e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "printf",
+          "args": [
+            "BAD"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 0,
+        "stdout": "BAD",
+        "stderr": ""
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "expanded-1",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "bash -e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash -e",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "expanded-2",
+      "source": "#!/usr/bin/env -S bash -e\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu"
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "-S bash -e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash",
+          "args": [
+            "-e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "printf",
+          "args": [
+            "forbidden"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 0,
+        "stdout": "forbidden",
+        "stderr": ""
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "expanded-3",
+      "source": "#!/usr/bin/env python\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgcHl0aG9uCnByaW50ZiBmb3JiaWRkZW4="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgcHl0aG9uCnByaW50ZiBmb3JiaWRkZW4="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "python",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "python",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 127,
+        "stdout": "",
+        "stderr": "env: python: command not found\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "expanded-4",
+      "source": "#!/usr/bin/env\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": null,
+      "rejection": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxSubstitutionDepth",
+        "limit": "maxSubstitutionDepth",
+        "actualShellLimitError": true
+      },
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "expanded-5",
+      "source": "#!/usr/bin/env bash\r\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaA0KcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaA0KcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "bash\r",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash\r",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 127,
+        "stdout": "",
+        "stderr": "env: bash\r: command not found\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "unsupported:#!/bin/bash -e -e",
+      "source": "#!/bin/bash -e -e\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggLWUgLWUKcHJpbnRmIEJBRAo="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggLWUgLWUKcHJpbnRmIEJBRAo="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 126,
+        "stdout": "",
+        "stderr": "shell: line 1: /script: unsupported interpreter: /bin/bash -e -e\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "unsupported:#!/bin/bash -c",
+      "source": "#!/bin/bash -c\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggLWMKcHJpbnRmIEJBRAo="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggLWMKcHJpbnRmIEJBRAo="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 126,
+        "stdout": "",
+        "stderr": "shell: line 1: /script: unsupported interpreter: /bin/bash -c\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "unsupported:#!/bin/bash '-e'",
+      "source": "#!/bin/bash '-e'\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggJy1lJwpwcmludGYgQkFECg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvYmluL2Jhc2ggJy1lJwpwcmludGYgQkFECg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 126,
+        "stdout": "",
+        "stderr": "shell: line 1: /script: unsupported interpreter: /bin/bash '-e'\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "unsupported:#!/unknown -e",
+      "source": "#!/unknown -e\nprintf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdW5rbm93biAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdW5rbm93biAtZQpwcmludGYgQkFECg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 126,
+        "stdout": "",
+        "stderr": "shell: line 1: /script: unsupported interpreter: /unknown -e\n"
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "failing-command-errexit",
+      "source": "#!/usr/bin/env -S bash -e\nprintf before; false; printf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgYmVmb3JlOyBmYWxzZTsgcHJpbnRmIEJBRAo="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgYmVmb3JlOyBmYWxzZTsgcHJpbnRmIEJBRAo="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "-S bash -e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash",
+          "args": [
+            "-e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "printf",
+          "args": [
+            "before"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "false",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 1,
+        "stdout": "before",
+        "stderr": ""
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "failing-command-errexit-disabled",
+      "source": "#!/usr/bin/env -S bash +e\nprintf before; false; printf BAD\n",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {},
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCArZQpwcmludGYgYmVmb3JlOyBmYWxzZTsgcHJpbnRmIEJBRAo="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCArZQpwcmludGYgYmVmb3JlOyBmYWxzZTsgcHJpbnRmIEJBRAo="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "-S bash +e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "bash",
+          "args": [
+            "+e",
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "printf",
+          "args": [
+            "before"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "false",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "printf",
+          "args": [
+            "BAD"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": {
+        "exitCode": 0,
+        "stdout": "beforeBAD",
+        "stderr": ""
+      },
+      "rejection": null,
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "bare-env-depth-two",
+      "source": "#!/usr/bin/env\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {
+        "limits": {
+          "maxSubstitutionDepth": 2
+        }
+      },
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": null,
+      "rejection": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxSubstitutionDepth",
+        "limit": "maxSubstitutionDepth",
+        "actualShellLimitError": true
+      },
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    },
+    {
+      "id": "bare-env-depth-four",
+      "source": "#!/usr/bin/env\nprintf forbidden",
+      "file": "/script",
+      "invocation": "/script",
+      "options": {
+        "limits": {
+          "maxSubstitutionDepth": 4
+        }
+      },
+      "before": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "after": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 16877
+        },
+        {
+          "path": "/script",
+          "type": "file",
+          "mode": 33261,
+          "base64": "IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg=="
+        }
+      ],
+      "dispatches": [
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "env",
+          "args": [
+            "/script"
+          ],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        },
+        {
+          "command": "/script",
+          "args": [],
+          "cwd": "/",
+          "env": {
+            "PWD": "/"
+          },
+          "stdinIsDefault": true
+        }
+      ],
+      "calls": [],
+      "entered": 0,
+      "result": null,
+      "rejection": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxSubstitutionDepth",
+        "limit": "maxSubstitutionDepth",
+        "actualShellLimitError": true
+      },
+      "disposalCount": 1,
+      "disposedExecRejected": true
+    }
+  ],
+  "mutationControls": [
+    {
+      "id": "BAD-extra-LF",
+      "rejected": true
+    },
+    {
+      "id": "forbidden-extra-LF",
+      "rejected": true
+    },
+    {
+      "id": "blanket-127-on-unsupported",
+      "rejected": true
+    },
+    {
+      "id": "bare-env-invented-tuple",
+      "rejected": true
+    },
+    {
+      "id": "CR-trimmed-diagnostic",
+      "rejected": true
+    },
+    {
+      "id": "hidden-false-original-body",
+      "rejected": true
+    }
+  ],
+  "passed": 16,
+  "failed": 0,
+  "unhandledRejections": []
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: explicit env interpreter outcome "/usr/bin/env bash -e"
+ok 1 - explicit env interpreter outcome "/usr/bin/env bash -e"
+  ---
+  duration_ms: 6.878916
+  type: 'test'
+  ...
+# Subtest: explicit env interpreter outcome "/usr/bin/env -S bash -e"
+ok 2 - explicit env interpreter outcome "/usr/bin/env -S bash -e"
+  ---
+  duration_ms: 2.260833
+  type: 'test'
+  ...
+# Subtest: explicit env interpreter outcome "/usr/bin/env python"
+ok 3 - explicit env interpreter outcome "/usr/bin/env python"
+  ---
+  duration_ms: 1.479541
+  type: 'test'
+  ...
+# Subtest: explicit env interpreter outcome "/usr/bin/env"
+ok 4 - explicit env interpreter outcome "/usr/bin/env"
+  ---
+  duration_ms: 16.195666
+  type: 'test'
+  ...
+# Subtest: explicit env interpreter outcome "/usr/bin/env bash\\r"
+ok 5 - explicit env interpreter outcome "/usr/bin/env bash\\r"
+  ---
+  duration_ms: 0.745417
+  type: 'test'
+  ...
+# Subtest: env shebang refuses a registry override rather than silently bypassing it
+ok 6 - env shebang refuses a registry override rather than silently bypassing it
+  ---
+  duration_ms: 2.592625
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 323.782625

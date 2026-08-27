@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: explicit unsupported env interpreter "/usr/bin/env bash -e"
+not ok 1 - explicit unsupported env interpreter "/usr/bin/env bash -e"
+  ---
+  duration_ms: 7.102542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env -S bash -e"
+not ok 2 - explicit unsupported env interpreter "/usr/bin/env -S bash -e"
+  ---
+  duration_ms: 2.248542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env python"
+not ok 3 - explicit unsupported env interpreter "/usr/bin/env python"
+  ---
+  duration_ms: 0.85875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env"
+not ok 4 - explicit unsupported env interpreter "/usr/bin/env"
+  ---
+  duration_ms: 14.11925
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: 'Shell limit exceeded: maxSubstitutionDepth'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ShellLimitError'
+  stack: |-
+    Budget.fail (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:64:19)
+    Runtime.scriptFile (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1268:77)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1236:52)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1190:16)
+    dispatch (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/contracts/plugin.ts:38:28)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/contracts/plugin.ts:65:12)
+    Runtime.shebangStage (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1192:42)
+    Runtime.shebangTarget (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1228:33)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1263:15)
+    Object.invoke (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/src/shell/runtime.ts:1174:39)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env bash\\r"
+not ok 5 - explicit unsupported env interpreter "/usr/bin/env bash\\r"
+  ---
+  duration_ms: 0.848292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: env shebang refuses a registry override rather than silently bypassing it
+ok 6 - env shebang refuses a registry override rather than silently bypassing it
+  ---
+  duration_ms: 1.084708
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 296.318666

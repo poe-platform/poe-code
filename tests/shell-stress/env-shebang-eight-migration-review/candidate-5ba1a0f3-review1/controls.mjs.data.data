@@ -1,0 +1,106 @@
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+
+const { Shell, ShellLimitError, agentCommands, createMemoryFileSystem, writeText } = await import(pathToFileURL(`${process.cwd()}/dist/index.js`));
+const rows = [];
+const failures = [];
+process.on("unhandledRejection", error => failures.push(String(error)));
+
+async function namespace(fs, path = "/") {
+  const stat = await fs.stat(path);
+  const item = { path, type: stat.type, mode: stat.mode };
+  if (stat.type === "file") item.base64 = Buffer.from(await fs.readFile(path)).toString("base64");
+  const result = [item];
+  if (stat.type === "directory") {
+    for (const entry of [...await fs.readdir(path)].sort((left, right) => left.name.localeCompare(right.name))) {
+      result.push(...await namespace(fs, `${path === "/" ? "" : path}/${entry.name}`));
+    }
+  }
+  return result;
+}
+
+async function run(id, header, body, expectation, options = {}) {
+  const fs = createMemoryFileSystem();
+  const core = options.core === true;
+  if (core) { await fs.mkdir("/work"); await fs.mkdir("/other"); }
+  const path = core ? "/work/script" : "/script";
+  const source = `${header}\n${body}`;
+  const shell = new Shell(core ? { fs, cwd: "/work", env: { PUBLIC: "parent value", A: "ancestor", PATH: "" } } : { fs }).use(agentCommands());
+  const calls = [];
+  let entered = 0;
+  let disposalCount = 0;
+  if (core) {
+    shell.use(async (context, next) => { calls.push(context.command); return next(); });
+    shell.register({ name: "report", async execute(context) {
+      entered++;
+      await writeText(context.stdout, JSON.stringify({ env: context.env, args: context.args, cwd: context.cwd, origin: context.stdinIsDefault }) + "\n");
+      return { exitCode: 0 };
+    } });
+    shell.register({ name: "emit", async execute(context) { entered++; await writeText(context.stdout, "abcd"); return { exitCode: 0 }; } });
+  }
+  shell.use({ name: "independent-disposal-observer", setup() {}, dispose() { disposalCount++; } });
+  await fs.writeFile(path, Buffer.from(source), { mode: 0o755 });
+  const before = await namespace(fs);
+  const dispatches = [];
+  shell.use(async (context, next) => {
+    dispatches.push({ command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env }, stdinIsDefault: context.stdinIsDefault });
+    return next();
+  });
+  let result;
+  let rejection;
+  try {
+    try { result = await shell.exec(core ? "./script" : "/script", options.exec); }
+    catch (error) {
+      rejection = { name: error.name, message: error.message, limit: error.limit, actualShellLimitError: error instanceof ShellLimitError };
+    }
+    if (expectation === "depth") {
+      assert.equal(result, undefined);
+      assert.deepEqual(rejection, { name: "ShellLimitError", message: "Shell limit exceeded: maxSubstitutionDepth", limit: "maxSubstitutionDepth", actualShellLimitError: true });
+    } else {
+      assert.equal(rejection, undefined);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], expectation);
+    }
+    assert.deepEqual(await namespace(fs), before);
+    assert.equal(entered, 0);
+  } finally {
+    await shell.dispose();
+    await shell.dispose();
+  }
+  assert.equal(disposalCount, 1);
+  await assert.rejects(shell.exec("printf should-not-run"), /Shell is disposed/u);
+  assert.deepEqual(await namespace(fs), before);
+  rows.push({ id, source, file: path, invocation: core ? "./script" : "/script", options: options.exec ?? {}, before, after: await namespace(fs), dispatches, calls, entered, result: result ? { exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr } : null, rejection: rejection ?? null, disposalCount, disposedExecRejected: true });
+  return rows.at(-1);
+}
+
+const missing = name => [127, "", `env: ${name}: command not found\n`];
+await run("core-literal", "#!/usr/bin/env bash -e", "printf forbidden > marker\n", missing("bash -e"), { core: true });
+await run("errexit-1", "#!/usr/bin/env bash -e", "printf BAD\n", missing("bash -e"));
+await run("errexit-2", "#!/usr/bin/env -S bash -e", "printf BAD\n", [0, "BAD", ""]);
+await run("expanded-1", "#!/usr/bin/env bash -e", "printf forbidden", missing("bash -e"));
+await run("expanded-2", "#!/usr/bin/env -S bash -e", "printf forbidden", [0, "forbidden", ""]);
+await run("expanded-3", "#!/usr/bin/env python", "printf forbidden", missing("python"));
+await run("expanded-4", "#!/usr/bin/env", "printf forbidden", "depth");
+await run("expanded-5", "#!/usr/bin/env bash\r", "printf forbidden", missing("bash\r"));
+
+for (const header of ["#!/bin/bash -e -e", "#!/bin/bash -c", "#!/bin/bash '-e'", "#!/unknown -e"]) {
+  await run(`unsupported:${header}`, header, "printf BAD\n", [126, "", `/script: unsupported interpreter: ${header.slice(2)}\n`]);
+}
+await run("failing-command-errexit", "#!/usr/bin/env -S bash -e", "printf before; false; printf BAD\n", [1, "before", ""]);
+await run("failing-command-errexit-disabled", "#!/usr/bin/env -S bash +e", "printf before; false; printf BAD\n", [0, "beforeBAD", ""]);
+await run("bare-env-depth-two", "#!/usr/bin/env", "printf forbidden", "depth", { exec: { limits: { maxSubstitutionDepth: 2 } } });
+await run("bare-env-depth-four", "#!/usr/bin/env", "printf forbidden", "depth", { exec: { limits: { maxSubstitutionDepth: 4 } } });
+
+const mutationControls = [];
+function mustReject(id, callback) {
+  assert.throws(callback, assert.AssertionError);
+  mutationControls.push({ id, rejected: true });
+}
+mustReject("BAD-extra-LF", () => assert.equal(rows[2].result.stdout, "BAD\n"));
+mustReject("forbidden-extra-LF", () => assert.equal(rows[4].result.stdout, "forbidden\n"));
+mustReject("blanket-127-on-unsupported", () => assert.equal(rows[8].result.exitCode, 127));
+mustReject("bare-env-invented-tuple", () => assert.notEqual(rows[6].result, null));
+mustReject("CR-trimmed-diagnostic", () => assert.equal(rows[7].result.stderr, "env: bash: command not found\n"));
+mustReject("hidden-false-original-body", () => assert.equal(rows[2].source, "#!/usr/bin/env -S bash -e\nprintf BAD; false\n"));
+assert.deepEqual(failures, []);
+console.log(JSON.stringify({ rows, mutationControls, passed: rows.length, failed: 0, unhandledRejections: failures }, null, 2));

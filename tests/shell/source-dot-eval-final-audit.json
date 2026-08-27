@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-27T02:17:08.077Z",
+  "observedHead": "cd8b5c8025e9d40ba71594f7b709a42f5249988d",
+  "sourceCommit": "917263291e90734d3db5414b7381419b5eec33a2",
+  "sourceSha256": "1d303091932cfca31e1c1b0de7e35609173db7bcd71cc2fb14fd5740faeb9491",
+  "shellSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+  "frozenTestsUnchanged": [
+    "tests/shell-stress/invocation-modes/holdout.test.ts",
+    "tests/shell/invocation-modes.test.ts",
+    "tests/shell/invocation-closure-discovery.test.ts",
+    "tests/shell/invocation-closure-read.test.ts",
+    "tests/shell/invocation-closure-sh.test.ts"
+  ],
+  "nativeDirectoriesAbsent": 168,
+  "recordedPidsAndGroupsAbsent": 18,
+  "postValidationProductDelta": [
+    "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/stat.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/s3/mock.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/s3/transport.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts"
+  ]
+}

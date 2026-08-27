@@ -27,11 +27,11 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
-const specialBuiltinNames = new Set([":", ".", "break", "continue", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
@@ -804,6 +804,7 @@ export class Runtime {
           const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
           if (special) assignments.clear();
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
+          if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
@@ -1124,7 +1125,7 @@ export class Runtime {
     return status;
   }
 
-  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean): Promise<number> {
+  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string): Promise<number> {
     let position = 0;
     let status = 0;
     let executed = false;
@@ -1142,10 +1143,30 @@ export class Runtime {
       return status;
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
-      const status = await this.syntaxFailure(error, source, io, false);
+      const status = await this.syntaxFailure(error, source, syntaxName === undefined ? io : { ...io, scriptName: syntaxName }, false);
       if (fatalSyntax && !executed) throw new Flow("exit", status);
       return status;
     }
+  }
+
+  async evalBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
+    const args = [...context.args];
+    if (args[0] === "--") args.shift();
+    else if (args[0]?.startsWith("-") && args[0] !== "-") {
+      await this.diagnostic(io, `eval: -${args[0][1]}: invalid option`);
+      await writeText(io.stderr, "eval: usage: eval [arg ...]\n");
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    if (!args.length) return 0;
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const source = args.join(" ");
+    this.budget.source(Buffer.byteLength(source));
+    this.sourceText(Buffer.from(source), "eval");
+    state.depth++;
+    try {
+      return await this.runCurrentText(source, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, special, `${io.scriptName ?? "shell"}: eval`);
+    } finally { state.depth--; }
   }
 
   async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {

@@ -10,3 +10,11 @@ The prior fixtures and historical70-command results remain available at
 0123c83d3aae72a15621acbb29a165b97b2c6ab6 and the frozen8670 package evidence.
 This is a test migration accompanying new root integration, not a product bug fix
 or a rescore of historical gates. Runtime/type acceptance is reported separately.
+
+Two maintained public consumers explicitly routed by qualified-current-release
+inventory also change70 to73: stream-five public-options and stream-inspection
+consumer. The latter keeps its explicit ordered tail and appends only the three
+new names. The current stream-inspection canonical public test changes only its
+total/title. Existing workflows, type assertions, native data and historical
+70-name captures remain unchanged; old version-bound public audit fixtures are
+not globally rewritten by searching for every occurrence of70.

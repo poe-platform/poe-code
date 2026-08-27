@@ -22,14 +22,14 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("root family exports preserve four inspection definitions in the 70-command aggregate", async () => {
+test("root family exports preserve four inspection definitions in the 73-command aggregate", async () => {
   const limits: Partial<StreamInspectionLimits> = { maxInputBytes: 1024 };
   const options: StreamInspectionCommandsOptions = { limits };
   const aggregate: AgentCommandsOptions = { streamInspection: options };
   assert.deepEqual(createStreamInspectionCommands(options).map(command => command.name), names);
   const definitions = createAgentCommands(aggregate).map(command => command.name);
-  assert.equal(definitions.length, 70);
-  assert.equal(new Set(definitions).size, 70);
+  assert.equal(definitions.length, 73);
+  assert.equal(new Set(definitions).size, 73);
   assert.deepEqual(definitions.slice(56, 60), names);
   assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file"]);
   const target = host();

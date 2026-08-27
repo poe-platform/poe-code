@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { setImmediate } from "node:timers/promises";
 import test from "node:test";
 import {
@@ -42,11 +42,6 @@ interface Expectations {
 }
 
 const expectations = JSON.parse(readFileSync(new URL("./expectations.json", import.meta.url), "utf8")) as Expectations;
-const evidenceUrl = new URL("./artifacts/", import.meta.url);
-const sourcePin = JSON.parse(readFileSync(new URL("./source-pin.json", import.meta.url), "utf8")) as {
-  inspectedHead: string;
-  files: Record<string, string>;
-};
 
 for (const fixture of expectations.cases) {
   test(fixture.id, { timeout: 7_000 }, async () => {
@@ -210,28 +205,8 @@ for (const fixture of expectations.cases) {
       activeTransports, activeUploads: activeUploads.size, watchdogFired, errors, stdout, stderr, events,
       activeResourceTypesAfterCleanup: process.getActiveResourcesInfo(),
     };
-    writeFileSync(new URL(`${fixture.id}.json`, evidenceUrl), `${JSON.stringify(observed, null, 2)}\n`);
-    const equal = (actual: number[] | undefined, expected: number[]): boolean =>
-      actual !== undefined && actual.length === expected.length && actual.every((byte, index) => byte === expected[index]);
-    if (fixture.kind === "Buffer" && result?.exitCode === 0 && requests.length === 2 &&
-      equal(requests[0]?.bytes, fixture.expectedFirst) && !equal(requests[1]?.bytes, fixture.expectedSecond) &&
-      requests[1]?.finalizedAtStart === 1 && stdinFinalizations === 1 && errors.length === 0) {
-      writeFileSync("/tmp/byte-remaining-direct-curl-findings.txt", [
-        "PROVEN direct public registered curl stdin replay byte alias; NOT Shell or packed evidence.",
-        `Inspected source HEAD: ${sourcePin.inspectedHead}`,
-        `body.ts SHA256: ${sourcePin.files["src/commands/network/body.ts"]}`,
-        `Repro: node --unhandled-rejections=strict tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/run.mjs`,
-        `Frozen expected first: ${JSON.stringify(fixture.expectedFirst)}`,
-        `Actual first: ${JSON.stringify(requests[0]?.bytes)}`,
-        `Frozen expected second: ${JSON.stringify(fixture.expectedSecond)}`,
-        `Actual second: ${JSON.stringify(requests[1]?.bytes)}`,
-        "Site: src/commands/network/body.ts:142 cache.push(chunk.slice()); Buffer slice retains producer backing.",
-        "Replay site: src/commands/network/body.ts:124 yields chunk.slice() from that cache.",
-        "Contracts: AGENTS.md retained ByteSource fragments must be owned before next/finalize; src/contracts/io.ts ByteSource/readBytes forward Uint8Array; src/contracts/command.ts CommandContext.stdin and public CommandDefinition.execute/CommandRegistry accept it.",
-        "Network README Host contract preserves bytes/backpressure; bounded stdin replay is documented. No stdin ownership transfer clause.",
-        "Producer mutation occurs only on next read and in finally. Trusted transport snapshots before next read and never mutates/transfers request bytes. Two requests; exit 0; finalizer completed before replay; no observed errors.",
-        "No production changes permitted or made. Native Uint8Array paired case follows in the same two-case run.",
-      ].join("\n") + "\n");
+    if (process.env.VIRTUAL_BASH_DIRECT_CURL_CAPTURE === "1") {
+      console.log(`VIRTUAL_BASH_DIRECT_CURL_OBSERVATION ${Buffer.from(JSON.stringify(observed)).toString("base64")}`);
     }
     assert.equal(watchdogFired, false);
     assert.deepEqual(errors, []);

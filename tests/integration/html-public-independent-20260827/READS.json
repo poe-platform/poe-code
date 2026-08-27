@@ -1,0 +1,314 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-27T21:41:24.869Z",
+  "initialHead": "e9843e601859282de25fa40742529c6be6668bf3",
+  "candidateExecuted": false,
+  "liveWiringExposure": "status path names only; concurrent changes visible before fixture implementation; no live wiring bytes inspected",
+  "records": [
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/index.ts",
+      "blob": "d69044d1770e1ea52f03619cce32727e472e016b",
+      "sha256": "41ba78a17ea754201ed64a8af37ef42844a9f147d2cdf6bcee00b34f59e6d25e",
+      "bytes": 2956,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/options.ts",
+      "blob": "6bb8a60ce2175b44fa6f5fdd1c6f4c5a9650cdeb",
+      "sha256": "817bc46a15b19a3396e3d7c0729228dfb07614560ba83a5c0a6f9b7b76f24207",
+      "bytes": 3233,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/input.ts",
+      "blob": "69878f60df7dd074b22091e3f67a97f731ec4903",
+      "sha256": "7c762f24503779d72b2b431ead2337853a0cd8c71ff6d755d54bd7cb58861597",
+      "bytes": 4119,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/budget.ts",
+      "blob": "e100f791dcb6ae556b9af8cb9850ed472e033923",
+      "sha256": "6566e56d8fbd56b6ff0a435ab71841ac038e3f6d0e4911fe7cfc7e06abd6b0a4",
+      "bytes": 3256,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/README.md",
+      "blob": "7c58fd2e6f212f842438bd7d6e8132cfc746f755",
+      "sha256": "361c841e2f4c4d84c45614ae0872029da51392e8fb33c508f2b82c558d07532b",
+      "bytes": 11404,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "9ae34a06662db27897043d77d6145700c109b22c",
+      "path": "src/commands/html-to-markdown/render.ts",
+      "blob": "b02cae79e3ccdad673aabc81f07afae0c77bdc76",
+      "sha256": "a624213e0289a441f1cacbf128dbac0861d23aee0ca3d7a2ad2f98a1d5da6378",
+      "bytes": 16524,
+      "readMode": "hash-only"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "AGENTS.md",
+      "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+      "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8",
+      "bytes": 12424,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/index.ts",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "bytes": 1414,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "package.json",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "bytes": 4287,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/plugins/index.ts",
+      "blob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+      "sha256": "b0b7fbbf0aa36b7998c760f0e3ec5ee7dbaf18e929b6c2fb434f7ea62a2f082d",
+      "bytes": 5150,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/index.ts",
+      "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "bytes": 2292,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/output.ts",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "bytes": 4661,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/command.ts",
+      "blob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "bytes": 2923,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/command.md",
+      "blob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "bytes": 8066,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/plugin.ts",
+      "blob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "bytes": 2359,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/network/index.ts",
+      "blob": "3e276efcb2b97a0da8773f58cf08ff25954fdc3d",
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "bytes": 1049,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/network/types.ts",
+      "blob": "41d192aaadeb0a727990392cc4df3e05d94aab31",
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "bytes": 1918,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/network/curl.ts",
+      "blob": "21384b3a89411e832af7a4214c9869885b055a63",
+      "sha256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "bytes": 17904,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/shell/types.ts",
+      "blob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "bytes": 2178,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/shell/shell.ts",
+      "blob": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "sha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+      "bytes": 10783,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/column/index.ts",
+      "blob": "4ad4fab0be4540a6107efd9e3653487b261fe91e",
+      "sha256": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+      "bytes": 955,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/column/column.ts",
+      "blob": "b222ae74365ede05addd3edab3a886968da74c64",
+      "sha256": "5422966f69620cf0a60cdbded9c662ad16da09c609e3ce949e52da21be030f7d",
+      "bytes": 4487,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/regex-execution/client.ts",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "bytes": 15319,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "bytes": 10890,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+      "blob": "421892b39b02d51a8ad6342c1b72e25fda36e70c",
+      "sha256": "832fc8770bcfd06b5d9d8b953796f9f47e83842aff6f099405595a9f76c94231",
+      "bytes": 9963,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "tests/integration/owned-output-production-rebase/author/network.test.ts",
+      "blob": "8b93d420f1f526b7d5a1397756b7fbf16e2dfe89",
+      "sha256": "8ed5a8b5fc9aff0056406e80047119845b8f921e6b8c01087d939d21368da709",
+      "bytes": 11467,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "tsconfig.json",
+      "blob": "6a5f0688c7e8ac1d63d62eef915997d2fcca31b6",
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "bytes": 2920,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "tsconfig.build.json",
+      "blob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "bytes": 260,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "37ec93907226ba6437d40b7fa29fa628282669a9",
+      "path": "tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/REPORT.md",
+      "blob": "18cf30392347602dd425bf53a181b5477370f24d",
+      "sha256": "59ef3d7f5b2e0ee75471b0217dc32ee1c027612eb48dcace915c9468df47795d",
+      "bytes": 14881,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "37ec93907226ba6437d40b7fa29fa628282669a9",
+      "path": "tests/commands/html-to-markdown-independent-20260827/frozen-cases.mjs",
+      "blob": "e9341d98936d993705d2e465583d4a686cbed739",
+      "sha256": "0da767a02316c25a8334f089a4587b17801c513e2453a837f8de41a9d51be53a",
+      "bytes": 7202,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "dbceec2b9890927ea93cee3b416f78908c648cc6",
+      "path": "tests/integration/aliases-column-public-independent-20260827/run.mjs",
+      "blob": "621af2e68d96563e808fe2a4ef6b20f368229597",
+      "sha256": "c8a39847e5957d28f820034723722a316064de77577621992b2f92dab7c3b415",
+      "bytes": 19493,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "dbceec2b9890927ea93cee3b416f78908c648cc6",
+      "path": "tests/integration/aliases-column-public-independent-20260827/contract.mjs",
+      "blob": "f9954d2828ee42f09c2c5ed64b35567a077d61f9",
+      "sha256": "83983cfc4c5b7cc87963a86180f849418e5123bdd9c37cf68433eb7e60a0716a",
+      "bytes": 3210,
+      "readMode": "targeted-content-read; not every line necessarily inspected"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/shell/index.ts",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "bytes": 275,
+      "readMode": "supplemental declared export/default inventory check; targeted content only"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/contracts/index.ts",
+      "blob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef",
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "bytes": 202,
+      "readMode": "supplemental declared export/default inventory check; targeted content only"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "src/fs/memory/index.ts",
+      "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "bytes": 23533,
+      "readMode": "supplemental declared export/default inventory check; targeted content only"
+    },
+    {
+      "commit": "e9843e601859282de25fa40742529c6be6668bf3",
+      "path": "tests/plugins/agent-commands.test.ts",
+      "blob": "14f1fa83c57add1e71b1b8bc44ca66c390b9330b",
+      "sha256": "a0f7e8f8972eb59047b803a7bea10d584d84eeb882549d5e773923746835ba54",
+      "bytes": 9893,
+      "readMode": "supplemental declared export/default inventory check; targeted content only"
+    },
+    {
+      "commit": "dbceec2b9890927ea93cee3b416f78908c648cc6",
+      "path": "tests/integration/aliases-column-public-independent-20260827/consumer.mjs",
+      "blob": "f64c6cc867d9ec2bf28357ba64b6dc214f830117",
+      "sha256": "bd40dc0b2d3399259e7160dc1112a26a88144a1752ebcb984940baa34a14d7a3",
+      "bytes": 21315,
+      "readMode": "supplemental declared export/default inventory check; targeted content only"
+    }
+  ],
+  "supplementCapturedAt": "2026-08-27T21:43:49.231Z"
+}

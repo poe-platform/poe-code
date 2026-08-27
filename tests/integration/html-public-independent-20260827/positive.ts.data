@@ -1,0 +1,11 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createHtmlToMarkdownCommand, createHtmlToMarkdownCommands, htmlToMarkdownCommands, networkCommands, type AgentCommandsOptions, type HtmlToMarkdownLimits, type HtmlToMarkdownCommandsOptions, type CommandDefinition, type VirtualShellPlugin } from "virtual-bash";
+import { createHtmlToMarkdownCommand as subFactory, type HtmlToMarkdownCommandsOptions as SubOptions, type HtmlToMarkdownLimits as SubLimits } from "virtual-bash/commands/html-to-markdown";
+const limits: Partial<HtmlToMarkdownLimits> & Partial<SubLimits> = { maxInputBytes: 8, maxOutputBytes: 16, maxTokenBytes: 8, maxTokens: 10, maxNodes: 10, maxDepth: 8, maxAttributes: 8, maxTableCells: 8, maxTableCellBytes: 8, maxFiles: 8, maxArgumentBytes: 8, maxDiagnosticBytes: 8, maxWorkUnits: 1024 };
+const options: HtmlToMarkdownCommandsOptions & SubOptions = { replace: true, limits };
+const aggregate: AgentCommandsOptions = { replace: true, __HTML_OPTION__: { limits } };
+const command: CommandDefinition = createHtmlToMarkdownCommand(options);
+const definitions: readonly CommandDefinition[] = createHtmlToMarkdownCommands(options);
+const plugin: VirtualShellPlugin = htmlToMarkdownCommands(options);
+const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+shell.use(networkCommands({ authorize: () => true }));
+void [subFactory(options), command, definitions, plugin, createAgentCommands(aggregate), shell];

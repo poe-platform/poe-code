@@ -31,10 +31,32 @@ comparisons of repeated source executions, not another 142 product executions.
 
 The failing contract assumed `FileSystem.compareEntry` is mandatory. MemoryFS
 supports it, but the real adapter exposes truthful scoped stat identities without
-that optional method. The failed RealFS check occurs before that group's command
-dispatch, so it is not a product command failure. Root separately authorized a
+that optional method. The failed RealFS subcase check occurs before its command
+dispatch; earlier MemoryFS subcases in that group did execute. It is not a
+product command failure. Root separately authorized a
 truthful optional-method/scoped-identity correction; this original log/helper
 version is preserved rather than relabeled a product fix.
+
+## Authorized separate profiles
+
+`corrected-helper-v2.json` records the root-authorized optional-method/scoped-stat
+helper replay on the same immutable source: 16/16 contract groups, 18/18 Node
+test groups, unchanged native comparison and workflow payloads. No product source
+changed. Missing identity proof still fails; path strings never synthesize identity.
+
+`diagnostic-meaning-v2.json` preserves a separate stronger diagnostic classifier:
+162/164 executions satisfy the named category/operand policy (81/82 each adapter),
+while original strict 122/164 and weak selected 164/164 remain unchanged. All 25
+native-negative self-checks satisfy their own rules; 68 synthetic wrong-error,
+generic-name/path and wrong-operand mutations are rejected. These mutations add
+no native or product input coverage.
+
+The lone stronger-policy gap is `seq -f '%f %f' 3` on both adapters: the source
+correctly fails with no stdout but omits the offending format string from stderr,
+where native includes it. This is a diagnostic operand-omission finding under
+root's stronger policy, not a numeric output or status failure. It was reported
+for root adjudication/fresh-owner routing; the verifier does not relax the
+classifier or modify production code to make it pass.
 
 ## Separate post-discovery product failure
 

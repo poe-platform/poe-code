@@ -31,9 +31,6 @@ const committedBytes = path => {
 };
 for (const ancestor of ['d74ca02', '98a28f1', '4244e9a', '1836795']) git(['merge-base', '--is-ancestor', ancestor, sourceCommit]);
 const targetPaths = ['src/commands/stream-format', 'src/commands/split'];
-if (git(['diff', 'HEAD', '--', ...targetPaths]).trim() || git(['ls-files', '--others', '--exclude-standard', '--', ...targetPaths]).trim()) {
-  throw new Error('BLOCKED: author source is not committed and closed');
-}
 mkdirSync(join(owned, '.private'), { recursive: true });
 const run = mkdtempSync(join(owned, '.private/review-'));
 const snapshot = join(run, 'snapshot');

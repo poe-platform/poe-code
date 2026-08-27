@@ -74,6 +74,23 @@ function shell(fs: FileSystem, locale: string | null = "C"): ShellInstance {
   return new Shell({ fs, cwd: "/fixture", env: environment(locale) }).use(agentCommands()).use(streamFormatCommands()).use(splitCommands());
 }
 
+async function assertSameEntry(fs: FileSystem, leftPath: string, rightPath: string): Promise<void> {
+  if (fs.compareEntry) {
+    assert.equal(await fs.compareEntry(leftPath, fs, rightPath), "same");
+    return;
+  }
+  const left = await fs.stat(leftPath);
+  const right = await fs.stat(rightPath);
+  for (const stat of [left, right]) {
+    assert.ok(typeof stat.identityScope === "symbol" || typeof stat.identityScope === "object" && stat.identityScope !== null, "Missing truthful scoped identity capability");
+    assert.ok(typeof stat.dev === "number" && Number.isSafeInteger(stat.dev) && stat.dev >= 0);
+    assert.ok(typeof stat.ino === "number" && Number.isSafeInteger(stat.ino) && stat.ino >= 0);
+  }
+  assert.equal(left.identityScope, right.identityScope);
+  assert.equal(left.dev, right.dev);
+  assert.equal(left.ino, right.ino);
+}
+
 async function* fragmented(input: Uint8Array): ByteSource {
   const storage = new Uint8Array(7);
   let offset = 0;
@@ -247,8 +264,7 @@ contract("split same-input aliases retain bytes and VFS identity relation", asyn
     await fs.writeFile("/fixture/input", bytes("abcdef"));
     if (alias === "hardlink") { assert.ok(fs.link); await fs.link("/fixture/input", "/fixture/alias.aa"); }
     else { assert.ok(fs.symlink); await fs.symlink("input", "/fixture/alias.aa"); }
-    assert.ok(fs.compareEntry);
-    assert.equal(await fs.compareEntry("/fixture/input", fs, "/fixture/alias.aa"), "same");
+    await assertSameEntry(fs, "/fixture/input", "/fixture/alias.aa");
     const before = await snapshot(fs);
     const instance = shell(fs);
     try {
@@ -256,7 +272,7 @@ contract("split same-input aliases retain bytes and VFS identity relation", asyn
       assert.notEqual(result.exitCode, 0);
       assert.match(result.stderr, /input|same|overwrite/iu);
       assert.deepEqual(await snapshot(fs), before);
-      assert.equal(await fs.compareEntry("/fixture/input", fs, "/fixture/alias.aa"), "same");
+      await assertSameEntry(fs, "/fixture/input", "/fixture/alias.aa");
     } finally { await instance.dispose(); }
   }
 });

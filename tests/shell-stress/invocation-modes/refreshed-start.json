@@ -1,0 +1,146 @@
+{
+  "timestamp": "2026-08-27T00:21:55.350Z",
+  "startHead": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "shellCommit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+  "cohortCommit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+  "frozenChecks": [
+    {
+      "path": "src/shell/arithmetic.ts",
+      "expected": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "expected": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "expected": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "actual": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "expected": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "expected": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "actual": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "expected": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "expected": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "actual": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "expected": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "actual": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "expected": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "actual": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/audit-preparation.ts",
+      "expected": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+      "actual": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/baseline-evidence.json",
+      "expected": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+      "actual": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/capture-native.ts",
+      "expected": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+      "actual": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cases.ts",
+      "expected": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "actual": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cleanup-evidence.json",
+      "expected": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+      "actual": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/harness.ts",
+      "expected": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "actual": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/holdout.test.ts",
+      "expected": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "actual": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-capture.log",
+      "expected": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea",
+      "actual": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-capture.log",
+      "expected": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60",
+      "actual": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-evidence.json",
+      "expected": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "actual": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-evidence.json",
+      "expected": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "actual": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/preparation-audit.json",
+      "expected": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+      "actual": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/ready-wait-evidence.json",
+      "expected": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+      "actual": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/trace.mjs",
+      "expected": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "actual": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/verify.ts",
+      "expected": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "actual": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/virtual-child.ts",
+      "expected": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "actual": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d"
+    }
+  ],
+  "preserved": {
+    "post-ready-final-audit.json": "3536deb5b6faf5b5a5b8771915b5ba399a0ccb1986e7a51589885c355ee3165c",
+    "post-ready-handoff-audit.json": "f2577f84bb320caa08d658cf0b4bf76b3ad0acecb7ff393457c14c36364e59da",
+    "post-ready-holdout-evidence.json": "51aef960db8966604763120d3473efa6e6ef796c5ea48fe3e0931f2c93ae58ec",
+    "post-ready-raw-comparison.json": "1a1872267f5737957a24282c434533fc03122d52ba57f036e8e711f2d8debac7",
+    "post-ready-regression-evidence.json": "d8c6d712d3a7fbdfb07baa7dff730462fd7b1c09b7373a77e11762ec40eb86cb",
+    "post-ready-supplement-evidence.json": "a3ec0a0c1a50dd85ceac2bb2f053227c72166f911718f13dcc997b21fb24e3aa"
+  },
+  "cpCommit": "37e19b7",
+  "cpCommittedFilesystemHash": "da0f1f25acd63906cd42153b0ae8068b05ccc748c598b979ade42ca599e7f731",
+  "startingFilesystemHash": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c",
+  "status": " M benchmarks/shell-stress/diagnostic-profiles/run.ts\n M src/commands/filesystem.ts\n M tests/fs/mount/identity-compatibility-review/run.mjs\n M tests/integration/adapter-tools/fixtures.ts\n M tests/shell-stress/invocation-modes/compare-frozen.ts\n?? src/commands/archive/\n?? src/commands/move.ts\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/\n?? tests/commands/move-cross-device.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/identity-authority-review/\n?? tests/fs/mount/identity-compatibility-review/evidence/frozen-59b1269-compatibility/\n?? tests/integration/adapter-tools/preflight-review/\n?? tests/shell-stress/invocation-modes/refresh.ts\n",
+  "index": ""
+}

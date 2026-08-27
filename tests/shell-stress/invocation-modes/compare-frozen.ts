@@ -21,7 +21,7 @@ interface NativeProfile {
   rows: { id: string; result: { code: number; stdoutHex: string; stderrHex: string }; effects: Record<string, string> }[];
 }
 
-const holdoutBytes = await readFile(`${owned}/post-ready-holdout-evidence.json`);
+const holdoutBytes = await readFile(`${owned}/${process.argv[3] ?? "post-ready-holdout-evidence.json"}`);
 const holdout: { runs: { stdout: string }[] } = JSON.parse(holdoutBytes.toString());
 const captured = holdout.runs[0]!.stdout.split("\n").filter(line => line.startsWith("# {"));
 assert.equal(captured.length, 72);

@@ -1,0 +1,203 @@
+{
+  "timestamp": "2026-08-27T00:22:13.885Z",
+  "phase": "raw",
+  "beforeHead": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "afterHead": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "guardMode": "actual .ts load-hook imports",
+  "importedSource": {
+    "src/commands/basic.ts": {
+      "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    "src/commands/copy-identity.ts": {
+      "before": "a0fadd306b6db1fe79cb927b4ff3624101708a0f38a0fe708fbd90c8f67a7275",
+      "after": "a0fadd306b6db1fe79cb927b4ff3624101708a0f38a0fe708fbd90c8f67a7275"
+    },
+    "src/commands/execution.ts": {
+      "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "after": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+    },
+    "src/commands/filesystem.ts": {
+      "before": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c",
+      "after": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c"
+    },
+    "src/commands/find.ts": {
+      "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    "src/commands/grep.ts": {
+      "before": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "after": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    "src/commands/index.ts": {
+      "before": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "after": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    "src/commands/internal.ts": {
+      "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    "src/commands/move.ts": {
+      "before": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c",
+      "after": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c"
+    },
+    "src/commands/predicates.ts": {
+      "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    "src/commands/streams.ts": {
+      "before": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "after": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+    },
+    "src/commands/text.ts": {
+      "before": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "after": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+    },
+    "src/contracts/command.ts": {
+      "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "after": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    "src/contracts/errors.ts": {
+      "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    "src/contracts/filesystem.ts": {
+      "before": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "after": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+    },
+    "src/contracts/index.ts": {
+      "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    "src/contracts/io.ts": {
+      "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    "src/contracts/path.ts": {
+      "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    "src/contracts/plugin.ts": {
+      "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    "src/fs/memory/index.ts": {
+      "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "after": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+    },
+    "src/shell/arithmetic.ts": {
+      "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    "src/shell/index.ts": {
+      "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    "src/shell/input.ts": {
+      "before": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "after": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+    },
+    "src/shell/locale.ts": {
+      "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    "src/shell/parser.ts": {
+      "before": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "after": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+    },
+    "src/shell/pattern.ts": {
+      "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    "src/shell/runtime.ts": {
+      "before": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "after": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+    },
+    "src/shell/shell.ts": {
+      "before": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "after": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+    },
+    "src/shell/types.ts": {
+      "before": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "after": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    }
+  },
+  "imports": [
+    "src/commands/basic.ts",
+    "src/commands/copy-identity.ts",
+    "src/commands/execution.ts",
+    "src/commands/filesystem.ts",
+    "src/commands/find.ts",
+    "src/commands/grep.ts",
+    "src/commands/index.ts",
+    "src/commands/internal.ts",
+    "src/commands/move.ts",
+    "src/commands/predicates.ts",
+    "src/commands/streams.ts",
+    "src/commands/text.ts",
+    "src/contracts/command.ts",
+    "src/contracts/errors.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/index.ts",
+    "src/contracts/io.ts",
+    "src/contracts/path.ts",
+    "src/contracts/plugin.ts",
+    "src/fs/memory/index.ts",
+    "src/shell/arithmetic.ts",
+    "src/shell/index.ts",
+    "src/shell/input.ts",
+    "src/shell/locale.ts",
+    "src/shell/parser.ts",
+    "src/shell/pattern.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts"
+  ],
+  "configsBefore": {
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "configsAfter": {
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "changedRelevant": [],
+  "proofPresent": true,
+  "stable": true,
+  "totals": {},
+  "runs": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell-stress/invocation-modes/trace.mjs",
+        "tests/shell-stress/invocation-modes/compare-frozen.ts",
+        "refreshed-raw-comparison.json",
+        "refreshed-holdout.json"
+      ],
+      "argv0": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/nonexistent",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "INVOCATION_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.refresh-KGBnyQ/raw.log"
+      },
+      "pid": 38113,
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdoutHex": "676e752d352e333a2034382f3537207261772065786163743b2039206c6f737365732072657461696e65640a686973746f726963616c2d332e323a2034362f3537207261772065786163743b203131206c6f737365732072657461696e65640a7072696d6172792d352e333a2039382f313034207261772065786163743b2036206c6f737365732072657461696e65640a686973746f726963616c2d332e323a2038322f313034207261772065786163743b203232206c6f737365732072657461696e65640a",
+      "stderrHex": "",
+      "stdout": "gnu-5.3: 48/57 raw exact; 9 losses retained\nhistorical-3.2: 46/57 raw exact; 11 losses retained\nprimary-5.3: 98/104 raw exact; 6 losses retained\nhistorical-3.2: 82/104 raw exact; 22 losses retained\n",
+      "stderr": "",
+      "elapsedMs": 218.59104099999968
+    }
+  ]
+}

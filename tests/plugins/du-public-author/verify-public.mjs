@@ -47,7 +47,7 @@ function manifest(directory, excludedRoots = []) {
 
 try {
   const selected = ["src", "scripts", "package.json", "package-lock.json", "README.md", "tsconfig.json", "tsconfig.build.json", owner,
-    "tests/commands/du", "tests/plugins/html-to-markdown-public-author/lifecycle.test.ts", "tests/commands/html-to-markdown/helpers.ts", "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration",
+    "tests/commands/du", "tests/fs/webdav/mock.ts", "tests/plugins/html-to-markdown-public-author/lifecycle.test.ts", "tests/commands/html-to-markdown/helpers.ts", "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration",
     "tests/plugins/qualified-current-release", "tests/plugins/stream-five-public", "tests/integration/stream-inspection-public-author/consumer.mts"];
   const archive = join(directory, "candidate.tar");
   git("archive", `--output=${archive}`, candidate, ...selected);

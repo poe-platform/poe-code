@@ -194,7 +194,7 @@ test("actual npm script excludes future native test data without excluding neigh
     const discovery = globSync("tests/**/*.test.ts", { cwd: copy.directory }).sort();
     assert.equal(discovery.length, 7);
     assert.ok(data.every(path => discovery.includes(path)));
-    const result = run(copy.directory, "npm", ["test"]);
+    const result = run(copy.directory, "npm", ["test", "--", "--test-reporter=tap"]);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.match(result.stdout, /# tests 5\b/u);
     assert.match(result.stdout, /# pass 5\b/u);
@@ -202,7 +202,7 @@ test("actual npm script excludes future native test data without excluding neigh
     for (const index of neighbors.keys()) assert.match(result.stdout, new RegExp(`neighbor-${index}`, "u"));
     assert.doesNotMatch(result.stdout + result.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);
     const original = JSON.parse(readFileSync(join(owned, "before-02.json"), "utf8")) as { before: { testScript: string } };
-    copy.write("package.json", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript } }));
+    copy.write("package.json", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript.replace("--test ", "--test --test-reporter=tap ") } }));
     const unfiltered = run(copy.directory, "npm", ["test"]);
     assert.equal(unfiltered.status, 1);
     assert.match(unfiltered.stdout + unfiltered.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);

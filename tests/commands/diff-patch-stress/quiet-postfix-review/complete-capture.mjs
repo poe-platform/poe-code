@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { differences, git, inventory, location, readJson, repository, save, sha, status } from "./common.mjs";
+
+const first = readFileSync(location, "utf8").trim(), original = readJson(join(first, "manifest.json"));
+status(`Owned capture defect, NOT a changed dependency: missing benchmarks/session.ts (ERR_MODULE_NOT_FOUND for session.js). First revised attempt 2 native passes + 1 file-load failure, not 3758 acceptance. Retaining original snapshot/logs. Completing capture with unchanged current benchmark helper bytes; no historical-helper substitution.`);
+const paths = ["benchmarks/session.ts", "benchmarks/plugin-fixtures.ts", "benchmarks/model.ts", "benchmarks/worker-bootstrap.mjs", "benchmarks/worker.ts", "benchmarks/engines.ts", "benchmarks/probes.ts"];
+const before = inventory(repository, paths);
+for (const path of paths) assert.equal(before[path].sha256, sha(git("show", `5ce557d:${path}`)), `Current helper differs from accepted runner: ${path}; request narrow matching-helper replay`);
+const work = join(first, "complete-capture"), snapshot = join(work, "snapshot-original");
+mkdirSync(work);
+cpSync(original.snapshot, snapshot, { recursive: true, verbatimSymlinks: true });
+const bytes = Object.fromEntries(paths.map(path => [path, readFileSync(join(repository, path))]));
+for (const [path, content] of Object.entries(bytes)) writeFileSync(join(snapshot, path), content);
+assert.deepEqual(inventory(repository, paths), before);
+const expected = { ...original.inputs, ...before };
+assert.deepEqual(inventory(snapshot, Object.keys(expected)), Object.fromEntries(Object.entries(expected).sort(([left], [right]) => left.localeCompare(right))));
+assert.deepEqual(differences(inventory(original.snapshot, ["src"]), inventory(snapshot, ["src"])), []);
+assert.deepEqual(inventory(snapshot, ["node_modules"]), original.dependencies);
+cpSync(join(first, "historical"), join(work, "historical"), { recursive: true });
+const manifest = { ...original, work, snapshot, inputs: inventory(snapshot, Object.keys(expected)), captureCompletion: { first, reason: "Verifier omitted seven benchmark dependencies from first snapshot", previousAttempt: { suite: "absolute-target", tests: 3, pass: 2, fail: 1, acceptance3758: false }, added: before, allAddedEqualAcceptedReview: "5ce557d", sourceAndDependencyBytesUnchanged: true } };
+save(join(work, "manifest.json"), manifest);
+save(join(first, "capture-completion.json"), manifest.captureCompletion);
+writeFileSync(location, `${work}\n`);
+status(`Capture completed: seven benchmark helper files byte-identical to accepted 5ce557d. Source/dependencies unchanged from first frozen snapshot. All first failed logs retained at ${first}. Full replay now uses ${work}.`);

@@ -1,0 +1,14 @@
+{
+  "members": 788,
+  "uncompressedBytes": 21389015,
+  "gzipPayloadBytes": 2571477,
+  "excludes": [
+    "native executable binaries",
+    "native temporary fixture trees",
+    "node_modules binaries (manifest only)",
+    "generated build binaries (manifest only)"
+  ],
+  "sha256": "29c80982f2da67770643e1febf2c2fa2d33b4c071478c27e7bf12d787fd75dbb",
+  "checkedMembers": 788,
+  "passed": true
+}

@@ -7,12 +7,25 @@ const owned = resolve('tests/stress/regex-execution/production-review');
 const [snapshotName, job, label = job] = process.argv.slice(2);
 if (!snapshotName || !job || !/^[a-z0-9-]+$/u.test(label)) throw new Error('snapshot job [unique-label] required');
 const risky = job.startsWith('risk-');
+const frozen = JSON.parse(await readFile(resolve(owned, `evidence/${snapshotName}-freeze.json`)));
+for (const entry of frozen.identities) {
+  const bytes = await readFile(resolve(frozen.snapshot, entry.path));
+  if (createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw new Error(`frozen source drift: ${entry.path}`);
+}
+if (snapshotName !== 'baseline') {
+  const build = JSON.parse(await readFile(resolve(owned, `evidence/${snapshotName}/build.json`)));
+  if (build.status !== 0) throw new Error('compiled build must pass');
+  for (const entry of build.emitted) {
+    const bytes = await readFile(resolve(frozen.snapshot, entry.path));
+    if (createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw new Error(`emitted source drift: ${entry.path}`);
+  }
+}
 if (risky) {
   if (!['risk-grep-timeout', 'risk-rg-timeout', 'risk-grep-abort', 'risk-rg-abort'].includes(job)) throw new Error('not one of four frozen risk cases');
   await readFile('/tmp/regex-production-author-ready.txt');
   const control = JSON.parse(await readFile(resolve(owned, `evidence/${snapshotName}/cohort.json`)));
   if (!control.result?.pass || control.killed) throw new Error('same-source benign controls must pass first');
-  await readFile(resolve(owned, `evidence/${snapshotName}/static-review.json`));
+  if (!JSON.parse(await readFile(resolve(owned, `evidence/${snapshotName}/static-review.json`))).riskSafe) throw new Error('static risk gate not approved');
   const claims = await readdir(resolve(owned, 'evidence/risk-claims')).catch(() => []);
   if (claims.length >= 4 || claims.includes(`${job}.json`)) throw new Error('risk reservation exhausted or duplicate; root required');
   await mkdir(resolve(owned, 'evidence/risk-claims'), { recursive: true });

@@ -1,0 +1,83 @@
+AUTHOR preliminary API/lifecycle notice — 2026-08-27
+Ownership: only assigned regex-execution/{client,worker,protocol,matching}.ts,
+regex-execution/README.md, grep.ts, search/{matcher,rg,options}.ts; new focused
+tests/commands/regex-execution/**. No production edits before independent ready.
+
+Proposed public option: readonly regex?: RegexExecutionOptions, with
+requestTimeoutMs=1000, startupTimeoutMs=3000, maxWorkers=2,
+maxQueuedRequests=64, maxQueuedBytes=128*1024*1024, idleTimeoutMs=100,
+workerOldGenerationMb=128, workerStackMb=4. Positive safe integer options;
+queue may be configured to zero for fail-fast overload. Queue bytes include
+descriptor strings (UTF-16) and byte rows. These are explicit matcher resource
+policy, not Shell deadlines or cumulative invocation/session budgets.
+Typed internal RegexExecutionError.code differentiates timeout/startup timeout,
+queue exhaustion, worker exit/protocol failure. Public commands retain existing
+status/diagnostic conventions. Existing per-tool pattern/line/hit/file/output
+limits are not replaced by prototype caps. No cumulative descriptor budgets.
+
+Lifecycle proposal: a lazy executor closure per configured command factory,
+at most two workers total including terminating workers. Request-only FIFO
+leases across dispatch, validation and awaited failure cleanup; release before
+source/sink/VFS awaits. Worker caches are bounded (one descriptor per worker),
+descriptor plus byte rows travel as data, all dynamic RegExp construction and
+matching (including invalid-UTF8 fragment variants) occurs in static workers.
+Compile validation is an empty-row worker request before source consumption.
+One invocation-scoped handle closes in finally; last invocation awaits idle
+worker retirement. Cached idle workers and idle timers are unref'd, with bounded
+idle retirement even while an invocation awaits uncooperative source/sink.
+Abort applies only to the caller's queued/request work, never another shell.
+No plugin dispose hook or new lifecycle contract appears necessary with this
+self-retiring pool; will stop if inspection falsifies this.
+
+Blocking wiring question: existing public StandardCommandsOptions in
+src/commands/index.ts has no grep option and calls grepCommands() without args.
+Making grep configurable through public API needs that existing option plus
+the single grepCommands(options.regex) factory call, with NO registry changes.
+Please explicitly authorize these two narrow changes or assign integration
+owner. Merely changing grepCommands' internal signature is not a public API.
+SearchOptions.regex can be added in already-owned search/options.ts. A narrow
+root export type RegexExecutionOptions can be added if authorized/needed.
+
+Batching investigation still in progress: existing line generators expose one
+line at a time. Will batch only complete records already in an available source
+chunk, never pull another source chunk speculatively or split anchors arbitrarily.
+No named-backreference rejection planned: preserve current JS behavior unless
+separate primary/native proof + atomic compatibility change is warranted.
+Author pathological probes: 0/2 consumed; no dangerous baseline planned.
+Independent verifier owns broad output-equivalent timing cohort; author will
+check moved actual product package assets/public commands and a tiny benign
+startup/output-equivalent sample only (details forthcoming).
+
+Progress / scope blocker after root's host-construction audit request:
+Independent baseline-ready received and production edits begun. Necessary
+StandardCommandsOptions.regex + single grep factory forwarding + narrow public
+type export authorized by root note and implemented. Initial scoped existing
+grep/search suite 111/111 passes. First build encountered UNRELATED concurrent
+src/commands/split/split.ts:69 ByteSource.next typing; emitted regex assets exist.
+
+Remaining reachable untrusted host regex outside owned paths:
+src/commands/search/glob.ts:57 dynamically constructs RegExp from CLI -g/--iglob
+or VFS .gitignore/.ignore/.rgignore contents; :61/:64 execute it on VFS paths.
+src/commands/search/walk.ts constructor creates Glob for CLI overrides, load()
+calls ignoreRules(), accepted() synchronously calls glob.matches(). Counts
+(1024 CLI globs, 10000 ignore rules, 8192 chars each) do not prove safe execution.
+This violates a broad no-untrusted-host-regex claim even after content matching
+is isolated. I have NOT edited these unowned files or redefined the requirement.
+Need explicit ownership expansion for search/{glob,walk}.ts (async compile/match
+through the SAME invocation session/request-leased executor) or a separate owner
+to integrate this. Cannot finish broad blocker with only matcher/rg/options.
+Proposed extension adds a glob descriptor/boolean result mapping, validates CLI
+globs before source reads and VFS ignore globs before publication, awaits
+selection with leases released before filesystem awaits; no VFS in worker.
+Constant literals in search/options.ts are trusted parsing, not generated regex.
+No new plugin lifecycle contract is required by this discovered scope issue.
+
+Batching hardening update: authored/froze a benign rg 100001-match limit
+regression (earlier 'a\n' output was suppressed by a later oversized row), kept
+failure, fixed by flushing BEFORE the next available record exceeds 64KiB target.
+Also froze four grep/rg -q/-m1 dispatch-count controls; all initially showed
+3-row speculative matching, now these early-stop modes (plus -l/-L/binary) use
+single-record requests. Ordinary modes still batch available records only.
+No risky regex used. A resource failure in an ordinary multirow request rejects
+that request; this granularity is explicit and independent review remains needed.
+Root's instruction to leave glob/walk untouched is honored; no broad safety claim.

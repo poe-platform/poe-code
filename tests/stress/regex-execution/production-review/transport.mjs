@@ -90,6 +90,7 @@ export async function runTransport(snapshot, caseCheck) {
   });
   await check('descriptor-and-row-byte-limit', async () => {
     const bytes = inputBytes(descriptor, rows, new AbortController().signal);
+    assert.equal(bytes, 128 + 16 + 2 + 32 + 1);
     const executor = new RegexExecutor({ maxWorkers: 1, maxQueuedRequests: 10, maxQueuedBytes: bytes - 1 });
     const controller = new AbortController(); const first = executor.open(controller.signal); const second = executor.open(controller.signal);
     const pending = settle(first.run(descriptor, rows));

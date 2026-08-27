@@ -1,0 +1,73 @@
+{
+  "claim": {
+    "snapshotName": "baseline",
+    "job": "early-selection",
+    "label": "early-selection",
+    "time": "2026-08-27T06:04:27.628Z",
+    "risky": false,
+    "watchdogAfterReadyMs": 15000,
+    "outputCap": 65536,
+    "oldSpaceMb": 128,
+    "historical": "12 archived, prior revision 0/6; not rerun",
+    "reservation": "benign; no risk reservation consumed",
+    "harnessSha256": "01ab32f98bc51024a47b8c8b057241ca9b02f00151d9e869b4d956f0ec877f62"
+  },
+  "pid": 84740,
+  "events": [
+    {
+      "kind": "ready",
+      "at": 1787810667731
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "output-close"
+    },
+    {
+      "kind": "error-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "output": "",
+  "error": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 2,
+      "total": 2,
+      "active": 0,
+      "peak": 0,
+      "workers": 0
+    },
+    "observations": [
+      {
+        "name": "early-selection-before-later-line-budget--q",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "early-selection-before-later-line-budget--m1",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YQo=",
+          "stderr": ""
+        }
+      }
+    ],
+    "metrics": []
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

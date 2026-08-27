@@ -1,0 +1,694 @@
+TAP version 13
+# Subtest: jq42 followup evidence is immutable
+ok 1 - jq42 followup evidence is immutable
+  ---
+  duration_ms: 0.600542
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-true-none whole
+ok 2 - jq42 followup failed-prefix-true-none whole
+  ---
+  duration_ms: 3.316041
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-true-none bytewise
+ok 3 - jq42 followup failed-prefix-true-none bytewise
+  ---
+  duration_ms: 1.41275
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-true-prior whole
+ok 4 - jq42 followup failed-prefix-true-prior whole
+  ---
+  duration_ms: 0.625334
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-true-prior bytewise
+ok 5 - jq42 followup failed-prefix-true-prior bytewise
+  ---
+  duration_ms: 0.809
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-false-none whole
+ok 6 - jq42 followup failed-prefix-false-none whole
+  ---
+  duration_ms: 0.405042
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-false-none bytewise
+ok 7 - jq42 followup failed-prefix-false-none bytewise
+  ---
+  duration_ms: 0.489417
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-false-prior whole
+ok 8 - jq42 followup failed-prefix-false-prior whole
+  ---
+  duration_ms: 0.539083
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-false-prior bytewise
+ok 9 - jq42 followup failed-prefix-false-prior bytewise
+  ---
+  duration_ms: 0.50375
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-null-none whole
+ok 10 - jq42 followup failed-prefix-null-none whole
+  ---
+  duration_ms: 1.180791
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-null-none bytewise
+ok 11 - jq42 followup failed-prefix-null-none bytewise
+  ---
+  duration_ms: 0.453375
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-null-prior whole
+ok 12 - jq42 followup failed-prefix-null-prior whole
+  ---
+  duration_ms: 0.678375
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-null-prior bytewise
+ok 13 - jq42 followup failed-prefix-null-prior bytewise
+  ---
+  duration_ms: 0.555459
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-string-next-line whole
+ok 14 - jq42 followup nul-string-next-line whole
+  ---
+  duration_ms: 0.373125
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-string-next-line bytewise
+ok 15 - jq42 followup nul-string-next-line bytewise
+  ---
+  duration_ms: 0.513292
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-between-values whole
+ok 16 - jq42 followup nul-between-values whole
+  ---
+  duration_ms: 0.136875
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-between-values bytewise
+ok 17 - jq42 followup nul-between-values bytewise
+  ---
+  duration_ms: 0.242417
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-before-newline whole
+ok 18 - jq42 followup nul-before-newline whole
+  ---
+  duration_ms: 0.696125
+  type: 'test'
+  ...
+# Subtest: jq42 followup nul-before-newline bytewise
+ok 19 - jq42 followup nul-before-newline bytewise
+  ---
+  duration_ms: 0.162583
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-one-line whole
+ok 20 - jq42 followup two-errors-one-line whole
+  ---
+  duration_ms: 0.338958
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-one-line bytewise
+ok 21 - jq42 followup two-errors-one-line bytewise
+  ---
+  duration_ms: 0.327084
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-no-newline whole
+ok 22 - jq42 followup two-errors-no-newline whole
+  ---
+  duration_ms: 0.216625
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-no-newline bytewise
+ok 23 - jq42 followup two-errors-no-newline bytewise
+  ---
+  duration_ms: 0.265834
+  type: 'test'
+  ...
+# Subtest: jq42 followup errors-across-blank-lines whole
+ok 24 - jq42 followup errors-across-blank-lines whole
+  ---
+  duration_ms: 0.202792
+  type: 'test'
+  ...
+# Subtest: jq42 followup errors-across-blank-lines bytewise
+ok 25 - jq42 followup errors-across-blank-lines bytewise
+  ---
+  duration_ms: 0.25275
+  type: 'test'
+  ...
+# Subtest: jq42 native-before evidence is immutable
+ok 26 - jq42 native-before evidence is immutable
+  ---
+  duration_ms: 1.474666
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-false whole
+ok 27 - jq42 author status--c-false whole
+  ---
+  duration_ms: 3.491042
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-false bytewise
+ok 28 - jq42 author status--c-false bytewise
+  ---
+  duration_ms: 0.954834
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-null whole
+ok 29 - jq42 author status--c-null whole
+  ---
+  duration_ms: 0.592375
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-null bytewise
+ok 30 - jq42 author status--c-null bytewise
+  ---
+  duration_ms: 0.68875
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-[] whole
+ok 31 - jq42 author status--c-[] whole
+  ---
+  duration_ms: 0.701041
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-[] bytewise
+ok 32 - jq42 author status--c-[] bytewise
+  ---
+  duration_ms: 0.5865
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-["ok"] whole
+ok 33 - jq42 author status--c-["ok"] whole
+  ---
+  duration_ms: 1.045583
+  type: 'test'
+  ...
+# Subtest: jq42 author status--c-["ok"] bytewise
+ok 34 - jq42 author status--c-["ok"] bytewise
+  ---
+  duration_ms: 0.769209
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-false whole
+ok 35 - jq42 author status--ce-false whole
+  ---
+  duration_ms: 0.747167
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-false bytewise
+ok 36 - jq42 author status--ce-false bytewise
+  ---
+  duration_ms: 1.597875
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-null whole
+ok 37 - jq42 author status--ce-null whole
+  ---
+  duration_ms: 0.488041
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-null bytewise
+ok 38 - jq42 author status--ce-null bytewise
+  ---
+  duration_ms: 0.381
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-[] whole
+ok 39 - jq42 author status--ce-[] whole
+  ---
+  duration_ms: 0.350584
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-[] bytewise
+ok 40 - jq42 author status--ce-[] bytewise
+  ---
+  duration_ms: 0.376459
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-["ok"] whole
+ok 41 - jq42 author status--ce-["ok"] whole
+  ---
+  duration_ms: 0.363916
+  type: 'test'
+  ...
+# Subtest: jq42 author status--ce-["ok"] bytewise
+ok 42 - jq42 author status--ce-["ok"] bytewise
+  ---
+  duration_ms: 0.348416
+  type: 'test'
+  ...
+# Subtest: jq42 author generator-aborts-only-current-input whole
+ok 43 - jq42 author generator-aborts-only-current-input whole
+  ---
+  duration_ms: 0.612583
+  type: 'test'
+  ...
+# Subtest: jq42 author generator-aborts-only-current-input bytewise
+ok 44 - jq42 author generator-aborts-only-current-input bytewise
+  ---
+  duration_ms: 0.544084
+  type: 'test'
+  ...
+# Subtest: jq42 author recover-file-line-names whole
+ok 45 - jq42 author recover-file-line-names whole
+  ---
+  duration_ms: 0.580208
+  type: 'test'
+  ...
+# Subtest: jq42 author recover-file-line-names bytewise
+ok 46 - jq42 author recover-file-line-names bytewise
+  ---
+  duration_ms: 0.3465
+  type: 'test'
+  ...
+# Subtest: jq42 author parse-prefix-unfinished whole
+ok 47 - jq42 author parse-prefix-unfinished whole
+  ---
+  duration_ms: 0.213208
+  type: 'test'
+  ...
+# Subtest: jq42 author parse-prefix-unfinished bytewise
+ok 48 - jq42 author parse-prefix-unfinished bytewise
+  ---
+  duration_ms: 0.120375
+  type: 'test'
+  ...
+# Subtest: jq42 author literal-newlines-and-tab whole
+ok 49 - jq42 author literal-newlines-and-tab whole
+  ---
+  duration_ms: 0.053583
+  type: 'test'
+  ...
+# Subtest: jq42 author literal-newlines-and-tab bytewise
+ok 50 - jq42 author literal-newlines-and-tab bytewise
+  ---
+  duration_ms: 0.037125
+  type: 'test'
+  ...
+# Subtest: jq42 author json-control-tab whole
+ok 51 - jq42 author json-control-tab whole
+  ---
+  duration_ms: 0.1045
+  type: 'test'
+  ...
+# Subtest: jq42 author json-control-tab bytewise
+ok 52 - jq42 author json-control-tab bytewise
+  ---
+  duration_ms: 0.110542
+  type: 'test'
+  ...
+# Subtest: jq42 author json-control-nul whole
+ok 53 - jq42 author json-control-nul whole
+  ---
+  duration_ms: 0.067625
+  type: 'test'
+  ...
+# Subtest: jq42 author json-control-nul bytewise
+ok 54 - jq42 author json-control-nul bytewise
+  ---
+  duration_ms: 0.088541
+  type: 'test'
+  ...
+# Subtest: jq42 author fromjson-unfinished whole
+ok 55 - jq42 author fromjson-unfinished whole
+  ---
+  duration_ms: 0.334958
+  type: 'test'
+  ...
+# Subtest: jq42 author fromjson-unfinished bytewise
+ok 56 - jq42 author fromjson-unfinished bytewise
+  ---
+  duration_ms: 0.39875
+  type: 'test'
+  ...
+# Subtest: jq42 author fromjson-valid-precision whole
+ok 57 - jq42 author fromjson-valid-precision whole
+  ---
+  duration_ms: 0.1855
+  type: 'test'
+  ...
+# Subtest: jq42 author fromjson-valid-precision bytewise
+ok 58 - jq42 author fromjson-valid-precision bytewise
+  ---
+  duration_ms: 1.4115
+  type: 'test'
+  ...
+# Subtest: jq42 author order-through-entries whole
+ok 59 - jq42 author order-through-entries whole
+  ---
+  duration_ms: 0.220375
+  type: 'test'
+  ...
+# Subtest: jq42 author order-through-entries bytewise
+ok 60 - jq42 author order-through-entries bytewise
+  ---
+  duration_ms: 0.530917
+  type: 'test'
+  ...
+# Subtest: jq42 author object-from-entries whole
+ok 61 - jq42 author object-from-entries whole
+  ---
+  duration_ms: 0.119042
+  type: 'test'
+  ...
+# Subtest: jq42 author object-from-entries bytewise
+ok 62 - jq42 author object-from-entries bytewise
+  ---
+  duration_ms: 0.559917
+  type: 'test'
+  ...
+# Subtest: jq42 author quantifier-object-empty whole
+ok 63 - jq42 author quantifier-object-empty whole
+  ---
+  duration_ms: 0.165917
+  type: 'test'
+  ...
+# Subtest: jq42 author quantifier-object-empty bytewise
+ok 64 - jq42 author quantifier-object-empty bytewise
+  ---
+  duration_ms: 0.313875
+  type: 'test'
+  ...
+# Subtest: jq42 author decimal-copy-sort whole
+ok 65 - jq42 author decimal-copy-sort whole
+  ---
+  duration_ms: 0.266709
+  type: 'test'
+  ...
+# Subtest: jq42 author decimal-copy-sort bytewise
+ok 66 - jq42 author decimal-copy-sort bytewise
+  ---
+  duration_ms: 0.5485
+  type: 'test'
+  ...
+# Subtest: jq42 author division-decimal-error whole
+ok 67 - jq42 author division-decimal-error whole
+  ---
+  duration_ms: 0.207541
+  type: 'test'
+  ...
+# Subtest: jq42 author division-decimal-error bytewise
+ok 68 - jq42 author division-decimal-error bytewise
+  ---
+  duration_ms: 0.293458
+  type: 'test'
+  ...
+# Subtest: jq42 author sort-number-error whole
+ok 69 - jq42 author sort-number-error whole
+  ---
+  duration_ms: 0.134958
+  type: 'test'
+  ...
+# Subtest: jq42 author sort-number-error bytewise
+ok 70 - jq42 author sort-number-error bytewise
+  ---
+  duration_ms: 0.154
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-surrogate whole
+ok 71 - jq42 author utf8-surrogate whole
+  ---
+  duration_ms: 0.136042
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-surrogate bytewise
+ok 72 - jq42 author utf8-surrogate bytewise
+  ---
+  duration_ms: 0.089334
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-surrogate whole
+ok 73 - jq42 author json-utf8-surrogate whole
+  ---
+  duration_ms: 2.061875
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-surrogate bytewise
+ok 74 - jq42 author json-utf8-surrogate bytewise
+  ---
+  duration_ms: 0.1195
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-overlong whole
+ok 75 - jq42 author utf8-overlong whole
+  ---
+  duration_ms: 0.109333
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-overlong bytewise
+ok 76 - jq42 author utf8-overlong bytewise
+  ---
+  duration_ms: 0.083333
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-overlong whole
+ok 77 - jq42 author json-utf8-overlong whole
+  ---
+  duration_ms: 0.06975
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-overlong bytewise
+ok 78 - jq42 author json-utf8-overlong bytewise
+  ---
+  duration_ms: 0.1075
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-oversized whole
+ok 79 - jq42 author utf8-oversized whole
+  ---
+  duration_ms: 0.052625
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-oversized bytewise
+ok 80 - jq42 author utf8-oversized bytewise
+  ---
+  duration_ms: 0.074542
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-oversized whole
+ok 81 - jq42 author json-utf8-oversized whole
+  ---
+  duration_ms: 0.055375
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-oversized bytewise
+ok 82 - jq42 author json-utf8-oversized bytewise
+  ---
+  duration_ms: 0.120792
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-continuation whole
+ok 83 - jq42 author utf8-continuation whole
+  ---
+  duration_ms: 0.051458
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-continuation bytewise
+ok 84 - jq42 author utf8-continuation bytewise
+  ---
+  duration_ms: 0.060542
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-continuation whole
+ok 85 - jq42 author json-utf8-continuation whole
+  ---
+  duration_ms: 0.055333
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-continuation bytewise
+ok 86 - jq42 author json-utf8-continuation bytewise
+  ---
+  duration_ms: 0.083417
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-truncated whole
+ok 87 - jq42 author utf8-truncated whole
+  ---
+  duration_ms: 0.051125
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-truncated bytewise
+ok 88 - jq42 author utf8-truncated bytewise
+  ---
+  duration_ms: 0.066542
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-truncated whole
+ok 89 - jq42 author json-utf8-truncated whole
+  ---
+  duration_ms: 0.055542
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-truncated bytewise
+ok 90 - jq42 author json-utf8-truncated bytewise
+  ---
+  duration_ms: 0.093625
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-broken whole
+ok 91 - jq42 author utf8-broken whole
+  ---
+  duration_ms: 0.05175
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-broken bytewise
+ok 92 - jq42 author utf8-broken bytewise
+  ---
+  duration_ms: 0.064666
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-broken whole
+ok 93 - jq42 author json-utf8-broken whole
+  ---
+  duration_ms: 0.09925
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-broken bytewise
+ok 94 - jq42 author json-utf8-broken bytewise
+  ---
+  duration_ms: 0.093666
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-invalidlead whole
+ok 95 - jq42 author utf8-invalidlead whole
+  ---
+  duration_ms: 0.048666
+  type: 'test'
+  ...
+# Subtest: jq42 author utf8-invalidlead bytewise
+ok 96 - jq42 author utf8-invalidlead bytewise
+  ---
+  duration_ms: 0.065625
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-invalidlead whole
+ok 97 - jq42 author json-utf8-invalidlead whole
+  ---
+  duration_ms: 0.0585
+  type: 'test'
+  ...
+# Subtest: jq42 author json-utf8-invalidlead bytewise
+ok 98 - jq42 author json-utf8-invalidlead bytewise
+  ---
+  duration_ms: 0.091292
+  type: 'test'
+  ...
+# Subtest: jq42 author low-surrogate-pair whole
+ok 99 - jq42 author low-surrogate-pair whole
+  ---
+  duration_ms: 0.053708
+  type: 'test'
+  ...
+# Subtest: jq42 author low-surrogate-pair bytewise
+ok 100 - jq42 author low-surrogate-pair bytewise
+  ---
+  duration_ms: 0.110541
+  type: 'test'
+  ...
+# Subtest: jq42 author valid-surrogate-pair whole
+ok 101 - jq42 author valid-surrogate-pair whole
+  ---
+  duration_ms: 0.045125
+  type: 'test'
+  ...
+# Subtest: jq42 author valid-surrogate-pair bytewise
+ok 102 - jq42 author valid-surrogate-pair bytewise
+  ---
+  duration_ms: 0.122667
+  type: 'test'
+  ...
+# Subtest: jq42 author high-surrogate-followed-ascii whole
+ok 103 - jq42 author high-surrogate-followed-ascii whole
+  ---
+  duration_ms: 0.079708
+  type: 'test'
+  ...
+# Subtest: jq42 author high-surrogate-followed-ascii bytewise
+ok 104 - jq42 author high-surrogate-followed-ascii bytewise
+  ---
+  duration_ms: 0.11275
+  type: 'test'
+  ...
+# Subtest: recovery stops at parse error instead of consuming later valid records
+ok 105 - recovery stops at parse error instead of consuming later valid records
+  ---
+  duration_ms: 2.546583
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxResults
+ok 106 - optional and recovery cannot swallow maxResults
+  ---
+  duration_ms: 1.115042
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxOutputBytes
+ok 107 - optional and recovery cannot swallow maxOutputBytes
+  ---
+  duration_ms: 1.31875
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxSteps
+ok 108 - optional and recovery cannot swallow maxSteps
+  ---
+  duration_ms: 0.350542
+  type: 'test'
+  ...
+# Subtest: repeated runtime diagnostics are bounded even with no stdout
+ok 109 - repeated runtime diagnostics are bounded even with no stdout
+  ---
+  duration_ms: 0.715959
+  type: 'test'
+  ...
+# Subtest: host stdout failure is never a recoverable filter error: EPIPE: broken pipe
+ok 110 - host stdout failure is never a recoverable filter error: EPIPE: broken pipe
+  ---
+  duration_ms: 0.437208
+  type: 'test'
+  ...
+# Subtest: host stdout failure is never a recoverable filter error: host sink failure
+ok 111 - host stdout failure is never a recoverable filter error: host sink failure
+  ---
+  duration_ms: 0.151041
+  type: 'test'
+  ...
+# Subtest: blocked runtime stderr cancels and closes upstream
+ok 112 - blocked runtime stderr cancels and closes upstream
+  ---
+  duration_ms: 0.379042
+  type: 'test'
+  ...
+# Subtest: replacement expansion respects exact UTF8 value bytes
+ok 113 - replacement expansion respects exact UTF8 value bytes
+  ---
+  duration_ms: 1.135542
+  type: 'test'
+  ...
+# Subtest: large replacement workloads retain cooperative cancellation
+ok 114 - large replacement workloads retain cooperative cancellation
+  ---
+  duration_ms: 12.366375
+  type: 'test'
+  ...
+1..114
+# tests 114
+# suites 0
+# pass 114
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 191.6095

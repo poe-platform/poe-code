@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: recovery stops at parse error instead of consuming later valid records
+ok 1 - recovery stops at parse error instead of consuming later valid records
+  ---
+  duration_ms: 2.493166
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxResults
+ok 2 - optional and recovery cannot swallow maxResults
+  ---
+  duration_ms: 1.093541
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxOutputBytes
+ok 3 - optional and recovery cannot swallow maxOutputBytes
+  ---
+  duration_ms: 1.124667
+  type: 'test'
+  ...
+# Subtest: optional and recovery cannot swallow maxSteps
+ok 4 - optional and recovery cannot swallow maxSteps
+  ---
+  duration_ms: 0.314291
+  type: 'test'
+  ...
+# Subtest: repeated runtime diagnostics are bounded even with no stdout
+ok 5 - repeated runtime diagnostics are bounded even with no stdout
+  ---
+  duration_ms: 0.641667
+  type: 'test'
+  ...
+# Subtest: host stdout failure is never a recoverable filter error: EPIPE: broken pipe
+ok 6 - host stdout failure is never a recoverable filter error: EPIPE: broken pipe
+  ---
+  duration_ms: 0.404666
+  type: 'test'
+  ...
+# Subtest: host stdout failure is never a recoverable filter error: host sink failure
+ok 7 - host stdout failure is never a recoverable filter error: host sink failure
+  ---
+  duration_ms: 0.144542
+  type: 'test'
+  ...
+# Subtest: blocked runtime stderr cancels and closes upstream
+ok 8 - blocked runtime stderr cancels and closes upstream
+  ---
+  duration_ms: 0.365959
+  type: 'test'
+  ...
+# Subtest: replacement expansion respects exact UTF8 value bytes
+ok 9 - replacement expansion respects exact UTF8 value bytes
+  ---
+  duration_ms: 1.449
+  type: 'test'
+  ...
+# Subtest: large replacement workloads retain cooperative cancellation
+ok 10 - large replacement workloads retain cooperative cancellation
+  ---
+  duration_ms: 10.826708
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.293584

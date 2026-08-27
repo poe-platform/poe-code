@@ -1,0 +1,48 @@
+{
+  "at": "2026-08-27T00:50:18.060Z",
+  "references": [
+    {
+      "resource": "https://jqlang.org/manual/v1.7/",
+      "status": 200,
+      "bytes": 476378,
+      "sha256": "e826b1332a6b88e1070990cc08f96ac59ac59f948a4485cb79d0d7219619431c"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/builtin.c",
+      "status": 200,
+      "bytes": 58478,
+      "sha256": "73848bc19dd11ce1d4bebcd08e9096714246b40440956729db7057d9f6e1a45e"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/builtin.jq",
+      "status": 200,
+      "bytes": 10903,
+      "sha256": "992a8131544edfd9cfcfe48a5604b2f3b6bcac193db7c72d0c66311e92e1149e"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/jv_unicode.c",
+      "status": 200,
+      "bytes": 3923,
+      "sha256": "9cc2cbb7f1cf6069db0e95f0a42a8005c3ff2313d1c7128a56583fb6cb9cce32"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/jv_parse.c",
+      "status": 200,
+      "bytes": 27262,
+      "sha256": "b0c4bcde8d5157f742007d2a626c6ca783224630ebfe1876e7db12c8888ddfd0"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/main.c",
+      "status": 200,
+      "bytes": 27721,
+      "sha256": "b3f899406755f28b56391f89558614065157470213b3965fdfe5a9e3fa8f14e1"
+    },
+    {
+      "resource": "https://raw.githubusercontent.com/jqlang/jq/jq-1.7.1/src/util.c",
+      "status": 200,
+      "bytes": 37577,
+      "sha256": "0d14fa883d15bd276ea5dfa3b32602340b1c1873f340830338a7e07fb2ce5eae"
+    }
+  ],
+  "purpose": "Primary jq 1.7 manual and tagged source investigation of literal decimal preservation, join, UTF8 replacement grouping, JSON string validation, per-input status aggregation, line metadata and NUL boundaries. Apple native bytes remain the exact oracle."
+}

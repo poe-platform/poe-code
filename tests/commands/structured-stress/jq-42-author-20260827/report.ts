@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { allVectors, executeVector, expectedBytes } from "../independent-increment/harness.js";
+import { allVectors, executeVector, expectedBytes, type BytesResult, type Vector } from "../independent-increment/harness.js";
 import { additiveVectors } from "../independent-increment/phase2-harness.js";
 
 const directory = "tests/commands/structured-stress/jq-42-author-20260827";
@@ -15,7 +15,7 @@ const groups = JSON.parse(frozen.stdout) as Record<string, { name: string }[]>;
 const original = new Set(Object.values(groups).flat().map(value => value.name.replace(/^(additive )?native exact bytes: /u, "")));
 assert.equal(original.size, 42);
 const sourceHashes = Object.fromEntries(readdirSync("src/commands/structured").sort().map(name => [name, hash(readFileSync(`src/commands/structured/${name}`))]));
-const results = [];
+const results: ({ [Field in "id" | "argv" | "inputHex" | "files" | "stages"]: Vector[Field] } & { original42: boolean; cohort: string; expected: BytesResult; actual: BytesResult; pass: boolean })[] = [];
 for (const vector of [...allVectors, ...additiveVectors]) {
   const actual = await executeVector(vector);
   const expected = expectedBytes(vector);

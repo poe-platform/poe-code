@@ -127,8 +127,22 @@ limits still apply separately; family limits are not one shared shell quota.
 
 Run `node --import tsx --test tests/commands/file/*.test.ts`.
 The frozen native corpus and provenance are in `tests/commands/file/`.
-On the recorded Darwin file-5.41 profile: plain MIME 23/26 exact; combined MIME
-and encoding 22/26 exact; human category wording 26/26 semantic, not exact text.
-Known MIME differences are PE, WebAssembly and SQLite; PDF encoding also differs.
+Original candidate d168d18b118592e04a6eec9b00eb50cc2b1e5058 on the recorded Darwin
+file-5.41 profile: plain MIME 23/26 exact; combined MIME and encoding 22/26 exact;
+human category wording 26/26 semantic, not exact text. Its MIME differences were
+PE, WebAssembly and SQLite; PDF encoding also differed. These original results
+and the original source hashes remain recorded in the author/native evidence.
+
+The August 27, 2026 SQLITE-MIME-001 correction uses the registered
+application/vnd.sqlite3 instead of the deprecated application/x-sqlite3 alias.
+The IANA registration dated February 12, 2018 reserves the alias for required
+backwards compatibility; no such need exists for this new optional candidate.
+Primary source: https://www.iana.org/assignments/media-types/application/vnd.sqlite3
+This is a narrow v1 candidate correction, not expanded format validation.
+On the unchanged 26 author byte fixtures/native capture, corrected plain MIME
+is 24/26 exact and combined MIME/encoding is 23/26 exact; human categories remain
+26/26 semantic. PE/WebAssembly MIME and the PDF binary-encoding profile remain
+unchanged. Independent original F16 and the other holdout results are untouched;
+their corrected-harness replay remains a separate verifier gate.
 Do not turn these mismatches into parity passes. There is no measured performance,
 real-provider interoperability or just-bash superiority claim in this candidate.

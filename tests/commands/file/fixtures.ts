@@ -58,5 +58,5 @@ export const fixtures: readonly Fixture[] = [
   fixture("elf-header", elf, "application/x-executable", "binary", "ELF 64-bit.*executable"),
   fixture("pe-header", pe, "application/vnd.microsoft.portable-executable", "binary", "PE.*executable|executable.*PE"),
   fixture("wasm-empty", Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]), "application/wasm", "binary", "WebAssembly"),
-  fixture("sqlite-header", sqlite, "application/x-sqlite3", "binary", "SQLite 3.x database"),
+  fixture("sqlite-header", sqlite, "application/vnd.sqlite3", "binary", "SQLite 3.x database"),
 ];

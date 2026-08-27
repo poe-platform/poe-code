@@ -24,9 +24,9 @@ test("frozen native-derived byte fixtures: exact MIME vs semantic descriptions; 
     const human = await run(["-b", "-"], {}, { stdin: toByteSource(specimen.bytes) });
     assert.match(human.stdout, new RegExp(specimen.semantic, "iu")); semantic++;
   }
-  assert.deepEqual(differingTypes, ["pe-header", "wasm-empty", "sqlite-header"]);
+  assert.deepEqual(differingTypes, ["pe-header", "wasm-empty"]);
   assert.deepEqual(differingEncodings, ["pdf"]);
-  assert.equal(exactType, 23); assert.equal(exactCombined, 22); assert.equal(semantic, 26);
+  assert.equal(exactType, 24); assert.equal(exactCombined, 23); assert.equal(semantic, 26);
   context.diagnostic(`Captured native profile: MIME type exact ${exactType}/26; combined exact ${exactCombined}/26; human category semantic ${semantic}/26. Mismatches retained, not passes.`);
 });
 

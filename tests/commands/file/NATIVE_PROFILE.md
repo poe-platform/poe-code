@@ -36,10 +36,11 @@ The gzip fixture was produced by Node zlib and then frozen to identical hex
 (same SHA256), but native file describes it as
 `gzip compressed data, truncated`; retain that wording, not a validity verdict.
 
-## Corrected comparison, same 26 byte inputs
+## Original d168 comparison, same 26 byte inputs
 
 Frozen rows, SHA256 and native human wording: `native-baseline.ts`.
-Plain MIME type comparison is **23/26 exact**; combined MIME+encoding is **22/26
+For d168d18b118592e04a6eec9b00eb50cc2b1e5058, plain MIME type comparison was
+**23/26 exact**; combined MIME+encoding was **22/26
 exact**. Human category comparison is **26/26 semantic**, not exact wording or
 payload validity. These scopes are deliberately separate. The comparison test
 passes by asserting both matches and the following known mismatches; that does
@@ -65,3 +66,47 @@ then exercised the rest of that Shell pipeline test. Later author stress checks
 found and fixed Buffer.slice ownership, prefix signal/return ordering and
 diagnostic deadline handling before freezing the candidate. No independent
 holdout tests were read or modified.
+
+## SQLITE-MIME-001 correction, August 27, 2026
+
+Root authorized only the SQLite canonical MIME correction after routing the
+independent initial frozen F16 observation. Original F16 and all independent
+holdout fixtures/results remain unchanged and were not opened by this author.
+Only the routed failure summary and its SQLite primary registration document
+were read. The three signal-object-identity harness defects are not source-fix
+requests; no signal, timeout, read/return error or cancellation semantics changed.
+The independent late-error probes remain unrun until the verifier corrects its
+harness and replays the new snapshot.
+
+Independently verified official registration:
+https://www.iana.org/assignments/media-types/application/vnd.sqlite3
+(registered/updated February 12, 2018). It specifies application/vnd.sqlite3,
+binary encoding, and reserves deprecated application/x-sqlite3 for required
+backwards compatibility. This new optional candidate has no such requirement.
+
+Only the SQLite MIME literal and its author fixture expectation change;
+the existing 512-byte SQLite specimen remains SHA256
+20687ffcc0619f5c53e81e13b058fec6eec09d9958b6531892672be98b3625d6.
+All 26 input hashes and the entire native-baseline.ts capture remain unchanged.
+The corrected author comparison is **24/26 plain MIME exact**, **23/26 combined
+MIME/encoding exact**, and **26/26 human category semantic**. Remaining MIME
+differences are PE and WebAssembly; PDF retains binary encoding. The original
+23/26 and 22/26 observations above are historical, not rewritten as corrected
+passes. No native cohort expansion or independent replay is included here.
+
+The actual-Shell regression tests exercise --mime-type and --mime for both a
+misleading-extension VFS file and redirected binary stdin. Both tests failed
+on the original source with exactly the deprecated output before the fix.
+
+Original d168 source/fixture SHA256 retained for this correction:
+
+| Path | SHA256 |
+| --- | --- |
+| src/commands/file/classify.ts | d3f17f0e1d5ffeff08a015ee7131d9934a3938148ab65388478702e2764f0d1e |
+| src/commands/file/index.ts | 1753ac81d099b329d52bb83b0047d5241ca25ec74f9c57b62399f254404ee825 |
+| src/commands/file/shared.ts | fa4d86f5cc1eb3a642aac34845737566c89e2b2b4983ec21a111441c3b94f87a |
+| tests/commands/file/fixtures.ts | adfdad35054df359e51e6755b44cde4f89aaf4178e1d8de6f7001f2678f4d70f |
+| tests/commands/file/native-baseline.ts | 73df75acdfa3a030889505dc702d40d9039a475fefdf7e1b6794af88218bec73 |
+
+The immutable d168 commit and original /tmp/safe-bash-file-author-detail.txt
+retain the complete original 12-path hashes and author validation history.

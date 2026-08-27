@@ -1,0 +1,63 @@
+{
+  "result": {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/v9-native-predicate-overlay-20260827/focused-predicate-controls.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "pid": 53176,
+    "pgid": 53176,
+    "timedOut": false,
+    "termination": {
+      "termSent": false,
+      "killSent": false,
+      "groupGone": true
+    },
+    "closure": {
+      "descendantGroupDetected": false,
+      "rootPidGone": true,
+      "groupGone": true
+    },
+    "timeoutMs": 120000,
+    "startedAt": "2026-08-27T21:49:36.464Z",
+    "finishedAt": "2026-08-27T21:49:36.502Z",
+    "durationMs": 37.33125,
+    "stdout": {
+      "path": "stdout",
+      "bytes": 569,
+      "sha256": "0d87c09c2598ab52916e5e338531acdf9ef5a2b96012ffa749a0a4ab0e061f6b",
+      "gitBlob": "e309145f3d2d41e681814c6eb34061534d62a932"
+    },
+    "stderr": {
+      "path": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "shutdown": {
+    "reason": "controls-finished",
+    "ownedGroups": [],
+    "groupsGone": [],
+    "childCloseEventsSettled": true
+  },
+  "closure": {
+    "spawnedRootPids": [
+      53176
+    ],
+    "spawnedProcessGroups": [
+      53176
+    ],
+    "everyRootPidGone": true,
+    "everyOwnedGroupGone": true,
+    "active": []
+  },
+  "parentTemporaryOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary"
+  },
+  "nativeCaseEnvironment": "unchanged: driver constructs exact frozen sanitized environment for each native spawn"
+}

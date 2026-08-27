@@ -1,5 +1,8 @@
 # Independent direct rg stdin cleanup: baseline ready
 
+Current handoff is `HANDOFF.md` with prepared-v2 `runs/baseline-03` evidence.
+The detailed baseline-02 record below is retained as a separate cohort.
+
 **No candidate has been routed, inspected or approved.** This phase authenticates
 the supplied committed pre-fix source, freezes independent holdouts, and prepares
 an actual built/packed/moved consumer. Root must route Faraday's exact candidate.

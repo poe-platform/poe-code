@@ -1,0 +1,3032 @@
+{
+  "counts": {
+    "passed": 234,
+    "failed": 2,
+    "skipped": 66
+  },
+  "receipts": [
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUploadBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxDownloadBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxBufferBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxHeaderBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRedirects/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxRetries/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxUrls/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/max-safe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/timeout-ceiling",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/createCurlCommand/maxTimeMs/timeout-over",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUploadBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxDownloadBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxBufferBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxHeaderBytes/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRedirects/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": true
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxRetries/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/max-safe",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxUrls/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/negative-zero",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/one",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/max-safe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/negative",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/fraction",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/nan",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/infinity",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/unsafe",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/null",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/string",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/undefined",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/timeout-ceiling",
+      "pass": true,
+      "accepted": true,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "validator/networkCommands/maxTimeMs/timeout-over",
+      "pass": true,
+      "accepted": false,
+      "baselineConfigurationLimitation": false
+    },
+    {
+      "name": "direct/redirect-307-zero-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-307-cli-zero-upload-false",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/redirect-307-zero-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-307-cli-zero-upload-true",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/redirect-307-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-307-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-308-zero-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-308-cli-zero-upload-false",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          308,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/redirect-308-zero-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-308-cli-zero-upload-true",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          308,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/redirect-308-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-308-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-zero-normal-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero-normal-upload-false",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-429-zero-normal-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero-normal-upload-true",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-429-zero---fail-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero---fail-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-429-zero---fail-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero---fail-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-429-zero---fail-with-body-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero---fail-with-body-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-429-zero---fail-with-body-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-cli-zero---fail-with-body-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-429-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-429-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-zero-normal-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero-normal-upload-false",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-503-zero-normal-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero-normal-upload-true",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-503-zero---fail-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero---fail-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-503-zero---fail-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero---fail-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-503-zero---fail-with-body-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero---fail-with-body-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/retry-503-zero---fail-with-body-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-cli-zero---fail-with-body-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "direct/retry-503-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-503-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/two-input-urls-both-zero",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/zero-no-follow-initial-body",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/initial-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/retry-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/transport-error-0",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/transport-error-1",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/transport-error-5",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/abort-response",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "direct/redirect-default-ten",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-0",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-1",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-2",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-3",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-4",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-5",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-6",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-7",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-8",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-9",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        },
+        {
+          "url": "https://next.invalid/hop-0",
+          "attempt": 0,
+          "redirectFrom": "https://first.invalid/input-0"
+        },
+        {
+          "url": "https://next.invalid/hop-1",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-0"
+        },
+        {
+          "url": "https://next.invalid/hop-2",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-1"
+        },
+        {
+          "url": "https://next.invalid/hop-3",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-2"
+        },
+        {
+          "url": "https://next.invalid/hop-4",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-3"
+        },
+        {
+          "url": "https://next.invalid/hop-5",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-4"
+        },
+        {
+          "url": "https://next.invalid/hop-6",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-5"
+        },
+        {
+          "url": "https://next.invalid/hop-7",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-6"
+        },
+        {
+          "url": "https://next.invalid/hop-8",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-7"
+        },
+        {
+          "url": "https://next.invalid/hop-9",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-8"
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 11,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          10
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "7a47d10049b5e073e3c6a4e7aabbc8bc8bfda5434f3881c10c8fd6c838bde574"
+    },
+    {
+      "name": "direct/retry-default-five",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: frozen body contract\n+ actual - expected\n\n+ 'body-503body-503body-503body-503body-503body-503'\n- 'body-503'\n           ^\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:163:10)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:42:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/entry.mjs:7:17"
+    },
+    {
+      "name": "direct/default-cli-no-retry",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "direct/max-safe-success",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-200",
+      "writeouts": [
+        [
+          200,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/redirect-307-zero-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-307-cli-zero-upload-false",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/redirect-307-zero-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-307-cli-zero-upload-true",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/redirect-307-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-307-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-308-zero-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-308-cli-zero-upload-false",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          308,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/redirect-308-zero-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-308-cli-zero-upload-true",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          308,
+          47,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/redirect-308-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-308-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-zero-normal-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero-normal-upload-false",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-429-zero-normal-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero-normal-upload-true",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-429-zero---fail-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero---fail-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-429-zero---fail-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero---fail-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-429-zero---fail-with-body-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero---fail-with-body-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-429-zero---fail-with-body-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-cli-zero---fail-with-body-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-429",
+      "writeouts": [
+        [
+          429,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 429\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-429-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-429-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-zero-normal-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero-normal-upload-false",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-503-zero-normal-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero-normal-upload-true",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-503-zero---fail-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero---fail-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-503-zero---fail-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero---fail-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-503-zero---fail-with-body-upload-false",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero---fail-with-body-upload-false",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/retry-503-zero---fail-with-body-upload-true",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-cli-zero---fail-with-body-upload-true",
+      "pass": true,
+      "exit": 22,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "PUT",
+          "bodyHex": "00ff0d0a418042"
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 1,
+      "reads": 1,
+      "uploadBytes": 7,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          22,
+          0,
+          0
+        ]
+      ],
+      "stderr": "curl: (22) HTTP response status 503\n",
+      "eventsHash": "6b23623751538165c8c15829d04d4e75e4e50bc1a03671a4c9880a7ecf1f7a33"
+    },
+    {
+      "name": "shell/retry-503-one-independent",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-503-one-exhausted",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/two-input-urls-both-zero",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/zero-no-follow-initial-body",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/initial-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/retry-denial",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/transport-error-0",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/transport-error-1",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/transport-error-5",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/abort-response",
+      "skipped": "baseline zero constructor configuration limitation"
+    },
+    {
+      "name": "shell/redirect-default-ten",
+      "pass": true,
+      "exit": 47,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-0",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-1",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-2",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-3",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-4",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-5",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-6",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-7",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-8",
+          "method": "GET",
+          "bodyHex": ""
+        },
+        {
+          "url": "https://next.invalid/hop-9",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        },
+        {
+          "url": "https://next.invalid/hop-0",
+          "attempt": 0,
+          "redirectFrom": "https://first.invalid/input-0"
+        },
+        {
+          "url": "https://next.invalid/hop-1",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-0"
+        },
+        {
+          "url": "https://next.invalid/hop-2",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-1"
+        },
+        {
+          "url": "https://next.invalid/hop-3",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-2"
+        },
+        {
+          "url": "https://next.invalid/hop-4",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-3"
+        },
+        {
+          "url": "https://next.invalid/hop-5",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-4"
+        },
+        {
+          "url": "https://next.invalid/hop-6",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-5"
+        },
+        {
+          "url": "https://next.invalid/hop-7",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-6"
+        },
+        {
+          "url": "https://next.invalid/hop-8",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-7"
+        },
+        {
+          "url": "https://next.invalid/hop-9",
+          "attempt": 0,
+          "redirectFrom": "https://next.invalid/hop-8"
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 11,
+      "responseReads": 0,
+      "body": "",
+      "writeouts": [
+        [
+          307,
+          47,
+          0,
+          10
+        ]
+      ],
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "eventsHash": "7a47d10049b5e073e3c6a4e7aabbc8bc8bfda5434f3881c10c8fd6c838bde574"
+    },
+    {
+      "name": "shell/retry-default-five",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: frozen body contract\n+ actual - expected\n\n+ 'body-503body-503body-503body-503body-503body-503'\n- 'body-503'\n           ^\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:163:10)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/runtime.mjs:42:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/entry.mjs:7:17"
+    },
+    {
+      "name": "shell/default-cli-no-retry",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-503",
+      "writeouts": [
+        [
+          503,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    },
+    {
+      "name": "shell/max-safe-success",
+      "pass": true,
+      "exit": 0,
+      "abortIdentity": false,
+      "requests": [
+        {
+          "url": "https://first.invalid/input-0",
+          "method": "GET",
+          "bodyHex": ""
+        }
+      ],
+      "authorization": [
+        {
+          "url": "https://first.invalid/input-0",
+          "attempt": 0,
+          "redirectFrom": null
+        }
+      ],
+      "opens": 0,
+      "reads": 0,
+      "uploadBytes": 0,
+      "disposals": 1,
+      "responseReads": 1,
+      "body": "body-200",
+      "writeouts": [
+        [
+          200,
+          0,
+          0,
+          0
+        ]
+      ],
+      "stderr": "",
+      "eventsHash": "bca9c16b3e3c8e98973d958a931c9f071ab279ab4fe4b72549438ec0b95ea5e8"
+    }
+  ],
+  "rootResolution": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-re8TBT/built/dist/index.js",
+  "networkResolution": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-re8TBT/built/dist/commands/network/index.js",
+  "node": "v22.22.2",
+  "execArgv": [],
+  "forbiddenRuntimeCalls": 0
+}

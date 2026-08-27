@@ -1,0 +1,21 @@
+{
+  "utc": "2026-08-27T05:00:53.341Z",
+  "schedule": [
+    "risk-default",
+    "risk-abort"
+  ],
+  "flags": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--stack-size=2048"
+  ],
+  "historical": 7,
+  "author": 3,
+  "reviewRiskMaximum": 2,
+  "riskAfterReadyMs": 250,
+  "benignAfterReadyMs": 3000,
+  "startupMs": 3000,
+  "cleanupMs": 1000,
+  "maxIpcBytes": 131072,
+  "maxStreamBytes": 16384
+}

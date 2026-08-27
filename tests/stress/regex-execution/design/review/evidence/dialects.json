@@ -1,0 +1,159 @@
+{
+  "name": "dialects",
+  "pid": 2018,
+  "readyAt": 42.01054099999999,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1092,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 45.766208000000006
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 47.80833300000006
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 47.89279099999999
+    },
+    {
+      "event": "stdout-close"
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "dialects"
+    },
+    {
+      "type": "done",
+      "name": "dialects",
+      "observations": [
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-o",
+              "\\(r\\)\\1"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "rr\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "-o",
+              "[[:upper:]]"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "R\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "(?:r)"
+            ],
+            "result": {
+              "exitCode": 2,
+              "stdout": "",
+              "stderr": "grep: lookaround and special groups are not supported\n"
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "-w",
+              "-o",
+              "r"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "r\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "rg-named-reference",
+          "value": [
+            {
+              "start": 0,
+              "end": 2
+            }
+          ]
+        },
+        {
+          "label": "rg-empty-unterminated-bytes",
+          "value": [
+            {
+              "start": 0,
+              "end": 0
+            },
+            {
+              "start": 1,
+              "end": 1
+            },
+            {
+              "start": 2,
+              "end": 2
+            },
+            {
+              "start": 3,
+              "end": 3
+            }
+          ]
+        },
+        {
+          "label": "rg-invalid-byte-anchors",
+          "value": []
+        }
+      ],
+      "elapsedMs": 2.7159999999999975,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "cleanup": [],
+      "memory": {
+        "rss": 54312960,
+        "heapTotal": 7749632,
+        "heapUsed": 5596416,
+        "external": 2182125,
+        "arrayBuffers": 18962
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

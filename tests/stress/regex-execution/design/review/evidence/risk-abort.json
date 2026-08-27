@@ -1,0 +1,148 @@
+{
+  "name": "risk-abort",
+  "pid": 2119,
+  "readyAt": 62.922207999999955,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1513,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 85.23666699999995
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 87.23120799999998
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 87.24204199999997
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "risk-abort"
+    },
+    {
+      "type": "done",
+      "name": "risk-abort",
+      "observations": [
+        {
+          "label": "risk-allocation",
+          "value": {
+            "name": "risk-abort",
+            "source": "^(a+)+$",
+            "bytes": 25,
+            "executions": 1
+          }
+        },
+        {
+          "label": "abort-at-ms",
+          "value": 20.502959000000004
+        },
+        {
+          "label": "at-request-settlement-before-finally",
+          "value": {
+            "outcome": {
+              "status": "rejected",
+              "error": "REVIEW_INFLIGHT_ABORT"
+            },
+            "elapsedMs": 21.948042,
+            "heartbeats": 3,
+            "maxGap": 6.417917000000003,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 0,
+                "inputBytes": 50,
+                "responseBytes": 0,
+                "startupMs": 23.648292,
+                "workMs": 20.742083,
+                "terminationMs": 1.2856670000000037,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ],
+      "elapsedMs": 22.015084,
+      "heartbeats": 3,
+      "maxGap": 6.417917000000003,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 50,
+            "responseBytes": 0,
+            "startupMs": 23.648292,
+            "workMs": 20.742083,
+            "terminationMs": 1.2856670000000037,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ],
+      "memory": {
+        "rss": 59441152,
+        "heapTotal": 7487488,
+        "heapUsed": 5451280,
+        "external": 2155262,
+        "arrayBuffers": 18929
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

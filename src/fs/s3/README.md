@@ -134,19 +134,34 @@ transport; the transport must honor its supplied signal and body cleanup hooks.
 
 - Additive `rmdir(path, options?)` is directory-only: observed files fail with
   `ENOTDIR`, missing paths with `ENOENT`, and observed descendants (including
-  child directory markers) with `ENOTEMPTY`. An observed-empty directory fails
-  with `ENOTSUP`, without any mutation request. The mounted root is `EBUSY`;
+  child directory markers) with `ENOTEMPTY`. With `capabilities.snapshotRmdir: true`,
+  a fully observed-empty explicit zero-byte marker is removed by one exact-key
+  DELETE. The marker must be identified by HEAD and seen in the completed LIST;
+  an implicit directory without explicit marker is unsupported, and a marker
+  that disappears from inspection yields `ENOENT`. The mounted root is `EBUSY`;
   read-only mode and cancellation retain `EROFS` and `ECANCELED` respectively.
   Inspection failures propagate as typed errors with the requested rmdir path
   and the underlying error retained as their cause.
-- This transport has no atomic empty-prefix deletion operation. Deleting only
-  a directory marker would preserve concurrently created descendants, but would
-  neither require an empty prefix nor necessarily remove the virtual directory.
-  `conditionalDelete` guards the marker object, not prefix emptiness. `rmdir`
-  therefore does not delete even the marker, invent a capability, or fall back
-  to recursive `rm`. Listings are diagnostic observations, not snapshots.
-  Existing `rm({ recursive: false })` semantics are unchanged. This adds no
-  atomic rename, ABA protection, or snapshot guarantee; the caveats below remain.
+- This is the explicit snapshot-marker profile, not atomic empty-prefix deletion.
+  Children created after inspection survive and may keep the directory visible
+  after success. No descendant is deleted, hidden or rolled back; no marker is
+  reinserted, and no post-delete `ENOTEMPTY` is reported. Marker deletion is
+  unconditional even if object conditions exist: a concurrent replacement at
+  that exact key can be removed, including same-content ABA. Errors or abort
+  after issuing DELETE may leave effects; cancellation cannot undo host work.
+  `conditionalDelete` is not enabled by this profile and cannot guard prefix
+  emptiness. Existing `rm` semantics and `atomicRename: false` are unchanged.
+  Removal LIST requests use `MaxKeys = Math.max(2, pageSize)` and delimiter `/`,
+  follow continuation tokens to completion, require explicit `IsTruncated`, and
+  retain `maxListEntries` bounds. Other operations retain their page policy.
+  The minimum of two avoids the pinned MinIO exact-prefix one-key optimization;
+  it is not endpoint-name inference or proof of arbitrary provider correctness.
+  Truthful complete prefix listing and exact-key DELETE are host prerequisites;
+  HTTP200 alone is not completeness evidence. Invalid/incomplete inspection
+  fails before mutation. No constructor option or runtime dependency is added.
+  The pinned provider proof and original 19/20 remain in
+  `tests/fs/s3/rmdir-real-service/list-oracle-review/REPORT.md`; new behavior
+  requires its own service evidence and does not rebaseline old results.
   Protocol references: AWS S3 `DeleteObject` request conditions and the S3
   user guide's folder/prefix model, consulted August 26, 2026:
   `https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html` and
@@ -345,12 +360,13 @@ general-purpose object storage: it does not simulate versioning, IAM evaluation,
 ACLs, encryption/KMS, multipart uploads, object lock, billing, network behavior,
 S3 Express directory buckets, or transactional directory operations.
 
-## Safe cleanup workflows and the empty-directory gap
+## Safe cleanup workflows and historical gap
 
-Safe empty-only `rmdir` is still unsupported for an empty S3 prefix. This is a
-real workflow gap, not satisfied by successful recursive deletion. The unchanged
+S3 now declares the snapshot-marker profile for ordinary `rmdir` and `rm -d`.
+This is weaker than removal-time emptiness and absent-at-return guarantees;
+callers requiring those guarantees must not substitute this operation. The unchanged
 aggregate adapter-tools checkpoint `421ce3f` records 77/79, with S3 and WebDAV
-failing the required `/work/scratch/nested` cleanup. This documentation does not
+historically failing the required `/work/scratch/nested` cleanup. This documentation does not
 rebaseline that matrix or claim alias closure.
 
 Supported alternatives for **different, explicitly chosen workflows** are:
@@ -394,12 +410,16 @@ The additive rmdir checkpoint (August 26, 2026) passed all 35 combined S3/WebDAV
 rmdir tests and all 503 combined adapter tests, with zero failures or skips:
 `node --unhandled-rejections=strict --import tsx --test 'tests/fs/s3/*.test.ts' 'tests/fs/webdav/*.test.ts'`.
 Strict NodeNext source-and-test typechecking for both owned adapter directories
-also passed. The new `tests/fs/s3/rmdir.test.ts` covers typed errors and requested
+also passed. At that historical checkpoint `tests/fs/s3/rmdir.test.ts` covered typed errors and requested
 paths, explicit/implicit nonempty directories, empty-prefix rejection with and
 without conditional delete, post-list child creation, no mutation requests,
 pre-abort and uncooperative in-flight cancellation with late rejection, and
 unchanged nonrecursive `rm`. This is mock-backed evidence, not a live-provider
 atomicity or product-wide acceptance claim.
+The approved snapshot-profile implementation intentionally replaces the three
+old empty-marker refusal/marker-preservation expectations while retaining every
+nonempty and no-child-loss assertion. Exact old input and test delta are retained
+under `tests/fs/s3/rmdir-real-service/snapshot-profile/`.
 
 `MockS3Client({ buckets, pageSize?, now?, authorize? })` stores flat, independently
 copied binary objects. It supports conditional requests, common-prefix grouping,

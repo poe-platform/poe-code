@@ -63,7 +63,7 @@ for (const child of ["file", "nested/file", "child/"]) {
 }
 
 for (const conditional of [false, true]) {
-  test(`empty rmdir is unsupported even with conditionalDelete=${conditional}`, async () => {
+  test(`snapshot rmdir deletes only the empty marker with conditionalDelete=${conditional}`, async () => {
     const { client, seed } = fixture();
     await seed("mount/empty/");
     await seed("mount/empty-neighbor/file", new Uint8Array([7]));
@@ -72,14 +72,18 @@ for (const conditional of [false, true]) {
     const fs = new S3FileSystem({ transport, bucket: "bucket", prefix: "mount" });
     const path = "/other/../empty/";
     const start = client.requests.length;
-    await assert.rejects(fs.rmdir(path), rejected("ENOTSUP", path));
-    noMutations(client, start);
-    await client.headObject({ Bucket: "bucket", Key: "mount/empty/" });
+    await fs.rmdir(path);
+    assert.deepEqual(client.requests.slice(start).filter(request => request.operation === "deleteObject").map(request => request.input),
+      [{ Bucket: "bucket", Key: "mount/empty/" }]);
+    await assert.rejects(client.headObject({ Bucket: "bucket", Key: "mount/empty/" }), { code: "NoSuchKey" });
+    await client.headObject({ Bucket: "bucket", Key: "mount/empty-neighbor/file" });
+    await client.headObject({ Bucket: "bucket", Key: "mount-other/empty/file" });
+    assert.equal(fs.capabilities.snapshotRmdir, true);
     assert.equal(fs.capabilities.atomicRename, false);
   });
 }
 
-test("a child created after the empty listing survives, and the marker is not deleted", async () => {
+test("a child created after the empty listing survives successful marker removal", async () => {
   const { client, seed } = fixture();
   await seed("mount/empty/");
   const requests: string[] = [];
@@ -102,11 +106,13 @@ test("a child created after the empty listing survives, and the marker is not de
     putObject: (input, options) => { requests.push("put"); return base.putObject(input, options); },
     copyObject: (input, options) => { requests.push("copy"); return base.copyObject(input, options); },
   } });
-  await assert.rejects(fs.rmdir("/empty"), rejected("ENOTSUP", "/empty"));
+  await fs.rmdir("/empty");
   assert.equal(created, true);
-  assert.ok(requests.every(operation => operation === "head" || operation === "list"));
+  assert.equal(requests.filter(operation => operation === "delete").length, 1);
+  assert.ok(requests.every(operation => operation === "head" || operation === "list" || operation === "delete"));
   assert.deepEqual(await fs.readFile("/empty/new-child"), new Uint8Array([9]));
-  await client.headObject({ Bucket: "bucket", Key: "mount/empty/" });
+  await assert.rejects(client.headObject({ Bucket: "bucket", Key: "mount/empty/" }), { code: "NoSuchKey" });
+  assert.equal((await fs.stat("/empty")).type, "directory");
 });
 
 test("pre-abort, read-only mode, and root protection make no requests", async () => {

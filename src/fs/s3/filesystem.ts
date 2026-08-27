@@ -131,7 +131,7 @@ export class S3FileSystem implements FileSystem {
       readOnly: options.readOnly ?? false,
       symlinks: false, hardlinks: false, permissions: false,
       timestamps: options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true,
-      atomicRename: false,
+      atomicRename: false, snapshotRmdir: true,
       streamingRead: options.transport.capabilities?.streamingRead === true && typeof options.transport.getObjectStream === "function",
       streamingWrite: options.transport.capabilities?.streamingWrite === true && typeof options.transport.putObjectStream === "function",
     });
@@ -517,14 +517,19 @@ export class S3FileSystem implements FileSystem {
       if (!info) fail("ENOENT", "rmdir", input);
       if (info.stat.type !== "directory") fail("ENOTDIR", "rmdir", input);
       const prefix = this.directoryKey(path);
-      for await (const page of this.pages(prefix, path, options, "/")) {
+      let markerObserved = false;
+      for await (const page of this.pages(prefix, path, options, "/", Math.max(2, this.pageSize))) {
         this.checkAbort(options, "rmdir", input);
         if (page.Contents?.some(item => item.Key !== prefix) || page.CommonPrefixes?.length) {
           fail("ENOTEMPTY", "rmdir", input);
         }
+        if (page.IsTruncated === undefined) fail("EIO", "rmdir", input, "listing did not confirm completeness");
+        if (page.Contents?.some(item => item.Key === prefix)) markerObserved = true;
       }
       this.checkAbort(options, "rmdir", input);
-      fail("ENOTSUP", "rmdir", input, "S3 object deletion cannot atomically require an empty directory prefix");
+      if (!info.metadata) fail("ENOTSUP", "rmdir", input, "snapshot removal requires an explicit directory marker");
+      if (!markerObserved) fail("ENOENT", "rmdir", input, "directory marker disappeared during inspection");
+      await this.call("deleteObject", path, options, () => this.transport.deleteObject({ Bucket: this.bucket, Key: prefix }, this.requestOptions(options)));
     } catch (error) {
       if (isFsError(error) && (error.syscall !== "rmdir" || error.path !== input)) {
         throw new FsError(error.code, { syscall: "rmdir", path: input, cause: error });

@@ -1,0 +1,22 @@
+{"label":"calibration","command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--unhandled-rejections=strict","--import","tsx","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/runtime-review/calibration.mjs"],"started":"2026-08-27T00:56:31.874Z","finished":"2026-08-27T00:56:32.615Z","exitCode":0,"signal":null,"stdoutHash":"eae3561989c779ed1de2967c1e7bab46aae5bbdfb5397b6fc4ee38425f118955","stderrHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+STDOUT
+{
+  "output": "/tmp/safe-bash-metadata-runtime-final-calibration.json",
+  "sourceStable": true,
+  "timestampSummary": {
+    "originalDifferentRows": 30,
+    "semantic": 30,
+    "calibrationOnly": 0,
+    "controls": 90,
+    "memoryEqual": 30,
+    "realEqual": 30,
+    "deterministicEqual": 30,
+    "originalNativeReproduced": 30,
+    "sameOriginalVfsMs": 30
+  },
+  "chmodRows": 6,
+  "nativeExecutions": 39,
+  "fixtureRemoved": true
+}
+
+STDERR

@@ -1,0 +1,275 @@
+{"label":"probe","command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--unhandled-rejections=strict","--import","tsx","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/runtime-review/prior-probe.mjs"],"started":"2026-08-27T00:56:29.965Z","finished":"2026-08-27T00:56:31.727Z","exitCode":1,"signal":null,"stdoutHash":"7e406195b848f75e69279919d461eb46a8f8efb6496e2593f4d4edff8a7dc082","stderrHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+STDOUT
+{
+  "nativeExecutions": 140,
+  "groups": {
+    "epoch-real-metadata": {
+      "cases": 64,
+      "pass": 64,
+      "fail": 0,
+      "failures": []
+    },
+    "chmod-existing-special-bits": {
+      "cases": 36,
+      "pass": 30,
+      "fail": 6,
+      "failures": [
+        {
+          "name": "file",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "file",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "file",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        }
+      ]
+    },
+    "chmod-real-special-bits": {
+      "cases": 36,
+      "pass": 30,
+      "fail": 6,
+      "failures": [
+        {
+          "name": "file",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "file",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "file",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        },
+        {
+          "name": "directory",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "707",
+          "nativeCode": 1,
+          "actualCode": 0,
+          "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+          "actualStderr": ""
+        }
+      ]
+    },
+    "chmod-umask": {
+      "cases": 24,
+      "pass": 24,
+      "fail": 0,
+      "failures": []
+    },
+    "stat-independent-flags": {
+      "cases": 5,
+      "pass": 5,
+      "fail": 0,
+      "failures": []
+    },
+    "mktemp-status-quiet": {
+      "cases": 8,
+      "pass": 8,
+      "fail": 0,
+      "failures": []
+    },
+    "mktemp-private-modes": {
+      "cases": 3,
+      "pass": 3,
+      "fail": 0,
+      "failures": []
+    },
+    "chmod-partial-errors": {
+      "cases": 1,
+      "pass": 1,
+      "fail": 0,
+      "failures": []
+    }
+  },
+  "calibrations": [
+    {
+      "requestedMs": -16016,
+      "realMs": -16015.999,
+      "nativeNs": "-16015999000"
+    },
+    {
+      "requestedMs": -4004,
+      "realMs": -4003.999,
+      "nativeNs": "-4003999000"
+    },
+    {
+      "requestedMs": -2002,
+      "realMs": -2001.999,
+      "nativeNs": "-2001999000"
+    },
+    {
+      "requestedMs": -1005,
+      "realMs": -1004.999,
+      "nativeNs": "-1004999000"
+    },
+    {
+      "requestedMs": -1001,
+      "realMs": -1000.999,
+      "nativeNs": "-1000999000"
+    },
+    {
+      "requestedMs": -999,
+      "realMs": -999,
+      "nativeNs": "-999000000"
+    },
+    {
+      "requestedMs": -101,
+      "realMs": -101,
+      "nativeNs": "-101000000"
+    },
+    {
+      "requestedMs": -11,
+      "realMs": -11,
+      "nativeNs": "-11000000"
+    },
+    {
+      "requestedMs": -1,
+      "realMs": -1,
+      "nativeNs": "-1000000"
+    },
+    {
+      "requestedMs": 0,
+      "realMs": 0,
+      "nativeNs": "0"
+    },
+    {
+      "requestedMs": 1,
+      "realMs": 1,
+      "nativeNs": "1000000"
+    },
+    {
+      "requestedMs": 11,
+      "realMs": 11,
+      "nativeNs": "11000000"
+    },
+    {
+      "requestedMs": 999,
+      "realMs": 999,
+      "nativeNs": "999000000"
+    },
+    {
+      "requestedMs": 1001,
+      "realMs": 1000.999,
+      "nativeNs": "1000999000"
+    },
+    {
+      "requestedMs": 1005,
+      "realMs": 1004.999,
+      "nativeNs": "1004999000"
+    },
+    {
+      "requestedMs": 16016,
+      "realMs": 16015.999,
+      "nativeNs": "16015999000"
+    }
+  ],
+  "sentinel": "unchanged",
+  "fixture": "/tmp/safe-bash-metadata-leaf-native-6mCqGl"
+}
+
+STDERR

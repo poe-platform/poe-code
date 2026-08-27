@@ -1,0 +1,427 @@
+{
+  "nativeExecutions": 140,
+  "groups": {
+    "epoch-real-metadata": {
+      "cases": 64,
+      "pass": 34,
+      "fail": 30,
+      "failures": [
+        {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-17][-17][-17.0][-16.01][-16.015]",
+          "actual": "[-17][-17][-16.1][-16.02][-16.016]",
+          "nativeNs": "-16015999000"
+        },
+        {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00016.015][-00016.015][-16.015   ]",
+          "actual": "[-00016.016][-00016.016][-16.016   ]",
+          "nativeNs": "-16015999000"
+        },
+        {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-16.015][-16.015][-16.015][-16.015]",
+          "actual": "[-16.016][-16.016][-16.016][-16.016]",
+          "nativeNs": "-16015999000"
+        },
+        {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-5][-5][-5.0][-5.00][-4.003]",
+          "actual": "[-5][-5][-4.1][-4.01][-4.004]",
+          "nativeNs": "-4003999000"
+        },
+        {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00004.003][-00004.003][-4.003    ]",
+          "actual": "[-00004.004][-00004.004][-4.004    ]",
+          "nativeNs": "-4003999000"
+        },
+        {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-4.003][-4.003][-4.003][-4.003  ]",
+          "actual": "[-4.004][-4.004][-4.004][-4.004]",
+          "nativeNs": "-4003999000"
+        },
+        {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-3][-3][-3.0][-3.00][-2.001]",
+          "actual": "[-3][-3][-2.1][-2.01][-2.002]",
+          "nativeNs": "-2001999000"
+        },
+        {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00002.001][-00002.001][-2.001    ]",
+          "actual": "[-00002.002][-00002.002][-2.002    ]",
+          "nativeNs": "-2001999000"
+        },
+        {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-2.001][-2.001][-2.001][-2.001  ]",
+          "actual": "[-2.002][-2.002][-2.002][-2.002]",
+          "nativeNs": "-2001999000"
+        },
+        {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-2][-2][-2.0][-2.00][-1.004]",
+          "actual": "[-2][-2][-1.1][-1.01][-1.005]",
+          "nativeNs": "-1004999000"
+        },
+        {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00001.004][-00001.004][-1.004    ]",
+          "actual": "[-00001.005][-00001.005][-1.005    ]",
+          "nativeNs": "-1004999000"
+        },
+        {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-1.004][-1.004][-1.004][-1.004  ]",
+          "actual": "[-1.005][-1.005][-1.005][-1.005]",
+          "nativeNs": "-1004999000"
+        },
+        {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-2][-2][-2.0][-2.00][-2.000]",
+          "actual": "[-2][-2][-1.1][-1.01][-1.001]",
+          "nativeNs": "-1000999000"
+        },
+        {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00002.000][-00002.000][-2.000    ]",
+          "actual": "[-00001.001][-00001.001][-1.001    ]",
+          "nativeNs": "-1000999000"
+        },
+        {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-2.000][-2.000][-2.000][-2.000  ]",
+          "actual": "[-1.001][-1.001][-1.001][-1.001]",
+          "nativeNs": "-1000999000"
+        },
+        {
+          "milliseconds": -999,
+          "measured": -999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-0.9][-0.99][-0.999]",
+          "actual": "[-1][-1][-1.0][-1.00][-0.999]",
+          "nativeNs": "-999000000"
+        },
+        {
+          "milliseconds": -999,
+          "measured": -999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.999][-0.999][-0.999][-0.999  ]",
+          "actual": "[-0.999][-0.999][-0.999][-0.999]",
+          "nativeNs": "-999000000"
+        },
+        {
+          "milliseconds": -101,
+          "measured": -101,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-0.1][-0.10][-0.101]",
+          "actual": "[-1][-1][-0.2][-0.11][-0.101]",
+          "nativeNs": "-101000000"
+        },
+        {
+          "milliseconds": -101,
+          "measured": -101,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.101][-0.101][-0.101][-0.101  ]",
+          "actual": "[-0.101][-0.101][-0.101][-0.101]",
+          "nativeNs": "-101000000"
+        },
+        {
+          "milliseconds": -11,
+          "measured": -11,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-1.0][-0.01][-0.011]",
+          "actual": "[-1][-1][-0.1][-0.02][-0.011]",
+          "nativeNs": "-11000000"
+        },
+        {
+          "milliseconds": -11,
+          "measured": -11,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.011][-0.011][-0.011][-0.011  ]",
+          "actual": "[-0.011][-0.011][-0.011][-0.011]",
+          "nativeNs": "-11000000"
+        },
+        {
+          "milliseconds": -1,
+          "measured": -1,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-1.0][-1.00][-0.001]",
+          "actual": "[-1][-1][-0.1][-0.01][-0.001]",
+          "nativeNs": "-1000000"
+        },
+        {
+          "milliseconds": -1,
+          "measured": -1,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.001][-0.001][-0.001][-0.001  ]",
+          "actual": "[-0.001][-0.001][-0.001][-0.001]",
+          "nativeNs": "-1000000"
+        },
+        {
+          "milliseconds": 0,
+          "measured": 0,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.000][0.000][0.000  ][0.000 ]",
+          "actual": "[0.000][0.000][0.000][0.000]",
+          "nativeNs": "0"
+        },
+        {
+          "milliseconds": 1,
+          "measured": 1,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.001][0.001][0.001  ][0.001 ]",
+          "actual": "[0.001][0.001][0.001][0.001]",
+          "nativeNs": "1000000"
+        },
+        {
+          "milliseconds": 11,
+          "measured": 11,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.011][0.011][0.011  ][0.011 ]",
+          "actual": "[0.011][0.011][0.011][0.011]",
+          "nativeNs": "11000000"
+        },
+        {
+          "milliseconds": 999,
+          "measured": 999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.999][0.999][0.999  ][0.999 ]",
+          "actual": "[0.999][0.999][0.999][0.999]",
+          "nativeNs": "999000000"
+        },
+        {
+          "milliseconds": 1001,
+          "measured": 1000.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[1.000][1.000][1.000  ][1.000 ]",
+          "actual": "[1.000][1.000][1.000][1.000]",
+          "nativeNs": "1000999000"
+        },
+        {
+          "milliseconds": 1005,
+          "measured": 1004.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[1.004][1.004][1.004  ][1.004 ]",
+          "actual": "[1.004][1.004][1.004][1.004]",
+          "nativeNs": "1004999000"
+        },
+        {
+          "milliseconds": 16016,
+          "measured": 16015.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[16.015][16.015][16.015][16.015  ]",
+          "actual": "[16.015][16.015][16.015][16.015]",
+          "nativeNs": "16015999000"
+        }
+      ]
+    },
+    "chmod-existing-special-bits": {
+      "cases": 36,
+      "pass": 30,
+      "fail": 6,
+      "failures": [
+        {
+          "name": "file",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        },
+        {
+          "name": "file",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        },
+        {
+          "name": "file",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        },
+        {
+          "name": "directory",
+          "initial": "4777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "4777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        },
+        {
+          "name": "directory",
+          "initial": "777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        },
+        {
+          "name": "directory",
+          "initial": "1777",
+          "mode": "u-s,g=s,o-t",
+          "expectedMode": "1777",
+          "actualMode": "2707",
+          "nativeCode": 1,
+          "actualCode": 0
+        }
+      ]
+    },
+    "chmod-umask": {
+      "cases": 24,
+      "pass": 24,
+      "fail": 0,
+      "failures": []
+    },
+    "stat-independent-flags": {
+      "cases": 5,
+      "pass": 5,
+      "fail": 0,
+      "failures": []
+    },
+    "mktemp-status-quiet": {
+      "cases": 8,
+      "pass": 8,
+      "fail": 0,
+      "failures": []
+    },
+    "mktemp-private-modes": {
+      "cases": 3,
+      "pass": 3,
+      "fail": 0,
+      "failures": []
+    },
+    "chmod-partial-errors": {
+      "cases": 1,
+      "pass": 1,
+      "fail": 0,
+      "failures": []
+    }
+  },
+  "calibrations": [
+    {
+      "requestedMs": -16016,
+      "realMs": -16015.999,
+      "nativeNs": "-16015999000"
+    },
+    {
+      "requestedMs": -4004,
+      "realMs": -4003.999,
+      "nativeNs": "-4003999000"
+    },
+    {
+      "requestedMs": -2002,
+      "realMs": -2001.999,
+      "nativeNs": "-2001999000"
+    },
+    {
+      "requestedMs": -1005,
+      "realMs": -1004.999,
+      "nativeNs": "-1004999000"
+    },
+    {
+      "requestedMs": -1001,
+      "realMs": -1000.999,
+      "nativeNs": "-1000999000"
+    },
+    {
+      "requestedMs": -999,
+      "realMs": -999,
+      "nativeNs": "-999000000"
+    },
+    {
+      "requestedMs": -101,
+      "realMs": -101,
+      "nativeNs": "-101000000"
+    },
+    {
+      "requestedMs": -11,
+      "realMs": -11,
+      "nativeNs": "-11000000"
+    },
+    {
+      "requestedMs": -1,
+      "realMs": -1,
+      "nativeNs": "-1000000"
+    },
+    {
+      "requestedMs": 0,
+      "realMs": 0,
+      "nativeNs": "0"
+    },
+    {
+      "requestedMs": 1,
+      "realMs": 1,
+      "nativeNs": "1000000"
+    },
+    {
+      "requestedMs": 11,
+      "realMs": 11,
+      "nativeNs": "11000000"
+    },
+    {
+      "requestedMs": 999,
+      "realMs": 999,
+      "nativeNs": "999000000"
+    },
+    {
+      "requestedMs": 1001,
+      "realMs": 1000.999,
+      "nativeNs": "1000999000"
+    },
+    {
+      "requestedMs": 1005,
+      "realMs": 1004.999,
+      "nativeNs": "1004999000"
+    },
+    {
+      "requestedMs": 16016,
+      "realMs": 16015.999,
+      "nativeNs": "16015999000"
+    }
+  ],
+  "sentinel": "unchanged",
+  "fixture": "/tmp/safe-bash-metadata-leaf-native-IZA0Ly"
+}

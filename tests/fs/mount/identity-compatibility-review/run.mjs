@@ -7,10 +7,16 @@ import { fileURLToPath } from "node:url";
 
 const owned = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(owned, "../../../..");
-const revision = "4fa4ba9502dac843bd13aa5031d128a3171f597d";
 const authoritativeContract = "fa539de";
 const mode = process.argv[2] ?? "pinned";
-assert.ok(["pinned", "worktree"].includes(mode));
+assert.ok(["pinned", "worktree", "revision"].includes(mode));
+const requestedRevision = mode === "revision" ? process.argv[4] : "4fa4ba9502dac843bd13aa5031d128a3171f597d";
+assert.match(requestedRevision ?? "", /^[a-f0-9]{7,40}$/);
+const revision = mode === "revision"
+  ? execFileSync("git", ["rev-parse", "--verify", `${requestedRevision}^{commit}`], { cwd: repository }).toString().trim()
+  : requestedRevision;
+const testName = mode === "revision" ? process.argv[5] ?? "compatibility.test.ts" : "compatibility.test.ts";
+assert.ok(["compatibility.test.ts", "traversal-authority.test.ts"].includes(testName));
 const label = process.argv[3] ?? `${mode}-${Date.now()}`;
 assert.match(label, /^[a-z0-9-]+$/);
 const output = join(owned, "evidence", label);
@@ -29,9 +35,10 @@ const manifest = {
 };
 
 try {
-  if (mode === "pinned") {
-    const archive = git("archive", "--format=tar.gz", revision, "src", "package.json", "tsconfig.json", "tests/fs/webdav/mock.ts");
-    const archivePath = join(output, "source-4fa4ba9.tar.gz");
+  if (mode === "pinned" || mode === "revision") {
+    const archive = git("archive", "--format=tar.gz", revision, "src", "package.json", "tsconfig.json", "tests/fs/webdav/mock.ts",
+      ...(testName === "traversal-authority.test.ts" ? ["tests/fs/webdav/property-fixture.ts"] : []));
+    const archivePath = join(output, `source-${revision.slice(0, 7)}.tar.gz`);
     await writeFile(archivePath, archive);
     manifest.archiveSha256 = sha256(archive);
     execFileSync("tar", ["-xzf", archivePath, "-C", scratch]);
@@ -47,16 +54,19 @@ try {
   }
   const sourceFiles = (await readdir(join(scratch, "src"), { recursive: true, withFileTypes: true }))
     .filter(entry => entry.isFile()).map(entry => relative(scratch, join(entry.parentPath, entry.name))).sort();
-  for (const file of [...sourceFiles, "package.json", "tsconfig.json", "tests/fs/webdav/mock.ts"]) {
+  for (const file of [...sourceFiles, "package.json", "tsconfig.json", "tests/fs/webdav/mock.ts",
+    ...(testName === "traversal-authority.test.ts" ? ["tests/fs/webdav/property-fixture.ts"] : [])]) {
     manifest.sourceHashes[file] = sha256(await readFile(join(scratch, file)));
   }
   manifest.sourceSetSha256 = sha256(JSON.stringify(manifest.sourceHashes));
   const contract = git("show", `${authoritativeContract}:src/contracts/filesystem.md`);
   assert.equal(manifest.sourceHashes["src/contracts/filesystem.md"], sha256(contract));
-  const testPath = relative(repository, join(owned, "compatibility.test.ts"));
+  assert.equal(sha256(await readFile(join(owned, "compatibility.test.ts"))), "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "the original 38 positive plus 5 rejection controls must remain byte-identical");
+  const testPath = relative(repository, join(owned, testName));
   await mkdir(dirname(join(scratch, testPath)), { recursive: true });
   await copyFile(join(repository, testPath), join(scratch, testPath));
-  await copyFile(join(repository, testPath), join(output, "compatibility.test.ts.txt"));
+  await copyFile(join(repository, testPath), join(output, `${testName}.txt`));
   manifest.testSha256 = sha256(await readFile(join(scratch, testPath)));
   const command = ["--import", "tsx", "--test", "--test-reporter=tap", testPath];
   manifest.command = ["node", ...command];

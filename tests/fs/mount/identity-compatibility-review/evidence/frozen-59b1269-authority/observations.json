@@ -1,0 +1,139 @@
+[
+  {
+    "case": "missing permission capability on an opaque remote remains unsupported beside a known-false sibling",
+    "expectedCode": "ENOTSUP",
+    "methods": [
+      "PROPFIND"
+    ],
+    "unchanged": true
+  },
+  {
+    "case": "memory destination execute denial is checked before acquiring an authorized WebDAV source",
+    "expectedCode": "EACCES",
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND"
+    ],
+    "dataCalls": [],
+    "unchanged": true
+  },
+  {
+    "case": "real destination execute denial is checked before acquiring an authorized WebDAV source",
+    "expectedCode": "EACCES",
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND"
+    ],
+    "dataCalls": [],
+    "unchanged": true
+  },
+  {
+    "case": "explicit execute access remains unsupported through an opaque readonly nested remote view",
+    "expectedCode": "ENOTSUP",
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND"
+    ],
+    "unchanged": true
+  },
+  {
+    "case": "real HTTP 401 on the second directory authorization probe prevents source acquisition and publication",
+    "expectedCode": "EACCES",
+    "requests": [
+      {
+        "method": "PROPFIND",
+        "path": "/dav",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav/dir",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav/dir",
+        "status": 401
+      }
+    ],
+    "dataCalls": [],
+    "unchanged": true
+  },
+  {
+    "case": "real HTTP 403 on the second directory authorization probe prevents source acquisition and publication",
+    "expectedCode": "EACCES",
+    "requests": [
+      {
+        "method": "PROPFIND",
+        "path": "/dav",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav/dir",
+        "status": 207
+      },
+      {
+        "method": "PROPFIND",
+        "path": "/dav/dir",
+        "status": 403
+      }
+    ],
+    "dataCalls": [],
+    "unchanged": true
+  },
+  {
+    "case": "cancellation during repeated remote authorization retains the exact errno-bearing cause",
+    "expectedCode": "ECANCELED",
+    "exactCause": true,
+    "exactPreabortReason": true,
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND"
+    ],
+    "unchanged": true
+  },
+  {
+    "case": "opaque permissions-false composite keeps its hidden-mount-removal boundary",
+    "expectedCode": "EBUSY",
+    "methods": [
+      "PROPFIND"
+    ],
+    "unchanged": true
+  }
+]

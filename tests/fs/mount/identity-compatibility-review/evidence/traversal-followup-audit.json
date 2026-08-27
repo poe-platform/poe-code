@@ -1,0 +1,790 @@
+{
+  "sourceRevision": "59b1269a4f4e0323c49926f4dacf2c02a395666b",
+  "mountSourceSha256": "6d260317b76b60f05596c00c8f80ff5da82cdca511a2e8bab38489d6befa64a4",
+  "sourceSetSha256": "b7d2756b0dfdc44572db5da44bf72ed528cee1bb1356d1b9f4938a7943c62c33",
+  "archiveSha256": "787481088e492178e084c2a7bd23648d02023af830066134fbebe894d4e32e9a",
+  "fixtureSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+  "historicFilesCheckedUnchanged": 31,
+  "fixed": {
+    "counts": {
+      "tests": 43,
+      "pass": 28,
+      "fail": 15,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "positive": {
+      "total": 38,
+      "pass": 23,
+      "fail": 15
+    },
+    "rejection": {
+      "total": 5,
+      "pass": 5
+    },
+    "typecheck": 0
+  },
+  "independentControls": {
+    "counts": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "testSha256": "85fe14f1f40196b3954ebd0bb9d24b89ae97903522769f99b861e0bad1f9a9c3",
+    "typecheck": 0
+  },
+  "improvements": [
+    "REQUIRED webdav one-mount copy, target missing",
+    "REQUIRED webdav separate-clients copy, target missing",
+    "positive webdav one-mount existing-target rename (default lock policy)",
+    "REQUIRED memory to-remote webdav copy, target missing",
+    "REQUIRED memory from-remote webdav copy, target missing"
+  ],
+  "regressions": [],
+  "remainingFixed": {
+    "unknownCopyOverwrite": {
+      "s3": 4,
+      "webdav": 4
+    },
+    "crossMountMv": {
+      "local": 3,
+      "s3": 2,
+      "webdav": 2
+    }
+  },
+  "moving": {
+    "worktreeHead": "be29e3822736472a26450182bb3987709238e0db",
+    "counts": {
+      "tests": 43,
+      "pass": 33,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "positive": {
+      "total": 38,
+      "pass": 28,
+      "fail": 10
+    },
+    "typecheck": 0,
+    "changedSourceFiles": [
+      "src/commands/archive/README.md",
+      "src/commands/archive/create.ts",
+      "src/commands/archive/extract.ts",
+      "src/commands/archive/format.ts",
+      "src/commands/archive/index.ts",
+      "src/commands/archive/internal.ts",
+      "src/commands/archive/options.ts",
+      "src/commands/archive/stream.ts",
+      "src/commands/filesystem.ts",
+      "src/commands/move.ts"
+    ],
+    "additionalImprovements": [
+      "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+      "REQUIRED cross-mount memory mv, target missing",
+      "REQUIRED cross-mount memory mv, target existing",
+      "REQUIRED s3 separate-clients cross-mount mv, target missing",
+      "REQUIRED webdav separate-clients cross-mount mv, target missing"
+    ]
+  },
+  "transitions": [
+    {
+      "case": "positive overwrite: independent-memory, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive overwrite: shared-memory, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive overwrite: readonly, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive overwrite: overlay, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive overwrite: opaque, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive overwrite: real-shared-root, distinct backing files",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "paired alias control: opaque does not manufacture disjoint scopes",
+      "old": {
+        "expectedCode": "EINVAL"
+      },
+      "fixed": {
+        "expectedCode": "EINVAL"
+      },
+      "moving": {
+        "expectedCode": "EINVAL"
+      }
+    },
+    {
+      "case": "paired alias control: real-shared-root does not manufacture disjoint scopes",
+      "old": {
+        "expectedCode": "EINVAL"
+      },
+      "fixed": {
+        "expectedCode": "EINVAL"
+      },
+      "moving": {
+        "expectedCode": "EINVAL"
+      }
+    },
+    {
+      "case": "positive same-mount memory rename replaces a distinct file",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED cross-mount memory mv, target missing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED cross-mount memory mv, target existing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 direct copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 direct copy, target existing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 one-mount copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 one-mount copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "REQUIRED s3 separate-clients copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 separate-clients copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "positive s3 direct existing-target rename (non-atomic opt-in)",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive s3 one-mount existing-target rename (non-atomic opt-in)",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 separate-clients cross-mount mv, target missing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED s3 separate-clients cross-mount mv, target existing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: existing move destination lacks authoritative distinctness '/left/source' -> '/right/target'\\n"
+      }
+    },
+    {
+      "case": "paired s3 opaque separate-client alias stays unchanged (traversal may reject first)",
+      "old": {
+        "expectedCode": "ENOTSUP"
+      },
+      "fixed": {
+        "expectedCode": "ENOTSUP"
+      },
+      "moving": {
+        "expectedCode": "ENOTSUP"
+      }
+    },
+    {
+      "case": "REQUIRED memory to-remote s3 copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED memory to-remote s3 copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "REQUIRED memory from-remote s3 copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED memory from-remote s3 copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "REQUIRED webdav direct copy, target missing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav direct copy, target existing",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav one-mount copy, target missing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav one-mount copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "REQUIRED webdav separate-clients copy, target missing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav separate-clients copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "positive webdav direct existing-target rename (default lock policy)",
+      "old": {
+        "status": "success"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "positive webdav one-mount existing-target rename (default lock policy)",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "rename",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav separate-clients cross-mount mv, target missing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: operation not supported, stat '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED webdav separate-clients cross-mount mv, target existing",
+      "old": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: operation not supported, stat '/right/target'\\n"
+      },
+      "fixed": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "moving": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: existing move destination lacks authoritative distinctness '/left/source' -> '/right/target'\\n"
+      }
+    },
+    {
+      "case": "paired webdav opaque separate-client alias stays unchanged (traversal may reject first)",
+      "old": {
+        "expectedCode": "ENOTSUP"
+      },
+      "fixed": {
+        "expectedCode": "ENOTSUP"
+      },
+      "moving": {
+        "expectedCode": "ENOTSUP"
+      }
+    },
+    {
+      "case": "REQUIRED memory to-remote webdav copy, target missing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED memory to-remote webdav copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "REQUIRED memory from-remote webdav copy, target missing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "success"
+      },
+      "moving": {
+        "status": "success"
+      }
+    },
+    {
+      "case": "REQUIRED memory from-remote webdav copy, target existing",
+      "old": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "fixed": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "moving": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      }
+    },
+    {
+      "case": "declared S3 default rename limit remains typed ENOTSUP and effect-free",
+      "old": {
+        "expectedCode": "ENOTSUP"
+      },
+      "fixed": {
+        "expectedCode": "ENOTSUP"
+      },
+      "moving": {
+        "expectedCode": "ENOTSUP"
+      }
+    }
+  ]
+}

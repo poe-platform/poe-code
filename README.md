@@ -53,10 +53,11 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs nine delivered families once: standard,
+`agentCommands(options?)` installs ten delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
-metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), and table-text
-(`paste`, `comm`, `join`), totaling 56 registered plugin names. These families have separate scoped evidence;
+metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
+(`paste`, `comm`, `join`), and stream inspection (`tac`, `expand`, `fold`, `strings`),
+totaling 60 unique registered plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
@@ -81,6 +82,7 @@ agentCommands({
   metadata: { umask: 0o022, limits: { maxEntries: 100_000 } },
   archive: { limits: { maxArchiveBytes: 64 * 1024 * 1024 } },
   tableText: { limits: { maxRecordBytes: 1024 * 1024, maxGroupBytes: 8 * 1024 * 1024 } },
+  streamInspection: { limits: { maxInputBytes: 16 * 1024 * 1024 } },
 });
 ```
 
@@ -89,6 +91,50 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 `exec` buffers its returned output under shell limits, while internal pipes use
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
+
+## Stream Inspection Commands
+
+The package root and `virtual-bash/commands/stream-inspection` export
+`streamInspectionCommands(options?)`, `createStreamInspectionCommands(options?)`,
+`StreamInspectionCommandsOptions` and `StreamInspectionLimits`.
+Options are `{ replace?, limits? }`; the factory returns readonly command
+definitions. All four commands are already in `agentCommands()` and
+`createAgentCommands()`. Use the standalone plugin instead of the aggregate,
+not in addition to it unless replacement is intentional.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+try {
+  const result = await shell.exec(
+    "printf 'old\\tline\\nnew\\tline\\n' > log; tac log | expand -4 | fold -bw8 > report; cat report",
+  );
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+This produces `new line\nold line\n` through byte pipes and VFS files.
+`tac` reverses records per operand, with `-b`/`--before` and literal
+`-s`/`--separator`; it buffers an entire operand within configurable limits,
+not constant memory. `expand` supports `-i`, `-t` tab lists and numeric forms
+such as `-4`; `fold` supports `-b`, `-s`, `-w` and numeric widths such as `-3`.
+Both use fixed C/POSIX byte columns, not Unicode display widths.
+`strings` scans raw 7-bit ASCII plus TAB runs, with `-a`, `-n`, numeric minimum
+lengths such as `-5`, `-t d|o|x`, and `-f`; it does not parse object sections.
+Its lone `-` selects raw scanning rather than a stdin file operand.
+
+Defaults per invocation are input 32MiB, stdout 64MiB, record 8MiB, chunk 1MiB,
+64 files, 268435456 work steps and 65536 argument bytes. Positive-safe-integer
+overrides belong in `streamInspection.limits`; shell-wide budgets still apply.
+Regex `tac`, Unicode width/decoding and strings object/encoding modes remain
+unsupported. Numeric syntax follows the pinned GNU9.7/GNU strings2.44 on Darwin
+cohorts, not a GNU/Linux or full diagnostic-byte parity claim. Exact profiles,
+flags and bounds are in `src/commands/stream-inspection/README.md`; author public
+integration evidence is in `tests/integration/stream-inspection-public-author/`.
+Curl and SafeJS remain explicitly optional and are not registered by this family.
 
 ## Table-text Commands
 
@@ -216,7 +262,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 56 plugin names; optional `curl` and `safejs`
+The current default aggregate has 60 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

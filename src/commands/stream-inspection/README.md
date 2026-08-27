@@ -1,9 +1,13 @@
-# Opt-in stream inspection
+# Stream inspection commands
 
 This source module defines `tac`, `expand`, `fold`, and `strings`. It adds no
 runtime dependencies, host process execution, host filesystem fallback, shell
-builtins, network access, or ambient credentials. Public package exports and
-default registration remain outside this author scope.
+builtins, network access, or ambient credentials. The package root and
+`virtual-bash/commands/stream-inspection` now export the two factories and types
+below. All four commands are included in `agentCommands()`/`createAgentCommands()`;
+configure their limits through `streamInspection.limits`. Do not also install
+the standalone plugin unless replacement is intentional. Curl and SafeJS remain
+optional and are not enabled by these commands.
 
 `createStreamInspectionCommands(options?)` returns `readonly CommandDefinition[]`.
 `streamInspectionCommands(options?)` returns a `VirtualShellPlugin` and preflights
@@ -11,9 +15,12 @@ all four collisions before registering anything. `replace: true` explicitly
 replaces existing definitions. `StreamInspectionCommandsOptions.limits` accepts
 partial positive-safe-integer overrides of `StreamInspectionLimits`.
 
-The integration tests import this module directly, register it on an actual
+The original source integration tests import this module directly, register it on an actual
 `Shell` alongside `standardCommands()`, and run memory/explicit-root real VFS
-pipelines. These source-level tests are not proof of an installed package export.
+pipelines. Those source-level tests are not proof of an installed package export;
+the separate public/default integration is recorded under
+`tests/integration/stream-inspection-public-author/`. The original opt-in author
+handoff and its evidence remain historical, unchanged records.
 
 ## Command profiles
 
@@ -53,7 +60,11 @@ columns. Other bytes, including CR, advance one column. State spans operands,
 including unterminated boundaries, matching inspected GNU9.7 source.
 
 The transform is incremental, flushes each input chunk, and awaits output before
-requesting another chunk. Obsolete `-4`/`-4,8` option syntax is not implemented.
+requesting another chunk. Numeric `-4`/`-4,8` syntax is accepted under the pinned
+GNU9.7 Darwin profile. Zero repeat markers mean an unset interval: zero-only
+defaults to 8, one explicit stop repeats, and multiple stops remain finite.
+Numeric suffix parsing, repeated options and operand permutation retain the
+accepted numeric-fixer behavior rather than a newly narrowed flag profile.
 
 ### fold
 
@@ -69,7 +80,9 @@ Pending output is record-bounded, including a long CR/backspace-heavy sequence
 whose display column never reaches the width. UTF8 is preserved, not interpreted
 as display cells or characters. Locale environment values do not switch this
 byte profile and are not rejected. This does not claim Unicode display-width
-parity, newer GNU character modes, or obsolete `-WIDTH` syntax support.
+parity or newer GNU character modes. Numeric `-WIDTH` syntax (for example `-3`)
+is supported under the pinned GNU9.7 Darwin profile; every supplied width is
+validated before the last valid width is used.
 
 ### strings
 
@@ -90,7 +103,11 @@ Offsets reset for each file; each accepted run ends with LF, including at EOF.
 
 This is a useful binary marker extractor, not Unicode string decoding or a
 claim of object-section analysis. GNU `-d`, `-e`, `-U`, `-w`, output-separator
-options, `-o`, and obsolete `-NUMBER` syntax are remaining compatibility gaps.
+options and `-o` are remaining compatibility gaps. Numeric `-NUMBER` syntax is
+supported under the pinned GNU strings2.44 Darwin profile, including leading-zero
+octal lengths and deferred numeric selection overriding valid ordinary `-n`.
+Zero and unsigned overflow are rejected. Legacy getopt ordering quirks are
+preserved in the numeric-fixer fixtures, not normalized into a different parser.
 Apple strings differs on TAB inclusion and offset padding; its expected bytes
 are not substituted for GNU behavior. A later isolated reference build supplies
 GNU strings2.44 with the raw/default-all configuration. The supplemental13-case
@@ -138,7 +155,7 @@ collected; fold/strings may have unpublished buffered data at a read failure.
 
 ## Evidence and reproduction
 
-Author evidence and tests live only in `tests/commands/stream-inspection/`.
+Original source-author evidence and tests live in `tests/commands/stream-inspection/`.
 `evidence/SELECTION.md` preserves the exact measured50+4 cohort and the current
 registry count correction. `evidence/NATIVE-ATTEMPTS.md` preserves initial Apple
 parser failures and the explicit corrected fixtures; native stdout/stderr and

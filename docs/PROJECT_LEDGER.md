@@ -1626,6 +1626,42 @@ that any implementation, command, fixture, or test currently exists.
   old unexported-state audit/evidence is preserved. Concurrent authors' source,
   tests and staging are outside this leaf's commit paths.
 
+## Stream inspection public/default integration — August 27, 2026
+
+- Explicit root authorization releases public/default wiring of accepted source
+  `335d2c3705b4892a56e807010cd7ca50145fefce`. Commit `3fb1405` changes only root
+  exports, the existing aggregate and the conventional package subpath. Public
+  APIs are `streamInspectionCommands`, `createStreamInspectionCommands`,
+  `StreamInspectionCommandsOptions` and `StreamInspectionLimits`; aggregate
+  configuration is `streamInspection.limits`, with top-level replacement only.
+- Both actual registries measure **56→60 unique names**, adding tac, expand,
+  fold and strings. Curl/SafeJS remain explicitly optional; runtime dependencies
+  and package scripts are unchanged. This is registration/dispatch evidence,
+  not a command-count superiority claim or a replay of the historical measured
+  50-default/4-optional missing-name inventory.
+- Original applicable baseline **124/124** is preserved with its exact test
+  text. Wiring against untouched assertions yields **122/124**, only two stale
+  list/count failures. Separate expectation-only `81a0ab7` restores **124/124**.
+  Author integration `728acd6` adds 21 tests: final **145/145** and scoped strict
+  noEmit pass. Its initial **144/145** test-harness reference-identity mistake
+  and exact test are preserved, not hidden as a source defect.
+- Isolated existing-toolchain build/offline script-disabled pack and extracted
+  consumer pass root/subpath runtime/type checks, 12 actual four-command
+  dispatches and four aggregate VFS pipelines. Node22.22.2/npm10.9.7/TS5.9.3 on
+  Darwin arm64; first package SHA256
+  `50c4bb16174543136f6b7708a6e14b98f615c550cc12b99174ededd910c67d9b`.
+  That first snapshot includes precisely recorded uncommitted documentation;
+  no main dist build or install occurs. Full raw attempts, hashes and commands:
+  `tests/integration/stream-inspection-public-author/README.md` and `evidence/`.
+- All seven module TypeScript files remain byte-identical to the accepted
+  checkpoint; only authorized README availability/numeric-profile statements
+  change. Independent original **84/85**, native semantic **85/85**, strict
+  **68/85** (17 diagnostic differences), corrected contracts **39/39**, previous
+  author99 and fixer82 remain separate unchanged evidence. No native replay,
+  GNU/Linux/full diagnostic parity, deployed-provider, superiority, full-product
+  or72-hour claim. SGID6/env normative policy is unchanged. Independent frozen
+  public-consumer review follows author normal closure, not this author proof.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

@@ -1,0 +1,47 @@
+BASH_VERSION=5.3.0(1)-release
+MACHTYPE=aarch64-apple-darwin25.4.0
+umask=0022
+printf is a shell builtin
+: is a shell builtin
+test is a shell builtin
+SIGPIPE=13
+Darwin 25.4.0 arm64
+ProductName:		macOS
+ProductVersion:		26.4.1
+BuildVersion:		25E253
+LANG="C"
+LC_COLLATE="C"
+LC_CTYPE="C"
+LC_MESSAGES="C"
+LC_MONETARY="C"
+LC_NUMERIC="C"
+LC_TIME="C"
+LC_ALL="C"
+lastpipe            	off
+allexport      	off
+braceexpand    	on
+emacs          	off
+errexit        	off
+errtrace       	off
+functrace      	off
+hashall        	on
+histexpand     	off
+history        	off
+ignoreeof      	off
+interactive-comments	on
+keyword        	off
+monitor        	off
+noclobber      	off
+noexec         	off
+noglob         	off
+nolog          	off
+notify         	off
+nounset        	off
+onecmd         	off
+physical       	off
+pipefail       	off
+posix          	off
+privileged     	off
+verbose        	off
+vi             	off
+xtrace         	off

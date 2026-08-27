@@ -1,0 +1,35 @@
+{
+  "label": "native-C6",
+  "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "args": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "umask 022\nset -o pipefail\nproducer() { for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'delayed-error\\n' >&2; return 7; }\nconsumer() {  printf closed > closed; :; }\nproducer | consumer\noutcome=( \"$?\" \"${PIPESTATUS[@]}\" )\nprintf '%s\\n' \"${outcome[*]}\" > statuses\nexit \"${outcome[0]}\"\n"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/native-C6",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:20:12.557Z",
+  "finishedAt": "2026-08-27T09:20:12.662Z",
+  "durationMs": 105.767834,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 39747,
+  "initialIdentity": "39747 39699 39747 Thu Aug 27 04:20:12 2026     /tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash --noprofile --norc -c umask 022\\012set -o pipefail\\012producer() { for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'delayed-error\\n' >&2; return 7; }\\012consumer() {  printf closed > closed; :; }\\012producer | consumer\\012outcome=( \"$?\" \"${PIPESTATUS[@]}\" )\\012printf '%s\\n' \"${outcome[*]}\" > statuses\\012exit \"${outcome[0]}\"\\012",
+  "status": 7,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": "delayed-error\n"
+}

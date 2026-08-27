@@ -1,0 +1,33 @@
+{
+  "label": "syntax-run-controls",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--check",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/run-controls.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:23:07.220Z",
+  "finishedAt": "2026-08-27T09:23:07.246Z",
+  "durationMs": 25.171208999999976,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 44919,
+  "initialIdentity": "44919 44886 44919 Thu Aug 27 04:23:07 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --check /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/run-controls.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": ""
+}

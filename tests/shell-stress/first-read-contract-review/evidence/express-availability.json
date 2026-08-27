@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-08-27T09:21:14.893Z",
+  "result": [
+    {
+      "anchor": "package.json",
+      "available": false,
+      "reason": "MODULE_NOT_FOUND"
+    },
+    {
+      "anchor": "benchmarks/package.json",
+      "available": false,
+      "reason": "MODULE_NOT_FOUND"
+    }
+  ],
+  "interpretation": "No Express runtime executed; C2 is actual Shell middleware with response-like sink, not HTTP/Express proof."
+}

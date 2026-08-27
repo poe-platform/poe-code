@@ -1,0 +1,6 @@
+import { capture, owned } from './supervisor.mjs';
+import { resolve } from 'node:path';
+
+for (const scenario of ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']) {
+  await capture(`control-${scenario}`, process.execPath, ['--unhandled-rejections=strict', resolve(owned, 'controls.mjs'), scenario], { timeoutMs: 3000, maxBytes: 65536 });
+}

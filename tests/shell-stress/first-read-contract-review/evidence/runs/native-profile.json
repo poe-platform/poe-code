@@ -1,0 +1,35 @@
+{
+  "label": "native-profile",
+  "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "args": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "umask 022; printf \"BASH_VERSION=%s\\nMACHTYPE=%s\\n\" \"$BASH_VERSION\" \"$MACHTYPE\"; printf \"umask=\"; umask; type printf : test; printf \"SIGPIPE=\"; kill -l PIPE; /usr/bin/uname -srm; /usr/bin/sw_vers; /usr/bin/locale; shopt lastpipe; set -o; exit 0"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:20:12.195Z",
+  "finishedAt": "2026-08-27T09:20:12.229Z",
+  "durationMs": 33.591792,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 39714,
+  "initialIdentity": "39714 39699 39714 Thu Aug 27 04:20:12 2026     /tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash --noprofile --norc -c umask 022; printf \"BASH_VERSION=%s\\nMACHTYPE=%s\\n\" \"$BASH_VERSION\" \"$MACHTYPE\"; printf \"umask=\"; umask; type printf : test; printf \"SIGPIPE=\"; kill -l PIPE; /usr/bin/uname -srm; /usr/bin/sw_vers; /usr/bin/locale; shopt lastpipe; set -o; exit 0",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "BASH_VERSION=5.3.0(1)-release\nMACHTYPE=aarch64-apple-darwin25.4.0\numask=0022\nprintf is a shell builtin\n: is a shell builtin\ntest is a shell builtin\nSIGPIPE=13\nDarwin 25.4.0 arm64\nProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\nLANG=\"C\"\nLC_COLLATE=\"C\"\nLC_CTYPE=\"C\"\nLC_MESSAGES=\"C\"\nLC_MONETARY=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_ALL=\"C\"\nlastpipe            \toff\nallexport      \toff\nbraceexpand    \ton\nemacs          \toff\nerrexit        \toff\nerrtrace       \toff\nfunctrace      \toff\nhashall        \ton\nhistexpand     \toff\nhistory        \toff\nignoreeof      \toff\ninteractive-comments\ton\nkeyword        \toff\nmonitor        \toff\nnoclobber      \toff\nnoexec         \toff\nnoglob         \toff\nnolog          \toff\nnotify         \toff\nnounset        \toff\nonecmd         \toff\nphysical       \toff\npipefail       \toff\nposix          \toff\nprivileged     \toff\nverbose        \toff\nvi             \toff\nxtrace         \toff\n",
+  "stderr": ""
+}

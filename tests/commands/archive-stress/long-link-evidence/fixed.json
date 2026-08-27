@@ -1,0 +1,590 @@
+{
+  "phase": "fixed",
+  "scope": "Static bundled direct encodeEntry regression; no Shell, filesystem adapter, registry, or create/gzip command runtime. Gzip wrapper uses Node zlib.",
+  "runtime": {
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64",
+    "externalImports": [
+      {
+        "path": "node:assert/strict",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:child_process",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:crypto",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:fs/promises",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:path",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:test",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:zlib",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:util",
+        "kind": "import-statement",
+        "external": true
+      },
+      {
+        "path": "node:path",
+        "kind": "import-statement",
+        "external": true
+      }
+    ]
+  },
+  "before": {
+    "time": "2026-08-27T00:56:58.683Z",
+    "head": "565638a655d808d27961df57cc222dfd9ac22dfd",
+    "dirty": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/readonly/index.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/s3/transport.ts\n M src/fs/webdav/webdav.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/archive/built-package.mjs\n M tests/commands/archive/helpers.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n?? benchmarks/reports/current-integration/registry-unblock/ARTIFACTS.sha256\n?? benchmarks/reports/current-integration/registry-unblock/HANDOFF.md\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.md\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.sha256\n?? benchmarks/reports/current-integration/registry-unblock/README.md\n?? benchmarks/reports/current-integration/registry-unblock/REVIEW.md\n?? benchmarks/reports/current-integration/registry-unblock/execute.py\n?? benchmarks/reports/current-integration/registry-unblock/execution/accounting.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostic-callbacks.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/final-verification.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/mutation-static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/mutation-static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/verification.json\n?? benchmarks/reports/current-integration/registry-unblock/expected-default-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/finalize-verification.py\n?? benchmarks/reports/current-integration/registry-unblock/historical-99.json\n?? benchmarks/reports/current-integration/registry-unblock/independent-mutations.test.mjs\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execute.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/accounting.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostic-callbacks.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/final-verification.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/mutation-static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/mutation-static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/verification.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/expected-default-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/finalize-verification.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/independent-mutations.test.mjs\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/rejected-live56/HANDOFF-GUARD.md\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/rejected-live56/capture-attempts.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/scoped-tsconfig.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/capture-attempts.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/catalog-as-run.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/execute-as-run.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/verify.py\n?? benchmarks/reports/current-integration/registry-unblock/preparation-evidence.json\n?? benchmarks/reports/current-integration/registry-unblock/proposed-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/scoped-tsconfig.json\n?? benchmarks/reports/current-integration/registry-unblock/static-closure.mjs\n?? benchmarks/reports/current-integration/registry-unblock/verify.py\n?? src/fs/mount/comparison.ts\n?? src/fs/s3/authority.ts\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/.gitignore\n?? tests/commands/archive-stress/README.md\n?? tests/commands/archive-stress/acceptance.test.ts\n?? tests/commands/archive-stress/fixtures.ts\n?? tests/commands/archive-stress/hardlink-identity.test.ts\n?? tests/commands/archive-stress/helpers.ts\n?? tests/commands/archive-stress/limits-effects.test.ts\n?? tests/commands/archive-stress/long-link-evidence/baseline-format.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/baseline-input.test.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/baseline-regression.mjs\n?? tests/commands/archive-stress/long-link-evidence/baseline.json\n?? tests/commands/archive-stress/long-link-evidence/baseline.tap\n?? tests/commands/archive-stress/long-link-evidence/capture.mjs\n?? tests/commands/archive-stress/long-link-evidence/control.json\n?? tests/commands/archive-stress/long-link-evidence/control.mjs\n?? tests/commands/archive-stress/long-link-regression.test.ts\n?? tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/run-integration-review.mjs\n?? tests/commands/archive-stress/run-provisional.mjs\n?? tests/commands/archive-stress/tsconfig.integration.json\n?? tests/commands/archive-stress/tsconfig.json\n?? tests/commands/archive/aggregate-integration.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/metadata-stress/runtime-review/audit-original-tests.mjs\n?? tests/commands/metadata-stress/runtime-review/baseline/after.json\n?? tests/commands/metadata-stress/runtime-review/baseline/author.log\n?? tests/commands/metadata-stress/runtime-review/baseline/before.json\n?? tests/commands/metadata-stress/runtime-review/baseline/execution.json\n?? tests/commands/metadata-stress/runtime-review/baseline/plugin.log\n?? tests/commands/metadata-stress/runtime-review/baseline/probe.log\n?? tests/commands/metadata-stress/runtime-review/baseline/ready.json\n?? tests/commands/metadata-stress/runtime-review/baseline/stress.log\n?? tests/commands/metadata-stress/runtime-review/baseline/types.log\n?? tests/commands/metadata-stress/runtime-review/calibration-before-closure.json\n?? tests/commands/metadata-stress/runtime-review/calibration.mjs\n?? tests/commands/metadata-stress/runtime-review/native-count.mjs\n?? tests/commands/metadata-stress/runtime-review/original141.json\n?? tests/commands/metadata-stress/runtime-review/prior-calibrate.mjs\n?? tests/commands/metadata-stress/runtime-review/prior-probe.mjs\n?? tests/commands/metadata-stress/runtime-review/prior-run.mjs\n?? tests/commands/metadata-stress/runtime-review/replay.mjs\n?? tests/commands/metadata-stress/runtime-review/stat-source-provenance.json\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/fs/mount/comparison.test.ts\n?? tests/fs/mount/identity-authority-review/implementation/capture.mjs\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/capture.mjs.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/comparison-internal-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/manifest.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/public-comparison.test.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/s3-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/source.tar.gz\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/support.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tests.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tests.stdout.tap\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tsconfig.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/types.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/types.stdout.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/webdav-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/capture.mjs.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/comparison-internal-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/manifest.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/public-comparison.test.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/s3-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/source.tar.gz\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/support.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tests.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tests.stdout.tap\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tsconfig.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/types.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/types.stdout.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/webdav-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts\n?? tests/fs/mount/identity-authority-review/implementation/support.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts"
+  },
+  "after": {
+    "time": "2026-08-27T00:56:58.919Z",
+    "head": "565638a655d808d27961df57cc222dfd9ac22dfd",
+    "dirty": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/readonly/index.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/s3/transport.ts\n M src/fs/webdav/webdav.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/archive/built-package.mjs\n M tests/commands/archive/helpers.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n?? benchmarks/reports/current-integration/registry-unblock/ARTIFACTS.sha256\n?? benchmarks/reports/current-integration/registry-unblock/HANDOFF.md\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.md\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.sha256\n?? benchmarks/reports/current-integration/registry-unblock/README.md\n?? benchmarks/reports/current-integration/registry-unblock/REVIEW.md\n?? benchmarks/reports/current-integration/registry-unblock/execute.py\n?? benchmarks/reports/current-integration/registry-unblock/execution/accounting.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostic-callbacks.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/final-verification.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/mutation-static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/mutation-static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/verification.json\n?? benchmarks/reports/current-integration/registry-unblock/expected-default-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/finalize-verification.py\n?? benchmarks/reports/current-integration/registry-unblock/historical-99.json\n?? benchmarks/reports/current-integration/registry-unblock/independent-mutations.test.mjs\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execute.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/accounting.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostic-callbacks.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/exact-registry53.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/final-verification.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/mutation-static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/mutation-static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/verification.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/expected-default-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/finalize-verification.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/independent-mutations.test.mjs\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/rejected-live56/HANDOFF-GUARD.md\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/rejected-live56/capture-attempts.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/scoped-tsconfig.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/capture-attempts.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/catalog-as-run.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/exact-registry53.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/execute-as-run.py\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/selection-attempt1/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/post-tar-default/verify.py\n?? benchmarks/reports/current-integration/registry-unblock/preparation-evidence.json\n?? benchmarks/reports/current-integration/registry-unblock/proposed-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/scoped-tsconfig.json\n?? benchmarks/reports/current-integration/registry-unblock/static-closure.mjs\n?? benchmarks/reports/current-integration/registry-unblock/verify.py\n?? src/fs/mount/comparison.ts\n?? src/fs/s3/authority.ts\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/.gitignore\n?? tests/commands/archive-stress/README.md\n?? tests/commands/archive-stress/acceptance.test.ts\n?? tests/commands/archive-stress/fixtures.ts\n?? tests/commands/archive-stress/hardlink-identity.test.ts\n?? tests/commands/archive-stress/helpers.ts\n?? tests/commands/archive-stress/limits-effects.test.ts\n?? tests/commands/archive-stress/long-link-evidence/baseline-format.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/baseline-input.test.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/baseline-regression.mjs\n?? tests/commands/archive-stress/long-link-evidence/baseline.json\n?? tests/commands/archive-stress/long-link-evidence/baseline.tap\n?? tests/commands/archive-stress/long-link-evidence/capture.mjs\n?? tests/commands/archive-stress/long-link-evidence/control.json\n?? tests/commands/archive-stress/long-link-evidence/control.mjs\n?? tests/commands/archive-stress/long-link-evidence/fixed-format.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/fixed-input.test.ts.txt\n?? tests/commands/archive-stress/long-link-evidence/fixed-regression.mjs\n?? tests/commands/archive-stress/long-link-regression.test.ts\n?? tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/run-integration-review.mjs\n?? tests/commands/archive-stress/run-provisional.mjs\n?? tests/commands/archive-stress/tsconfig.integration.json\n?? tests/commands/archive-stress/tsconfig.json\n?? tests/commands/archive/aggregate-integration.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/metadata-stress/runtime-review/audit-original-tests.mjs\n?? tests/commands/metadata-stress/runtime-review/baseline/after.json\n?? tests/commands/metadata-stress/runtime-review/baseline/author.log\n?? tests/commands/metadata-stress/runtime-review/baseline/before.json\n?? tests/commands/metadata-stress/runtime-review/baseline/execution.json\n?? tests/commands/metadata-stress/runtime-review/baseline/plugin.log\n?? tests/commands/metadata-stress/runtime-review/baseline/probe.log\n?? tests/commands/metadata-stress/runtime-review/baseline/ready.json\n?? tests/commands/metadata-stress/runtime-review/baseline/stress.log\n?? tests/commands/metadata-stress/runtime-review/baseline/types.log\n?? tests/commands/metadata-stress/runtime-review/calibration-before-closure.json\n?? tests/commands/metadata-stress/runtime-review/calibration.mjs\n?? tests/commands/metadata-stress/runtime-review/native-count.mjs\n?? tests/commands/metadata-stress/runtime-review/original141.json\n?? tests/commands/metadata-stress/runtime-review/prior-calibrate.mjs\n?? tests/commands/metadata-stress/runtime-review/prior-probe.mjs\n?? tests/commands/metadata-stress/runtime-review/prior-run.mjs\n?? tests/commands/metadata-stress/runtime-review/replay.mjs\n?? tests/commands/metadata-stress/runtime-review/stat-source-provenance.json\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/fs/mount/comparison.test.ts\n?? tests/fs/mount/identity-authority-review/implementation/capture.mjs\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/capture.mjs.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/comparison-internal-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/manifest.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/public-comparison.test.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/s3-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/source.tar.gz\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/support.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tests.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tests.stdout.tap\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/tsconfig.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/types.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/types.stdout.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-local/webdav-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/capture.mjs.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/comparison-internal-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/manifest.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/public-comparison.test.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/s3-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/source.tar.gz\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/support.ts.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tests.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tests.stdout.tap\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/tsconfig.json\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/types.stderr.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/types.stdout.txt\n?? tests/fs/mount/identity-authority-review/implementation/evidence/early-design/webdav-authority-handoff.txt\n?? tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts\n?? tests/fs/mount/identity-authority-review/implementation/support.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts"
+  },
+  "closure": [
+    {
+      "path": "src/commands/archive/format.ts",
+      "sha256": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719"
+    },
+    {
+      "path": "src/commands/archive/internal.ts",
+      "sha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "tests/commands/archive-stress/long-link-regression.test.ts",
+      "sha256": "98e1ac647a50c8ca7c973dc9dec17a0bc7db5227f8ce1b84e82218425cac77df"
+    }
+  ],
+  "sourceSha256": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+  "regressionSha256": "98e1ac647a50c8ca7c973dc9dec17a0bc7db5227f8ce1b84e82218425cac77df",
+  "bundleSha256": "5fa9cad335c18bfd6801a3c2e75d3528a66dced63c263fed171da986e27d135d",
+  "packageLockSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+  "compiler": [
+    {
+      "name": "esbuild",
+      "installedVersion": "0.28.2",
+      "lockedVersion": "0.28.2",
+      "lockIntegrity": "sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==",
+      "packageSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490",
+      "implementation": "node_modules/esbuild/lib/main.js",
+      "implementationSha256": "61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd"
+    },
+    {
+      "name": "@esbuild/darwin-arm64",
+      "installedVersion": "0.28.2",
+      "lockedVersion": "0.28.2",
+      "lockIntegrity": "sha512-n4KqkOQrraxHJcgjM1RvwbigfQKIKJVpM7xp+KsxiyUSrRdIXnt73VhrPAx0fV44hgfmIVKjxMN9J1t5jySVkw==",
+      "packageSha256": "4e652c9e4410daf03da852a664940153601fac397233cdcf276b4b1a312454b9",
+      "implementation": "node_modules/@esbuild/darwin-arm64/bin/esbuild",
+      "implementationSha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    }
+  ],
+  "dependencyQualification": "Frozen runtime is one regular self-contained ESM file plus Node builtins; no installed JS runtime dependencies or live source aliases. Generation-only esbuild versions match the lock and exact used compiler/binary bytes are hashed; lock integrity is recorded, not a new registry-content attestation.",
+  "metafile": {
+    "inputs": {
+      "src/contracts/command.ts": {
+        "bytes": 2762,
+        "imports": [],
+        "format": "esm"
+      },
+      "src/contracts/errors.ts": {
+        "bytes": 3457,
+        "imports": [
+          {
+            "path": "node:util",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "format": "esm"
+      },
+      "src/contracts/filesystem.ts": {
+        "bytes": 3825,
+        "imports": [],
+        "format": "esm"
+      },
+      "src/contracts/io.ts": {
+        "bytes": 7383,
+        "imports": [
+          {
+            "path": "node:stream/web",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "src/contracts/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "src/contracts/path.ts": {
+        "bytes": 1675,
+        "imports": [
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "src/contracts/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "src/contracts/plugin.ts": {
+        "bytes": 2359,
+        "imports": [],
+        "format": "esm"
+      },
+      "src/contracts/index.ts": {
+        "bytes": 173,
+        "imports": [
+          {
+            "path": "src/contracts/command.ts",
+            "kind": "import-statement",
+            "original": "./command.js"
+          },
+          {
+            "path": "src/contracts/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          },
+          {
+            "path": "src/contracts/filesystem.ts",
+            "kind": "import-statement",
+            "original": "./filesystem.js"
+          },
+          {
+            "path": "src/contracts/io.ts",
+            "kind": "import-statement",
+            "original": "./io.js"
+          },
+          {
+            "path": "src/contracts/path.ts",
+            "kind": "import-statement",
+            "original": "./path.js"
+          },
+          {
+            "path": "src/contracts/plugin.ts",
+            "kind": "import-statement",
+            "original": "./plugin.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "src/commands/archive/internal.ts": {
+        "bytes": 8296,
+        "imports": [
+          {
+            "path": "src/contracts/index.ts",
+            "kind": "import-statement",
+            "original": "../../contracts/index.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "src/commands/archive/format.ts": {
+        "bytes": 8700,
+        "imports": [
+          {
+            "path": "src/commands/archive/internal.ts",
+            "kind": "import-statement",
+            "original": "./internal.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "tests/commands/archive-stress/long-link-regression.test.ts": {
+        "bytes": 7313,
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:child_process",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:fs/promises",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:test",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:zlib",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "src/commands/archive/format.ts",
+            "kind": "import-statement",
+            "original": "../../../src/commands/archive/format.js"
+          },
+          {
+            "path": "src/commands/archive/internal.ts",
+            "kind": "import-statement",
+            "original": "../../../src/commands/archive/internal.js"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "tests/commands/archive-stress/long-link-evidence/fixed-regression.mjs": {
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:child_process",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:fs/promises",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:test",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:zlib",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:util",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "exports": [],
+        "entryPoint": "tests/commands/archive-stress/long-link-regression.test.ts",
+        "inputs": {
+          "tests/commands/archive-stress/long-link-regression.test.ts": {
+            "bytesInOutput": 7121
+          },
+          "src/contracts/index.ts": {
+            "bytesInOutput": 0
+          },
+          "src/contracts/errors.ts": {
+            "bytesInOutput": 141
+          },
+          "src/contracts/filesystem.ts": {
+            "bytesInOutput": 74
+          },
+          "src/contracts/path.ts": {
+            "bytesInOutput": 190
+          },
+          "src/commands/archive/internal.ts": {
+            "bytesInOutput": 848
+          },
+          "src/commands/archive/format.ts": {
+            "bytesInOutput": 3631
+          }
+        },
+        "bytes": 12288
+      }
+    }
+  },
+  "observations": [
+    {
+      "kind": "raw-archive",
+      "archiveSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+      "archiveBase64": "UGF4SGVhZGVyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDQAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMjE0ADE0NTI0NzcwNDAwADAxMTE0MAAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxNDAgbGlua3BhdGg9Y3Jvc3MteHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHguYmluCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHN5bWJvbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNzc3ADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMAAxNDUyNDc3MDQwMAAwMTE3NjUAIDJQYXhMaW5rAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "extensionOffset": 0,
+      "payloadOffset": 512,
+      "linkHeaderOffset": 1024,
+      "paxPayloadBase64": "MTQwIGxpbmtwYXRoPWNyb3NzLXh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4LmJpbgo=",
+      "linkHeaderBase64": "c3ltYm9sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA3NzcAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAwADE0NTI0NzcwNDAwADAxMTc2NQAgMlBheExpbmsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "typeflagHex": "32",
+      "rawLinknameHex": "5061784c696e6b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "kind": "native",
+      "consumer": "GNU 1.35",
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "version": {
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "tar (GNU tar) 1.35\\nCopyright (C) 2023 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by John Gilmore and Jay Fenlason.\\n",
+        "stderr": ""
+      },
+      "observations": [
+        {
+          "format": "plain",
+          "archiveSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+          "listing": {
+            "args": [
+              "-tf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/input.tar"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "symbol\\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "args": [
+              "-xf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/input.tar",
+              "-C",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/plain"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "type": "symlink",
+          "size": 126,
+          "linkTarget": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+          "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "targetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "entries": [
+            "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+            "symbol"
+          ]
+        },
+        {
+          "format": "gzip",
+          "archiveSha256": "e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356",
+          "listing": {
+            "args": [
+              "-tzf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/input.tar.gz"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "symbol\\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "args": [
+              "-xzf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/input.tar.gz",
+              "-C",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-h7gGaS/gzip"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "type": "symlink",
+          "size": 126,
+          "linkTarget": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+          "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "targetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "entries": [
+            "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+            "symbol"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "native",
+      "consumer": "BSD 3.5.3",
+      "binary": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "version": {
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \\n",
+        "stderr": ""
+      },
+      "observations": [
+        {
+          "format": "plain",
+          "archiveSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+          "listing": {
+            "args": [
+              "-tf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/input.tar"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "symbol\\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "args": [
+              "-xf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/input.tar",
+              "-C",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/plain"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "type": "symlink",
+          "size": 126,
+          "linkTarget": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+          "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "targetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "entries": [
+            "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+            "symbol"
+          ]
+        },
+        {
+          "format": "gzip",
+          "archiveSha256": "e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356",
+          "listing": {
+            "args": [
+              "-tzf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/input.tar.gz"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "symbol\\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "args": [
+              "-xzf",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/input.tar.gz",
+              "-C",
+              "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-long-link-JChXY8/gzip"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "type": "symlink",
+          "size": 126,
+          "linkTarget": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+          "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "targetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+          "entries": [
+            "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+            "symbol"
+          ]
+        }
+      ]
+    }
+  ],
+  "command": {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--test",
+      "tests/commands/archive-stress/long-link-evidence/fixed-regression.mjs"
+    ],
+    "status": 0,
+    "signal": null
+  }
+}

@@ -117,7 +117,7 @@ export function encodeEntry(entry: Entry, limits: ArchiveLimits): Uint8Array[] {
   const records: Uint8Array[] = [];
   if (!splitName(base.name)) { records.push(paxRecord("path", base.name)); base.name = "PaxEntry"; }
   if (Buffer.byteLength(base.linkname) > 100 || /[^\x01-\x7f]/u.test(base.linkname)) {
-    records.push(paxRecord("linkpath", base.linkname)); base.linkname = "PaxLink";
+    records.push(paxRecord("linkpath", base.linkname)); base.linkname = "";
   }
   for (const key of ["uid", "gid", "size", "mtime"] as const) {
     const value = base[key];

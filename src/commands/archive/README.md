@@ -138,9 +138,11 @@ unsupported and produce failure. No option or archive data executes code.
   creation, including `file` versus `./file` aliases.
 - Extraction hardlinks require a previously extracted regular file at the
   transformed target path in the same selected root. Forward, self, unselected,
-  preexisting-only, or changed targets fail. Unsupported backend links fail;
-  there is no copy fallback. Replacing a regular file unlinks and exclusively
-  creates it, leaving earlier hardlinked versions untouched.
+  preexisting-only, or non-regular targets fail. Observed changes in complete
+  backing identity fail; identity-unknown targets cannot be checked for same-type
+  replacement. Unsupported backend links fail; there is no copy fallback.
+  Replacing a regular file unlinks and exclusively creates it, leaving earlier
+  hardlinked versions untouched.
 - Headers record numeric UID/GID when provided, ordinary/special permission
   bits, mtime, and (PAX) atime. Missing UID/GID become zero; no owner names are
   invented. There is no FS ownership API: extraction does **not** chown, restore
@@ -153,8 +155,10 @@ unsupported and produce failure. No option or archive data executes code.
   fractional-second digits. Verbose listing uses numeric IDs/seconds, not
   byte-for-byte GNU date/locale formatting.
 - Directory metadata is deferred until successful archive validation, children
-  before parents. New intermediate directories without an explicit directory
-  member stay private `0700`; newly opened files/archives start at `0600`.
+  before parents. Tar requests `0700` for new intermediate directories without
+  an explicit directory member and `0600` for newly opened files/archives.
+  Actual enforcement requires backend permission support; these modes may be
+  advisory or ignored on other backends.
   There is no ambient host umask, user database, filesystem, or process lookup.
 
 ## Extraction and publication safety

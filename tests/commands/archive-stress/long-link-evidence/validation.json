@@ -1,0 +1,178 @@
+{
+  "time": "2026-08-27T00:58:26.364Z",
+  "scope": "direct regression and all archive production types only; not whole repo or command integration",
+  "before": {
+    "head": "745eaa62eebbe07b7fd30dccad4a73a1669f7124",
+    "sourceSha256": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+    "frozenBaselineSha256": "9a9a926cbd060dfe6bdb7ec18d7f01edce0bb998687a44613437262dca80903a",
+    "frozenFixedSha256": "5fa9cad335c18bfd6801a3c2e75d3528a66dced63c263fed171da986e27d135d"
+  },
+  "after": {
+    "head": "745eaa62eebbe07b7fd30dccad4a73a1669f7124",
+    "sourceSha256": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+    "frozenBaselineSha256": "9a9a926cbd060dfe6bdb7ec18d7f01edce0bb998687a44613437262dca80903a",
+    "frozenFixedSha256": "5fa9cad335c18bfd6801a3c2e75d3528a66dced63c263fed171da986e27d135d"
+  },
+  "tooling": [
+    {
+      "name": "typescript",
+      "installedVersion": "5.9.3",
+      "lockedVersion": "5.9.3",
+      "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+      "installedPackageSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "tsx",
+      "installedVersion": "4.23.12",
+      "lockedVersion": "4.23.12",
+      "integrity": "sha512-FDf4L4sYzKtzWYhU/Xm0AQFdTjdIxNo9ElTf2mxXM6k8YMHXzYUe4yODVaXP4V9uMFbVg8c0qyBccK2OOxb45Q==",
+      "installedPackageSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "esbuild",
+      "installedVersion": "0.28.2",
+      "lockedVersion": "0.28.2",
+      "integrity": "sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==",
+      "installedPackageSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "@esbuild/darwin-arm64",
+      "installedVersion": "0.28.2",
+      "lockedVersion": "0.28.2",
+      "integrity": "sha512-n4KqkOQrraxHJcgjM1RvwbigfQKIKJVpM7xp+KsxiyUSrRdIXnt73VhrPAx0fV44hgfmIVKjxMN9J1t5jySVkw==",
+      "installedPackageSha256": "4e652c9e4410daf03da852a664940153601fac397233cdcf276b4b1a312454b9"
+    }
+  ],
+  "packageLockSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+  "typescriptCompilerSha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+  "typescriptImplementationSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+  "results": [
+    {
+      "name": "live-deterministic",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/archive-stress/long-link-regression.test.ts"
+      ],
+      "native": "0",
+      "expected": 0,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "live-native",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/archive-stress/long-link-regression.test.ts"
+      ],
+      "native": "1",
+      "expected": 0,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "frozen-baseline-replay",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--test",
+        "tests/commands/archive-stress/long-link-evidence/baseline-regression.mjs"
+      ],
+      "native": "1",
+      "expected": 1,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 3,
+        "pass": 1,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "frozen-fixed-replay",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--test",
+        "tests/commands/archive-stress/long-link-evidence/fixed-regression.mjs"
+      ],
+      "native": "1",
+      "expected": 0,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "scoped-typecheck",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "src/commands/archive/index.ts",
+        "tests/commands/archive-stress/long-link-regression.test.ts"
+      ],
+      "native": "0",
+      "expected": 0,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "name": "raw-header-control-replay",
+      "args": [
+        "tests/commands/archive-stress/long-link-evidence/control.mjs"
+      ],
+      "native": "0",
+      "expected": 0,
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    }
+  ]
+}

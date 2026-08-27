@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: direct stalled stdin closes once for Error cancellation
+ok 1 - direct stalled stdin closes once for Error cancellation
+  ---
+  duration_ms: 14.644833
+  type: 'test'
+  ...
+# Subtest: direct stalled stdin closes once for zero cancellation
+ok 2 - direct stalled stdin closes once for zero cancellation
+  ---
+  duration_ms: 13.184667
+  type: 'test'
+  ...
+# Subtest: direct stalled stdin closes once for native default cancellation
+ok 3 - direct stalled stdin closes once for native default cancellation
+  ---
+  duration_ms: 12.466458
+  type: 'test'
+  ...
+# Subtest: input quota counts chunks once and closes only the exceeded source
+ok 4 - input quota counts chunks once and closes only the exceeded source
+  ---
+  duration_ms: 24.934208
+  type: 'test'
+  ...
+# Subtest: shared output quota retains the primary error despite source cleanup failure
+ok 5 - shared output quota retains the primary error despite source cleanup failure
+  ---
+  duration_ms: 12.613625
+  type: 'test'
+  ...
+# Subtest: -q returns stdin without a second pull
+ok 6 - -q returns stdin without a second pull
+  ---
+  duration_ms: 12.034333
+  type: 'test'
+  ...
+# Subtest: -m1 returns stdin without a second pull
+ok 7 - -m1 returns stdin without a second pull
+  ---
+  duration_ms: 12.1445
+  type: 'test'
+  ...
+# Subtest: natural completion preserves UTF8, null records and no-match status without closing
+ok 8 - natural completion preserves UTF8, null records and no-match status without closing
+  ---
+  duration_ms: 36.927833
+  type: 'test'
+  ...
+# Subtest: explicit file input never acquires unrelated stdin
+ok 9 - explicit file input never acquires unrelated stdin
+  ---
+  duration_ms: 12.355833
+  type: 'test'
+  ...
+# Subtest: public Shell already closes its structural owner before rejection
+ok 10 - public Shell already closes its structural owner before rejection
+  ---
+  duration_ms: 14.43775
+  type: 'test'
+  ...
+# Subtest: nonreturnable borrowed input leaves close authority with its direct owner
+ok 11 - nonreturnable borrowed input leaves close authority with its direct owner
+  ---
+  duration_ms: 23.870875
+  type: 'test'
+  ...
+# Subtest: nested Shell invocation and sibling retain parent input until owner settlement
+ok 12 - nested Shell invocation and sibling retain parent input until owner settlement
+  ---
+  duration_ms: 24.945167
+  type: 'test'
+  ...
+# Subtest: direct opaque generator return invocation does not require finally completion
+ok 13 - direct opaque generator return invocation does not require finally completion
+  ---
+  duration_ms: 11.5935
+  type: 'test'
+  ...
+# Subtest: public opaque generator return invocation does not require finally completion
+ok 14 - public opaque generator return invocation does not require finally completion
+  ---
+  duration_ms: 12.5945
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 817.74875

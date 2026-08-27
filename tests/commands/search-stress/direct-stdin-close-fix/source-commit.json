@@ -1,0 +1,51 @@
+{
+  "at": "2026-08-27T13:42:58.567Z",
+  "sourceCommit": "c27249c8f6085d6d8366ae348b2b93aa0e377369",
+  "parent": "e055878b7a2bfe6de7f8d6e11e350d5ddafb874f",
+  "paths": [
+    {
+      "path": "src/commands/search/rg.ts",
+      "gitBlob": "aa66ae5b06c1d5f97e56fda13436bfef757ca771",
+      "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f"
+    },
+    {
+      "path": "tests/commands/search-stress/direct-stdin-close.test.ts",
+      "gitBlob": "d21e5ac3fd60ed16ebadfb023f4316dbb91dfe04",
+      "sha256": "d9cb40c6c1dc53365486ffab1492d4fa0e865d48b5ea8fa0deeac600c7c58c5b"
+    }
+  ],
+  "allCandidatePathsMatchCommit": true,
+  "completeSrcInventoryMatches": true,
+  "publicDeclarations": [
+    {
+      "path": "dist/index.d.ts",
+      "before": "ee6c684912bfe559e9eb704bc83f249bca3fcf09b7d9576860bab13f4d3dc553",
+      "after": "ee6c684912bfe559e9eb704bc83f249bca3fcf09b7d9576860bab13f4d3dc553",
+      "unchanged": true
+    },
+    {
+      "path": "dist/commands/search/index.d.ts",
+      "before": "280c17bfe0589b0a038cbec3eba1e8d68be345f665bfa3344542df3d3323f7c1",
+      "after": "280c17bfe0589b0a038cbec3eba1e8d68be345f665bfa3344542df3d3323f7c1",
+      "unchanged": true
+    },
+    {
+      "path": "dist/commands/search/rg.d.ts",
+      "before": "d98507a145a1b75423a34d1e591c164b2f4495aed1abc815b2c1cb1089a8a6ab",
+      "after": "d98507a145a1b75423a34d1e591c164b2f4495aed1abc815b2c1cb1089a8a6ab",
+      "unchanged": true
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "before": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f",
+      "after": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f",
+      "unchanged": true
+    },
+    {
+      "path": "dist/contracts/io.d.ts",
+      "before": "462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162",
+      "after": "462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162",
+      "unchanged": true
+    }
+  ]
+}

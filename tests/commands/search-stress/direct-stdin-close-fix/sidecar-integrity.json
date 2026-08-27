@@ -1,0 +1,129 @@
+{
+  "commit": "c5d44262ecca11009df6ce32a180005d3f3cb574",
+  "files": [
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/README.md",
+      "sha256": "c9898a773abecf8dabd39fd8f46d8221bbe9a18f45fe04e9c100229bbd8c6b3d"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/code/finalize.mjs.data",
+      "sha256": "c7663243535d44a18ec9a701dc0731f87ce2e4adcb9125bee38acf07b2e3b2f8"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/code/ownership-diagnostic.ts.data",
+      "sha256": "b92deb329c3af94e3ab426b249ff0ab05a16626ceb595be998498c5501b82328"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/code/prepare.mjs.data",
+      "sha256": "58b6660c4efb92f74216c43b524779e708ddc6ca091953818943397c29c3cf26"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/code/run.mjs.data",
+      "sha256": "5b058a9977d3283d8486a28449cb310b4f1cc26e464b572285bfb1f20c3688fd"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/evidence-manifest.json",
+      "sha256": "bd7e3225cecbcc0a43152696f91af081fd376c8e2d49e60cbd5715dbb8f1a2b0"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical-summary.json",
+      "sha256": "d29a3d0c38ba8737a1c0b40b513d98df9c9db1f216beb15b1d7401f5288c54cc"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/canonical/search-differential.stdout.excerpt.data",
+      "sha256": "d3c8e5f16a0c2bfd551632954c92a3ecb3a1ad1c5be16b4a6d4c0f7af2c11f8c"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/canonical/search-safety.stdout.excerpt.data",
+      "sha256": "9a160548079fedcab434eb98eb17a66f2dd973ff9632637ba95c7c03c34d00b7"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/canonical/test.stderr.log.data",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/remaining-focused-tests.json.data",
+      "sha256": "00944c21e48fa184b272b0e0f65235afd0e8f3a873c94f8066ab0c4562171201"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/remaining-focused-tests.stderr.log.data",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/remaining-focused-tests.stdout.log.data",
+      "sha256": "a3ca605c1630a4062b605741bdd7cb289d8bc47e77894add1a80d4b51f6f56e1"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/search-differential-tests.json.data",
+      "sha256": "0ade89619d67fcbff5b299d381f9e06a18dc0d22f09f57765ded93f461b8afa2"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/search-differential-tests.stderr.log.data",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/historical/focused-v2/search-differential-tests.stdout.log.data",
+      "sha256": "f482e9f1ddd346351b09c13994354770ea86a796bbde53dbadbcbb6c56441139"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/integrity.json",
+      "sha256": "15fb39718ec73f2c8122eaab20432134ece39f7d6a7a56ab8d47222cad42e3c1"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/proposal.patch-data",
+      "sha256": "e47bc97d97054ff306147db32e4b4a3408dbd297dc7488486888da7155371389"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/qualification.json",
+      "sha256": "43d0000ddb222c39e3e2233a1aae8de46d815b7cb4975cf657818d1e460ff3fb"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.json",
+      "sha256": "1b1f8cc035e961e9ac5a9c80f12b23db04b91f6c5e024682ff40867ecc25a30d"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.process-after.data",
+      "sha256": "24ee7b3d73c06bed4b030119a6959e98654cf1a341aeaded8f9ebe5c639a2981"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.process-before.data",
+      "sha256": "5179322af2db68d005dca33618aa146246f73eb07632f58318ee5f714de9c20f"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.process-final.data",
+      "sha256": "c26c00f58584e96229af6c0a345ed9cf962887301da6a7ead97352ea8c69018e"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.stderr.log.data",
+      "sha256": "0b3364d9ac9b3e08f002fb108428f1631e82fc0760d0c9a49158a0bedfbc3fc3"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.stdout.log.data",
+      "sha256": "f99d1ff75fd59b165c7c4351a8eb686eb35b078ac1b9d2f67dbc299b890b655d"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.json",
+      "sha256": "5fa9569a0c8472bdeeb2ea3886182c190f9985b1bd6c57b7a860d554bea92327"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.process-after.data",
+      "sha256": "950a42d2e3569152b0d8fe7d26707dccc754e96c578d13d7ae9074ac27cc4289"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.process-before.data",
+      "sha256": "5ca5d43afe5140833f95f559e765393fa1a8aca7ce8325d2be4fb3689427f300"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.process-final.data",
+      "sha256": "6db814415e68846493f3af5a10d53a1eb59170847429433b738d3c63de8b32e4"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.stderr.log.data",
+      "sha256": "c922a99da04afe4354c8a1239ac3f0684a203f2fac6391eb1dc0a9507393b612"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/ownership-diagnostic.stdout.log.data",
+      "sha256": "3d9302e955020a24379487ffdc5374ee7ed14f7997ad06a5a421de3929ae2a8f"
+    }
+  ]
+}

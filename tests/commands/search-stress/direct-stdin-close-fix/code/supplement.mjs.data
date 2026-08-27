@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+const task = '/tmp/safe-bash-search-stdin-close-fix-20260827';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const frozen = 'b494675c34dc289f4ad4b10a9201e1211eb0a7d8';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const files = ['helpers.ts','rg.test.ts','safety.test.ts','pipelines.test.ts'].map(name => {
+  const path = `tests/commands/search/${name}`;
+  const bytes = readFileSync(`${repo}/${path}`);
+  const original = execFileSync('git',['show',`${frozen}:${path}`],{cwd:repo});
+  assert(bytes.equals(original),path);
+  mkdirSync(`${task}/after/tests/commands/search`,{recursive:true});
+  cpSync(`${repo}/${path}`,`${task}/after/${path}`);
+  return {path,sha256:hash(bytes),frozenSha256:hash(original),unchanged:true};
+});
+writeFileSync(`${task}/author-test-qualification.json`,JSON.stringify({at:new Date().toISOString(),frozen,files},null,2)+'\n');

@@ -94,18 +94,34 @@ cancellation terminates only its worker, awaits termination and then releases
 capacity; another shell's work is not cancelled. First recorded failure is
 preserved through termination; late rejection handlers are attached.
 
-An invocation handle is not a worker lease. Its `finally` closes the handle;
-the last handle awaits remaining worker retirement. With open but I/O-paused
+An invocation handle is not a worker lease. Both commands register cooperative
+cleanup synchronously before opening that handle when the host supplies the
+approved `CommandContext.registerCleanup` capability. Rejected registration or
+cleanup before acquisition prevents opening; cleanup permanently closes future
+request admission. The callback and local `finally` share the same completion
+promise, including overlapping calls and failures. Direct contexts may omit the
+capability and retain local `finally` cleanup.
+
+Closing a session cancels its own queued/active requests through a signal composed
+from caller cancellation and session closure, waits for those requests and their
+retirements, and releases the handle exactly once. It never disposes the shared
+executor or cancels sibling leases. All owed retirements settle before a cleanup
+failure is reported; a selected execution rejection or exact caller abort takes
+precedence in the command's local finally. Completed command results do not hide
+cleanup failure. The callback does not await opaque stdin, FS, sink or generator
+work. The last handle awaits remaining idle worker retirement. With open but I/O-paused
 invocations, idle workers and timers are unref'd and automatically retire.
 There is no permanent worker per invocation, idle invocation capacity pinning
 or plugin-installed listener. Internal `dispose()` rejects queued/active requests
 and awaits exact worker cleanup. This internal awaiting is not a public Shell
-cleanup barrier: the runtime races command completion against cancellation, so
+cleanup barrier without host invocation scopes: the historical runtime races command completion against cancellation, so
 an early-closing pipeline can settle before the command's `finally` completes.
-`Shell.dispose()` does not await that outstanding command either. Followup F1
-remains blocked on an explicitly approved invocation-cleanup contract; no new
-lifecycle API or runtime change is supplied here. See
-`tests/commands/regex-execution/followup/REPORT.md` for source evidence.
+the historical `Shell.dispose()` does not await that outstanding command either.
+The contract is now approved at `07acb1a`; actual public exec/dispose closure still
+requires the separately owned runtime scope/drain implementation and independent
+replay. This registration patch is not integrated public-boundary acceptance.
+See `tests/commands/regex-execution/cleanup-registration/REPORT.md` and the
+unchanged followup/continuation reports for evidence and historical failures.
 
 Workers cache at most one descriptor (rg also retains its bounded three fragment
 variants). Different descriptor requests replace that cache. No call/input/

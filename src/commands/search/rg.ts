@@ -4,7 +4,7 @@ import { parse, SearchError, type Arguments, type SearchOptions } from "./option
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, fileInput, Limits, lines, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
+import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/client.js";
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
 
@@ -123,49 +123,46 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
     name: "rg",
     description: "Search virtual files or stdin with recursive filtering and structured results",
     async execute(context) {
-      context.signal.throwIfAborted();
-      let args: Arguments | undefined;
-      let failed = false;
-      let found = false;
-      let session: RegexSession | undefined;
-      try {
-        session = executor.open(context.signal);
-        const limits = new Limits(context, options);
-        args = parse(context.args);
-        if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {
-          throw new SearchError("cannot search stdin while also reading patterns from stdin");
+      return withRegexSession(context, executor, async session => {
+        let args: Arguments | undefined;
+        let failed = false;
+        let found = false;
+        try {
+          const limits = new Limits(context, options);
+          args = parse(context.args);
+          if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {
+            throw new SearchError("cannot search stdin while also reading patterns from stdin");
+          }
+          const report = async (error: unknown) => {
+            context.signal.throwIfAborted(); failed = true;
+            if (args!.messages) await diagnostic(context, error);
+          };
+          const walker = new Walker(context, args, limits, report, session);
+          await walker.validate();
+          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args, session);
+          if (args.mode !== "files") await matcher.batch([]);
+          if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
+          const selection = selectInput(context, args, options);
+          const printer = new Printer(args, limits);
+          const totals = stats();
+          for await (const target of walker.targets(selection.paths, selection.implicit)) {
+            if (args.mode === "files") { found = true; if (!args.quiet) await printer.filename(target.label); else break; continue; }
+            try {
+              const result = await searchFile(context, args, limits, matcher, printer, target, context.stdin, args.filename ?? (target.recursive || selection.paths.length > 1));
+              found ||= result.found;
+              for (const field of ["searches", "searches_with_match", "bytes_searched", "bytes_printed", "matched_lines", "matches"] as const) totals[field] += result.stats[field];
+              if (args.quiet && found && args.mode !== "json") break;
+            } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
+          }
+          if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
+          return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (error instanceof OutputClosed) return { exitCode: 0 };
+          if (args?.messages !== false) await diagnostic(context, error);
+          return { exitCode: 2 };
         }
-        const report = async (error: unknown) => {
-          context.signal.throwIfAborted(); failed = true;
-          if (args!.messages) await diagnostic(context, error);
-        };
-        const walker = new Walker(context, args, limits, report, session);
-        await walker.validate();
-        const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args, session);
-        if (args.mode !== "files") await matcher.batch([]);
-        if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
-        const selection = selectInput(context, args, options);
-        const printer = new Printer(args, limits);
-        const totals = stats();
-        for await (const target of walker.targets(selection.paths, selection.implicit)) {
-          if (args.mode === "files") { found = true; if (!args.quiet) await printer.filename(target.label); else break; continue; }
-          try {
-            const result = await searchFile(context, args, limits, matcher, printer, target, context.stdin, args.filename ?? (target.recursive || selection.paths.length > 1));
-            found ||= result.found;
-            for (const field of ["searches", "searches_with_match", "bytes_searched", "bytes_printed", "matched_lines", "matches"] as const) totals[field] += result.stats[field];
-            if (args.quiet && found && args.mode !== "json") break;
-          } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
-        }
-        if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
-        return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
-      } catch (error) {
-        context.signal.throwIfAborted();
-        if (error instanceof OutputClosed) return { exitCode: 0 };
-        if (args?.messages !== false) await diagnostic(context, error);
-        return { exitCode: 2 };
-      } finally {
-        await session?.close();
-      }
+      });
     },
   };
 }

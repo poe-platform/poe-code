@@ -1,33 +1,31 @@
 import type { CommandDefinition } from "../contracts/index.js";
-import { bufferLimit, collect, define, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "./internal.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError, type RegexExecutionOptions, type RegexSession } from "./regex-execution/client.js";
+import { bufferLimit, collect, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "./internal.js";
+import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession, type RegexExecutionOptions } from "./regex-execution/client.js";
 import type { GrepDescriptor } from "./regex-execution/protocol.js";
 
 export function grepCommands(options: RegexExecutionOptions = {}): CommandDefinition[] {
   const executor = new RegexExecutor(options);
-  return [define("grep", async context => {
-    const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:sz", { "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z" });
-    const patterns: string[] = [];
-    const addPatterns = (text: string, file: boolean) => {
-      if (file && text === "") return;
-      const parts = text.split("\n");
-      if (parts.length > 1 && parts.at(-1) === "") parts.pop();
-      patterns.push(...parts);
-    };
-    for (const pattern of parsed.values.get("e") ?? []) addPatterns(Buffer.from(pattern).toString("latin1"), false);
-    for (const name of parsed.values.get("f") ?? []) addPatterns(Buffer.from(await collect(input(context, name), context.signal)).toString("latin1"), true);
-    if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
-      if (!parsed.operands.length) throw new UsageError("missing pattern");
-      addPatterns(Buffer.from(parsed.operands.shift()!).toString("latin1"), false);
-    }
-    if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
-    const descriptor: GrepDescriptor = {
-      kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
-      insensitive: parsed.flags.has("i"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
-    };
-    let session: RegexSession | undefined;
+  return [{ name: "grep", execute: context => withRegexSession(context, executor, async session => {
     try {
-      session = executor.open(context.signal);
+      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:sz", { "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z" });
+      const patterns: string[] = [];
+      const addPatterns = (text: string, file: boolean) => {
+        if (file && text === "") return;
+        const parts = text.split("\n");
+        if (parts.length > 1 && parts.at(-1) === "") parts.pop();
+        patterns.push(...parts);
+      };
+      for (const pattern of parsed.values.get("e") ?? []) addPatterns(Buffer.from(pattern).toString("latin1"), false);
+      for (const name of parsed.values.get("f") ?? []) addPatterns(Buffer.from(await collect(input(context, name), context.signal)).toString("latin1"), true);
+      if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
+        if (!parsed.operands.length) throw new UsageError("missing pattern");
+        addPatterns(Buffer.from(parsed.operands.shift()!).toString("latin1"), false);
+      }
+      if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
+      const descriptor: GrepDescriptor = {
+        kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
+        insensitive: parsed.flags.has("i"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
+      };
       await session.run(descriptor, []);
       const names = parsed.operands.length ? parsed.operands : ["-"];
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
@@ -84,6 +82,10 @@ export function grepCommands(options: RegexExecutionOptions = {}): CommandDefini
         }
       }
       return { exitCode: failed ? 2 : anySelected ? 0 : 1 };
-    } finally { await session?.close(); }
-  }, 2)];
+    } catch (error) {
+      context.signal.throwIfAborted();
+      await diagnostic(context, error);
+      return { exitCode: 2 };
+    }
+  }) }];
 }

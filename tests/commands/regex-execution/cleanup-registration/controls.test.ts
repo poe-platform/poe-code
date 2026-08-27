@@ -24,6 +24,8 @@ class ControlledWorker extends EventEmitter {
   closed = false;
   terminations = 0;
   requests = 0;
+  terminationError: Error | undefined;
+  gate: Promise<void> | undefined;
   constructor() {
     super();
     workers.push(this);
@@ -40,9 +42,10 @@ class ControlledWorker extends EventEmitter {
   }
   async terminate() {
     this.terminations++;
-    await terminationGate?.promise;
+    await (this.gate ?? terminationGate?.promise);
     this.closed = true;
     this.emit("exit", 0);
+    if (this.terminationError) throw this.terminationError;
     return 0;
   }
 }
@@ -88,7 +91,7 @@ function context(tool: string, overrides: Partial<CommandContext> = {}): Command
   return {
     command: tool, args: ["a", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(),
     signal: new AbortController().signal, stdin: toByteSource("a\n"), stdinIsDefault: false,
-    stdout: { write() {} }, stderr: { write() {} }, ...overrides,
+    stdout: { async write() {} }, stderr: { async write() {} }, ...overrides,
   };
 }
 function command(tool: "grep" | "rg") {
@@ -306,4 +309,71 @@ test("concurrent close shares in-progress retirement rather than closed-flag suc
     assert.equal(workers[from]!.terminations, 1);
   } finally { terminationGate.resolve(); await Promise.all([first, second]); }
   clean(from);
+});
+
+test("pending request retirement failure is observed by close without replacing request failure", async () => {
+  const from = workers.length;
+  const executor = new RegexExecutor();
+  const session = executor.open(new AbortController().signal);
+  const failure = new Error("owned retirement failed after exit");
+  holdRequests = true;
+  const request = settled(session.run(descriptor, rows));
+  await until(() => workers[from]!.requests === 1);
+  workers[from]!.terminationError = failure;
+  const close = await settled(session.close());
+  const result = await request;
+  assert.deepEqual(close, { ok: false, error: failure });
+  assert.equal(result.ok, false);
+  if (!result.ok) assertClosed(result.error);
+  clean(from);
+});
+
+test("all idle retirements finish before multiple cleanup failures reject", async () => {
+  const from = workers.length;
+  const executor = new RegexExecutor();
+  const session = executor.open(new AbortController().signal);
+  await Promise.all([session.run(descriptor, rows), session.run(descriptor, rows)]);
+  const firstFailure = new Error("first retirement failure");
+  const secondFailure = new Error("second retirement failure");
+  const gate = deferred<void>();
+  workers[from]!.terminationError = firstFailure;
+  workers[from + 1]!.terminationError = secondFailure;
+  workers[from + 1]!.gate = gate.promise;
+  let complete = false;
+  const closing = settled(session.close()).then(result => { complete = true; return result; });
+  try {
+    await delay(10);
+    assert.equal(complete, false);
+    assert.equal(workers[from]!.closed, true);
+    assert.equal(workers[from + 1]!.closed, false);
+  } finally { gate.resolve(); }
+  const result = await closing;
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.ok(result.error instanceof AggregateError);
+    assert.deepEqual(result.error.errors, [firstFailure, secondFailure]);
+  }
+  clean(from);
+});
+
+for (const tool of ["grep", "rg"] as const) test(`${tool}: late pattern-input continuation cannot reopen closed owner`, async () => {
+  const from = workers.length;
+  const input = deferred<void>();
+  const entered = deferred<void>();
+  let callback: InvocationCleanup | undefined;
+  const outcome = settled(command(tool).execute(context(tool, {
+    args: ["-f", "-", "/target"],
+    registerCleanup(cleanup) { callback = cleanup; },
+    stdin: { async *[Symbol.asyncIterator]() { entered.resolve(); await input.promise; yield Buffer.from("a\n"); } },
+  })));
+  try {
+    await entered.promise;
+    assert.ok(callback);
+    await callback();
+    const acquired = workers.length;
+    clean(from);
+    input.resolve();
+    assert.deepEqual(await outcome, { ok: true, value: { exitCode: 2 } });
+    assert.equal(workers.length, acquired);
+  } finally { input.resolve(); await outcome; }
 });

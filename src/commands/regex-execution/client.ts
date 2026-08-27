@@ -1,4 +1,5 @@
 import { Worker } from "node:worker_threads";
+import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { defaults, inputBytes, policy, RegexExecutionError, validateReply, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
@@ -13,7 +14,45 @@ interface Pending {
   readonly resolve: (matches: Match[][]) => void;
   readonly reject: (error: unknown) => void;
   readonly abort: () => void;
+  readonly retirements: Set<Promise<void>>;
   slot?: Slot;
+}
+
+async function awaitRetirements(retirements: Iterable<Promise<void>>): Promise<void> {
+  const results = await Promise.allSettled(retirements);
+  const failures = results.filter(result => result.status === "rejected").map(result => result.reason as unknown);
+  if (failures.length === 1) throw failures[0];
+  if (failures.length > 1) throw new AggregateError(failures, "regex retirement failed");
+}
+
+export async function withRegexSession(
+  context: CommandContext,
+  executor: RegexExecutor,
+  execute: (session: RegexSession) => CommandResult | Promise<CommandResult>,
+): Promise<CommandResult> {
+  context.signal.throwIfAborted();
+  let session: RegexSession | undefined;
+  let closing: Promise<void> | undefined;
+  const close = () => closing ??= (async () => { await session?.close(); })();
+  try { context.registerCleanup?.(close); }
+  catch (error) { context.signal.throwIfAborted(); throw error; }
+  let rejected = false;
+  try {
+    context.signal.throwIfAborted();
+    if (closing) throw new RegexExecutionError("CLOSED", "invocation is closed");
+    session = executor.open(context.signal);
+    return await execute(session);
+  } catch (error) {
+    rejected = true;
+    throw error;
+  } finally {
+    try { await close(); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (!rejected) throw error;
+    }
+    context.signal.throwIfAborted();
+  }
 }
 
 class Slot {
@@ -106,7 +145,7 @@ export class RegexExecutor {
   }
   async close(): Promise<void> {
     this.sessions--;
-    if (this.sessions === 0) await Promise.all([...this.slots].filter(slot => !slot.busy || slot.retired).map(slot => slot.retire()));
+    if (this.sessions === 0) await awaitRetirements([...this.slots].filter(slot => !slot.busy || slot.retired).map(slot => slot.retire()));
   }
   async dispose(): Promise<void> {
     this.disposed = true;
@@ -123,7 +162,7 @@ export class RegexExecutor {
     this.slots.delete(slot);
     this.pump();
   }
-  request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]> {
+  request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements = new Set<Promise<void>>()): Promise<Match[][]> {
     signal.throwIfAborted();
     if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
     const bytes = inputBytes(descriptor, rows, signal);
@@ -137,7 +176,7 @@ export class RegexExecutor {
     const ownedRows = rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: Uint8Array.from(row.bytes) }; });
     return new Promise((resolve, reject) => {
       const pending: Pending = {
-        descriptor: ownedDescriptor, rows: ownedRows, signal, bytes, resolve, reject,
+        descriptor: ownedDescriptor, rows: ownedRows, signal, bytes, resolve, reject, retirements,
         abort: () => {
           if (pending.slot) pending.slot.fail(signal.reason);
           else {
@@ -195,7 +234,9 @@ export class RegexExecutor {
       pending.signal.throwIfAborted();
     } catch (error) {
       failure = pending.signal.aborted ? pending.signal.reason : error;
-      try { await slot.retire(); } catch { }
+      const retirement = slot.retire();
+      pending.retirements.add(retirement);
+      try { await retirement; } catch { }
     } finally {
       pending.signal.removeEventListener("abort", pending.abort);
       slot.busy = false;
@@ -214,20 +255,28 @@ export class RegexExecutor {
 export class RegexSession {
   private closed: Promise<void> | undefined;
   private readonly pending = new Set<Promise<Match[][]>>();
-  constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {}
+  private readonly retirements = new Set<Promise<void>>();
+  private readonly controller = new AbortController();
+  private readonly requestSignal: AbortSignal;
+  constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
+    this.requestSignal = AbortSignal.any([signal, this.controller.signal]);
+  }
   run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const result = this.executor.request(descriptor, rows, this.signal);
+    const result = this.executor.request(descriptor, rows, this.requestSignal, this.retirements);
     this.pending.add(result);
     void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
     return result;
   }
   close(): Promise<void> {
-    return this.closed ??= (async () => {
-      await Promise.allSettled([...this.pending]);
-      await this.executor.close();
-    })();
+    return this.closed ??= Promise.resolve().then(async () => {
+      this.controller.abort(this.signal.aborted ? this.signal.reason : new RegexExecutionError("CLOSED", "invocation is closed"));
+      try { await Promise.allSettled([...this.pending]); }
+      finally {
+        await awaitRetirements([...this.retirements, this.executor.close()]);
+      }
+    });
   }
 }
 

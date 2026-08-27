@@ -1,0 +1,42 @@
+{
+  "started": "2026-08-27T07:42:15.843Z",
+  "finished": "2026-08-27T07:42:16.110Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "df780f6ddb6292283114461ff4f9ebacfb269205",
+  "status": " M src/commands/grep.ts\n M src/commands/regex-execution/client.ts\n M src/commands/search/rg.ts\n M tests/commands/regex-execution/cleanup-registration/controls.test.ts\n M tests/plugins/stream-five-fixture-migration/capture.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/evidence/\n?? tests/plugins/stream-five-fixture-migration/final-consumer.json\n?? tests/plugins/stream-five-fixture-migration/final-invariants.json\n?? tests/plugins/stream-five-fixture-migration/final-runs.json\n?? tests/plugins/stream-five-fixture-migration/public-options.mts\n?? tests/shell-stress/env-split-author/\n?? tests/shell-stress/env-split-holdout/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration.json\n",
+  "command": [
+    "node",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts"
+  ],
+  "before": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "df66d575b7e8cdd5da1474b91362e0fe059c40c2b0d46216718e85a59a6aa40d",
+    "src/commands/regex-execution/client.ts": "d5ca541e6ba6656d200d4aebeaab689b8204aa3ae942283bd5a9acc62167d765",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "d63b7644546cad4b591e7e694f6d62018afbbf14983f62937a69e633af3066a5"
+  },
+  "after": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "df66d575b7e8cdd5da1474b91362e0fe059c40c2b0d46216718e85a59a6aa40d",
+    "src/commands/regex-execution/client.ts": "d5ca541e6ba6656d200d4aebeaab689b8204aa3ae942283bd5a9acc62167d765",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "d63b7644546cad4b591e7e694f6d62018afbbf14983f62937a69e633af3066a5"
+  },
+  "statusCode": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: grep: registers once before open; construction is resource-free\nok 1 - grep: registers once before open; construction is resource-free\n  ---\n  duration_ms: 2.4145\n  type: 'test'\n  ...\n# Subtest: grep: late registrar rejection acquires nothing\nok 2 - grep: late registrar rejection acquires nothing\n  ---\n  duration_ms: 0.118083\n  type: 'test'\n  ...\n# Subtest: grep: preabort retains exact primitive/errno identity without acquisition\nok 3 - grep: preabort retains exact primitive/errno identity without acquisition\n  ---\n  duration_ms: 0.1775\n  type: 'test'\n  ...\n# Subtest: grep: accepted callback closes admission before acquisition\nok 4 - grep: accepted callback closes admission before acquisition\n  ---\n  duration_ms: 0.092542\n  type: 'test'\n  ...\n# Subtest: grep: direct context without registrar retains finally cleanup\nok 5 - grep: direct context without registrar retains finally cleanup\n  ---\n  duration_ms: 0.708042\n  type: 'test'\n  ...\n# Subtest: grep: normal finally overlaps callback retirement\nok 6 - grep: normal finally overlaps callback retirement\n  ---\n  duration_ms: 13.247084\n  type: 'test'\n  ...\n# Subtest: grep: error finally overlaps callback retirement\nok 7 - grep: error finally overlaps callback retirement\n  ---\n  duration_ms: 12.113375\n  type: 'test'\n  ...\n# Subtest: grep: cleanup does not await opaque stdin after completed validation\nok 8 - grep: cleanup does not await opaque stdin after completed validation\n  ---\n  duration_ms: 0.551375\n  type: 'test'\n  ...\n# Subtest: grep: cleanup failure precedence result\nok 9 - grep: cleanup failure precedence result\n  ---\n  duration_ms: 0.401125\n  type: 'test'\n  ...\n# Subtest: grep: cleanup failure precedence execution\nok 10 - grep: cleanup failure precedence execution\n  ---\n  duration_ms: 0.420417\n  type: 'test'\n  ...\n# Subtest: grep: cleanup failure precedence abort\nok 11 - grep: cleanup failure precedence abort\n  ---\n  duration_ms: 0.184167\n  type: 'test'\n  ...\n# Subtest: rg: registers once before open; construction is resource-free\nok 12 - rg: registers once before open; construction is resource-free\n  ---\n  duration_ms: 1.03775\n  type: 'test'\n  ...\n# Subtest: rg: late registrar rejection acquires nothing\nok 13 - rg: late registrar rejection acquires nothing\n  ---\n  duration_ms: 0.044875\n  type: 'test'\n  ...\n# Subtest: rg: preabort retains exact primitive/errno identity without acquisition\nok 14 - rg: preabort retains exact primitive/errno identity without acquisition\n  ---\n  duration_ms: 0.052625\n  type: 'test'\n  ...\n# Subtest: rg: accepted callback closes admission before acquisition\nok 15 - rg: accepted callback closes admission before acquisition\n  ---\n  duration_ms: 0.038042\n  type: 'test'\n  ...\n# Subtest: rg: direct context without registrar retains finally cleanup\nok 16 - rg: direct context without registrar retains finally cleanup\n  ---\n  duration_ms: 0.325291\n  type: 'test'\n  ...\n# Subtest: rg: normal finally overlaps callback retirement\nok 17 - rg: normal finally overlaps callback retirement\n  ---\n  duration_ms: 11.314167\n  type: 'test'\n  ...\n# Subtest: rg: error finally overlaps callback retirement\nok 18 - rg: error finally overlaps callback retirement\n  ---\n  duration_ms: 12.45\n  type: 'test'\n  ...\n# Subtest: rg: cleanup does not await opaque stdin after completed validation\nok 19 - rg: cleanup does not await opaque stdin after completed validation\n  ---\n  duration_ms: 0.480792\n  type: 'test'\n  ...\n# Subtest: rg: cleanup failure precedence result\nok 20 - rg: cleanup failure precedence result\n  ---\n  duration_ms: 0.55225\n  type: 'test'\n  ...\n# Subtest: rg: cleanup failure precedence execution\nok 21 - rg: cleanup failure precedence execution\n  ---\n  duration_ms: 0.268459\n  type: 'test'\n  ...\n# Subtest: rg: cleanup failure precedence abort\nok 22 - rg: cleanup failure precedence abort\n  ---\n  duration_ms: 0.283083\n  type: 'test'\n  ...\n# Subtest: session close cancels queued ownership without terminating active sibling\nok 23 - session close cancels queued ownership without terminating active sibling\n  ---\n  duration_ms: 1.970291\n  type: 'test'\n  ...\n# Subtest: session close cancels active request; queued sibling receives independent lease\nok 24 - session close cancels active request; queued sibling receives independent lease\n  ---\n  duration_ms: 2.518042\n  type: 'test'\n  ...\n# {\"controlledWorkers\":20,\"active\":0,\"listeners\":0,\"pathologicalAllocations\":0}\n# Subtest: concurrent close shares in-progress retirement rather than closed-flag success\nok 25 - concurrent close shares in-progress retirement rather than closed-flag success\n  ---\n  duration_ms: 12.353875\n  type: 'test'\n  ...\n1..25\n# tests 25\n# suites 0\n# pass 25\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 236.794125\n",
+  "stderr": ""
+}

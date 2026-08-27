@@ -1,4 +1,4 @@
-import { FsError, resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
+import { resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
 import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
@@ -26,7 +26,7 @@ class Walker {
     return false;
   }
 
-  private async failure(error: unknown, display: string): Promise<void> {
+  private async failure(error: unknown, display?: string): Promise<void> {
     this.budget.active();
     if (error instanceof DuLimitError) throw error;
     this.failed = true;
@@ -77,9 +77,12 @@ class Walker {
     this.budget.entry();
     this.budget.text(path);
     this.budget.text(display);
+    if (display === "") {
+      await this.failure(new Error("invalid zero-length file name"));
+      return { bytes: 0, complete: false };
+    }
     let stat: FileStat;
     try {
-      if (display === "") throw new FsError("ENOENT", { path: display, syscall: "lstat" });
       stat = await this.budget.fs(() => context.fs.lstat(path, { signal: context.signal }));
       if (!stat || !["file", "directory", "symlink"].includes(stat.type)) throw new Error("invalid entry type");
     } catch (error) { await this.failure(error, display); return { bytes: 0, complete: false }; }

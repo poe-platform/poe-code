@@ -90,7 +90,11 @@ export function parse(budget: Budget): Arguments {
       budget.check(selected.length, budget.limits.maxArgumentBytes - bytes, "environment bytes");
       budget.check(Buffer.byteLength(selected), budget.limits.maxArgumentBytes - bytes, "environment bytes");
       budget.step(selected.length + 1);
-      format = blockSize(selected);
+      try { format = blockSize(selected); }
+      catch (error) {
+        if (!(error instanceof UsageError)) throw error;
+        format = blockSize(Object.hasOwn(env, "POSIXLY_CORRECT") ? "512" : "1024");
+      }
     } else format = blockSize(Object.hasOwn(env, "POSIXLY_CORRECT") ? "512" : "1024");
   }
   if (operands.length === 0) operands.push(".");

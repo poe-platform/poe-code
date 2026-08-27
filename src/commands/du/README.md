@@ -61,7 +61,8 @@ Depth/entry/work bounds stop malformed cyclic views even when identity is unknow
 Operands retain input order and display spelling. Children use deterministic
 UTF-16 code-unit order, not locale collation; directories report postorder. Default
 operand is `.`. `-` is a literal path, and `--` terminates option processing. Empty
-operands fail as missing names without resolving to cwd. Filesystem lookup uses
+operands report `invalid zero-length file name` without a cwd/root lookup, while
+later operands still run. Filesystem lookup uses
 existing virtual POSIX path resolution, not an additional symlink-containment API.
 Directory names must be nonempty single components other than `.`/`..`, without
 NUL, slash or duplicate listing names. Malformed listings fail closed.
@@ -80,7 +81,7 @@ Short clusters, attached/separate required arguments and long `=value` work.
 Unknown options, abbreviations, unexpected values and NUL arguments fail before
 any filesystem operation. Options may appear after operands until `--`, including
 when `POSIXLY_CORRECT` exists. Parse/validate the entire invocation before effects;
-`--help` does not bypass invalid options, limits or selected environment values.
+`--help` does not bypass invalid options or environment-size/work limits.
 
 By default report all encountered directories plus explicit non-directory
 operands. `-a` adds encountered non-directories. `-d N`/`--max-depth=N` is a
@@ -94,9 +95,13 @@ byte blocks, `-m` uses 1048576, `-b` uses one byte, and `-B` selects SIZE.
 Apparent-size selection persists after later formatting flags.
 Without explicit formatting, read only own properties of `context.env`, in order:
 `DU_BLOCK_SIZE`, `BLOCK_SIZE`, `BLOCKSIZE`; otherwise use 512 if `POSIXLY_CORRECT`
-is present, and 1024 otherwise. Selected empty/invalid values **fail**, unlike GNU
-9.7's observed silent default. Explicit formatting ignores invalid environment
-formatting. No ambient `process.env` or locale formatting is read.
+is present, and 1024 otherwise. A selected empty/invalid formatting value falls
+back to that effective default, without consulting any lower-priority variable.
+Environment-byte/work bounds remain fatal; only bounded format-parser rejection
+uses this fallback. Explicit `-B` remains strict. Explicit formatting ignores
+invalid environment formatting. No ambient `process.env` or locale formatting is
+read. GNU 9.7 regressions cover both defaults and invalid/empty precedence; this
+does not broaden the supported SIZE grammar or safe-integer limit.
 
 SIZE is a positive decimal integer, optionally followed by `k/K/m/M/G/T/P/E/Z/Y/R/Q`
 and optional `iB` or `B`. Suffix only implies one and prints a normalized suffix;
@@ -145,11 +150,12 @@ not uncooperative host FS/sink promises. Cancellation cannot undo completed work
 forcibly stop host code. `readdir` returns a materialized array: post-return limits
 do not bound the provider's allocation, requests or private work before return.
 
-**Separate provider limitation:** current Overlay `readdir` retries old staging
-garbage cleanup and can delete hidden staging directories even though this command
-issues only metadata calls. The actual-backend negative control is preserved in
-the DU tests. No all-adapter no-effects guarantee, provider patch, or copy-up
-prohibition inside trusted host adapter implementations is claimed here.
+**Provider effects require separate qualification:** command-issued metadata
+calls alone do not prove absence of adapter-internal side effects. The original
+Overlay staging-garbage negative control is preserved in historical DU evidence;
+current provider purity changes and tests have separate ownership. This command
+does not claim an all-adapter no-effects guarantee or independently establish
+provider-level copy-up/housekeeping behavior.
 
 Runtime dependencies remain empty. Tests use native processes only as explicit
 oracles and task-owned fixtures; the shared GNU source/binary stays read-only.

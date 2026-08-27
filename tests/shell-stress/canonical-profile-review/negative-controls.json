@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-08-27T06:36:31.317Z",
+  "checkerSha256": "c40d6a42435bac2b3ee73ed9c3787ca4b41a52030b2efee35e502aff293f9a2a",
+  "nativeSha256": "f0cf9e77a7d1feb909529ae023dc859a7ba5fa7e19895ef09dd24b98b748083e",
+  "validControls": 2,
+  "mutants": [
+    {
+      "name": "same-status-corrupted-stderr",
+      "rejected": true
+    },
+    {
+      "name": "wrong-status-correct-bytes",
+      "rejected": true
+    },
+    {
+      "name": "stdout-byte-loss",
+      "rejected": true
+    },
+    {
+      "name": "missing-stderr-field",
+      "rejected": true
+    },
+    {
+      "name": "file-byte-loss",
+      "rejected": true
+    },
+    {
+      "name": "file-mode-loss",
+      "rejected": true
+    },
+    {
+      "name": "identity-profile-switch",
+      "rejected": true
+    },
+    {
+      "name": "identity-commandName-switch",
+      "rejected": true
+    },
+    {
+      "name": "identity-source-switch",
+      "rejected": true
+    },
+    {
+      "name": "mass-golden-rewrite",
+      "rejected": true
+    },
+    {
+      "name": "native-builtin-label-spoof",
+      "rejected": true
+    },
+    {
+      "name": "false-registry-membership",
+      "rejected": true
+    }
+  ],
+  "limits": "Independent checker controls only. Author candidate assertions have not been read or executed; candidate mutation injection remains mandatory in the later review."
+}

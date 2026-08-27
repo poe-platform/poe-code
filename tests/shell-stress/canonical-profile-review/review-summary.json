@@ -1,0 +1,2277 @@
+{
+  "capturedAt": "2026-08-27T06:38:31.160Z",
+  "baselineSha256": "5addc1467accf1ff7e9d2156b1e26efcd6506f663e9d042093116abe1b07449f",
+  "nativeSha256": "f0cf9e77a7d1feb909529ae023dc859a7ba5fa7e19895ef09dd24b98b748083e",
+  "summaries": [
+    {
+      "context": "original",
+      "cohort": "differential",
+      "profile": "gnu53",
+      "denominator": 72,
+      "fullTupleExact": 33,
+      "streamsExact": 67,
+      "originalFieldShape": 67
+    },
+    {
+      "context": "original",
+      "cohort": "differential",
+      "profile": "apple32",
+      "denominator": 72,
+      "fullTupleExact": 33,
+      "streamsExact": 67,
+      "originalFieldShape": 67
+    },
+    {
+      "context": "original",
+      "cohort": "syntax",
+      "profile": "gnu53",
+      "denominator": 5,
+      "fullTupleExact": 0,
+      "streamsExact": 0,
+      "originalFieldShape": 0
+    },
+    {
+      "context": "original",
+      "cohort": "syntax",
+      "profile": "apple32",
+      "denominator": 5,
+      "fullTupleExact": 0,
+      "streamsExact": 0,
+      "originalFieldShape": 0
+    },
+    {
+      "context": "original",
+      "cohort": "gaps",
+      "profile": "gnu53",
+      "denominator": 11,
+      "fullTupleExact": 4,
+      "streamsExact": 7,
+      "originalFieldShape": 7
+    },
+    {
+      "context": "original",
+      "cohort": "gaps",
+      "profile": "apple32",
+      "denominator": 11,
+      "fullTupleExact": 4,
+      "streamsExact": 7,
+      "originalFieldShape": 7
+    },
+    {
+      "context": "canonical",
+      "cohort": "discovery",
+      "profile": "gnu53",
+      "denominator": 52,
+      "fullTupleExact": 0,
+      "streamsExact": 52,
+      "originalFieldShape": 52
+    },
+    {
+      "context": "canonical",
+      "cohort": "discovery",
+      "profile": "apple32",
+      "denominator": 52,
+      "fullTupleExact": 0,
+      "streamsExact": 36,
+      "originalFieldShape": 36
+    },
+    {
+      "context": "canonical",
+      "cohort": "differential",
+      "profile": "gnu53",
+      "denominator": 72,
+      "fullTupleExact": 37,
+      "streamsExact": 71,
+      "originalFieldShape": 71
+    },
+    {
+      "context": "canonical",
+      "cohort": "differential",
+      "profile": "apple32",
+      "denominator": 72,
+      "fullTupleExact": 33,
+      "streamsExact": 67,
+      "originalFieldShape": 67
+    },
+    {
+      "context": "canonical",
+      "cohort": "syntax",
+      "profile": "gnu53",
+      "denominator": 5,
+      "fullTupleExact": 5,
+      "streamsExact": 5,
+      "originalFieldShape": 5
+    },
+    {
+      "context": "canonical",
+      "cohort": "syntax",
+      "profile": "apple32",
+      "denominator": 5,
+      "fullTupleExact": 0,
+      "streamsExact": 0,
+      "originalFieldShape": 0
+    },
+    {
+      "context": "canonical",
+      "cohort": "gaps",
+      "profile": "gnu53",
+      "denominator": 11,
+      "fullTupleExact": 5,
+      "streamsExact": 10,
+      "originalFieldShape": 10
+    },
+    {
+      "context": "canonical",
+      "cohort": "gaps",
+      "profile": "apple32",
+      "denominator": 11,
+      "fullTupleExact": 4,
+      "streamsExact": 7,
+      "originalFieldShape": 7
+    },
+    {
+      "context": "canonical",
+      "cohort": "closure",
+      "profile": "gnu53",
+      "denominator": 26,
+      "fullTupleExact": 19,
+      "streamsExact": 24,
+      "originalFieldShape": 24
+    },
+    {
+      "context": "canonical",
+      "cohort": "closure",
+      "profile": "apple32",
+      "denominator": 26,
+      "fullTupleExact": 7,
+      "streamsExact": 12,
+      "originalFieldShape": 12
+    },
+    {
+      "context": "canonical",
+      "cohort": "control",
+      "profile": "gnu53",
+      "denominator": 3,
+      "fullTupleExact": 2,
+      "streamsExact": 2,
+      "originalFieldShape": 2
+    },
+    {
+      "context": "canonical",
+      "cohort": "control",
+      "profile": "apple32",
+      "denominator": 3,
+      "fullTupleExact": 1,
+      "streamsExact": 1,
+      "originalFieldShape": 1
+    }
+  ],
+  "routed": [
+    {
+      "originalName": "remaining-gap independent Bash: move-output-really-closes-source",
+      "id": "gaps/move-output-really-closes-source",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "c3RhdHVzPTE=",
+        "stderr": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+        "status": 0,
+        "effects": {
+          "saved": {
+            "type": "file",
+            "mode": 438,
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "native": {
+        "stdout": "c3RhdHVzPTE=",
+        "stderr": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "status": 0,
+        "effects": {
+          "saved": {
+            "type": "file",
+            "mode": 420,
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "remaining-gap independent Bash: move-input-really-closes-source",
+      "id": "gaps/move-input-really-closes-source",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "PGZpcnN0PnN0YXR1cz0x",
+        "stderr": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+        "status": 0,
+        "effects": {
+          "input": {
+            "type": "file",
+            "mode": 438,
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        }
+      },
+      "native": {
+        "stdout": "PGZpcnN0PnN0YXR1cz0x",
+        "stderr": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "status": 0,
+        "effects": {
+          "input": {
+            "type": "file",
+            "mode": 420,
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        }
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+      "id": "gaps/prevalidation-prior-output-and-file",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=",
+        "status": 127,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "YmVmb3JlYWZ0ZXI=",
+        "stderr": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "status": 0,
+        "effects": {
+          "marker": {
+            "type": "file",
+            "mode": 420,
+            "base64": "bWFya2Vy"
+          }
+        }
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+      "id": "gaps/fatal-parameter-preserves-only-earlier-effects",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+        "status": 127,
+        "effects": {
+          "before": {
+            "type": "file",
+            "mode": 438,
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "status": 127,
+        "effects": {
+          "before": {
+            "type": "file",
+            "mode": 420,
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "id": "differential/nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==",
+        "status": 127,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "status": 0,
+        "effects": {
+          "marker": {
+            "type": "file",
+            "mode": 420,
+            "base64": "dG91Y2hlZA=="
+          }
+        }
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "id": "differential/fatal-parameter-expansion-prevents-following-file-effect",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+        "status": 127,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "status": 127,
+        "effects": {}
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "id": "differential/fatal-arithmetic-expansion-prevents-following-file-effect",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+        "status": 1,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "status": 1,
+        "effects": {}
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "id": "differential/fatal-expansion-in-substitution-stops-substitution-only",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "PD46MQo=",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+        "status": 0,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "PD46MQo=",
+        "stderr": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "status": 0,
+        "effects": {}
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "Bash differential: command-substitution-removes-nul-bytes",
+      "id": "differential/command-substitution-removes-nul-bytes",
+      "context": "original",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "PGFiPgo=",
+        "stderr": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+        "status": 0,
+        "effects": {}
+      },
+      "native": {
+        "stdout": "PGFiPgo=",
+        "stderr": "",
+        "status": 0,
+        "effects": {}
+      },
+      "originalNativeReproduced": true,
+      "originalVirtualReproduced": true
+    },
+    {
+      "originalName": "closure primary: query-V-verbose",
+      "id": "closure/query-V-verbose",
+      "context": "canonical",
+      "profile": "gnu53",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "cHJpbnRmIGlzIGEgcmVnaXN0ZXJlZCBjb21tYW5kCmNsb3N1cmVmbiBpcyBhIGZ1bmN0aW9uCmNsb3N1cmVmbiAoKSAKeyAKICAgIDoKfQpjbG9zdXJldG9vbCBpcyAvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvc2hlbGwtc3RyZXNzL2Nhbm9uaWNhbC1wcm9maWxlLXJldmlldy8ubmF0aXZlLWNvaDVTRy9jYXNlLTE0MS90b29scy9jbG9zdXJldG9vbAo=",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKcHJpbnRmICdmaWxlOjwlcz5cbicgIiRAIgo="
+          }
+        }
+      },
+      "native": {
+        "stdout": "cHJpbnRmIGlzIGEgc2hlbGwgYnVpbHRpbgpjbG9zdXJlZm4gaXMgYSBmdW5jdGlvbgpjbG9zdXJlZm4gKCkgCnsgCiAgICA6Cn0KY2xvc3VyZXRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS0xNDEvdG9vbHMvY2xvc3VyZXRvb2wK",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvdG1wL3NhZmUtYmFzaC1nbnUtYmFzaC01LjMuVWE1dDAyL2luc3RhbGwvYmluL2Jhc2gKcHJpbnRmICdmaWxlOjwlcz5cbicgIiRAIgo="
+          }
+        }
+      }
+    },
+    {
+      "originalName": "closure primary: type-multiple-status",
+      "id": "closure/type-multiple-status",
+      "context": "canonical",
+      "profile": "gnu53",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "Y29tbWFuZApmdW5jdGlvbgpmaWxlCm1peGVkOjEKcHJpbnRmIGlzIGEgcmVnaXN0ZXJlZCBjb21tYW5kCmNsb3N1cmV0b29sIGlzIHRvb2xzL2Nsb3N1cmV0b29sCg==",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKcHJpbnRmICdmaWxlOjwlcz5cbicgIiRAIgo="
+          }
+        }
+      },
+      "native": {
+        "stdout": "YnVpbHRpbgpmdW5jdGlvbgpmaWxlCm1peGVkOjEKcHJpbnRmIGlzIGEgc2hlbGwgYnVpbHRpbgpjbG9zdXJldG9vbCBpcyB0b29scy9jbG9zdXJldG9vbAo=",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvdG1wL3NhZmUtYmFzaC1nbnUtYmFzaC01LjMuVWE1dDAyL2luc3RhbGwvYmluL2Jhc2gKcHJpbnRmICdmaWxlOjwlcz5cbicgIiRAIgo="
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/empty-path",
+      "id": "discovery/bash/empty-path",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "bG9jYWx0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMi9sb2NhbHRvb2wKLi9sb2NhbHRvb2wKbG9jYWx0b29sIGlzIC4vbG9jYWx0b29sCg==",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "bG9jYWx0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMi9sb2NhbHRvb2wKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS0yL2xvY2FsdG9vbApsb2NhbHRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS0yL2xvY2FsdG9vbAo=",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/terminator",
+      "id": "discovery/bash/terminator",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "Y2xvc3VyZXRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS0xOC90b29scy9jbG9zdXJldG9vbAp0b29scy9jbG9zdXJldG9vbAo=",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IG5vdCBmb3VuZAo=",
+        "status": 1,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "Y2xvc3VyZXRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS0xOC90b29scy9jbG9zdXJldG9vbAp0b29scy9jbG9zdXJldG9vbAo=",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IG5vdCBmb3VuZAo=",
+        "status": 1,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-z",
+      "id": "discovery/bash/unknown-z",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-x",
+      "id": "discovery/bash/unknown-x",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXg6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXg6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-combined",
+      "id": "discovery/bash/unknown-combined",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-first",
+      "id": "discovery/bash/unknown-first",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-long",
+      "id": "discovery/bash/unknown-long",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLS06IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLS06IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/bash/unknown-line",
+      "id": "discovery/bash/unknown-line",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMjogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/empty-path",
+      "id": "discovery/sh/empty-path",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "bG9jYWx0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMjgvbG9jYWx0b29sCi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMjgvLi9sb2NhbHRvb2wKbG9jYWx0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMjgvLi9sb2NhbHRvb2wK",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "bG9jYWx0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMjgvbG9jYWx0b29sCi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvY2Fub25pY2FsLXByb2ZpbGUtcmV2aWV3Ly5uYXRpdmUtY29oNVNHL2Nhc2UtMjgvbG9jYWx0b29sCmxvY2FsdG9vbCBpcyAvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvc2hlbGwtc3RyZXNzL2Nhbm9uaWNhbC1wcm9maWxlLXJldmlldy8ubmF0aXZlLWNvaDVTRy9jYXNlLTI4L2xvY2FsdG9vbAo=",
+        "stderr": "",
+        "status": 0,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/terminator",
+      "id": "discovery/sh/terminator",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "Y2xvc3VyZXRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS00NC90b29scy9jbG9zdXJldG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvc2hlbGwtc3RyZXNzL2Nhbm9uaWNhbC1wcm9maWxlLXJldmlldy8ubmF0aXZlLWNvaDVTRy9jYXNlLTQ0L3Rvb2xzL2Nsb3N1cmV0b29sCg==",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IG5vdCBmb3VuZAo=",
+        "status": 1,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "Y2xvc3VyZXRvb2wgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9jYW5vbmljYWwtcHJvZmlsZS1yZXZpZXcvLm5hdGl2ZS1jb2g1U0cvY2FzZS00NC90b29scy9jbG9zdXJldG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvc2hlbGwtc3RyZXNzL2Nhbm9uaWNhbC1wcm9maWxlLXJldmlldy8ubmF0aXZlLWNvaDVTRy9jYXNlLTQ0L3Rvb2xzL2Nsb3N1cmV0b29sCg==",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IG5vdCBmb3VuZAo=",
+        "status": 1,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-z",
+      "id": "discovery/sh/unknown-z",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-x",
+      "id": "discovery/sh/unknown-x",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXg6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXg6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-combined",
+      "id": "discovery/sh/unknown-combined",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-first",
+      "id": "discovery/sh/unknown-first",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-long",
+      "id": "discovery/sh/unknown-long",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLS06IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMDogY29tbWFuZDogLS06IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    },
+    {
+      "originalName": "historical-3.2/sh/unknown-line",
+      "id": "discovery/sh/unknown-line",
+      "context": "canonical",
+      "profile": "apple32",
+      "valid": true,
+      "currentMatchesOriginalComparedFields": false,
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMjogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 511
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 511
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 511,
+            "link": "closuretool"
+          }
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogY29tbWFuZDogLXo6IGludmFsaWQgb3B0aW9uCmNvbW1hbmQ6IHVzYWdlOiBjb21tYW5kIFstcFZ2XSBjb21tYW5kIFthcmcgLi4uXQo=",
+        "status": 2,
+        "effects": {
+          "localtool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "space dir": {
+            "type": "directory",
+            "mode": 493
+          },
+          "space dir/space tool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "sub": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "sub/tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools": {
+            "type": "directory",
+            "mode": 493
+          },
+          "tools/closuretool": {
+            "type": "file",
+            "mode": 493,
+            "base64": "IyEvYmluL2Jhc2gKZXhpdCAyMwo="
+          },
+          "tools/linktool": {
+            "type": "symlink",
+            "mode": 493,
+            "link": "closuretool"
+          }
+        }
+      }
+    }
+  ],
+  "classification": [
+    {
+      "id": "closure/query-V-verbose",
+      "nativeRawMatch": false,
+      "safePluginMatch": true,
+      "actualRegistry": {
+        "printfRegistered": true,
+        "trueRegistered": true
+      }
+    },
+    {
+      "id": "closure/type-multiple-status",
+      "nativeRawMatch": false,
+      "safePluginMatch": true,
+      "actualRegistry": {
+        "printfRegistered": true,
+        "trueRegistered": true
+      }
+    },
+    {
+      "id": "control/registry-truth",
+      "nativeRawMatch": false,
+      "safePluginMatch": true,
+      "actualRegistry": {
+        "printfRegistered": true,
+        "trueRegistered": true
+      }
+    }
+  ],
+  "discrepancies": [
+    {
+      "id": "differential/fatal-parameter-expansion-prevents-following-file-effect",
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "status": 1,
+        "effects": {}
+      },
+      "expectedGNU": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "status": 127,
+        "effects": {}
+      },
+      "source": ": \"${missing:?stop}\"; : >after",
+      "original": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+        "status": 127,
+        "effects": {}
+      }
+    },
+    {
+      "id": "gaps/fatal-parameter-preserves-only-earlier-effects",
+      "current": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "status": 1,
+        "effects": {
+          "before": {
+            "type": "file",
+            "mode": 438,
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "expectedGNU": {
+        "stdout": "",
+        "stderr": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+        "status": 127,
+        "effects": {
+          "before": {
+            "type": "file",
+            "mode": 420,
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "source": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+      "original": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+        "status": 127,
+        "effects": {
+          "before": {
+            "type": "file",
+            "mode": 438,
+            "base64": "YmVmb3Jl"
+          }
+        }
+      }
+    }
+  ],
+  "originalSyntaxAssertionResults": [
+    {
+      "id": "syntax/unterminated-quote-after-write",
+      "pass": true
+    },
+    {
+      "id": "syntax/missing-pipeline-command-after-write",
+      "pass": true
+    },
+    {
+      "id": "syntax/missing-conditional-operand-after-write",
+      "pass": true
+    },
+    {
+      "id": "syntax/missing-group-terminator-after-write",
+      "pass": true
+    },
+    {
+      "id": "syntax/missing-if-fi-after-write",
+      "pass": true
+    }
+  ],
+  "warning": "Preparation only; no candidate inspected or accepted. OriginalFieldShape is the old compared field set, not extra-mode parity. Discovery/closure witnesses use the explicit canonical named wrapper, while the nine diagnostic witnesses replay the original direct API context."
+}

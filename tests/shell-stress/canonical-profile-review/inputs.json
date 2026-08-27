@@ -1,0 +1,4486 @@
+{
+  "capturedAt": "2026-08-27T06:29:10.406Z",
+  "head": "4686a1789bc95d17893cb4370955e722fb4a46ff",
+  "routingCommit": "51282a9",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "inputs": {
+    "tests/shell/invocation-discovery-fixes.test.ts": {
+      "blob": "5935e7dedd08d3e23f620d733a7f77bad4d98834",
+      "sha256": "095ea3dc2f2dff14f928b09c6709fa5f9cd4507e193a5f84192ba38921a66a76"
+    },
+    "tests/shell/invocation-discovery-fixes-cases.ts": {
+      "blob": "4acec75002df21178249ea1d5340bfcd4c367871",
+      "sha256": "03b7f682529233a7a3678dcf9d78aacc62a19b74882f562482ca689dfd6651fe"
+    },
+    "tests/shell/invocation-discovery-fixes-native.ts": {
+      "blob": "d99f4d2571bbef34c68ebbb231d7735468873f47",
+      "sha256": "11019ed9fd06141239023d266482400f84fd3910596bfd4d06ac32e59ee21f4d"
+    },
+    "tests/shell/invocation-discovery-fixes-native.json": {
+      "blob": "697861ecedf22a28e0e7fdb187152c4a8558f0f2",
+      "sha256": "2ce958e4ac0b73a306bc61efbf0eb40f85902c1c2ea4ffbcd08f7928ec62e2bc"
+    },
+    "tests/shell-stress/differential.test.ts": {
+      "blob": "b87954f4568bfe24c1ca757e5f0a6eb86166dc1c",
+      "sha256": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118"
+    },
+    "tests/shell-stress/cases.ts": {
+      "blob": "89d6aa5a395929b4bec70c17be3068ebee8cd9b3",
+      "sha256": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a"
+    },
+    "tests/shell-stress/helpers.ts": {
+      "blob": "7f66aeb82fe897acf1704d1e8af785b4682eae1c",
+      "sha256": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6"
+    },
+    "tests/shell-stress/model.ts": {
+      "blob": "f1bc811bac722a857a1fd71cdbcd0e5b0bf7d97a",
+      "sha256": "9e863c4238200abb67e089669b3cea30dcd8a98073f163ee9147c5db56c626c9"
+    },
+    "tests/shell-stress/virtual-child.ts": {
+      "blob": "a6640ff688e44ff942dc653f208f43e330e88ab3",
+      "sha256": "4f3942a8c55445abaef5f3d71a478bcb6d34b5a434914988716c59155d1a852e"
+    },
+    "tests/shell-stress/probes.ts": {
+      "blob": "3712fffa89ebeb22c29cf7b16cc42b68d259edd7",
+      "sha256": "f6cb394028c1e013cf1d86672debff64b651a1dda9cf07267cc58d06e7b66bbd"
+    },
+    "tests/shell-stress/process.ts": {
+      "blob": "eddca4e2c769e6502443d133e5dc89cb00acb1c8",
+      "sha256": "00ca4d13b077a2c21bd8af2d0f9770ff8f97ea85217a141b9fca9e3bfe4ef700"
+    },
+    "tests/shell-stress/current-gaps/compatibility.test.ts": {
+      "blob": "4255873f5cbb306a8b97e19034d16b4e2dfdcf0b",
+      "sha256": "93f4d8dd5938ddba1464b126e5aec00c5304eacbd7470768e550301837dc4fa6"
+    },
+    "tests/shell-stress/current-gaps/cases.ts": {
+      "blob": "7d545bc6047859d522e131cc3d56fc1de16d2a33",
+      "sha256": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d"
+    },
+    "tests/shell-stress/current-gaps/reference.ts": {
+      "blob": "bd08240f68b07feef5fb78578c3029554fe0596f",
+      "sha256": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63"
+    },
+    "tests/shell-stress/invocation-closure/holdout.test.ts": {
+      "blob": "4749d96fce6f8677d0bc8fe1e7d0ee0c0fd255d9",
+      "sha256": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff"
+    },
+    "tests/shell-stress/invocation-closure/cases.ts": {
+      "blob": "a085761b445190478ad7c5a565dfe28d3f2724d9",
+      "sha256": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef"
+    },
+    "tests/shell-stress/invocation-closure/probe.ts": {
+      "blob": "813f34f228856d677442d7392afc72b5acbd8fde",
+      "sha256": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464"
+    },
+    "tests/shell-stress/invocation-closure/support.ts": {
+      "blob": "f9f20f5d80b122490ae0a56c55c9787a225808ad",
+      "sha256": "e3107cc5be93b3bac67f6a00e11d5def70db437860a12c77f4292e7b147efcd2"
+    },
+    "tests/shell-stress/invocation-closure/native-preparation.json": {
+      "blob": "9a85cf1414f120634f191937f1f5499b39b80e5c",
+      "sha256": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe"
+    },
+    "tests/integration/full-gate-20260827/REPORT.md": {
+      "blob": "999ca0324757057211155c147fe0732d689cf603",
+      "sha256": "294dd11ee8776f486bf16be098f7a3f041135958f692589b8222e6c4892ad533"
+    },
+    "tests/integration/full-gate-20260827/evidence/classification.json": {
+      "blob": "b4d00aaf26870a6de790edc2445aab76912807ce",
+      "sha256": "d6f5559d651c337a386d056b30129faabb11d0cad29d68007bbc5cd3cf911df9"
+    }
+  },
+  "routed": [
+    {
+      "name": "remaining-gap independent Bash: move-output-really-closes-source",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92198",
+        "line": 92198,
+        "indent": 0,
+        "ordinal": 13471,
+        "name": "remaining-gap independent Bash: move-output-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 791.444291\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-output-really-closes-source\n    script: { printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-\n    Bash: {\"stdout\":\"status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}}}\n    virtual: {\"stdout\":\"status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}},\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          saved: {\n            base64: 'bW92ZWQ=',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: 'status=1',\n        stdoutBase64: 'c3RhdHVzPTE='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n  actual:\n    stdout: 'status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: move-input-really-closes-source",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92260",
+        "line": 92260,
+        "indent": 0,
+        "ordinal": 13472,
+        "name": "remaining-gap independent Bash: move-input-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 720.918875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-input-really-closes-source\n    script: { IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-\n    Bash: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}}}\n    virtual: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}},\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          input: {\n            base64: 'Zmlyc3QKc2Vjb25kCg==',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: '<first>status=1',\n        stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n  actual:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92358",
+        "line": 92358,
+        "indent": 0,
+        "ordinal": 13479,
+        "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 667.530166\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    prevalidation-prior-output-and-file\n    script: printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\n    Bash: {\"stdout\":\"beforeafter\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"YmVmb3JlYWZ0ZXI=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"bWFya2Vy\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf before; printf marker >marker; printf \\\"%s\\\" \\\"$(true |)\\\"; printf after'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'bWFya2Vy',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n    -   stdout: 'beforeafter',\n    -   stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'beforeafter'\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'bWFya2Vy'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92424",
+        "line": 92424,
+        "indent": 0,
+        "ordinal": 13480,
+        "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 616.861792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-preserves-only-earlier-effects\n    script: printf before >before; : \"${missing:?stop}\"; printf after >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 127,\n        files: {\n          before: {\n            base64: 'YmVmb3Jl',\n    ...\n        },\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93808",
+        "line": 93808,
+        "indent": 0,
+        "ordinal": 13650,
+        "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 672.460125\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    nested-substitution-syntax-error-does-not-prevent-earlier-effects\n    script: printf touched >marker; printf '%s' \"$(true |)\"\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"dG91Y2hlZA==\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf touched >marker; printf '%s' \\\"$(true |)\\\"'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf touched >marker; printf \\'%s\\' \"$(true |)\"\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==',\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'dG91Y2hlZA==',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'dG91Y2hlZA=='\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93890",
+        "line": 93890,
+        "indent": 0,
+        "ordinal": 13654,
+        "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 518.635625\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-expansion-prevents-following-file-effect\n    script: : \"${missing:?stop}\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 127,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93942",
+        "line": 93942,
+        "indent": 0,
+        "ordinal": 13655,
+        "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 517.217292\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-arithmetic-expansion-prevents-following-file-effect\n    script: : \"$((1/0))\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK\",\"exitCode\":1,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"exitCode\":1,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 1,\n        files: {},\n    +   stderr: 'shell: line 1: 1/0: division by 0 (error token is \"0\")\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==',\n    -   stderr: 'shell-stress: 1/0: division by 0 (error token is \"0\")\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: 1/0: division by 0 (error token is \"0\")\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK'\n    exitCode: 1\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: 1/0: division by 0 (error token is \"0\")\n      \n    exitCode: 1\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93994",
+        "line": 93994,
+        "indent": 0,
+        "ordinal": 13656,
+        "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 446.745\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-expansion-in-substitution-stops-substitution-only\n    script: value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"\n    Bash: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '<>:1\\n',\n        stdoutBase64: 'PD46MQo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: command-substitution-removes-nul-bytes",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-94097",
+        "line": 94097,
+        "indent": 0,
+        "ordinal": 13665,
+        "name": "Bash differential: command-substitution-removes-nul-bytes",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 408.915416\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    command-substitution-removes-nul-bytes\n    script: value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"\n    Bash: {\"stdout\":\"<ab>\\n\",\"stderr\":\"\",\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<ab>\\n\",\"stderr\":\"shell: line 1: warning: command substitution: ignored null byte in input\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: warning: command substitution: ignored null byte in input\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==',\n    -   stderr: '',\n    -   stderrBase64: '',\n        stdout: '<ab>\\n',\n        stdoutBase64: 'PGFiPgo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <ab>\n      \n    stderr: ''\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <ab>\n      \n    stderr: |-\n      shell: line 1: warning: command substitution: ignored null byte in input\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "closure primary: query-V-verbose",
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "originalSourceLine": 37,
+      "classification": "registered-command-label",
+      "originalObserved": {
+        "id": "tap-line-94355",
+        "line": 94355,
+        "indent": 0,
+        "ordinal": 13697,
+        "name": "closure primary: query-V-verbose",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 274.187958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    - '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "closure primary: type-multiple-status",
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "originalSourceLine": 37,
+      "classification": "registered-command-label",
+      "originalObserved": {
+        "id": "tap-line-94381",
+        "line": 94381,
+        "indent": 0,
+        "ordinal": 13698,
+        "name": "closure primary: type-multiple-status",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 217.666084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    - '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/empty-path",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101541",
+        "line": 101541,
+        "indent": 0,
+        "ordinal": 14861,
+        "name": "historical-3.2/bash/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1.846209\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/terminator",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101665",
+        "line": 101665,
+        "indent": 0,
+        "ordinal": 14877,
+        "name": "historical-3.2/bash/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.901\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-z",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101705",
+        "line": 101705,
+        "indent": 0,
+        "ordinal": 14879,
+        "name": "historical-3.2/bash/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.688\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-x",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101739",
+        "line": 101739,
+        "indent": 0,
+        "ordinal": 14880,
+        "name": "historical-3.2/bash/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.772667\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-combined",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101773",
+        "line": 101773,
+        "indent": 0,
+        "ordinal": 14881,
+        "name": "historical-3.2/bash/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.476\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-first",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101807",
+        "line": 101807,
+        "indent": 0,
+        "ordinal": 14882,
+        "name": "historical-3.2/bash/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.41225\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-long",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101841",
+        "line": 101841,
+        "indent": 0,
+        "ordinal": 14883,
+        "name": "historical-3.2/bash/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.370875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-line",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101875",
+        "line": 101875,
+        "indent": 0,
+        "ordinal": 14884,
+        "name": "historical-3.2/bash/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.416792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/empty-path",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101921",
+        "line": 101921,
+        "indent": 0,
+        "ordinal": 14887,
+        "name": "historical-3.2/sh/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.659042\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/terminator",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102045",
+        "line": 102045,
+        "indent": 0,
+        "ordinal": 14903,
+        "name": "historical-3.2/sh/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.303084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-z",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102085",
+        "line": 102085,
+        "indent": 0,
+        "ordinal": 14905,
+        "name": "historical-3.2/sh/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.521875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-x",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102119",
+        "line": 102119,
+        "indent": 0,
+        "ordinal": 14906,
+        "name": "historical-3.2/sh/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.367167\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-combined",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102153",
+        "line": 102153,
+        "indent": 0,
+        "ordinal": 14907,
+        "name": "historical-3.2/sh/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.340834\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-first",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102187",
+        "line": 102187,
+        "indent": 0,
+        "ordinal": 14908,
+        "name": "historical-3.2/sh/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.336958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-long",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102221",
+        "line": 102221,
+        "indent": 0,
+        "ordinal": 14909,
+        "name": "historical-3.2/sh/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.330666\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-line",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102255",
+        "line": 102255,
+        "indent": 0,
+        "ordinal": 14910,
+        "name": "historical-3.2/sh/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.37825\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    }
+  ],
+  "counts": {
+    "routedTotal": 27,
+    "historicalProfile": 25,
+    "classification": 2,
+    "discovery": 52,
+    "differential": 72,
+    "syntax": 5,
+    "gaps": 11,
+    "closure": 26,
+    "controls": 3
+  },
+  "rows": [
+    {
+      "id": "discovery/bash/relative-path",
+      "name": "relative-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V closuretool; command -v closuretool; type closuretool; type -p closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/absolute-path",
+      "name": "absolute-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=\"$PWD/tools\"; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/empty-path",
+      "name": "empty-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/empty-component",
+      "name": "empty-component",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=missing::tools; command -V localtool closuretool; command -v localtool closuretool; type localtool closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/dot-path",
+      "name": "dot-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=.; command -V localtool; command -v localtool; type localtool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/dot-slash-path",
+      "name": "dot-slash-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=./tools; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/dot-preservation",
+      "name": "dot-preservation",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=././tools; command -V closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/parent-preservation",
+      "name": "parent-preservation",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools/../tools; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/slash-preservation",
+      "name": "slash-preservation",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools//; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/direct-relative",
+      "name": "direct-relative",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=missing; command -V tools/closuretool ./localtool; command -v tools/closuretool; type tools/closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/direct-absolute",
+      "name": "direct-absolute",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=missing; command -V \"$PWD/tools/closuretool\"; command -v \"$PWD/tools/closuretool\"; type \"$PWD/tools/closuretool\"",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/cwd-refresh",
+      "name": "cwd-refresh",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V closuretool; cd sub; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/space-path-name",
+      "name": "space-path-name",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH='space dir'; command -V 'space tool'; command -v 'space tool'; type 'space tool'",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/symlink",
+      "name": "symlink",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V linktool; command -v linktool; type linktool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/prefix-path",
+      "name": "prefix-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=missing; PATH=tools command -V closuretool; command -v closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/local-path",
+      "name": "local-path",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=missing; probe() { local PATH=tools; command -V closuretool; }; probe; command -v closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/real-builtin",
+      "name": "real-builtin",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=; command -V true; command -v true; type true; type -t true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/combined-flags",
+      "name": "combined-flags",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools; command -vV closuretool true; command -Vv closuretool true; command -V -v closuretool; command -v -V closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/terminator",
+      "name": "terminator",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/empty-invocations",
+      "name": "empty-invocations",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command; command -v; command -V; command --",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-z",
+      "name": "unknown-z",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command -z true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-x",
+      "name": "unknown-x",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command -x true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-combined",
+      "name": "unknown-combined",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command -vVz true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-first",
+      "name": "unknown-first",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command -zv true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-long",
+      "name": "unknown-long",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": "command --wat true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/bash/unknown-line",
+      "name": "unknown-line",
+      "cohort": "discovery",
+      "role": "bash",
+      "commandName": "shell",
+      "source": ":\ncommand -z true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/relative-path",
+      "name": "relative-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V closuretool; command -v closuretool; type closuretool; type -p closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/absolute-path",
+      "name": "absolute-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=\"$PWD/tools\"; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/empty-path",
+      "name": "empty-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/empty-component",
+      "name": "empty-component",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=missing::tools; command -V localtool closuretool; command -v localtool closuretool; type localtool closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/dot-path",
+      "name": "dot-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=.; command -V localtool; command -v localtool; type localtool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/dot-slash-path",
+      "name": "dot-slash-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=./tools; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/dot-preservation",
+      "name": "dot-preservation",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=././tools; command -V closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/parent-preservation",
+      "name": "parent-preservation",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools/../tools; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/slash-preservation",
+      "name": "slash-preservation",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools//; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/direct-relative",
+      "name": "direct-relative",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=missing; command -V tools/closuretool ./localtool; command -v tools/closuretool; type tools/closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/direct-absolute",
+      "name": "direct-absolute",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=missing; command -V \"$PWD/tools/closuretool\"; command -v \"$PWD/tools/closuretool\"; type \"$PWD/tools/closuretool\"",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/cwd-refresh",
+      "name": "cwd-refresh",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V closuretool; cd sub; command -V closuretool; command -v closuretool; type closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/space-path-name",
+      "name": "space-path-name",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH='space dir'; command -V 'space tool'; command -v 'space tool'; type 'space tool'",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/symlink",
+      "name": "symlink",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V linktool; command -v linktool; type linktool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/prefix-path",
+      "name": "prefix-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=missing; PATH=tools command -V closuretool; command -v closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/local-path",
+      "name": "local-path",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=missing; probe() { local PATH=tools; command -V closuretool; }; probe; command -v closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/real-builtin",
+      "name": "real-builtin",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=; command -V true; command -v true; type true; type -t true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/combined-flags",
+      "name": "combined-flags",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools; command -vV closuretool true; command -Vv closuretool true; command -V -v closuretool; command -v -V closuretool",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/terminator",
+      "name": "terminator",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/empty-invocations",
+      "name": "empty-invocations",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command; command -v; command -V; command --",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-z",
+      "name": "unknown-z",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command -z true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-x",
+      "name": "unknown-x",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command -x true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-combined",
+      "name": "unknown-combined",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command -vVz true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-first",
+      "name": "unknown-first",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command -zv true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-long",
+      "name": "unknown-long",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": "command --wat true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "discovery/sh/unknown-line",
+      "name": "unknown-line",
+      "cohort": "discovery",
+      "role": "sh",
+      "commandName": "shell",
+      "source": ":\ncommand -z true",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "localtool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tools/closuretool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "space dir/space tool",
+          "text": "#!/bin/bash\nexit 23\n",
+          "mode": 493
+        },
+        {
+          "path": "tools/linktool",
+          "link": "closuretool"
+        }
+      ]
+    },
+    {
+      "id": "differential/descriptor-save-and-restore-routes-stderr-through-pipe",
+      "name": "descriptor-save-and-restore-routes-stderr-through-pipe",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf out; printf err >&2; } 3>&1 1>out 2>&3 3>&- | cat",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/descriptor-move-closes-original-after-copy",
+      "name": "descriptor-move-closes-original-after-copy",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf moved >&4; } 3>saved 4>&3-",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/closing-stdout-then-reopening-is-left-to-right",
+      "name": "closing-stdout-then-reopening-is-left-to-right",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf restored 1>&- >restored; cat restored",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/closing-stderr-does-not-close-duplicated-stdout",
+      "name": "closing-stderr-does-not-close-duplicated-stdout",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf retained 2>saved 1>&2 2>&-; cat saved",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/group-redirection-is-restored-after-return",
+      "name": "group-redirection-is-restored-after-return",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "f() { printf inner; return 7; }; f >inner; printf 'status=%s;' \"$?\"; printf outer; cat inner",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/pipe-established-before-stderr-copy-and-output-redirect",
+      "name": "pipe-established-before-stderr-copy-and-output-redirect",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf out; printf err >&2; } 2>&1 >out | cat; cat out",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/nested-truncate-does-not-reset-outer-file-offset",
+      "name": "nested-truncate-does-not-reset-outer-file-offset",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf abcdef; printf XY >same; printf Z; } >same; cat same",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/independent-output-descriptors-have-separate-offsets",
+      "name": "independent-output-descriptors-have-separate-offsets",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf abcdef; printf XY >&2; printf '!'; printf Z >&2; } >same 2>same; cat same",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/duplicated-output-descriptors-share-offset",
+      "name": "duplicated-output-descriptors-share-offset",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf abcdef; printf XY >&2; printf '!'; printf Z >&2; } >same 2>&1; cat same",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/append-descriptor-observes-intervening-truncation",
+      "name": "append-descriptor-observes-intervening-truncation",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf abc; printf X >same; printf Y; } >>same; cat same",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "same",
+          "text": "old",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/redirect-expansion-side-effect-precedes-truncate",
+      "name": "redirect-expansion-side-effect-precedes-truncate",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf payload >\"$(printf marker >marker; printf target)\"; cat marker target",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-and-substitution-consume-one-inherited-offset",
+      "name": "read-and-substitution-consume-one-inherited-offset",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r first; value=$(cat); printf \"<%s><%s>\" \"$first\" \"$value\"; cat",
+      "stdinHex": "66697273740a7365636f6e640a74686972640a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-in-subshell-consumes-input-but-not-parent-variable",
+      "name": "read-in-subshell-consumes-input-but-not-parent-variable",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=outer; (IFS= read -r value; printf \"[%s]\" \"$value\"); IFS= read -r next; printf \"[%s][%s]\" \"$value\" \"$next\"; cat",
+      "stdinHex": "6f6e650a74776f0a7461696c",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/multiple-input-redirections-only-last-is-consumed",
+      "name": "multiple-input-redirections-only-last-is-consumed",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r line <one <two; printf \"[%s]\" \"$line\"; cat",
+      "stdinHex": "484f53540a",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "one",
+          "text": "ONE\n",
+          "mode": 420
+        },
+        {
+          "path": "two",
+          "text": "TWO\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/read-n-consumes-exactly-two-characters",
+      "name": "read-n-consumes-exactly-two-characters",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r -n 2 value; printf \"[%s]\" \"$value\"; cat",
+      "stdinHex": "6162636465660a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-d-consumes-through-delimiter-only",
+      "name": "read-d-consumes-through-delimiter-only",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r -d : value; printf \"[%s]\" \"$value\"; cat",
+      "stdinHex": "61623a63643a65660a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-backslash-newline-joins-before-splitting",
+      "name": "read-backslash-newline-joins-before-splitting",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "read first second; printf \"[%s][%s]\" \"$first\" \"$second\"; cat",
+      "stdinHex": "6f6e655c0a2074776f2074687265650a726573740a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-last-variable-preserves-inner-separators",
+      "name": "read-last-variable-preserves-inner-separators",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS=: read -r first rest; printf \"[%s][%s]\" \"$first\" \"$rest\"",
+      "stdinHex": "6f6e653a3a74776f3a74687265653a0a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/redirected-pipeline-input-leaves-inherited-input-intact",
+      "name": "redirected-pipeline-input-leaves-inherited-input-intact",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf unused | { IFS= read -r value; printf \"[%s]\" \"$value\"; } <input; cat",
+      "stdinHex": "686f73740a",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "input",
+          "text": "file\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/pipefail-picks-rightmost-nonzero-not-first",
+      "name": "pipefail-picks-rightmost-nonzero-not-first",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "set -o pipefail; (exit 7) | (exit 3) | cat; printf '%s' \"$?\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/pipeline-negation-with-pipefail-controls-conditional",
+      "name": "pipeline-negation-with-pipefail-controls-conditional",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "set -o pipefail; ! (exit 9) | cat && printf yes; printf '%s' \"$?\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/function-in-middle-of-pipeline-preserves-bytes",
+      "name": "function-in-middle-of-pipeline-preserves-bytes",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "copy() { cat; }; printf 'a\\000b\\n' | copy | cat >binary; cat binary",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/early-pipeline-reader-closes-bounded-producer",
+      "name": "early-pipeline-reader-closes-bounded-producer",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in 1 2 3 4 5 6 7 8; do printf '%s\\n' \"$value\"; done | head -n 1; printf done",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 1
+      },
+      "files": []
+    },
+    {
+      "id": "differential/quoted-positional-at-concatenates-only-edge-fields",
+      "name": "quoted-positional-at-concatenates-only-edge-fields",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "f() { printf \"<%s>\" \"pre$@post\"; }; f \"one two\" \"\" three; f",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/quoted-star-uses-first-ifs-character",
+      "name": "quoted-star-uses-first-ifs-character",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "f() { IFS=:; printf \"<%s>\" \"$*\"; IFS=; printf \"<%s>\" \"$*\"; }; f one \"two words\" \"\" three",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "name": "ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS=:; value=\":a::b:\"; printf \"<%s>\" $value",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/quoted-empty-prefix-preserves-otherwise-empty-field",
+      "name": "quoted-empty-prefix-preserves-otherwise-empty-field",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=; printf \"<%s>\" \"\"$value $value \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/default-operator-does-not-evaluate-unused-substitution",
+      "name": "default-operator-does-not-evaluate-unused-substitution",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=kept; printf \"<%s>\" \"${value:-$(printf wrong >unexpected)}\"; printf \"<%s>\" \"${missing:+$(printf wrong >unexpected)}\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/assignment-default-side-effect-persists-outside-expansion",
+      "name": "assignment-default-side-effect-persists-outside-expansion",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf \"<%s><%s>\" \"${value:=two words}\" \"$value\"; printf \"%s\" \"$value\" >result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/prefix-assignment-value-expansion-sees-prior-assignment",
+      "name": "prefix-assignment-value-expansion-sees-prior-assignment",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "first=old; first=new second=$first; printf \"<%s><%s>\" \"$first\" \"$second\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/command-substitution-file-shortcut-reads-and-trims",
+      "name": "command-substitution-file-shortcut-reads-and-trims",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf \"<%s>\" \"$(<input)\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "input",
+          "text": "one\ntwo\n\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/substitution-retains-interior-newlines-and-isolates-variable",
+      "name": "substitution-retains-interior-newlines-and-isolates-variable",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=outer; result=$(value=inner; printf \"a\\nb\\n\\n\"); printf \"<%s><%s>\" \"$result\" \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/last-assignment-substitution-status-wins",
+      "name": "last-assignment-substitution-status-wins",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "first=$(exit 7) second=$(exit 3); printf \"%s\" \"$?\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/substitution-does-not-reparse-metacharacters",
+      "name": "substitution-does-not-reparse-metacharacters",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=$(printf \"x; printf wrong >unexpected\"); printf \"<%s>\" \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "name": "ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' $'one\\ntwo\\tthree'",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/backquote-substitution-preserves-double-quoted-result",
+      "name": "backquote-substitution-preserves-double-quoted-result",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf \"<%s>\" \"`printf 'one two\\n\\n'`\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/quoted-glob-fragment-remains-literal-inside-pattern",
+      "name": "quoted-glob-fragment-remains-literal-inside-pattern",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' 'a*'?.txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "a*1.txt",
+          "text": "yes",
+          "mode": 420
+        },
+        {
+          "path": "abc1.txt",
+          "text": "no",
+          "mode": 420
+        },
+        {
+          "path": "a*2.txt",
+          "text": "also",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/glob-question-mark-matches-one-character-including-brackets",
+      "name": "glob-question-mark-matches-one-character-including-brackets",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' x?.txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "x[.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "x].txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "xx.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "xzz.txt",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/glob-hidden-directory-requires-explicit-dot",
+      "name": "glob-hidden-directory-requires-explicit-dot",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' */*.txt .hidden/*.txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "normal/a.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": ".hidden/b.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "normal/.secret.txt",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/redirect-glob-resolves-single-match-with-space",
+      "name": "redirect-glob-resolves-single-match-with-space",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf replacement >*.txt; cat *.txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "one file.txt",
+          "text": "old",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/tilde-prefix-in-assignment-not-in-quoted-word",
+      "name": "tilde-prefix-in-assignment-not-in-quoted-word",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "HOME=/home/fixture; value=~/child; printf \"<%s><%s>\" \"$value\" \"~/child\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/heredoc-tab-stripping-keeps-other-whitespace",
+      "name": "heredoc-tab-stripping-keeps-other-whitespace",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "cat <<-END\n\talpha\n \tbeta\n\tEND\n",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/multiple-heredocs-last-input-wins",
+      "name": "multiple-heredocs-last-input-wins",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "cat <<FIRST <<'SECOND'\nunused\nFIRST\n$value $(printf literal)\nSECOND\n",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/here-string-expands-without-splitting-or-globbing",
+      "name": "here-string-expands-without-splitting-or-globbing",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value='a * b'; cat <<<$value",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "match",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/arithmetic-logical-branch-does-not-mutate-unused-side",
+      "name": "arithmetic-logical-branch-does-not-mutate-unused-side",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=0; printf \"%s,%s,%s\" \"$((0 && (value=7)))\" \"$((1 || (value=9)))\" \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/compound-loop-return-restores-outer-function-positionals",
+      "name": "compound-loop-return-restores-outer-function-positionals",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "inner() { printf \"<%s>\" \"$1\"; return 4; }; outer() { for value in a b; do inner \"$value\"; done; printf \"<%s>\" \"$1\"; }; outer kept",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf touched >marker; printf '%s' \"$(true |)\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "name": "early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ :; : >after; } | :",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-redirected-producer-output",
+      "name": "early-reader-must-not-cancel-redirected-producer-output",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf abc >out | true",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "name": "early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "set -o pipefail; { true; false; } | true",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/fatal-parameter-expansion-prevents-following-file-effect",
+      "name": "fatal-parameter-expansion-prevents-following-file-effect",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": ": \"${missing:?stop}\"; : >after",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/fatal-arithmetic-expansion-prevents-following-file-effect",
+      "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": ": \"$((1/0))\"; : >after",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/fatal-expansion-in-substitution-stops-substitution-only",
+      "name": "fatal-expansion-in-substitution-stops-substitution-only",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/group-inherits-descriptor-three-for-inner-redirection",
+      "name": "group-inherits-descriptor-three-for-inner-redirection",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf x >&3; } 3>out",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/group-inherits-input-descriptor-and-shared-read-offset",
+      "name": "group-inherits-input-descriptor-and-shared-read-offset",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ IFS= read -r first <&3; printf \"<%s>\\n\" \"$first\"; cat <&3; } 3<input",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "input",
+          "text": "a\nb\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "name": "redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf hi 2>err >\"$(printf diagnostic >&2; printf out)\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-escaped-ifs-character-is-not-a-field-separator",
+      "name": "read-escaped-ifs-character-is-not-a-field-separator",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "read first second; printf \"<%s>|<%s>\\n\" \"$first\" \"$second\"",
+      "stdinHex": "615c206220630a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "name": "read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS=\" :\" read first second third; printf \"<%s>|<%s>|<%s>\\n\" \"$first\" \"$second\" \"$third\"",
+      "stdinHex": "2061203a2062203a2063200a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "name": "read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS=: read first second; printf \"<%s>|<%s>\\n\" \"$first\" \"$second\"",
+      "stdinHex": "613a623a0a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/quoted-pattern-removal-star-is-literal",
+      "name": "quoted-pattern-removal-star-is-literal",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=\"abc*def\"; printf \"<%s>\\n\" \"${value%\"*\"*}\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/glob-posix-bracket-digit-class",
+      "name": "glob-posix-bracket-digit-class",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>\\n' [[:digit:]].txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "1.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "a.txt",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/command-substitution-removes-nul-bytes",
+      "name": "command-substitution-removes-nul-bytes",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/export-prefix-assignment-persists-in-shell",
+      "name": "export-prefix-assignment-persists-in-shell",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=old; value=new export value; printf \"<%s>\\n\" \"$value\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/local-without-assignment-starts-unset",
+      "name": "local-without-assignment-starts-unset",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=outer; func() { local value; printf \"<%s>\\n\" \"$value\"; }; func",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/glob-matches-newline-bytes-and-the-exact-filename",
+      "name": "glob-matches-newline-bytes-and-the-exact-filename",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>\\n' * a?b a[ab]",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "a\nb",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "aa\n",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "plain",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/parameter-patterns-match-newlines-with-exact-boundaries",
+      "name": "parameter-patterns-match-newlines-with-exact-boundaries",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "value=\"a\n\"; printf \"<%s>\\n\" \"${value##*}\" \"${value%%*}\" \"${value##?}\" \"${value%?}\"",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-0",
+      "name": "seed-5eed1234-glob-pipeline-0",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 1
+      },
+      "files": [
+        {
+          "path": "d 0.txt",
+          "text": "1254987779\n",
+          "mode": 420
+        },
+        {
+          "path": "c1.txt",
+          "text": "3418086790\n",
+          "mode": 420
+        },
+        {
+          "path": "b2.txt",
+          "text": "290625325\n",
+          "mode": 420
+        },
+        {
+          "path": "a 3.txt",
+          "text": "3376516776\n",
+          "mode": 420
+        },
+        {
+          "path": "d4.txt",
+          "text": "2181177831\n",
+          "mode": 420
+        },
+        {
+          "path": "c5.txt",
+          "text": "4288394778\n",
+          "mode": 420
+        },
+        {
+          "path": "b 6.txt",
+          "text": "175083185\n",
+          "mode": 420
+        },
+        {
+          "path": "a7.txt",
+          "text": "641513564\n",
+          "mode": 420
+        },
+        {
+          "path": "d8.txt",
+          "text": "1609889803\n",
+          "mode": 420
+        },
+        {
+          "path": "c 9.txt",
+          "text": "4022791662\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-1",
+      "name": "seed-5eed1234-glob-pipeline-1",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 2
+      },
+      "files": [
+        {
+          "path": "b 0.txt",
+          "text": "3902004341\n",
+          "mode": 420
+        },
+        {
+          "path": "a1.txt",
+          "text": "2100609872\n",
+          "mode": 420
+        },
+        {
+          "path": "d2.txt",
+          "text": "2965290607\n",
+          "mode": 420
+        },
+        {
+          "path": "c 3.txt",
+          "text": "3470121218\n",
+          "mode": 420
+        },
+        {
+          "path": "b4.txt",
+          "text": "586400889\n",
+          "mode": 420
+        },
+        {
+          "path": "a5.txt",
+          "text": "1391010692\n",
+          "mode": 420
+        },
+        {
+          "path": "d 6.txt",
+          "text": "3461372179\n",
+          "mode": 420
+        },
+        {
+          "path": "c7.txt",
+          "text": "1826360150\n",
+          "mode": 420
+        },
+        {
+          "path": "b8.txt",
+          "text": "2340801213\n",
+          "mode": 420
+        },
+        {
+          "path": "a 9.txt",
+          "text": "1836485880\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-2",
+      "name": "seed-5eed1234-glob-pipeline-2",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 3
+      },
+      "files": [
+        {
+          "path": "d 0.txt",
+          "text": "3419859959\n",
+          "mode": 420
+        },
+        {
+          "path": "c1.txt",
+          "text": "1132222698\n",
+          "mode": 420
+        },
+        {
+          "path": "b2.txt",
+          "text": "3825644353\n",
+          "mode": 420
+        },
+        {
+          "path": "a 3.txt",
+          "text": "4253741996\n",
+          "mode": 420
+        },
+        {
+          "path": "d4.txt",
+          "text": "1163909915\n",
+          "mode": 420
+        },
+        {
+          "path": "c5.txt",
+          "text": "1497159102\n",
+          "mode": 420
+        },
+        {
+          "path": "b 6.txt",
+          "text": "3778904581\n",
+          "mode": 420
+        },
+        {
+          "path": "a7.txt",
+          "text": "3772353440\n",
+          "mode": 420
+        },
+        {
+          "path": "d8.txt",
+          "text": "4156344959\n",
+          "mode": 420
+        },
+        {
+          "path": "c 9.txt",
+          "text": "3491419602\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-3",
+      "name": "seed-5eed1234-glob-pipeline-3",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 4
+      },
+      "files": [
+        {
+          "path": "b 0.txt",
+          "text": "1618967305\n",
+          "mode": 420
+        },
+        {
+          "path": "a1.txt",
+          "text": "4056860884\n",
+          "mode": 420
+        },
+        {
+          "path": "d2.txt",
+          "text": "2225577507\n",
+          "mode": 420
+        },
+        {
+          "path": "c 3.txt",
+          "text": "861859110\n",
+          "mode": 420
+        },
+        {
+          "path": "b4.txt",
+          "text": "3547603533\n",
+          "mode": 420
+        },
+        {
+          "path": "a5.txt",
+          "text": "2558811976\n",
+          "mode": 420
+        },
+        {
+          "path": "d 6.txt",
+          "text": "119962119\n",
+          "mode": 420
+        },
+        {
+          "path": "c7.txt",
+          "text": "3635474362\n",
+          "mode": 420
+        },
+        {
+          "path": "b8.txt",
+          "text": "639187921\n",
+          "mode": 420
+        },
+        {
+          "path": "a 9.txt",
+          "text": "284508924\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-4",
+      "name": "seed-5eed1234-glob-pipeline-4",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 5
+      },
+      "files": [
+        {
+          "path": "d 0.txt",
+          "text": "1546633771\n",
+          "mode": 420
+        },
+        {
+          "path": "c1.txt",
+          "text": "3899388302\n",
+          "mode": 420
+        },
+        {
+          "path": "b2.txt",
+          "text": "2735131541\n",
+          "mode": 420
+        },
+        {
+          "path": "a 3.txt",
+          "text": "443656176\n",
+          "mode": 420
+        },
+        {
+          "path": "d4.txt",
+          "text": "1133386383\n",
+          "mode": 420
+        },
+        {
+          "path": "c5.txt",
+          "text": "3778168482\n",
+          "mode": 420
+        },
+        {
+          "path": "b 6.txt",
+          "text": "2582844825\n",
+          "mode": 420
+        },
+        {
+          "path": "a7.txt",
+          "text": "72548900\n",
+          "mode": 420
+        },
+        {
+          "path": "d8.txt",
+          "text": "3171182387\n",
+          "mode": 420
+        },
+        {
+          "path": "c 9.txt",
+          "text": "2864808694\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-5",
+      "name": "seed-5eed1234-glob-pipeline-5",
+      "cohort": "differential",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+      "stdinHex": "",
+      "env": {},
+      "limits": {
+        "pipeHighWaterMark": 6
+      },
+      "files": [
+        {
+          "path": "b 0.txt",
+          "text": "3430325725\n",
+          "mode": 420
+        },
+        {
+          "path": "a1.txt",
+          "text": "1274021272\n",
+          "mode": 420
+        },
+        {
+          "path": "d2.txt",
+          "text": "1169280023\n",
+          "mode": 420
+        },
+        {
+          "path": "c 3.txt",
+          "text": "2349234826\n",
+          "mode": 420
+        },
+        {
+          "path": "b4.txt",
+          "text": "3843041377\n",
+          "mode": 420
+        },
+        {
+          "path": "a5.txt",
+          "text": "1070638668\n",
+          "mode": 420
+        },
+        {
+          "path": "d 6.txt",
+          "text": "3652562235\n",
+          "mode": 420
+        },
+        {
+          "path": "c7.txt",
+          "text": "2557559134\n",
+          "mode": 420
+        },
+        {
+          "path": "b8.txt",
+          "text": "2087237925\n",
+          "mode": 420
+        },
+        {
+          "path": "a 9.txt",
+          "text": "1545738304\n",
+          "mode": 420
+        },
+        {
+          "path": ".hidden.txt",
+          "text": "hidden",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "syntax/unterminated-quote-after-write",
+      "name": "unterminated-quote-after-write",
+      "cohort": "syntax",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf touched >marker; printf \"unterminated",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "syntax/missing-pipeline-command-after-write",
+      "name": "missing-pipeline-command-after-write",
+      "cohort": "syntax",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf touched >marker; true |",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "syntax/missing-conditional-operand-after-write",
+      "name": "missing-conditional-operand-after-write",
+      "cohort": "syntax",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf touched >marker; true &&",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "syntax/missing-group-terminator-after-write",
+      "name": "missing-group-terminator-after-write",
+      "cohort": "syntax",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf touched >marker;",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "syntax/missing-if-fi-after-write",
+      "name": "missing-if-fi-after-write",
+      "cohort": "syntax",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf touched >marker; if true; then printf wrong",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/move-output-really-closes-source",
+      "name": "move-output-really-closes-source",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/move-input-really-closes-source",
+      "name": "move-input-really-closes-source",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "input",
+          "text": "first\nsecond\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "gaps/read-n-stops-at-newline-before-count",
+      "name": "read-n-stops-at-newline-before-count",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r -n 4 value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+      "stdinHex": "610a726573740a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/read-d-empty-selects-nul",
+      "name": "read-d-empty-selects-nul",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r -d \"\" value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+      "stdinHex": "610a62007461696c0a",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/read-d-missing-delimiter-retains-data-with-failure",
+      "name": "read-d-missing-delimiter-retains-data-with-failure",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "IFS= read -r -d : value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+      "stdinHex": "7461696c",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/file-shortcut-does-not-consume-inherited-stdin",
+      "name": "file-shortcut-does-not-consume-inherited-stdin",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf \"<%s>\" \"$(<input)\"; cat",
+      "stdinHex": "686f73740a",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "input",
+          "text": "file\n\n",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "gaps/ansi-c-word-is-quoted-not-split-or-globbed",
+      "name": "ansi-c-word-is-quoted-not-split-or-globbed",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' prefix$'a b\\t*'suffix",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "match",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "gaps/pathname-classes-c-locale-alpha-negation",
+      "name": "pathname-classes-c-locale-alpha-negation",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf '<%s>' [[:alpha:]].txt [![:digit:]].txt",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": [
+        {
+          "path": "7.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "A.txt",
+          "text": "",
+          "mode": 420
+        },
+        {
+          "path": "b.txt",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "gaps/prevalidation-prior-output-and-file",
+      "name": "prevalidation-prior-output-and-file",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/fatal-parameter-preserves-only-earlier-effects",
+      "name": "fatal-parameter-preserves-only-earlier-effects",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "gaps/unmatched-case-bracket-literal-control",
+      "name": "unmatched-case-bracket-literal-control",
+      "cohort": "gaps",
+      "role": "bash",
+      "commandName": "shell-stress",
+      "source": "case \"[\" in [) printf literal;; *) printf wrong;; esac",
+      "stdinHex": "",
+      "env": {},
+      "limits": {},
+      "files": []
+    },
+    {
+      "id": "closure/query-v-multiple-status",
+      "name": "query-v-multiple-status",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/query-V-verbose",
+      "name": "query-V-verbose",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/type-multiple-status",
+      "name": "type-multiple-status",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/type-option-combinations",
+      "name": "type-option-combinations",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "first/closuretool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        },
+        {
+          "path": "second/closuretool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/command-bypasses-function",
+      "name": "command-bypasses-function",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tools/closuretool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/query-effective-path-cwd",
+      "name": "query-effective-path-cwd",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "tool dir/closuretool",
+          "text": "#!{{bash}}\nprintf 'root:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        },
+        {
+          "path": "sub/tool dir/closuretool",
+          "text": "#!{{bash}}\nprintf 'sub:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/query-denied-directory-symlink",
+      "name": "query-denied-directory-symlink",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "denied/closuretool",
+          "text": "#!{{bash}}\nprintf 'denied:<%s>\\n' \"$@\"\n",
+          "mode": 420
+        },
+        {
+          "path": "directory/closuretool",
+          "directory": true,
+          "mode": 420
+        },
+        {
+          "path": "links/closuretool",
+          "link": "../real/tool",
+          "mode": 420
+        },
+        {
+          "path": "real/tool",
+          "text": "#!{{bash}}\nprintf 'file:<%s>\\n' \"$@\"\n",
+          "mode": 493
+        }
+      ]
+    },
+    {
+      "id": "closure/query-empty-and-unsupported-option",
+      "name": "query-empty-and-unsupported-option",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [
+        "command",
+        "invalid option"
+      ],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-character-count-en_US.UTF-8",
+      "name": "read-N-character-count-en_US.UTF-8",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+      "entry": "c",
+      "locale": "en_US.UTF-8",
+      "chunkBytes": 1,
+      "originalDiagnosticFragments": [],
+      "stdinHex": "c3a9587461696c0a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-character-count-C",
+      "name": "read-N-character-count-C",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "chunkBytes": 1,
+      "originalDiagnosticFragments": [],
+      "stdinHex": "c3a9587461696c0a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-delimiter-vs-n",
+      "name": "read-N-delimiter-vs-n",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "410a42433a440a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-skips-nul-data",
+      "name": "read-N-skips-nul-data",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "4100420a7461696c0a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-nul-delimiter",
+      "name": "read-N-nul-delimiter",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "410042437461696c0a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-no-ifs-split",
+      "name": "read-N-no-ifs-split",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "613a623a726573740a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-backslash-raw",
+      "name": "read-N-backslash-raw",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+      "entry": "c",
+      "locale": "C",
+      "chunkBytes": 1,
+      "originalDiagnosticFragments": [],
+      "stdinHex": "615c0a62635c7879726573740a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-zero-invalid",
+      "name": "read-N-zero-invalid",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [
+        "read",
+        "invalid"
+      ],
+      "stdinHex": "756e746f75636865640a",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-eof-partial",
+      "name": "read-N-eof-partial",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+      "entry": "c",
+      "locale": "en_US.UTF-8",
+      "chunkBytes": 1,
+      "originalDiagnosticFragments": [],
+      "stdinHex": "c3a9",
+      "files": []
+    },
+    {
+      "id": "closure/read-N-stdin-source-cursor",
+      "name": "read-N-stdin-source-cursor",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "read -r -N 2 value\néΩprintf \"cursor:<%s>\\n\" \"$value\"\nprintf \"next-source\\n\"\n",
+      "entry": "stdin",
+      "locale": "en_US.UTF-8",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/bash-special-ordinary-function",
+      "name": "bash-special-ordinary-function",
+      "cohort": "closure",
+      "role": "bash",
+      "commandName": "bash",
+      "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-special-ordinary-function",
+      "name": "sh-special-ordinary-function",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-command-special-prefix",
+      "name": "sh-command-special-prefix",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-special-export-set-shift-unset",
+      "name": "sh-special-export-set-shift-unset",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-file-profile",
+      "name": "sh-file-profile",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=before; value=after :; printf \"file:%s\\n\" \"$value\"\n",
+      "entry": "file",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-stdin-profile",
+      "name": "sh-stdin-profile",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=before\nvalue=after :\nprintf \"stdin:%s\\n\" \"$value\"\n",
+      "entry": "stdin",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-nested-bash-resets-sh-inherits",
+      "name": "sh-nested-bash-resets-sh-inherits",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "export value=parent; {{bash}} -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; {{sh}} -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "closure/sh-special-exported-environment",
+      "name": "sh-special-exported-environment",
+      "cohort": "closure",
+      "role": "sh",
+      "commandName": "sh",
+      "source": "value=before; value=after :; {{bash}} -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+      "entry": "c",
+      "locale": "C",
+      "originalDiagnosticFragments": [],
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "control/name-line",
+      "name": "name-line",
+      "cohort": "control",
+      "role": "bash",
+      "commandName": "profile-review",
+      "source": "printf \"name=%s\\n\" \"$0\"; :\ncommand -z true",
+      "stdinHex": "",
+      "files": []
+    },
+    {
+      "id": "control/exact-tuple",
+      "name": "exact-tuple",
+      "cohort": "control",
+      "role": "bash",
+      "commandName": "profile-review",
+      "source": "printf \"first\\000last\\n\"; printf \"error\\n\" >&2; printf kept >result; false",
+      "stdinHex": "",
+      "files": [
+        {
+          "path": "result",
+          "text": "",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "id": "control/registry-truth",
+      "name": "registry-truth",
+      "cohort": "control",
+      "role": "bash",
+      "commandName": "profile-review",
+      "source": "PATH=; command -V true printf; type -t true printf",
+      "stdinHex": "",
+      "files": []
+    }
+  ],
+  "reviewPolicy": {
+    "nativeProfiles": "Whole identical case roster for both pinned binaries, preserving original declared UTF-8 overrides.",
+    "originalDiagnostics": "Keep all original strict tuples and their profile/invocation identity; canonical invocation identity is explicit, never stderr rewriting.",
+    "extraModeEvidence": "Existing assertions omit file modes. New raw records retain modes without silently widening/narrowing those historical assertions.",
+    "classification": "Native builtin and actual virtual registered command remain different roles. Safe-plugin assertions are separate from strict native comparisons.",
+    "outsideScope": "No five custom-first-read requirements, OLD9 profile, kernel replay, author proposal, source edit or full-gate run."
+  }
+}

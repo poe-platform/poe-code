@@ -141,16 +141,17 @@ test("real SafeJS host-call journal marks consumed stdin/output and writes as ef
   assert.equal(calls.some(call => call.moduleId === "fs" && call.operation === "readFile"), false);
 });
 
-test("upstream observation, not constructor support: supplied signal drops SafeJS Error construction", { skip: localSkip }, async context => {
+test("actual current engine preserves constructed Error messages with active cancellation", { skip: localSkip }, async context => {
   assert(localRoot);
   const module = await import(pathToFileURL(join(localRoot, "src/run.ts")).href) as { run(source: string, options?: { signal?: AbortSignal }): Promise<unknown> };
   const source = 'throw new Error("constructed");';
   await assert.rejects(module.run(source), { message: "constructed" });
-  await assert.rejects(module.run(source, { signal: new AbortController().signal }), { message: "Error is not a constructor." });
+  await assert.rejects(module.run(source, { signal: new AbortController().signal }), { message: "constructed" });
   const command = await execute(["-e", source], { runtime: await localRuntime() });
   assert.equal(command.exitCode, 1);
-  assert.match(command.stderr, /Error is not a constructor/u);
-  context.diagnostic("Known private-runtime defect: interp/cancel.ts wraps closures without construct. Command cancellation remains enabled; no private source was changed.");
+  assert.equal(command.stdout.length, 0);
+  assert.equal(command.stderr, "safejs: constructed\n");
+  context.diagnostic("Positive Error-message regression with cancellation enabled; the historical losing-constructor assertion remains in fa6c095/b4cde0b evidence.");
 });
 
 test("real SafeJS cancellation stops a pending guest read and later filesystem effects", { skip: localSkip, timeout: 2000 }, async () => {

@@ -12,7 +12,7 @@ for (const [constructor, expression, expected] of [
   ["Set", 'new Set(["value"]).has("value")', true],
   ["RegExp", 'new RegExp("^value$").test("value")', true],
 ] as const) {
-  test(`KNOWN UPSTREAM LIMITATION: signal loses ${constructor} construction, not compatibility acceptance`, { skip: localSkip }, async context => {
+  test(`actual current engine: live signal preserves ${constructor} construction`, { skip: localSkip }, async context => {
     assert(localRoot);
     const module = await import(pathToFileURL(join(localRoot, "src/run.ts")).href) as {
       run(source: string, options?: { signal?: AbortSignal }): Promise<{ ok: boolean; returnValue?: unknown }>;
@@ -21,20 +21,22 @@ for (const [constructor, expression, expected] of [
     const withoutSignal = await module.run(source);
     assert.equal(withoutSignal.ok, true);
     assert.equal(withoutSignal.returnValue, expected);
-    await assert.rejects(module.run(source, { signal: new AbortController().signal }), { message: `${constructor} is not a constructor.` });
+    const signalled = await module.run(source, { signal: new AbortController().signal });
+    assert.equal(signalled.ok, true);
+    assert.deepEqual(signalled.returnValue, expected);
     const result = await execute(["-p", "-e", source], { runtime: await localRuntime() });
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stdout.length, 0);
-    assert.match(result.stderr, new RegExp(`${constructor} is not a constructor\\.`));
-    context.diagnostic(`Expected ${JSON.stringify(expected)}; supplied-signal raw engine and plugin instead reject ${constructor} construction. No workaround applied.`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.toString(), `${typeof expected === "string" ? expected : JSON.stringify(expected)}\n`);
+    assert.equal(result.stderr, "");
+    context.diagnostic(`Current copied engine preserves ${constructor} with an active signal; historical losing-constructor evidence remains in fa6c095/b4cde0b.`);
   });
 }
 
-for (const [expression, expected, message] of [
-  ["Array.isArray([])", true, "Function#isArray is not a supported method."],
-  ["Array.from([1, 2])", [1, 2], "Function#from is not a supported method."],
+for (const [expression, expected] of [
+  ["Array.isArray([])", true],
+  ["Array.from([1, 2])", [1, 2]],
 ] as const) {
-  test(`KNOWN UPSTREAM LIMITATION: signal loses static ${expression}, not compatibility acceptance`, { skip: localSkip }, async () => {
+  test(`actual current engine: live signal preserves static ${expression}`, { skip: localSkip }, async () => {
     assert(localRoot);
     const module = await import(pathToFileURL(join(localRoot, "src/run.ts")).href) as {
       run(source: string, options?: { signal?: AbortSignal }): Promise<{ ok: boolean; returnValue?: unknown }>;
@@ -43,10 +45,13 @@ for (const [expression, expected, message] of [
     const control = await module.run(source);
     assert.equal(control.ok, true);
     assert.deepEqual(control.returnValue, expected);
-    await assert.rejects(module.run(source, { signal: new AbortController().signal }), { message });
+    const signalled = await module.run(source, { signal: new AbortController().signal });
+    assert.equal(signalled.ok, true);
+    assert.deepEqual(signalled.returnValue, expected);
     const result = await execute(["-p", "-e", source], { runtime: await localRuntime() });
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stderr, `safejs: ${message}\n`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.toString(), `${JSON.stringify(expected)}\n`);
+    assert.equal(result.stderr, "");
   });
 }
 

@@ -118,11 +118,11 @@ export class ShellInput implements ByteSource {
     });
   }
 
-  line(raw: boolean, options?: { count?: number; delimiter?: number; byteCount?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+  line(raw: boolean, options?: { count?: number; delimiter?: number; byteCount?: boolean; exact?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     return this.#cursor.consume(this.signal, () => options ? this.readBounded(raw, options) : this.readLine(raw));
   }
 
-  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number; byteCount?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number; byteCount?: boolean; exact?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     const characters: string[] = [];
     const escaped = new Set<number>();
     const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -146,7 +146,7 @@ export class ShellInput implements ByteSource {
           if (!chunk.length) continue;
         }
         const byte = chunk[offset++]!;
-        if (!escaping && byte === delimiter) { terminated = true; break; }
+        if (!options.exact && !escaping && byte === delimiter) { terminated = true; break; }
         if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
         if (length % 1024 === 0) {
           await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);

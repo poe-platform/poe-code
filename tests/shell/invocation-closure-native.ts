@@ -9,6 +9,7 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { discoveryCases } from "./invocation-closure-cases.js";
+import { readCases } from "./invocation-closure-read-cases.js";
 import type { ClosureCase } from "./invocation-closure-cases.js";
 
 export const profiles = [
@@ -98,14 +99,15 @@ export async function capture(cases: readonly ClosureCase[]) {
 
 if (import.meta.url === pathToFileURL(resolve(process.argv[1] ?? "")).href) {
   assert.ok(["--capture", "--verify"].includes(process.argv[2] ?? ""));
-  const reference = await capture(discoveryCases);
+  const cases = process.argv[3] === "read" ? readCases : discoveryCases;
+  const reference = await capture(cases);
   if (process.argv[2] === "--capture") console.log(JSON.stringify(reference, null, 2));
   else {
     const results = [];
     for (const profile of reference.profiles) {
       const failures = [];
       for (const entry of profile.observations) {
-        const actual = await virtualObservation(discoveryCases.find(fixture => fixture.name === entry.name)!, entry.mode, entry.cwd);
+        const actual = await virtualObservation(cases.find(fixture => fixture.name === entry.name)!, entry.mode, entry.cwd);
         try { assert.deepEqual(actual, entry.observation); }
         catch { failures.push({ name: entry.name, mode: entry.mode, expected: entry.observation, actual }); }
       }

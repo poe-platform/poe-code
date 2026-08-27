@@ -64,6 +64,75 @@ created structured jq independent review; no owned shell errors remain.
 
 ## Native evidence and reproducibility
 
+## Group 2: exact-count read
+
+Group 1 commit: `7e69fe19521d806782f135f4d1827052ef6b8976`.
+
+`read` adds `-N count` to `-r`, `-n`, `-d` and `--`. Count may be attached,
+signed nonnegative decimal, or a separate argument; safe-integer bounds remain
+explicit. Once any `-N` appears, delimiter recognition and IFS splitting remain
+disabled even if a later `-n` replaces the count. Last count wins. `-d` is ignored
+in exact mode. NUL is skipped rather than counted; raw mode preserves backslashes,
+otherwise escapes and backslash-newline continuation are processed. EOF assigns
+the partial result and returns 1. Count zero assigns empty without pulling input.
+With multiple names the complete value goes to the first and the rest are empty.
+
+Counts use Unicode codepoints in UTF-8 locales and bytes in C/POSIX. Virtual shell
+variables remain UTF-8 text: invalid input or a count ending inside a multibyte
+sequence fails explicitly rather than manufacturing replacement text. Unread
+binary tail bytes stay on the same shared cursor; this is not arbitrary-byte
+shell variable parity. The existing generic unsupported-option diagnostics and
+legacy read-n invalid-count profile are not broadly rewritten.
+
+Red author cohort: **5/69 pass, 64 fail**. After the input-reader mode flag and
+runtime option/splitting changes: **69/69**. An additional invalid-name red case
+checks status/diagnostic and validates all names before consuming input, bringing
+the final group to **70/70**. Five chunk-size cases split Unicode
+input at every byte, then compare the exact raw binary tail. Four isolated bounded
+children cover cooperative cancellation/late rejection, source/output/loop limits.
+The source reader is not eagerly collected; read-N data consumption precedes the
+next stdin source unit. Input cleanup/lifecycle implementation is unchanged.
+
+Frozen invocation132 and file-entrypoint41 passed unchanged during the 199-case
+run; its sole failure was the old read-options assertion explicitly rejecting
+`-N 2`. Only that obsolete array member is removed, as a transparent activation
+of the newly implemented option, not a weakened invalid-option test. All other
+invalid options and all frozen invocation expectations remain unchanged.
+
+The complete native read cohort is 28 cases × both argv0 modes × both binaries
+(112 observations). `en_US.UTF-8` is present in `/usr/bin/locale -a` and supplied
+explicitly to Unicode cases; exact per-case locale is embedded in reference JSON.
+GNU 5.3 source `builtins/read.def` confirms sticky ignore-delimiter state, empty
+IFS for N, and separate count parsing (lines 356–367 and 416–423). Source from the
+already signature-verified official 5.3 distribution has SHA256
+`f4c50b4e13cb7208ba871234b3efc874d9896c03ef8922121a3e6e0cca3c181f`.
+Related official source hashes: type.def
+`bd6fda6403e4bd872830c105e5e4f0eef6ee0a2e2fe9f5db792c8e405e1d41b6`,
+command.def `0189759e29c50d527fa89932654ef585cc29b98b592a6b59744f6ca84aa79d34`.
+These references supplement the official manual, not a copied implementation.
+The fresh complete native comparison passes **56/56 primary, 2/56 historical**;
+historical 3.2 does not implement N. All 54 differences remain in the raw
+checkpoint, not excused as passes. Global and build-config noEmit pass at this
+group's retry (earlier concurrent errors remain recorded above).
+
+The combined regression run before the additional name case reports **334/335**:
+50 discovery + 69 read-N + 26 old read-options + frozen132 + file-author41 +
+file-holdout17. Its one genuine frozen holdout mismatch is
+`builtin-function-registry-shadow`: that old expectation encodes builtin-before-
+function precedence, which group 1 intentionally corrects using primary and
+historical native evidence. The holdout is not edited, skipped or waived; route
+this required expectation review to its owner. Thus the prior file cohort is
+**57/58**, not a clean 58/58 claim. No independent new closure expectations were
+read, and frozen invocation132 remains unmodified and passing.
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/shell/invocation-closure-read.test.ts
+node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --capture read
+node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --verify read
+```
+
+## Native harness and reproducibility
+
 `invocation-closure-cases.ts` contains the complete scenario inputs.
 `invocation-closure-discovery-reference.json` captures every native record for
 18 cases × bash/sh argv0 × two binaries: **72 observations**. Primary 5.3 is the

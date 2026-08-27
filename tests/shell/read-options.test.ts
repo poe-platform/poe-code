@@ -42,7 +42,7 @@ test("read count uses Unicode characters across input chunks", async () => {
 });
 
 test("read rejects unsupported and invalid options without consuming input", async () => {
-  for (const option of ["-N 2", "-u 3", "-n -1", "-n nope", "-n 1.5", "-n", "-d", "-rZ", "-n 9007199254740992"]) {
+  for (const option of ["-u 3", "-n -1", "-n nope", "-n 1.5", "-n", "-d", "-rZ", "-n 9007199254740992"]) {
     const { shell } = setup();
     const result = await shell.exec(`read ${option}; status=$?; say "$status"; pass`, { stdin: "untouched" });
     assert.equal(result.stdout, "2\nuntouched", option);

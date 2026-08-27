@@ -1180,6 +1180,7 @@ export class Runtime {
       const names = [...args];
       let raw = false;
       let count: number | undefined;
+      let exact = false;
       let delimiter: number | undefined;
       let invalid = false;
       while (names[0]?.startsWith("-") && names[0] !== "--" && names[0] !== "-") {
@@ -1187,17 +1188,29 @@ export class Runtime {
         for (let index = 1; index < option.length; index++) {
           const flag = option[index];
           if (flag === "r") { raw = true; continue; }
-          if (flag !== "n" && flag !== "d") { invalid = true; break; }
+          if (flag !== "n" && flag !== "N" && flag !== "d") { invalid = true; break; }
+          if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
-          else if (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value))) invalid = true;
+          else if (exact && (!/^[ \t]*[+-]?\d+[ \t]*$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
+            const diagnosticIO: IO = context;
+            await writeText(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
+            return 1;
+          }
+          else if (!exact && (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value)))) invalid = true;
           else count = Number(value);
           break;
         }
         if (invalid) break;
       }
       if (names[0] === "--") names.shift();
+      const invalidName = names.find(name => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name));
+      if (exact && !invalid && invalidName !== undefined) {
+        const diagnosticIO: IO = context;
+        await writeText(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
+        return 1;
+      }
       if (invalid || names.some((name) => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name))) {
         await writeText(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
@@ -1205,11 +1218,11 @@ export class Runtime {
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
       const line = count === 0 && context.stdin === closedSource ? { value: "", escaped: new Set<number>(), terminated: false }
         : await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
-          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables),
+          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact,
         });
       if (!names.length) state.variables.REPLY = line.value;
       else {
-        const separators = state.variables.IFS ?? " \t\n";
+        const separators = exact ? "" : state.variables.IFS ?? " \t\n";
         const characters = Array.from(line.value);
         const separator = (index: number): boolean => index < characters.length && !line.escaped.has(index) && separators.includes(characters[index]!);
         const whitespace = (index: number): boolean => separator(index) && /[ \t\n]/u.test(characters[index]!);

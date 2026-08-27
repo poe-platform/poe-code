@@ -34,6 +34,10 @@
       "types": "./dist/commands/archive/index.d.ts",
       "import": "./dist/commands/archive/index.js"
     },
+    "./commands/table-text": {
+      "types": "./dist/commands/table-text/index.d.ts",
+      "import": "./dist/commands/table-text/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

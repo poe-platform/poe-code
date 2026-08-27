@@ -36,7 +36,9 @@
   source/tests without coordination. Count optional curl separately from the
   default bundle. The metadata author integration adds chmod/stat/mktemp to
   the earlier 49-command bundle (52 defaults); curl and SafeJS remain optional.
-  Archive integration adds tar afterward (53 defaults). Metadata and archive
+  Archive integration adds tar afterward (53 defaults); the resumed table-text
+  author integration adds paste/comm/join (56 defaults), without duplicating cut.
+  Metadata, archive and table-text
   receive different agents' independent stress/fix review; name counts do not
   establish option coverage. These integrations are separate from earlier curl
   delivery evidence.
@@ -123,12 +125,12 @@
 - Root exports include delivered shell, standard/text/structured command
   plugins, filesystem adapters/wrappers, and SafeJS bridges. Wrapper package
   subpaths are `./fs/readonly`, `./fs/mount`, and `./fs/overlay`.
-- `agentCommands(options?)` from the package root installs the eight delivered
+- `agentCommands(options?)` from the package root installs the nine delivered
   command families as one bundle; `createAgentCommands(options?)` returns their
   definitions. One top-level `replace` controls all registration; preflight all
   collisions before modifying the host registry. Do not install individual
   families again unless replacement is intentional. `text`, `structured`,
-  `search`, `diffPatch`, `metadata`, and `archive` preserve existing family option/limit types;
+  `search`, `diffPatch`, `metadata`, `archive`, and `tableText` preserve existing family option/limit types;
   they are not one shared budget. Shell limits remain separate.
 - Wrapper parity is incomplete: mount rejects missing/dangling symlink tails;
   overlay metadata is instance-local, hardlinks are unsupported, stream buffers
@@ -222,10 +224,13 @@
   intentional replacement. Exclude Dirac's frozen
   integration audit `benchmarks/reports/current-integration/**`; its observations
   must remain separate from moving-worktree and metadata author checkpoints.
-- Curie's table-text author checkpoint `9d1e0fa` is paused for cp/mv/backend
-  compatibility. Paste/comm/join are not yet wired into the root/aggregate; cut
-  already exists. No new tools take priority over the required positive remote
-  workflows and source-preservation guards.
+- Curie's table-text author checkpoint `9d1e0fa` resumed after the comparison
+  contract handoff. The root/aggregate now includes paste/comm/join; cut remains
+  in the standard family. A different agent must independently stress/fix this
+  author delivery. Required positive remote workflows and source-preservation
+  guards still take priority over further tool breadth. Preserve the three
+  Buffer-reuse failures fixed by `32513a4`, and do not count the documented GNU
+  shared-stdin disagreement as a native parity match.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

@@ -1,13 +1,15 @@
-# Table-text author checkpoint (paused)
+# Table-text author delivery
 
 The existing core already registers `cut`. This new family implements only
-`paste`, `comm`, and `join`; it is not yet wired into root exports or the default
-aggregate. `tableTextCommands(options?)` installs the family;
+`paste`, `comm`, and `join`; root exports, `virtual-bash/commands/table-text` and
+the default aggregate now include the family. `tableTextCommands(options?)` installs it;
 `createTableTextCommands(options?)` returns definitions. Options are
 `{ replace?, limits? }`; limits are declared in `internal.ts`.
 
-The user reprioritized copy/move compatibility before root integration or an
-independent table-text review. No broad parity/completion claim is made.
+The user previously paused this batch for copy/move compatibility, then resumed
+it after the comparison-contract handoff. Backend positive38/guard closure and a
+different agent's table-text review remain separate gates. No broad parity or
+completion claim is made.
 
 Implemented: paste parallel/serial, delimiter lists/escapes, repeated stdin and
 NUL records; comm column suppression, totals, output delimiters, order checking
@@ -26,6 +28,22 @@ join duplicate groups/fields and steps. A producer chunk exceeding maxChunkBytes
 is rejected, even if it contains short records; tune the explicit limit or chunk
 upstream. readFile fallback receives maxBytes. Already emitted stdout is not
 rolled back on errors. Arbitrary noncooperative host promises cannot be stopped.
+
+Default limits (each command invocation owns its budget):
+
+| Option | Default |
+| --- | ---: |
+| maxInputBytes / maxOutputBytes | 256 MiB each |
+| maxRecordBytes / maxChunkBytes | 1 MiB each |
+| maxGroupBytes / maxGroupRecords | 8 MiB / 100,000 |
+| maxFields / maxFiles | 65,536 / 64 |
+| maxSteps / maxArgumentBytes | 2,000,000 / 65,536 |
+
+Every override must be a positive safe integer. A limit failure is explicit and
+does not reset the invocation budget. Native differential checks assert exact
+stdout bytes, exit status and unchanged input bytes; ordinary diagnostics are
+checked for presence, not byte-for-byte GNU wording. The preserved duplicate
+stdin close disagreement checks the native EBADF diagnostic separately.
 
 GNU reference is pinned **coreutils 9.7, LC_ALL=C**, not a newest-version claim.
 Official archive `https://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz` SHA-256:
@@ -49,7 +67,14 @@ changing native expectations. Frozen observations remain in
 
 After that run a test-only invalid ShellExecOptions.timeoutMs property was
 corrected to `signal: AbortSignal.timeout(2000)`; scoped strict types pass.
-Different-agent independent stress/fix review and root integration are pending.
+Resume validation again passed257/257. Three new author probes then reproduced
+Buffer fragment corruption across producer reuse in paste, comm and join.
+Commit32513a4 fixes shared record ownership with an actual Uint8Array copy;
+`tests/commands/table-text/buffer-ownership-regression.json` preserves all three
+failing byte observations and unchanged expectations. The resumed author suite
+passes260/260 with the pinned live oracle available. This still means215/216
+native matches plus the explicitly characterized disagreement, not216 matches.
+Different-agent independent stress/fix review remains pending.
 Run author tests with `GNU_TABLE_BIN=/path/to/coreutils-9.7/src node
 --unhandled-rejections=strict --import tsx --test
 'tests/commands/table-text/*.test.ts'`. Without that optional native path, only

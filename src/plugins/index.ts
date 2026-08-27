@@ -8,6 +8,7 @@ import { createByteCommands } from "../commands/bytes/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../commands/diff-patch/index.js";
 import { createMetadataCommands, type MetadataCommandsOptions } from "../commands/metadata/index.js";
 import { createArchiveCommands, type ArchiveCommandsOptions } from "../commands/archive/index.js";
+import { createTableTextCommands, type TableTextCommandsOptions } from "../commands/table-text/index.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
@@ -18,6 +19,7 @@ export interface AgentCommandsOptions {
   readonly diffPatch?: Omit<DiffPatchOptions, "replace">;
   readonly metadata?: Omit<MetadataCommandsOptions, "replace">;
   readonly archive?: Omit<ArchiveCommandsOptions, "replace">;
+  readonly tableText?: Omit<TableTextCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -40,6 +42,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createDiffPatchCommands({ ...options.diffPatch }),
     ...createMetadataCommands({ ...options.metadata }),
     ...createArchiveCommands({ ...options.archive }),
+    ...createTableTextCommands({ ...options.tableText }),
   );
   return new CommandRegistry(commands).list();
 }

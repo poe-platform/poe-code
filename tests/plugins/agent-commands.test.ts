@@ -23,23 +23,24 @@ async function direct(commands: CommandRegistry, command: string, args: readonly
   return { ...result, stdout: Buffer.concat(chunks).toString(), stderr: Buffer.concat(errors).toString() };
 }
 
-test("aggregate definitions are exactly the eight delivered families, each registered once", async () => {
+test("aggregate definitions are exactly the nine delivered families, each registered once", async () => {
   const expected = [
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
     "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+    "paste", "comm", "join",
   ].sort();
-  assert.equal(expected.length, 53);
-  assert.equal(new Set(expected).size, 53);
+  assert.equal(expected.length, 56);
+  assert.equal(new Set(expected).size, 56);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);
 });
 
-for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar"]) {
+for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
   test(`collision with ${conflict} leaves the entire host registry untouched`, () => {
     const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);
     const before = commands.list();
@@ -55,9 +56,9 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 54);
+  assert.equal(target.commands.list().length, 57);
   assert.equal(target.commands.get("custom"), original[0]);
-  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar"]) {
+  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   }
 });
@@ -110,6 +111,7 @@ const limited: readonly [AgentCommandsOptions, string, string, RegExp][] = [
   [{ diffPatch: { maxInputBytes: 1 } }, "printf 'ab\\n' > first; printf 'cd\\n' > second; diff first second", "", /limit|maxBytes/u],
   [{ metadata: { limits: { maxOutputBytes: 1 } } }, "mkdir /tmp; mktemp", "", /limit/u],
   [{ archive: { limits: { maxArchiveBytes: 1 } } }, "printf content > input; tar -cf - input", "", /limit/u],
+  [{ tableText: { limits: { maxRecordBytes: 1 } } }, "paste -", "ab\n", /record limit/u],
 ];
 for (const [options, source, stdin, diagnostic] of limited) {
   test(`aggregate forwards ${Object.keys(options)[0]} limits without rewriting them`, async () => {
@@ -158,5 +160,19 @@ test("aggregate tar streams binary archives through the actual VFS pipeline", as
     assert.deepEqual(await fs.readFile("/output/bytes"), Uint8Array.of(0, 255, 65, 10));
     assert.deepEqual(await fs.readFile("/input/bytes"), Uint8Array.of(0, 255, 65, 10));
     assert.equal(createAgentCommands().some(command => command.name === "curl" || command.name === "safejs"), false);
+  } finally { await shell.dispose(); }
+});
+
+test("aggregate table-text composes with existing cut and virtual files", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C" } }).use(agentCommands());
+  try {
+    const result = await shell.exec("printf '1 alice\n2 bob\n' > names; printf '1 red\n2 blue\n' > colors; join names colors | cut -d ' ' -f2,3 | paste -sd, -");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "alice red,bob blue\n");
+    assert.equal(result.stderr, "");
+    const common = await shell.exec("printf 'a\nb\n' > first; printf 'b\nc\n' > second; comm -12 first second");
+    assert.equal(common.exitCode, 0, common.stderr);
+    assert.equal(common.stdout, "b\n");
+    assert.equal(createAgentCommands().filter(command => command.name === "cut").length, 1);
   } finally { await shell.dispose(); }
 });

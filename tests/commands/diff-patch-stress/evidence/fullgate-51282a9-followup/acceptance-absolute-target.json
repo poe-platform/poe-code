@@ -1,0 +1,64 @@
+{
+  "name": "absolute-target",
+  "paths": [
+    "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+    "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+  ],
+  "result": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "./acceptance-guard.mjs",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+      "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+      "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+    ],
+    "status": 1,
+    "signal": null,
+    "stdout": "{\"type\":\"test:fail\",\"data\":{\"name\":\"tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts\",\"nesting\":0,\"testNumber\":1,\"details\":{\"duration_ms\":101.559125,\"type\":\"test\",\"error\":{\"code\":\"ERR_TEST_FAILURE\",\"failureType\":\"testCodeFailure\",\"cause\":\"test failed\",\"message\":\"test failed\",\"exitCode\":1,\"signal\":null}},\"line\":1,\"column\":1,\"file\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.acceptance/tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts\"}}\n{\"type\":\"test:pass\",\"data\":{\"name\":\"GNU 2.8 literal argv: relative target overrides absolute headers and -p999\",\"nesting\":0,\"testNumber\":2,\"details\":{\"duration_ms\":20.244542,\"type\":\"test\"},\"line\":1,\"column\":1143,\"file\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.acceptance/tests/commands/diff-patch-stress/absolute-target/native.test.ts\"}}\n{\"type\":\"test:pass\",\"data\":{\"name\":\"GNU 2.8 literal argv: absolute target outside cwd\",\"nesting\":0,\"testNumber\":3,\"details\":{\"duration_ms\":15.187625,\"type\":\"test\"},\"line\":1,\"column\":1143,\"file\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.acceptance/tests/commands/diff-patch-stress/absolute-target/native.test.ts\"}}\n{\"type\":\"test:summary\",\"data\":{\"success\":true,\"counts\":{\"tests\":2,\"failed\":0,\"passed\":2,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":2,\"suites\":0},\"duration_ms\":37.030458,\"file\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.acceptance/tests/commands/diff-patch-stress/absolute-target/native.test.ts\"}}\n{\"type\":\"test:summary\",\"data\":{\"success\":false,\"counts\":{\"tests\":3,\"failed\":1,\"passed\":2,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":3,\"suites\":0},\"duration_ms\":252.816}}\n",
+    "stderr": "",
+    "stdoutHex": "7b2274797065223a22746573743a6661696c222c2264617461223a7b226e616d65223a2274657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f6162736f6c7574652d7461726765742f6162736f6c7574652d7461726765742e746573742e7473222c226e657374696e67223a302c22746573744e756d626572223a312c2264657461696c73223a7b226475726174696f6e5f6d73223a3130312e3535393132352c2274797065223a2274657374222c226572726f72223a7b22636f6465223a224552525f544553545f4641494c555245222c226661696c75726554797065223a2274657374436f64654661696c757265222c226361757365223a2274657374206661696c6564222c226d657373616765223a2274657374206661696c6564222c2265786974436f6465223a312c227369676e616c223a6e756c6c7d7d2c226c696e65223a312c22636f6c756d6e223a312c2266696c65223a222f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d666f6c6c6f7775702f2e616363657074616e63652f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f6162736f6c7574652d7461726765742f6162736f6c7574652d7461726765742e746573742e7473227d7d0a7b2274797065223a22746573743a70617373222c2264617461223a7b226e616d65223a22474e5520322e38206c69746572616c20617267763a2072656c617469766520746172676574206f7665727269646573206162736f6c757465206865616465727320616e64202d70393939222c226e657374696e67223a302c22746573744e756d626572223a322c2264657461696c73223a7b226475726174696f6e5f6d73223a32302e3234343534322c2274797065223a2274657374227d2c226c696e65223a312c22636f6c756d6e223a313134332c2266696c65223a222f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d666f6c6c6f7775702f2e616363657074616e63652f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f6162736f6c7574652d7461726765742f6e61746976652e746573742e7473227d7d0a7b2274797065223a22746573743a70617373222c2264617461223a7b226e616d65223a22474e5520322e38206c69746572616c20617267763a206162736f6c75746520746172676574206f75747369646520637764222c226e657374696e67223a302c22746573744e756d626572223a332c2264657461696c73223a7b226475726174696f6e5f6d73223a31352e3138373632352c2274797065223a2274657374227d2c226c696e65223a312c22636f6c756d6e223a313134332c2266696c65223a222f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d666f6c6c6f7775702f2e616363657074616e63652f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f6162736f6c7574652d7461726765742f6e61746976652e746573742e7473227d7d0a7b2274797065223a22746573743a73756d6d617279222c2264617461223a7b2273756363657373223a747275652c22636f756e7473223a7b227465737473223a322c226661696c6564223a302c22706173736564223a322c2263616e63656c6c6564223a302c22736b6970706564223a302c22746f646f223a302c22746f704c6576656c223a322c22737569746573223a307d2c226475726174696f6e5f6d73223a33372e3033303435382c2266696c65223a222f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f65766964656e63652f66756c6c676174652d353132383261392d666f6c6c6f7775702f2e616363657074616e63652f74657374732f636f6d6d616e64732f646966662d70617463682d7374726573732f6162736f6c7574652d7461726765742f6e61746976652e746573742e7473227d7d0a7b2274797065223a22746573743a73756d6d617279222c2264617461223a7b2273756363657373223a66616c73652c22636f756e7473223a7b227465737473223a332c226661696c6564223a312c22706173736564223a322c2263616e63656c6c6564223a302c22736b6970706564223a302c22746f646f223a302c22746f704c6576656c223a332c22737569746573223a307d2c226475726174696f6e5f6d73223a3235322e3831367d7d0a",
+    "stderrHex": ""
+  },
+  "counts": {
+    "tests": 3,
+    "failed": 1,
+    "passed": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "topLevel": 3,
+    "suites": 0
+  },
+  "censusMatches": false,
+  "failures": [
+    {
+      "type": "test:fail",
+      "data": {
+        "name": "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+        "nesting": 0,
+        "testNumber": 1,
+        "details": {
+          "duration_ms": 101.559125,
+          "type": "test",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": "test failed",
+            "message": "test failed",
+            "exitCode": 1,
+            "signal": null
+          }
+        },
+        "line": 1,
+        "column": 1,
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.acceptance/tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts"
+      }
+    }
+  ]
+}

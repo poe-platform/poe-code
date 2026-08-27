@@ -62,10 +62,12 @@ function timestamp(milliseconds: number): string {
 
 function epoch(milliseconds: number, precision: number): string {
   if (precision > 3) throw new FsError("ENOTSUP", { message: "stat timestamps support at most millisecond precision" });
+  const value = available(milliseconds, "timestamp");
   const scale = 10 ** precision;
-  const scaled = Math.floor(available(milliseconds, "timestamp") / (1000 / scale));
-  const absolute = Math.abs(scaled);
-  return `${scaled < 0 ? "-" : ""}${Math.floor(absolute / scale)}${precision ? "." + (absolute % scale).toString().padStart(precision, "0") : ""}`;
+  const absolute = Math.floor(Math.abs(value) / (1000 / scale));
+  const fraction = absolute % scale;
+  const seconds = value < 0 && fraction === 0 ? -Math.floor(value / 1000) : Math.floor(absolute / scale);
+  return `${value < 0 ? "-" : ""}${seconds}${precision ? "." + fraction.toString().padStart(precision, "0") : ""}`;
 }
 
 function formatField(text: string, code: string, flags: string, width: number, precision: number | undefined, numeric: boolean, epoch: boolean): Uint8Array {

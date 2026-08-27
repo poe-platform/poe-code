@@ -44,6 +44,11 @@ Implemented directives: `%n`, `%N`, `%s`, `%a`, `%A`, `%f`, `%F`, `%i`, `%h`,
 `%u`, `%g`, `%d`, `%D`, `%x/%y/%z/%w`, `%X/%Y/%Z/%W`, and `%%`.
 Basic width, alignment, numeric zero/sign/alternate padding and epoch precision
 up to three decimal places are supported with bounded output allocation.
+Negative fractional epochs follow the pinned GNU coreutils 9.7 executable:
+fractional digits are truncated in magnitude, but a zero resulting fraction
+retains the floor-second integer (for example, -11 ms gives `-1.0` at precision
+one and `-0.01` at precision two). This deliberately preserves observed runtime
+behavior, not the current GNU manual's contrary minus-infinity rounding rule.
 
 Timestamps are deterministic UTC at millisecond resolution, not GNU's full
 nanosecond rendering. The default report is a concise virtual metadata report,

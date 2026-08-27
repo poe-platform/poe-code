@@ -1,0 +1,618 @@
+{
+  "revision": 2,
+  "preparedAt": "2026-08-27T11:29:45.930Z",
+  "authorIsNotAcceptanceReviewer": true,
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "references": [
+    {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "directory": "tests/shell-stress/env-split-holdout"
+    },
+    {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "directory": "tests/shell-stress/env-split-consumer"
+    },
+    {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "directory": "tests/shell-stress/env-split-author"
+    }
+  ],
+  "originalFiles": {
+    "tests/shell-stress/env-split-holdout/CORE_REVIEW_84AB66C.md": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "075b6d6dbd9f5055e7efd246306a0705de2690e7a5ea511fa1d9e98cb172ca29",
+      "blob": "3168f7c3ecf4556190c2fc018b2d7cc7b6b73fdc"
+    },
+    "tests/shell-stress/env-split-holdout/CORRECTED_SETUP_V2.md": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "6e32feb909d0f3acac0fb4c663e25335b4a8663d43afe600323fd1b4e8fd3b59",
+      "blob": "943265313ed7657aa53cbd025e40d474d4b00b0d"
+    },
+    "tests/shell-stress/env-split-holdout/README.md": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "85827044815d49f00c1d8bdced9f1031516d80ebe7dd81a3b6e493d0d32a0687",
+      "blob": "6f2a184b1ecc4b09e9bcf9c8ab34372a653be063"
+    },
+    "tests/shell-stress/env-split-holdout/RESUME_BASELINE.md": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "3553d979dea101d9ce7b02896bb85d0f31944167b0352f3a1157bce3bf4405ae",
+      "blob": "5c20781b1229ea5b5a8f672c5692ef96997294a5"
+    },
+    "tests/shell-stress/env-split-holdout/aligned-cases.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "0c820b8fcbb1ce2769e85a0cc352d01cdc28e1a1015eef35d60a31464d5d1f8b",
+      "blob": "8440622c85500d2e2cef6e08d04cff3436f54881"
+    },
+    "tests/shell-stress/env-split-holdout/aligned-cleanup.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "7854756c45ac1268aca667ad6bc74ec1e01d824c2a3e4b60d9d520fe1a24dd93",
+      "blob": "9609c747e9dfc604e073cd4027eefa968e0e891a"
+    },
+    "tests/shell-stress/env-split-holdout/aligned-inputs.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "0b25047da8d6d9221f12ecd73a26c71986d645f37b040dce65968c5e20991885",
+      "blob": "d1d8472f04051fe3a15c0714775efa7da5045082"
+    },
+    "tests/shell-stress/env-split-holdout/baseline-e7f4f2e-bytes-v2-cleanup.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "f65ef7ecb0452a7f85119ef73b37f35637924f723e8d4e8cf2341d9185e973c0",
+      "blob": "c191425298dbde9bada0e87451a4d300fb853047"
+    },
+    "tests/shell-stress/env-split-holdout/baseline-e7f4f2e-bytes-v2.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "ceb08f881d0418429037e50c28ab8538fd0f79ec64d6cc3d7b0d894c0b2548e7",
+      "blob": "3afd89a4a6b1f8ebe6d10ab00a21ff1e7342b309"
+    },
+    "tests/shell-stress/env-split-holdout/baseline-e7f4f2e-cleanup.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "891a11a6e397a41fe04a1a50a769f5c7d7747954ac0c17a16526f37ff5dcfc9d",
+      "blob": "79c2df771e20299432bd5275ddc05f25fc802630"
+    },
+    "tests/shell-stress/env-split-holdout/baseline-e7f4f2e.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "70a88493c697cee1ed311dba83dbacaee746fa71cf673d7d3ed0978b728c0a55",
+      "blob": "3283b911772f3f4c61bdd1cf5cc4cc31b874f9ce"
+    },
+    "tests/shell-stress/env-split-holdout/cases.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "3b937f671e6dd9230b9be96936dbea7c2026169e26260abda0046e9b7caa3bda",
+      "blob": "d2913cd5568510e1e51cbe3e341b3d6bb515bde7"
+    },
+    "tests/shell-stress/env-split-holdout/core-candidate-84ab66c-cleanup.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "c33f907656dbfecd775c020b44aa21ff236cddbc1ecdfb3d56d85a3acc152e9d",
+      "blob": "68abfc60879bc4846bdff8fbbe3f0a6ff1a53a49"
+    },
+    "tests/shell-stress/env-split-holdout/core-candidate-84ab66c.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "ee173046443f38f9a503329a200882d4748c40c453d2d87ba28b9ba67394efca",
+      "blob": "8b555b72d8a0f9fc7884eb72dce733dc7419a186"
+    },
+    "tests/shell-stress/env-split-holdout/core-candidate.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "68e0128f21bc684f33a6a66c40c04a9a2673af78e7e9306f95aa2a501c688928",
+      "blob": "3f5ed5139319817bf3afb342a3c278f4d1d7decf"
+    },
+    "tests/shell-stress/env-split-holdout/core-integrity-result.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "4a021320ebe9c13e8d61944786bbff704d2017daeb1e479d7f6e79b5aba0925f",
+      "blob": "8e14cac983adb8bb0e5d9e431742353739a443df"
+    },
+    "tests/shell-stress/env-split-holdout/core-integrity.test.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "53af39fac06ed7c22774545d05b38c6b55ea8037899b8e9d722ce8e1debde6da",
+      "blob": "60c1a97c38cc5e0927a8182b1e53722e09e44b38"
+    },
+    "tests/shell-stress/env-split-holdout/core-review-84ab66c.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "96c72b5ceb73849cecc1a00a5d3d9253cd305a3ef6488ed8b94cc6f743915ea3",
+      "blob": "c4f162cf27ed25769382a4370bbd1bcf9d65fa3c"
+    },
+    "tests/shell-stress/env-split-holdout/core-typecheck.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "c874eba6d2bf2c090b551da5b8cdda80d043b37cd9266e0c2e397e1d84421b0c",
+      "blob": "3856cb01843205f429b32ae80c6b94c7de837a18"
+    },
+    "tests/shell-stress/env-split-holdout/corrected-baseline.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "8c32f61e69743870a2204107ec58a382eec946a7891e9f7665011b5f61d7e0e6",
+      "blob": "614e8bff7d8e11ce36e0cb342569474fff0b50df"
+    },
+    "tests/shell-stress/env-split-holdout/corrected-integrity.test.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "2388204c5db34d727a31f6c7655d6b8b4b6159db7017eb3f9eb00f18dab4d385",
+      "blob": "bd9e2046894a71f60fef9bf79f80311060de062f"
+    },
+    "tests/shell-stress/env-split-holdout/corrected-setup-v2-freeze.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "b40cbcc19648e856b12e8d9db8c51fa206426e597fd88b803cdfd02d0a6fb5fb",
+      "blob": "01f14045eb1027b691a9cac3899888854da243f8"
+    },
+    "tests/shell-stress/env-split-holdout/endpoint.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "ac836f6357e46daa3ae851f0220f26f796f4f93398fae691536d3bf0306d3a1c",
+      "blob": "a46713e1b1977e6a6bc7f00c30f0382460a6c447"
+    },
+    "tests/shell-stress/env-split-holdout/freeze.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "8a9c463ba5338546ec4fa651f560e35f0b0cba1358282a10747a39c7f34339bd",
+      "blob": "39ff5c38689b177b1f2a86242069a9f5c6b42b26"
+    },
+    "tests/shell-stress/env-split-holdout/hosts.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "2919f3022e5c683e34a58e176adc15e22a33f5b960ac122edfeee84a85b93790",
+      "blob": "045886e9038c451b314d78760ecd0ef8ee660a24"
+    },
+    "tests/shell-stress/env-split-holdout/integrity.test.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "fabf78ffdceb76c498e85e00b85e2188200758182c113aadcad308213fd94587",
+      "blob": "ed796dd6660e20f3ab39435911b696feaed4d247"
+    },
+    "tests/shell-stress/env-split-holdout/native-aligned.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "bca8b30a21de8f09e5e660d3f77480cdf8ac3b4a00c36490987b6d15ef9cf818",
+      "blob": "f8e13840d2dd6af9a3d2809e2931142a47d8907d"
+    },
+    "tests/shell-stress/env-split-holdout/native-cleanup.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "47eafcf40a5b87efd75f81071691adcb0a15f58d99d8e5dc8c31e2a09ac8340a",
+      "blob": "648dea70638802be5ace840ad952ef5c492b7125"
+    },
+    "tests/shell-stress/env-split-holdout/native-frozen.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "6517106deac7e63616d6b02fc60901c33d3c455f0db2311a06e17bf0946dfe83",
+      "blob": "e27ba171473d1cd3f08a9042136c12c6f3c8bdd4"
+    },
+    "tests/shell-stress/env-split-holdout/native-initial.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "b195fa473c93300eb0d1ecd0f4fb28a205f2c6154489eb4ab2b042ce38436008",
+      "blob": "8bb080b0e6e2b0f7aeb8e45e5b9801883ac47019"
+    },
+    "tests/shell-stress/env-split-holdout/native-inputs.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "90dd4c1aaacd1a3ff28254a4999121bf77c894583698263518f1dc9274ace51e",
+      "blob": "a2d01428b7fad965194bcccd41f9884389541dae"
+    },
+    "tests/shell-stress/env-split-holdout/native.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "be2ee8ff1b88e0ca6ce0736076fd2f2df863dbb82c0373278e3b1c49f01bc197",
+      "blob": "1db619fc69c4fbe8bee7e9a6ca876e3ee951c7ab"
+    },
+    "tests/shell-stress/env-split-holdout/probe-bytes-v2.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "212ff91269ef76dda8f27f42b2c1c5662af544dac93df719c9a4d09dfca37e38",
+      "blob": "14c6344675a8596c08eb0b7d6e70a8eac60b2ed8"
+    },
+    "tests/shell-stress/env-split-holdout/probe.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "b833cdcfcf799da217dae8861858929eebfa490849ffc294591d6c500e3c72d1",
+      "blob": "0e4cb15d90b2cc498382483ef0df031d82c0eda4"
+    },
+    "tests/shell-stress/env-split-holdout/product-row-bytes-v2.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "08930939d78150e663e216767b0373e1616be4407e2756e2a21a64a705b0cd69",
+      "blob": "afe8628e4a6381c4280093e4a221b913a35f1e0b"
+    },
+    "tests/shell-stress/env-split-holdout/product-row.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "d639d33f45a47fcf883b4c7a9946fb26a7bd54b0e71bf7bb3f4a198568a23571",
+      "blob": "aa07eeb81680af99fac9589881877503ff643bea"
+    },
+    "tests/shell-stress/env-split-holdout/provenance.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "7f0cc494bab5f77208ff776b1108ccdc44895503ccd6e830d8ebae9c186cafb9",
+      "blob": "5357df1f9539ff68551fd98df8bc3456c0ae5191"
+    },
+    "tests/shell-stress/env-split-holdout/recorder.c": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "fb4b63d49db7bc6d29f543f5f87675bf9f7740118f99817a91be8ce697a97db3",
+      "blob": "8f939901eaf51a3ec214164dccc321bb12aff745"
+    },
+    "tests/shell-stress/env-split-holdout/resume-baseline.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "a19fd66645b7ac35ba1f2f664427736d1b6f3da951d70eacf84bbae371b6f1fc",
+      "blob": "ff661171eee48b6dbe07f789af9216d4b8fb4fd8"
+    },
+    "tests/shell-stress/env-split-holdout/resume-freeze.json": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "5b7a19e2f45e716691c3b88734be2a7f8a4974b0fecfc511e8361af3e2a1c2e9",
+      "blob": "36e64a79a3e5d3304cdc73e2d0c54cac8769e65c"
+    },
+    "tests/shell-stress/env-split-holdout/resume-integrity.test.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "f1a070131a96285bf1ec89a4a1d3d700f1d66d5d3dbd67a8fd9074ca2f50c3ee",
+      "blob": "13a8487cffc4f3075788df782b3b2b8268645e6b"
+    },
+    "tests/shell-stress/env-split-holdout/support.mjs": {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "sha256": "d065b395da9445782a0b1aa20c1cad3c04b4b941aa5bf7e9f4afed5bf929113e",
+      "blob": "29d623c0922ed40b3a0ac968640b2602fddbba7e"
+    },
+    "tests/shell-stress/env-split-consumer/CORE_PACKED_ACCEPTANCE.md": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "b3c1109b896d3d53906b760556031ac6df47c942f28d58f1386974ba131c91aa",
+      "blob": "6a665b2404b3716865761aaa98711cc50d4f899c"
+    },
+    "tests/shell-stress/env-split-consumer/PACKING_PLAN.md": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "e38428cd46e5340e4a8f1df95802feb431e792afae81e63cec4955124505fa0f",
+      "blob": "e15fab189fe7ea996b72c0dd24fd295a829c1ef7"
+    },
+    "tests/shell-stress/env-split-consumer/PREPARATION.md": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "db4329556cc858f3e27fdf69a7132b91deb9c2ef4f7f2c954917d6dc839566f1",
+      "blob": "7d4ff0f28d2153759d308255764f865c520d3501"
+    },
+    "tests/shell-stress/env-split-consumer/cases.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "7daabdcde0a3f8c1bf8d8bee069465736d702c437b7d68d5191804df457d60b5",
+      "blob": "640508d297bcac91b65a4d0700185365ec2b94d8"
+    },
+    "tests/shell-stress/env-split-consumer/consumer.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "4500b921e17ef391f7cf93b59faba3bce5f5ec8f346e360c868a75cdaa3a28c1",
+      "blob": "c1e49d371bf15144ee14223f471c98e67dba6b40"
+    },
+    "tests/shell-stress/env-split-consumer/native-frozen.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "ae0d1e79eecfca3f2474bfaba8cc749a7abd371c1b273fd0b500711439cd78c4",
+      "blob": "8ccbe7ac152f6a737ee6f273e12417ceced5ebf3"
+    },
+    "tests/shell-stress/env-split-consumer/native.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "5b4c743b3671da6c2ddc45be47fe3036fb74cf8f3a4328d944745e6fdc6a6e5b",
+      "blob": "86f6b43f0559cfcf62da5eb2babbc26e548db9fb"
+    },
+    "tests/shell-stress/env-split-consumer/packed-audit.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "7857d03f5aacb2b008b55511bda492a3ec9da487d7f704c69b196fb214cee171",
+      "blob": "dc0150903545c5989e6b5deaf35f39d464d6fc8a"
+    },
+    "tests/shell-stress/env-split-consumer/packed-core-84ab66c-audit.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "12aa0fd6c959b3c54519aee1361a11ebf182fb2442080dcd57e817b0625a95d9",
+      "blob": "16a3f6db55b40bf38dd49567280b23567ef121f8"
+    },
+    "tests/shell-stress/env-split-consumer/packed-core-84ab66c-cleanup.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "3ffb8768fe901a789fa88350e96df34071325b79a31257e0f70317a8d9e1c8b3",
+      "blob": "b6d69dde43348b1f05c0bdb5632ee2917197871e"
+    },
+    "tests/shell-stress/env-split-consumer/packed-core-84ab66c-tarball.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "9e1fcfaa0f5dbabec37989780ba806bd9a8c4e4a49df87785d892662091ca302",
+      "blob": "9d942fbdf405db456713c336445f873d0d3db190"
+    },
+    "tests/shell-stress/env-split-consumer/packed-core-84ab66c.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "a711fb8baca7aab8eefa669afebb5294b83b3e81ca4421eb7e34343f183010ab",
+      "blob": "3081a481e943c5e658f910d2f682cb523f7ba30d"
+    },
+    "tests/shell-stress/env-split-consumer/packed-core.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "897d8cb4a40af5a9ae9f73471c91eb3125e27b1f4479c5a9309a101a457793ce",
+      "blob": "f7e2c756d1dd17b39e6945cb64169d15f6a9d306"
+    },
+    "tests/shell-stress/env-split-consumer/packed-public-types.ts": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "b74f06923b0b9aeb4139f611218a02a5421f300326dae88070fb7dbf76049a95",
+      "blob": "b7133f13c0f25fb84f839a497dd36b493f3b3b73"
+    },
+    "tests/shell-stress/env-split-consumer/packed-tar.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "ab98eb22a63ef5bf197e66182b9d1d1e8d59d07076713547a6cd8e8caf4f52a1",
+      "blob": "edc0003e22dc097b1b6e41558085838f612cb9ce"
+    },
+    "tests/shell-stress/env-split-consumer/preparation.json": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "f3a7324c4f5fc3e21cfc5cb4404051992bd12370940e127837139c72714adf93",
+      "blob": "cd419e13d14ef31bf040b4c327ba36f94e2071d4"
+    },
+    "tests/shell-stress/env-split-consumer/support.mjs": {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "sha256": "36ab68849bd0de7f6ecfa09f2e9fa62b1abb1aced36112b80c534bb80b16adb8",
+      "blob": "92898c0f74bdf7ff20abf0f06eb320f48b510d3b"
+    },
+    "tests/shell-stress/env-split-author/CORE.md": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "eafea2681bc2360d056bed175a6b0fd0d0aeb585eb48c11db05f8d326a1ecba0",
+      "blob": "98638fcce55a332b25cfd9ae348750f5fa6bec24"
+    },
+    "tests/shell-stress/env-split-author/CURRENT_FACTS.txt": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "8226032a950dc14bcfbbc5cb721e9eb4ca0b330bd9f9a685e8dbec02b12880ee",
+      "blob": "d3f1692fe04fede8187af9548059f3f27246cec2"
+    },
+    "tests/shell-stress/env-split-author/DESIGN.md": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "3d72dfe67beee483b55f8a1f67e5fa610a91634abd8b7b196266ac0d811a97d5",
+      "blob": "8b31a53f89dd555d676777b9dcf93ee761b840f5"
+    },
+    "tests/shell-stress/env-split-author/RESUME.md": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "1c29eabae3c630684288b18d414c83af5a7f38b2fb4045a57dec63480bcbb354",
+      "blob": "214d0eb79ed965e81d2aef768cdf27af6143a9e7"
+    },
+    "tests/shell-stress/env-split-author/baseline-attempt1.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "c4106bab85d5071b80a0b95dfabab75d52755be6937affdf74a5b24b731160b3",
+      "blob": "b05464b32f08b18a223f880715d72b3ff742c15c"
+    },
+    "tests/shell-stress/env-split-author/baseline-frozen.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "9fbb2229ef6fdb6290a406b31376a75eedbf8c3e434d2914efdd332f78d1a5d9",
+      "blob": "f54cae8e3d2af6d51814be0020ddd88a10b58f87"
+    },
+    "tests/shell-stress/env-split-author/baseline.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "39b8922824469eec4d25afe342ddc1f1c4da4c3fcdffd6e53fe2787974bdff28",
+      "blob": "6abdfda9c33a1c6cc9dbb8b0283ba17bd028e3c3"
+    },
+    "tests/shell-stress/env-split-author/capture.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "6dfd2157587c1a44034a4d9f365fffcdb7288e5aeaf8d69f429b3549e5f04d93",
+      "blob": "833274910cf2e9d1b5e9efdaca44fdcb1833ed26"
+    },
+    "tests/shell-stress/env-split-author/cases-attempt1.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "3da2715b2c52f10377b7952ba8b19c205f369981757b52350c71d439b0a7eb26",
+      "blob": "82e553c2ef7e804ca61f58bc8e569ecedd08b179"
+    },
+    "tests/shell-stress/env-split-author/cases.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "ca5e3ab2a3ed67e95b4f2ce0e5bae4159445f015b92a3a32d29f631eb23cc68d",
+      "blob": "19428a8b07582571194a60917cab49d5a7ef8965"
+    },
+    "tests/shell-stress/env-split-author/core-host.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "4749d1ff2644d31cac3a9ab94fb3a122229f422d8a1866b79c82acf0d9e33126",
+      "blob": "742b3df44c472436eea6f299f4017eba6a98d9c2"
+    },
+    "tests/shell-stress/env-split-author/core-initial-controls.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "c3939c456fd252ef0cdbd1b1539c1774a43f3fad739b17dc88da5f2647656836",
+      "blob": "8a1c41af5e24971af85f81b9f4ddf10fe94e1ff5"
+    },
+    "tests/shell-stress/env-split-author/core-inputs.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "3e9423f79703367a5a48cc0290275408a8ba73c110cd527b7e2747e2de58ce01",
+      "blob": "a29b6cc89eb5827b728dfa3aab94a2ed71b9f2ee"
+    },
+    "tests/shell-stress/env-split-author/core-native-replay.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "2de4be40930a1df6626b1d85cfd8582ed09e30bfbf19ce114f82dd3cdf934123",
+      "blob": "910305afef1b1ae43857dd8d67b22d07dd5de913"
+    },
+    "tests/shell-stress/env-split-author/core-observe.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "8ae593be004008e6294e31eb9162e455fb413173d1bd399c27d214a91f038792",
+      "blob": "089ee73b97546b59383de89a1c710b275298751f"
+    },
+    "tests/shell-stress/env-split-author/core-observed.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "03a1343584905640c8ef0b6361fb08b8b74cea3b10a0930a67cc7a3fef6942b9",
+      "blob": "e40000de0161eaeb1729bd38849b5fad9edde7e9"
+    },
+    "tests/shell-stress/env-split-author/core-seal.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "ad5b85aa2e5d446ec8b7e9a482b551122282cf56fed76aa2fdeb0a4ddda0319e",
+      "blob": "4c03555c7e4297eade1a41e0ddd0f41d5849e50e"
+    },
+    "tests/shell-stress/env-split-author/core-validation.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "9669805848346d445ccbe0f4c8c0cf095308b34eb0313e7ed6909221a4cd1b3f",
+      "blob": "d4382a9c2a881ab4db7aec24e6e9f73f2354ee6c"
+    },
+    "tests/shell-stress/env-split-author/core-verify.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "424c2096be853c0761f38aa098eb1a09ad6094e8fe3e65667dcf17503aadc570",
+      "blob": "86181a9a83731146735b0c65c38f572d0893a176"
+    },
+    "tests/shell-stress/env-split-author/native-attempt1.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "e710b0531872a2dc2e1a9881b51e15624e9fd3c0703b4948bb0de82ed1d57292",
+      "blob": "642c9314ab26477e56a50ced91407876f8f0a410"
+    },
+    "tests/shell-stress/env-split-author/native-frozen.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+      "blob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+    },
+    "tests/shell-stress/env-split-author/recorder.c": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "6a4cee5f76920213609d473ca4d9e943144c37654abc0bcb9fe6946a3b27e98b",
+      "blob": "a702f293d134a3b8168389c4dc101e2a6364b450"
+    },
+    "tests/shell-stress/env-split-author/resume-baseline.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "4bc6a29235d0bb326b003f1c941e652245f0392ea36c119d38543e1654240fd2",
+      "blob": "05610dd7a0aa2e7600e6418edc0961d2fe271af4"
+    },
+    "tests/shell-stress/env-split-author/resume-baseline.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "cbb0ce40d757408c753442e5d0875a387440d9b0c785d7e3793e70fee677bd11",
+      "blob": "f630f682d81de58fcf72e2d5008e8f1c21235e47"
+    },
+    "tests/shell-stress/env-split-author/resume-cases.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+      "blob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+    },
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+      "blob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+    },
+    "tests/shell-stress/env-split-author/resume-host.ts": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+      "blob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+    },
+    "tests/shell-stress/env-split-author/resume-native.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+      "blob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+    },
+    "tests/shell-stress/env-split-author/resume-native.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "7534009219c5b03b0e03884e6da3e7d15817a98978baa3da92e65a49aff27f5f",
+      "blob": "45384fed680b3e593711a4690e61bd101b2a1e83"
+    },
+    "tests/shell-stress/env-split-author/resume-red.txt": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "85773a0272b5dafc96c680bc45203de9a7c6e1c091747740254d8c92a64ac785",
+      "blob": "676bd72c5be6b7a5a8cb3ddb788636827e60de93"
+    },
+    "tests/shell-stress/env-split-author/resume-seal.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "a8821473f15aab5b6b5604c4737b3ae7a400c70f908d2242405d7e0763de97a9",
+      "blob": "2068a629bbac456bd5b9c74b8be2e15ca152f88b"
+    },
+    "tests/shell-stress/env-split-author/resume-source-inventory.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "4dc57e8fed7994dcb75314af1f2c768d6f09aecd9f9d133643b1af3c0ce35dcf",
+      "blob": "c8fa513e74062587fa5b0cce43f14f4fac50cebe"
+    },
+    "tests/shell-stress/env-split-author/resume-validation.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "07c9aec1b96518fdf04dfec31e17e5f88ff1065ae891a2ec2f684c8d4f20133f",
+      "blob": "88940a810876619c36e99e607a3243924baec13d"
+    },
+    "tests/shell-stress/env-split-author/resume-verify.mjs": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "291e06a4159b49c6aff148bef8a4e87ccb42f91cbf232cef570a76cfc5279f63",
+      "blob": "ed55ae7fc11b6e1fa9beef3db8e6d3bc70086695"
+    },
+    "tests/shell-stress/env-split-author/seal.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "afb23ab4de2cc66f4ae64cee03618f7b1ea33bce8f5b4bd129e8538e19bffc1c",
+      "blob": "43e6efd36f918b1fe7851b188cc1d356ff6ed370"
+    }
+  },
+  "fixtureFiles": {
+    "DELTAS.txt": "5fe5bcc455594cb4646e59431c84b73ece5fc9082102acd1d55b56d42729a090",
+    "REVISION_V1.md": "30204d4115e3ac7d347fc6e73b874a63755ca24bf3e40dba506e4dc9c7747a08",
+    "binding-source-proof.json": "42e04a1ec9f7db7a673b03f4194ff3f14c40efe3b881eadd259b954ba7c5f77e",
+    "cases.mjs": "7daabdcde0a3f8c1bf8d8bee069465736d702c437b7d68d5191804df457d60b5",
+    "consumer-v1.mjs": "c4b1ea6832b6f62b9783932f800b91c3a4cc2d96c9b057a04a990ba20c71407d",
+    "controls-v1.mjs": "49f433128dda430b343754dc950ffe8be8fd826bce192ae2d14c3d87fb8d64b6",
+    "hidden-v1.mjs": "fc9e3232744d4fbc0f044a097bbf65f4f6b470ea6beb1586b20bdc29aba85dc8",
+    "hosts-v1.mjs": "a43f829647d5bf458544b143945319f37d0aa8014b5e87d21e87bdea35e83d36",
+    "invalid-binding.mts": "1148c543c99b9177923fa30ac5248a090a9782b5151f9d91f2541bc97e4fcd1c",
+    "original-observations.json": "d6006be658050ee76927c296342dcab2901d563422fb7ebf93ba057db2c2c87b",
+    "original-revised.diff": "39e130e5119b8b066dadeb14b0e16af9117271beeb9d634c06f9ef0d8022670b",
+    "product-row-v1.mjs": "08930939d78150e663e216767b0373e1616be4407e2756e2a21a64a705b0cd69",
+    "public-types.mts": "1e3363f9dd73614f3b5b3b31eac4341f7d72a6f203da82c0700256e62b3793dc",
+    "run-v1.mjs": "b91096e9e8b6b31d92952a44d835a7bc46e73647422b6d3bf3cb2d10c784f2c8",
+    "consumer-v2.mjs": "b602a4448fa03684034fbf87bc869af3734be1cbf2b7a239bcc92813ada53260",
+    "run-v2.mjs": "a41611f90f2ee6b370bdfcb7bceb8842ac59ec689def949731292f5a91d931ad",
+    "freeze-v1.json": "b4272bac7ef35246f3291a9a029351f38eea8cf141b34bb509aa28ee6893f550",
+    "author-run-v1.json": "a2d23cd2381dec61309e7ee9e30ee97c31436dc4edd24f2451aa50050453d893",
+    "V1_AUTHOR_STOP.md": "786f82e4a9b220e57bf6a60c9043e7deb26e6dd4e9b4ce1b486b1c83fc5af047",
+    "v1-v2.diff": "ec49032cceb2414264496b3648b827af04e03e842cceb0250a7318461cf1a68f"
+  },
+  "tarballSha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+  "hiddenIds": [
+    "mixed-fragments",
+    "empty-quoted-arguments",
+    "six-whitespace-separators",
+    "quoted-whitespace",
+    "underscore-escape-contexts",
+    "escaped-control-characters",
+    "single-quote-escape-exceptions",
+    "escaped-quotes-hash-dollar",
+    "hash-boundary",
+    "stop-escape",
+    "stop-inside-double-quote-error",
+    "stop-inside-single-quote-literal",
+    "unmatched-single-quote",
+    "unmatched-double-quote",
+    "invalid-escape",
+    "terminal-backslash",
+    "incoming-value-keeps-one-argument",
+    "incoming-value-not-reparsed",
+    "single-quote-no-expansion",
+    "empty-and-unset-boundaries",
+    "lookup-before-ignore-and-unset",
+    "lookup-before-assignment",
+    "earlier-option-unset-lookup",
+    "earlier-ignore-lookup",
+    "invalid-bare-dollar",
+    "invalid-special-dollar",
+    "invalid-parameter-operator",
+    "command-substitution-not-shell",
+    "backticks-and-operators-literal",
+    "long-split-equals-tail",
+    "long-split-separate",
+    "attached-short-split",
+    "repeat-split-option",
+    "nested-split-with-variable",
+    "assignment-options-stop",
+    "double-dash-after-split",
+    "packed-non-s-single-operand",
+    "plain-argv-positive",
+    "empty-split-then-tail",
+    "missing-command-negative",
+    "nonexecutable-command-negative",
+    "moderate-variable-growth",
+    "plain-bash",
+    "non-s-packed-bash-option",
+    "split-errexit",
+    "split-assignment-and-clear",
+    "split-long-plus-option",
+    "split-quoted-marker"
+  ],
+  "diagnosticProfiles": {
+    "packed-non-s-single-operand": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "c2hlbGw6IGxpbmUgMTogYXJndnByb2JlIHR3byB3b3JkczogY29tbWFuZCBub3QgZm91bmQK",
+      "effects": {
+        "effect": {
+          "type": "file",
+          "mode": 420,
+          "hex": "6f726967696e616c"
+        }
+      }
+    },
+    "missing-command-negative": {
+      "status": 127,
+      "stdout": "",
+      "stderr": "c2hlbGw6IGxpbmUgMTogZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+      "effects": {
+        "effect": {
+          "type": "file",
+          "mode": 420,
+          "hex": "6f726967696e616c"
+        }
+      }
+    },
+    "nonexecutable-command-negative": {
+      "status": 126,
+      "stdout": "",
+      "stderr": "c2hlbGw6IGxpbmUgMTogLi9ub25leGVjOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+      "effects": {
+        "effect": {
+          "type": "file",
+          "mode": 420,
+          "hex": "6f726967696e616c"
+        },
+        "nonexec": {
+          "type": "file",
+          "mode": 420,
+          "hex": "6e6f742065786563757461626c650a"
+        }
+      }
+    }
+  },
+  "expectedAccounting": {
+    "primaryHiddenCommandNative": "39/42; three strict diagnostic failures remain",
+    "hiddenProtocol": "All6 execute per profile; five primary known losses and plain control separate; no env-S core credit",
+    "hiddenHosts": 7,
+    "consumerCore": 7,
+    "consumerShebangUnsupported": 3,
+    "consumerHostExecutions": 5,
+    "additionalControls": 12
+  },
+  "previousFixtureCommit": "f2906a064d2558c634cdc1b71a7b74fd2f6d022a"
+}

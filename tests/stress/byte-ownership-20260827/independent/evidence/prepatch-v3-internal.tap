@@ -1,0 +1,141 @@
+TAP version 13
+# (node:15490) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: internal collect offset/empty/finalizer Buffer
+not ok 1 - internal collect offset/empty/finalizer Buffer
+  ---
+  duration_ms: 0.869958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v3/moved/consumer/internal.mjs:10:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '0000000000000000000000'
+    - 'd14e00f0839142217f0a5a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'd14e00f0839142217f0a5a'
+  actual: '0000000000000000000000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v3/moved/consumer/internal.mjs:12:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: internal records spanning unequal windows Buffer
+not ok 2 - internal records spanning unequal windows Buffer
+  ---
+  duration_ms: 0.824125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v3/moved/consumer/internal.mjs:15:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+          hex: '707265',
+          terminated: true
+        },
+        {
+    +     hex: 'a60a64',
+    -     hex: '616263',
+          terminated: true
+        },
+        {
+    +     hex: '000000',
+    -     hex: '646566',
+          terminated: false
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      hex: '707265'
+      terminated: true
+    1:
+      hex: '616263'
+      terminated: true
+    2:
+      hex: '646566'
+      terminated: false
+  actual:
+    0:
+      hex: '707265'
+      terminated: true
+    1:
+      hex: 'a60a64'
+      terminated: true
+    2:
+      hex: '000000'
+      terminated: false
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v3/moved/consumer/internal.mjs:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: internal exact collector overflow closes source Buffer
+ok 3 - internal exact collector overflow closes source Buffer
+  ---
+  duration_ms: 0.248625
+  type: 'test'
+  ...
+# Subtest: internal cooperative abort preserves reason Buffer
+ok 4 - internal cooperative abort preserves reason Buffer
+  ---
+  duration_ms: 0.090917
+  type: 'test'
+  ...
+# Subtest: internal source failure retains identity Buffer
+ok 5 - internal source failure retains identity Buffer
+  ---
+  duration_ms: 0.116959
+  type: 'test'
+  ...
+# Subtest: internal collect offset/empty/finalizer Uint8Array
+ok 6 - internal collect offset/empty/finalizer Uint8Array
+  ---
+  duration_ms: 0.114833
+  type: 'test'
+  ...
+# Subtest: internal records spanning unequal windows Uint8Array
+ok 7 - internal records spanning unequal windows Uint8Array
+  ---
+  duration_ms: 0.11075
+  type: 'test'
+  ...
+# Subtest: internal exact collector overflow closes source Uint8Array
+ok 8 - internal exact collector overflow closes source Uint8Array
+  ---
+  duration_ms: 0.084167
+  type: 'test'
+  ...
+# Subtest: internal cooperative abort preserves reason Uint8Array
+ok 9 - internal cooperative abort preserves reason Uint8Array
+  ---
+  duration_ms: 0.221708
+  type: 'test'
+  ...
+# Subtest: internal source failure retains identity Uint8Array
+ok 10 - internal source failure retains identity Uint8Array
+  ---
+  duration_ms: 0.210166
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 8
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64.2065

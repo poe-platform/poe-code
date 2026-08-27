@@ -60,9 +60,22 @@ const changes = finalManifest.identities.filter(entry => firstManifest.identitie
 const baselineToFirst = firstManifest.identities.filter(entry => original.identities.find(prior => prior.path === entry.path)?.sha256 !== entry.sha256).map(entry => entry.path);
 const liveDrift = [];
 for (const entry of finalManifest.identities) if (hash(await readFile(resolve(entry.path))) !== entry.sha256) liveDrift.push(entry.path);
-const packageResult = await json('evidence/production-final/package.json');
+const packageResult = await json('evidence/production-final/package-corrected.json');
+const consumer = packageResult.commands.find(command => command.executable?.endsWith('/node'));
+assert.equal(consumer.status, 0);
+const consumerResult = JSON.parse(consumer.stdout);
+assert.ok(consumerResult.packageLocation.includes('/.temporary/moved-production-final-package-corrected/node_modules/virtual-bash/dist/index.js'));
+const packedAssets = [];
+for (const moduleName of ['client', 'matching', 'protocol', 'worker']) {
+  for (const extension of ['js', 'd.ts']) {
+    const path = `dist/commands/regex-execution/${moduleName}.${extension}`;
+    const sourceHash = hash(await readFile(resolve(finalManifest.snapshot, path)));
+    const packedHash = hash(await readFile(resolve(owned, '.temporary/moved-production-final-package-corrected/node_modules/virtual-bash', path)));
+    assert.equal(sourceHash, packedHash); packedAssets.push({ path, sha256: packedHash });
+  }
+}
 const riskClaims = await readdir(resolve(owned, 'evidence/risk-claims')).catch(() => []);
 assert.equal(riskClaims.length, 0);
-const result = { auditTime: new Date().toISOString(), snapshots, baselineToFirstChanges: baselineToFirst, firstToFinalChanges: changes, liveDrift, historical: { checked: original.historical.length, drift: historicalDrift, archiveSha256: original.historicalArchiveSha256 }, guardedChildCount: runs.length, observedWorkerCount: runs.reduce((total, run) => total + run.metricsCount, 0), pendingWorkerObservations: runs.reduce((total, run) => total + run.unresolvedAtObservation, 0), runs, nativeAgreement, timingSummary, packagePass: packageResult.pass, risk: { historicalArchived: 12, previousRevision: 0, author: '0/2 as reported', independent: '0/4', reason: 'Root deferred entire six-probe tranche at confirmed lifecycle blocker' } };
-await writeFile(resolve(owned, 'evidence/audit.json'), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+const result = { auditTime: new Date().toISOString(), snapshots, baselineToFirstChanges: baselineToFirst, firstToFinalChanges: changes, liveDrift, historical: { checked: original.historical.length, drift: historicalDrift, archiveSha256: original.historicalArchiveSha256 }, guardedChildCount: runs.length, observedWorkerCount: runs.reduce((total, run) => total + run.metricsCount, 0), pendingWorkerObservations: runs.reduce((total, run) => total + run.unresolvedAtObservation, 0), runs, nativeAgreement, timingSummary, package: { correctedPass: packageResult.pass, consumerResult, packedAssets, initialFalsePositive: 'evidence/audit.json packagePass and evidence/production-final/package.json pass erroneously accepted repository self-reference; retained unchanged, superseded only for package claim' }, risk: { historicalArchived: 12, previousRevision: 0, author: '0/2 as reported', independent: '0/4', reason: 'Root deferred entire six-probe tranche at confirmed lifecycle blocker' } };
+await writeFile(resolve(owned, 'evidence/audit-final.json'), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
 console.log(JSON.stringify(result, null, 2));

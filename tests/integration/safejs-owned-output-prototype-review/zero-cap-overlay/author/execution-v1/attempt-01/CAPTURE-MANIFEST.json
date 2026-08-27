@@ -1,0 +1,49 @@
+{
+  "capturedAt": "2026-08-27T18:16:44.794878+00:00",
+  "sourceRoot": "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/author-attempt-01",
+  "rawFiles": [
+    {
+      "path": "REPLAY.json",
+      "bytes": 2221,
+      "sha256": "62745080b65407f231e90df52c8c7f23e16ee3164ebec7e1f0d3f606cee78e9b"
+    },
+    {
+      "path": "STARTED.json",
+      "bytes": 144,
+      "sha256": "f11d95b1a35fccf2a9bc050424764aa3bf83cc39411a1fdfef1f2180c6e4e764"
+    },
+    {
+      "path": "surface/closure.json",
+      "bytes": 1340,
+      "sha256": "c888a0cb86d846b409286014de4f2e29445091b9063a3ab724f2a1f7316ef2e1"
+    },
+    {
+      "path": "surface/execution.json",
+      "bytes": 1340,
+      "sha256": "c888a0cb86d846b409286014de4f2e29445091b9063a3ab724f2a1f7316ef2e1"
+    },
+    {
+      "path": "surface/inputs-after.json",
+      "bytes": 670720,
+      "sha256": "f6503e2a7bd62e217cf0fcacef267012b8c102ab2e731eb4071f3e5dfc00b1fc"
+    },
+    {
+      "path": "surface/private-after.json",
+      "bytes": 92852,
+      "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+    },
+    {
+      "path": "surface/private-before.json",
+      "bytes": 92852,
+      "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd"
+    },
+    {
+      "path": "surface/shared-after.json",
+      "bytes": 2932830,
+      "sha256": "07eaf2a06aa23fe7f6de4cb07d1506f41b2b0789b0ccfedd8b7eb42edc35d889"
+    }
+  ],
+  "allRawBytesExact": true,
+  "noRuntimeRerun": true,
+  "noPrivateCodeCommitted": true
+}

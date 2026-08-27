@@ -1,0 +1,269 @@
+{
+  "status": "BLOCKED_BEFORE_FIRST_DRIVER",
+  "scheduled": 25,
+  "cohorts": {
+    "surface": {
+      "scheduled": 8,
+      "pass": 0,
+      "blocked": 8,
+      "launched": 0
+    },
+    "lifecycle": {
+      "scheduled": 11,
+      "pass": 0,
+      "blocked": 11,
+      "launched": 0
+    },
+    "controls": {
+      "scheduled": 6,
+      "pass": 0,
+      "blocked": 6,
+      "launched": 0
+    }
+  },
+  "pass": 0,
+  "failedProductProbes": 0,
+  "invalidExecutedFixtures": 0,
+  "unprovedExecutedProfiles": 0,
+  "blocked": 25,
+  "authorAttemptAdmissions": 1,
+  "originalDriverLaunches": 0,
+  "guestLaunches": 0,
+  "engineRuns": 0,
+  "transportCalls": 0,
+  "nativeCurlRuns": 0,
+  "finiteHostControlsExecuted": 0,
+  "privateGuardSnapshotPairs": 1,
+  "privateGuardSnapshots": 2,
+  "privateGitReadCommands": 10,
+  "privateSourceImports": 0,
+  "noAutomaticRerun": true,
+  "noPromotion": true,
+  "rows": [
+    {
+      "cohort": "surface",
+      "id": "01-supported-facades",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "02-direct-surface",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "03-namespace-spread",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "04-shell-module",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "05-missing-register-cleanup",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "06-missing-acquire",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "07-reflection-profile",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "surface",
+      "id": "08-function-spread-profile",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L01-aliases",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-positive",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-exhausted",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-live",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-after-lifetime",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L04-explicit-children",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-caller-error",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-execution-error",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-cleanup-error",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-open",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-consumer-closed",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-open",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-closed",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-open",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-closed",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-open",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-closed",
+      "classification": "BLOCKED",
+      "controllerLaunched": false,
+      "guestLaunched": false,
+      "engineRuns": 0,
+      "reason": "Surface outer admission refused historical private status mismatch before any driver; no later cohort attempted."
+    }
+  ]
+}

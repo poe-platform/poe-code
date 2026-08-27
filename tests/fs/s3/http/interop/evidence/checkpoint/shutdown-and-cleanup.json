@@ -1,0 +1,89 @@
+{
+  "servers": [
+    {
+      "cohort": "startup-resolved-listener",
+      "pid": 73128,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:19:41.969Z"
+    },
+    {
+      "cohort": "startup-ipv6-listener",
+      "pid": 78145,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:20:41.940Z"
+    },
+    {
+      "cohort": "native-curl-guards",
+      "pid": 78340,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:20:55.355Z"
+    },
+    {
+      "cohort": "reference-guards",
+      "pid": 81296,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:23:22.089Z"
+    },
+    {
+      "cohort": "final-guards",
+      "pid": 83806,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:24:32.351Z"
+    },
+    {
+      "cohort": "initial-transport",
+      "pid": 86929,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:28:29.770Z"
+    },
+    {
+      "cohort": "corrected-transport",
+      "pid": 88760,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:29:25.203Z"
+    },
+    {
+      "cohort": "expanded-transport",
+      "pid": 91480,
+      "code": 0,
+      "signal": null,
+      "ownedDataRemoved": true,
+      "ownedHomeRemoved": true,
+      "time": "2026-08-27T03:30:27.439Z"
+    }
+  ],
+  "downloadedBinaries": [
+    {
+      "path": "/tmp/safe-bash-s3-interop-RUbpyd/minio",
+      "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+      "removed": true
+    },
+    {
+      "path": "/tmp/safe-bash-minio-download-VArwOg/minio",
+      "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+      "removed": true
+    }
+  ],
+  "time": "2026-08-27T03:36:17.973Z"
+}

@@ -1,0 +1,59 @@
+Independent actual-service leaf, August27,2026. Scope tests/fs/s3/http/interop ONLY.
+
+Official MinIO Darwin ARM64 RELEASE.2025-09-07T16-13-09Z downloaded from dl.min.io,
+108218434 bytes; SHA256 7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4
+matches official checksum. Runtime version embeds source07c3a429bfed433e49018cb0f78a52145d4bedeb,
+go1.24.6 darwin/arm64. Historical pinned release, not latest/security recommendation.
+No Docker/Podman/Go available. Native node22.22.2, curl8.7.1 available. Server binds
+127.0.0.1 and ::1 only (lsof -nP recorded), synthetic credentials, owned temp home/data.
+All completed runs stopped gracefully and removed ONLY their owned data/home.
+
+Actual guards: reference signer validates TWO official AWS GET/PUT vectors; real
+MinIO rejects wrong SigV4 and unsigned content access403. 13/17 exact observations:
+- PUT stale IfMatch412 preserves target; valid IfMatch200 updates; missing IfMatch404
+  creates nothing; IfNoneMatch existing412 preserves, missing200 creates.
+- COPY source stale412 preserves target/source; valid200 copies source bytes.
+- COPY destination stale IfMatch200 OVERWRITES; missing IfMatch200 CREATES;
+  IfNoneMatch existing200 OVERWRITES. All three are unsupported guards, NOT passes.
+- DELETE stale IfMatch204 REMOVES target. Unsupported guard, NOT pass.
+Therefore verifiedConditionalOperations {put:true,copy:false,delete:false} ONLY.
+Guard discovery runner exits1 for the four unsupported guards; no skip/rebaseline.
+Final raw guard directory /tmp/safe-bash-s3-service-gIK3hu, profile.json+guards.json.
+Earlier curl-native signing misordered prefix header names in SignedHeaders and
+produced403 on source-copy; preserved as HARNESS failure, not service limitation.
+Earlier exact missing PUT oracle412 corrected to explicit measured404 with no
+  publication; original10/17 raw remains /tmp/safe-bash-s3-service-fy6UbM.
+
+Actual NEW TRANSPORT source imported from isolated dist/fs/s3/http/index.js;
+existing Shell/VFS exports from public virtual-bash. All six operations exercised.
+Current corrected test cohort15/16 on source snapshot in
+/tmp/safe-bash-s3-http-interop-AsHRqf (pin db62cc6e5a2742aeefdb1f9631758e71efdfe6ca
++ONLY src/fs/s3/http overlay). Initial11/16 retained; four failures were Buffer vs
+Uint8Array assertion types, fixed to exact byte comparison; one real LIST defect.
+
+ACTIONABLE SOURCE FINDING:
+MinIO encoding-type=url LIST XML key is pages/space+%2B%25 for actual key
+"pages/space +%". Current transport decodes only percent escapes, returning
+"pages/space++%". Raw independently signed XML and exact expected/actual are in
+/tmp/safe-bash-s3-service-wu5gdD/list-wire-observation.json. No source changes here.
+Do not change expected key. Copy/read existing correct key succeeds; LIST spelling
+must preserve space vs literal + and percent. Provider format/protocol distinction
+needs owner decision; generic unencoded XML must not silently convert literal +.
+
+Meaningful passing flows: both existing-target Memory<->MinIO Shell cp with
+application-owned truthful backing mappings; distinct MinIO keys across actual
+views; same-key alias rejection; unknown existing target refusal without GET/PUT;
+metadata GET/conditional-PUT fallback with nativeCOPYdisabled; rename ENOTSUP
+before all I/O because conditionalDeletefalse, preserving source and target.
+Application owns isolated MinIO disk store AND separate Memory instance; callbacks
+recognize exactly those supplied mappings. No URL/protocol/client identity token.
+
+Expanded required cohort completed15/18: LIST plus SAME-VIEW cp existing/missing
+are red. Both same-view copies return status1 ENOTSUP with source intact and old
+target unchanged / missing target absent. Exact source snapshot and outputs:
+/tmp/safe-bash-s3-http-interop-uWX4Fy and /tmp/safe-bash-s3-service-08wGJL.
+Tested transport.ts9c03259d649da5a95190ec9546ac0d086bebcbee87b202ec01abb743f262dae2.
+No existing copyFile GET/PUT fallback is used; rename-only fallback is blocked
+by missing conditionalDelete. Do not turn required positives into unsupported
+success. Source scope remains yours/root. Sealing evidence and cleaning only
+owned downloaded binaries now; replay prepare.mjs downloads/checks the pin again.

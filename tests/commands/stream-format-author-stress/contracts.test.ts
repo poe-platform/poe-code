@@ -14,22 +14,26 @@ function definition(name: string, options: StreamFormatCommandsOptions = {}) {
   return command;
 }
 
-test("default factory remains60, source opt-in adds exactly four without split", async () => {
+test("default factory contains65 and standalone formatting installs exactly four without split", async () => {
   const instance = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
-  assert.equal(createAgentCommands().length, 60);
-  for (const name of ["seq", "nl", "rev", "unexpand", "split"]) {
+  assert.equal(createAgentCommands().length, 65);
+  for (const name of ["curl", "safejs"]) {
     const result = await instance.exec(`${name}`);
     assert.equal(result.exitCode, 127);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, `shell: line 1: ${name}: command not found\n`);
   }
-  assert.equal(instance.commands.list().length, 60);
-  instance.use(streamFormatCommands());
+  assert.equal(instance.commands.list().length, 65);
+  for (const name of ["seq", "nl", "rev", "unexpand", "split"]) assert.equal(instance.commands.has(name), true);
   assert.equal((await instance.exec("seq 1")).exitCode, 0);
-  assert.equal(instance.commands.list().length, 64);
   assert.deepEqual(createStreamFormatCommands().map(command => command.name), ["seq", "nl", "rev", "unexpand"]);
-  assert.equal(instance.commands.has("split"), false);
   await instance.dispose();
+  const standalone = new Shell({ fs: createMemoryFileSystem() }).use(streamFormatCommands());
+  try {
+    assert.equal((await standalone.exec("seq 1")).exitCode, 0);
+    assert.equal(standalone.commands.list().length, 4);
+    assert.equal(standalone.commands.has("split"), false);
+  } finally { await standalone.dispose(); }
 });
 
 test("collision preflight does not partially register; replacement is intentional", async () => {

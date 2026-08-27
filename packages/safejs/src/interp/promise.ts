@@ -1,5 +1,6 @@
 import type { Budget } from "./budget.js";
-import { SandboxError } from "./budget.js";
+import { createSubsetErrorValue } from "./exceptions.js";
+import { runPromiseJob } from "./jobs.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
 import {
   createSandboxClosure,
@@ -70,18 +71,18 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             settleIterable(
               values,
               (entries) =>
-                Promise.any(entries).catch((error: AggregateError) =>
-                  Promise.reject(
-                    budgetSandboxValue(
-                      {
-                        errors: Array.isArray(error.errors) ? (error.errors as SandboxValue[]) : [],
-                        message: "All promises were rejected",
-                        name: "AggregateError"
-                      },
-                      options.budget
-                    )
-                  )
-                ),
+                Promise.any(entries).catch((error: AggregateError) => {
+                  const aggregate = createSubsetErrorValue(
+                    "AggregateError",
+                    "All promises were rejected",
+                    [],
+                    options.budget
+                  );
+                  aggregate.errors = Array.isArray(error.errors)
+                    ? (error.errors as SandboxValue[])
+                    : [];
+                  throw budgetSandboxValue(aggregate, options.budget);
+                }),
               options.budget
             )
           ),
@@ -108,8 +109,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
 export function getPromiseMember(
   target: SandboxPromise,
   property: string | number,
-  budget: Budget,
-  enqueue: <T>(task: () => Promise<T>) => Promise<T> = (task) => Promise.resolve().then(task)
+  budget: Budget
 ): SandboxValue {
   if (property === "then") {
     return createSandboxClosure({
@@ -117,12 +117,10 @@ export function getPromiseMember(
       call: ([onFulfilled, onRejected]) => {
         observeSandboxPromise(target);
         const chained = createSandboxPromise(
-          enqueue(() =>
-            target.promise.then(
-              (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained),
-              (reason: SandboxValue) =>
-                runPromiseReaction(onRejected, reason, "rejected", budget, chained)
-            )
+          target.promise.then(
+            (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained),
+            (reason: SandboxValue) =>
+              runPromiseReaction(onRejected, reason, "rejected", budget, chained)
           )
         );
         return chained;
@@ -137,12 +135,10 @@ export function getPromiseMember(
       call: ([onRejected]) => {
         observeSandboxPromise(target);
         const chained = createSandboxPromise(
-          enqueue(() =>
-            target.promise.then(
-              (value) => runPromiseReaction(undefined, value, "fulfilled", budget, chained),
-              (reason: SandboxValue) =>
-                runPromiseReaction(onRejected, reason, "rejected", budget, chained)
-            )
+          target.promise.then(
+            (value) => runPromiseReaction(undefined, value, "fulfilled", budget, chained),
+            (reason: SandboxValue) =>
+              runPromiseReaction(onRejected, reason, "rejected", budget, chained)
           )
         );
         return chained;
@@ -157,12 +153,10 @@ export function getPromiseMember(
       call: ([onFinally]) => {
         observeSandboxPromise(target);
         const chained = createSandboxPromise(
-          enqueue(() =>
-            target.promise.then(
-              (value) => runPromiseFinally(onFinally, value, "fulfilled", budget, chained),
-              (reason: SandboxValue) =>
-                runPromiseFinally(onFinally, reason, "rejected", budget, chained)
-            )
+          target.promise.then(
+            (value) => runPromiseFinally(onFinally, value, "fulfilled", budget, chained),
+            (reason: SandboxValue) =>
+              runPromiseFinally(onFinally, reason, "rejected", budget, chained)
           )
         );
         return chained;
@@ -338,60 +332,57 @@ function resolveThenable(
       | { state: "rejected"; value: SandboxValue }
       | undefined;
     let completed = false;
+    let invocationPending = true;
     const complete = () => {
-      if (completed || settlement === undefined) return;
+      if (completed || invocationPending || settlement === undefined) return;
       completed = true;
-      if (settlement.state === "fulfilled") {
-        resolve(resolveSandboxValueNow(settlement.value, options, seenThenables));
-      } else {
-        reject(budgetIfNeeded(settlement.value, options.budget));
+      try {
+        if (settlement.state === "fulfilled") {
+          resolve(resolveSandboxValueNow(settlement.value, options, seenThenables));
+        } else {
+          reject(budgetIfNeeded(settlement.value, options.budget));
+        }
+      } catch (error) {
+        reject(error);
       }
     };
     const recordSettlement = (state: "fulfilled" | "rejected", settledValue: SandboxValue) => {
       if (settlement !== undefined) {
-        throw new SandboxError("reentry");
+        return;
       }
       settlement = { state, value: settledValue };
       queueMicrotask(complete);
     };
-    const resolveOnce = (resolved: SandboxValue) => {
-      recordSettlement("fulfilled", resolved);
-    };
-    const rejectOnce = (reason: SandboxValue) => {
-      recordSettlement("rejected", reason);
-    };
-
-    try {
-      const result = then.call([
+    callInPromiseJob(
+      then,
+      [
         createSandboxClosure({
           call: ([resolved]) => {
-            resolveOnce(resolved);
+            recordSettlement("fulfilled", resolved);
             return undefined;
           },
           name: "resolve"
         }),
         createSandboxClosure({
           call: ([reason]) => {
-            rejectOnce(reason);
+            recordSettlement("rejected", reason);
             return undefined;
           },
           name: "reject"
         })
-      ]);
-
-      if (isPromiseLike(result)) {
-        Promise.resolve(result).catch((reason: SandboxValue) => {
-          rejectOnce(reason);
-        });
+      ],
+      value
+    ).then(
+      () => {
+        invocationPending = false;
+        complete();
+      },
+      (error: SandboxValue) => {
+        invocationPending = false;
+        recordSettlement("rejected", error);
+        complete();
       }
-    } catch (error) {
-      if (settlement !== undefined) {
-        settlement = { state: "rejected", value: error as SandboxValue };
-        queueMicrotask(complete);
-      } else {
-        rejectOnce(error as SandboxValue);
-      }
-    }
+    );
   }).then((resolved) => budgetIfNeeded(resolved, options.budget));
 }
 
@@ -408,12 +399,9 @@ function runPromiseReaction(
       : Promise.reject(budgetSandboxValue(value, budget));
   }
 
-  try {
-    const result = handler.call([value]);
-    return resolveReactionResult(result, budget, self);
-  } catch (error) {
-    return Promise.reject(error as SandboxValue);
-  }
+  return callInPromiseJob(handler, [value]).then(({ value: result }) =>
+    resolveReactionResult(result, budget, self)
+  );
 }
 
 function runPromiseFinally(
@@ -427,14 +415,26 @@ function runPromiseFinally(
     return runPromiseReaction(undefined, value, state, budget);
   }
 
-  try {
-    const result = handler.call([]);
-    return resolveReactionResult(result, budget, self).then(() =>
+  return callInPromiseJob(handler, []).then(({ value: result }) =>
+    resolveReactionResult(result, budget, self).then(() =>
       runPromiseReaction(undefined, value, state, budget)
-    );
-  } catch (error) {
-    return Promise.reject(error as SandboxValue);
-  }
+    )
+  );
+}
+
+function callInPromiseJob(
+  handler: SandboxClosure,
+  args: readonly SandboxValue[],
+  thisValue: SandboxValue = undefined
+): Promise<{ value: SandboxValue | Promise<SandboxValue> }> {
+  return runPromiseJob(async () => {
+    let result = handler.call(args, { stack: [], thisValue });
+    if (handler.async !== true) result = await result;
+    if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+      await result.synchronousPrefix;
+    }
+    return { value: result };
+  });
 }
 
 function resolveReactionResult(
@@ -461,17 +461,14 @@ function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined
   );
 }
 
-function getThenable(value: SandboxValue): SandboxClosure | undefined {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    isSandboxClosure(value) ||
-    isSandboxPromise(value)
-  ) {
+export function getThenable(value: SandboxValue): SandboxClosure | undefined {
+  if (typeof value !== "object" || value === null || isSandboxPromise(value)) {
     return undefined;
   }
 
-  const then = (value as Record<string, SandboxValue>).then;
+  const then = isSandboxClosure(value)
+    ? value.properties?.then
+    : (value as Record<string, SandboxValue>).then;
   return isSandboxClosure(then) ? then : undefined;
 }
 

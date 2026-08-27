@@ -74,7 +74,7 @@ import {
 } from "./observability/otel.js";
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
-import { DUMP_FORMAT_VERSION } from "./snapshot/dump-format.js";
+import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
 import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
 import { UnsnapshotableValueError } from "./snapshot/serialize.js";
 import { prepareReplayInputs } from "./snapshot/replay-inputs.js";
@@ -240,7 +240,6 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           }),
           ...createRegexGlobals()
         };
-        const bindings = wrapCancelableBindings(builtinBindings, options.signal);
         const initialInputs = prepareReplayInputs(
           {
             bindings: callerBindings,
@@ -298,7 +297,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         );
 
         const scope = new Scope(
-          bindings,
+          builtinBindings,
           undefined,
           undefined,
           { chargeData: false },
@@ -363,6 +362,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             dumpController.onYield(createSnapshot);
           },
           scope: executionScope,
+          signal: options.signal,
           snapshot: interpreterSnapshot,
           surfaceUnhandledThrows: true,
           useScopeDirectly: true
@@ -411,6 +411,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   dumpController.onYield(createSnapshot);
                 },
                 scope: executionScope,
+                signal: options.signal,
                 snapshot: interpreterSnapshot
               });
         await throwIfReturnedPromiseRejected(result);
@@ -516,6 +517,7 @@ async function callEntryPoint(input: {
   module: Module;
   onYield: NonNullable<Parameters<typeof interpret>[1]>["onYield"];
   scope: Scope;
+  signal?: AbortSignal;
   snapshot?: RunSnapshot;
 }): Promise<InterpreterResult> {
   const defaultExport = input.scope.lookup("default");
@@ -537,6 +539,7 @@ async function callEntryPoint(input: {
   });
 
   return interpret(createEntryPointAwait(input.args.length, input.module.span), {
+    signal: input.signal,
     budget: input.budget,
     captureReplayState: input.captureReplayState,
     onYield: input.onYield,
@@ -626,6 +629,7 @@ function createRunSnapshot(input: {
 }): RunSnapshot {
   return {
     version: DUMP_FORMAT_VERSION,
+    executionSemantics: EXECUTION_SEMANTICS,
     sourceHash: input.sourceHash,
     bindings: input.bindings,
     clock: input.clock?.snapshot(),

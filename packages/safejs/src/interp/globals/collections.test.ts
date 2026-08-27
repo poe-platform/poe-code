@@ -294,7 +294,7 @@ describe("Map and Set globals", () => {
     });
   });
 
-  it("awaits async forEach callbacks", async () => {
+  it("allows pending async forEach callbacks to finish at the caller's await", async () => {
     await expect(
       run(`
         const mapValues = [];

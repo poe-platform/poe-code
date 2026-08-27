@@ -5,10 +5,14 @@ import {
   isSandboxPromise,
   type SandboxArray,
   type SandboxObject,
+  type SandboxPromise,
   type SandboxValue
 } from "./values.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
 import { replaceErrorStack } from "../error/shape.js";
+import { resolveSandboxValue } from "./promise.js";
+
+const cancellationSignals = new WeakMap<SandboxPromise, AbortSignal>();
 
 export function wrapCancelableBindings(
   bindings: Record<string, SandboxValue>,
@@ -61,11 +65,15 @@ function wrapCancelableValue(
     observeSandboxPromise(value);
     const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen), {
       trackReplay: false,
+      ...(value.synchronousPrefix === undefined
+        ? {}
+        : { synchronousPrefix: value.synchronousPrefix }),
       ...(value.hostCall === undefined ? {} : { hostCall: value.hostCall }),
       ...(value.hostCallJournal === undefined ? {} : { hostCallJournal: value.hostCallJournal }),
       ...(value.span === undefined ? {} : { span: value.span })
     });
     seen.set(value, wrapped);
+    cancellationSignals.set(wrapped, signal);
     return wrapped;
   }
 
@@ -107,7 +115,30 @@ function wrapCancelablePromise(
   signal: AbortSignal,
   seen: WeakMap<object, SandboxValue>
 ): Promise<SandboxValue> {
+  return awaitWithSignal(promise, signal).then(
+    (value) => wrapCancelableValue(value, signal, seen),
+    (reason: unknown) => {
+      if (signal.aborted && reason === signal.reason) throw reason;
+      throw wrapCancelableUnknown(reason, signal, seen);
+    }
+  );
+}
+
+export function awaitSandboxValue(
+  value: SandboxValue,
+  signal?: AbortSignal
+): Promise<SandboxValue> {
+  const resolved = resolveSandboxValue(value);
+  return isSandboxPromise(value) &&
+    (value.synchronousPrefix !== undefined || cancellationSignals.get(value) === signal)
+    ? resolved
+    : awaitWithSignal(resolved, signal);
+}
+
+function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Promise<T> {
+  if (signal === undefined) return Promise.resolve(promise);
   if (signal.aborted) {
+    void Promise.resolve(promise).catch(() => undefined);
     return Promise.reject(readAbortReason(signal));
   }
 
@@ -142,10 +173,10 @@ function wrapCancelablePromise(
 
     Promise.resolve(promise).then(
       (value) => {
-        settle(() => resolve(wrapCancelableValue(value, signal, seen)));
+        settle(() => resolve(value));
       },
       (reason) => {
-        settle(() => reject(wrapCancelableUnknown(reason, signal, seen)));
+        settle(() => reject(reason));
       }
     );
   });

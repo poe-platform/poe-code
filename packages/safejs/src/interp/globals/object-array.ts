@@ -217,7 +217,10 @@ async function arrayFromSandboxValues(
 
   for (const [index, value] of values.entries()) {
     const result = await mapFn.call([value, index]);
-    mappedValues.push(isSandboxPromise(result) ? await result.promise : result);
+    if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+      await result.synchronousPrefix;
+    }
+    mappedValues.push(result);
   }
 
   return budgetSandboxValue(mappedValues, budget);

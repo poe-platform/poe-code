@@ -2826,7 +2826,7 @@ describe("interpret", () => {
       }
     });
 
-    expect(yieldNodeIds).toEqual([topLevelAwait.nodeId, topLevelAwait.argument.callee.body.nodeId]);
+    expect(yieldNodeIds).toEqual([topLevelAwait.argument.callee.body.nodeId, topLevelAwait.nodeId]);
   });
 
   it("treats await on plain values as a yield point and returns the original value", async () => {

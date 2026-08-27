@@ -284,7 +284,7 @@ describe("string methods", () => {
 
     expect(result).toMatchObject({
       ok: true,
-      returnValue: ["a:0:ababa", "0b2"]
+      returnValue: ["a:0:ababa", "[object Promise]b[object Promise]"]
     });
   });
 

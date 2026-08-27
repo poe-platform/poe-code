@@ -941,7 +941,8 @@ describe("snapshot restore", () => {
     expect(restored.callStack[0]?.node.nodeId).toBe(awaitNodeId);
     expect(restored.callStack[0]?.scope).toBe(restored.currentScope);
     expect(restored.callStack[0]?.awaitingPromise).toBe(restored.pendingPromises[0]);
-    expect(restored.pendingPromises).toEqual([
+    expect(Object.prototype.toString.call(restored.pendingPromises[0])).toBe("[object Promise]");
+    expect(restored.pendingPromises.map((promise) => ({ ...promise }))).toEqual([
       {
         id: "promise-1",
         moduleId: "time",

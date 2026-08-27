@@ -322,7 +322,7 @@ no module bodies to inspect.
 
 ## Gotchas
 
-- **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
+- **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older asynchronous execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
 - **`Promise.all` is fine; user-defined promise constructors are not.** `Promise` is exposed for static helpers and promise instances expose `then`, `catch`, and `finally`. There is no `new Promise(...)`.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.

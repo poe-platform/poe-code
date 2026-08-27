@@ -193,6 +193,51 @@ describe("wrapCancelableBindings", () => {
 });
 
 describe("run cancellation", () => {
+  it.each([
+    "return Array.from([1, 2], value => value * 2);",
+    "const values = new Map([[1, 2]]); return [values.get(1), values instanceof Map];",
+    "try { await Promise.any([Promise.reject(1)]); } catch (error) { return [error instanceof AggregateError, error.errors]; }"
+  ])("preserves builtin behavior while a signal is armed: %s", async (source) => {
+    const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
+    expect(await run(source, { signal: new AbortController().signal })).toMatchObject({
+      ok: true,
+      returnValue: await new AsyncFunction(source)()
+    });
+  });
+
+  it("preserves async prefixes for source functions returned through a cancelable binding", async () => {
+    const source =
+      "let count = 0; const action = await identity(async () => { for (let index = 0; index < 16; index++) count++; await 0; }); const pending = action(); const prefix = count; await pending; return [prefix, count];";
+    expect(
+      await run(source, {
+        bindings: { identity: (value: unknown) => value },
+        signal: new AbortController().signal
+      })
+    ).toMatchObject({ ok: true, returnValue: [16, 16] });
+  });
+
+  it("can abort an empty builtin race without replacing builtin identities", async () => {
+    const controller = new AbortController();
+    const result = run("try { await Promise.race([]); } catch (error) { return error.name; }", {
+      signal: controller.signal
+    });
+    queueMicrotask(() => controller.abort());
+    expect(await result).toMatchObject({ ok: true, returnValue: "AbortError" });
+  });
+
+  it.each(["Promise.race([])", "{ then: () => undefined }"])(
+    "can abort asynchronous return-value adoption: %s",
+    async (value) => {
+      const controller = new AbortController();
+      const result = run(
+        `const main = async () => (${value}); try { await main(); } catch (error) { return error.name; }`,
+        { signal: controller.signal }
+      );
+      queueMicrotask(() => controller.abort());
+      expect(await result).toMatchObject({ ok: true, returnValue: "AbortError" });
+    }
+  );
+
   // An armed signal wraps every host call in a second sandbox promise, so the
   // rejection the sandbox already caught must not also count as unhandled.
   it("keeps a caught host call rejection non-fatal while a signal is armed", async () => {

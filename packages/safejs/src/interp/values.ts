@@ -100,6 +100,7 @@ export type SandboxClosure = {
 
 export type SandboxPromise = {
   readonly kind: "promise";
+  readonly synchronousPrefix?: Promise<void>;
   readonly promise: Promise<SandboxValue>;
   readonly hostCall?: import("./host-call.js").HostCallRecord;
   readonly hostCallJournal?: import("./host-call.js").HostCallJournal;
@@ -173,6 +174,7 @@ export function createSandboxPromise(
   promise: Promise<SandboxValue>,
   metadata: {
     trackReplay?: boolean;
+    synchronousPrefix?: Promise<void>;
     hostCall?: import("./host-call.js").HostCallRecord;
     hostCallJournal?: import("./host-call.js").HostCallJournal;
     span?: SandboxCallContext["span"];
@@ -191,9 +193,17 @@ export function createSandboxPromise(
     value: true
   });
 
+  Object.defineProperty(sandboxPromise, Symbol.toStringTag, { value: "Promise" });
+
   if (metadata.span !== undefined) {
     Object.defineProperty(sandboxPromise, "span", {
       value: metadata.span
+    });
+  }
+
+  if (metadata.synchronousPrefix !== undefined) {
+    Object.defineProperty(sandboxPromise, "synchronousPrefix", {
+      value: metadata.synchronousPrefix
     });
   }
 

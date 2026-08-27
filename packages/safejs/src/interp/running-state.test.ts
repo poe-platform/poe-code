@@ -171,7 +171,7 @@ describe("interpreter running-state guards", () => {
     );
   });
 
-  it("rejects settling the same promise twice and recovers for another promise", async () => {
+  it("ignores duplicate promise settlement without affecting another promise", async () => {
     const duplicate = {
       then: createSandboxClosure({
         name: "then",
@@ -183,9 +183,7 @@ describe("interpreter running-state guards", () => {
       })
     };
 
-    await expect(resolveSandboxValue(duplicate)).rejects.toEqual(
-      expect.objectContaining({ code: "reentry", name: "SandboxError" })
-    );
+    await expect(resolveSandboxValue(duplicate)).resolves.toBe(1);
     await expect(
       resolveSandboxValue({
         then: createSandboxClosure({

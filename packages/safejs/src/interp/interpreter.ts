@@ -1,4 +1,5 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { SandboxJobQueue, suspendJob } from "./jobs.js";
 import type {
   ArrayExpression,
   ArrayPattern,
@@ -195,6 +196,7 @@ export type InterpretOptions = {
   budget?: Budget;
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
   scope?: Scope;
+  signal?: AbortSignal;
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
@@ -306,7 +308,7 @@ export async function interpret(
     peakDataSize: { enumerable: false, value: 0, writable: true }
   });
   const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
-  const microtasks: Array<() => void> = [];
+  const jobs = new SandboxJobQueue();
   hoistVarDeclarations(node, scope);
   const context = {
     budget,
@@ -315,8 +317,8 @@ export async function interpret(
     captureReplayState: options.captureReplayState,
     rootNode: node,
     scope,
+    signal: options.signal,
     stats,
-    microtasks,
     activeLoopIterations,
     restoredLoopIterations: new Map(
       Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
@@ -328,8 +330,8 @@ export async function interpret(
     generatorYield: options.generatorYield,
     resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
   };
-  const evaluation = await evaluateNode(node, context);
-  await drainMicrotasks(context);
+  const evaluation = await jobs.run(() => evaluateNode(node, context));
+  await jobs.drain();
   const snapshot = scope.snapshot();
   reconcileDataBudget(
     budget,
@@ -389,30 +391,12 @@ export async function interpret(
 
 export { Scope } from "./scope.js";
 
-async function drainMicrotasks(context: EvaluationContext): Promise<void> {
-  let idleTurns = 0;
-
-  while (idleTurns < 20) {
-    const task = context.microtasks.shift();
-    if (task === undefined) {
-      idleTurns += 1;
-      await Promise.resolve();
-      continue;
-    }
-
-    idleTurns = 0;
-    context.budget.visitNode();
-    task();
-    await Promise.resolve();
-  }
-}
-
 async function evaluateNode(
   node: ParseResult,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
-  if (replayWait !== undefined) await replayWait;
+  if (replayWait !== undefined) await suspendJob(replayWait);
   context.budget.visitNode();
   context.stats.nodeVisits += 1;
 
@@ -2388,9 +2372,7 @@ async function evaluateMemberExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: getPromiseMember(member.object, member.property, context.budget, (task) =>
-        enqueueMicrotask(context, task)
-      )
+      value: getPromiseMember(member.object, member.property, context.budget)
     };
   }
 
@@ -2411,14 +2393,6 @@ async function evaluateMemberExpression(
     hasValue: true,
     value: getMemberValue(member.object, member.property, context)
   };
-}
-
-function enqueueMicrotask<T>(context: EvaluationContext, task: () => Promise<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    context.microtasks.push(() => {
-      task().then(resolve, reject);
-    });
-  });
 }
 
 async function evaluateCallExpression(
@@ -2763,9 +2737,7 @@ async function evaluateMemberCallExpression(
   if (isSandboxPromise(member.object)) {
     return evaluateResolvedCallExpression(
       node,
-      getPromiseMember(member.object, member.property, context.budget, (task) =>
-        enqueueMicrotask(context, task)
-      ),
+      getPromiseMember(member.object, member.property, context.budget),
       context,
       member.object
     );
@@ -2830,15 +2802,8 @@ async function evaluateStringMethodCall(
         methodName,
         args.value,
         context.budget,
-        async (closure, closureArgs) => {
-          const result = await invokeSandboxClosure(
-            closure,
-            closureArgs,
-            context,
-            context.callStack
-          );
-          return isSandboxPromise(result) ? await result.promise : result;
-        }
+        (closure, closureArgs) =>
+          invokeSandboxClosure(closure, closureArgs, context, context.callStack)
       )
     };
   } catch (error) {
@@ -3502,6 +3467,10 @@ async function invokeSandboxClosure(
         ...(span === undefined ? {} : { span })
       }
     ]);
+
+    if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+      await result.synchronousPrefix;
+    }
 
     return callee.async === true
       ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)

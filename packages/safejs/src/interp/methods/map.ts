@@ -3,7 +3,6 @@ import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
-  isSandboxPromise,
   type SandboxClosure,
   type SandboxMap,
   type SandboxValue
@@ -101,10 +100,7 @@ export async function callMapMethod(
         const entries = [...target.entries];
         for (let index = 0; index < entries.length; index += 1) {
           const [key, value] = entries[index]!;
-          const result = await options.callClosure(callback, [value, key, target], stack);
-          if (isSandboxPromise(result)) {
-            await result.promise;
-          }
+          await options.callClosure(callback, [value, key, target], stack);
         }
       } finally {
         leaveCallback();

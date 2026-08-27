@@ -22,7 +22,9 @@ import type {
   LoopIterationSnapshot
 } from "./interpreter.js";
 import { bindPattern } from "./patterns.js";
-import { resolveSandboxValue } from "./promise.js";
+import { getThenable, resolveSandboxValue } from "./promise.js";
+import { runAsyncPrefix, suspendJob } from "./jobs.js";
+import { awaitSandboxValue } from "./cancel.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import {
@@ -55,18 +57,19 @@ export type AsyncEvaluationContext = {
   budget: Budget;
   callStack: string[];
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
+  onSuspend?: () => void;
   captureReplayState?: () => unknown;
   rootNode?: ParseResult;
   restoredLoopIterations: Map<number, LoopIterationSnapshot>;
   resumeTarget?: { nodeId?: number };
   scope: Scope;
+  signal?: AbortSignal;
   snapshot?: (scope: Scope) => InterpreterSnapshot;
   stats: {
     currentDataSize: number;
     nodeVisits: number;
     peakDataSize: number;
   };
-  microtasks: Array<() => void>;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
   generatorResume?: {
     sent: GeneratorCompletion[];
@@ -163,33 +166,40 @@ export function createInterpretedClosure(
       : {}),
     ...(construct === undefined ? {} : { construct }),
     retainedValues: () => context.scope.retainedValues(),
-    call: (args, callContext) =>
-      node.async
-        ? createSandboxPromise(
-            resolveSandboxValue(
-              executeClosure(
-                node,
-                args,
-                callContext?.thisValue,
-                {
-                  ...context,
-                  callStack: [...(callContext?.stack ?? context.callStack)]
-                },
-                evaluateNode
-              ),
-              { budget: context.budget }
-            )
-          )
-        : executeClosure(
-            node,
-            args,
-            callContext?.thisValue,
-            {
-              ...context,
-              callStack: [...(callContext?.stack ?? context.callStack)]
-            },
-            evaluateNode
-          )
+    call: (args, callContext) => {
+      const invocationContext = {
+        ...context,
+        callStack: [...(callContext?.stack ?? context.callStack)]
+      };
+      if (!node.async)
+        return executeClosure(node, args, callContext?.thisValue, invocationContext, evaluateNode);
+
+      let completePrefix!: () => void;
+      const synchronousPrefix = new Promise<void>((resolve) => {
+        completePrefix = resolve;
+      });
+      const execution = runAsyncPrefix(() =>
+        executeClosure(
+          node,
+          args,
+          callContext?.thisValue,
+          { ...invocationContext, onSuspend: completePrefix },
+          evaluateNode
+        )
+      );
+      execution.then(completePrefix, completePrefix);
+      return createSandboxPromise(
+        resolveSandboxValue(
+          execution.then((value) =>
+            isSandboxPromise(value) || getThenable(value) !== undefined
+              ? awaitSandboxValue(value, context.signal)
+              : value
+          ),
+          { budget: context.budget }
+        ),
+        { synchronousPrefix }
+      );
+    }
   });
 }
 
@@ -251,6 +261,8 @@ export async function evaluateAwaitExpression(
     return argument;
   }
 
+  context.onSuspend?.();
+
   emitResumeBreakpoint(context, {
     kind: "await",
     replayState,
@@ -264,13 +276,10 @@ export async function evaluateAwaitExpression(
   const leaveAwait = context.budget.enterAwait();
 
   try {
-    while (context.microtasks.length > 0) {
-      context.microtasks.shift()?.();
-    }
     return {
       kind: "normal",
       hasValue: true,
-      value: await resolveSandboxValue(argument.value)
+      value: await suspendJob(awaitSandboxValue(argument.value, context.signal))
     };
   } finally {
     leaveAwait();

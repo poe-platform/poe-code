@@ -136,3 +136,31 @@ execution traces are rejected before external reconciliation.
 Retained source closures and their mutable captures remain budget roots even
 after ordinary source bindings stop referencing them. Initial input history and
 callback execution traces also consume the aggregate data budget.
+
+## Execution compatibility
+
+New run snapshots carry `executionSemantics: "jobs-v1"`. Promise jobs run after
+the surrounding synchronous source execution yields. Async functions execute
+their synchronous prefix before returning a promise, and synchronous builtin
+callbacks do not implicitly await returned promises. Thenables preserve their
+receiver, ignore settlement attempts after the first, and finish their current
+synchronous invocation before await continuations execute.
+
+These corrections change execution ordering, not the parsed source hash. An
+upgrade probe against poe-code 4.0.71 reproduced both changed results and stalled
+replay with an unchanged source hash. `restore` and `run` therefore reject replay
+snapshots lacking the current execution marker with `SnapshotValidationError`,
+code `unsupportedVersion`, at `$.executionSemantics`, before host operations.
+Unknown markers are also rejected. Legacy snapshots without replay history keep
+their existing legacy restoration path; this does not upgrade their guarantees.
+
+Keep older replay snapshots and use the runtime that created them. Do not rename
+or inject the version marker, or restart an effectful script merely to bypass
+this check: neither operation establishes safe migration. Explicit migration
+and external-effect reconciliation remain a separate language-completeness item.
+
+Cancellation of builtin awaits is handled at the await boundary, without
+replacing constructors or dropping their static properties and identity. Host
+promises already wrapped for cancellation retain their original settlement
+versus abort ordering. Source-function synchronous-prefix metadata survives
+cancelable host round trips.

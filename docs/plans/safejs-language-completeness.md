@@ -14,7 +14,7 @@ language completeness from passing existing tests alone.
       exports, with the same semantics and diagnostics as runtime. Native-JavaScript
       audit also found missing ordinary-function `arguments` bindings; include their
       strict-mode semantics and arrow inheritance in this item.
-- [ ] Markdown: handle multiple executable blocks explicitly rather than quietly
+- [x] Markdown: handle multiple executable blocks explicitly rather than quietly
       ignoring code; verify fenced-block boundaries and actionable errors.
 - [ ] Snapshot evolution: provide an explicit, validated migration path without
       silently restoring incompatible execution state or repeating side effects.
@@ -521,8 +521,83 @@ root/SafeJS typechecks, all 67 build tasks, and the root bundle passed. The
 18-case/54-process CLI matrix passed again against rebuilt output. Inspected
 the root CLI regression screenshot: 8,192 random draws and 32 UUIDs, zero spawns.
 
-Before release: commit and publish Markdown separately. The full
-language-completeness goal remains active.
+Released separately in commit `e676828f`. GitHub Release run `33023405259`
+passed build, signatures, package lint, unit tests, smoke, and publication.
+Verified npm `poe-code@4.0.71` has the exact commit's gitHead and GitHub release
+`v4.0.71` was published August 26, 2026 at 23:39:16 UTC. The final pre-push suite
+passed 20,288 tests, with 41 skipped. Concurrent main changes were preserved.
+The full language-completeness goal remains active.
+
+## Promise execution prerequisites
+
+Native-reference scripts exposed existing failures before constructor work:
+thenable receiver binding was missing, repeated settlement could trigger an
+unhandled host error, and queued budget errors escaped their promise. Focused
+regressions verify first settlement wins and errors remain contained.
+
+Wider scripts exposed synchronous-prefix and thenable scheduling errors. A
+per-execution source job queue now serializes synchronous source execution and
+resumes asynchronous continuations only when their caller yields. Nested prefixes
+inherit the active caller; replay waits relinquish execution to recorded work.
+Thenable callbacks finish their synchronous tail before settlement is delivered.
+
+The expanded suite exposed implicit awaiting in `Array.from`, collection
+`forEach`, string replacers, and JSON callbacks. Those synchronous builtins now
+retain promise values instead. Promise string/JSON representations match the
+native reference cases. `Promise.any` uses a branded sandbox `AggregateError`,
+preserving its rejection reasons through catch handling.
+
+Armed-signal stress then found builtin constructor/static-property loss and lost
+source-function prefix metadata. Builtin cancellation now occurs at await
+boundaries; already-cancelable host promises retain settlement-versus-abort
+ordering. Source async calls unwind their own finally blocks before their
+callers receive completion. Return-value promise/thenable adoption remains
+cancelable. All original cancellation and CLI SIGINT regressions pass.
+
+An upgrade probe compiled the unmodified `e676828f` SafeJS source in an isolated
+temporary tree. Replaying its snapshots under the new execution model reproduced
+silent result drift and a stalled continuation, despite identical source hashes.
+New snapshots carry `executionSemantics: "jobs-v1"`. Incompatible replay snapshots
+now fail before effects with a precise validation error. Do not relabel old
+snapshots: resume them with their original runtime. This compatibility change
+must be called out as breaking in the prerequisite release. Explicit migration
+and promise constructors remain unchecked, separate follow-up items.
+
+### Native-reference stress procedure
+
+1. Cross six promise-producing expressions in both input positions for `race`,
+   `any`, `all`, and `allSettled`: fulfilled, async immediate, async suspended,
+   thenable, reaction, and rejected. Compare all 144 results with native JS and
+   restore each completed snapshot twice (288 restored generations).
+2. Run async prefixes, thenable tails, reaction chains, and JSON callbacks at
+   widths 1, 32, 256, and 1,024. Compare against native results and restore twice
+   (16 cases, 32 generations). The 1,024-wide concurrent-await case deliberately
+   uses `maxCallDepth: 4096`: the existing default counts outstanding awaits and
+   correctly stops it at 1,000. This is not a disabled budget check.
+3. Run three families through the real standalone CLI at widths 1, 32, and 256,
+   in raw files and CRLF Markdown with three executable fences. Each original
+   and two restores run in new processes: 18 cases, 54 processes.
+4. Re-run the 18 hard-crash/restart cases for mixed RNG/time, caught failures, and
+   returned callbacks, with and without the legacy host-call sidecar. Check exact
+   native results and effect counts, never just successful process exit.
+5. Verify four snapshots produced by the previous runtime now fail safely, not
+   with changed results or a hang. Inspect success and compatibility-error CLI
+   screenshots. The root CLI fixture runs 256 async callbacks and checks prefix
+   32,640 and final total 65,280, with zero agent spawns.
+
+All listed native matrices and the hard-crash matrix passed. The initial native
+comparison normalized serialized SDK objects before comparing prototypes; the
+one real 144-case mismatch was the lost `AggregateError.errors` payload and was
+fixed with failing regressions first. The suite retains its five skipped Test262
+cases; none of this is a claim of complete JavaScript conformance.
+
+Pre-release validation: 3,468 expanded SafeJS/agent-harness tests passed, 39
+skipped; opt-in adversarial/parser fuzz passed 9, skipped 5. Root typecheck and
+focused ESLint passed. All 67 workspace build tasks and the root bundle passed.
+The final width and 54-process CLI matrices passed again after the cancellation
+fixes, along with the 12-case/36-generation completed-snapshot regression matrix.
+Both new CLI screenshots were inspected: successful 256-callback execution and
+an actionable compatibility error for a real previous-runtime snapshot.
 
 ## Stale artifact cleanup
 

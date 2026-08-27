@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "./budget.js";
-import { createPromiseGlobals, getPromiseMember } from "./promise.js";
+import { createPromiseGlobals, getPromiseMember, resolveSandboxValue } from "./promise.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -13,6 +13,101 @@ import {
 } from "./values.js";
 
 describe("createPromiseGlobals", () => {
+  it.each(
+    ["resolve", "reject"].flatMap((first) =>
+      ["resolve", "reject", "throw"].map((second) => ({ first, second }))
+    )
+  )("keeps the first $first when a thenable later calls $second", async ({ first, second }) => {
+    const value = createThenable((resolve, reject) => {
+      if (first === "resolve") resolve("first");
+      else reject("first");
+      if (second === "resolve") resolve("second");
+      else if (second === "reject") reject("second");
+      else throw new Error("second");
+    });
+    const settled = resolveSandboxValue(value);
+    if (first === "resolve") await expect(settled).resolves.toBe("first");
+    else await expect(settled).rejects.toBe("first");
+  });
+
+  it("passes the thenable as its method receiver", async () => {
+    const value: SandboxObject = {
+      answer: 42,
+      then: createSandboxClosure({
+        call: ([resolve], context) => {
+          if (!isSandboxClosure(resolve)) throw new TypeError("Expected resolver");
+          return resolve.call([(context?.thisValue as SandboxObject | undefined)?.answer]);
+        }
+      })
+    };
+    await expect(resolveSandboxValue(value)).resolves.toBe(42);
+  });
+
+  it("assimilates callable thenables and preserves their receiver", async () => {
+    const value = createSandboxClosure({
+      call: () => undefined,
+      properties: {
+        answer: 42,
+        then: createSandboxClosure({
+          call: ([resolve], context) => {
+            if (!isSandboxClosure(resolve)) throw new TypeError("Expected resolver");
+            const receiver = context?.thisValue;
+            return resolve.call([
+              isSandboxClosure(receiver) ? receiver.properties?.answer : undefined
+            ]);
+          }
+        })
+      }
+    });
+    await expect(resolveSandboxValue(value)).resolves.toBe(42);
+  });
+
+  it("ignores late settlement errors from interpreter-style asynchronous invocation", async () => {
+    const value: SandboxObject = {
+      then: createSandboxClosure({
+        call: async ([resolve, reject]) => {
+          if (!isSandboxClosure(resolve) || !isSandboxClosure(reject))
+            throw new TypeError("Expected resolvers");
+          await resolve.call([42]);
+          await reject.call(["ignored"]);
+          throw new Error("ignored throw");
+        }
+      })
+    };
+    await expect(resolveSandboxValue(value)).resolves.toBe(42);
+    await new Promise((resolve) => setImmediate(resolve));
+  });
+
+  it.each(["resolve", "reject"])(
+    "contains budget failures during queued thenable %s",
+    async (settle) => {
+      const callbacks: (() => void)[] = [];
+      const microtask = vi.spyOn(globalThis, "queueMicrotask").mockImplementation((callback) => {
+        callbacks.push(callback);
+      });
+      try {
+        let finish!: (value: SandboxValue) => void;
+        const pending = resolveSandboxValue(
+          createThenable((resolve, reject) => {
+            finish = settle === "resolve" ? resolve : reject;
+          }),
+          { budget: new Budget({ stringLength: 1 }) }
+        );
+        const rejected = expect(pending).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded"
+        });
+        await new Promise((resolve) => setImmediate(resolve));
+        finish("too large");
+        expect(callbacks).toHaveLength(1);
+        expect(() => callbacks[0]()).not.toThrow();
+        await rejected;
+      } finally {
+        microtask.mockRestore();
+      }
+    }
+  );
+
   it("resolves Promise.all empty iterables to an empty array after a microtask", async () => {
     const globals = createPromiseGlobals({
       budget: new Budget()
@@ -114,10 +209,14 @@ describe("createPromiseGlobals", () => {
     ).rejects.toBe(1);
   });
 
-  it("rejects Promise.race when the first thenable rejects synchronously", async () => {
+  it("matches native Promise.race when a rejecting thenable competes with a settled promise", async () => {
     const globals = createPromiseGlobals({
       budget: new Budget()
     });
+    const expected = await Promise.race([
+      { then: (_resolve: unknown, reject: (reason: string) => void) => reject("sync") },
+      Promise.resolve("ignored")
+    ]);
 
     await expect(
       resolvePromise(
@@ -128,7 +227,7 @@ describe("createPromiseGlobals", () => {
           ]
         ])
       )
-    ).rejects.toBe("sync");
+    ).resolves.toBe(expected);
   });
 
   it("resolves Promise.allSettled empty iterables to an empty array", async () => {
@@ -169,13 +268,13 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual(
-      {
-        errors: [],
-        message: "All promises were rejected",
-        name: "AggregateError"
-      }
-    );
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))
+    ).rejects.toMatchObject({
+      errors: [],
+      message: "All promises were rejected",
+      name: "AggregateError"
+    });
   });
 
   it("aggregates all Promise.any rejection reasons", async () => {
@@ -192,7 +291,7 @@ describe("createPromiseGlobals", () => {
           ]
         ])
       )
-    ).rejects.toEqual({
+    ).rejects.toMatchObject({
       errors: ["left", "right"],
       message: "All promises were rejected",
       name: "AggregateError"
@@ -337,7 +436,7 @@ describe("createPromiseGlobals", () => {
           ]
         ])
       )
-    ).rejects.toEqual({
+    ).rejects.toMatchObject({
       errors: ["left", "right"],
       message: "All promises were rejected",
       name: "AggregateError"
@@ -355,13 +454,13 @@ describe("createPromiseGlobals", () => {
     await expect(
       resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))
     ).resolves.toEqual([]);
-    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual(
-      {
-        errors: [],
-        message: "All promises were rejected",
-        name: "AggregateError"
-      }
-    );
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))
+    ).rejects.toMatchObject({
+      errors: [],
+      message: "All promises were rejected",
+      name: "AggregateError"
+    });
 
     const pendingRace = resolvePromise(resolveClosure(globals.Promise, "race").call([[]]));
 

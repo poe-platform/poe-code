@@ -3,7 +3,6 @@ import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
-  isSandboxPromise,
   type SandboxClosure,
   type SandboxSet,
   type SandboxValue
@@ -97,10 +96,7 @@ export async function callSetMethod(
         const values = [...target.values];
         for (let index = 0; index < values.length; index += 1) {
           const value = values[index];
-          const result = await options.callClosure(callback, [value, value, target], stack);
-          if (isSandboxPromise(result)) {
-            await result.promise;
-          }
+          await options.callClosure(callback, [value, value, target], stack);
         }
       } finally {
         leaveCallback();

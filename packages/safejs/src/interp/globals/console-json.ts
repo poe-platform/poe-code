@@ -1,8 +1,8 @@
 import type { Budget } from "../budget.js";
 import type { HostCallJournal } from "../host-call.js";
 import { wrapCallerInjectedBindings } from "../host-bridge.js";
-import { resolveSandboxValue } from "../promise.js";
 import {
+  allocateProducedSandboxValue,
   createSandboxClosure,
   deepCopyFromSandbox,
   isSandboxClosure,
@@ -151,12 +151,12 @@ async function stringifyProperty(
   if (isStringifyContainer(value)) {
     const toJSON = getOwnDataValue(value, "toJSON");
     if (isSandboxClosure(toJSON)) {
-      value = await callStringifyClosure(toJSON, [key], state);
+      value = await callStringifyClosure(toJSON, [key], value, state);
     }
   }
 
   if (state.replacer !== undefined) {
-    value = await callStringifyClosure(state.replacer, [key, toSandboxValue(value)], state);
+    value = await callStringifyClosure(state.replacer, [key, toSandboxValue(value)], holder, state);
   }
 
   return stringifyValue(value, state, indent);
@@ -187,7 +187,9 @@ async function stringifyValue(
     throw new TypeError("Do not know how to serialize a BigInt.");
   }
 
-  if (value === undefined || isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (isSandboxPromise(value)) return "{}";
+
+  if (value === undefined || isSandboxClosure(value)) {
     return undefined;
   }
 
@@ -266,9 +268,14 @@ async function stringifyObject(
 async function callStringifyClosure(
   closure: SandboxClosure,
   args: readonly SandboxValue[],
+  thisValue: SandboxValue,
   state: StringifyState
 ): Promise<unknown> {
-  return resolveSandboxValue(closure.call(args), { budget: state.budget });
+  const result = await closure.call(args, { stack: [], thisValue });
+  if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+    await result.synchronousPrefix;
+  }
+  return allocateProducedSandboxValue(result, state.budget);
 }
 
 function enterStringifyObject(value: object, state: StringifyState): void {

@@ -1,0 +1,1623 @@
+COMMAND ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--expose-gc","--import","tsx","tests/stress/byte-ownership-20260827/fix/observations.mjs"]
+EXIT 0 SIGNAL null
+{
+  "started": "2026-08-27T10:11:52.039Z",
+  "finished": "2026-08-27T10:11:54.183Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "baselineHead": "eb78897cb276e29637ebae30c10aa0e448e31bc6",
+  "baselineSourceHashes": {
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+  },
+  "candidateSourceHashes": {
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "src/commands/streams.ts": "06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d"
+  },
+  "binding": "Baseline exact git blobs hash-checked, transpiled in memory with installed TypeScript; only import specifiers rebound to current contracts and baseline helper. Candidate direct inspected TS imports via tsx. No shared dist or source writes.",
+  "limits": "Input at most 1MiB, chunk width 1024, tail 4096; below existing 32MiB byte limits. No borrowed Buffer baseline timing comparator. Allocation instrumentation only outside timed runs.",
+  "caveats": "Shared host; sequential paired alternating order, six repeats, one warmup per implementation; fixture iteration and byte sink collection included equally. GC before samples, no speedup or peak-memory claim; process memory snapshots include loader/compiler/both implementations and are not per-candidate memory comparisons. Existing tail trimming/queue behavior is unchanged; this measures retained constructors and aligned chunks, not a global tail complexity bound.",
+  "hostLoadBefore": [
+    3.80712890625,
+    6.77001953125,
+    5.84228515625
+  ],
+  "hostLoadAfter": [
+    3.80712890625,
+    6.77001953125,
+    5.84228515625
+  ],
+  "memoryBefore": {
+    "rss": 313065472,
+    "heapTotal": 83066880,
+    "heapUsed": 52100696,
+    "external": 49848534,
+    "arrayBuffers": 9426594
+  },
+  "memoryAfter": {
+    "rss": 345784320,
+    "heapTotal": 83591168,
+    "heapUsed": 50060632,
+    "external": 46004769,
+    "arrayBuffers": 5582789
+  },
+  "allocation": [
+    {
+      "size": 65536,
+      "site": "collect",
+      "retainedConstructorCalls": 64,
+      "retainedBytes": 65536,
+      "numericAllocations": [
+        65536
+      ]
+    },
+    {
+      "size": 65536,
+      "site": "lines",
+      "retainedConstructorCalls": 63,
+      "retainedBytes": 64512,
+      "numericAllocations": [
+        65535
+      ]
+    },
+    {
+      "size": 65536,
+      "site": "tail",
+      "retainedConstructorCalls": 64,
+      "retainedBytes": 65536,
+      "numericAllocations": []
+    },
+    {
+      "size": 262144,
+      "site": "collect",
+      "retainedConstructorCalls": 256,
+      "retainedBytes": 262144,
+      "numericAllocations": [
+        262144
+      ]
+    },
+    {
+      "size": 262144,
+      "site": "lines",
+      "retainedConstructorCalls": 255,
+      "retainedBytes": 261120,
+      "numericAllocations": [
+        262143
+      ]
+    },
+    {
+      "size": 262144,
+      "site": "tail",
+      "retainedConstructorCalls": 256,
+      "retainedBytes": 262144,
+      "numericAllocations": []
+    },
+    {
+      "size": 1048576,
+      "site": "collect",
+      "retainedConstructorCalls": 1024,
+      "retainedBytes": 1048576,
+      "numericAllocations": [
+        1048576
+      ]
+    },
+    {
+      "size": 1048576,
+      "site": "lines",
+      "retainedConstructorCalls": 1023,
+      "retainedBytes": 1047552,
+      "numericAllocations": [
+        1048575
+      ]
+    },
+    {
+      "size": 1048576,
+      "site": "tail",
+      "retainedConstructorCalls": 1024,
+      "retainedBytes": 1048576,
+      "numericAllocations": []
+    }
+  ],
+  "raggedTail": [
+    {
+      "control": "ownedUint8Array",
+      "firstChunkBytes": 65536,
+      "followingOneByteChunks": 256,
+      "outputSha256": "d406e838469c1ba8799d4180ca8c58c67319f08f2ab1a427294a6563294d52bb",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "measurements": {
+        "baseline": {
+          "retainedConstructorBytes": 0,
+          "retainedSliceBytes": 65792,
+          "partialSliceBytes": 16744320,
+          "milliseconds": [
+            1.65199999999993,
+            1.5826250000000073,
+            1.2558330000000524,
+            1.3029169999999795,
+            1.4344580000000633,
+            1.1287499999999682
+          ]
+        },
+        "candidate": {
+          "retainedConstructorBytes": 65792,
+          "retainedSliceBytes": 0,
+          "partialSliceBytes": 16744320,
+          "milliseconds": [
+            1.62824999999998,
+            1.322999999999979,
+            1.2347500000000764,
+            1.443667000000005,
+            1.429124999999999,
+            1.3656669999999167
+          ]
+        }
+      }
+    },
+    {
+      "control": "immutableBuffer",
+      "firstChunkBytes": 65536,
+      "followingOneByteChunks": 256,
+      "outputSha256": "d406e838469c1ba8799d4180ca8c58c67319f08f2ab1a427294a6563294d52bb",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "measurements": {
+        "baseline": {
+          "retainedConstructorBytes": 0,
+          "retainedSliceBytes": 0,
+          "partialSliceBytes": 0,
+          "milliseconds": [
+            0.6729589999999916,
+            0.4670419999999922,
+            0.5790830000000824,
+            0.5748340000000098,
+            0.5492919999999231,
+            0.4700000000000273
+          ]
+        },
+        "candidate": {
+          "retainedConstructorBytes": 65792,
+          "retainedSliceBytes": 0,
+          "partialSliceBytes": 16744320,
+          "milliseconds": [
+            1.1358750000000555,
+            1.5928749999999354,
+            1.1005830000000287,
+            1.1023330000000442,
+            1.1706669999999804,
+            1.0499159999999392
+          ]
+        }
+      }
+    }
+  ],
+  "timings": [
+    {
+      "size": 65536,
+      "site": "collect",
+      "control": "ownedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.053249999999934516,
+          0.04970800000000963,
+          0.05133299999999963,
+          0.03937499999994998,
+          0.05649999999991451,
+          0.055334000000016204
+        ],
+        "candidate": [
+          0.04025000000001455,
+          0.052500000000009095,
+          0.041542000000049484,
+          0.04891699999996035,
+          0.045500000000060936,
+          0.0684999999999718
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "collect",
+      "control": "immutableBuffer",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.03737499999999727,
+          0.04970800000000963,
+          0.06108300000005329,
+          0.03545899999994617,
+          0.033999999999991815,
+          0.03541600000005474
+        ],
+        "candidate": [
+          0.055749999999989086,
+          0.03954199999998309,
+          0.061040999999931955,
+          0.0681250000000091,
+          0.05645799999990686,
+          0.04104199999994762
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "collect",
+      "control": "reusedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.06016700000009223,
+          0.063083000000006,
+          0.05358300000000327,
+          0.04945800000007239,
+          0.05499999999994998,
+          0.08866699999998673
+        ],
+        "candidate": [
+          0.06541700000002493,
+          0.05666699999994762,
+          0.04616699999996854,
+          0.05083400000000893,
+          0.04879199999993489,
+          0.057249999999953616
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "lines",
+      "control": "ownedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "90e030c521dc3494492dc483e61f7bc22373a63e2b157ed65a88713a3fcba363",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.34550000000001546,
+          0.8941250000000309,
+          0.8266250000000355,
+          0.22937500000000455,
+          0.25649999999996,
+          0.32037500000001273
+        ],
+        "candidate": [
+          0.8412920000000668,
+          0.9584999999999582,
+          0.31037500000002183,
+          0.8448329999999942,
+          0.7863749999999072,
+          0.8700420000000122
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "lines",
+      "control": "immutableBuffer",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "90e030c521dc3494492dc483e61f7bc22373a63e2b157ed65a88713a3fcba363",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.9293749999999363,
+          0.9402910000001157,
+          0.8645420000000286,
+          0.2441670000000613,
+          0.24149999999985994,
+          0.25454100000001745
+        ],
+        "candidate": [
+          0.8978749999998854,
+          0.5309169999998176,
+          0.9479590000000826,
+          0.879165999999941,
+          0.9188749999998436,
+          0.43975000000000364
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "lines",
+      "control": "reusedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "90e030c521dc3494492dc483e61f7bc22373a63e2b157ed65a88713a3fcba363",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.9027499999999691,
+          0.9695419999998194,
+          0.9939999999999145,
+          0.2529170000000249,
+          0.2527500000001055,
+          0.2937090000000353
+        ],
+        "candidate": [
+          0.9172500000001946,
+          0.49175000000013824,
+          0.9482090000001335,
+          0.9022500000000946,
+          0.4260420000000522,
+          0.22229200000015226
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "tail",
+      "control": "ownedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "bbcd248f986cf40edaafcdf6e7cc97e8f157d2ce7782e5f82c91d33dfa30c308",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.15754100000003746,
+          0.18425000000002,
+          0.1439580000001115,
+          0.11400000000003274,
+          0.09904200000005403,
+          0.14037499999994907
+        ],
+        "candidate": [
+          0.09479099999998652,
+          0.18620800000007875,
+          0.12370800000007875,
+          0.10400000000004184,
+          0.2864999999999327,
+          0.13095799999996416
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "tail",
+      "control": "immutableBuffer",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "bbcd248f986cf40edaafcdf6e7cc97e8f157d2ce7782e5f82c91d33dfa30c308",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.10474999999996726,
+          0.0987920000000031,
+          0.12158299999987321,
+          0.12733300000013514,
+          0.12154200000009041,
+          0.09799999999995634
+        ],
+        "candidate": [
+          0.16554199999995944,
+          0.16525000000001455,
+          0.20374999999989996,
+          0.19824999999991633,
+          0.15166599999997743,
+          0.0961250000000291
+        ]
+      }
+    },
+    {
+      "size": 65536,
+      "site": "tail",
+      "control": "reusedUint8Array",
+      "inputSha256": "91585cd19fa2275d076e78d5e0a899c360d2d4b96a7da2614402e9fcb27eb0ce",
+      "outputSha256": "bbcd248f986cf40edaafcdf6e7cc97e8f157d2ce7782e5f82c91d33dfa30c308",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.13574999999991633,
+          0.1643330000001697,
+          0.1270830000000842,
+          0.1486250000000382,
+          0.1663340000000062,
+          0.1710409999998319
+        ],
+        "candidate": [
+          0.10345900000015718,
+          0.2783329999999751,
+          0.135291000000052,
+          0.17804100000012113,
+          0.2033329999999296,
+          0.152417000000014
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "collect",
+      "control": "ownedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.1230000000000473,
+          0.14137499999992542,
+          0.11666599999989558,
+          0.14233400000011898,
+          0.09466700000007222,
+          0.12850000000003092
+        ],
+        "candidate": [
+          0.14120900000011716,
+          0.10412499999983993,
+          0.14970800000014606,
+          0.13449999999988904,
+          0.13841600000000653,
+          0.11558400000012625
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "collect",
+      "control": "immutableBuffer",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.07837500000005093,
+          0.10416700000018864,
+          0.16600000000016735,
+          0.10791699999981574,
+          0.10191699999995762,
+          0.10416600000007747
+        ],
+        "candidate": [
+          0.16612499999996544,
+          0.14737500000001091,
+          0.1485419999999067,
+          0.1538749999999709,
+          0.1475829999999405,
+          0.13812499999994543
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "collect",
+      "control": "reusedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.15254099999992832,
+          0.13404100000002472,
+          0.17675000000008367,
+          0.13929200000006858,
+          0.11325000000010732,
+          0.10841600000003382
+        ],
+        "candidate": [
+          0.12170799999989868,
+          0.11095900000009351,
+          0.23879200000010314,
+          0.144457999999986,
+          0.09991700000000492,
+          0.10012499999993452
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "lines",
+      "control": "ownedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "4598212a2411e70934702e4739be7783bdbcc8ad0d737a7ea9dceb4984c76a88",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.898792000000185,
+          0.8409159999998792,
+          0.8919590000000426,
+          0.8120409999999083,
+          0.9397500000000036,
+          1.082582999999886
+        ],
+        "candidate": [
+          0.9214580000000296,
+          0.8385419999999613,
+          1.0178329999998823,
+          0.8220420000000104,
+          0.9181250000001455,
+          0.9073750000000018
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "lines",
+      "control": "immutableBuffer",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "4598212a2411e70934702e4739be7783bdbcc8ad0d737a7ea9dceb4984c76a88",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.8480829999998605,
+          3.1415830000000824,
+          0.9712919999999485,
+          0.8739579999999023,
+          0.7989999999999782,
+          0.9742090000002008
+        ],
+        "candidate": [
+          3.4771250000001146,
+          0.9849999999999,
+          0.9236250000001291,
+          0.8516250000000127,
+          0.9226250000001528,
+          0.8227920000001632
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "lines",
+      "control": "reusedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "4598212a2411e70934702e4739be7783bdbcc8ad0d737a7ea9dceb4984c76a88",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          1.0688330000000406,
+          3.4073339999999916,
+          1.1850420000000668,
+          0.9358750000001237,
+          1.0755409999999301,
+          0.9382909999999356
+        ],
+        "candidate": [
+          3.4482500000001437,
+          1.219000000000051,
+          0.95637499999998,
+          0.9748749999998836,
+          0.8974169999999049,
+          0.9676660000000084
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "tail",
+      "control": "ownedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "84d96573925e32b632a3806e5a57e06fea905c00d524ee050e8860cef569ad79",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.39008399999988796,
+          0.41525000000001455,
+          0.39970800000014606,
+          0.40466700000001765,
+          0.2513330000001588,
+          0.344707999999855
+        ],
+        "candidate": [
+          0.42820800000004056,
+          0.27137500000003456,
+          0.3109580000000278,
+          0.3844169999999849,
+          0.36483300000008967,
+          0.3674590000000535
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "tail",
+      "control": "immutableBuffer",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "84d96573925e32b632a3806e5a57e06fea905c00d524ee050e8860cef569ad79",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.3230829999999969,
+          0.21687499999984539,
+          0.3081250000000182,
+          0.22320800000011332,
+          0.3350829999999405,
+          0.25862499999993815
+        ],
+        "candidate": [
+          0.2825830000001588,
+          0.3285830000002079,
+          0.32349999999996726,
+          0.32354099999997743,
+          0.4200829999999769,
+          0.3785419999999249
+        ]
+      }
+    },
+    {
+      "size": 262144,
+      "site": "tail",
+      "control": "reusedUint8Array",
+      "inputSha256": "e98d1e4d23bfafb08cbf7f44cd25a9ed848b86517dbcb7ba12c069291966304f",
+      "outputSha256": "84d96573925e32b632a3806e5a57e06fea905c00d524ee050e8860cef569ad79",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.4274999999997817,
+          0.32358300000009876,
+          0.28774999999996,
+          0.2799999999999727,
+          0.36933399999998073,
+          0.28195899999991525
+        ],
+        "candidate": [
+          0.47716600000012477,
+          0.33349999999995816,
+          0.3897500000000491,
+          0.48050000000012005,
+          0.42424999999980173,
+          0.26454199999989214
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "collect",
+      "control": "ownedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.5450000000000728,
+          0.3413749999999709,
+          0.44262499999990723,
+          0.5296669999997903,
+          0.37462500000037835,
+          0.3649999999997817
+        ],
+        "candidate": [
+          0.3473750000000564,
+          0.47612500000013824,
+          0.2939160000000811,
+          0.5068750000000364,
+          0.33874999999989086,
+          0.4049159999999574
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "collect",
+      "control": "immutableBuffer",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.29712500000005093,
+          0.3352919999997539,
+          0.4281670000000304,
+          0.2988749999999527,
+          0.4118329999996604,
+          0.24016699999992852
+        ],
+        "candidate": [
+          0.4049159999999574,
+          0.45337500000005093,
+          0.5792920000003505,
+          0.4462499999999636,
+          0.6086249999998472,
+          0.47491600000012113
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "collect",
+      "control": "reusedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.40891599999986283,
+          0.4734160000002703,
+          0.5914160000002084,
+          0.4771249999998872,
+          0.3537910000000011,
+          0.4347090000001117
+        ],
+        "candidate": [
+          0.48766599999999016,
+          0.3801659999999174,
+          0.5327499999998508,
+          0.33120899999994435,
+          0.34025000000019645,
+          0.43820800000003146
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "lines",
+      "control": "ownedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "98a382a5977616769bdc63c0fe3c267a457c33eb2761510cd5aea95de6a5bce6",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          3.1579169999999976,
+          3.2209170000000995,
+          3.3164170000000013,
+          3.172207999999955,
+          3.172625000000153,
+          3.170042000000194
+        ],
+        "candidate": [
+          3.190624999999727,
+          3.50649999999996,
+          3.334041999999954,
+          3.3612090000001444,
+          3.282459000000017,
+          3.360124999999698
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "lines",
+      "control": "immutableBuffer",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "98a382a5977616769bdc63c0fe3c267a457c33eb2761510cd5aea95de6a5bce6",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          6.317541999999776,
+          3.396791000000121,
+          3.130583000000115,
+          3.0978330000002643,
+          3.2975420000002487,
+          3.146208999999999
+        ],
+        "candidate": [
+          6.981416999999965,
+          3.2895410000000993,
+          3.321874999999636,
+          3.6139170000001286,
+          3.5386250000001382,
+          3.3904999999999745
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "lines",
+      "control": "reusedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "98a382a5977616769bdc63c0fe3c267a457c33eb2761510cd5aea95de6a5bce6",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          6.0565419999998085,
+          3.27987499999972,
+          3.1890830000002097,
+          3.2630000000003747,
+          3.4312079999999696,
+          3.177791999999954
+        ],
+        "candidate": [
+          6.837417000000187,
+          3.2986250000003565,
+          3.3686249999996107,
+          3.382999999999811,
+          3.4650000000001455,
+          3.2985419999999976
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "tail",
+      "control": "ownedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "5a85484add8edd97f67aaf321508d21c8185c152cef3e2c9e7f09460929c823c",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.9268750000001091,
+          1.305749999999989,
+          0.7898749999999382,
+          0.7987920000000486,
+          0.9002909999999247,
+          0.8966250000003129
+        ],
+        "candidate": [
+          1.0679170000003069,
+          0.8239160000002812,
+          0.7633749999999964,
+          0.9201249999996435,
+          0.7804169999999431,
+          1.0815829999996822
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "tail",
+      "control": "immutableBuffer",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "5a85484add8edd97f67aaf321508d21c8185c152cef3e2c9e7f09460929c823c",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          0.8472499999998035,
+          0.8417499999995925,
+          1.1033339999999043,
+          0.9586659999999938,
+          0.7422499999997854,
+          0.7820000000001528
+        ],
+        "candidate": [
+          0.8876669999999649,
+          1.0396249999998872,
+          1.0917500000000473,
+          1.150082999999995,
+          1.1639170000003105,
+          1.2570420000001832
+        ]
+      }
+    },
+    {
+      "size": 1048576,
+      "site": "tail",
+      "control": "reusedUint8Array",
+      "inputSha256": "6208f4949f3be87b32cbde840215045d9058c6abf24f1219899f0fda7e5b73e1",
+      "outputSha256": "5a85484add8edd97f67aaf321508d21c8185c152cef3e2c9e7f09460929c823c",
+      "order": [
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "baseline"
+        ]
+      ],
+      "milliseconds": {
+        "baseline": [
+          1.1324580000000424,
+          0.875,
+          1.17962499999976,
+          0.9115000000001601,
+          0.9110419999997248,
+          0.9114170000002559
+        ],
+        "candidate": [
+          0.9086669999996957,
+          0.8974170000001322,
+          0.8872500000002219,
+          0.872707999999875,
+          1.196208000000297,
+          0.9119580000001406
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "strings-tab-is-printable",
+  "args": [
+    "-a"
+  ],
+  "locale": "C",
+  "inputSha256": "c3c9a03b06eafa1deac4b75d13655eca8472e430712bc0dd3e78026e72c43d9e",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "410942430a440945460a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "410942430a440945460a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

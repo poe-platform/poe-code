@@ -1,0 +1,32 @@
+{
+  "started": "2026-08-27T04:55:13.514Z",
+  "argv": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^frozen fixture:",
+    "tests/commands/stream-inspection-stress/holdouts.test.ts"
+  ],
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/run-native",
+    "STREAM_HOLDOUT_DIR": "/tmp/safe-bash-stream-verifier-20260827-A",
+    "STREAM_RESULTS_DIR": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/run-native",
+    "STREAM_PROFILE": "native",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_TSCONFIG_PATH": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tsconfig.json"
+  },
+  "target": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z",
+  "runtime": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  }
+}

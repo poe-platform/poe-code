@@ -1,0 +1,23 @@
+{
+  "id": "strings-offset-octal",
+  "args": [
+    "-t",
+    "o"
+  ],
+  "locale": "C",
+  "inputSha256": "26359c29899b72ff1931c8694141b27baae5645dbba017ec9c15cf6ef10783ff",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "2020202020203120414243440a2020202020203720414243440a2020202020313520414243440a2020202020323320414243440a20202020203330207461696c0a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "2020202020203120414243440a2020202020203720414243440a2020202020313520414243440a2020202020323320414243440a20202020203330207461696c0a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

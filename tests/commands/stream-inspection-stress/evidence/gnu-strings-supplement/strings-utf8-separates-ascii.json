@@ -1,0 +1,20 @@
+{
+  "id": "strings-utf8-separates-ascii",
+  "args": [],
+  "locale": "C",
+  "inputSha256": "9c4d01a595e469b8df43148506f5f93581569c6620b3f246950181dcc87481bf",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "414243440a454647480a494a4b4c0a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "414243440a454647480a494a4b4c0a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

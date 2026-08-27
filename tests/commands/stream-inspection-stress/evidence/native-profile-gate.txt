@@ -1,0 +1,4 @@
+ROOT AUTHORIZED separate native-backed85 expectation profile, 2026-08-27.
+Full conditions and author CLOSED sourcefreeze in /tmp/safe-bash-stream-batch-review.ready.
+All20 same frozen strings native captures inspected as a cohort: exactly one non-null original expected stdout conflict, strings-dash-stdin-extension; preserve original85 literal result and artifacts separately. Native profile uses original65 GNU9.7 plus same20 GNUstrings2.44. No input/selection expansion, no native oracle modification, no hidden source fixes.
+Report original and revised denominators separately; the expected historical dash mismatch is not a GNU product defect. Originally null diagnostics are not silently turned into claimed strict parity.

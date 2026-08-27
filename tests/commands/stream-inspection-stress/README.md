@@ -83,3 +83,54 @@ it does not modify old audit/default-count fixtures or claim integration.
 
 Full user goal, superiority, deployed-provider coverage, 72-hour work target,
 public/default integration and batch completion remain open.
+# Independent execution checkpoint
+
+Fresh reviewer, distinct from the expired preparation leaf and closed author,
+executed the original frozen corpus after root's CLOSED author gate. The
+preparation record below is historical, not the current execution status.
+
+- Author source: `4af1b107d4b9449a2c4e7fed467d187448392fd5`; seven-file manifest
+  `57c6e29cc6fae6dce5946dddb211b0cc1bf94ef20badb4286546aeafe1e1d553`.
+- Original literal expectations: **80/85**; native-backed selected semantics:
+  **81/85**. Four valid-native syntax defects remain open pending distinct fixer.
+- Separate frozen contract groups: **39/39** after disclosed harness corrections
+  (8 reused-buffer/chunk replays plus 31 contract/pipeline groups).
+- GNU native strict stdout/stderr/status: **64/85**, not 81/85. Seventeen
+  diagnostic-negative cases use command/path/error-meaning assertions, not
+  identical GNU diagnostic prose. Four positive cases currently fail.
+- All same20 GNU strings2.44 native references were captured before this
+  reviewer's source inspection/execution. Nineteen match original specified
+  fields; the lone-dash original expectation conflicts with native. Root
+  authorized a separate native profile; the original85 stays byte-unchanged.
+
+First failures, raw outputs, actual source/loader/dependency/config hashes,
+root gates, original65 GNU9.7 expectations, same20 GNU2.44 supplement, separate48
+Apple controls, and each harness version are in `evidence/`. No native fixture
+directories, binaries, dependencies or product source are published here.
+GNU captures are on Darwin arm64, not GNU/Linux. The original strings metadata
+still says unavailable because it records the earlier preparation, not now.
+
+Reproduce the root-authorized native profile (currently four expected defects):
+
+```sh
+STREAM_PROFILE=native node --unhandled-rejections=strict --import tsx --test tests/commands/stream-inspection-stress/holdouts.test.ts
+STREAM_PROFILE=original node --unhandled-rejections=strict --import tsx --test --test-name-pattern='^frozen fixture:' tests/commands/stream-inspection-stress/holdouts.test.ts
+```
+
+Default profile is native; original explicitly retains its historical dash
+failure. These tests import the opt-in source factory through actual Shell, not
+root exports/default commands. `tools/` preserves exact environment-specific
+capture/snapshot scripts, not portable installers; **do not rerun `freeze.mjs`**
+or overwrite the immutable original corpus. No module invokes native commands.
+
+`evidence/HELPER-FAULTS.md` records the failed manifest sort, accidental85 replay,
+two exact diagnostic/namespace harness corrections and publisher empty-file
+encoding fault. Actual initial test calls:372 (85+85+124+39+39), not372 distinct
+cases. Frozen JSON hashes remain unchanged. Empty process stderr is serialized
+as JSON string `""`; decode before verifying the recorded raw-byte hash.
+Scoped strict noEmit and isolated source-factory ESM/declaration build both pass;
+no root build, full suite, public/default integration or superiority claimed.
+Raw failure TAP includes node:test indentation-only lines; full whitespace
+check reports those retained bytes. Code/docs-only whitespace check is clean.
+
+## Historical preparation record

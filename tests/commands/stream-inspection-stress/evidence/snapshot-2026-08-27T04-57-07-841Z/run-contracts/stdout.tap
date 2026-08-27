@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: chunk ownership: tac-overlap-before
+ok 1 - chunk ownership: tac-overlap-before
+  ---
+  duration_ms: 5.610208
+  type: 'test'
+  ...
+# Subtest: chunk ownership: tac-nul-before
+ok 2 - chunk ownership: tac-nul-before
+  ---
+  duration_ms: 1.049416
+  type: 'test'
+  ...
+# Subtest: chunk ownership: expand-backspace-revisit-stop
+ok 3 - chunk ownership: expand-backspace-revisit-stop
+  ---
+  duration_ms: 1.330875
+  type: 'test'
+  ...
+# Subtest: chunk ownership: expand-utf8-byte-columns
+ok 4 - chunk ownership: expand-utf8-byte-columns
+  ---
+  duration_ms: 1.785209
+  type: 'test'
+  ...
+# Subtest: chunk ownership: fold-byte-controls
+ok 5 - chunk ownership: fold-byte-controls
+  ---
+  duration_ms: 0.993958
+  type: 'test'
+  ...
+# Subtest: chunk ownership: fold-tab-spaces
+ok 6 - chunk ownership: fold-tab-spaces
+  ---
+  duration_ms: 0.801666
+  type: 'test'
+  ...
+# Subtest: chunk ownership: strings-tab-is-printable
+ok 7 - chunk ownership: strings-tab-is-printable
+  ---
+  duration_ms: 1.078125
+  type: 'test'
+  ...
+# Subtest: chunk ownership: strings-long-run-reused-buffer
+ok 8 - chunk ownership: strings-long-run-reused-buffer
+  ---
+  duration_ms: 78.97675
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: tac
+ok 9 - VFS error fidelity and continuation: tac
+  ---
+  duration_ms: 6.890125
+  type: 'test'
+  ...
+# Subtest: invocation-local limits across operands: tac
+ok 10 - invocation-local limits across operands: tac
+  ---
+  duration_ms: 1.49875
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: tac
+ok 11 - preabort does not touch source: tac
+  ---
+  duration_ms: 0.207375
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: tac
+ok 12 - blocked source cancellation observes late rejection: tac
+  ---
+  duration_ms: 0.684542
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: tac
+ok 13 - blocked sink cancellation and ownership: tac
+  ---
+  duration_ms: 0.479083
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: expand
+ok 14 - VFS error fidelity and continuation: expand
+  ---
+  duration_ms: 0.679833
+  type: 'test'
+  ...
+# Subtest: invocation-local limits across operands: expand
+ok 15 - invocation-local limits across operands: expand
+  ---
+  duration_ms: 1.073333
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: expand
+ok 16 - preabort does not touch source: expand
+  ---
+  duration_ms: 0.051208
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: expand
+ok 17 - blocked source cancellation observes late rejection: expand
+  ---
+  duration_ms: 0.494458
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: expand
+ok 18 - blocked sink cancellation and ownership: expand
+  ---
+  duration_ms: 0.40125
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: fold
+ok 19 - VFS error fidelity and continuation: fold
+  ---
+  duration_ms: 0.566
+  type: 'test'
+  ...
+# Subtest: invocation-local limits across operands: fold
+ok 20 - invocation-local limits across operands: fold
+  ---
+  duration_ms: 0.899208
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: fold
+ok 21 - preabort does not touch source: fold
+  ---
+  duration_ms: 0.04975
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: fold
+ok 22 - blocked source cancellation observes late rejection: fold
+  ---
+  duration_ms: 0.488792
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: fold
+ok 23 - blocked sink cancellation and ownership: fold
+  ---
+  duration_ms: 0.43075
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: strings
+ok 24 - VFS error fidelity and continuation: strings
+  ---
+  duration_ms: 0.491416
+  type: 'test'
+  ...
+# Subtest: invocation-local limits across operands: strings
+ok 25 - invocation-local limits across operands: strings
+  ---
+  duration_ms: 0.927792
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: strings
+ok 26 - preabort does not touch source: strings
+  ---
+  duration_ms: 0.053125
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: strings
+ok 27 - blocked source cancellation observes late rejection: strings
+  ---
+  duration_ms: 1.668417
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: strings
+ok 28 - blocked sink cancellation and ownership: strings
+  ---
+  duration_ms: 0.365417
+  type: 'test'
+  ...
+# Subtest: actual backpressure suspends upstream pull and retains sink bytes
+ok 29 - actual backpressure suspends upstream pull and retains sink bytes
+  ---
+  duration_ms: 0.447083
+  type: 'test'
+  ...
+# Subtest: literal invoke traverses middleware and retains virtual filesystem
+ok 30 - literal invoke traverses middleware and retains virtual filesystem
+  ---
+  duration_ms: 0.396958
+  type: 'test'
+  ...
+# Subtest: complex byte pipeline and VFS output effect
+ok 31 - complex byte pipeline and VFS output effect
+  ---
+  duration_ms: 5.17225
+  type: 'test'
+  ...
+# Subtest: shared shell output limit and invocation limits do not reset globally
+ok 32 - shared shell output limit and invocation limits do not reset globally
+  ---
+  duration_ms: 1.836666
+  type: 'test'
+  ...
+# Subtest: tac and strings bound retained records
+ok 33 - tac and strings bound retained records
+  ---
+  duration_ms: 0.465625
+  type: 'test'
+  ...
+# Subtest: factory rejects invalid finite positive integer budgets
+ok 34 - factory rejects invalid finite positive integer budgets
+  ---
+  duration_ms: 0.327458
+  type: 'test'
+  ...
+# Subtest: factory collision preflight and explicit replacement
+ok 35 - factory collision preflight and explicit replacement
+  ---
+  duration_ms: 0.255417
+  type: 'test'
+  ...
+# Subtest: VFS streamed read abort propagates supplied signal
+ok 36 - VFS streamed read abort propagates supplied signal
+  ---
+  duration_ms: 0.698417
+  type: 'test'
+  ...
+# Subtest: VFS permission diagnostic preserves path and continuation
+ok 37 - VFS permission diagnostic preserves path and continuation
+  ---
+  duration_ms: 0.984292
+  type: 'test'
+  ...
+# Subtest: raw object marker and unsupported encoding/data options stay honest
+ok 38 - raw object marker and unsupported encoding/data options stay honest
+  ---
+  duration_ms: 0.480916
+  type: 'test'
+  ...
+# Subtest: internal pipe binary bytes remain exact with chunk ownership
+ok 39 - internal pipe binary bytes remain exact with chunk ownership
+  ---
+  duration_ms: 0.582666
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 592.378625

@@ -1,0 +1,23 @@
+{
+  "strings-ascii-boundaries.json": "af56a01859ea8115e8b78865cd5e8618acdc50bdcfebbcd50caf4915cfa0a04b",
+  "strings-tab-is-printable.json": "2578cf909668c0299960bef261e4d5ff887d2cc200d9546e00c7dbfc7237c358",
+  "strings-minimum-one.json": "4c9b82ff095394c7c2b04577966007461d73a337d04adcb80364736461f5d4ce",
+  "strings-utf8-separates-ascii.json": "7744322b50231bc567d470d72796837c23e92fc3054df5cf8459875964bb5535",
+  "strings-invalid-utf8.json": "bb3c60962b793cc8f456fb0384bb14949142bc7e1ab283080dd7a9d8afb71d2a",
+  "strings-offset-decimal.json": "dd998e65589576a8b0b1774733604ddad89360ec756d3403fe577a0dd4cad24b",
+  "strings-offset-hex.json": "5ef892ba957bdda405ea16feda1564bc104e89c0a67bc45914b1c1c5e3bca4fe",
+  "strings-offset-octal.json": "0d0b060818e470b2afbb3a5098d1ee5d237f8142f6565e8599f1f64b455ca259",
+  "strings-minimum-legacy.json": "cee470f1f78afeb138f8d8193a96b257bb081eb00805bf9ae7d6565a988f6d9a",
+  "strings-minimum-long.json": "c16e2d515b82e2069e525341a1f94415596014871b3b69748b3020c6fc0738a3",
+  "strings-all-byte-classifications.json": "c6a861d3102feec868bb08a732274b452c7e4bff32783aeff807cb2dfe24e4f7",
+  "strings-long-run-reused-buffer.json": "eec2add1580ffdfd947ac817bacaef1ee5b5895ab94979e902d9bd640ebc56c6",
+  "strings-file-label-offsets.json": "9531717a48778b957ef97a5b862c429e698cd4f50a8ecd5c4d3f79257d9acf1f",
+  "strings-operand-runs-do-not-join.json": "ded190eee78c3d7bc46b6938b17375378219baa08b74ccea385afe3f5f5a347f",
+  "strings-dash-stdin-extension.json": "28f6881f3512c40bd668699f686f3420db8ee4b5e7d30df266a461d611a94cb7",
+  "strings-invalid-80.json": "c45015e7b1248fbbadf2cf65a8159d3ba0109cf68e8ef1cad10af96e0266a361",
+  "strings-invalid-81.json": "44767656a8ac62fca68c89a2076dbdc06f48b6888e27f750df1c7f927be8b258",
+  "strings-invalid-82.json": "3144ab3f6e49639cfd71b5232cc81a76449931fba3a5594f66d3ddf239c546af",
+  "strings-invalid-83.json": "cb0305f9275c797bdedd6b9e879f09362e270c5f994890f90f5a680d3b601570",
+  "strings-invalid-84.json": "49ab5bc2e4e27d9a163b25f0a486636119646a13f96132fdab980173f519164e",
+  "report.json": "8082fe55e6f426d6ea76107abe27321aadd30046ad429c734c9123bc3c25e3ae"
+}

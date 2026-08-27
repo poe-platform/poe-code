@@ -1,0 +1,26 @@
+{
+  "id": "strings-operand-runs-do-not-join",
+  "args": [
+    "one",
+    "two"
+  ],
+  "locale": "C",
+  "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fileHashes": {
+    "one": "b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78",
+    "two": "967c5a5b7e2fbbe3080a0c5cefea7c279570b16ae8465525538bc3b115267a45"
+  },
+  "originalExpected": {
+    "stdoutHex": "",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

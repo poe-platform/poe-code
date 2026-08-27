@@ -44,6 +44,8 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
   return result;
 }
 
+const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
+
 export class Budget {
   commands = 0;
   iterations = 0;
@@ -79,7 +81,9 @@ export class Budget {
   }
 
   sink(sink: ByteSink, signal = this.signal): ByteSink {
-    return {
+    const ownership = budgetedSinks.get(sink);
+    if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
+    const output: ByteSink = {
       write: async (chunk) => {
         signal.throwIfAborted();
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -88,6 +92,8 @@ export class Budget {
         await interruptible(sink.write(chunk), signal);
       },
     };
+    budgetedSinks.set(output, { budget: this, write: output.write });
+    return output;
   }
 }
 
@@ -216,7 +222,12 @@ class PipelineClosed extends Error {
 }
 
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
-  return { async write(chunk) { signal.throwIfAborted(); await interruptible(sink.write(chunk), signal); } };
+  const ownership = budgetedSinks.get(sink);
+  const owned = ownership?.write === sink.write ? ownership : undefined;
+  const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
+  const output: ByteSink = { async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); } };
+  if (owned) budgetedSinks.set(output, { budget: owned.budget, write: output.write });
+  return output;
 }
 
 function cloneState(state: State): State {

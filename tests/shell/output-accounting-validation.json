@@ -1,0 +1,578 @@
+{
+  "head": "fb3171943d2e31a74667b653e846e19a7299c89a",
+  "node": "v22.22.2",
+  "runs": [
+    {
+      "name": "output-author",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell/output-accounting.test.ts",
+        "tests/shell/output-accounting-bounds.test.ts"
+      ],
+      "pid": 98169,
+      "status": 0,
+      "counts": {
+        "tests": 29,
+        "pass": 29,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+          "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+          "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+          "hash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "format": "module"
+        }
+      ],
+      "stdoutSha256": "9ca18885512ad20c062b7475bbf1cda9288f41faf45273fe57cbe5d9a543072f"
+    },
+    {
+      "name": "expanded-author",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell/expanded-gaps-fallback.test.ts",
+        "tests/shell/expanded-gaps-fallback-host.test.ts",
+        "tests/shell/expanded-gaps-env.test.ts",
+        "tests/shell/expanded-gaps-env-host.test.ts",
+        "tests/shell/expanded-gaps-parameter.test.ts",
+        "tests/shell/expanded-gaps-bounds.test.ts"
+      ],
+      "pid": 98174,
+      "status": 0,
+      "counts": {
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+          "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+          "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+          "hash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "format": "module"
+        }
+      ],
+      "stdoutSha256": "e09904b9dfcde2d8fe7358e4ce890f0d6a9934955144213d62c4dc88a7b62cb4"
+    },
+    {
+      "name": "env-author",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell/env-replacement.test.ts",
+        "tests/shell/env-replacement-bounds.test.ts"
+      ],
+      "pid": 98189,
+      "status": 0,
+      "counts": {
+        "tests": 31,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+          "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+          "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+          "hash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "format": "module"
+        }
+      ],
+      "stdoutSha256": "54dcd2ed558549625de6092f946562cf4651b6c28c6abc45ce5d150a3a7db9ea"
+    },
+    {
+      "name": "current-shell43",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell-stress/current-shell/current-shell.test.ts"
+      ],
+      "pid": 98194,
+      "status": 0,
+      "counts": {
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [],
+      "stdoutSha256": "1be3c83db2254b79c389df61485401d486a93fc49ce296e2107d469df9872e73"
+    },
+    {
+      "name": "previous86",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell/source-dot-eval-source.test.ts",
+        "tests/shell/source-dot-eval-source-host.test.ts",
+        "tests/shell/source-dot-eval-eval.test.ts",
+        "tests/shell/source-dot-eval-eval-host.test.ts"
+      ],
+      "pid": 98302,
+      "status": 0,
+      "counts": {
+        "tests": 86,
+        "pass": 86,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+          "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+          "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+          "hash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "format": "module"
+        }
+      ],
+      "stdoutSha256": "60e1dc5c08fc20c3048eb8adccf14954526985b77873b3e6256abf8ea415c084"
+    },
+    {
+      "name": "legacy415",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell/invocation-discovery-fixes-imports.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell-stress/invocation-modes/holdout.test.ts",
+        "tests/shell/invocation-modes.test.ts",
+        "tests/shell/invocation-closure-discovery.test.ts",
+        "tests/shell/invocation-closure-read.test.ts",
+        "tests/shell/invocation-closure-sh.test.ts"
+      ],
+      "pid": 98316,
+      "status": 0,
+      "counts": {
+        "tests": 415,
+        "pass": 415,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "afterDigest": "86ce97a324cb22ac8d98ecd1a711ae6fbaa52f101b9e967fc1cc68968f248ab8",
+      "guardedFiles": 357,
+      "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "compilerInputs": 0,
+      "actualShellImports": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+          "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+          "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+          "hash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "format": "module"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "format": "module"
+        }
+      ],
+      "stdoutSha256": "e9dcc05873f2128e94d5de47f25b327d79c5805ca6c08ee57ddb02d930c688c4"
+    },
+    {
+      "name": "global",
+      "executable": "./node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "--listFiles"
+      ],
+      "pid": 98555,
+      "status": 0,
+      "counts": {},
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "5b7cb0f3a316dd708b23e8ca24ef438cdd461022dca4e5bd75727e51da03751d",
+      "afterDigest": "5b7cb0f3a316dd708b23e8ca24ef438cdd461022dca4e5bd75727e51da03751d",
+      "guardedFiles": 1186,
+      "compilerPathsDigest": "4875ba55ad894157e7e93d3a59ca7bd1a82c2cb7cac7007d0f3bb22c19162aa5",
+      "compilerInputs": 1069,
+      "actualShellImports": [],
+      "stdoutSha256": "f6a0b952b5af1344bbfbb2e063dc38b072cbcacdf44a1cb24c07b4fdceedec1f"
+    },
+    {
+      "name": "build",
+      "executable": "./node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "tsconfig.build.json",
+        "--noEmit",
+        "--listFiles"
+      ],
+      "pid": 98597,
+      "status": 0,
+      "counts": {},
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "f242b5503d0a3086ed8417fbaae710e8412f2ce4dbaa2b5263fffc20bc47760d",
+      "afterDigest": "f242b5503d0a3086ed8417fbaae710e8412f2ce4dbaa2b5263fffc20bc47760d",
+      "guardedFiles": 523,
+      "compilerPathsDigest": "2ba74257e8ece9b8d74ee7d84aa2816b8f173fcd3349708f385cef4e9b14230b",
+      "compilerInputs": 302,
+      "actualShellImports": [],
+      "stdoutSha256": "18404f94bec13b57daf827f4dc70ffc16ac3a14f29481319d8347d574067c356"
+    },
+    {
+      "name": "benchmark",
+      "executable": "./node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "benchmarks/tsconfig.json",
+        "--noEmit",
+        "--listFiles"
+      ],
+      "pid": 98600,
+      "status": 0,
+      "counts": {},
+      "stderr": "",
+      "changed": [],
+      "importedMismatch": [],
+      "unguardedCompilerPaths": [],
+      "beforeDigest": "20dbb95308de540160773e0fedfa62c1b6a306a0c2fe535c71bbd7b96a37c96d",
+      "afterDigest": "20dbb95308de540160773e0fedfa62c1b6a306a0c2fe535c71bbd7b96a37c96d",
+      "guardedFiles": 638,
+      "compilerPathsDigest": "9568aa1153b2dfbf124137380c32e9522217d596f8ffbdb9cad40c175514265d",
+      "compilerInputs": 411,
+      "actualShellImports": [],
+      "stdoutSha256": "d2cc98788066aca8e98818325750886c857c76c9fe39780501030e00e21b8f1a"
+    }
+  ],
+  "preflight": [
+    {
+      "name": "global",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "inputs": 1066,
+      "beforeDigest": "208da0197c0d3c57cba2bed9165258c06302250de0ab5ce260e4b61ecb573a79",
+      "afterDigest": "208da0197c0d3c57cba2bed9165258c06302250de0ab5ce260e4b61ecb573a79",
+      "changed": []
+    },
+    {
+      "name": "build",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "inputs": 302,
+      "beforeDigest": "00a732d37e14bc51db6b9e4b492b7532722601a33be9930add81588b6420a5b2",
+      "afterDigest": "00a732d37e14bc51db6b9e4b492b7532722601a33be9930add81588b6420a5b2",
+      "changed": []
+    }
+  ],
+  "red": "TAP version 13\n# Subtest: actual command printf 1234 limit 4\nok 1 - actual command printf 1234 limit 4\n  ---\n  duration_ms: 3.961125\n  type: 'test'\n  ...\n# Subtest: actual command printf 1234 limit 3\nok 2 - actual command printf 1234 limit 3\n  ---\n  duration_ms: 0.599459\n  type: 'test'\n  ...\n# Subtest: actual command env -i printf 1234 limit 4\nnot ok 3 - actual command env -i printf 1234 limit 4\n  ---\n  duration_ms: 0.780125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1067'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: actual command env -i printf 1234 limit 3\nok 4 - actual command env -i printf 1234 limit 3\n  ---\n  duration_ms: 0.47775\n  type: 'test'\n  ...\n# Subtest: actual command bridge limit 4\nnot ok 5 - actual command bridge limit 4\n  ---\n  duration_ms: 0.517\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1067'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: actual command bridge limit 3\nok 6 - actual command bridge limit 3\n  ---\n  duration_ms: 1.127042\n  type: 'test'\n  ...\n# Subtest: actual command outer limit 4\nnot ok 7 - actual command outer limit 4\n  ---\n  duration_ms: 0.815459\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1067'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: actual command outer limit 3\nok 8 - actual command outer limit 3\n  ---\n  duration_ms: 0.613542\n  type: 'test'\n  ...\n# Subtest: actual command env -i printf 1234 | cat limit 8\nnot ok 9 - actual command env -i printf 1234 | cat limit 8\n  ---\n  duration_ms: 3.425792\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1067'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:219:83)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts:195:49)\n  ...\n# Subtest: actual command env -i printf 1234 | cat limit 7\nok 10 - actual command env -i printf 1234 | cat limit 7\n  ---\n  duration_ms: 0.99625\n  type: 'test'\n  ...\n# Subtest: nested forwarding flag=undefined explicit=false\nok 11 - nested forwarding flag=undefined explicit=false\n  ---\n  duration_ms: 0.444833\n  type: 'test'\n  ...\n# Subtest: nested forwarding flag=undefined explicit=true\nnot ok 12 - nested forwarding flag=undefined explicit=true\n  ---\n  duration_ms: 0.401916\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1720'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: nested forwarding flag=false explicit=false\nok 13 - nested forwarding flag=false explicit=false\n  ---\n  duration_ms: 0.211708\n  type: 'test'\n  ...\n# Subtest: nested forwarding flag=false explicit=true\nnot ok 14 - nested forwarding flag=false explicit=true\n  ---\n  duration_ms: 0.419042\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1720'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: nested forwarding flag=true explicit=false\nok 15 - nested forwarding flag=true explicit=false\n  ---\n  duration_ms: 0.235709\n  type: 'test'\n  ...\n# Subtest: nested forwarding flag=true explicit=true\nnot ok 16 - nested forwarding flag=true explicit=true\n  ---\n  duration_ms: 0.401\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:1720'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    new Promise (<anonymous>)\n    abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    output (/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts:98:9)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts:67:19)\n  ...\n# Subtest: same buffer remains distinct writes stdout,stdout\nnot ok 17 - same buffer remains distinct writes stdout,stdout\n  ---\n  duration_ms: 0.961\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:2444'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    '' !== '1234'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '1234'\n  actual: ''\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:42:141)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: same buffer remains distinct writes stderr,stderr\nnot ok 18 - same buffer remains distinct writes stderr,stderr\n  ---\n  duration_ms: 0.435959\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:2444'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    '' !== '1234'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '1234'\n  actual: ''\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:42:141)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: same buffer remains distinct writes stdout,stderr\nnot ok 19 - same buffer remains distinct writes stdout,stderr\n  ---\n  duration_ms: 0.3775\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:2444'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    '' !== '1234'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '1234'\n  actual: ''\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:42:141)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: known contextual alias stdout-to-stderr\nnot ok 20 - known contextual alias stdout-to-stderr\n  ---\n  duration_ms: 0.32075\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:3098'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    Object.execute (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:49:11)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    next (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:44:13)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:9:76)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:57:30)\n  ...\n# Subtest: known contextual alias stderr-to-stdout\nnot ok 21 - known contextual alias stderr-to-stdout\n  ---\n  duration_ms: 0.276666\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:3098'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    Object.execute (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:49:11)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    next (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:44:13)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:9:76)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:57:30)\n  ...\n# Subtest: known contextual alias both-to-stdout\nnot ok 22 - known contextual alias both-to-stdout\n  ---\n  duration_ms: 0.302916\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:3098'\n  failureType: 'testCodeFailure'\n  error: 'Shell limit exceeded: maxOutputBytes'\n  code: 'ERR_TEST_FAILURE'\n  name: 'ShellLimitError'\n  stack: |-\n    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    Object.execute (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:49:11)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    next (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:44:13)\n    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:9:76)\n    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:57:30)\n  ...\n# Subtest: new external sink limit 3\nok 23 - new external sink limit 3\n  ---\n  duration_ms: 0.481333\n  type: 'test'\n  ...\n# Subtest: new external sink limit 4\nok 24 - new external sink limit 4\n  ---\n  duration_ms: 0.763875\n  type: 'test'\n  ...\n# Subtest: middleware replacement of contextual sink cannot bypass accounting\nok 25 - middleware replacement of contextual sink cannot bypass accounting\n  ---\n  duration_ms: 0.32925\n  type: 'test'\n  ...\n# Subtest: unknown host proxy is not blindly unwrapped\nok 26 - unknown host proxy is not blindly unwrapped\n  ---\n  duration_ms: 0.283417\n  type: 'test'\n  ...\n# Subtest: concurrent same-buffer writes reserve budget before effects\nnot ok 27 - concurrent same-buffer writes reserve budget before effects\n  ---\n  duration_ms: 7.650666\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:1:5273'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    '' !== '1234'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '1234'\n  actual: ''\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/output-accounting.test.ts:94:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..27\n# tests 27\n# suites 0\n# pass 13\n# fail 14\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 212.245208\n"
+}

@@ -19,6 +19,9 @@ for (const [label, historical] of [['mutation-original-matcher', '72f780d'], ['m
   const evaluation = spawnSync(process.execPath, [`${base}/evaluate.mjs`, label], { encoding: 'utf8', timeout: 30_000, maxBuffer: 1024 * 1024 });
   assert.equal(evaluation.status, 1, 'Negative control must be detected');
   const record = JSON.parse(readFileSync(`${base}/${label}-evaluation.json`, 'utf8'));
+  assert.deepEqual(record.checks.filter(row => !row.passed).map(row => row.name), [historical === '72f780d'
+    ? 'repeated hunk later matching line control: complete virtual outcome'
+    : 'repeated hunk second matching line control: complete virtual outcome']);
   observations.push({ label, historicalRevision: git('rev-parse', historical).toString().trim(), path, acceptedSha256: hash(before), mutantSha256: hash(readFileSync(target)), fixtureChanges: 0, productOnlyIsolatedMutation: true, detected: true, failures: record.checks.filter(row => !row.passed), evaluation: { status: evaluation.status, stdout: evaluation.stdout, stderr: evaluation.stderr } });
 }
 save(`${base}/final-mutation-controls.json`, { gateRevision: gate.revision, observations, coverage: 'Two isolated source mutations; not additional semantic coverage' });

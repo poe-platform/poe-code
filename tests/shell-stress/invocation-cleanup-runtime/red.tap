@@ -1,0 +1,107 @@
+TAP version 13
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+not ok 1 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 6.333291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:1:461'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:30:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+not ok 2 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 2.112083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:1:1255'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:59:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+not ok 3 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 1.169375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:1:2027'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:73:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+not ok 4 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:1:2563'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:90:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+not ok 5 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 1.016375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:1:3180'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup.test.ts:118:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.548292

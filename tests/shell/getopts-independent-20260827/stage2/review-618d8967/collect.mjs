@@ -18,7 +18,7 @@ assert.deepEqual(inventory(packed.product), packed.installed);
 const boundaries = authenticateBoundary();
 const processes = fs.readdirSync(path.join(work, 'logs')).sort().map(name => JSON.parse(fs.readFileSync(path.join(work, 'logs', name, 'PROCESS.json'))));
 assert(processes.every(row => row.closeAwaited && row.signal === null && row.termination === null && row.error === null));
-const expectedFailures = new Set(['independent-public', 'types-negative-options', 'types-negative-sink', 'types-negative-invoke', 'load-negative-wrong-binding', 'load-negative-internal-export', 'mutant-cursor-publication', 'mutant-task-checkpoint']);
+const expectedFailures = new Set(['independent-public', 'types-negative-options', 'types-negative-sink', 'types-negative-invoke', 'load-negative-wrong-binding', 'load-negative-internal-export', 'mutant-cursor-publication', 'mutant-task-checkpoint', 'mutant-task-checkpoint-v2']);
 for (const row of processes) assert.equal(row.status === 0, !expectedFailures.has(row.label), row.label);
 for (const name of ['types-positive', 'legacy-consumer', 'types-negative-options', 'types-negative-sink', 'types-negative-invoke']) {
   const output = fs.readFileSync(path.join(work, 'logs', name, 'stdout'), 'utf8');
@@ -33,9 +33,9 @@ assert(fs.readFileSync(path.join(work, 'logs/load-negative-internal-export/stder
 const imports = fs.readFileSync(path.join(work, 'public-loads.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
 for (const entry of imports) assert.equal(entry.sha256, packed.installed[new URL(entry.url).pathname.slice(packed.product.length + 1)].sha256);
 for (const name of ['shell.js', 'runtime.js', 'getopts.js']) assert(imports.some(entry => entry.url.endsWith(`/dist/shell/${name}`)));
-for (const name of ['cursor-publication', 'task-checkpoint']) {
+for (const name of ['cursor-publication', 'task-checkpoint-v2']) {
   const output = fs.readFileSync(path.join(work, `logs/mutant-${name}/stdout`), 'utf8');
-  assert(output.includes("failureType: 'testCodeFailure'") && output.includes("code: 'ERR_ASSERTION'"));
+  assert(output.includes("failureType: 'testCodeFailure'") && /^  code: 'ERR_ASSERTION'$/mu.test(output));
   const mutation = JSON.parse(fs.readFileSync(path.join(work, `mutant-${name}-binding.json`)));
   assert.equal(mutation.originalSHA256, packed.installed['dist/shell/runtime.js'].sha256);
   assert.notEqual(mutation.changedSHA256, mutation.originalSHA256);

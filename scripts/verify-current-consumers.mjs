@@ -90,7 +90,8 @@ export function currentConsumers(report) {
       json(join(report.directory, `consumer-${group.name}.json`), result);
       assert.equal(result.error, undefined); assert.equal(result.signal, null); assert.equal(result.status, 2);
       assert.equal(result.stderr, "");
-      const normalized = result.stdout.replaceAll(/^.*?((?:leaf|public)-negative\.mts\()/gmu, "$1");
+      const diagnosticName = basename(group.path).replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+      const normalized = result.stdout.replaceAll(new RegExp(`^.*?(${diagnosticName}\\()`, "gmu"), "$1");
       assert.equal(normalized, readFileSync(join(report.root, group.expected), "utf8"), "exact negative diagnostics differ; no generic nonzero acceptance");
       assert.equal([...normalized.matchAll(/error TS\d+:/gu)].length, group.diagnostics);
       record.status = "pass";

@@ -1,14 +1,14 @@
 {
   "schema": 1,
   "inventoriedCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
-  "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts.",
+  "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts. Typecheck workflow also consumes these existing routes without executing runtimes; two env-split declaration fixtures are explicitly added, preserving the historical177 census.",
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
-    "current": 29,
+    "current": 30,
     "declaration": 4,
     "frozen-oracle": 1,
     "frozen-evidence": 141,
-    "negative-types": 2
+    "negative-types": 3
   },
   "entries": [
     {
@@ -1680,6 +1680,23 @@
       "reason": "unchanged public consumer; strict declarations and emitted runtime",
       "existingCoverage": "tests/plugins/stream-five-fixture-migration/capture.mjs final",
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict stream-five; runtime public-options.mjs"
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/invalid-binding.mts",
+      "sha256": "1148c543c99b9177923fa30ac5248a090a9782b5151f9d91f2541bc97e4fcd1c",
+      "classification": "negative-types",
+      "reason": "Intentional Uint8Array versus AsyncIterable stdin rejection; exact single TS2741, not a global compilation unit.",
+      "existingCoverage": "tests/shell-stress/env-split-validity/run-v2.mjs: invalid-byte-binding-type-negative",
+      "qualifiedCoverage": "env-split-invalid-binding: exact tests/plugins/qualified-current-release/negative-env-split.stdout"
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/public-types.mts",
+      "sha256": "1e3363f9dd73614f3b5b3b31eac4341f7d72a6f203da82c0700256e62b3793dc",
+      "classification": "current",
+      "group": "env-split-public-types",
+      "reason": "Maintained current declaration-only proof; run-v2 invokes tsc, not this fixture as runtime. No runtime acceptance inferred.",
+      "existingCoverage": "tests/shell-stress/env-split-validity/run-v2.mjs: moved-installed-public-types",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs and scripts/typecheck.mjs: strict existing-route declarations only"
     },
     {
       "path": "tests/shell-stress/kernel-reconciliation/support.d.mts",

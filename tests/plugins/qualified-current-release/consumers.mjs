@@ -22,17 +22,24 @@ export const consumerGroups = [
   group("stream-five", "tests/plugins/stream-five-fixture-migration", ["public-options.mts"], ["public-options.mjs"], "tests/plugins/stream-five-fixture-migration/capture.mjs final"),
   group("time-env-public", "tests/commands/time-env-stress/fraction-independent/packed", ["public-positive.mts"], ["public-positive.mjs"], "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs"),
   { ...group("time-env-leaf", "tests/commands/time-env-stress/fraction-independent/packed", ["leaf-positive.mts"], ["leaf-positive.mjs"], "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs", "maintained internal packed leaf types and factory construction; not export-map acceptance"), localPackage: true },
+  group("env-split-public-types", "tests/shell-stress/env-split-validity", ["public-types.mts"], [], "tests/shell-stress/env-split-validity/run-v2.mjs", "strict current public declarations only, as the author type-only phase; no env-S runtime or shebang acceptance"),
   group("webdav-atomic", "tests/fs/webdav/atomic-extension", ["consumer.mts", "example.mts", "https.mts"], [], "tests/fs/webdav/atomic-extension/run.mjs", "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass"),
   { ...group("webdav-atomic-independent", "tests/fs/webdav/atomic-extension-independent", ["consumer.mts"], ["consumer.mjs"], "tests/fs/webdav/atomic-extension-independent/run.mjs", "unchanged service-free injected-fetch runtime; configured removal and stock refusal, not real TLS/provider acceptance"), consumerIdentity: true },
   { ...group("webdav-timestamp-independent", "tests/fs/webdav/release-timestamp-independent", ["independent.test.mts"], ["independent.test.mjs"], "tests/fs/webdav/release-timestamp-independent/run.mjs", "current loopback runtime:20 controls plus3 mutant kills, not23 provider successes"), companions: ["tests/fs/webdav/consumer/provider.mts"], nodeTests: 23 },
 ];
 
 export const negativeGroups = [
+  { name: "env-split-invalid-binding", path: "tests/shell-stress/env-split-validity/invalid-binding.mts", expected: "tests/plugins/qualified-current-release/negative-env-split.stdout", positive: "env-split-public-types", diagnostics: 1 },
   { name: "time-env-public-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/public-negative-types.stdout", positive: "time-env-public", diagnostics: 2 },
   { name: "time-env-leaf-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/internal-leaf-negative-types.stdout", positive: "time-env-leaf", diagnostics: 5 },
 ];
 
 export const currentConsumerPaths = () => [...new Set(consumerGroups.flatMap(group => [...group.files, ...group.companions ?? []]))];
+export const currentSourceConsumerGroups = [
+  { name: "atomic-webdav-profile-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts", "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof" },
+  { name: "atomic-webdav-independent-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "current public imports use built declarations; source fixture helpers remain explicit" },
+  { name: "env-split-public-source", files: ["tests/shell-stress/env-split-consumer/packed-public-types.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "current public declaration consumer; typing is not env-S runtime acceptance" },
+];
 export const archiveTests = ["tests/commands/archive/native.test.ts", "tests/commands/archive-stress/pax-independent/controls.test.ts"];
 export const archiveInputs = [...archiveTests, "tests/commands/archive/helpers.ts", "tests/commands/archive-stress/pax-independent/fixtures.ts"];
 export const ownerPath = "tests/plugins/qualified-current-release";

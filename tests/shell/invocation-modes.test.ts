@@ -33,11 +33,28 @@ for (const record of reference.profiles[0]!.records) {
   });
 }
 
+test("native-backed errexit invocation consumes source with exact output and no file effects", async () => {
+  const { shell, fs } = setup();
+  let reads = 0;
+  const stdin: ByteSource = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("say bad"); } };
+  for (const name of ["bash", "sh"]) {
+    const readsBefore = reads;
+    const result = await shell.exec(`${name} ${quote("-e")}`, { stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "bad\n");
+    assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "6261640a");
+    assert.equal(result.stderr, "");
+    assert.equal(result.stderrBytes.length, 0);
+    assert.equal(reads, readsBefore + 1);
+    assert.deepEqual(await fs.readdir("/"), []);
+  }
+});
+
 test("unimplemented invocation flags reject explicitly before source consumption", async () => {
   const { shell } = setup();
   let reads = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("say bad"); } };
-  for (const name of ["bash", "sh"]) for (const flag of ["-e", "-i", "-l", "-x", "--login", "--norc", "--posix", "+s", "-csx"]) {
+  for (const name of ["bash", "sh"]) for (const flag of ["-i", "-l", "-x", "--login", "--norc", "--posix", "+s", "-csx"]) {
     const result = await shell.exec(`${name} ${quote(flag)}`, { stdin });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /unsupported option/u);

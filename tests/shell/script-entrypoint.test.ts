@@ -172,11 +172,27 @@ for (const [name, contents] of [
   });
 }
 
+test("direct script native-backed errexit shebang preserves bytes, mode and namespace: options", async () => {
+  const { shell, fs } = setup();
+  const contents = "#!/bin/bash -e\nsay bad";
+  await script(fs, "/options", contents, 0o755);
+  const modeBefore = (await fs.stat("/options")).mode;
+  const result = await shell.exec("./options");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "bad\n");
+  assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "6261640a");
+  assert.equal(result.stderr, "");
+  assert.equal(result.stderrBytes.length, 0);
+  assert.deepEqual(await fs.readFile("/options"), encoder.encode(contents));
+  assert.equal((await fs.stat("/options")).mode, modeBefore);
+  assert.equal((modeBefore ?? 0) & 0o777, 0o755);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["options"]);
+});
+
 for (const [name, contents, mode, diagnostic] of [
   ["noexec", "#!/bin/bash\nsay bad", 0o644, "Permission denied"],
   ["noread", "#!/bin/bash\nsay bad", 0o111, "Permission denied"],
   ["python", "#!/usr/bin/python\nsay bad", 0o755, "unsupported interpreter"],
-  ["options", "#!/bin/bash -e\nsay bad", 0o755, "unsupported interpreter"],
   ["nul", "#!/bin/bash\nsay bad\0", 0o755, "binary"],
 ] as const) {
   test(`direct script rejection has status 126 and no body effects: ${name}`, async () => {

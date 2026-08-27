@@ -817,8 +817,7 @@ export class Runtime {
           if (context.command.includes("/") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
           const target = await this.searchPath(context.command, state);
           if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
-          const prefix = io.scriptName === undefined ? "" : `${io.scriptName}: line ${io.diagnosticLine ?? 1}: `;
-          await writeText(context.stderr, `${prefix}${context.command}: command not found\n`);
+          await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);
           return { exitCode: 127 };
         }
         return await definition.execute(context);
@@ -1214,6 +1213,7 @@ export class Runtime {
       if (!filename) throw new CommandFailure(": No such file or directory", 1);
       const path = resolvePath(state.cwd, target);
       const stat = await interruptible(this.fs.stat(path, options), this.signal);
+      if (stat.type === "directory") throw new CommandFailure(`${context.command}: ${target}: is a directory`, 1);
       if (stat.type !== "file") throw new CommandFailure(`${target}: not a regular file`, 1);
       await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
       const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;

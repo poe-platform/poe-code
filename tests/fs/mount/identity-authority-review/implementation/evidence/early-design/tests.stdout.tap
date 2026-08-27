@@ -1,0 +1,181 @@
+TAP version 13
+# Subtest: public memory comparison: independent stores are distinct, aliases follow backing entries
+not ok 1 - public memory comparison: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 1.785083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1461'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:30:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public real comparison: different roots and clients preserve shared native identity
+not ok 2 - public real comparison: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 5.366875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1908'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:46:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+ok 3 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 2.055125
+  type: 'test'
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+not ok 4 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 1.225125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:3494'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-DaHkQv/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:68:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+ok 5 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 1.645958
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+ok 6 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 0.148375
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+ok 7 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.094833
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+ok 8 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.13175
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+ok 9 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.174042
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+ok 10 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.175167
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+ok 11 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.057792
+  type: 'test'
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+ok 12 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.3105
+  type: 'test'
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+ok 13 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.300333
+  type: 'test'
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+ok 14 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.331333
+  type: 'test'
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+ok 15 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.331542
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+ok 16 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.290917
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+ok 17 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.216083
+  type: 'test'
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 18 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 0.246917
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+ok 19 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.578666
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 16
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 148.403416

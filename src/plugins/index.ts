@@ -10,6 +10,8 @@ import { createMetadataCommands, type MetadataCommandsOptions } from "../command
 import { createArchiveCommands, type ArchiveCommandsOptions } from "../commands/archive/index.js";
 import { createTableTextCommands, type TableTextCommandsOptions } from "../commands/table-text/index.js";
 import { createStreamInspectionCommands, type StreamInspectionCommandsOptions } from "../commands/stream-inspection/index.js";
+import { createStreamFormatCommands, type StreamFormatCommandsOptions } from "../commands/stream-format/index.js";
+import { createSplitCommands, type SplitCommandsOptions } from "../commands/split/index.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
@@ -22,6 +24,8 @@ export interface AgentCommandsOptions {
   readonly archive?: Omit<ArchiveCommandsOptions, "replace">;
   readonly tableText?: Omit<TableTextCommandsOptions, "replace">;
   readonly streamInspection?: Omit<StreamInspectionCommandsOptions, "replace">;
+  readonly streamFormat?: Omit<StreamFormatCommandsOptions, "replace">;
+  readonly split?: Omit<SplitCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -46,6 +50,8 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createArchiveCommands({ ...options.archive }),
     ...createTableTextCommands({ ...options.tableText }),
     ...createStreamInspectionCommands({ ...options.streamInspection }),
+    ...createStreamFormatCommands({ ...options.streamFormat }),
+    ...createSplitCommands({ ...options.split }),
   );
   return new CommandRegistry(commands).list();
 }

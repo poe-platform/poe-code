@@ -42,6 +42,14 @@
       "types": "./dist/commands/stream-inspection/index.d.ts",
       "import": "./dist/commands/stream-inspection/index.js"
     },
+    "./commands/stream-format": {
+      "types": "./dist/commands/stream-format/index.d.ts",
+      "import": "./dist/commands/stream-format/index.js"
+    },
+    "./commands/split": {
+      "types": "./dist/commands/split/index.d.ts",
+      "import": "./dist/commands/split/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

@@ -1,0 +1,7 @@
+{
+  "classification": "verifier provenance assumption failure, no product test executed",
+  "command": "node --unhandled-rejections=strict tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-identities.mjs",
+  "error": "AssertionError [ERR_ASSERTION]: 0 !== 6 at runtime-r1-identities.mjs:69",
+  "cause": "The immutable native DATA files are ignored artifacts, not tracked at the runtime git commit; git ls-tree returned no matching paths.",
+  "correction": "Read and hash the six existing DATA files without editing, explicitly label their on-disk provenance. Runtime/config/registration/fixture inputs still exclusively come from git show. Existing staged canonical fixture copies are hash-checked, not overwritten, on retry."
+}

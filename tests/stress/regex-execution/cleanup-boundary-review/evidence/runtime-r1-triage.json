@@ -1,0 +1,617 @@
+{
+  "source": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "time": "2026-08-27T08:40:37.332Z",
+  "harnessSha256": "f5d576911714c5ce9daabb1173c4b05269aac666338605c45a439d70ed2e0646",
+  "observerSha256": "6321a39eb1c96f93a3c5c57d3a545cc179802db9f0305771a389b11514e64620",
+  "bounds": {
+    "watchdogMs": 20000,
+    "heapMb": 128,
+    "consoleBytes": 65536,
+    "ipcBytes": 1048576,
+    "strictUnhandled": true
+  },
+  "pid": 24697,
+  "stdout": "",
+  "stderr": "",
+  "events": [
+    "disconnect",
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "counts": {
+      "controls": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "observations": [
+      {
+        "name": "triage:ordinary-command-throw-selects-diagnostic-result",
+        "pass": true,
+        "details": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogc2VsZWN0ZWQgZXhlY3V0aW9uIGZhaWx1cmUK",
+          "cleaned": 1
+        }
+      },
+      {
+        "name": "triage:ordinary-command-result:caller-\"none\"",
+        "pass": true,
+        "details": {
+          "caller": "none",
+          "primaryKind": "ordinary-command-result",
+          "exactCaller": null,
+          "exactPrimary": false,
+          "errorType": "AggregateError",
+          "cleanupFailures": [
+            "other secondary cleanup failure",
+            "secondary cleanup failure"
+          ],
+          "cleanups": 2,
+          "stderr": "c2hlbGw6IGxpbmUgMTogc2VsZWN0ZWQgZXhlY3V0aW9uIGZhaWx1cmUK",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:ordinary-command-result:caller-0",
+        "pass": true,
+        "details": {
+          "caller": 0,
+          "primaryKind": "ordinary-command-result",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Number",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:ordinary-command-result:caller-false",
+        "pass": true,
+        "details": {
+          "caller": false,
+          "primaryKind": "ordinary-command-result",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Boolean",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:ordinary-command-result:caller-\"\"",
+        "pass": true,
+        "details": {
+          "caller": "",
+          "primaryKind": "ordinary-command-result",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "String",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:ordinary-command-result:caller-{\"code\":\"ENOENT\"}",
+        "pass": true,
+        "details": {
+          "caller": {
+            "code": "ENOENT"
+          },
+          "primaryKind": "ordinary-command-result",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Object",
+          "errorCode": "ENOENT",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:selected-ShellLimitError-rejection:caller-\"none\"",
+        "pass": true,
+        "details": {
+          "caller": "none",
+          "primaryKind": "selected-ShellLimitError-rejection",
+          "exactCaller": null,
+          "exactPrimary": true,
+          "errorType": "ShellLimitError",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:selected-ShellLimitError-rejection:caller-0",
+        "pass": true,
+        "details": {
+          "caller": 0,
+          "primaryKind": "selected-ShellLimitError-rejection",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Number",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:selected-ShellLimitError-rejection:caller-false",
+        "pass": true,
+        "details": {
+          "caller": false,
+          "primaryKind": "selected-ShellLimitError-rejection",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Boolean",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:selected-ShellLimitError-rejection:caller-\"\"",
+        "pass": true,
+        "details": {
+          "caller": "",
+          "primaryKind": "selected-ShellLimitError-rejection",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "String",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "triage:selected-ShellLimitError-rejection:caller-{\"code\":\"ENOENT\"}",
+        "pass": true,
+        "details": {
+          "caller": {
+            "code": "ENOENT"
+          },
+          "primaryKind": "selected-ShellLimitError-rejection",
+          "exactCaller": true,
+          "exactPrimary": false,
+          "errorType": "Object",
+          "errorCode": "ENOENT",
+          "cleanups": 2,
+          "stderr": "",
+          "abortListeners": 0
+        }
+      },
+      {
+        "name": "R1:queued-plugin-setup-disposal-retires-accepted-lease",
+        "pass": true,
+        "details": {
+          "events": [
+            "setup",
+            "installed",
+            "dispose"
+          ],
+          "leaseAtDisposal": false
+        }
+      },
+      {
+        "name": "R1:admitted-async-setup-drains-without-external-reopening",
+        "pass": true,
+        "details": {
+          "installed": true,
+          "leaseAtDisposal": false,
+          "externalAdmission": false
+        }
+      }
+    ],
+    "riskConsumed": 0,
+    "boundaryObserver": {
+      "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1/dist/index.js",
+      "method": "public promise continuation before harness finally/dispose; no additional worker listeners; transparent middleware records command signal listener counts",
+      "boundaries": [
+        {
+          "kind": "exec",
+          "execution": 1,
+          "shell": 1,
+          "source": "owned",
+          "rejected": false,
+          "result": {
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc2VsZWN0ZWQgZXhlY3V0aW9uIGZhaWx1cmUK"
+          },
+          "callerAborted": false,
+          "exactCallerReason": null,
+          "callerAbortListenersBefore": null,
+          "callerAbortListeners": null,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": false,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 1,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 2,
+          "shell": 2,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "AggregateError",
+            "name": "AggregateError",
+            "message": "Invocation cleanup failed",
+            "errors": [
+              {
+                "type": "Error",
+                "name": "Error",
+                "message": "other secondary cleanup failure"
+              },
+              {
+                "type": "Error",
+                "name": "Error",
+                "message": "secondary cleanup failure"
+              }
+            ]
+          },
+          "callerAborted": false,
+          "exactCallerReason": null,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": false,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 2,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 3,
+          "shell": 3,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "number",
+            "value": 0
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 3,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 4,
+          "shell": 4,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "boolean",
+            "value": false
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 4,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 5,
+          "shell": 5,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "string",
+            "value": ""
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 5,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 6,
+          "shell": 6,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "object",
+            "value": {
+              "code": "ENOENT"
+            }
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 6,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 7,
+          "shell": 7,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "ShellLimitError",
+            "name": "ShellLimitError",
+            "message": "Shell limit exceeded: maxCommands",
+            "limit": "maxCommands"
+          },
+          "callerAborted": false,
+          "exactCallerReason": null,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": false,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 7,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 8,
+          "shell": 8,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "number",
+            "value": 0
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 8,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 9,
+          "shell": 9,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "boolean",
+            "value": false
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 9,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 10,
+          "shell": 10,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "string",
+            "value": ""
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 10,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 11,
+          "shell": 11,
+          "source": "owned",
+          "rejected": true,
+          "error": {
+            "type": "object",
+            "value": {
+              "code": "ENOENT"
+            }
+          },
+          "callerAborted": true,
+          "exactCallerReason": true,
+          "callerAbortListenersBefore": 0,
+          "callerAbortListeners": 0,
+          "contexts": [
+            {
+              "command": "owned",
+              "aborted": true,
+              "abortListeners": 0
+            }
+          ],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 11,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 12,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 12,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "exec",
+          "execution": 12,
+          "shell": 13,
+          "source": "true",
+          "rejected": true,
+          "error": {
+            "type": "Error",
+            "name": "Error",
+            "message": "Shell is disposed"
+          },
+          "callerAborted": false,
+          "exactCallerReason": null,
+          "callerAbortListenersBefore": null,
+          "callerAbortListeners": null,
+          "contexts": [],
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 13,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 13,
+          "rejected": false,
+          "workers": []
+        },
+        {
+          "kind": "dispose",
+          "shell": 13,
+          "rejected": false,
+          "workers": []
+        }
+      ],
+      "finalWorkers": []
+    }
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "scope": "additive independent contract triage; prepared runtime.mjs and all old assertion bodies unchanged",
+  "riskConsumed": 0
+}

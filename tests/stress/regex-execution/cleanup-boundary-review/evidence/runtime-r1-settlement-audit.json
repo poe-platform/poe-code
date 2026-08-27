@@ -1,0 +1,385 @@
+{
+  "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "time": "2026-08-27T08:44:31.122Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "summaries": [
+    {
+      "name": "runtime-r1-verified-compiled-old-five.json",
+      "originalTriples": 24,
+      "originalTriplePasses": 24,
+      "originalBoundaries": 5,
+      "originalBoundaryPasses": 5,
+      "publicBoundaries": [
+        {
+          "execSettlements": 24,
+          "disposeSettlements": 24,
+          "workers": 25,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-compiled-old-five/production-continuation-review/snapshots/candidate/dist/index.js"
+        },
+        {
+          "execSettlements": 1,
+          "disposeSettlements": 1,
+          "workers": 1,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-compiled-old-five/production-continuation-review/snapshots/candidate/dist/index.js"
+        },
+        {
+          "execSettlements": 2,
+          "disposeSettlements": 2,
+          "workers": 2,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-compiled-old-five/production-continuation-review/snapshots/candidate/dist/index.js"
+        },
+        {
+          "execSettlements": 1,
+          "disposeSettlements": 1,
+          "workers": 1,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-compiled-old-five/production-continuation-review/snapshots/candidate/dist/index.js"
+        }
+      ]
+    },
+    {
+      "name": "runtime-r1-verified-packed-old-five.json",
+      "originalTriples": 24,
+      "originalTriplePasses": 24,
+      "originalBoundaries": 5,
+      "originalBoundaryPasses": 5,
+      "publicBoundaries": [
+        {
+          "execSettlements": 24,
+          "disposeSettlements": 24,
+          "workers": 25,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js"
+        },
+        {
+          "execSettlements": 1,
+          "disposeSettlements": 1,
+          "workers": 1,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js"
+        },
+        {
+          "execSettlements": 2,
+          "disposeSettlements": 2,
+          "workers": 2,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js"
+        },
+        {
+          "execSettlements": 1,
+          "disposeSettlements": 1,
+          "workers": 1,
+          "ownedActiveAtExec": 0,
+          "ownedWorkerListenersAtExec": 0,
+          "callerAndObservedContextAbortListenersAtExec": 0,
+          "siblingLive": [],
+          "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js"
+        }
+      ],
+      "packageArchiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b"
+    },
+    {
+      "name": "runtime-r1-verified-runtime.json",
+      "counts": {
+        "controls": 8,
+        "passed": 7,
+        "failed": 1
+      },
+      "disposition": "preserved wrong-layer ordinary Error expectation; additive true rejection controls are separate",
+      "publicBoundaries": {
+        "execSettlements": 18,
+        "disposeSettlements": 19,
+        "workers": 2,
+        "ownedActiveAtExec": 0,
+        "ownedWorkerListenersAtExec": 0,
+        "callerAndObservedContextAbortListenersAtExec": 0,
+        "siblingLive": [
+          {
+            "execution": 11,
+            "source": "owned",
+            "workers": [
+              {
+                "id": 1,
+                "originExecution": 13
+              },
+              {
+                "id": 2,
+                "originExecution": 12
+              }
+            ]
+          },
+          {
+            "execution": 13,
+            "source": "grep -E '^a'",
+            "workers": [
+              {
+                "id": 2,
+                "originExecution": 12
+              }
+            ]
+          }
+        ],
+        "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified/dist/index.js"
+      }
+    },
+    {
+      "name": "runtime-r1-triage.json",
+      "counts": {
+        "controls": 13,
+        "passed": 13,
+        "failed": 0
+      },
+      "publicBoundaries": {
+        "execSettlements": 12,
+        "disposeSettlements": 16,
+        "workers": 0,
+        "ownedActiveAtExec": 0,
+        "ownedWorkerListenersAtExec": 0,
+        "callerAndObservedContextAbortListenersAtExec": 0,
+        "siblingLive": [],
+        "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1/dist/index.js"
+      }
+    },
+    {
+      "name": "runtime-r1-registration.json",
+      "counts": {
+        "controls": 17,
+        "passed": 17,
+        "failed": 0,
+        "workers": 17,
+        "active": 0
+      },
+      "transport": "checked-in benign ControlledWorker; no native worker or regex evaluation"
+    }
+  ],
+  "historicalAssertionsUntouched": true,
+  "allSourceClosuresIdentical": true,
+  "sourceFiles": 216,
+  "emittedFiles": 704,
+  "artifacts": [
+    {
+      "path": "evidence/runtime-r1-audit.json",
+      "sha256": "3d8bfbbb35a9f6d3868f84d11451c7c525dcc5ad419e1fffdc3d825d6bf96d25"
+    },
+    {
+      "path": "evidence/runtime-r1-build.json",
+      "sha256": "88d09d6ab1429211c31bb1bfb60d494b9cf1b68ca81b54a3d6923e55478ba2af"
+    },
+    {
+      "path": "evidence/runtime-r1-combination.json",
+      "sha256": "9554b7395431c41ba5b90438b4cfa6d6d97bbd316815ff4a272b71898d2d9e27"
+    },
+    {
+      "path": "evidence/runtime-r1-compiled-old-five.json",
+      "sha256": "691de97b45f4434249bedb143ce91b39917985d1eef225cee7985b281fcab14e"
+    },
+    {
+      "path": "evidence/runtime-r1-freeze.json",
+      "sha256": "11393027a812e9e25cc4af47309c38b9f444f8f8099e4772a04e6dfc145dd70a"
+    },
+    {
+      "path": "evidence/runtime-r1-identity-attempt.json",
+      "sha256": "9fb0d567aa9e1bd15f8587ec095a8b140ee6016edf28c4a6dd43fae8030baa99"
+    },
+    {
+      "path": "evidence/runtime-r1-observed-build.json",
+      "sha256": "7d822df6a979dafeba9f9d0c1f925602a477f77ccdcc52666bd471fdbb75132a"
+    },
+    {
+      "path": "evidence/runtime-r1-observed-compiled-old-five.json",
+      "sha256": "89ea189af93f335f59f43d768fd27feeeb439646b4d481a26272863ac9f9aa0b"
+    },
+    {
+      "path": "evidence/runtime-r1-observed-freeze.json",
+      "sha256": "4cf9aa42717329636f96664f6b9949809a2bf0cf321fcf1c9576dec845d0c4ab"
+    },
+    {
+      "path": "evidence/runtime-r1-observed-packed-old-five.json",
+      "sha256": "ae9bae568439d88dad9439b409c97371a0a85c40a472ef0b003e4fd3ac06006a"
+    },
+    {
+      "path": "evidence/runtime-r1-observed-runtime.json",
+      "sha256": "6029229356bfdec80f8c32b1111871b84cb36add12a2adaf525a71880131d869"
+    },
+    {
+      "path": "evidence/runtime-r1-packed-old-five.json",
+      "sha256": "33a3cc356697c85f99d28527ae7fcfe191546a30c73b95d0f471429668701d00"
+    },
+    {
+      "path": "evidence/runtime-r1-registration.json",
+      "sha256": "d1841b3d4f9f4bae5cb19a5edecadb5c49799f4eeccadbc931b5721b8f9842f6"
+    },
+    {
+      "path": "evidence/runtime-r1-runtime.json",
+      "sha256": "baa9c4d7c8c2e70697df8722f2464e098133ffa0b5e66f3c62ad7131b75ed7fc"
+    },
+    {
+      "path": "evidence/runtime-r1-triage.json",
+      "sha256": "0f52dc0a0ac48fbcb2cadc0c17bb9f8ab2477f78b8eb5d34a2f7e53bb9af7a92"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-audit.json",
+      "sha256": "44a5b005b17fafddb26011ef591bbe62c0de3248ae416ede9aba0139c1dd1cf7"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-build.json",
+      "sha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-compiled-old-five.json",
+      "sha256": "15aeec5d5f03a24cdfc2d53066ed728168c6d13bc34a00a28f964bd1fa8869cb"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-freeze.json",
+      "sha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-packed-old-five.json",
+      "sha256": "4be17ec2081f5ce41bd0937e90c7ba3e5e2fc12c15c19d92365386aaa23fb0b2"
+    },
+    {
+      "path": "evidence/runtime-r1-verified-runtime.json",
+      "sha256": "9412555b6c29cfc5f5cdccbe7de73da9b86e25ea200a298664e6fa7867468bda"
+    }
+  ],
+  "harnesses": [
+    {
+      "path": "audit.mjs",
+      "sha256": "35bd5c8239a2a0a4cb6220b041ae3464d263ab13b95b7850d5fa6cf3b092db65"
+    },
+    {
+      "path": "build.mjs",
+      "sha256": "b6527219d23b4d686e51352fb7e0c095106d9f336c0d1984a34a5ea0d2c6a39a"
+    },
+    {
+      "path": "freeze.mjs",
+      "sha256": "2859a9963fdc33074dfa91f3b6ae6514750dd2f4e647b51579230713b3e03ec1"
+    },
+    {
+      "path": "guard.mjs",
+      "sha256": "50220dc53076102ea4ad9f30ac36cab65d9d1d3576ade0151ea0186f7fef8d77"
+    },
+    {
+      "path": "old-five.mjs",
+      "sha256": "77cdf6b76be56498048ef4199cfad5e91c985e01a9b1063d5100ff3a880776c8"
+    },
+    {
+      "path": "registration.mjs",
+      "sha256": "4cc04c1178db3e59d80c56c814f020e3cc8aa2740d952e39870c81c2967c63c7"
+    },
+    {
+      "path": "runtime-r1-audit.mjs",
+      "sha256": "16ce11ed43313a1d649cbb47c76bc5c5a283d408b8119c8b9e076eebc64da986"
+    },
+    {
+      "path": "runtime-r1-identities.mjs",
+      "sha256": "9c1d976931a57077b40381a3b6f2e2e016cc747fafdb28145a37485b4084e523"
+    },
+    {
+      "path": "runtime-r1-observed.mjs",
+      "sha256": "aaa8ca3d557ccb4bfca2adfaaa8c83e81592fbe847c1600392efb0b09b1d25e1"
+    },
+    {
+      "path": "runtime-r1-observer.mjs",
+      "sha256": "fb7ef063c08f24fe3945a8a7f1f92461ac005deaceb752b9a9e34152a332418a"
+    },
+    {
+      "path": "runtime-r1-package-resolver.mjs",
+      "sha256": "b3a770ff03b2c87f0daf7f5b21ee32b4657d5a834ae5437ae8e00fac0648cbfb"
+    },
+    {
+      "path": "runtime-r1-triage.mjs",
+      "sha256": "f5d576911714c5ce9daabb1173c4b05269aac666338605c45a439d70ed2e0646"
+    },
+    {
+      "path": "runtime.mjs",
+      "sha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007"
+    },
+    {
+      "path": "throughput.mjs",
+      "sha256": "479c705abd439a80a524e98bb04f711f3f7014671941d3085200d13d8b57d94f"
+    }
+  ],
+  "observerVersions": {
+    "firstObservedAndFailedPacked": "680e80e559386181af0382140f1d56f9d74b081825a86637cc5af1deaf3465d9",
+    "triage": "6321a39eb1c96f93a3c5c57d3a545cc179802db9f0305771a389b11514e64620",
+    "finalVerified": "fb7ef063c08f24fe3945a8a7f1f92461ac005deaceb752b9a9e34152a332418a",
+    "exactReconstruction": "earlier observer text derives from final by the two literal ESM-to-createRequire substitutions in this audit; first observer also omits dispose shell-id assignment"
+  },
+  "allExactChildPids": [
+    12025,
+    12028,
+    12035,
+    12036,
+    23265,
+    23282,
+    23288,
+    23290,
+    23361,
+    23362,
+    23363,
+    23364,
+    23228,
+    12098,
+    12100,
+    12106,
+    12111,
+    11988,
+    11986,
+    24697,
+    27623,
+    27627,
+    27633,
+    27634,
+    27695,
+    27696,
+    27702,
+    27703,
+    27705
+  ],
+  "exactChildCheck": {
+    "command": "/bin/ps",
+    "args": [
+      "-p",
+      "12025,12028,12035,12036,23265,23282,23288,23290,23361,23362,23363,23364,23228,12098,12100,12106,12111,11988,11986,24697,27623,27627,27633,27634,27695,27696,27702,27703,27705",
+      "-o",
+      "pid=,ppid=,command="
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  "sourceAndRootChanges": "none by verifier; observed live root edits remain outside frozen input",
+  "currentWorktreeStatus": " M package.json\n M tsconfig.json\n?? benchmarks/reports/sort-performance-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/harness-review/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/fraction-expansion/\n?? tests/fs/webdav/atomic-extension-independent/phase2/\n?? tests/plugins/qualified-current-release-native-data/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-audit.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-combination.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-identity-attempt.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-registration.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-triage.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-audit.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-audit.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-identities.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observed.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observer.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-package-resolver.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-triage.mjs\n?? tests/stress/regex-execution/runtime-error-adjudication/\n",
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "throughput": "not run; separate leaf owns startup and equivalent 32-file workload",
+  "globalTypecheck": "not run; frozen source/config compile and moved consumer passed, immutable native DATA qualification remains separate",
+  "defaultAcceptance": false
+}

@@ -1,0 +1,184 @@
+{
+  "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+  "fixture": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "contract": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "time": "2026-08-27T08:39:09.723Z",
+  "sourceManifestSha256": "11393027a812e9e25cc4af47309c38b9f444f8f8099e4772a04e6dfc145dd70a",
+  "buildManifestSha256": "88d09d6ab1429211c31bb1bfb60d494b9cf1b68ca81b54a3d6923e55478ba2af",
+  "sourceFiles": 216,
+  "compiledFiles": 704,
+  "identities": [
+    {
+      "path": "src/commands/grep.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/commands/regex-execution/README.md",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "commit": "10273352f8d65d929cbf5a23e69119414dacee60",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/contracts/command.md",
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "identicalAtRuntime": true
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-setup.test.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "runtimeCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "6b39db101c9ed9f1cf6cd4b79ba195a96d885aaee425adc5f9330af3a126bf5e",
+      "identicalAtRuntime": true
+    }
+  ],
+  "harnesses": [
+    {
+      "path": "freeze.mjs",
+      "sha256": "2859a9963fdc33074dfa91f3b6ae6514750dd2f4e647b51579230713b3e03ec1"
+    },
+    {
+      "path": "build.mjs",
+      "sha256": "b6527219d23b4d686e51352fb7e0c095106d9f336c0d1984a34a5ea0d2c6a39a"
+    },
+    {
+      "path": "old-five.mjs",
+      "sha256": "77cdf6b76be56498048ef4199cfad5e91c985e01a9b1063d5100ff3a880776c8"
+    },
+    {
+      "path": "runtime.mjs",
+      "sha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007"
+    },
+    {
+      "path": "registration.mjs",
+      "sha256": "4cc04c1178db3e59d80c56c814f020e3cc8aa2740d952e39870c81c2967c63c7"
+    },
+    {
+      "path": "guard.mjs",
+      "sha256": "50220dc53076102ea4ad9f30ac36cab65d9d1d3576ade0151ea0186f7fef8d77"
+    },
+    {
+      "path": "audit.mjs",
+      "sha256": "35bd5c8239a2a0a4cb6220b041ae3464d263ab13b95b7850d5fa6cf3b092db65"
+    }
+  ],
+  "packedRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-packed-old-five/production-continuation-review/node_modules/virtual-bash",
+  "staticWorkerGraph": [
+    {
+      "path": "dist/commands/regex-execution/worker.js",
+      "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js"
+      ]
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js",
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "imports": [
+        "node:buffer"
+      ]
+    }
+  ],
+  "protocolExports": [
+    "RegexExecutionError",
+    "defaults",
+    "inputBytes",
+    "policy",
+    "validateReply"
+  ],
+  "defaults": {
+    "activeMs": 1000,
+    "startupMs": 3000,
+    "leases": 2
+  },
+  "immutableNativeData": [
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts",
+      "sha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "provenance": "existing ignored native DATA, not git-tracked runtime source"
+    }
+  ],
+  "globalTypecheck": "NOT RUN: six immutable DATA files retain TS2304 qualification; Faraday alone owns root configuration",
+  "riskConsumed": 0
+}

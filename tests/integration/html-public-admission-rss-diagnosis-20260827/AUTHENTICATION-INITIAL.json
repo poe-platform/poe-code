@@ -1,0 +1,295 @@
+{
+  "at": "2026-08-27T23:06:00.803Z",
+  "selected": [
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/SEAL.json",
+      "sha256": "82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7",
+      "bytes": 11903,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/MANIFEST.json",
+      "sha256": "3d78ae7a8967aafba3a33343d9ded8d3bb964c63d8ac1a60033750eae73c3d1e",
+      "bytes": 16490,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/core.mjs",
+      "sha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+      "bytes": 11953,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls.mjs",
+      "sha256": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016",
+      "bytes": 9888,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/stream-fixture.mjs",
+      "sha256": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+      "bytes": 580,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/run.mjs",
+      "sha256": "93772a99c377a950307fdbefcf5f87ed7292a89c105833c4e180a0099f95de1d",
+      "bytes": 12770,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+      "sha256": "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+      "bytes": 220282,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/001-exact-metadata-and410-inputs.json",
+      "sha256": "d0f402a1f0b190a413fdd222ce18770e7f2dcbd5f4b294c64f7323ad18fd5c48",
+      "bytes": 258,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/029-source-stream-error-exact.json",
+      "sha256": "baec05fd220268b313c9bbed085dce77e9d30f27aaee62ddba536f3e98b62ae3",
+      "bytes": 938,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/030-oversized-producer-chunk.json",
+      "sha256": "bac7c134ead9067bd3f3748106af75b34d7962106cffe0d88addb35e29e3cf07",
+      "bytes": 893,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/031-over1GiB-positive-backpressure.json",
+      "sha256": "7af193c584979034b4ba1b1443dd00238659ce4d7cc3a605a75d3aeedb040d08",
+      "bytes": 787,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/032-over1GiB-wrong-hash.json",
+      "sha256": "3ef56d214cf04a35599dec71381fc8bde293251c34e8478c093e83da366c3bae",
+      "bytes": 1430,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/033-over1GiB-short-stream.json",
+      "sha256": "0d579e99994ee195ca215f58ba6cd5f9ef986144cae392b87deec14aed8aaca8",
+      "bytes": 1352,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/034-over1GiB-hard-limit.json",
+      "sha256": "1102beabfa6d5d9f4661f17e2460d8b63dc30f0a583ad0a7918a22e44e4bb5ec",
+      "bytes": 1312,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/035-over1GiB-child-exit-checked.json",
+      "sha256": "447ad62ccfb70e264823ddd5730e39972fced7beeabf356254f3110f4ea20441",
+      "bytes": 1191,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/PRE.json",
+      "sha256": "51712ee69d788ebb6bd0cbcae8296d3a15aee6b56d6e9c344372d5ac24a3604f",
+      "bytes": 4120,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/SUMMARY.json",
+      "sha256": "4b3130e8de705b50c78349862ccd7847a340aea97aa3f4fbff3fc9ce1f0d244c",
+      "bytes": 4072,
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls.PRE.json",
+      "sha256": "f25fddae379440fb030a6b6712d7c512a6a7c102bedff2a4edfaac5e146fc00b",
+      "bytes": 1389,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls.stdout.data",
+      "sha256": "a434cfee72d8c580e55b8a30472b99db325d557caf17f7d53fef83300235ec71",
+      "bytes": 3877,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls.stderr.data",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/SUPERVISOR.json",
+      "sha256": "034050c211da82bd25a008e5ccc3a51c31e643edfe8267e18e13ed3194ff918f",
+      "bytes": 2561,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/supervise.mjs",
+      "sha256": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+      "bytes": 6594,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "sha256": "f8a46eeb9c8d17b26adb47e508d5b834fb1f345a4d22875532d6c7b5b39ee5fb",
+      "bytes": 7535,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/STATIC-REVIEW.md",
+      "sha256": "0cf414ca2afd7dbe55effd28b67e70da52bf7d838cd7e1da2a258dfae84c4130",
+      "bytes": 6848,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/SETTLEMENT-QUALIFICATION.json",
+      "sha256": "327c2892c70fdcb9ab791a09f8b822b3450d1c86939df10e83f6e25cfc791530",
+      "bytes": 757,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/001-exact-metadata-and410-inputs.json",
+      "sha256": "97655ebaced0a2c3781b08c640e5913ec6069fdf510fc8522e648e7f0f95c36c",
+      "bytes": 258,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/029-source-stream-error-exact.json",
+      "sha256": "8039f08d1060545ecc69ae46bac6eeb10ede93c2775514038635dc3ec1068ebd",
+      "bytes": 938,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/030-oversized-producer-chunk.json",
+      "sha256": "472a58ab2ae005a4f147c3b2621e8e7a8b32ed4f7428da3883aa475045e3ae3c",
+      "bytes": 893,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/031-over1GiB-positive-backpressure.json",
+      "sha256": "6d2aba2efd55e0c1466a5e94e52d1af60e89db8d8f35af3dd5c1e8c0be40baf3",
+      "bytes": 1021,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/032-over1GiB-wrong-hash.json",
+      "sha256": "5d96def653be6b7ca112c990f2e2708e506600ae21408b920e13242422403697",
+      "bytes": 1430,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/033-over1GiB-short-stream.json",
+      "sha256": "a9cd34e085d946f5ad05755cd50d8a99600b7acfea06bbcb120f1285dda0748e",
+      "bytes": 1352,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/034-over1GiB-hard-limit.json",
+      "sha256": "94283197c0c78bf9eb8990c4f027689b80511e3e3d74f54b6b0b3b9717d030ab",
+      "bytes": 1312,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/035-over1GiB-child-exit-checked.json",
+      "sha256": "2dc2fcc6ebb28ac3029fb59e497594d015e6ba0187599f384f3b28083ac270f9",
+      "bytes": 1191,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/PRE.json",
+      "sha256": "fa30a6e7ea9f0335958299790169919e33538c64b6c08a840358cb38341ce14c",
+      "bytes": 13540,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/SUMMARY.json",
+      "sha256": "b8dc173cc63a1fa33c76f2e1f9f7a7bf798e4efb216297b61d9f75b60d3da09c",
+      "bytes": 4129,
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48"
+    }
+  ],
+  "selectedCount": 35,
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    }
+  ],
+  "memoryMentions": [
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/MANIFEST.json",
+      "line": 4,
+      "text": "  \"disposition\": \"BLOCKED: one independent RSS control failure; not admission acceptance\","
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/031-over1GiB-positive-backpressure.json",
+      "line": 11,
+      "text": "    \"maxRssBytes\": 261767168,"
+    },
+    {
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls-01/031-over1GiB-positive-backpressure.json",
+      "line": 26,
+      "text": "    \"sampledRssCeilingBytes\": 268435456"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "line": 13,
+      "text": "## Genuine finding: independent RSS control fails"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "line": 17,
+      "text": "`assert.ok(result.maxRssBytes < 256 * 1024 ** 2)`."
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "line": 23,
+      "text": "chunk-bound checks before that assertion. The exact sampled RSS number is **not"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "line": 34,
+      "text": "and child exit7. Their expected failures are passes, unlike the RSS assertion."
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/README.md",
+      "line": 59,
+      "text": "  positive RSS behavior supersedes the provisional static-only disposition in"
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/STATIC-REVIEW.md",
+      "line": 73,
+      "text": "  concurrency1, actual producer drain, byte count and sampled RSS below256MiB."
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/031-over1GiB-positive-backpressure.json",
+      "line": 7,
+      "text": "    \"message\": \"The expression evaluated to a falsy value:\\n\\n  assert.ok(result.maxRssBytes < 256 * 1024 ** 2)\\n\","
+    },
+    {
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/execution/controls/031-over1GiB-positive-backpressure.json",
+      "line": 9,
+      "text": "    \"stack\": \"AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\\n\\n  assert.ok(result.maxRssBytes < 256 * 1024 ** 2)\\n\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:81:10\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:73:1\""
+    }
+  ],
+  "independentManifestCounts": {
+    "files": 93,
+    "covered": 92
+  },
+  "scope": "Selected small source/capture files only; no full archive hashing. v2run binding is admission-v2/run.mjs. Original independent RSS number not present in searched captures; author positive number is a different execution."
+}

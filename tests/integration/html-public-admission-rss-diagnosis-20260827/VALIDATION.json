@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-27T23:09:48.754Z",
+  "verifierSha256": "4a08e47ab8bf2e6e00bdf1847fac1bc3c2dbb218646a267a57d3368097576ce0",
+  "scope": "Read-only checks of existing single execution and selected frozen inputs; no diagnostic invocation, threshold pass assertion, product/cohort/archive execution",
+  "resultSha256": "40172c5e7724c96052602d00fd1d446b57e30590f28d89f6ebaa647f9e7b431e",
+  "producerSha256": "3ae9dfaac8498f8fdc094ae063985c894b4c6aac850c8a2041c3c219d5dc5141",
+  "recipeFreeze": "fe284b27b1e46995b62017d4ce6af900e51c421f",
+  "recipeFiles": 8,
+  "selectedHistoricalFiles": 35,
+  "allChecksCompleted": true,
+  "originalDisposition": "HOLD34/35",
+  "actual34": 0
+}

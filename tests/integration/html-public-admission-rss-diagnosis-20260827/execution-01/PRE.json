@@ -1,0 +1,42 @@
+{
+  "at": "2026-08-27T23:07:12.444Z",
+  "freeze": "fe284b27b1e46995b62017d4ce6af900e51c421f",
+  "recipeManifestSha256": "c88355e2068d708e15891fc1a8f274cdd0802436d666f9a1b30663523028b790",
+  "supervisorSha256": "b600f480c50428d8b9f19e620e5502ff10297825b767b4e0e204c0f7815d14bd",
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--max-old-space-size=96",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/diagnose.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+      "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/tmp",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/tmp",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "GIT_CONFIG_NOSYSTEM": "1",
+      "GIT_CONFIG_GLOBAL": "/dev/null",
+      "GIT_NO_REPLACE_OBJECTS": "1",
+      "GIT_TERMINAL_PROMPT": "0",
+      "HTML74_RESULT": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/RESULT.json",
+      "HTML74_PRODUCER_TELEMETRY": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/PRODUCER.json"
+    },
+    "detached": true,
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/stdout.data",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/execution-01/stderr.data",
+    "processListing": {
+      "executable": "/bin/ps",
+      "args": [
+        "-axo",
+        "pid=,ppid=,pgid=,stat=,command="
+      ]
+    }
+  },
+  "environmentSha256": "b3c0b9155bc39e4d95a790750d0817330c43d8fdc6ca8cfb63587c0abe045241",
+  "commandSha256": "c6014bb4d7eb4de50fa092cfd8b7638fcc7c6b7d68127bf05e1ccd513b56978b",
+  "runsAllowed": 1,
+  "candidateExecuted": false
+}

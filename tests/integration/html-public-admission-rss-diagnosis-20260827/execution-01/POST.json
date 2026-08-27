@@ -1,0 +1,31 @@
+{
+  "at": "2026-08-27T23:07:14.007Z",
+  "selectedRelevantFilesUnchanged": 35,
+  "toolsUnchanged": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    }
+  ],
+  "recipeFreeze": "fe284b27b1e46995b62017d4ce6af900e51c421f",
+  "recipeManifestSha256": "c88355e2068d708e15891fc1a8f274cdd0802436d666f9a1b30663523028b790",
+  "recipePathInventoryAppendChecked": true,
+  "foreignIndexCompared": false,
+  "fullArchiveRehashed": false,
+  "tmpEntries": [],
+  "resultSha256": "40172c5e7724c96052602d00fd1d446b57e30590f28d89f6ebaa647f9e7b431e",
+  "producerSha256": "3ae9dfaac8498f8fdc094ae063985c894b4c6aac850c8a2041c3c219d5dc5141",
+  "stdoutSha256": "501916d4a1fe7b8164c0a7651aea8b69a9fc3a4e538c3d86edb58631dd5f6dc0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

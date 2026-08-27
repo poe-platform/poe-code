@@ -1,0 +1,18 @@
+{
+  "created": "2026-08-27T15:00:00.516Z",
+  "baselineCommit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "originalFreezeCommit": "fcd6d0218725342e4ef1aa098e23b0cdfbe9cd10",
+  "originalExpectedSha256": "0657905d7f92d9dbd0ff691ce79aecf33f724bedaffab5a0e29d47c1c491dcd8",
+  "expectedSha256": "591e0a23cbf8c4a4acbc385e3bacd8bbb6fcff5315d9caa3b72debd2f67be776",
+  "holdoutsSha256": "89ec31349ac604edeca60b7f77e400a5062e07289c7f936d603f20a044e74f13",
+  "rootAuthorizationSha256": "27a6e41210822f55d07f315848f8385d906b50963800dac38d9387a2706acace",
+  "caseCount": 34,
+  "candidateInspected": false,
+  "candidateExecuted": false,
+  "sourceEffectiveFlagsVerified": true,
+  "unchangedOriginalCases": 32,
+  "correctedOriginalCases": 1,
+  "addedExplicitLocalReplacementCases": 1,
+  "capRecipesUnchanged": 11,
+  "originalBaselineOutcome": "21/21 acceptance and 32/33 original hidden; immutable failure retained"
+}

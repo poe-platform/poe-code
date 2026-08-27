@@ -1,0 +1,448 @@
+{
+  "specimens": [
+    {
+      "id": "precision-integers",
+      "script": "sort -ns",
+      "stdin": "OTAwNzE5OTI1NDc0MDk5MyBiCjkwMDcxOTkyNTQ3NDA5OTIgYQotOTAwNzE5OTI1NDc0MDk5MiBjCi05MDA3MTk5MjU0NzQwOTkzIGQKOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5IGUKMTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCBmCg==",
+      "files": {},
+      "expected": {
+        "stdout": "LTkwMDcxOTkyNTQ3NDA5OTMgZAotOTAwNzE5OTI1NDc0MDk5MiBjCjkwMDcxOTkyNTQ3NDA5OTIgYQo5MDA3MTk5MjU0NzQwOTkzIGIKOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5IGUKMTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCBmCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "precision-fractions",
+      "script": "sort -ns",
+      "stdin": "MC4wMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMiBiCjAuMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDEgYQotMC4wMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMSBjCi0wLjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAyIGQKMC4wMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMTAwMDAgZQo=",
+      "files": {},
+      "expected": {
+        "stdout": "LTAuMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIgZAotMC4wMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMSBjCjAuMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDEgYQowLjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxMDAwMCBlCjAuMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIgYgo=",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "prefix-grammar",
+      "script": "sort -ns",
+      "stdin": "KzkgcGx1cwoxZTkgZXhwb25lbnQKLS4yNSBuZWdhdGl2ZQogIAktMDAwLjAwMCB6ZXJvCi41IGhhbGYKMS4wb25lCi0tMiBpbnZhbGlkCkluZmluaXR5IGludmFsaWQKLiBpbnZhbGlkCgstMiBpbnZhbGlkCgkyIHRhYnMK",
+      "files": {},
+      "expected": {
+        "stdout": "LS4yNSBuZWdhdGl2ZQorOSBwbHVzCiAgCS0wMDAuMDAwIHplcm8KLS0yIGludmFsaWQKSW5maW5pdHkgaW52YWxpZAouIGludmFsaWQKCy0yIGludmFsaWQKLjUgaGFsZgoxZTkgZXhwb25lbnQKMS4wb25lCgkyIHRhYnMK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-stable",
+      "script": "sort -ns",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-byte-fallback",
+      "script": "sort -n",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MDAxIGQKMDEgYgoxIGEKMS4wIGMK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-reverse-fallback",
+      "script": "sort -nr",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MS4wIGMKMSBhCjAxIGIKMDAxIGQK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-reverse-stable",
+      "script": "sort -nrs",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-unique-first",
+      "script": "sort -nu",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MDEgYgo=",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "ties-reverse-unique-first",
+      "script": "sort -nru",
+      "stdin": "MDEgYgoxIGEKMS4wIGMKMDAxIGQK",
+      "files": {},
+      "expected": {
+        "stdout": "MDEgYgo=",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "signed-zero-unique",
+      "script": "sort -nu",
+      "stdin": "LTAwMC4wMDAgZmlyc3QKMCBzZWNvbmQKKzEgdGhpcmQKbm9ubnVtZXJpYyBsYXN0Cg==",
+      "files": {},
+      "expected": {
+        "stdout": "LTAwMC4wMDAgZmlyc3QK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-explicit-numeric-key",
+      "script": "sort -ns -k2,2n",
+      "stdin": "OSAxIHoKMSA5IGEKNCAyIGIK",
+      "files": {},
+      "expected": {
+        "stdout": "OSAxIHoKNCAyIGIKMSA5IGEK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-multiple-keys",
+      "script": "sort -n -t: -k2,2n -k1,1r",
+      "stdin": "YToyCmM6MgpiOjEK",
+      "files": {},
+      "expected": {
+        "stdout": "YjoxCmM6MgphOjIK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-key-inherits-global",
+      "script": "sort -nr -t: -k2,2",
+      "stdin": "eDoyCnk6MTAK",
+      "files": {},
+      "expected": {
+        "stdout": "eToxMAp4OjIK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-key-character-offsets",
+      "script": "sort -s -t: -k2.2,2.3n",
+      "stdin": "YTp4MjB6CmI6eDAzegpjOngxMHoK",
+      "files": {},
+      "expected": {
+        "stdout": "Yjp4MDN6CmM6eDEwegphOngyMHoK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-blanks",
+      "script": "sort -nbs",
+      "stdin": "IAkyIGIKIDEgYQotMSBjCg==",
+      "files": {},
+      "expected": {
+        "stdout": "LTEgYwogMSBhCiAJMiBiCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-fold",
+      "script": "sort -nf",
+      "stdin": "MSB6CjEgQQoyIGIK",
+      "files": {},
+      "expected": {
+        "stdout": "MSBBCjEgegoyIGIK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-plain",
+      "script": "sort ",
+      "stdin": "OQoxMAoyCg==",
+      "files": {},
+      "expected": {
+        "stdout": "MTAKMgo5Cg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-check-success",
+      "script": "sort -cns",
+      "stdin": "MSB6CjAxIGEKMiBiCg==",
+      "files": {},
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-check-disorder",
+      "script": "sort -cn",
+      "stdin": "MgoxCg==",
+      "files": {},
+      "expected": {
+        "stdout": "",
+        "stderr": "c29ydDogZGlzb3JkZXIgYXQgcmVjb3JkIDIK",
+        "status": 1,
+        "files": {}
+      }
+    },
+    {
+      "id": "guard-check-unique",
+      "script": "sort -cnu",
+      "stdin": "MQowMQo=",
+      "files": {},
+      "expected": {
+        "stdout": "",
+        "stderr": "c29ydDogZGlzb3JkZXIgYXQgcmVjb3JkIDIK",
+        "status": 1,
+        "files": {}
+      }
+    },
+    {
+      "id": "empty-input",
+      "script": "sort -n",
+      "stdin": "",
+      "files": {},
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "empty-records",
+      "script": "sort -ns",
+      "stdin": "CgoK",
+      "files": {},
+      "expected": {
+        "stdout": "CgoK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "empty-records-unique",
+      "script": "sort -nu",
+      "stdin": "CgoK",
+      "files": {},
+      "expected": {
+        "stdout": "Cg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "natural-eof",
+      "script": "sort -n",
+      "stdin": "Mgox",
+      "files": {},
+      "expected": {
+        "stdout": "MQoyCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "binary-numeric-fallback",
+      "script": "sort -n",
+      "stdin": "Mf8KMQAKMYA=",
+      "files": {},
+      "expected": {
+        "stdout": "MQAKMYAKMf8K",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "nul-numeric-fallback",
+      "script": "sort -nz",
+      "stdin": "Mf8AMQoAMYA=",
+      "files": {},
+      "expected": {
+        "stdout": "MQoAMYAAMf8A",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "id": "owned-offset-10-2",
+      "script": "sort -ns input",
+      "stdin": "",
+      "files": {
+        "input": "MjAgegotMSBhCjMgeQ=="
+      },
+      "expected": {
+        "stdout": "LTEgYQozIHkKMjAgego=",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "input": "MjAgegotMSBhCjMgeQ=="
+        }
+      },
+      "borrowedWidth": 2
+    },
+    {
+      "id": "owned-offset-10-7",
+      "script": "sort -ns input",
+      "stdin": "",
+      "files": {
+        "input": "MjAgegotMSBhCjMgeQ=="
+      },
+      "expected": {
+        "stdout": "LTEgYQozIHkKMjAgego=",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "input": "MjAgegotMSBhCjMgeQ=="
+        }
+      },
+      "borrowedWidth": 7
+    },
+    {
+      "id": "owned-offset-0-2",
+      "script": "sort -nsz input",
+      "stdin": "",
+      "files": {
+        "input": "MjAgegAtMSBhADMgeQ=="
+      },
+      "expected": {
+        "stdout": "LTEgYQAzIHkAMjAgegA=",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "input": "MjAgegAtMSBhADMgeQ=="
+        }
+      },
+      "borrowedWidth": 2
+    },
+    {
+      "id": "owned-offset-0-7",
+      "script": "sort -nsz input",
+      "stdin": "",
+      "files": {
+        "input": "MjAgegAtMSBhADMgeQ=="
+      },
+      "expected": {
+        "stdout": "LTEgYQAzIHkAMjAgegA=",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "input": "MjAgegAtMSBhADMgeQ=="
+        }
+      },
+      "borrowedWidth": 7
+    },
+    {
+      "id": "missing-later-keeps-inplace",
+      "script": "sort -n -o input input missing",
+      "stdin": "",
+      "files": {
+        "input": "MgoxCg=="
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "c29ydDogRU5PRU5UOiBubyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5LCByZWFkU3RyZWFtICcvd29yay9taXNzaW5nJwo=",
+        "status": 2,
+        "files": {
+          "input": "MgoxCg=="
+        }
+      }
+    },
+    {
+      "id": "source-error-keeps-output",
+      "script": "sort -n -o kept input",
+      "stdin": "",
+      "files": {
+        "input": "MgoxCg==",
+        "kept": "b3JpZ2luYWw="
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "c29ydDogcmV2aWV3IGluamVjdGVkIEVJTwo=",
+        "status": 2,
+        "files": {
+          "input": "MgoxCg==",
+          "kept": "b3JpZ2luYWw="
+        }
+      },
+      "streamEffect": "error"
+    },
+    {
+      "id": "cancel-between-chunks-keeps-output",
+      "script": "sort -n -o kept input",
+      "stdin": "",
+      "files": {
+        "input": "MgoxCg==",
+        "kept": "b3JpZ2luYWw="
+      },
+      "expected": {
+        "files": {
+          "input": "MgoxCg==",
+          "kept": "b3JpZ2luYWw="
+        }
+      },
+      "streamEffect": "abort",
+      "rejectsReason": true
+    },
+    {
+      "id": "guard-key-local-replaces-global-explicit",
+      "script": "sort -nr -t: -k2,2r",
+      "stdin": "eDoyCnk6MTAK",
+      "files": {},
+      "expected": {
+        "stdout": "eDoyCnk6MTAK",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    }
+  ]
+}

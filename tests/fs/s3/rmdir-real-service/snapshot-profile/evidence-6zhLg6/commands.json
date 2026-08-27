@@ -1,0 +1,95 @@
+[
+  {
+    "name": "build",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "s3-rmdir-profile",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/s3/rmdir.test.ts",
+      "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "scoped-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/fs/s3/rmdir.test.ts",
+      "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "pack",
+    "executable": "npm",
+    "args": [
+      "pack",
+      "--ignore-scripts",
+      "--json",
+      "--pack-destination",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "unpack",
+    "executable": "tar",
+    "args": [
+      "-xzf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/virtual-bash-0.0.0.tgz",
+      "--strip-components=1",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/node_modules/virtual-bash"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "download",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/prepare.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  }
+]

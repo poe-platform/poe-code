@@ -1,0 +1,257 @@
+{
+  "authorOnly": true,
+  "results": [
+    {
+      "name": "public capability and unchanged provider declarations",
+      "kind": "public profile",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:71:12\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:37)\n    at Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:70:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:18\n    at Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "public API removes quiescent explicit marker",
+      "kind": "public positive workflow",
+      "passed": false,
+      "error": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/api'",
+      "stack": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/api'\n    at fail (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:56:11)\n    at S3FileSystem.rmdir (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:549:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:80:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:76:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        0,
+        9
+      ]
+    },
+    {
+      "name": "packed Shell rmdir removes explicit marker",
+      "kind": "public positive workflow",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/shell'\n\n\n1 !== 0\n",
+      "stack": "AssertionError [ERR_ASSERTION]: rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/shell'\n\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:92:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:87:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        9,
+        18
+      ]
+    },
+    {
+      "name": "packed Shell rm -d removes explicit marker",
+      "kind": "public positive workflow",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: rm: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/rm-dir'\n\n\n1 !== 0\n",
+      "stack": "AssertionError [ERR_ASSERTION]: rm: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/rm-dir'\n\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:92:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:87:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        18,
+        30
+      ]
+    },
+    {
+      "name": "packed byte pipeline and pipeline rmdir cleanup",
+      "kind": "public positive workflow",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/pipeline'\n\n\n1 !== 0\n",
+      "stack": "AssertionError [ERR_ASSERTION]: rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/pipeline'\n\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:109:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:100:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        30,
+        67
+      ]
+    },
+    {
+      "name": "nonempty marker with configured pageSize=1",
+      "kind": "public nonempty guard",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ENOTEMPTY'\n       ^\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ENOTEMPTY'\n       ^\n\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:64:14)\n    at expectedException (node:assert:576:17)\n    at expectsError (node:assert:701:21)\n    at Function.rejects (node:assert:767:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async reject (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:62:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:120:7\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:118:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5",
+      "productRequests": [
+        67,
+        71
+      ]
+    },
+    {
+      "name": "nonempty marker with configured pageSize=1000",
+      "kind": "public nonempty guard",
+      "passed": true,
+      "observation": {
+        "code": "ENOTEMPTY",
+        "inspection": [
+          {
+            "method": "GET",
+            "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=snapshot%2Fnonempty%2F",
+            "status": 200
+          }
+        ],
+        "requestPolicyChangedNotOldOracleExpectation": true
+      },
+      "productRequests": [
+        71,
+        75
+      ]
+    },
+    {
+      "name": "/nonempty/file retains ENOTDIR",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTDIR",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        75,
+        81
+      ]
+    },
+    {
+      "name": "/missing retains ENOENT",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOENT",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        81,
+        85
+      ]
+    },
+    {
+      "name": "/ retains EBUSY",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "EBUSY",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        85,
+        85
+      ]
+    },
+    {
+      "name": "/implicit retains ENOTEMPTY",
+      "kind": "public negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTEMPTY",
+        "descendantsPreserved": true
+      },
+      "productRequests": [
+        85,
+        90
+      ]
+    },
+    {
+      "name": "readonly and pre-aborted profile make no requests",
+      "kind": "public denial",
+      "passed": true,
+      "observation": {
+        "codes": [
+          "EROFS",
+          "ECANCELED"
+        ],
+        "requests": 0
+      },
+      "productRequests": [
+        90,
+        90
+      ]
+    },
+    {
+      "name": "ambiguous file-prefix representation is not deleted",
+      "kind": "public representation guard",
+      "passed": true,
+      "observation": {
+        "code": "ENOTSUP",
+        "bothEntriesPreserved": true
+      },
+      "productRequests": [
+        90,
+        93
+      ]
+    },
+    {
+      "name": "late nested descendants survive successful public rmdir",
+      "kind": "public snapshot race",
+      "passed": false,
+      "error": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/race'",
+      "stack": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/race'\n    at fail (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:56:11)\n    at S3FileSystem.rmdir (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:549:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:175:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:161:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        93,
+        97
+      ]
+    },
+    {
+      "name": "public unconditional marker removal characterizes same-content ABA",
+      "kind": "public snapshot identity limit",
+      "passed": false,
+      "error": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/aba'",
+      "stack": "FsError: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/aba'\n    at fail (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:56:11)\n    at S3FileSystem.rmdir (file:///Users/kjopek/Workspace/safe-bash/dist/fs/s3/filesystem.js:549:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:196:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:185:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:100:19",
+      "productRequests": [
+        97,
+        101
+      ]
+    },
+    {
+      "name": "DELETE authorization failure preserves typed error and marker",
+      "kind": "actual service error",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'EACCES'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'EACCES'\n\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:64:14)\n    at expectedException (node:assert:576:17)\n    at expectsError (node:assert:701:21)\n    at Function.rejects (node:assert:767:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async reject (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:62:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:210:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:201:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5",
+      "productRequests": [
+        101,
+        105
+      ]
+    },
+    {
+      "name": "abort after actual LIST prevents DELETE",
+      "kind": "actual service cancellation boundary",
+      "passed": true,
+      "observation": {
+        "code": "ECANCELED",
+        "markerPreserved": true
+      },
+      "productRequests": [
+        105,
+        109
+      ]
+    },
+    {
+      "name": "abort during issued DELETE after HTTP204 retains completed effect",
+      "kind": "actual service cancellation with effects",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ECANCELED'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ECANCELED'\n\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:64:14)\n    at expectedException (node:assert:576:17)\n    at expectsError (node:assert:701:21)\n    at Function.rejects (node:assert:767:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async reject (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:62:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:243:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:231:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5",
+      "productRequests": [
+        109,
+        113
+      ]
+    },
+    {
+      "name": "host response-loss error does not roll back actual service deletion",
+      "kind": "synthetic host error after actual service success",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'ENOTSUP' !== 'EIO'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'ENOTSUP' !== 'EIO'\n\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:64:14)\n    at expectedException (node:assert:576:17)\n    at expectsError (node:assert:701:21)\n    at Function.rejects (node:assert:767:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async reject (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:62:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:256:5\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:21:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6/consumer/service-checks.mjs:249:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs:102:5",
+      "productRequests": [
+        113,
+        117
+      ]
+    },
+    {
+      "name": "native stale If-Match still does not verify conditional DELETE",
+      "kind": "native provider limitation",
+      "passed": true,
+      "observation": {
+        "observed": 204,
+        "requiredForVerifiedGuard": 412,
+        "conditionalDelete": false
+      },
+      "productRequests": [
+        117,
+        117
+      ]
+    }
+  ],
+  "positivePublicWorkflows": 0,
+  "historicalServiceCohort": "19/20 unchanged",
+  "historicalMatrix": "77/79 not rerun"
+}

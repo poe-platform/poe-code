@@ -1,0 +1,9 @@
+{
+  "headBefore": "ab7cce5b8ae3ba88012f4ec682cf9a65b32fb2f7",
+  "headAfter": "ab7cce5b8ae3ba88012f4ec682cf9a65b32fb2f7",
+  "liveVersusFrozenInputs": [],
+  "frozenChanged": [],
+  "sourcePatch": "",
+  "success": true,
+  "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/evidence-bDQayH/service-BY47dp"
+}

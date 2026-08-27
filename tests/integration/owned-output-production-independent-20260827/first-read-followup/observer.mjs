@@ -8,7 +8,7 @@ import { gate, httpFixture, s3Fixture, Trace } from './helpers.mjs';
 
 const scenario = process.argv[2], started = gate(), closed = gate(), hostRelease = gate(), requiredRelease = gate();
 const events = [], signals = new Map(), removals = [], snapshots = [], unhandled = [], cleanupErrors = [];
-const counters = { activeSource: 0, sourceReads: 0, sourceReturns: 0, cleanupRegistrations: 0, acquiredResources: 0, resourceReleases: 0, cleanupCalls: 0, cleanupCompleted: 0, fetchCalls: 0, fetchPending: 0, bodyReaders: 0, readsPending: 0, readerReleases: 0, readerCancelCalls: 0, readerCancelCompleted: 0, bodyCancelCalls: 0, bodyCancelCompleted: 0, clientRequests: 0, clientCloses: 0, responseDisposals: 0, responseDisposalsDone: 0 };
+const counters = { activeSource: 0, sourceReads: 0, sourceReturns: 0, cleanupRegistrations: 0, acquiredResources: 0, resourceReleases: 0, cleanupCalls: 0, cleanupCompleted: 0, fetchCalls: 0, fetchPending: 0, bodyReaders: 0, readsPending: 0, readerReleases: 0, readerCancelCalls: 0, readerCancelCompleted: 0, bodyCancelCalls: 0, bodyCancelCompleted: 0, clientRequests: 0, clientCloses: 0, responseAcquired: 0, responseReadsPending: 0, responseReadCalls: 0, responseIteratorReturns: 0, responseIteratorReturnsDone: 0, responseDisposals: 0, responseDisposalsDone: 0 };
 let phase = 'setup', settled, shell, callerForced = false, serverForcing = false, observationDeadline = false, hostReleased = false, fixture;
 const describe = reason => reason instanceof Error ? { name: reason.name, code: reason.code, message: reason.message } : { type: typeof reason, value: reason };
 function mark(event, detail = {}) { assert(events.length < 700); events.push({ sequence: events.length, phase, at: performance.now(), event, ...detail }); }
@@ -46,33 +46,34 @@ function pendingSource(signal, controlled = false) {
 }
 const originalFetch = globalThis.fetch;
 globalThis.fetch = (...args) => {
-  counters.fetchCalls++; counters.fetchPending++; mark('fetch-start');
+  counters.fetchCalls++; counters.fetchPending++; const request = { fetchId: counters.fetchCalls, method: args[1]?.method ?? 'GET', url: String(args[0]) }; mark('fetch-start', request);
   const pending = Reflect.apply(originalFetch, globalThis, args);
   return pending.then(response => {
-    counters.fetchPending--; mark('fetch-response');
+    counters.fetchPending--; mark('fetch-response', request);
     if (response.body) {
       const body = response.body, getReader = body.getReader.bind(body), cancel = body.cancel.bind(body);
       body.cancel = (...args) => {
         counters.bodyCancelCalls++; const result = cancel(...args);
-        void result.then(() => { counters.bodyCancelCompleted++; mark('body-cancel-finish'); }, error => mark('body-cancel-error', { error: describe(error) })); return result;
+        void result.then(() => { counters.bodyCancelCompleted++; mark('body-cancel-finish', request); }, error => mark('body-cancel-error', { ...request, error: describe(error) })); return result;
       };
       body.getReader = (...args) => {
         const reader = getReader(...args), read = reader.read.bind(reader), readerCancel = reader.cancel.bind(reader), releaseLock = reader.releaseLock.bind(reader);
-        counters.bodyReaders++; mark('reader-acquire');
+        counters.bodyReaders++; mark('reader-acquire', request);
         reader.read = (...args) => {
-          counters.readsPending++; mark('reader-read'); const result = read(...args);
-          void result.then(value => { counters.readsPending--; mark('reader-read-finish', { done: value.done }); }, error => { counters.readsPending--; mark('reader-read-error', { error: describe(error) }); }); return result;
+          counters.readsPending++; mark('reader-read', request); const result = read(...args);
+          if (scenario === 'new-webdav-body-acquired' && request.method === 'GET') { mark('body-read-admitted-before-downstream-close', request); started.resolve(); }
+          void result.then(value => { counters.readsPending--; mark('reader-read-finish', { ...request, done: value.done }); }, error => { counters.readsPending--; mark('reader-read-error', { ...request, error: describe(error) }); }); return result;
         };
         reader.cancel = (...args) => {
-          counters.readerCancelCalls++; mark('reader-cancel-start'); const result = readerCancel(...args);
-          void result.then(() => { counters.readerCancelCompleted++; mark('reader-cancel-finish'); }, error => mark('reader-cancel-error', { error: describe(error) })); return result;
+          counters.readerCancelCalls++; mark('reader-cancel-start', request); const result = readerCancel(...args);
+          void result.then(() => { counters.readerCancelCompleted++; mark('reader-cancel-finish', request); }, error => mark('reader-cancel-error', { ...request, error: describe(error) })); return result;
         };
-        reader.releaseLock = () => { const result = releaseLock(); counters.readerReleases++; mark('reader-release-lock'); return result; };
+        reader.releaseLock = () => { const result = releaseLock(); counters.readerReleases++; mark('reader-release-lock', request); return result; };
         return reader;
       };
     }
     return response;
-  }, error => { counters.fetchPending--; mark('fetch-error', { error: describe(error) }); throw error; });
+  }, error => { counters.fetchPending--; mark('fetch-error', { ...request, error: describe(error) }); throw error; });
 };
 const clientRequests = new WeakSet(), originalEmit = ClientRequest.prototype.emit;
 ClientRequest.prototype.emit = function (event, ...args) {
@@ -88,13 +89,13 @@ try {
   let fs = new MemoryFileSystem(), url;
   if (scenario === 'first-read-s3') {
     ({ fs } = await s3Fixture(trace, { async getObjectStream(_input, options) { assert(options?.abortSignal); return { Body: pendingSource(options.abortSignal), ContentLength: 13 }; } }));
-  } else if (scenario === 'first-read-webdav' || scenario.startsWith('first-read-curl-') || scenario === 'new-required-destinations') {
+  } else if (scenario === 'first-read-webdav' || scenario.startsWith('first-read-curl-') || ['new-required-destinations', 'new-webdav-body-acquired', 'new-curl-body-acquired'].includes(scenario)) {
     fixture = await httpFixture(trace, (request, response) => {
       if (request.method !== 'GET') return false;
       counters.activeSource++; counters.sourceReads++;
       response.once('close', () => { counters.activeSource--; counters.sourceReturns++; mark('server-response-close'); closed.resolve(); });
       if (scenario !== 'first-read-curl-headers') { response.writeHead(200, { 'Content-Length': '13' }); response.flushHeaders(); }
-      mark('server-get-pending'); setImmediate(() => started.resolve());
+      mark('server-get-pending'); if (!scenario.endsWith('-body-acquired')) setImmediate(() => started.resolve());
       if (scenario === 'new-required-destinations') void requiredRelease.promise.then(() => { mark('server-provides-required-body'); response.end('first\nsecond\n'); });
       return true;
     });
@@ -102,7 +103,7 @@ try {
     const address = fixture.server.address(); url = `http://127.0.0.1:${address.port}/dav/input`;
   }
   shell = new Shell({ fs }).use(agentCommands());
-  if (scenario.startsWith('first-read-curl-') || scenario === 'new-required-destinations') {
+  if (scenario.startsWith('first-read-curl-') || ['new-required-destinations', 'new-curl-body-acquired'].includes(scenario)) {
     const transport = createNodeHttpTransport();
     shell.use(networkCommands({ authorize: request => request.url === url && request.method === 'GET', transport(input) {
       watch('curl-transport', input.signal);
@@ -114,8 +115,23 @@ try {
         });
       } } : {}) });
       return pending.then(response => {
+        counters.responseAcquired++; mark('curl-response-acquired');
         const dispose = response.dispose.bind(response);
-        return { ...response, dispose() { counters.responseDisposals++; mark('response-dispose-start'); const result = dispose(); void Promise.resolve(result).then(() => { counters.responseDisposalsDone++; mark('response-dispose-finish'); }, error => mark('response-dispose-error', { error: describe(error) })); return result; } };
+        const body = { [Symbol.asyncIterator]() {
+          const iterator = response.body[Symbol.asyncIterator]();
+          return {
+            next(...args) {
+              counters.responseReadCalls++; counters.responseReadsPending++; mark('curl-body-read'); const result = iterator.next(...args);
+              if (scenario === 'new-curl-body-acquired') { mark('body-read-admitted-before-downstream-close'); started.resolve(); }
+              void result.then(value => { counters.responseReadsPending--; mark('curl-body-read-finish', { done: value.done }); }, error => { counters.responseReadsPending--; mark('curl-body-read-error', { error: describe(error) }); }); return result;
+            },
+            return(...args) {
+              counters.responseIteratorReturns++; mark('curl-body-return'); const result = iterator.return ? iterator.return(...args) : Promise.resolve({ done: true, value: undefined });
+              void result.then(() => { counters.responseIteratorReturnsDone++; mark('curl-body-return-finish'); }, error => mark('curl-body-return-error', { error: describe(error) })); return result;
+            },
+          };
+        } };
+        return { ...response, body, dispose() { counters.responseDisposals++; mark('response-dispose-start'); const result = dispose(); void Promise.resolve(result).then(() => { counters.responseDisposalsDone++; mark('response-dispose-finish'); }, error => mark('response-dispose-error', { error: describe(error) })); return result; } };
       });
     } }));
   }
@@ -148,7 +164,7 @@ try {
     async next() { counters.sourceReads++; throw new Error('head zero must not read'); },
     async return() { counters.sourceReturns++; return { done: true, value: undefined }; },
   }; } } : undefined;
-  const producer = scenario === 'first-read-local' || scenario.startsWith('new-local-') || scenario === 'new-legacy-controlled' ? 'pending-stream' : scenario === 'new-required-destinations' ? `curl -v -o /body -D /headers ${url}` : scenario.startsWith('first-read-curl-') ? `curl ${url}` : 'cat /input';
+  const producer = scenario === 'first-read-local' || scenario.startsWith('new-local-') || scenario === 'new-legacy-controlled' ? 'pending-stream' : scenario === 'new-required-destinations' ? `curl -v -o /body -D /headers ${url}` : scenario.startsWith('first-read-curl-') || scenario === 'new-curl-body-acquired' ? `curl ${url}` : 'cat /input';
   report.command = scenario === 'first-read-head-zero' ? 'head -n 0' : `${producer} | head -n 0; true`;
   phase = 'execution'; mark('exec-start');
   const pending = shell.exec(report.command, { signal: trace.controller.signal, ...(stdin ? { stdin } : {}) }).then(result => {

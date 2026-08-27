@@ -14,7 +14,7 @@ function inventory(root) { const result = {}; for (const name of readdirSync(roo
   else { assert(stat.isFile()); result[name] = hash(readFileSync(path)); }
 } return result; }
 const before = inventory(binding.consumer), output = mkdtempSync(join(binding.work, 'run-')), rows = [];
-const cases = ['first-read-head-zero', 'first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers', 'new-local-cleanup-only', 'new-local-enrolled', 'new-legacy-controlled', 'new-required-destinations'];
+const cases = ['first-read-head-zero', 'first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers', 'new-local-cleanup-only', 'new-local-enrolled', 'new-legacy-controlled', 'new-required-destinations', 'new-webdav-body-acquired', 'new-curl-body-acquired'];
 const selected = process.argv.slice(2), chosen = selected.length ? cases.filter(id => selected.includes(id)) : cases;
 assert(chosen.length > 0);
 for (let repeat = 1; repeat <= 2; repeat++) for (const id of chosen) {

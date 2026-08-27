@@ -1,0 +1,10 @@
+{
+  "frozenAt": "2026-08-27T20:50:31.223Z",
+  "independentFreeze": "30dda5b9",
+  "files": {
+    "tests/commands/expr/encounter-order.test.ts": "717833e284ba7de577a063b52b53a85ae5b0f19af38f5dce7a93fb761da9cb66",
+    "src/commands/expr/syntax.ts": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+    "src/commands/expr/evaluate.ts": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+    "src/commands/expr/index.ts": "b1ad46e35f4077659aee2d148ab30a1ac6ba4032a877669ae2c5bfb27447c7fa"
+  }
+}

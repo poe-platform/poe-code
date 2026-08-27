@@ -1,0 +1,39 @@
+{
+  "sourceCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "quotaCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "testCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "sourcePolicy": "Committed relative-import closure only. Tests bind the candidate test commit even on quota-only baseline; no live source overlays.",
+  "sourceFiles": 219,
+  "compressedBytes": 382812,
+  "archiveSha256": "1619498fe894b7f93fd971109d56b445b161e4d9d982e23438eead8a54ba77f4",
+  "expandedSha256": "a056861ac2566d8f64a6338f82c877b64183e7357d928b71d20a05d9c166f8cd",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "arch": "arm64",
+  "native": "No native execution. Authenticated historical GNU9.7 Darwin expectations only; no Linux claim.",
+  "exprTests": [
+    "tests/commands/expr/abort-reason-regression.test.ts",
+    "tests/commands/expr/contracts.test.ts",
+    "tests/commands/expr/diagnostics-regression.test.ts",
+    "tests/commands/expr/encounter-order.test.ts",
+    "tests/commands/expr/grammar.test.ts",
+    "tests/commands/expr/inactive-prefix.test.ts",
+    "tests/commands/expr/named-profile.test.ts",
+    "tests/commands/expr/output-quota.test.ts",
+    "tests/commands/expr/regex-lifecycle.test.ts",
+    "tests/commands/expr/regex-limits.test.ts",
+    "tests/commands/expr/regex-protocol.test.ts",
+    "tests/commands/expr/repeat-history/invariants.test.ts"
+  ],
+  "sharedTests": [
+    "tests/commands/regex-execution/commands.test.ts",
+    "tests/commands/regex-execution/executor.test.ts",
+    "tests/commands/expr/regex-protocol.test.ts"
+  ],
+  "nativeTestsNotExecuted": [
+    "tests/commands/expr/native.test.ts",
+    "tests/commands/expr/regex-native.test.ts"
+  ],
+  "declarations": "source build, not full public-consumer or deployed-provider acceptance"
+}

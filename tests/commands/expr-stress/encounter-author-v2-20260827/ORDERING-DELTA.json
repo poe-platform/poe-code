@@ -1,0 +1,2020 @@
+{
+  "sourceCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "quotaCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "sourceHashes": {
+    "src/commands/expr/syntax.ts": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4",
+    "src/commands/expr/evaluate.ts": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+    "src/commands/expr/index.ts": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+    "tests/commands/expr/encounter-order.test.ts": "717833e284ba7de577a063b52b53a85ae5b0f19af38f5dce7a93fb761da9cb66",
+    "src/commands/expr/internal.ts": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/regex-execution/client.ts": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+  },
+  "atomicSourcePaths": [
+    "src/commands/expr/evaluate.ts",
+    "src/commands/expr/index.ts",
+    "src/commands/expr/syntax.ts",
+    "tests/commands/expr/encounter-order.test.ts"
+  ],
+  "quotaFixPreservedOutsideExactIntegration": true,
+  "readonlyProductionPathsUnchanged": [
+    "src/commands/expr/internal.ts",
+    "src/commands/expr/bre-worker.ts",
+    "src/commands/regex-execution/client.ts",
+    "src/commands/regex-execution/protocol.ts"
+  ],
+  "historicalSelectedPathsUnchanged": [
+    {
+      "commit": "e9ff18dc",
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/freeze/cases.json",
+      "sha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314"
+    },
+    {
+      "commit": "e9ff18dc",
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/driver.mjs",
+      "sha256": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613"
+    },
+    {
+      "commit": "514f8407",
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/product.json",
+      "sha256": "b72d2ab3e990f112984330f018f1e211ba7d47ede1a9ac16ad6e172595121dce"
+    },
+    {
+      "commit": "514f8407",
+      "path": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/native-semantics.json",
+      "sha256": "f731ff89519429d2ab111c49ccf97deb9a7ddb258d259fcd8e48eb4cecd9593c"
+    },
+    {
+      "commit": "cf5caabe",
+      "path": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-unchanged.json",
+      "sha256": "6fd12fc992ae68bb13b76f4ede2bdd03f0757eb866c0c3caa0febf1cf2600e5c"
+    }
+  ],
+  "original": {
+    "old": {
+      "passed": 42,
+      "total": 61,
+      "failures": [
+        {
+          "id": "root-counterexample",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "modulo-trailing",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "noninteger-trailing",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "left-error-before-next-operator-missing",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "left-error-before-next-same-precedence",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "left-error-before-skipped-syntax",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "group-runtime-before-missing-close",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "group-runtime-before-wrong-close",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "nested-runtime-before-close",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "prefix-first-argument-before-missing-second",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "prefix-second-before-missing-third",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "regex-error-before-trailing",
+          "failures": [
+            "stderr",
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-error-before-close",
+          "failures": [
+            "stderr",
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-error-before-later-missing",
+          "failures": [
+            "stderr",
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-prefix-error-before-outer-arity",
+          "failures": [
+            "stderr",
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-success-before-trailing",
+          "failures": [
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-success-before-missing-close",
+          "failures": [
+            "submission count"
+          ]
+        },
+        {
+          "id": "regex-success-before-runtime",
+          "failures": [
+            "stderr",
+            "submission count"
+          ]
+        },
+        {
+          "id": "first-regex-before-second-syntax",
+          "failures": [
+            "submission count"
+          ]
+        }
+      ]
+    },
+    "new": {
+      "passed": 61,
+      "total": 61,
+      "failures": []
+    }
+  },
+  "nearby": {
+    "old": {
+      "passed": 11,
+      "total": 16,
+      "failures": [
+        {
+          "id": "nested-runtime-before-late-token",
+          "failures": [
+            "stderr"
+          ]
+        },
+        {
+          "id": "prefix-regex-before-late-token",
+          "failures": [
+            "exact encounter-order submissions"
+          ]
+        },
+        {
+          "id": "abort-result-before-late-close",
+          "failures": [
+            "rejection identity/output",
+            "exact encounter-order submissions"
+          ]
+        },
+        {
+          "id": "stdout-failure-no-regex-replay",
+          "failures": [
+            "exitCode",
+            "stderr"
+          ]
+        },
+        {
+          "id": "stderr-failure-after-regex",
+          "failures": [
+            "exact encounter-order submissions"
+          ]
+        }
+      ]
+    },
+    "new": {
+      "passed": 15,
+      "total": 16,
+      "failures": [
+        {
+          "id": "stdout-failure-no-regex-replay",
+          "failures": [
+            "exitCode",
+            "stderr"
+          ]
+        }
+      ]
+    }
+  },
+  "focused": {
+    "old": {
+      "passed": 9,
+      "total": 28
+    },
+    "new": {
+      "passed": 28,
+      "total": 28
+    },
+    "provenance": "Frozen new author regression file; baseline uses quota source with this candidate-bound test file, never relabelled as historical old tests."
+  },
+  "unchangedSelectedCanonical": {
+    "old": {
+      "passed": 558,
+      "total": 559
+    },
+    "new": {
+      "passed": 558,
+      "total": 559
+    },
+    "exclusions": "Two native-oracle test files not executed; 28 new tests excluded from this old-test denominator."
+  },
+  "exprAggregate": {
+    "old": {
+      "status": 1,
+      "counts": {
+        "tests": 587,
+        "suites": 0,
+        "pass": 567,
+        "fail": 20,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failed": [
+        "not ok 135 - sink failure is status 3 and diagnostic failure is not swallowed",
+        "not ok 210 - encounter-order v2 [\"7\",\"/\",\"0\",\"late\"]",
+        "not ok 211 - encounter-order v2 [\"7\",\"%\",\"0\",\"+\"]",
+        "not ok 212 - encounter-order v2 [\"bad\",\"*\",\"2\",\"+\",\"length\"]",
+        "not ok 213 - encounter-order v2 [\"(\",\"7\",\"/\",\"0\"]",
+        "not ok 214 - encounter-order v2 [\"length\",\"(\",\"7\",\"/\",\"0\",\")\",\"late\"]",
+        "not ok 215 - encounter-order v2 [\"substr\",\"abc\",\"(\",\"7\",\"/\",\"0\",\")\"]",
+        "not ok 220 - encounter-order v2 [\"a\",\":\",\"[\",\"late\"]",
+        "not ok 221 - encounter-order v2 [\"(\",\"a\",\":\",\"[\"]",
+        "not ok 222 - encounter-order v2 [\"index\",\"match\",\"a\",\"[\"]",
+        "not ok 223 - encounter-order v2 [\"a\",\":\",\"a\",\"late\"]",
+        "not ok 224 - encounter-order v2 [\"(\",\"a\",\":\",\"a\"]",
+        "not ok 225 - encounter-order v2 [\"match\",\"(\",\"a\",\":\",\"a\",\")\",\"(\"]",
+        "not ok 227 - encounter-order v2 inactive values absent [\"HIDDEN\",\"+\",\"999\"]",
+        "not ok 228 - encounter-order v2 inactive values absent [\"HIDDEN\",\":\",\"[\"]",
+        "not ok 229 - encounter-order v2 inactive values absent [\"length\",\"HIDDEN\"]",
+        "not ok 230 - encounter-order v2 inactive values absent [\"index\",\"HIDDEN\",\"Z\"]",
+        "not ok 231 - encounter-order v2 inactive values absent [\"substr\",\"HIDDEN\",\"999\",\"888\"]",
+        "not ok 232 - encounter-order v2 inactive values absent [\"match\",\"HIDDEN\",\"[\"]",
+        "not ok 237 - encounter-order v2 actual Shell invocation retains earlier error and completed job"
+      ]
+    },
+    "new": {
+      "status": 1,
+      "counts": {
+        "tests": 587,
+        "suites": 0,
+        "pass": 586,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failed": [
+        "not ok 135 - sink failure is status 3 and diagnostic failure is not swallowed"
+      ]
+    }
+  },
+  "shared": {
+    "old": {
+      "status": 0,
+      "counts": {
+        "tests": 61,
+        "suites": 0,
+        "pass": 61,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failed": []
+    },
+    "new": {
+      "status": 0,
+      "counts": {
+        "tests": 61,
+        "suites": 0,
+        "pass": 61,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failed": []
+    },
+    "overlap": "Five expr regex-protocol tests overlap expr aggregate; do not sum into unique coverage."
+  },
+  "categories": {
+    "arithmeticNoninteger": 11,
+    "regexOrderingSubmissions": 8,
+    "unchangedFinalDiagnosticButNowRequiredJob": [
+      "regex-success-before-trailing",
+      "regex-success-before-missing-close",
+      "first-regex-before-second-syntax"
+    ]
+  },
+  "failures": [
+    {
+      "id": "root-counterexample",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "modulo-trailing",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "1",
+        "%",
+        "0",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "noninteger-trailing",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: non-integer argument\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "left-error-before-next-operator-missing",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "+"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '+'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "left-error-before-next-same-precedence",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "*"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '*'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "left-error-before-skipped-syntax",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "|",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected ')'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "group-runtime-before-missing-close",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' after '0'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "group-runtime-before-wrong-close",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "nested-runtime-before-close",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "length",
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "prefix-first-argument-before-missing-second",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "index",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after ')'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "prefix-second-before-missing-third",
+      "category": "arithmetic/noninteger-order",
+      "args": [
+        "substr",
+        "abc",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after ')'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-error-before-trailing",
+      "category": "regex-order/submission",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: Invalid regular expression\n"
+        },
+        "jobs": [
+          {
+            "pattern": "[",
+            "subject": "a",
+            "allowance": 7999983
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-error-before-close",
+      "category": "regex-order/submission",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "["
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' after '['\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: Invalid regular expression\n"
+        },
+        "jobs": [
+          {
+            "pattern": "[",
+            "subject": "a",
+            "allowance": 7999983
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-error-before-later-missing",
+      "category": "regex-order/submission",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "+"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '+'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: Invalid regular expression\n"
+        },
+        "jobs": [
+          {
+            "pattern": "[",
+            "subject": "a",
+            "allowance": 7999983
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-prefix-error-before-outer-arity",
+      "category": "regex-order/submission",
+      "args": [
+        "index",
+        "match",
+        "a",
+        "["
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '['\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: Invalid regular expression\n"
+        },
+        "jobs": [
+          {
+            "pattern": "[",
+            "subject": "a",
+            "allowance": 7999975
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-success-before-trailing",
+      "category": "regex-order/submission",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [
+          {
+            "pattern": "a",
+            "subject": "a",
+            "allowance": 7999983,
+            "steps": 57
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "match-result",
+            "index": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-success-before-missing-close",
+      "category": "regex-order/submission",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+        },
+        "jobs": [
+          {
+            "pattern": "a",
+            "subject": "a",
+            "allowance": 7999983,
+            "steps": 57
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "match-result",
+            "index": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "regex-success-before-runtime",
+      "category": "regex-order/submission",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "/",
+        "0",
+        "x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n"
+        },
+        "jobs": [
+          {
+            "pattern": "a",
+            "subject": "a",
+            "allowance": 7999979,
+            "steps": 57
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "match-result",
+            "index": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "id": "first-regex-before-second-syntax",
+      "category": "regex-order/submission",
+      "args": [
+        "match",
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "("
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "baseline": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '('\n"
+        },
+        "jobs": [],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "submission count"
+        ]
+      },
+      "candidate": {
+        "observed": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: missing argument after '('\n"
+        },
+        "jobs": [
+          {
+            "pattern": "a",
+            "subject": "a",
+            "allowance": 7999973,
+            "steps": 57
+          }
+        ],
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start"
+          },
+          {
+            "kind": "worker-post",
+            "operation": "expr-match"
+          },
+          {
+            "kind": "match-result",
+            "index": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "session-close-start"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "session-close-end"
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": []
+      }
+    }
+  ],
+  "remaining": {
+    "original61": [],
+    "nearby": [
+      {
+        "id": "stdout-failure-no-regex-replay",
+        "args": [
+          "a",
+          ":",
+          "a"
+        ],
+        "env": {
+          "LC_ALL": "C"
+        },
+        "expected": {
+          "exitCode": 3,
+          "stdout": "",
+          "stderr": "expr: execution or output failure\n"
+        },
+        "observed": {
+          "rejected": "sink",
+          "message": "independent sink failure",
+          "stdout": "",
+          "stderr": ""
+        },
+        "jobs": [
+          {
+            "subject": "a",
+            "pattern": "a",
+            "allowance": 7999985,
+            "steps": 57
+          }
+        ],
+        "encodes": [
+          "a",
+          "a",
+          "1"
+        ],
+        "budgetCount": 1,
+        "sessionCount": 1,
+        "events": [
+          {
+            "kind": "cleanup-registered"
+          },
+          {
+            "kind": "match-enter",
+            "index": 1
+          },
+          {
+            "kind": "worker-start",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-author-v2-20260827/node_modules/candidate-01/dist/commands/regex-execution/worker.js"
+          },
+          {
+            "kind": "match-result",
+            "index": 1
+          },
+          {
+            "kind": "match-settled"
+          },
+          {
+            "kind": "stdout-start",
+            "bytes": 2
+          },
+          {
+            "kind": "close-start"
+          },
+          {
+            "kind": "worker-exit",
+            "code": 1
+          },
+          {
+            "kind": "close-end",
+            "activeWorkers": 0
+          },
+          {
+            "kind": "execute-settled",
+            "activeWorkers": 0
+          },
+          {
+            "kind": "overlapping-cleanups-awaited",
+            "activeWorkers": 0
+          }
+        ],
+        "failures": [
+          "exitCode",
+          "stderr"
+        ],
+        "passed": false
+      }
+    ],
+    "oldCapSeparate": {
+      "id": "old-syntax-output-one-separate",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "x"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stderr"
+      ],
+      "passed": false
+    },
+    "canonical": {
+      "path": "tests/commands/expr/contracts.test.ts:138",
+      "args": [
+        "1"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expectedStatus": 3,
+      "expectedDiagnosticPattern": "execution or output failure",
+      "observed": "rejects original Error(\"sink failure\"); no status returned; zero matcher jobs; no stderr write. First await fails, so the diagnostic-sink assertions later in this same test are not reached.",
+      "cause": "Already present on released quota-only baseline; not introduced by encounter traversal."
+    }
+  },
+  "canonicalParseAllConflict": "No new parse-all-before-jobs expectation failure in the 559 unchanged selected non-native canonical tests. Do not invent one. Frozen old driver traces exhibit the 19 production-ordering defects above; they are historical observations, not current passing assertions."
+}

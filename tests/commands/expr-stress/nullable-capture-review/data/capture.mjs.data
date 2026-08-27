@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { platform, release, arch } from 'node:os';
+import { run } from '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/helpers.ts';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const directory = '/tmp/expr-nullable-review.VNLKcM';
+const oracle = root + '/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const paths = ['src/commands/expr/bre-worker.ts', 'src/commands/expr/index.ts', 'src/commands/expr/internal.ts', 'src/commands/expr/evaluate.ts', 'src/commands/regex-execution/protocol.ts', 'src/commands/regex-execution/client.ts', 'src/commands/regex-execution/worker.ts', 'tests/commands/expr/helpers.ts', 'tests/commands/expr/oracle.ts', 'tests/commands/expr-author/regex-audit-cases.ts', 'tests/commands/expr-author/regex-capture-kdugBl/results.json', 'tests/commands/expr-author/regex-capture-kdugBl/summary.json'];
+const sources = () => Object.fromEntries(paths.map(path => [path, hash(readFileSync(root + '/' + path))]));
+const before = sources();
+writeFileSync(directory + '/bre-worker.observed.ts', readFileSync(root + '/src/commands/expr/bre-worker.ts'), { flag: 'wx' });
+const native = args => {
+  assert(args.length <= 8 && args.join('').length <= 256);
+  const result = spawnSync(oracle, args, { cwd: directory, env: { LC_ALL: 'C' }, timeout: 2000, maxBuffer: 16384 });
+  assert.ifError(result.error);
+  assert.equal(result.signal, null);
+  return { exitCode: result.status, stdoutHex: result.stdout.toString('hex'), stderrHex: result.stderr.toString('hex') };
+};
+const oracleHash = hash(readFileSync(oracle));
+assert.equal(oracleHash, 'e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c');
+const startedAt = new Date().toISOString();
+const original = JSON.parse(readFileSync(root + '/tests/commands/expr-author/regex-capture-kdugBl/results.json')).filter(row => row.name.startsWith('nullable-audit/12/'));
+const specimens = original.map(row => ({ name: row.name, args: row.args }));
+for (const [name, pattern, subjects] of [
+  ['length-control', '\\(a*\\)*\\1', ['aaaa', 'aaaaa', 'aaaaaa']],
+  ['no-backref', '\\(a*\\)*', ['', 'aaa']],
+  ['no-outer-repeat', '\\(a*\\)\\1', ['', 'a', 'aa', 'aaa']],
+  ['nonnullable-repeat', '\\(a\\)*\\1', ['', 'a', 'aa', 'aaa']],
+  ['mandatory-repeat', '\\(a*\\)\\{2\\}\\1', ['', 'a', 'aa', 'aaa']],
+  ['bounded-repeat', '\\(a*\\)\\{1,3\\}\\1', ['aa', 'aaa']],
+  ['anchored-end', '\\(a*\\)*\\1$', ['a', 'aa', 'aaa']],
+  ['literal-suffix', '\\(a*\\)*\\1b', ['ab', 'aab', 'aaab']],
+]) for (const subject of subjects) specimens.push({ name: name + '/' + subject, args: ['+', subject, ':', pattern] });
+const rows = [];
+for (const specimen of specimens) {
+  const expected = native(specimen.args);
+  const result = await run(specimen.args);
+  const actual = { exitCode: result.exitCode, stdoutHex: result.stdoutHex, stderrHex: Buffer.from(result.stderr).toString('hex') };
+  rows.push({ ...specimen, expected, actual, equal: JSON.stringify(expected) === JSON.stringify(actual) });
+}
+const after = sources();
+const report = { startedAt, endedAt: new Date().toISOString(), head: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(), status: spawnSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).stdout, profile: { platform: platform(), release: release(), arch: arch(), node: process.version, LC_ALL: 'C' }, oracle: { path: oracle, sha256: oracleHash, version: native(['--version']) }, before, after, changedPaths: paths.filter(path => before[path] !== after[path]), original, rows, limitation: 'Dirty live analysis, not sealed candidate; enumerated hashes not append-proof. Native writes only new owned temporary files. Original author results read only for author-discovered pattern 12.' };
+writeFileSync(directory + '/capture.json', JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ startedAt, endedAt: report.endedAt, profile: report.profile, changedPaths: report.changedPaths, total: rows.length, rows: rows.map(row => [row.name, row.expected, row.actual]) }, null, 2));

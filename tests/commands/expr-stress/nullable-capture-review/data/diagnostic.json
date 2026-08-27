@@ -1,0 +1,1582 @@
+{
+  "capturedAt": "2026-08-27T17:16:50.036Z",
+  "sourceHash": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+  "protocolHash": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+  "typescriptVersion": "5.9.3",
+  "builtInputs": {
+    "dist/commands/expr/bre-worker.js": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+    "dist/commands/regex-execution/protocol.js": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+    "dist/commands/regex-execution/worker.js": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+    "dist/commands/regex-execution/matching.js": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791"
+  },
+  "note": "OS-temp diagnostic variants only, not product edits or a candidate. unguarded removes only rejection; captureAwareCycleOnly is a deliberately incomplete negative-control hypothesis. Built worker hashes recorded after the earlier helper capture, not before it. The TS helper uses dist for its actual worker.",
+  "outputs": {
+    "unguarded": {
+      "moduleHash": "0f896203e572af06cd7c082b280bb097583cc191f77cc3744dd6c3cafe70e050",
+      "rows": [
+        {
+          "name": "nullable-audit/12/0",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 244
+          }
+        },
+        {
+          "name": "nullable-audit/12/1",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 314
+          }
+        },
+        {
+          "name": "nullable-audit/12/2",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 388
+          }
+        },
+        {
+          "name": "nullable-audit/12/3",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 458
+          }
+        },
+        {
+          "name": "nullable-audit/12/4",
+          "args": [
+            "+",
+            "b",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 247
+          }
+        },
+        {
+          "name": "nullable-audit/12/5",
+          "args": [
+            "+",
+            "ab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 318
+          }
+        },
+        {
+          "name": "nullable-audit/12/6",
+          "args": [
+            "+",
+            "aba",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 321
+          }
+        },
+        {
+          "name": "nullable-audit/12/7",
+          "args": [
+            "+",
+            "abab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 324
+          }
+        },
+        {
+          "name": "nullable-audit/12/8",
+          "args": [
+            "+",
+            "aab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 391
+          }
+        },
+        {
+          "name": "nullable-audit/12/9",
+          "args": [
+            "+",
+            "abb",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 321
+          }
+        },
+        {
+          "name": "nullable-audit/12/10",
+          "args": [
+            "+",
+            "ba",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 250
+          }
+        },
+        {
+          "name": "length-control/aaaa",
+          "args": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 4
+            },
+            "capture": {
+              "start": 0,
+              "end": 2
+            },
+            "steps": 533
+          }
+        },
+        {
+          "name": "length-control/aaaaa",
+          "args": [
+            "+",
+            "aaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 4
+            },
+            "capture": {
+              "start": 0,
+              "end": 2
+            },
+            "steps": 603
+          }
+        },
+        {
+          "name": "length-control/aaaaaa",
+          "args": [
+            "+",
+            "aaaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 6
+            },
+            "capture": {
+              "start": 0,
+              "end": 3
+            },
+            "steps": 679
+          }
+        },
+        {
+          "name": "no-backref/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": null,
+            "steps": 216
+          }
+        },
+        {
+          "name": "no-backref/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 0,
+              "end": 3
+            },
+            "steps": 426
+          }
+        },
+        {
+          "name": "no-outer-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 195
+          }
+        },
+        {
+          "name": "no-outer-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 226
+          }
+        },
+        {
+          "name": "no-outer-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 261
+          }
+        },
+        {
+          "name": "no-outer-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 292
+          }
+        },
+        {
+          "name": "nonnullable-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 182
+          }
+        },
+        {
+          "name": "nonnullable-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 221
+          }
+        },
+        {
+          "name": "nonnullable-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 264
+          }
+        },
+        {
+          "name": "nonnullable-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 1,
+              "end": 2
+            },
+            "steps": 307
+          }
+        },
+        {
+          "name": "mandatory-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 317
+          }
+        },
+        {
+          "name": "mandatory-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 425
+          }
+        },
+        {
+          "name": "mandatory-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 565
+          }
+        },
+        {
+          "name": "mandatory-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 733
+          }
+        },
+        {
+          "name": "bounded-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{1,3\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1779
+          }
+        },
+        {
+          "name": "bounded-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{1,3\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 2676
+          }
+        },
+        {
+          "name": "anchored-end/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 337
+          }
+        },
+        {
+          "name": "anchored-end/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 414
+          }
+        },
+        {
+          "name": "anchored-end/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 481
+          }
+        },
+        {
+          "name": "literal-suffix/ab",
+          "args": [
+            "+",
+            "ab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 341
+          }
+        },
+        {
+          "name": "literal-suffix/aab",
+          "args": [
+            "+",
+            "aab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 417
+          }
+        },
+        {
+          "name": "literal-suffix/aaab",
+          "args": [
+            "+",
+            "aaab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 486
+          }
+        }
+      ]
+    },
+    "captureAwareCycleOnly": {
+      "moduleHash": "ab68693a72df62b20a32cb928724068e10f98633fc070981b319c1d9f42d1824",
+      "rows": [
+        {
+          "name": "nullable-audit/12/0",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 337
+          }
+        },
+        {
+          "name": "nullable-audit/12/1",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 714
+          }
+        },
+        {
+          "name": "nullable-audit/12/2",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1473
+          }
+        },
+        {
+          "name": "nullable-audit/12/3",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 2980
+          }
+        },
+        {
+          "name": "nullable-audit/12/4",
+          "args": [
+            "+",
+            "b",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 340
+          }
+        },
+        {
+          "name": "nullable-audit/12/5",
+          "args": [
+            "+",
+            "ab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 719
+          }
+        },
+        {
+          "name": "nullable-audit/12/6",
+          "args": [
+            "+",
+            "aba",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 722
+          }
+        },
+        {
+          "name": "nullable-audit/12/7",
+          "args": [
+            "+",
+            "abab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 725
+          }
+        },
+        {
+          "name": "nullable-audit/12/8",
+          "args": [
+            "+",
+            "aab",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1478
+          }
+        },
+        {
+          "name": "nullable-audit/12/9",
+          "args": [
+            "+",
+            "abb",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 722
+          }
+        },
+        {
+          "name": "nullable-audit/12/10",
+          "args": [
+            "+",
+            "ba",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 343
+          }
+        },
+        {
+          "name": "length-control/aaaa",
+          "args": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 4
+            },
+            "capture": {
+              "start": 4,
+              "end": 4
+            },
+            "steps": 6001
+          }
+        },
+        {
+          "name": "length-control/aaaaa",
+          "args": [
+            "+",
+            "aaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 5
+            },
+            "capture": {
+              "start": 5,
+              "end": 5
+            },
+            "steps": 12030
+          }
+        },
+        {
+          "name": "length-control/aaaaaa",
+          "args": [
+            "+",
+            "aaaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 6
+            },
+            "capture": {
+              "start": 6,
+              "end": 6
+            },
+            "steps": 24097
+          }
+        },
+        {
+          "name": "no-backref/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 300
+          }
+        },
+        {
+          "name": "no-backref/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 2745
+          }
+        },
+        {
+          "name": "no-outer-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 195
+          }
+        },
+        {
+          "name": "no-outer-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 226
+          }
+        },
+        {
+          "name": "no-outer-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 261
+          }
+        },
+        {
+          "name": "no-outer-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 292
+          }
+        },
+        {
+          "name": "nonnullable-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 182
+          }
+        },
+        {
+          "name": "nonnullable-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": false,
+            "hasCapture": true,
+            "overall": null,
+            "capture": null,
+            "steps": 221
+          }
+        },
+        {
+          "name": "nonnullable-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 0,
+              "end": 1
+            },
+            "steps": 264
+          }
+        },
+        {
+          "name": "nonnullable-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\)*\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 1,
+              "end": 2
+            },
+            "steps": 307
+          }
+        },
+        {
+          "name": "mandatory-repeat/",
+          "args": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 0
+            },
+            "capture": {
+              "start": 0,
+              "end": 0
+            },
+            "steps": 317
+          }
+        },
+        {
+          "name": "mandatory-repeat/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 425
+          }
+        },
+        {
+          "name": "mandatory-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 565
+          }
+        },
+        {
+          "name": "mandatory-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 733
+          }
+        },
+        {
+          "name": "bounded-repeat/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{1,3\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1779
+          }
+        },
+        {
+          "name": "bounded-repeat/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{1,3\\}\\1"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 2676
+          }
+        },
+        {
+          "name": "anchored-end/a",
+          "args": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 1
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 765
+          }
+        },
+        {
+          "name": "anchored-end/aa",
+          "args": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1558
+          }
+        },
+        {
+          "name": "anchored-end/aaa",
+          "args": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1$"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 3121
+          }
+        },
+        {
+          "name": "literal-suffix/ab",
+          "args": [
+            "+",
+            "ab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 2
+            },
+            "capture": {
+              "start": 1,
+              "end": 1
+            },
+            "steps": 748
+          }
+        },
+        {
+          "name": "literal-suffix/aab",
+          "args": [
+            "+",
+            "aab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 3
+            },
+            "capture": {
+              "start": 2,
+              "end": 2
+            },
+            "steps": 1519
+          }
+        },
+        {
+          "name": "literal-suffix/aaab",
+          "args": [
+            "+",
+            "aaab",
+            ":",
+            "\\(a*\\)*\\1b"
+          ],
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 4
+            },
+            "capture": {
+              "start": 3,
+              "end": 3
+            },
+            "steps": 3044
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "finishedAt": "2026-08-27T17:20:53.797Z",
+  "files": {
+    "bre-worker.observed.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "capture.json": "5b0b6036db9839ea2eb03e6307ce4e08b5231a47cb8162444d196c879f517dde",
+    "capture.mjs": "900eb03e5bcc47abd945ea3e3e23df30393c701ea26191a0dd108dd71c0fbe14",
+    "captureAwareCycleOnly.mjs": "ab68693a72df62b20a32cb928724068e10f98633fc070981b319c1d9f42d1824",
+    "diagnostic.json": "21a0d2411a97ef710e60829dfe04bebb7f37aea5fe42812adb0e209723613ff0",
+    "diagnostic.mjs": "01a61879ab553d06f52d3b7221ab2ee8480aa8cc1c70f8bec045834060133b83",
+    "protocol.mjs": "2b0328d3859c7a952659655b3395356e949a5b40427ab08ea3ac628fa0fee76f",
+    "register-capture.json": "41105d934ddebe15ffd7c73e3182bc699dc5fc0d4a73c5314d57e46d1d2ee295",
+    "registers": "3dc8f048f1504eda2041d04da8a170bc343613c44bf75d00be4d23cb518f97b6",
+    "registers.c": "cbe9cbbd3114e1cb5465344448697c69cc7cf8fe6ac2b2aa330981234722bd50",
+    "unguarded.mjs": "0f896203e572af06cd7c082b280bb097583cc191f77cc3744dd6c3cafe70e050"
+  },
+  "report": {
+    "path": "/tmp/expr-nullable-diagnosis.txt",
+    "sha256": "f1f58a028a5cc64e8f2e4877e525ea44f78943368235b572e537796ceb6e86b4"
+  },
+  "originalNativeTuplesReproduced": 11,
+  "oracleAfter": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+  "oracleInputsAfter": {
+    "lib/libcoreutils.a": "285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977",
+    "lib/regex.h": "fa71b3d169b5952602d73c9954b53d7bb2761bd42805a3298b63f5966c0a2c64",
+    "lib/regexec.c": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+    "lib/regcomp.c": "9e897576ec5421fbd8b476fb287f323eb61612c85d2ec78b88b4bc508371380e",
+    "src/expr.c": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+    "lib/config.h": "cb3b7a64faca1cd9b6d1683aa636e98da83a0546b2b663c7c5c9b7d3dfeedc4a"
+  },
+  "sourceAfter": {
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/expr/index.ts": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef",
+    "src/commands/expr/internal.ts": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+    "src/commands/expr/evaluate.ts": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "src/commands/regex-execution/client.ts": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+    "src/commands/regex-execution/worker.ts": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "tests/commands/expr/helpers.ts": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "tests/commands/expr/oracle.ts": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+    "tests/commands/expr-author/regex-audit-cases.ts": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+    "tests/commands/expr-author/regex-capture-kdugBl/results.json": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+    "tests/commands/expr-author/regex-capture-kdugBl/summary.json": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518"
+  },
+  "changedSinceCapture": [
+    "src/commands/expr/index.ts"
+  ],
+  "head": "ce131f3f4e6e7da3275cf4fd0f5abbd9d7c1d7a7",
+  "status": "?? src/commands/du/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/\n?? tests/commands/expr-author/extension-validation/\n?? tests/commands/expr-author/regex-capture-UMC1hM/\n?? tests/commands/expr-author/regex-capture-kdugBl/\n?? tests/commands/expr-stress/extension-review/execution/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/aliases-column-public-independent-20260827/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/\n",
+  "stagedPaths": "",
+  "limitations": "Enumerated paths only, not append-proof; permissions are read-only, not filesystem-enforced immutable flags. Concurrent worker changes remain theirs."
+}
